@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
@@ -11,10 +11,11 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { TelemetryService } from '../../../../shared/services/telemetry.service';
-import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
+import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface PapeleraRow {
   id: string;
@@ -33,10 +34,11 @@ function norm(s: string | null | undefined): string {
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
   selector: 'app-personal-obra',
-  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon, FormDrawer, StaggerDirective],
+  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon, FormDrawer, StaggerDirective, TranslatePipe],
   templateUrl: './personal.html',
   styleUrl: './personal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:click)': 'onDocClick($event)' },
 })
 export class PersonalObraLista implements OnInit {
   private service = inject(PersonalObraService);
@@ -46,10 +48,19 @@ export class PersonalObraLista implements OnInit {
   private router = inject(Router);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private host = inject(ElementRef<HTMLElement>);
 
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
   esAdmin = computed(() => this.userService.hasRole('admin'));
   esLegalOAdmin = computed(() => this.esAdmin() || this.userService.hasRole('legal') || this.userService.hasRole('abogado'));
+  // CP — "⋯" agrupa las acciones secundarias (antes 2 botones sueltos); se oculta
+  // del todo si el usuario no tiene ninguna de las dos.
+  tieneAccionesExtra = computed(() => this.esLegalOAdmin() || this.esAdmin());
+  menuOpen = signal(false);
+  toggleMenu() { this.menuOpen.update((v) => !v); }
+  onDocClick(ev: MouseEvent) {
+    if (this.menuOpen() && !this.host.nativeElement.contains(ev.target as Node)) this.menuOpen.set(false);
+  }
 
   // CE16 — panel de posibles duplicados.
   dupOpen = signal(false);
@@ -60,24 +71,19 @@ export class PersonalObraLista implements OnInit {
   papeleraOpen = signal(false);
   papelera = signal<PapeleraRow[]>([]);
 
-  // CE1 — "Mi personal hoy": pendientes de la obra del ingeniero (sin carnet/asegurar/contrato/foto).
-  miPersonalHoy = computed(() =>
-    this.datosPrueba.visibles(this.personal()).filter(
-      (p) => p.estado === 'activo' && (!p.carnet_numero || p.aseguramiento_estado !== 'asegurado' || !p.tiene_contrato || !p.tiene_foto_persona),
-    ),
-  );
-
-  // CF2 — bloque de pendientes plegable (5 + ver todos) y filtro rápido por tipo de pendiente.
-  hoyOpen = signal(false);
-  readonly HOY_PREVIEW = 5;
-  hoyVisibles = computed(() => this.hoyOpen() ? this.miPersonalHoy() : this.miPersonalHoy().slice(0, this.HOY_PREVIEW));
-  // Título según rol: el ingeniero ve "su" personal; admin/legal ven el de todos.
-  hoyTitulo = computed(() => this.esLegalOAdmin() ? 'Pendientes del personal' : 'Mi personal hoy');
-  // Filtro rápido por tipo de pendiente (lo activan los KPI y los chips del bloque).
-  filPendiente = signal<'' | 'sin_carnet' | 'sin_asegurar' | 'sin_contrato' | 'sin_foto'>('');
-  setPendiente(tipo: '' | 'sin_carnet' | 'sin_asegurar' | 'sin_contrato' | 'sin_foto') {
+  // CP — filtro rápido por tipo de pendiente: lo activan los chips de la franja de
+  // progreso Y el dropdown "Pendiente" de la barra de filtros (mismo signal, dos
+  // entradas). Reemplaza el bloque "Pendientes del personal" que duplicaba la tabla.
+  filPendiente = signal('');
+  setPendiente(tipo: string) {
     this.filPendiente.set(this.filPendiente() === tipo ? '' : tipo);
   }
+  readonly pendienteOpt: FilterOption[] = [
+    { value: 'sin_carnet', label: 'Sin carnet' },
+    { value: 'sin_asegurar', label: 'Sin seguro' },
+    { value: 'sin_contrato', label: 'Sin contrato' },
+    { value: 'sin_foto', label: 'Sin foto' },
+  ];
 
   personal = signal<PersonalObra[]>([]);
   obras = signal<ObraRef[]>([]);
@@ -168,6 +174,47 @@ export class PersonalObraLista implements OnInit {
   sinAsegurar = computed(() => this.filtrados().filter((p) => p.aseguramiento_estado !== 'asegurado').length);
   sinContrato = computed(() => this.filtrados().filter((p) => !p.tiene_contrato).length);
   sinFoto = computed(() => this.filtrados().filter((p) => !p.tiene_foto_persona).length);
+
+  // CP — franja de progreso única (reemplaza las 5 tarjetas de KPI idénticas):
+  // "Expedientes completos N de M" + barra, y chips de pendiente que DUPLICAN como
+  // filtro rápido (se ocultan solos cuando su conteo es 0 — nunca "0 sin X").
+  expedientesCompletos = computed(() =>
+    this.filtrados().filter(
+      (p) => !!p.carnet_numero && p.aseguramiento_estado === 'asegurado' && !!p.tiene_contrato && !!p.tiene_foto_persona,
+    ).length,
+  );
+  porcentajeCompletos = computed(() => {
+    const total = this.totalVisibles();
+    return total ? Math.round((this.expedientesCompletos() / total) * 100) : 0;
+  });
+  pendientesChips = computed(() =>
+    ([
+      { tipo: 'sin_carnet', label: 'sin carnet', count: this.sinCarnet() },
+      { tipo: 'sin_asegurar', label: 'sin seguro', count: this.sinAsegurar() },
+      { tipo: 'sin_contrato', label: 'sin contrato', count: this.sinContrato() },
+      { tipo: 'sin_foto', label: 'sin foto', count: this.sinFoto() },
+    ] as const).filter((c) => c.count > 0),
+  );
+
+  /** CP — tags de la columna "Le falta" (solo lo que falta; vacío = expediente completo). */
+  faltantes(p: PersonalObra): string[] {
+    const out: string[] = [];
+    if (!p.carnet_numero) out.push('Carnet');
+    if (p.aseguramiento_estado !== 'asegurado') out.push('Seguro');
+    if (!p.tiene_contrato) out.push('Contrato');
+    if (!p.tiene_foto_persona) out.push('Foto');
+    return out;
+  }
+
+  /** CP — subtítulo de la celda "Persona": nacionalidad · procedencia + fecha, en una línea. */
+  personaSubline(p: PersonalObra): string {
+    const nac = this.nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad;
+    const fecha = this.formatFecha(p.created_at);
+    const origen = p.lote_import
+      ? `importado ${fecha}`
+      : `registrado por ${p.registrado_por_nombre ?? p.registrador?.nombre ?? '—'} ${fecha}`;
+    return `${nac} · ${origen}`;
+  }
 
   // AZ3 — vacío ≠ oculto ≠ error: el estado vacío debe decir la verdad.
   // Cuántos registros existen pero están ocultos SOLO por el filtro de datos de prueba.

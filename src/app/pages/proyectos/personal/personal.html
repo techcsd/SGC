@@ -1,17 +1,31 @@
 <div class="page-header">
   <div>
-    <h1 class="page-title">Personal de obra</h1>
-    <p class="page-subtitle">Registro del personal que trabaja en las obras: expediente, evidencia y carnet.</p>
+    <h1 class="page-title">{{ 'Personal de obra' | t }}</h1>
+    <p class="page-subtitle">{{ totalVisibles() }} {{ 'personas en la vista' | t }} · {{ obrasDistintas() }} {{ 'obras' | t }}</p>
   </div>
   <div class="page-header__actions">
-    @if (esLegalOAdmin()) {
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirDuplicados()">Posibles duplicados</button>
+    <a class="sgc-btn sgc-btn--secondary" routerLink="/proyectos/personal/importar">{{ 'Importar Excel' | t }}</a>
+    <!-- CP — "⋯" agrupa Posibles duplicados / Papelera (antes 2 botones sueltos con el
+         mismo peso visual que la acción principal). Se oculta si no aplica ninguno. -->
+    @if (tieneAccionesExtra()) {
+      <div class="pob-menu">
+        <button type="button" class="sgc-btn sgc-btn--ghost pob-menu__trigger" aria-label="Más acciones"
+                [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">
+          <app-icon name="more-horizontal" [size]="18" />
+        </button>
+        @if (menuOpen()) {
+          <div class="pob-menu__pop" role="menu">
+            @if (esLegalOAdmin()) {
+              <button type="button" class="pob-menu__item" role="menuitem" (click)="menuOpen.set(false); abrirDuplicados()">{{ 'Posibles duplicados' | t }}</button>
+            }
+            @if (esAdmin()) {
+              <button type="button" class="pob-menu__item" role="menuitem" (click)="menuOpen.set(false); abrirPapelera()">{{ 'Papelera' | t }}</button>
+            }
+          </div>
+        }
+      </div>
     }
-    @if (esAdmin()) {
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirPapelera()">Papelera</button>
-    }
-    <a class="sgc-btn sgc-btn--secondary" routerLink="/proyectos/personal/importar">Importar Excel</a>
-    <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ {{ 'Registrar personal' | t }}</button>
   </div>
 </div>
 
@@ -21,86 +35,51 @@
 <section class="sgc-card pob-filtros">
   <div class="pob-filtros__search">
     <app-icon name="search" [size]="16" />
-    <input type="search" placeholder="Buscar por nombre, documento, cargo o carnet…"
-           [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar personal" />
+    <input type="search" class="sgc-input" [placeholder]="'Buscar por nombre, documento, cargo o carnet…' | t"
+           [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" [attr.aria-label]="'Buscar personal' | t" />
   </div>
-  <app-filter-select label="Obra" [options]="obrasOpt()" [value]="filObra()" (valueChange)="filObra.set($event)" placeholder="Todas" />
-  <app-filter-select label="Cargo" [options]="cargosOpt()" [value]="filCargo()" (valueChange)="filCargo.set($event)" />
-  <app-filter-select label="Nacionalidad" [options]="nacionalidadOpt" [value]="filNacionalidad()" (valueChange)="filNacionalidad.set($event)" [searchable]="false" />
-  <app-filter-select label="Estado" [options]="estadoOpt" [value]="filEstado()" (valueChange)="filEstado.set($event)" [searchable]="false" />
-  <app-filter-select label="Aseguramiento" [options]="aseguradoOpt" [value]="filAsegurado()" (valueChange)="filAsegurado.set($event)" [searchable]="false" />
+  <app-filter-select [label]="'Obra' | t" [options]="obrasOpt()" [value]="filObra()" (valueChange)="filObra.set($event)" [placeholder]="'Todas' | t" />
+  <app-filter-select [label]="'Cargo' | t" [options]="cargosOpt()" [value]="filCargo()" (valueChange)="filCargo.set($event)" />
+  <app-filter-select [label]="'Nacionalidad' | t" [options]="nacionalidadOpt" [value]="filNacionalidad()" (valueChange)="filNacionalidad.set($event)" [searchable]="false" />
+  <app-filter-select [label]="'Estado' | t" [options]="estadoOpt" [value]="filEstado()" (valueChange)="filEstado.set($event)" [searchable]="false" />
+  <app-filter-select [label]="'Pendiente' | t" [options]="pendienteOpt" [value]="filPendiente()" (valueChange)="setPendiente($event)" [searchable]="false" />
+  <app-filter-select [label]="'Aseguramiento' | t" [options]="aseguradoOpt" [value]="filAsegurado()" (valueChange)="filAsegurado.set($event)" [searchable]="false" />
   @if (cuadrillas().length) {
-    <app-filter-select label="Cuadrilla" [options]="cuadrillaOpt()" [value]="filCuadrilla()" (valueChange)="filCuadrilla.set($event)" />
+    <app-filter-select [label]="'Cuadrilla' | t" [options]="cuadrillaOpt()" [value]="filCuadrilla()" (valueChange)="filCuadrilla.set($event)" />
   }
   @if (filtrosActivos() > 0) {
-    <button type="button" class="pob-filtros__clear" (click)="limpiarFiltros()">Limpiar ({{ filtrosActivos() }})</button>
+    <button type="button" class="pob-filtros__clear" (click)="limpiarFiltros()">{{ 'Limpiar' | t }} ({{ filtrosActivos() }})</button>
   }
 </section>
 
 @if (loading()) {
   <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
 } @else {
-  <!-- CF2 — KPI navy clicables como filtro rápido (punto de color solo si hay pendientes) -->
-  <div class="pob-tiles">
-    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === ''" (click)="filPendiente.set('')">
-      <span class="pob-tile__num">{{ totalVisibles() }}</span><span class="pob-tile__lbl">En la vista</span>
-    </button>
-    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_carnet'" [class.pob-tile--pend]="sinCarnet() > 0" (click)="setPendiente('sin_carnet')">
-      <span class="pob-tile__num">{{ sinCarnet() }}</span><span class="pob-tile__lbl">Sin carnet</span>
-    </button>
-    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_asegurar'" [class.pob-tile--pend]="sinAsegurar() > 0" (click)="setPendiente('sin_asegurar')">
-      <span class="pob-tile__num">{{ sinAsegurar() }}</span><span class="pob-tile__lbl">Sin asegurar</span>
-    </button>
-    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_contrato'" [class.pob-tile--pend]="sinContrato() > 0" (click)="setPendiente('sin_contrato')">
-      <span class="pob-tile__num">{{ sinContrato() }}</span><span class="pob-tile__lbl">Sin contrato</span>
-    </button>
-    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_foto'" [class.pob-tile--pend]="sinFoto() > 0" (click)="setPendiente('sin_foto')">
-      <span class="pob-tile__num">{{ sinFoto() }}</span><span class="pob-tile__lbl">Sin foto</span>
-    </button>
-  </div>
-
-  <!-- CF2 — Pendientes del personal: plegable (5 + ver todos), por tipo con acciones -->
-  @if (miPersonalHoy().length > 0) {
-    <section class="sgc-card pob-hoy">
-      <div class="pob-hoy__head">
-        <div>
-          <h3 class="pob-hoy__title">{{ hoyTitulo() }}</h3>
-          <p class="pob-hoy__hint">{{ miPersonalHoy().length }} con pendientes · sin carnet, sin asegurar, sin contrato o sin foto.</p>
-        </div>
+  <!-- CP — franja de progreso única: reemplaza las 5 tarjetas de KPI (todas con el
+       mismo número) y el bloque "Pendientes del personal" que duplicaba la tabla.
+       Los chips de pendiente SON el filtro rápido; se ocultan solos cuando su
+       conteo es 0 (nunca "0 sin X"). -->
+  <section class="sgc-card pob-progreso">
+    <div class="pob-progreso__bar">
+      <div class="pob-progreso__head">
+        <span class="pob-progreso__lbl">{{ 'Expedientes completos' | t }}</span>
+        <span class="pob-progreso__val"><b>{{ expedientesCompletos() }}</b> {{ 'de' | t }} {{ totalVisibles() }}</span>
       </div>
-      <ul class="pob-hoy__list">
-        @for (p of hoyVisibles(); track p.id) {
-          <li class="pob-hoy__row" (click)="abrir(p)">
-            <span class="pob-hoy__nombre">{{ p.nombre }} {{ p.apellido }}</span>
-            <span class="pob-hoy__chips">
-              @if (!p.carnet_numero) { <span class="sgc-badge sgc-badge--warning">Sin carnet</span> }
-              @if (p.aseguramiento_estado !== 'asegurado') { <span class="sgc-badge sgc-badge--warning">Sin asegurar</span> }
-              @if (!p.tiene_contrato) { <span class="sgc-badge sgc-badge--warning">Sin contrato</span> }
-              @if (!p.tiene_foto_persona) { <span class="sgc-badge sgc-badge--warning">Sin foto</span> }
-            </span>
-          </li>
-        }
-      </ul>
-      @if (miPersonalHoy().length > HOY_PREVIEW) {
-        <button type="button" class="pob-hoy__more" (click)="hoyOpen.set(!hoyOpen())">
-          {{ hoyOpen() ? 'Ver menos' : 'Ver los ' + miPersonalHoy().length }}
-        </button>
-      }
-    </section>
-  }
-
-  <!-- BO6 / regla 8 — el aviso de ocultos sale SIEMPRE que haya registros de
-       prueba escondidos, no sólo cuando la lista queda vacía. Antes, con otros
-       trabajadores visibles, un registro de prueba (p. ej. Papolo en una obra de
-       prueba) simplemente no aparecía y nadie avisaba. -->
-  @if (ocultosPrueba() > 0 && filtrados().length) {
-    <div class="sgc-card pob-aviso-ocultos">
-      <span>Hay {{ ocultosPrueba() }} registro(s) de prueba oculto(s) que no aparecen en esta lista.</span>
-      @if (puedeVerPrueba()) {
-        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="mostrarPrueba()">Mostrar {{ ocultosPrueba() }} de prueba</button>
-      }
+      <div class="pob-progreso__track">
+        <div class="pob-progreso__fill" [style.width.%]="porcentajeCompletos()"></div>
+      </div>
     </div>
-  }
+    @if (pendientesChips().length) {
+      <div class="pob-progreso__chips">
+        @for (c of pendientesChips(); track c.tipo) {
+          <button type="button" class="pob-progreso__chip" [class.pob-progreso__chip--on]="filPendiente() === c.tipo"
+                  (click)="setPendiente(c.tipo)">
+            {{ c.count }} {{ c.label | t }}
+          </button>
+        }
+      </div>
+    }
+  </section>
 
   @if (!filtrados().length) {
     <div class="sgc-card pob-empty">
@@ -108,24 +87,24 @@
       @switch (motivoVacio()) {
         <!-- AZ3 — todo lo que existe es de prueba y está oculto: no mentir con "no hay personal" -->
         @case ('todos_prueba') {
-          <p class="pob-empty__title">Hay {{ ocultosPrueba() }} de prueba oculto{{ ocultosPrueba() === 1 ? '' : 's' }}</p>
-          <p class="pob-empty__hint">No hay personal real registrado con estos filtros. El personal de prueba está oculto por la preferencia "Ver datos de prueba".</p>
+          <p class="pob-empty__title">{{ 'Hay' | t }} {{ ocultosPrueba() }} {{ (ocultosPrueba() === 1 ? 'de prueba oculto' : 'de prueba ocultos') | t }}</p>
+          <p class="pob-empty__hint">{{ 'No hay personal real registrado con estos filtros. El personal de prueba está oculto por la preferencia "Ver datos de prueba".' | t }}</p>
           @if (puedeVerPrueba()) {
-            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="mostrarPrueba()">Mostrar {{ ocultosPrueba() }} de prueba</button>
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="mostrarPrueba()">{{ 'Mostrar' | t }} {{ ocultosPrueba() }} {{ 'de prueba' | t }}</button>
           }
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ {{ 'Registrar personal' | t }}</button>
         }
         <!-- AZ3 — hay registros visibles pero los filtros actuales los excluyen -->
         @case ('filtros') {
-          <p class="pob-empty__title">Ningún trabajador coincide con los filtros</p>
-          <p class="pob-empty__hint">Ajusta la búsqueda o los filtros para ver el personal registrado.</p>
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
+          <p class="pob-empty__title">{{ 'Ningún trabajador coincide con los filtros' | t }}</p>
+          <p class="pob-empty__hint">{{ 'Ajusta la búsqueda o los filtros para ver el personal registrado.' | t }}</p>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="limpiarFiltros()">{{ 'Limpiar filtros' | t }}</button>
         }
         <!-- AZ3 — genuinamente vacío -->
         @default {
-          <p class="pob-empty__title">Aún no hay personal aquí</p>
-          <p class="pob-empty__hint">Registra al primer trabajador de la obra para llevar su expediente, evidencia y carnet.</p>
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+          <p class="pob-empty__title">{{ 'Aún no hay personal aquí' | t }}</p>
+          <p class="pob-empty__hint">{{ 'Registra al primer trabajador de la obra para llevar su expediente, evidencia y carnet.' | t }}</p>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ {{ 'Registrar personal' | t }}</button>
         }
       }
     </div>
@@ -134,85 +113,87 @@
       <div class="pob-tabla">
         <table class="data-table">
           <thead>
-            <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Registró</th><th>Asegurado</th><th>Carnet</th><th>Estado</th></tr>
+            <tr>
+              <th>{{ 'Persona' | t }}</th>
+              <th>{{ 'Cargo' | t }}</th>
+              <th>{{ 'Documento' | t }}</th>
+              <th>{{ 'Obra' | t }}</th>
+              <th>{{ 'Le falta' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
+            </tr>
           </thead>
           <tbody appStagger>
             @for (p of filtrados(); track p.id) {
               <tr class="pob-fila" (click)="abrir(p)">
-                <td class="pob-avatar-cell"><span class="pob-avatar">{{ iniciales(p) }}</span></td>
-                <td>
-                  <strong>{{ p.nombre }} {{ p.apellido }}</strong>
-                  @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                <td class="pob-persona">
+                  <span class="pob-avatar">{{ iniciales(p) }}</span>
+                  <span class="pob-persona__info">
+                    <span class="pob-persona__nom">
+                      {{ p.nombre }} {{ p.apellido }}
+                      @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
+                    </span>
+                    <span class="pob-persona__sub">{{ personaSubline(p) }}</span>
+                  </span>
                 </td>
-                <td>
-                  @if (p.cargo?.nombre) { <span class="pob-chip pob-chip--cargo" [title]="p.cargo?.nombre">{{ p.cargo?.nombre }}</span> }
-                  @else { <span class="text-muted">—</span> }
-                </td>
-                <td><span class="pob-chip pob-chip--nac pob-chip--nac-{{ p.nacionalidad }}">{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</span></td>
-                <td class="text-muted">{{ p.documento_numero ?? '—' }}</td>
+                <td>{{ p.cargo?.nombre ?? '—' }}</td>
+                <td class="pob-doc">{{ p.documento_numero ?? '—' }}</td>
                 <td class="text-muted">{{ p.proyecto?.nombre ?? '—' }}</td>
                 <td>
-                  <!-- BL5 — quién y de dónde vino la fila -->
-                  @if (p.lote_import) {
-                    <span class="sgc-badge sgc-badge--neutral">Import</span>
+                  @if (faltantes(p).length) {
+                    <span class="pob-falta">
+                      @for (f of faltantes(p); track f) { <span class="pob-falta__chip">{{ f | t }}</span> }
+                    </span>
                   } @else {
-                    <span class="sgc-badge sgc-badge--neutral">Manual</span>
-                  }
-                  <div class="pob-reg">{{ p.registrado_por_nombre ?? p.registrador?.nombre ?? '—' }}</div>
-                  <div class="text-muted pob-reg-fecha">{{ formatFechaHora(p.created_at) }}</div>
-                </td>
-                <td>
-                  @switch (p.aseguramiento_estado) {
-                    @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Sí</span> }
-                    @case ('no_asegurado') { <span class="sgc-badge sgc-badge--danger">No</span> }
-                    @default { <span class="sgc-badge sgc-badge--neutral">Sin dato</span> }
+                    <span class="pob-completo">✓ {{ 'Completo' | t }}</span>
                   }
                 </td>
                 <td>
-                  @if (p.carnet_numero) { <span class="sgc-badge sgc-badge--success">{{ p.carnet_numero }}</span> }
-                  @else { <span class="text-muted">Sin carnet</span> }
-                  <!-- CE4 — aviso de foto faltante -->
-                  @if (p.tiene_foto_persona === false) {
-                    <span class="sgc-badge sgc-badge--warning" title="Falta la foto de la persona">Falta foto</span>
-                  }
-                </td>
-                <td>
-                  @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
-                  @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+                  @if (p.estado === 'activo') { <span class="pob-estado pob-estado--activo">● {{ 'Activo' | t }}</span> }
+                  @else { <span class="pob-estado pob-estado--inactivo">● {{ 'Inactivo' | t }}</span> }
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
+      <!-- CP — una sola línea de pie: conteo + prueba oculta (antes era un banner propio). -->
+      <div class="pob-pie">
+        <span>
+          {{ 'Mostrando' | t }} {{ filtrados().length }} {{ 'de' | t }} {{ filtrados().length }}
+          @if (ocultosPrueba() > 0) {
+            · {{ ocultosPrueba() }} {{ 'de prueba ocultos' | t }}
+            @if (puedeVerPrueba()) { (<button type="button" class="pob-pie__link" (click)="mostrarPrueba()">{{ 'mostrar' | t }}</button>) }
+          }
+        </span>
+      </div>
     </div>
   }
 }
 
 <!-- CE16 — Posibles duplicados (CF3: componente compartido form-drawer) -->
-<app-form-drawer title="Posibles duplicados" [open]="dupOpen()" (closed)="dupOpen.set(false)">
+<app-form-drawer [title]="'Posibles duplicados' | t" [open]="dupOpen()" (closed)="dupOpen.set(false)">
   <div class="pob-dup">
-    @if (dupBusy()) { <p class="text-muted">Buscando…</p> }
-    @else if (duplicados().length === 0) { <p class="text-muted">No se encontraron duplicados por documento.</p> }
+    @if (dupBusy()) { <p class="text-muted">{{ 'Buscando…' | t }}</p> }
+    @else if (duplicados().length === 0) { <p class="text-muted">{{ 'No se encontraron duplicados por documento.' | t }}</p> }
     @else {
       @for (g of duplicados(); track g.documento) {
         <div class="pob-dup__grupo">
-          <div class="pob-dup__doc">Documento: <strong>{{ g.documento }}</strong></div>
+          <div class="pob-dup__doc">{{ 'Documento:' | t }} <strong>{{ g.documento }}</strong></div>
           @for (r of g.registros; track r.id; let i = $index) {
             <div class="pob-dup__reg">
               <div class="pob-dup__info">
                 <strong>{{ r.nombre }}</strong>
                 <span class="text-muted">{{ r.documento_numero }} · {{ r.proyecto ?? '—' }}</span>
-                <span class="text-muted">{{ r.importado ? 'Import' : 'Manual' }} · {{ r.fotos }} foto(s) · {{ r.firmas }} firma(s)</span>
+                <span class="text-muted">{{ (r.importado ? 'Import' : 'Manual') | t }} · {{ r.fotos }} {{ 'foto(s)' | t }} · {{ r.firmas }} {{ 'firma(s)' | t }}</span>
               </div>
               @if (i > 0) {
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="dupBusy()"
                         (click)="fusionar(g.registros[0].id, r.id)"
-                        title="Conservar el primero y fusionar este en él">
-                  Fusionar en el primero
+                        [title]="'Conservar el primero y fusionar este en él' | t">
+                  {{ 'Fusionar en el primero' | t }}
                 </button>
               } @else {
-                <span class="sgc-badge sgc-badge--success">Se conserva</span>
+                <span class="sgc-badge sgc-badge--success">{{ 'Se conserva' | t }}</span>
               }
             </div>
           }
@@ -223,18 +204,18 @@
 </app-form-drawer>
 
 <!-- CE9 — Papelera (admin) (CF3: componente compartido form-drawer) -->
-<app-form-drawer title="Papelera (30 días)" [open]="papeleraOpen()" (closed)="papeleraOpen.set(false)">
+<app-form-drawer [title]="'Papelera (30 días)' | t" [open]="papeleraOpen()" (closed)="papeleraOpen.set(false)">
   <div class="pob-dup">
-    @if (papelera().length === 0) { <p class="text-muted">La papelera está vacía.</p> }
+    @if (papelera().length === 0) { <p class="text-muted">{{ 'La papelera está vacía.' | t }}</p> }
     @else {
       @for (r of papelera(); track r.id) {
         <div class="pob-dup__reg">
           <div class="pob-dup__info">
             <strong>{{ r.nombre }}</strong>
-            <span class="text-muted">{{ r.proyecto ?? '—' }} · eliminado {{ formatFechaHora(r.eliminado_at) }}</span>
+            <span class="text-muted">{{ r.proyecto ?? '—' }} · {{ 'eliminado' | t }} {{ formatFechaHora(r.eliminado_at) }}</span>
             @if (r.eliminado_motivo) { <span class="text-muted">{{ r.eliminado_motivo }}</span> }
           </div>
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(r.id)">Restaurar</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(r.id)">{{ 'Restaurar' | t }}</button>
         </div>
       }
     }

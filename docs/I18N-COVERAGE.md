@@ -15,7 +15,7 @@
 | configuracion | scope | 62 | 40 | 22 | 65% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
-| admin/app-versiones | - | 148 | 0 | 148 | 0% |
+| admin/app-versiones | - | 150 | 0 | 150 | 0% |
 | admin/auditoria | - | 96 | 0 | 96 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
 | admin/empresa | - | 53 | 0 | 53 | 0% |
@@ -34,7 +34,6 @@
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | apoyo-transporte | - | 65 | 0 | 65 | 0% |
-| asistente | - | 23 | 0 | 23 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
 | bitacora/cartillas | - | 116 | 0 | 116 | 0% |
 | bitacora/cobertura | - | 25 | 0 | 25 | 0% |
@@ -126,7 +125,6 @@
 | proyectos/historial | - | 24 | 0 | 24 | 0% |
 | proyectos/kpi | - | 32 | 0 | 32 | 0% |
 | proyectos/lista | - | 321 | 0 | 321 | 0% |
-| proyectos/personal | - | 379 | 0 | 379 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
@@ -158,6 +156,11 @@
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |
+| proyectos/personal | - | 353 | 47 | 306 | 13% |
 | app-movil | - | 55 | 8 | 47 | 15% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
+| asistente | - | 54 | 26 | 28 | 48% |
+| admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
+| reuniones/reuniones-lista | - | 75 | 37 | 38 | 49% |
+| reuniones/reunion-ficha | - | 47 | 25 | 22 | 53% |

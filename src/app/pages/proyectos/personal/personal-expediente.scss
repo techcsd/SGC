@@ -98,7 +98,9 @@
 .pob-exp__aseg-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .pob-exp__aseg-lbl { font-weight: 700; color: var(--sgc-text); font-size: 13px; }
 .pob-exp__aseg-edit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  select, input { padding: 6px 8px; border: 1px solid var(--sgc-border); border-radius: 8px; background: var(--sgc-surface); color: var(--sgc-text); }
+  // CP (CL1 guard) — select/input llevan `.sgc-select`/`.sgc-input` del sistema;
+  // aquí solo se ajusta el ancho (los globales son width:100% / full-row).
+  select, input { width: auto; }
 }
 
 // CE9 — acciones destructivas y aviso de prueba.

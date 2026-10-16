@@ -722,3 +722,87 @@ no sale a la red. La app replica el mismo diseño (`PracticaClienteService` en S
 - `SupabaseService.client` devuelve este cliente mientras `practica.activa()` es true (getter),
   así la **pantalla real funciona sin cambios**. La misión declara `rutaReal` + `escenario`.
 - La evaluación de la misión lee `escrituras[]` (lo que el usuario creó) contra los objetivos.
+
+## Ronda CP (PROMPT-100 web → PROMPT-101 app) — 1.191.0+
+
+### CP11.1 — `solicitudes_compra`: el aprobador ya puede leer su bandeja
+La política SELECT de `sgc.solicitudes_compra` y `sgc.solicitud_compra_items` ahora suma
+`aprobador_id = auth.uid()` (antes solo dejaba ver al solicitante, admin o alguien con el módulo
+`compras` — un aprobador sin ese módulo veía la bandeja vacía aunque las RPCs de aprobar/rechazar
+sí le funcionaban, porque corren `security definer`). `solicitud_compra_adjuntos` ya tenía el
+criterio correcto desde CO8. Migración `sql/2026-10-16-cp11-compras-aprobador-rls.sql`, verificada
+en dev con el usuario real de Eduardo Ng (ve sus 2 solicitudes tras el fix) y aplicada en prod.
+**La app (csd-app) debe usar el mismo criterio** si construye una pantalla de "por aprobar" para
+compras tecnológicas — con este fix, un aprobador sin módulo `compras` ya puede leer directo la
+tabla sin pasar por una RPC intermedia.
+
+### CP11.2 — `sgc-legal` política UPDATE + la web ya avisa si falla
+La política UPDATE de `storage.objects` para el bucket `sgc-legal` (`sql/2026-10-16-sgc-legal-
+storage-update-policy.sql`) ya estaba aplicada en dev y prod antes de esta ronda — la trajo la
+sesión de la app (csd-app, PROMPT-99) porque `legal.service.ts` (app) sube con `upsert:true` y
+Storage evalúa el upsert como `INSERT … ON CONFLICT DO UPDATE`, lo que dispara la política UPDATE.
+**La web no tiene este problema** porque `shared/services/legal.service.ts:subirContratoFirmado`
+sube sin `upsert` y ya envuelve la subida en try/catch con `toast.error(...)` si falla. **Contrato
+para la app:** si `legal.service.ts` (app) también captura el error de `subirFirmado()` y lo
+muestra al usuario (no solo loguea), queda igualado.
+
+### CP11.3 — Legal sin límite por obra (decisión, no cambio de código)
+Quien tiene el módulo `legal` ve **todos** los expedientes y contratos de **todas** las obras — no
+hay RLS que lo limite por proyecto. **Decisión (default, Regla A):** se queda así — el equipo legal
+(hoy Sonia Castillo) es pequeño y centralizado. **👤 Pendiente: confirmar con Sonia.** Si algún día
+se requiere limitar, el patrón a seguir es `puede_ver_proyecto()` (CA2) — una función única reusada
+por política y RPC.
+
+### CP6 — `requisiciones_por_despachar()` gana código/urgencia/fecha (contrato app)
+`sgc.requisiciones_por_despachar()` (la que alimenta `csd-app/.../transporte/despachos`) ya mandaba
+`fecha`/`created_at`; ahora también devuelve `codigo` (`'REQ-' || lpad(folio,6,'0')`), `urgencia` y
+`fecha_necesidad`. **Cambió el orden:** `order by created_at asc` (más viejas primero). Migración
+`sql/2026-10-16-cp6-por-despachar-codigo.sql`. **Contrato app (mock `Por-despachar-app`, no
+construido esta sesión — PROMPT-101 F2):** tarjeta con código + fecha relativa + obra +
+renglones/solicitante + urgencia, grupo "Esperando hace más de 2 días" arriba. La web no necesitó
+cambios (`inventario/requisiciones` ya muestra todo esto, lee la tabla directo).
+
+### CP3/CP9 — Compa: edge compartida, contrato `archivos[]` (contrato para la app)
+La edge `assistant` la usan **web y app por igual**. Cambios de esta ronda (en **dev**, pendientes
+de OK de Xaviel para prod — ver HANDOFF):
+1. **`archivos[]` en vez de `archivo`** — la respuesta ahora trae `archivos: {nombre,url}[]` (0, 1 o
+   varios); se mantiene `archivo` (el primero, o `null`) solo por compatibilidad. La app debe iterar
+   `archivos[]` en su tarjeta de descargas.
+2. Modelo default pasó de Haiku a Sonnet vigente (`claude-sonnet-5`) — transparente para la app.
+3. `generar_reporte_pdf` acepta `bodega_ids[]` (antes `bodega_id` único, se mantiene) + `separados`;
+   tipo nuevo `'requisiciones'`.
+4. Validador "prometió y no hizo" + gap rechazado si la tool existe + lista de tools en el prompt —
+   mejora de comportamiento, sin cambios de contrato de red.
+5. Tools nuevas de Reuniones: `mis_reuniones`, `acuerdos_pendientes`, `resumen_reunion` (ver CP8).
+
+**Evals:** `supabase/functions/assistant/evals/casos.json` + `scripts/compa-evals.mjs` — corre
+contra **dev** y verifica 12 casos (caso real de Hector + 10 por rol + 1 de Reuniones). Si la app
+agrega tools propias al mismo edge compartido, sus casos van en el mismo `casos.json`.
+
+**⚠️ Deploy del edge `assistant` a prod pendiente de OK de Xaviel** (en dev, 12/12 evals verdes) —
+ver HANDOFF.md.
+
+### CP8 — Módulo Reuniones (contrato para la app)
+Backend completo en `sql/2026-10-16-cp8-reuniones.sql` (dev + prod, smoke-testeado con RLS real:
+organizador, participante, tercero sin acceso correctamente rechazado). La app puede construir su
+versión (lista + ficha con "Unirse", agenda, **mis notas** con dictado, **mis acuerdos**) contra las
+mismas RPCs que usa la web — nada de esto es exclusivo del front:
+
+- `reunion_tipos` (tabla, select público): `{id, codigo, nombre, color, agenda_default: string[], activo, orden}`.
+  Semilla: obra, coordinacion, gerencia, proveedor, legal, rrhh, seguridad, cliente, otra.
+- `reunion_crear(p_tipo_id, p_titulo, p_inicio, p_fin, p_modalidad['presencial'|'meet'|'mixta'], p_lugar, p_proyecto_id, p_expediente_id, p_solicitud_compra_id, p_participantes_usuarios uuid[], p_participantes_externos jsonb[{correo,nombre}], p_agenda text[]|null)` → uuid. El llamante queda de organizador y se agrega solo como participante. `p_agenda=null` copia `agenda_default` del tipo.
+- `reuniones_listado(p_filtro['proximas'|'acta_pendiente'|'pasadas'|'mias'], p_tipo_id, p_proyecto_id)` → filas con conteos (`participantes_n`, `acuerdos_n`, `acta_lista`) y `fireflies_id` (si está poblado, pinta el chip "Fireflies entra").
+- `reunion_detalle(p_id)` → **un solo jsonb** con `{reunion, participantes[], agenda[], notas[], acuerdos[], acta}` — pensado para una sola llamada por ficha.
+- `reunion_nota_guardar(p_reunion_id, p_texto)` — upsert de la nota PROPIA (una por persona por reunión).
+- `reunion_acuerdo_crear(p_reunion_id, p_texto, p_responsable_id, p_fecha)` → uuid.
+- `reunion_acuerdos_crear_tareas(p_reunion_id)` → integer (creadas). Ojo: **NO reusa `asignar_tarea_obra`** (esa exige el submódulo `obra.plan_dia`, que no aplica a reuniones de legal/rrhh/gerencia/proveedor) — inserta directo en `sgc.tareas` con `linked_tipo='reunion', linked_id=<reunion_id>` (reusa la columna genérica existente, no hay `reunion_id` propio en `tareas`).
+- `reunion_acta_guardar(p_reunion_id, p_resumen)` / `reunion_acta_aprobar(p_reunion_id)` (crea tareas pendientes + marca aprobada, devuelve cuántas) / `reunion_acta_marcar_enviada(p_reunion_id)`.
+- RLS ya resuelta server-side vía `sgc.puede_ver_reunion(p_id)`: admin, organizador, participante (`usuario_id`), o cualquiera con el módulo `reuniones` (default: admin, gerencia/dirección, ingenieros, logística, abogado/legal, RRHH). La app no necesita reimplementar nada de esto.
+- Módulo de permisos nuevo: `reuniones` (sumado a `MODULOS_DISPONIBLES` en roles.service.ts del padre).
+
+**Fireflies/Calendar — NO están conectados todavía** (faltan pasos físicos de Xaviel: cuenta
+`minutas@`, asiento Fireflies Pro, API key, webhook, scope `calendar.events` — ver
+`docs/REUNIONES.md`). Mientras tanto, degradar igual que la web: sin `enlace`, mostrar "Calendar no
+conectado — copiar invitación" (botón que arma un texto plano con título/fecha/participantes para
+compartir a mano); sin `transcripcion_url`, no ofrecer "Ver transcripción"; "Aprobar y enviar minuta"
+hoy NO manda correo real (solo marca `enviada_at` tras aprobar) — no afirmar que se envió un correo.

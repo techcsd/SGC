@@ -16,7 +16,19 @@
     border-radius: 9px;
     padding: 8px 11px;
     app-icon { opacity: .5; }
-    input { border: none; background: none; outline: none; flex: 1; color: inherit; font-size: 13px; }
+    // El input hereda la piel `.sgc-input` (guard CL1/CO11) pero esta barra de
+    // búsqueda tiene su propio look de "pill" plano: anulamos borde/fondo propios.
+    input.sgc-input {
+      width: auto;
+      border: none;
+      background: none;
+      padding: 0;
+      outline: none;
+      flex: 1;
+      color: inherit;
+      font-size: 13px;
+      &:focus { box-shadow: none; }
+    }
   }
   &__clear {
     border: none;
@@ -32,75 +44,149 @@
 .pob-fila { cursor: pointer; &:hover { background: var(--sgc-surface-2, #f6f6f6); } }
 .pob-empty { padding: 32px; text-align: center; color: var(--sgc-text-muted); }
 
-// BO6 — aviso persistente de registros de prueba ocultos (regla 8)
-.pob-aviso-ocultos {
+// CP — "⋯" overflow menu (agrupa Posibles duplicados / Papelera). Mismo patrón de
+// popover que app-filter-select (botón + panel absoluto, cierre al clicar fuera).
+.pob-menu {
+  position: relative;
+  &__trigger { width: 40px; padding: 0; justify-content: center; }
+  &__pop {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 200px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+  }
+  &__item {
+    text-align: left;
+    border: none;
+    background: none;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    color: var(--text);
+    cursor: pointer;
+    &:hover { background: var(--surface-2); }
+  }
+}
+
+// CP — franja de progreso única: reemplaza las 5 tarjetas de KPI (todas con el
+// mismo número) y el bloque "Pendientes del personal" que duplicaba la tabla.
+.pob-progreso {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 22px;
   flex-wrap: wrap;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  font-size: 0.9rem;
-  color: var(--sgc-text-muted);
-  span { flex: 1 1 auto; }
-}
-
-// AY6 — pase visual del listado de Personal de obra
-.pob-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
   margin-bottom: 16px;
-}
-.pob-tile {
-  position: relative;
-  background: var(--sgc-surface);
-  border: 1px solid var(--sgc-border);
-  border-radius: 14px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color .15s ease, box-shadow .15s ease;
-  // CF2 — número navy (no naranja); el naranja se reserva a una sola acción (CB).
-  &__num { font-size: 1.5rem; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
-  &__lbl { font-size: 0.78rem; color: var(--text-2); }
-  &:hover { border-color: var(--brand, #2e75b6); }
-  // CF2 — punto de color SOLO si hay pendientes (no toda la tarjeta en alerta).
-  &--pend::after {
-    content: ''; position: absolute; top: 12px; right: 12px;
-    width: 8px; height: 8px; border-radius: 50%; background: var(--Hub, #ffb300);
+
+  &__bar { display: flex; flex-direction: column; gap: 6px; flex: 1 1 240px; }
+  &__head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; gap: 8px; }
+  &__lbl { font-weight: 600; color: var(--text); }
+  &__val {
+    color: var(--text-2);
+    b { color: var(--text); font-variant-numeric: tabular-nums; }
   }
-  // Activo (filtro aplicado).
-  &--on { border-color: var(--brand, #2e75b6); box-shadow: inset 0 0 0 1px var(--brand, #2e75b6); }
+  &__track { height: 8px; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; }
+  &__fill { height: 8px; border-radius: var(--radius-pill); background: var(--accent); transition: width var(--motion-base, 220ms) var(--ease-out, ease); }
+
+  &__chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  // CP — el conteo "N sin X" vive en el botón-filtro (no en una tarjeta de KPI
+  // aparte); mismo par de color que el resto de avisos "accent" del sistema
+  // (accent-soft + accent-hover — ver onboarding-web/video-teatro).
+  &__chip {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--surface));
+    border-radius: var(--radius);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: var(--transition-fast);
+    &:hover { border-color: var(--accent); }
+    &--on { outline: 2px solid var(--accent); outline-offset: -1px; }
+  }
 }
 
-.pob-avatar-cell { width: 44px; }
+// CP — celda "Persona": avatar + nombre + subtítulo (nacionalidad · procedencia +
+// fecha) en UNA línea cada uno. Sustituye las columnas sueltas Nacionalidad/Registró.
+.pob-persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  &__info { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+  &__nom { font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+  &__sub { font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
 .pob-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
+  flex: none;
   border-radius: 50%;
-  background: rgba(255, 179, 0, 0.15);
-  color: var(--accent-hover);
-  font-size: 0.78rem;
+  // CB — el acento naranja se reserva a UNA acción; los avatares usan el par navy.
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 12px;
   font-weight: 700;
 }
 
-.pob-chip {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.74rem;
+// CP — Documento en monoespaciada (se lee como dato, no como texto).
+.pob-doc { font-family: var(--font-mono); font-size: 13px; color: var(--text); }
+
+// CP — columna "Le falta": chips cortos de lo que falta; expediente completo = check verde.
+.pob-falta { display: flex; gap: 4px; flex-wrap: wrap; }
+.pob-falta__chip {
+  font-size: 11px;
   font-weight: 600;
-  &--cargo { background: rgba(74, 144, 226, 0.16); color: #7fb3f0; }
-  &--nac { background: rgba(146, 144, 144, 0.16); color: var(--text-2); }
-  &--nac-dominicano { background: rgba(67, 160, 71, 0.16); color: #7bc47f; }
-  &--nac-haitiano { background: rgba(74, 144, 226, 0.16); color: #7fb3f0; }
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  white-space: nowrap;
+}
+.pob-completo { font-size: 12px; font-weight: 600; color: var(--success); white-space: nowrap; }
+
+// CP — Estado: punto de color + texto (sin badge pastilla).
+.pob-estado {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  &--activo { color: var(--success); }
+  &--inactivo { color: var(--text-2); }
+}
+
+// CP — pie de la tabla: conteo + aviso de prueba oculta en UNA línea (antes era
+// un banner `.pob-aviso-ocultos` propio que ocupaba una fila entera).
+.pob-pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--sgc-border);
+  font-size: 12.5px;
+  color: var(--sgc-text-muted);
+  &__link {
+    border: none;
+    background: none;
+    padding: 0;
+    color: var(--brand);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+  }
 }
 
 .pob-empty {
@@ -112,37 +198,9 @@
   padding: 40px 16px;
   color: var(--text-2);
   svg { color: var(--accent-hover); opacity: 0.7; margin-bottom: 4px; }
-  &__title { font-size: 1rem; font-weight: 600; color: #f0f0f0; margin: 0; }
+  &__title { font-size: 1rem; font-weight: 600; color: var(--text); margin: 0; }
   &__hint { margin: 0 0 8px; max-width: 380px; font-size: 0.85rem; }
 }
-
-// CE1/CF2 — "Mi personal hoy" / "Pendientes del personal" (plegable).
-.pob-hoy {
-  margin-bottom: 16px;
-  &__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
-  &__title { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
-  &__hint { font-size: 12px; color: var(--main-ultra-light, #929090); margin: 0; }
-  &__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  &__row {
-    display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    padding: 8px 10px; border: 1px solid var(--border, #2d2d2d); border-radius: 10px; cursor: pointer;
-    transition: all .15s ease;
-    &:hover { border-color: var(--brand, #2e75b6); }
-  }
-  &__nombre { font-weight: 600; }
-  &__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
-  &__more {
-    margin-top: 10px; border: none; background: none; cursor: pointer;
-    color: var(--brand, #2e75b6); font-size: 13px; font-weight: 600; padding: 4px 0;
-    &:hover { text-decoration: underline; }
-  }
-}
-
-// CF2 — "Registró": nombre + fecha/hora en UNA línea cada uno (no partir "4:23 p. m.").
-.pob-reg { font-size: 13px; }
-.pob-reg-fecha { white-space: nowrap; font-size: 12px; }
-// CF2 — chip de cargo en una sola línea con elipsis (título completo al pasar el cursor).
-.pob-chip--cargo { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 
 // CE16/CE9 — modal de duplicados / papelera.
 .pob-dup {
@@ -150,7 +208,12 @@
   &__doc { font-size: 13px; margin-bottom: 8px; }
   &__reg {
     display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    padding: 8px 0; border-top: 1px solid #222;
+    padding: 8px 0; border-top: 1px solid var(--border);
   }
   &__info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; min-width: 0; }
+}
+
+@media (max-width: 768px) {
+  .pob-progreso { flex-direction: column; align-items: stretch; }
+  .pob-pie { flex-direction: column; align-items: flex-start; gap: 4px; }
 }

@@ -47,10 +47,10 @@
         </div>
         @if (editandoAseg()) {
           <div class="pob-exp__aseg-edit">
-            <select #asegSel [value]="p.aseguramiento_estado ?? 'desconocido'">
+            <select #asegSel class="sgc-select" [value]="p.aseguramiento_estado ?? 'desconocido'">
               @for (a of aseguramientoEstados; track a.value) { <option [value]="a.value">{{ a.label }}</option> }
             </select>
-            <input #asegFecha type="date" [value]="p.aseguramiento_fecha ?? ''" aria-label="Fecha de aseguramiento" />
+            <input #asegFecha type="date" class="sgc-input" [value]="p.aseguramiento_fecha ?? ''" aria-label="Fecha de aseguramiento" />
             <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarAseguramiento(asegSel.value, asegFecha.value)">Guardar</button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(false)">Cancelar</button>
           </div>

@@ -1,0 +1,80 @@
+{
+  "_nota": "CP3/CP9 — casos de prueba de Compa. Corridos por scripts/compa-evals.mjs contra DEV antes de cada deploy del edge (CP5/release-check). 'rol_codigo' busca un usuario dev con ese rol (o 'email' si se da explícito). 'expect' se valida sobre la respuesta de la edge function.",
+  "casos": [
+    {
+      "id": "hector-almacenes",
+      "descripcion": "Caso real (16-oct, #231): Hector pidió la lista de almacenes, Compa dijo que no tenía herramienta (falso — 'listar_almacenes' existe) y llamó reportar_gap dos veces. Dev no tiene a Hector clonado (no seedeado); se usa un usuario con el mismo acceso (módulo inventario) para probar la MISMA situación.",
+      "rol_codigo": "logistica",
+      "mensaje": "Dame la lista de almacenes que tenemos",
+      "expect": { "tool_llamada": "listar_almacenes", "sin_gap_falso": true, "sin_contradiccion": true }
+    },
+    {
+      "id": "hector-pdf-prometido",
+      "descripcion": "Caso real (16-oct, #231): Compa anunció 3 veces 'procedo a generar los 15 PDF' y nunca llamó la herramienta. Pide el stock de varios almacenes en PDF y espera que SÍ se generen archivos (o que el texto no prometa sin hacer).",
+      "rol_codigo": "logistica",
+      "mensaje": "Generame el stock de todos los almacenes en un PDF",
+      "expect": { "sin_promesa_vacia": true }
+    },
+    {
+      "id": "admin-vehiculos",
+      "rol_codigo": "admin",
+      "mensaje": "¿Cuántos vehículos tenemos en la flota?",
+      "expect": { "tool_llamada_una_de": ["resumen_flota", "listar_vehiculos"], "sin_contradiccion": true }
+    },
+    {
+      "id": "admin-requisiciones-pdf",
+      "rol_codigo": "admin",
+      "mensaje": "Dame un reporte de las requisiciones de este mes, en PDF",
+      "expect": { "tool_llamada": "listar_requisiciones", "sin_promesa_vacia": true }
+    },
+    {
+      "id": "oficina-stock-multi",
+      "rol_codigo": "ingeniero_oficina",
+      "mensaje": "¿Qué almacenes hay y qué stock tiene cada uno?",
+      "expect": { "tool_llamada": "listar_almacenes", "sin_contradiccion": true }
+    },
+    {
+      "id": "oficina-requisiciones-obra",
+      "rol_codigo": "ingeniero_oficina",
+      "mensaje": "¿Cuántas requisiciones se han hecho este mes?",
+      "expect": { "sin_contradiccion": true, "sin_gap_falso": true }
+    },
+    {
+      "id": "campo-conduces-firmar",
+      "rol_codigo": "ingeniero_campo",
+      "mensaje": "¿Tengo conduces pendientes de firmar?",
+      "expect": { "tool_llamada": "mis_conduces_por_firmar" }
+    },
+    {
+      "id": "campo-disponibilidad-articulo",
+      "rol_codigo": "ingeniero_campo",
+      "mensaje": "¿Dónde hay cemento disponible?",
+      "expect": { "tool_llamada": "disponibilidad_de_articulo", "sin_contradiccion": true }
+    },
+    {
+      "id": "logistica-rutas-hoy",
+      "rol_codigo": "logistica",
+      "mensaje": "Dame un resumen de todas las rutas de hoy",
+      "expect": { "tool_llamada": "rutas_del_dia" }
+    },
+    {
+      "id": "logistica-requisiciones-atascadas",
+      "rol_codigo": "logistica",
+      "mensaje": "¿Qué requisiciones están atascadas o pendientes por despachar?",
+      "expect": { "tool_llamada": "resumen_estatus_requisiciones" }
+    },
+    {
+      "id": "chofer-rutas-hoy",
+      "rol_codigo": "chofer_transportista",
+      "mensaje": "¿Tengo rutas hoy?",
+      "expect": { "tool_llamada": "mis_rutas_hoy" }
+    },
+    {
+      "id": "cp8-mis-reuniones",
+      "descripcion": "CP8 — tool nuevo mis_reuniones, debe ser identidad estricta.",
+      "rol_codigo": "admin",
+      "mensaje": "¿Tengo alguna reunión próxima?",
+      "expect": { "tool_llamada": "mis_reuniones", "sin_contradiccion": true }
+    }
+  ]
+}

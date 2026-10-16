@@ -178,6 +178,12 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/legal/legal.routes').then((m) => m.legalRoutes),
       },
       {
+        // CP8 — módulo Reuniones.
+        path: 'reuniones',
+        canActivate: [moduleGuard('reuniones')],
+        loadChildren: () => import('./pages/reuniones/reuniones.routes').then((m) => m.reunionesRoutes),
+      },
+      {
         // AG16 — Producción de Obra. Sin moduleGuard en el parent: cada submódulo
         // se gatea con submoduloGuard (el capataz entra por permiso granular).
         path: 'obra',

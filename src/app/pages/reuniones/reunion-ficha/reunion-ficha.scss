@@ -1,0 +1,77 @@
+.rf__empty { color: var(--text-3); padding: 30px; text-align: center; }
+
+.rf { display: flex; flex-direction: column; gap: 16px; }
+
+.rf__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.rf__head-main { display: flex; flex-direction: column; gap: 6px; }
+.rf__back { font-size: 13px; font-weight: 600; text-decoration: none; color: var(--accent); }
+.rf__title { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
+.rf__meta { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3); flex-wrap: wrap; }
+.rf__tipo-chip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+.rf__head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.rf__cols { display: flex; gap: 16px; align-items: flex-start; }
+.rf__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.rf__side { width: 320px; flex: none; display: flex; flex-direction: column; gap: 14px; }
+
+@media (max-width: 900px) {
+  .rf__cols { flex-direction: column; }
+  .rf__side { width: 100%; }
+}
+
+.rf__card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &--estado { background: var(--accent-soft); }
+}
+.rf__card-head { display: flex; align-items: center; justify-content: space-between; }
+.rf__card-title { font: 700 15px 'Inter Tight', sans-serif; }
+.rf__card-hint { font-size: 12px; color: var(--text-3); }
+.rf__card-actions { display: flex; justify-content: flex-end; }
+.rf__resumen-texto { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-2); }
+
+.rf__chip-action {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  font: 700 12px Inter, sans-serif;
+  cursor: pointer;
+}
+
+.rf__acuerdos { display: flex; flex-direction: column; }
+.rf__acuerdo-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 90px 110px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+
+  @media (max-width: 640px) { grid-template-columns: 1fr; gap: 2px; }
+}
+.rf__acuerdo-estado { font-size: 12px; font-weight: 600; color: var(--sgc-warning, #b54708); }
+.rf__acuerdo-estado--ok { color: var(--sgc-success, #067647); }
+.rf__acuerdo-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+.rf__acuerdo-add > input { flex: 1; min-width: 140px; }
+
+.rf__nota { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+
+.rf__participantes-list { margin: 0; font-size: 13px; color: var(--text-2); }
+.rf__ligada { margin: 0; font-size: 13px; color: var(--text-2); }
+.rf__ligada--vacio { color: var(--text-3); }
