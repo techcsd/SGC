@@ -463,6 +463,15 @@
   "Importar otro archivo": "Import another file",
   "Importar choferes": "Import drivers",
   "Sube el archivo tal como sale de tu plantilla. Reimportar actualiza por cédula, no duplica.": "Upload the file as it comes from your template. Re-importing updates by ID number, it doesn't duplicate.",
+  "← Conductores": "← Drivers",
+  "Sube el archivo de {label}": "Upload the {label} file",
+  "¿Primera vez? Descarga la plantilla en blanco, llénala y súbela abajo.": "First time? Download the blank template, fill it in, and upload it below.",
+  "Descargar plantilla de {label}": "Download {label} template",
+  "¿Tus datos vienen de Odoo? Cómo exportarlos": "Is your data coming from Odoo? How to export it",
+  "Ejemplo con encabezados de Odoo": "Example with Odoo headers",
+  "Elegir archivo (.xlsx / .csv)": "Choose file (.xlsx / .csv)",
+  "Volver": "Back",
+  "← Vehículos": "← Vehicles",
   "Importar vehículos": "Import vehicles",
-  "← Conductores": "← Drivers"
+  "Descarga la plantilla, llénala y súbela — o sube un archivo exportado de Odoo. Reimportar actualiza, no duplica.": "Download the template, fill it in, and upload it — or upload a file exported from Odoo. Re-importing updates, it doesn't duplicate."
 }
