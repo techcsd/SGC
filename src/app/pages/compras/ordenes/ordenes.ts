@@ -224,6 +224,16 @@ export class Ordenes implements OnInit {
     });
   });
 
+  // ── QA-OC6c — "recibida" marcada a mano sin recepción real (caso de Raykler:
+  // OC-202610-0006 quedó en recibida con 0 entradas reales) queda bloqueada para
+  // siempre — Entradas solo ofrece aprobada|recibida_parcial. Reabrir la vuelve a
+  // recibida_parcial para que reaparezca ahí. Solo se ofrece si de verdad falta algo.
+  reconciliacionIncompleta = computed(() => this.reconciliacion().some((r) => r.estado !== 'completo'));
+
+  async reabrirRecepcion(orden: OrdenCompra) {
+    await this.cambiarEstado(orden, 'recibida_parcial');
+  }
+
   // ── QA-076b — vincular un renglón "sin artículo" a uno del catálogo ───────
   // Dos modos: "existente" (buscar y linkear — evita duplicar el catálogo cuando
   // el artículo ya existe con otro nombre, p.ej. "BOTA DE GOMA # 44" (texto libre
