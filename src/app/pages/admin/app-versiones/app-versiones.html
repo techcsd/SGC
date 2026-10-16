@@ -208,7 +208,7 @@
     <table class="sgc-table">
       <thead>
         <tr>
-          <th>Usuario</th><th>Plataforma</th><th>Modelo</th><th>Versión</th><th>Visto</th><th>Atascado</th>
+          <th>Usuario</th><th>Plataforma</th><th>Modelo</th><th>Versión</th><th>Visto</th><th>Atascado</th><th></th>
         </tr>
       </thead>
       <tbody>
@@ -222,6 +222,15 @@
             <td>
               @if (d.atascado) { <span class="sgc-badge sgc-badge--warning">Atascado</span> }
               @else { <span class="sgc-badge sgc-badge--neutral">Al día</span> }
+            </td>
+            <td>
+              <!-- CP4 — APK con el botón "Actualizar" roto (2.44.x/2.45.0): solo
+                   instalar encima a mano lo arregla; este botón copia el mensaje. -->
+              @if (esAndroidRoto(d)) {
+                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="copiarMensajeWhatsapp(d)">
+                  Copiar mensaje de WhatsApp
+                </button>
+              }
             </td>
           </tr>
         }

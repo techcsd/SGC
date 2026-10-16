@@ -18,7 +18,12 @@ import * as XLSX from "npm:xlsx@0.18.5";
 // ============================================================================
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const MODEL = Deno.env.get("ASSISTANT_MODEL") ?? "claude-haiku-4-5-20251001";
+// CP3/CP9 — Haiku (el modelo más chico) con 46+ herramientas y reglas largas
+// producía errores de razonamiento (decir "no tengo herramienta" sin revisar su
+// lista, prometer una acción y no llamarla). Sonnet vigente por defecto; Haiku
+// se puede volver a fijar por secreto si algún día hay una tarea interna barata
+// que lo use, pero YA NO es el default de este asistente de cara al usuario.
+const MODEL = Deno.env.get("ASSISTANT_MODEL") ?? "claude-sonnet-5";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -203,12 +208,17 @@ const TOOLS: ToolDef[] = [
     // AY11/C2 — genera un PDF descargable. Los datos salen de una consulta con
     // los permisos del usuario (hereda RLS): si no puede ver el dato, no hay PDF.
     name: "generar_reporte_pdf",
-    description: "Genera un reporte descargable en PDF o Excel. Tipos: 'usuarios' (listado de usuarios, solo admin), 'stock_almacen' (existencias de un almacén — pide bodega_id con 'listar_almacenes'), 'desempeno_semana' (desempeño de choferes de la semana), 'conduces_dia' (conduces emitidos hoy). Usa formato 'excel' si el usuario pide Excel/hoja de cálculo; si no, PDF. El archivo hereda tus permisos. Tras generarlo, dile al usuario que su descarga está lista abajo.",
+    description: "Genera uno o varios reportes descargables en PDF o Excel — PUEDES entregar VARIOS archivos en el mismo turno, llama esta herramienta una vez por cada uno que el usuario pida (hasta 20 en total por turno). Tipos: 'usuarios' (listado de usuarios, solo admin), 'stock_almacen' (existencias — pasa 'bodega_ids' con uno o varios ids de 'listar_almacenes'; con varios, por defecto arma UN solo PDF con una sección por almacén en el orden que diste, o usa separados:true si el usuario quiere un archivo por almacén), 'requisiciones' (mismos filtros que 'listar_requisiciones': desde, hasta, proyecto_id, solicitante_id, estado), 'desempeno_semana' (desempeño de choferes de la semana), 'conduces_dia' (conduces emitidos hoy). Usa formato 'excel' si el usuario pide Excel/hoja de cálculo; si no, PDF. El archivo hereda tus permisos. Tras generarlo(s), dile al usuario que su(s) descarga(s) están listas abajo — y SOLO entonces, nunca antes de que la herramienta devuelva 'generado:true'.",
     modulos: null, pdf: true,
     input_schema: { type: "object", properties: {
-      tipo: { type: "string", description: "usuarios | stock_almacen | desempeno_semana | conduces_dia" },
+      tipo: { type: "string", description: "usuarios | stock_almacen | requisiciones | desempeno_semana | conduces_dia" },
       formato: { type: "string", description: "pdf | excel (por defecto pdf)" },
-      bodega_id: { type: "string" }, anio: { type: "integer" }, semana: { type: "integer" },
+      bodega_ids: { type: "array", items: { type: "string" }, description: "uno o varios ids de almacén (de 'listar_almacenes'), para 'stock_almacen'" },
+      separados: { type: "boolean", description: "con varios bodega_ids: true = un archivo por almacén; false/omitido = un solo PDF con una sección por almacén" },
+      bodega_id: { type: "string", description: "compatibilidad: un solo almacén (equivalente a bodega_ids con 1 elemento)" },
+      desde: { type: "string", description: "YYYY-MM-DD, para 'requisiciones'" }, hasta: { type: "string", description: "YYYY-MM-DD, para 'requisiciones'" },
+      proyecto_id: { type: "string" }, solicitante_id: { type: "string" }, estado: { type: "string" },
+      anio: { type: "integer" }, semana: { type: "integer" },
     }, required: ["tipo"] },
   },
   {
@@ -559,6 +569,33 @@ const TOOLS: ToolDef[] = [
     }, additionalProperties: false },
     rpc: "reporte_semanal_operaciones_compa", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
   },
+
+  // ── CP8 — Reuniones (después de CP3/CP9) ───────────────────────────────────
+  // Regla madre (PERMISOS-TOOLS.md): mis_* = IDENTIDAD ESTRICTA, sin escape de
+  // módulo/admin (la lección de la fuga mis_tareas). 'mis_reuniones' y
+  // 'acuerdos_pendientes' van por 'mis_reuniones_compa'/'acuerdos_pendientes_compa'
+  // (organizador/participante/responsable = uid), NUNCA por 'reuniones_listado'
+  // (ese SÍ amplía a "todo el módulo" para quien tiene módulo reuniones — correcto
+  // para la pantalla de Reuniones, pero rompería el contrato de un tool 'mis_*').
+  {
+    name: "mis_reuniones",
+    description: "Reuniones PRÓXIMAS del usuario (donde es organizador o participante) — identidad estricta, no depende del módulo. Úsala para '¿tengo reuniones?', '¿qué reuniones tengo esta semana?', '¿a qué hora es mi próxima reunión?'.",
+    modulos: null, input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "mis_reuniones_compa", map: () => ({}),
+  },
+  {
+    name: "acuerdos_pendientes",
+    description: "Acuerdos de reuniones donde el usuario es el RESPONSABLE y todavía no están completados. Úsala para '¿qué acuerdos tengo pendientes?', '¿qué me comprometí a hacer en las reuniones?'. Identidad estricta.",
+    modulos: null, input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "reunion_acuerdos_pendientes_mios", map: () => ({}),
+  },
+  {
+    name: "resumen_reunion",
+    description: "Resumen de una reunión (agenda, acuerdos, resumen del acta si existe). Puedes pasar el título/tema tal como lo diga el usuario (busca la que mejor calce entre las que puede ver); si no da ninguna pista, trae la próxima o, si no hay próxima, la última pasada. Respeta el acceso: solo participantes, organizador, o quien tiene el módulo reuniones.",
+    modulos: null,
+    input_schema: { type: "object", properties: { tema: { type: "string", description: "título o tema de la reunión, tal como lo mencionó el usuario (opcional)" } }, additionalProperties: false },
+    rpc: "reunion_resumen_compa", map: (i) => ({ p_texto: i.tema ?? null }),
+  },
 ];
 
 function toolsParaUsuario(cap: Cap): ToolDef[] {
@@ -613,7 +650,21 @@ const INSTRUCCIONES_ESTATICAS = [
   "14. Si una herramienta te devuelve un error o 'no tengo acceso', no lo escondas: explícale al usuario qué pasó en una frase (el sistema ya lo registró para Tecnología) y ofrécele una alternativa.",
 ].join("\n");
 
-function bloqueIdentidad(cap: Cap, ahoraRD: string): string {
+// CP3/CP9 — lista compacta de herramientas DISPONIBLES PARA ESTE USUARIO (una
+// línea por herramienta: nombre + para qué). Va en el bloque de identidad (no
+// se cachea, porque el set de tools cambia por usuario/módulos) junto con la
+// regla de revisarla antes de decir "no puedo". Objetivo: el caso Hector (dijo
+// "no tengo herramienta para listar almacenes" teniendo 'listar_almacenes').
+function listaHerramientasCompacta(tools: ToolDef[]): string {
+  const primeraFrase = (d: string) => {
+    const corte = d.indexOf(". ");
+    const f = corte > 0 && corte < 140 ? d.slice(0, corte + 1) : d.slice(0, 120);
+    return f.trim();
+  };
+  return tools.filter((t) => !t.gap).map((t) => `- ${t.name}: ${primeraFrase(t.description)}`).join("\n");
+}
+
+function bloqueIdentidad(cap: Cap, ahoraRD: string, listaTools: string): string {
   return [
     "PERFIL (dato inicial de ESTA persona, NO es una consulta que hiciste):",
     `- Hablas con: ${cap.nombre}${cap.es_admin ? " (administrador)" : ""}.`,
@@ -623,6 +674,13 @@ function bloqueIdentidad(cap: Cap, ahoraRD: string): string {
     `- Fecha y hora actual (República Dominicana): ${ahoraRD}.`,
     "Si dudas de con quién hablas o del día/hora, usa 'quien_soy' (no lo deduzcas del historial: puede venir de otra sesión).",
     "Cuando el usuario diga \"mis\", \"mi obra\", \"mi vehículo\", usa las herramientas 'mis_*'.",
+    "",
+    "TUS HERRAMIENTAS DISPONIBLES AHORA MISMO (revísala ANTES de decir que no puedes algo):",
+    listaTools,
+    "",
+    "REGLA DURA (CP3/CP9 — caso real: dijiste 'no tengo herramienta para listar almacenes' teniendo 'listar_almacenes'):",
+    "NUNCA digas que no puedes hacer algo sin revisar la lista de arriba primero — puede que SÍ la tengas con otro nombre.",
+    "NUNCA anuncies una acción ('voy a generar…', 'procedo a…', 'en un momento te preparo…') que no vas a EJECUTAR con una herramienta en este MISMO turno — si lo dices, LLÁMALA ya; si no puedes, dilo directo sin anunciar nada primero.",
   ].join("\n");
 }
 
@@ -638,7 +696,7 @@ function ahoraRD(): string {
 }
 
 async function callClaude(system: Any, tools: Any, messages: Any, toolChoice?: Any) {
-  const body: Any = { model: MODEL, max_tokens: 1400, system, tools, messages };
+  const body: Any = { model: MODEL, max_tokens: 4000, system, tools, messages }; // CP3/CP9 — era 1400, cortaba respuestas largas
   if (toolChoice) body.tool_choice = toolChoice;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -665,6 +723,66 @@ const AFIRMA_VERIFICACION =
   /\b(acabo de (consultar|revisar|verificar|mirar|chequear)|consult[eé]|verifiqu[eé]|confirm[eé] con el sistema|en vivo|ya lo (revis[eé]|verifiqu[eé]|consult[eé])|reci[eé]n (consult|revis|verifi)|lo revis[eé] (ahora|en el sistema)|seg[uú]n (el sistema|la consulta que hice))\b/i;
 function afirmaVerificacionSinTool(texto: string, huboTool: boolean): boolean {
   return !huboTool && AFIRMA_VERIFICACION.test(texto);
+}
+
+// CP3/CP9 — caso Hector: antes de aceptar un `reportar_gap`, se compara el tema
+// contra las herramientas que el usuario SÍ tiene (nombre + descripción). Si
+// alguna encaja, el gap es falso (razonamiento, no falta real) — se rechaza.
+// Heurística simple y conservadora: requiere al menos una coincidencia fuerte
+// con el NOMBRE de la tool, o dos con su descripción, para no sobre-rechazar.
+const GAP_STOPWORDS = new Set([
+  "para", "como", "poder", "tener", "hacer", "sobre", "desde", "hasta", "donde",
+  "cuando", "quien", "algo", "alguna", "algun", "estas", "estos", "esos", "esas",
+  "todo", "toda", "todos", "todas", "listar", "lista", "mostrar", "quiero", "necesito",
+  // CP3/CP9 — hallazgo real: "usuario"/"usuarios" aparece en CASI toda descripción
+  // de tool (genérico, no indica intención) y como substring de "uso" causaba
+  // falsos positivos (vehiculos_en_uso, buscar_usuarios) que le ganaban al
+  // match real por orden de aparición en el array. Fuera de la lista.
+  "usuario", "usuarios", "consultar", "proxima", "próxima",
+]);
+// Solo cuenta coincidencia de NOMBRE si es la MISMA palabra o un plural/singular
+// cercano (diferencia de longitud ≤2) — una subcadena arbitraria ("uso" dentro
+// de "usuario") no cuenta; eso fue lo que rompió el match de Hector.
+function tokenCoincide(nt: string, p: string): boolean {
+  if (nt === p) return true;
+  if (Math.abs(nt.length - p.length) > 2) return false;
+  return nt.includes(p) || p.includes(nt);
+}
+function herramientaQueCoincide(tema: string, disponibles: ToolDef[]): ToolDef | null {
+  const palabras = tema.toLowerCase().replace(/[^a-záéíóúñ0-9\s]/gi, " ").split(/\s+/)
+    .filter((w) => w.length >= 5 && !GAP_STOPWORDS.has(w));
+  if (!palabras.length) return null;
+  let mejor: ToolDef | null = null;
+  let mejorScore = 0;
+  for (const t of disponibles) {
+    if (t.gap) continue;
+    const nombreTokens = t.name.toLowerCase().split("_");
+    const desc = t.description.toLowerCase();
+    let score = 0;
+    for (const p of palabras) {
+      if (nombreTokens.some((nt) => tokenCoincide(nt, p))) score += 2;
+      else if (desc.includes(p)) score += 1;
+    }
+    if (score > mejorScore) { mejorScore = score; mejor = t; }
+  }
+  return mejorScore >= 2 ? mejor : null;
+}
+
+// CP3/CP9 — caso Hector: anunció 3 veces "procedo a generar los PDF" y nunca
+// llamó la herramienta. Detecta ANUNCIOS de acción futura en el texto final.
+const PROMETE_ACCION =
+  /\b(procedo a|voy a (generar|crear|preparar|hacer|enviar|armar)|ahora (s[ií] )?(genero|preparo|creo|armo|envío)|te lo (genero|preparo|armo|envío)|en un momento (te|lo|la) (genero|preparo|armo|env[ií]o)|dame un momento (para|y)|enseguida (te|lo|la) (genero|preparo|armo)|prepar[ée] el (reporte|pdf|archivo|excel))\b/i;
+// CP3/CP9 — además del anuncio explícito ("voy a generar"), el caso real incluyó
+// una variante más traicionera: el texto afirma EN PASADO que el archivo "ya
+// está listo/descárgalo abajo" sin que `generar_reporte_pdf` se haya llamado con
+// éxito este turno. Enumerar frases nunca cubre todo; esta señal estructural
+// (reclama una descarga que no existe) es más robusta que el regex de arriba.
+const RECLAMA_ARCHIVO =
+  /\b(desc[aá]rgalo|descargarlo|descarga(r)? (abajo|en la tarjeta)|listo para descargar|tarjeta de abajo|te lo descarga|conf[ií]rmalo en la tarjeta)\b/i;
+function prometioYNoHizo(texto: string, huboAccionEjecutable: boolean, archivosLen: number): boolean {
+  if (huboAccionEjecutable) return false;
+  if (PROMETE_ACCION.test(texto)) return true;
+  return archivosLen === 0 && RECLAMA_ARCHIVO.test(texto);
 }
 
 // BB3 — Clave de idempotencia determinística por INTENCIÓN de acción: dos propuestas
@@ -808,6 +926,17 @@ async function datosReporte(supabase: Any, tipo: string, input: Any):
     return { titulo: "Stock por almacén", cols: ["Código", "Artículo", "Unidad", "Cantidad"],
       rows: data.map((r: Any) => [s(r.codigo), s(r.nombre), s(r.unidad), s(r.cantidad)]) };
   }
+  if (tipo === "requisiciones") {
+    const { data, error } = await supabase.rpc("requisiciones_bandeja", {
+      p_estado: input.estado ?? null, p_proyecto_id: input.proyecto_id ?? null, p_urgencia: null,
+      p_busqueda: null, p_limite: 200, p_desde: input.desde ?? null, p_hasta: input.hasta ?? null,
+      p_solicitante_id: input.solicitante_id ?? null,
+    });
+    const arr: Any[] = Array.isArray(data) ? data : [];
+    if (error || !arr.length) return null;
+    return { titulo: "Requisiciones de material", cols: ["Folio", "Obra", "Solicitante", "Estado", "Fecha"],
+      rows: arr.map((r: Any) => [s(r.codigo ?? r.folio), s(r.proyecto_nombre ?? r.proyecto), s(r.solicitante), s(r.estado), s(r.created_at).slice(0, 10)]) };
+  }
   if (tipo === "desempeno_semana") {
     const { data, error } = await supabase.rpc("desempeno_semana",
       { p_anio: input.anio ?? null, p_semana: input.semana ?? null });
@@ -828,6 +957,40 @@ async function datosReporte(supabase: Any, tipo: string, input: Any):
   return null;
 }
 
+// CP3/CP9 — stock de VARIOS almacenes: una sección por almacén, en el orden
+// pedido. Cada almacén que no tenga datos/acceso simplemente se omite (no rompe
+// el resto); si ninguno tiene datos, devuelve [].
+async function datosStockAlmacenes(supabase: Any, bodegaIds: string[]):
+  Promise<{ titulo: string; cols: string[]; rows: string[][] }[]> {
+  const s = (v: Any) => (v === null || v === undefined ? "" : String(v));
+  const secciones: { titulo: string; cols: string[]; rows: string[][] }[] = [];
+  for (const id of bodegaIds) {
+    const { data: bodega } = await supabase.from("bodegas").select("nombre").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.rpc("inventario_almacen",
+      { p_bodega_id: id, p_incluir_cero: false, p_busqueda: null, p_incluir_catalogo: false });
+    if (error || !data?.length) continue;
+    secciones.push({
+      titulo: bodega?.nombre ?? "Almacén",
+      cols: ["Código", "Artículo", "Unidad", "Cantidad"],
+      rows: data.map((r: Any) => [s(r.codigo), s(r.nombre), s(r.unidad), s(r.cantidad)]),
+    });
+  }
+  return secciones;
+}
+
+// CP3/CP9 — hallazgo real durante los evals: pdf-lib con StandardFonts usa
+// codificación WinAnsi (Windows-1252) y LANZA si el texto trae un carácter
+// fuera de ese rango (p. ej. ″ U+2033, comilla de pulgadas en "TUBO 2″" del
+// catálogo) — tumbaba CADA PDF que incluyera un artículo así, en silencio para
+// el usuario (Compa solo veía "falló" y lo reintentaba sin arreglar nada).
+function winAnsiSafe(t: string): string {
+  if (!t) return t;
+  return t
+    .replace(/[′]/g, "'")   // prime (pies/minutos) → apóstrofo
+    .replace(/[″]/g, '"')   // double prime (pulgadas) → comillas rectas
+    .replace(/[^\x00-\xFF]/g, "?"); // cualquier otro carácter fuera de Latin-1
+}
+
 // Compone un PDF tabular sencillo (multipágina) con pdf-lib.
 async function componerPdf(titulo: string, subtitulo: string, cols: string[], rows: string[][]): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
@@ -836,7 +999,7 @@ async function componerPdf(titulo: string, subtitulo: string, cols: string[], ro
   const W = 595.28, H = 841.89, M = 40; // A4 portrait
   const gray = rgb(0.4, 0.4, 0.4), black = rgb(0.1, 0.1, 0.1);
   const colW = (W - 2 * M) / cols.length;
-  const clip = (t: string, max: number) => (t.length > max ? t.slice(0, max - 1) + "…" : t);
+  const clip = (raw: string, max: number) => { const t = winAnsiSafe(raw); return t.length > max ? t.slice(0, max - 1) + "…" : t; };
   const maxChars = Math.max(6, Math.floor(colW / 5.2));
   let page = doc.addPage([W, H]);
   let y = H - M;
@@ -851,6 +1014,43 @@ async function componerPdf(titulo: string, subtitulo: string, cols: string[], ro
     if (y < M + 20) { page = doc.addPage([W, H]); y = H - M; header(); }
     row.forEach((cell, i) => page.drawText(clip(cell ?? "", maxChars), { x: M + i * colW, y, size: 8.5, font, color: black }));
     y -= 12;
+  }
+  return await doc.save();
+}
+
+// CP3/CP9 — variante de componerPdf con VARIAS secciones (p. ej. stock de
+// varios almacenes en un solo PDF, uno por sección, en el orden pedido).
+async function componerPdfMultiSeccion(
+  titulo: string, subtitulo: string, secciones: { titulo: string; cols: string[]; rows: string[][] }[],
+): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const W = 595.28, H = 841.89, M = 40;
+  const gray = rgb(0.4, 0.4, 0.4), black = rgb(0.1, 0.1, 0.1), navy = rgb(0.12, 0.23, 0.37);
+  const clip = (raw: string, max: number) => { const t = winAnsiSafe(raw); return t.length > max ? t.slice(0, max - 1) + "…" : t; };
+  let page = doc.addPage([W, H]);
+  let y = H - M;
+  page.drawText(clip(titulo, 70), { x: M, y, size: 16, font: bold, color: black }); y -= 20;
+  page.drawText(clip(subtitulo, 110), { x: M, y, size: 9, font, color: gray }); y -= 22;
+  for (const sec of secciones) {
+    const colW = (W - 2 * M) / sec.cols.length;
+    const maxChars = Math.max(6, Math.floor(colW / 5.2));
+    if (secciones.length > 1) {
+      if (y < M + 60) { page = doc.addPage([W, H]); y = H - M; }
+      page.drawText(clip(sec.titulo, 90), { x: M, y, size: 12, font: bold, color: navy }); y -= 18;
+    }
+    const header = () => {
+      sec.cols.forEach((c, i) => page.drawText(clip(c, maxChars), { x: M + i * colW, y, size: 9, font: bold, color: black }));
+      y -= 14;
+    };
+    header();
+    for (const row of sec.rows) {
+      if (y < M + 20) { page = doc.addPage([W, H]); y = H - M; header(); }
+      row.forEach((cell, i) => page.drawText(clip(cell ?? "", maxChars), { x: M + i * colW, y, size: 8.5, font, color: black }));
+      y -= 12;
+    }
+    y -= 10; // respiro entre secciones
   }
   return await doc.save();
 }
@@ -1058,16 +1258,29 @@ Deno.serve(async (req: Request) => {
   // la identidad de un usuario con la de otro).
   const system = [
     { type: "text", text: INSTRUCCIONES_ESTATICAS, cache_control: { type: "ephemeral" } },
-    { type: "text", text: bloqueIdentidad(capObj, ahoraRD()) + memText },
+    { type: "text", text: bloqueIdentidad(capObj, ahoraRD(), listaHerramientasCompacta(disponibles)) + memText },
   ];
   const debeForzarTool = fuerzaHerramienta(mensaje);
 
   const herramientasUsadas: { tool: string; ok: boolean }[] = [];
   let propuesta: Any = null;
-  let archivo: { nombre: string; url: string } | null = null;
+  // CP3/CP9 — VARIOS archivos por turno (antes: una sola variable que se pisaba,
+  // "15 PDFs" en un turno dejaba solo el último). Tope 20 por turno.
+  const archivos: { nombre: string; url: string }[] = [];
+  const MAX_ARCHIVOS_POR_TURNO = 20;
   let respuestaFinal = "";
   // BE2 — último fallo de herramienta (para el mensaje de causa+salida sin excusa vacía).
   let ultimoFallo: { motivo: "sin_permiso" | "error_de_tool"; tool: string } | null = null;
+  // CP3/CP9 — qué herramientas de ESCRITURA/ARCHIVO se llamaron de verdad este turno
+  // (para el validador "prometió y no hizo": si el texto anuncia una acción y esta
+  // lista sigue vacía, es una promesa vacía).
+  let huboAccionEjecutable = false;
+  // CP3/CP9 — cuando se rechaza un gap falso (herramientaQueCoincide encontró
+  // una tool real), no basta con decírselo al modelo en el tool_result: a veces
+  // igual responde "no tengo esa herramienta" en el texto final sin llamarla.
+  // Esta bandera FUERZA esa tool exacta en la siguiente vuelta del loop (no solo
+  // en la vuelta 0), y se limpia tras usarse una vez.
+  let forzarToolSiguiente: string | null = null;
 
   // BE2 — registra una consulta NO ATENDIDA (backlog de Tecnología). Institucionaliza
   // las capturas a mano: cada gap/fallo queda con { pregunta, rol, motivo, fecha }.
@@ -1086,7 +1299,10 @@ Deno.serve(async (req: Request) => {
     for (let loop = 0; loop < MAX_TOOL_LOOPS; loop++) {
       // BB4(2) — en la 1ª vuelta, si la intención pide datos/verificación, forzamos
       // una tool (tool_choice:any). Estructuralmente impide "acabo de consultarlo" sin consulta.
-      const forceThis = loop === 0 && forzarPrimera ? { type: "any" } : undefined;
+      const forceThis = forzarToolSiguiente
+        ? { type: "tool", name: forzarToolSiguiente }
+        : (loop === 0 && forzarPrimera ? { type: "any" } : undefined);
+      forzarToolSiguiente = null; // se consume en esta vuelta, no se repite sola
       const resp = await callClaude(system, tools, messages, forceThis);
       const content: Any[] = resp.content ?? [];
 
@@ -1109,13 +1325,33 @@ Deno.serve(async (req: Request) => {
           if (!cfg) {
             out = { error: "Herramienta no disponible." };
           } else if (cfg.gap) {
-            // BE2 — Compa declara que le falta una capacidad → al backlog (sin_tool).
-            try {
-              const inp = block.input ?? {};
-              await registrarNoAtendida("sin_tool", null, String(inp.tema ?? ""));
-              out = { registrado: true, instruccion: "Ya quedó anotado para Tecnología. Ahora dile al usuario con honestidad qué NO puedes hacer todavía y ofrécele una alternativa concreta de lo que SÍ puedes. Nada de excusas vacías." };
-              ok = true; resumen = `gap: ${String(inp.tema ?? "").slice(0, 60)}`;
-            } catch (e) { out = { error: "No pude registrar el gap." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
+            // CP3/CP9 — caso Hector: dijo "no tengo herramienta para listar
+            // almacenes" teniendo 'listar_almacenes' — el modelo nunca revisó su
+            // propia lista. ANTES de aceptar el gap, lo comparamos contra el
+            // nombre/descripción de las herramientas que el usuario SÍ tiene; si
+            // hay coincidencia, se rechaza (no se registra como falta real) y se
+            // le dice al modelo cuál usar, para que repita la vuelta.
+            const inp = block.input ?? {};
+            const tema = String(inp.tema ?? "").toLowerCase();
+            const match = tema ? herramientaQueCoincide(tema, disponibles) : null;
+            if (match) {
+              out = {
+                rechazado: true, usa: match.name,
+                instruccion: `Sí tienes la herramienta '${match.name}' para esto: úsala ahora en vez de decir que no puedes. No registres este gap — no es una falta real.`,
+              };
+              resumen = `gap rechazado (coincide con ${match.name})`;
+              ok = false;
+              // Solo forzamos la tool en la vuelta siguiente si no requiere
+              // argumentos (no hay con qué resolverlos aquí sin inventar datos).
+              if (!(match.input_schema as Any)?.required?.length) forzarToolSiguiente = match.name;
+            } else {
+              // BE2 — Compa declara que le falta una capacidad → al backlog (sin_tool).
+              try {
+                await registrarNoAtendida("sin_tool", null, String(inp.tema ?? ""));
+                out = { registrado: true, instruccion: "Ya quedó anotado para Tecnología. Ahora dile al usuario con honestidad qué NO puedes hacer todavía y ofrécele una alternativa concreta de lo que SÍ puedes. Nada de excusas vacías." };
+                ok = true; resumen = `gap: ${String(inp.tema ?? "").slice(0, 60)}`;
+              } catch (e) { out = { error: "No pude registrar el gap." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
+            }
           } else if (cfg.memoria) {
             // AY C4 — guarda una preferencia del propio usuario (escritura benigna, sin tarjeta).
             try {
@@ -1125,33 +1361,81 @@ Deno.serve(async (req: Request) => {
               else { out = { guardado: true }; ok = true; resumen = `memoria: ${String(inp.clave ?? "").slice(0, 60)}`; }
             } catch (e) { out = { error: "No pude guardar eso." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
           } else if (cfg.pdf) {
-            // AY11/C2 — genera un PDF con datos consultados con el JWT del usuario.
+            // CP3/CP9 — genera uno o varios archivos con datos consultados con el
+            // JWT del usuario (hereda RLS). 'stock_almacen' con varios bodega_ids
+            // arma un PDF con una sección por almacén (o separados, si lo piden).
             try {
               const inp = block.input ?? {};
-              const datos = await datosReporte(supabase, String(inp.tipo ?? ""), inp);
-              if (!datos) {
-                out = { error: "No hay datos para ese reporte o no tienes acceso." };
-                resumen = "reporte sin datos/permiso";
+              if (archivos.length >= MAX_ARCHIVOS_POR_TURNO) {
+                out = { error: `Ya se generaron ${MAX_ARCHIVOS_POR_TURNO} archivos en este turno, el máximo. Pide el resto en otro mensaje.` };
+                resumen = "tope de archivos por turno alcanzado";
               } else {
+                const tipo = String(inp.tipo ?? "");
                 const esExcel = String(inp.formato ?? "pdf").toLowerCase() === "excel";
                 const fecha = new Date().toISOString().slice(0, 16).replace("T", " ");
-                const bytes = esExcel
-                  ? componerExcel(datos.titulo, datos.cols, datos.rows)
-                  : await componerPdf(datos.titulo, `Generado por ${capObj.nombre} · ${fecha}`, datos.cols, datos.rows);
-                const ext = esExcel ? "xlsx" : "pdf";
-                const ctype = esExcel ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf";
-                const path = `${capObj.usuario_id}/${crypto.randomUUID()}.${ext}`;
-                const { error: upErr } = await supabase.storage.from("reportes").upload(path, bytes, { contentType: ctype });
-                if (upErr) { out = { error: "No se pudo guardar el archivo." }; resumen = upErr.message.slice(0, 200); }
-                else {
+                const bodegaIds: string[] = Array.isArray(inp.bodega_ids) && inp.bodega_ids.length
+                  ? inp.bodega_ids.map(String)
+                  : (inp.bodega_id ? [String(inp.bodega_id)] : []);
+
+                const subirArchivo = async (titulo: string, cols: string[], rows: string[][], bytesOverride?: Uint8Array) => {
+                  const ext = esExcel ? "xlsx" : "pdf";
+                  const ctype = esExcel ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf";
+                  const bytes = bytesOverride ?? (esExcel
+                    ? componerExcel(titulo, cols, rows)
+                    : await componerPdf(titulo, `Generado por ${capObj.nombre} · ${fecha}`, cols, rows));
+                  const path = `${capObj.usuario_id}/${crypto.randomUUID()}.${ext}`;
+                  const { error: upErr } = await supabase.storage.from("reportes").upload(path, bytes, { contentType: ctype });
+                  if (upErr) return null;
                   const { data: signed } = await supabase.storage.from("reportes").createSignedUrl(path, 3600);
-                  const nombre = `${datos.titulo}.${ext}`;
-                  archivo = { nombre, url: signed?.signedUrl ?? "" };
-                  out = { generado: true, nombre, filas: datos.rows.length, instruccion: "Dile al usuario que su archivo está listo para descargar en la tarjeta de abajo." };
-                  ok = true; resumen = `${ext} ${datos.rows.length} filas`;
+                  return { nombre: `${titulo}.${ext}`, url: signed?.signedUrl ?? "" };
+                };
+
+                if (tipo === "stock_almacen" && bodegaIds.length > 1) {
+                  const secciones = await datosStockAlmacenes(supabase, bodegaIds.slice(0, MAX_ARCHIVOS_POR_TURNO - archivos.length));
+                  if (!secciones.length) {
+                    out = { error: "No hay datos para esos almacenes o no tienes acceso." };
+                    resumen = "stock multi-almacén sin datos/permiso";
+                  } else if (inp.separados) {
+                    let subidos = 0;
+                    for (const sec of secciones) {
+                      const f = await subirArchivo(`Stock — ${sec.titulo}`, sec.cols, sec.rows);
+                      if (f) { archivos.push(f); subidos++; }
+                    }
+                    out = { generado: subidos > 0, archivos: subidos, instruccion: "Dile al usuario que sus archivos (uno por almacén) están listos para descargar abajo." };
+                    ok = subidos > 0; resumen = `${subidos} archivos de stock (separados)`;
+                    huboAccionEjecutable = huboAccionEjecutable || ok;
+                  } else {
+                    const bytes = esExcel
+                      ? componerExcel("Stock por almacén", ["Almacén", ...secciones[0].cols], secciones.flatMap((s) => s.rows.map((r) => [s.titulo, ...r])))
+                      : await componerPdfMultiSeccion("Stock por almacén", `Generado por ${capObj.nombre} · ${fecha}`, secciones);
+                    const f = await subirArchivo("Stock por almacén", [], [], bytes);
+                    if (!f) { out = { error: "No se pudo guardar el archivo." }; resumen = "fallo al subir stock multi-almacén"; }
+                    else {
+                      archivos.push(f);
+                      out = { generado: true, nombre: f.nombre, secciones: secciones.length, instruccion: "Dile al usuario que su archivo (con una sección por almacén) está listo para descargar abajo." };
+                      ok = true; resumen = `1 archivo, ${secciones.length} secciones`;
+                      huboAccionEjecutable = true;
+                    }
+                  }
+                } else {
+                  const datosIn = bodegaIds.length === 1 && tipo === "stock_almacen" ? { ...inp, bodega_id: bodegaIds[0] } : inp;
+                  const datos = await datosReporte(supabase, tipo, datosIn);
+                  if (!datos) {
+                    out = { error: "No hay datos para ese reporte o no tienes acceso." };
+                    resumen = "reporte sin datos/permiso";
+                  } else {
+                    const f = await subirArchivo(datos.titulo, datos.cols, datos.rows);
+                    if (!f) { out = { error: "No se pudo guardar el archivo." }; resumen = "fallo al subir"; }
+                    else {
+                      archivos.push(f);
+                      out = { generado: true, nombre: f.nombre, filas: datos.rows.length, instruccion: "Dile al usuario que su archivo está listo para descargar en la tarjeta de abajo." };
+                      ok = true; resumen = `${datos.rows.length} filas`;
+                      huboAccionEjecutable = true;
+                    }
+                  }
                 }
               }
-            } catch (e) { out = { error: "No se pudo generar el PDF." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
+            } catch (e) { out = { error: "No se pudo generar el archivo." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
           } else if (cfg.write) {
             // Acción de ESCRITURA: se PREPARA, no se ejecuta. Devuelve borrador.
             try {
@@ -1165,6 +1449,7 @@ Deno.serve(async (req: Request) => {
                   : "Dile al usuario en una frase qué preparaste y que confirme en la tarjeta. No digas que ya está hecho.",
               };
               ok = true; resumen = `propuesta ${cfg.write.tipo}`;
+              huboAccionEjecutable = true;
             } catch (e) {
               out = { error: "No pude preparar la acción." };
               resumen = (e instanceof Error ? e.message : "error").slice(0, 200);
@@ -1224,13 +1509,35 @@ Deno.serve(async (req: Request) => {
           : segundo;
       }
     }
+
+    // CP3/CP9 — Validador "prometió y no hizo" (caso Hector: "procedo a generar
+    // los 15 PDF" x3, nunca llamó la herramienta). Si el texto ANUNCIA una acción
+    // y el turno no ejecutó nada ejecutable (pdf/write), se repite la vuelta con
+    // tool_choice:any; si aun así no actúa, se reemplaza el texto por uno honesto
+    // y se registra como error_de_tool (no es una falta de capacidad, es de ejecución).
+    if (prometioYNoHizo(respuestaFinal, huboAccionEjecutable, archivos.length)) {
+      await supabase.from("assistant_acciones").insert({
+        conversacion_id: convId, tool: "validador_promesa",
+        params: { texto: respuestaFinal.slice(0, 200) }, ok: false,
+        resumen: "anunció una acción sin ejecutarla → repetida con tool_choice:any",
+      }).then(() => {}, () => {});
+      messages.push({ role: "assistant", content: respuestaFinal });
+      messages.push({ role: "user", content: "Dijiste que ibas a hacer algo (generar, preparar, enviar…) pero NO llamaste ninguna herramienta para hacerlo. Si de verdad puedes, LLAMA la herramienta AHORA en este turno. Si no puedes (falta un dato, no tienes la herramienta, etc.), dilo con claridad — nunca anuncies algo que no vas a ejecutar." });
+      const tercero = await correrLoop(true);
+      if (tercero && !prometioYNoHizo(tercero, huboAccionEjecutable, archivos.length)) {
+        respuestaFinal = tercero;
+      } else {
+        respuestaFinal = "No pude generarlo — ya lo reporté a Tecnología. ¿Quieres que lo intente de otra forma?";
+        await registrarNoAtendida("error_de_tool", null, "anunció una acción y no la ejecutó (validador_promesa)");
+      }
+    }
   } catch (e) {
     return json({ error: `El asistente tuvo un problema: ${e instanceof Error ? e.message : "desconocido"}` }, 502);
   }
   // BE2 — NUNCA una excusa vacía: si no hubo texto, el fallback lleva causa + salida.
   if (!respuestaFinal) {
     if (propuesta) respuestaFinal = "Preparé la acción; revísala y confírmala abajo.";
-    else if (archivo) respuestaFinal = "Tu archivo está listo para descargar abajo.";
+    else if (archivos.length) respuestaFinal = archivos.length > 1 ? "Tus archivos están listos para descargar abajo." : "Tu archivo está listo para descargar abajo.";
     else if (ultimoFallo?.motivo === "sin_permiso")
       respuestaFinal = "Eso no lo puedo ver con tu acceso actual. Si crees que deberías tenerlo, avísale a Tecnología — ya lo dejé anotado.";
     else if (ultimoFallo)
@@ -1248,5 +1555,5 @@ Deno.serve(async (req: Request) => {
   ]).then(() => {}, () => {});
   await supabase.from("assistant_conversaciones").update({ updated_at: new Date().toISOString() }).eq("id", convId).then(() => {}, () => {});
 
-  return json({ conversacion_id: convId, respuesta: respuestaFinal, herramientas: herramientasUsadas, propuesta, archivo });
+  return json({ conversacion_id: convId, respuesta: respuestaFinal, herramientas: herramientasUsadas, propuesta, archivos, archivo: archivos[0] ?? null });
 });

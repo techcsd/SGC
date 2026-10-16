@@ -44,14 +44,14 @@
     <div class="pi-controls">
       <label class="pi-field">
         <span>Importar a la obra <b>*</b></span>
-        <select [value]="obraSeleccionada() ?? ''" (change)="onObraChange($any($event.target).value)">
+        <select class="sgc-select" [value]="obraSeleccionada() ?? ''" (change)="onObraChange($any($event.target).value)">
           <option value="">Selecciona la obra…</option>
           @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
         </select>
       </label>
       <label class="pi-field">
         <span>Si el documento ya existe</span>
-        <select [value]="modo()" (change)="modo.set($any($event.target).value)">
+        <select class="sgc-select" [value]="modo()" (change)="modo.set($any($event.target).value)">
           <option value="actualizar">Actualizar sus datos</option>
           <option value="saltar">Saltar (no tocar)</option>
         </select>
@@ -84,7 +84,7 @@
               <td class="text-muted">{{ f.documento || '—' }} <small>{{ f.tipo_documento }}</small></td>
               <td class="text-muted">{{ f.nacionalidad }}</td>
               <td>
-                <select class="pi-cargo" [value]="f.cargo_id ?? ''" (change)="setCargo($index, $any($event.target).value)">
+                <select class="pi-cargo sgc-select" [value]="f.cargo_id ?? ''" (change)="setCargo($index, $any($event.target).value)">
                   <option value="">Sin cargo</option>
                   @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
                 </select>

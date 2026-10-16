@@ -103,6 +103,31 @@ export class AdminAppVersiones implements OnInit {
   });
   plataformasDisponibles = computed(() => [...new Set(this.dispositivos().map((d) => d.plataforma))].sort());
 
+  /** CP4 — Android en el APK roto (2.44.x/2.45.0, docs/ACTUALIZACIONES.md): el
+   *  botón "Actualizar" de esos específicos no funciona (recarga el mismo APK).
+   *  Solo instalar encima a mano los saca; mientras tanto, el mensaje de WhatsApp
+   *  listo para mandarles. */
+  esAndroidRoto(d: DispositivoRow): boolean {
+    return d.plataforma === 'android' && !!d.app_version && /^2\.4[45]\.\d+$/.test(d.app_version);
+  }
+
+  async copiarMensajeWhatsapp(d: DispositivoRow) {
+    const nombre = d.usuario_nombre?.split(' ')[0] ?? 'Hola';
+    const mensaje = [
+      `Hola ${nombre}! 👋 Vi que tu app CSD App (Android) sigue en una versión vieja (${d.app_version}) que tiene un error conocido: el botón "Actualizar" no funciona en esas versiones específicas.`,
+      `No es nada que hiciste mal — es un bug nuestro que ya arreglamos, pero tu teléfono necesita el instalador nuevo a mano UNA vez.`,
+      `Por favor entra a este enlace desde tu Android y descarga/instala encima (no borra tus datos): https://sgcconstructorasd.com/app-movil`,
+      `Después de esa vez, las actualizaciones futuras sí van a funcionar solas.`,
+      `Cualquier duda me avisas. Gracias!`,
+    ].join('\n\n');
+    try {
+      await navigator.clipboard.writeText(mensaje);
+      this.toast.success('Copiado', `Mensaje para ${d.usuario_nombre} listo para pegar en WhatsApp.`);
+    } catch {
+      this.toast.error('No se pudo copiar', 'Tu navegador bloqueó el acceso al portapapeles.');
+    }
+  }
+
   // CO10/CO17 — resumen de suscripciones Web Push activas (iPhone principalmente).
   pushWebResumen = signal<{ plataforma: string; activas: number; usuarios: number }[]>([]);
 

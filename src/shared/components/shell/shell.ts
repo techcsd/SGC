@@ -380,6 +380,15 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // CP8 — Reuniones: agenda, notas, acuerdos→tareas, actas. Gateado por el
+      // módulo 'reuniones' (default: admin, gerencia/dirección, ingenieros,
+      // logística, legal, RRHH — ver sql/2026-10-16-cp8-reuniones.sql §3).
+      label: 'Reuniones',
+      icon: 'reuniones',
+      modulo: 'reuniones',
+      route: '/reuniones',
+    },
+    {
       // AL1 — Tecnología REAL = activos/servicios de TI. Gateado por el módulo
       // `tecnologia` (+ admin), ya no visible para todo usuario no-chofer.
       label: 'Tecnología',
@@ -415,6 +424,7 @@ export class Shell implements OnInit {
         { label: 'Dev notes', route: '/tecnologia/dev-notes', soloDesarrollador: true },
         { label: 'Resumen de operaciones', route: '/tecnologia/resumen-operaciones', soloTecnologia: true },
         { label: 'Consultas de Compa', route: '/tecnologia/consultas-compa', soloTecnologia: true },
+        { label: 'Conversaciones de Compa', route: '/admin/compa-conversaciones', soloAdmin: true },
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
         { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
       ],

@@ -21,8 +21,10 @@
 }
 
 .pi-controls { display: flex; flex-wrap: wrap; gap: 14px; }
+// CP (CL1 guard) — los <select> llevan `.sgc-select`; aquí solo se ajusta tamaño/
+// padding derecho para que la flecha nativa del sistema no se encime con el texto.
 .pi-field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--sgc-text-muted); flex: 1 1 240px;
-  select { padding: 8px 10px; border: 1px solid var(--sgc-border); border-radius: 8px; font-size: 13.5px; } }
+  select.sgc-select { padding: 8px 34px 8px 10px; font-size: 13.5px; } }
 
 .pi-summary { display: flex; gap: 8px; }
 .pi-chip { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 10px;
@@ -33,7 +35,7 @@
 .pi-table {
   th, td { font-size: 12.5px; }
   .pi-status { white-space: nowrap; }
-  .pi-cargo { padding: 4px 6px; border: 1px solid var(--sgc-border); border-radius: 6px; font-size: 12.5px; max-width: 160px; }
+  .pi-cargo.sgc-select { padding: 4px 28px 4px 6px; border-radius: 6px; font-size: 12.5px; max-width: 160px; }
   .pi-cargo-src { display: block; font-size: 10.5px; color: var(--sgc-text-muted);
     &--warn { color: var(--sgc-warning); } }
   .pi-permiso { white-space: nowrap; }

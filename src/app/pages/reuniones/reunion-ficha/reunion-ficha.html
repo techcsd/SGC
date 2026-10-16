@@ -1,0 +1,142 @@
+@if (cargando()) {
+  <p class="rf__empty">{{ 'Cargando…' | t }}</p>
+} @else if (detalle(); as d) {
+  <div class="rf">
+    <header class="rf__head">
+      <div class="rf__head-main">
+        <a routerLink="/reuniones" class="rf__back">← {{ 'Reuniones' | t }}</a>
+        <h1 class="rf__title">{{ d.reunion.titulo }}</h1>
+        <span class="rf__meta">
+          <span class="rf__tipo-chip" [style.background]="d.reunion.tipo_color + '1a'" [style.color]="d.reunion.tipo_color">{{ d.reunion.tipo_nombre }}</span>
+          {{ fechaLarga(d.reunion.inicio) }} · {{ horaRango(d.reunion.inicio, d.reunion.fin) }} ·
+          {{ d.reunion.modalidad === 'meet' ? ('Google Meet' | t) : d.reunion.modalidad === 'mixta' ? ('Mixta' | t) : ('Presencial' | t) }}
+          @if (d.reunion.fireflies_id) { · {{ 'grabada por Fireflies' | t }} }
+        </span>
+      </div>
+      <div class="rf__head-actions">
+        @if (d.reunion.enlace) {
+          <a [href]="d.reunion.enlace" target="_blank" rel="noopener" class="sgc-btn sgc-btn--secondary">{{ 'Unirse' | t }}</a>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="copiarInvitacion()">{{ 'Calendar no conectado — copiar invitación' | t }}</button>
+        }
+        @if (d.acta?.transcripcion_url) {
+          <a [href]="d.acta?.transcripcion_url" target="_blank" rel="noopener" class="sgc-btn sgc-btn--secondary">{{ 'Ver transcripción' | t }}</a>
+        }
+        @if (esOrganizadorOAdmin() && d.reunion.estado !== 'acta_aprobada' && d.reunion.estado !== 'cancelada') {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="aprobarYEnviar()" [disabled]="aprobando()">
+            {{ (aprobando() ? 'Aprobando…' : 'Aprobar y enviar minuta') | t }}
+          </button>
+        }
+      </div>
+    </header>
+
+    <div class="rf__cols">
+      <div class="rf__main">
+        <section class="rf__card">
+          <div class="rf__card-head">
+            <span class="rf__card-title">{{ 'Resumen' | t }}</span>
+            @if (d.reunion.fireflies_id) { <span class="rf__card-hint">{{ 'De Fireflies · editable' | t }}</span> }
+          </div>
+          @if (esOrganizadorOAdmin()) {
+            <textarea class="sgc-input" rows="4" [ngModel]="resumenEdit()" (ngModelChange)="resumenEdit.set($event)" placeholder="Resumen de lo tratado en la reunión…"></textarea>
+            <div class="rf__card-actions">
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="guardarActa()" [disabled]="guardandoActa()">
+                {{ (guardandoActa() ? 'Guardando…' : 'Guardar resumen') | t }}
+              </button>
+            </div>
+          } @else {
+            <p class="rf__resumen-texto">{{ d.acta?.resumen || ('Todavía no hay resumen.' | t) }}</p>
+          }
+        </section>
+
+        <section class="rf__card">
+          <div class="rf__card-head">
+            <span class="rf__card-title">{{ 'Acuerdos' | t }} ({{ d.acuerdos.length }})</span>
+            @if (acuerdosSinTarea() > 0) {
+              <button type="button" class="rf__chip-action" (click)="crearTareas()" [disabled]="creandoTareas()">
+                {{ (creandoTareas() ? 'Creando…' : 'Crear las ' + acuerdosSinTarea() + ' tareas') | t }}
+              </button>
+            }
+          </div>
+          @if (d.acuerdos.length) {
+            <div class="rf__acuerdos">
+              @for (a of d.acuerdos; track a.id) {
+                <div class="rf__acuerdo-row">
+                  <span class="rf__acuerdo-texto">{{ a.texto }}</span>
+                  <span class="rf__acuerdo-resp">{{ a.responsable_nombre || ('Sin responsable' | t) }}</span>
+                  <span class="rf__acuerdo-fecha">{{ a.fecha || '—' }}</span>
+                  @if (a.tarea_id) {
+                    <span class="rf__acuerdo-estado rf__acuerdo-estado--ok">✓ {{ 'Tarea creada' | t }}</span>
+                  } @else {
+                    <span class="rf__acuerdo-estado">{{ 'Sin tarea' | t }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+          <div class="rf__acuerdo-add">
+            <input class="sgc-input" type="text" [ngModel]="nuevoAcuerdoTexto()" (ngModelChange)="nuevoAcuerdoTexto.set($event)" placeholder="Nuevo acuerdo…" />
+            <app-user-picker [value]="null" [allowOtro]="false" placeholder="Responsable (opcional)" (selected)="onResponsableElegido($event)" />
+            <input class="sgc-input" type="date" [ngModel]="nuevoAcuerdoFecha()" (ngModelChange)="nuevoAcuerdoFecha.set($event)" />
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="crearAcuerdo()" [disabled]="creandoAcuerdo() || !nuevoAcuerdoTexto().trim()">{{ '+ Agregar' | t }}</button>
+          </div>
+        </section>
+
+        <section class="rf__card">
+          <span class="rf__card-title">{{ 'Notas de los asistentes' | t }} ({{ d.notas.length }})</span>
+          @for (n of d.notas; track n.id) {
+            @if (!n.es_mia) {
+              <div class="rf__nota">
+                <b>{{ n.usuario_nombre }}</b>
+                <span>{{ n.texto }}</span>
+              </div>
+            }
+          }
+          <label class="sgc-field">
+            <span class="sgc-field__label">{{ 'Tu nota' | t }}</span>
+            <textarea class="sgc-input" rows="2" [ngModel]="notaPropia()" (ngModelChange)="notaPropia.set($event)" placeholder="Lo que tú anotaste…"></textarea>
+          </label>
+          <div class="rf__card-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="guardarNota()" [disabled]="guardandoNota()">
+              {{ (guardandoNota() ? 'Guardando…' : 'Guardar nota') | t }}
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div class="rf__side">
+        <section class="rf__card">
+          <span class="rf__card-title">{{ 'Participantes' | t }}</span>
+          <p class="rf__participantes-list">
+            @for (p of d.participantes; track p.id; let last = $last) {
+              {{ p.nombre }}{{ last ? '' : ' · ' }}
+            }
+          </p>
+          <span class="rf__card-hint">{{ 'La minuta va solo a los correos @constructorasd.com' | t }}</span>
+        </section>
+
+        <section class="rf__card">
+          <span class="rf__card-title">{{ 'Ligada a' | t }}</span>
+          @if (d.reunion.proyecto_nombre) {
+            <p class="rf__ligada">{{ 'Obra' | t }}: {{ d.reunion.proyecto_nombre }}</p>
+          } @else {
+            <p class="rf__ligada rf__ligada--vacio">{{ 'No está ligada a ninguna obra, expediente o compra.' | t }}</p>
+          }
+        </section>
+
+        <section class="rf__card rf__card--estado">
+          <span class="rf__card-title">{{ 'Estado del acta' | t }}</span>
+          <p>
+            @switch (d.reunion.estado) {
+              @case ('programada') { {{ 'Programada. El acta se arma después de la reunión.' | t }} }
+              @case ('en_curso') { {{ 'En curso.' | t }} }
+              @case ('acta_borrador') { {{ 'Borrador listo → revisas → apruebas → se envía la minuta y se crean las tareas.' | t }} }
+              @case ('acta_aprobada') { {{ 'Acta aprobada y minuta enviada.' | t }} }
+              @case ('cancelada') { {{ 'Reunión cancelada.' | t }} }
+            }
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+}

@@ -36,8 +36,10 @@ export interface AsistenteRespuesta {
   herramientas: { tool: string; ok: boolean }[];
   propuesta?: AsistentePropuesta | null;
   ejecutado?: boolean;
-  /** AY11/C2 — archivo generado (PDF) listo para descargar. */
+  /** AY11/C2 — compat: el primero de `archivos` (o null). Preferir `archivos`. */
   archivo?: { nombre: string; url: string } | null;
+  /** CP3/CP9 — uno o varios archivos generados (PDF/Excel) listos para descargar. */
+  archivos?: { nombre: string; url: string }[];
 }
 
 /** BA3 — chips + saludo de Compa por rol (fuente única en BD: sgc.compa_chips). */
@@ -46,6 +48,17 @@ export interface CompaSugerencias {
   saludo: string | null;
   subtitulo: string | null;
   persona: string;
+}
+
+/** CP2 — una conversación que alguien compartió conmigo. */
+export interface CompaCompartida {
+  id: string;
+  conversacion_id: string;
+  titulo: string | null;
+  compartida_por_nombre: string;
+  mensaje: string | null;
+  created_at: string;
+  vista_at: string | null;
 }
 
 /**
@@ -149,5 +162,35 @@ export class AsistenteService {
       herramientas: (m as { herramientas: { tool: string; ok: boolean }[] | null }).herramientas,
       created_at: (m as { created_at: string }).created_at,
     }));
+  }
+
+  // ── CP2 — compartir conversaciones ─────────────────────────────────────────
+
+  /** Comparte una conversación mía con uno o varios usuarios. */
+  async compartir(conversacionId: string, usuarios: string[], mensaje: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compa_compartir', {
+      p_conversacion: conversacionId, p_usuarios: usuarios, p_mensaje: mensaje || null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Conversaciones que otros compartieron conmigo. */
+  async compartidasConmigo(): Promise<CompaCompartida[]> {
+    const { data, error } = await this.supabase.client.rpc('compa_compartidas_conmigo');
+    if (error) return [];
+    return (data ?? []) as CompaCompartida[];
+  }
+
+  /** Mensajes de una conversación compartida conmigo (solo lectura). */
+  async conversacionCompartida(compartidaId: string): Promise<AsistenteMensaje[]> {
+    const { data, error } = await this.supabase.client.rpc('compa_conversacion_compartida', { p_id: compartidaId });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as { rol: string; contenido: string; herramientas: { tool: string; ok: boolean }[] | null; created_at: string }[])
+      .map((m) => ({
+        rol: m.rol === 'assistant' ? 'assistant' : 'user',
+        contenido: m.contenido,
+        herramientas: m.herramientas,
+        created_at: m.created_at,
+      }));
   }
 }
