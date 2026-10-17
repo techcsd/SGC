@@ -1,19 +1,28 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, JsonPipe, UpperCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   AuditoriaService,
-  AuditoriaRow,
   AuditoriaActor,
   AuditoriaResumen,
   AdminAccionRow,
+  AuditoriaActividadFila,
+  AuditoriaActividadFiltro,
 } from '../../../../shared/services/auditoria.service';
-import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import {
+  formatTimestampDisplay,
+  formatHoraTimestamp,
+  formatFechaHumanaConSegundos,
+  etiquetaDiaAgrupador,
+} from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
+import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 const CAT = ['#1F4E79', '#2D7D46', '#B45309', '#5B3A8E', '#0E7490', '#C0392B', '#64748b'];
 
@@ -96,11 +105,47 @@ const ADMIN_ACCION_LABELS: Record<string, string> = {
   credencial_email_resync: 'Resincronizó el correo de acceso por cédula',
 };
 
+// CQ3 — a dónde enlazar un registro desde el panel de detalle. Solo las tablas
+// donde estamos SEGUROS de la ruta real (grep de app.routes.ts/*.routes.ts); si
+// no hay certeza, se omite el link (no se inventan rutas — regla 10/16).
+const RUTA_REGISTRO: Record<string, (id: string) => string> = {
+  solicitudes_material: (id) => `/inventario/requisiciones?req=${id}`,
+  vehiculos: (id) => `/flota/vehiculos/${id}`,
+  conductores: (id) => `/flota/conductores/${id}`,
+  proyectos: (id) => `/proyectos/${id}`,
+};
+
+// CQ3 — campos cuyo valor es el id de un usuario (para best-effort resolver su
+// nombre en el panel de detalle, usando el directorio de actores ya cargado).
+// Si el id no está en ese directorio (nunca actuó en el log) se muestra crudo —
+// no se bloquea nada por esto (regla 16: nunca tumbar la pantalla).
+const CAMPOS_USUARIO = new Set([
+  'actor_id', 'solicitante_id', 'atendido_por', 'aprobador_id', 'decidida_por',
+  'cerrada_por', 'asignado_por', 'responsable_id', 'usuario_id', 'creado_por',
+]);
+
+const CAMPO_LABELS: Record<string, string> = {
+  estado: 'Estado', activo: 'Activo', monto: 'Monto', cantidad: 'Cantidad',
+  folio: 'Folio', nombre: 'Nombre', placa: 'Placa', cedula: 'Cédula', email: 'Correo',
+  notas: 'Notas', urgencia: 'Urgencia', bodega_id: 'Almacén', proyecto_id: 'Proyecto',
+  motivo_rechazo: 'Motivo de rechazo', fecha_necesidad: 'Fecha necesaria',
+  autoaprobada: 'Autoaprobada', numero: 'Número', unidad: 'Unidad',
+};
+
+/** CQ3 — un día de la línea de tiempo de Actividad (encabezado + sus filas). */
+interface GrupoDia {
+  clave: string;
+  etiqueta: string;
+  filas: AuditoriaActividadFila[];
+}
+
 /** Admin → Auditoría: browse the full change trail (who changed what, when).
- *  Reads sgc.auditoria (populated by DB triggers from BOTH web and app). */
+ *  Reads sgc.auditoria (populated by DB triggers from BOTH web and app).
+ *  CQ3 — 3 pestañas: Actividad (línea de tiempo legible, por defecto) /
+ *  Resumen (panel analítico) / Acciones de admin (audit_log). */
 @Component({
   selector: 'app-admin-auditoria',
-  imports: [DecimalPipe, BarChart, DonutChart, Skeleton, DateRangeFilter, Icon],
+  imports: [DecimalPipe, JsonPipe, UpperCasePipe, RouterLink, BarChart, DonutChart, Skeleton, DateRangeFilter, FilterSelect, Icon, TranslatePipe],
   templateUrl: './auditoria.html',
   styleUrl: './auditoria.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -109,9 +154,70 @@ export class AdminAuditoria implements OnInit {
   private service = inject(AuditoriaService);
 
   formatTs = formatTimestampDisplay;
+  formatHora = formatHoraTimestamp;
+  formatPreciso = formatFechaHumanaConSegundos;
 
-  /** W6 — vista activa: panel analítico, filas crudas (drill-down) o acciones de admin (AZ10). */
-  vista = signal<'panel' | 'filas' | 'admin'>('panel');
+  /** CQ3 — vista activa: Actividad (por defecto) / Resumen (panel analítico) / Acciones de admin. */
+  vista = signal<'actividad' | 'resumen' | 'admin'>('actividad');
+
+  // ── CQ3 — Actividad (línea de tiempo) ─────────────────────────────────────
+  actFilas = signal<AuditoriaActividadFila[]>([]);
+  actCursor = signal<string | null>(null);
+  actHayMas = signal(false);
+  actLoading = signal(true);
+  actLoadingMas = signal(false);
+  actError = signal('');
+
+  actTexto = signal('');
+  actPersona = signal(''); // actor_id
+  actModulo = signal('');
+  actAccion = signal('');
+  actDesde = signal('');
+  actHasta = signal('');
+
+  /** Fila elegida para el panel de detalle (null = panel cerrado). */
+  seleccion = signal<AuditoriaActividadFila | null>(null);
+  /** true = el panel muestra la historia COMPLETA del registro (todas las acciones,
+   *  todos los usuarios), no solo la fila clicada. */
+  historiaModo = signal(false);
+  historiaFilas = signal<AuditoriaActividadFila[]>([]);
+  historiaLoading = signal(false);
+  verJson = signal(false);
+
+  private actCargado = false;
+
+  personaOptions = computed<FilterOption[]>(() => this.actores().map((a) => ({ value: a.actor_id, label: a.nombre })));
+  moduloOptions = computed<FilterOption[]>(() =>
+    this.tablas().map((t) => ({ value: t, label: this.tablaLabel(t) })).sort((a, b) => a.label.localeCompare(b.label)),
+  );
+  accionOptions: FilterOption[] = [
+    { value: 'INSERT', label: 'Creó' },
+    { value: 'UPDATE', label: 'Modificó' },
+    { value: 'DELETE', label: 'Eliminó' },
+  ];
+  personaChipLabel = computed(() => this.actores().find((a) => a.actor_id === this.actPersona())?.nombre ?? '');
+
+  actHasFilters = computed(
+    () => !!(this.actTexto() || this.actPersona() || this.actModulo() || this.actAccion() || this.actDesde() || this.actHasta()),
+  );
+
+  /** Filas agrupadas por día (Hoy / Ayer / "Jueves 16 oct"), en el orden en que llegan (desc). */
+  gruposPorDia = computed<GrupoDia[]>(() => {
+    const out: GrupoDia[] = [];
+    const idx = new Map<string, number>();
+    for (const f of this.actFilas()) {
+      const d = new Date(f.creado_en);
+      const clave = isNaN(d.getTime()) ? '—' : `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      let i = idx.get(clave);
+      if (i === undefined) {
+        i = out.length;
+        idx.set(clave, i);
+        out.push({ clave, etiqueta: etiquetaDiaAgrupador(f.creado_en), filas: [] });
+      }
+      out[i].filas.push(f);
+    }
+    return out;
+  });
 
   // AZ10 — acciones de administración (audit_log): impersonación, roles, usuarios test.
   adminRows = signal<AdminAccionRow[]>([]);
@@ -124,109 +230,231 @@ export class AdminAuditoria implements OnInit {
   resumen = signal<AuditoriaResumen | null>(null);
   resumenLoading = signal(false);
 
-  rows = signal<AuditoriaRow[]>([]);
-  total = signal(0);
-  page = signal(0);
-  loading = signal(true);
-  error = signal('');
-  expandedId = signal<number | null>(null);
+  // CQ3 — Resumen ahora filtra SOLO por rango de fecha (es un panel analítico
+  // agregado; filtrar también por persona/módulo no aportaba y complicaba la UI).
+  rDesde = signal('');
+  rHasta = signal('');
 
   tablas = signal<string[]>([]);
   actores = signal<AuditoriaActor[]>([]);
 
-  // Filters
-  fTabla = signal('');
-  fAccion = signal('');
-  fActor = signal('');
-  fDesde = signal('');
-  fHasta = signal('');
-  fBuscar = signal('');
-
   readonly pageSize = this.service.pageSize;
-  totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.pageSize)));
-  rangeLabel = computed(() => {
-    if (this.total() === 0) return '0';
-    const from = this.page() * this.pageSize + 1;
-    const to = Math.min(this.total(), from + this.rows().length - 1);
-    return `${from}–${to} de ${this.total()}`;
-  });
-
-  /** La lista de filas se carga perezosamente (la vista por defecto es el panel). */
-  private filasCargadas = false;
 
   async ngOnInit() {
-    // Vista por defecto = panel. Las filas crudas se cargan al entrar a esa pestaña.
-    await Promise.all([this.loadResumen(), this.loadFilterOptions()]);
+    await this.loadFilterOptions();
+    await this.loadActividad(true);
   }
 
-  // ── W6 — Panel analítico ─────────────────────────────────────
-  cambiarVista(v: 'panel' | 'filas' | 'admin') {
+  cambiarVista(v: 'actividad' | 'resumen' | 'admin') {
     this.vista.set(v);
-    // Panel: siempre refresca los agregados para que reflejen el filtro actual.
-    if (v === 'panel') void this.loadResumen();
-    // Filas: carga perezosa la primera vez.
-    if (v === 'filas' && !this.filasCargadas) void this.load();
-    // Acciones de admin: carga perezosa la primera vez.
+    if (v === 'actividad' && !this.actCargado) void this.loadActividad(true);
+    if (v === 'resumen') void this.loadResumen();
     if (v === 'admin' && !this.adminCargado) void this.loadAdmin();
   }
 
-  // ── AZ10 — Acciones de administración ─────────────────────────
-  async loadAdmin() {
-    this.adminCargado = true;
-    this.adminLoading.set(true);
-    this.error.set('');
+  // ── CQ3 — Actividad ────────────────────────────────────────────────────────
+  private async loadFilterOptions() {
     try {
-      const { rows, total } = await this.service.listAdmin(this.adminPage(), this.fAdminAccion() || undefined);
-      this.adminRows.set(rows);
-      this.adminTotal.set(total);
+      const { tablas, actores } = await this.service.opciones();
+      this.tablas.set(tablas);
+      this.actores.set(actores);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las acciones de administración.');
-    } finally {
-      this.adminLoading.set(false);
+      this.actError.set(e instanceof Error ? e.message : 'No se pudieron cargar los filtros.');
     }
   }
 
-  adminApplyFilter() {
-    this.adminPage.set(0);
-    void this.loadAdmin();
+  private filtroActividad(): AuditoriaActividadFiltro {
+    return {
+      persona: this.actPersona() || undefined,
+      texto: this.actTexto() || undefined,
+      desde: this.actDesde() || undefined,
+      hasta: this.actHasta() || undefined,
+      modulo: this.actModulo() || undefined,
+      accion: this.actAccion() || undefined,
+    };
   }
 
-  adminGoToPage(p: number) {
-    if (p < 0 || p >= this.adminTotalPages()) return;
-    this.adminPage.set(p);
-    void this.loadAdmin();
+  async loadActividad(reset: boolean) {
+    this.actCargado = true;
+    if (reset) {
+      this.actLoading.set(true);
+      this.actCursor.set(null);
+    } else {
+      this.actLoadingMas.set(true);
+    }
+    this.actError.set('');
+    try {
+      const { filas, cursorSiguiente, hayMas } = await this.service.actividad(
+        this.filtroActividad(),
+        reset ? null : this.actCursor(),
+      );
+      this.actFilas.update((cur) => (reset ? filas : [...cur, ...filas]));
+      this.actCursor.set(cursorSiguiente);
+      this.actHayMas.set(hayMas);
+    } catch (e: unknown) {
+      this.actError.set(e instanceof Error ? e.message : 'Error al cargar la actividad.');
+    } finally {
+      this.actLoading.set(false);
+      this.actLoadingMas.set(false);
+    }
   }
 
-  adminAccionLabel(a: string): string {
-    return ADMIN_ACCION_LABELS[a] ?? a;
+  cargarMasActividad() {
+    if (this.actHayMas() && !this.actLoadingMas()) void this.loadActividad(false);
   }
 
-  /** Texto de detalle de una acción de admin (metadata → frase corta). */
-  adminDetalle(r: AdminAccionRow): string {
-    const m = r.metadata ?? {};
-    const parts: string[] = [];
-    if (r.target_nombre) parts.push(`sobre ${r.target_nombre}`);
-    else if (m['nombre']) parts.push(`sobre ${m['nombre']}`);
-    if (m['email']) parts.push(String(m['email']));
-    return parts.join(' · ');
+  aplicarFiltrosActividad() {
+    void this.loadActividad(true);
   }
 
+  onBuscarEnter(ev: Event) {
+    ev.preventDefault();
+    this.aplicarFiltrosActividad();
+  }
+
+  onRangoActividad(r: RangoFecha) {
+    this.actDesde.set(r.desde ?? '');
+    this.actHasta.set(r.hasta ?? '');
+    this.aplicarFiltrosActividad();
+  }
+
+  limpiarFiltrosActividad() {
+    this.actTexto.set('');
+    this.actPersona.set('');
+    this.actModulo.set('');
+    this.actAccion.set('');
+    this.actDesde.set('');
+    this.actHasta.set('');
+    this.aplicarFiltrosActividad();
+  }
+
+  /** Clic en el nombre de una persona dentro de una fila → filtra por ella. */
+  filtrarPorPersona(actorId: string | null) {
+    if (!actorId) return;
+    this.actPersona.set(actorId);
+    this.aplicarFiltrosActividad();
+  }
+
+  quitarFiltroPersona() {
+    this.actPersona.set('');
+    this.aplicarFiltrosActividad();
+  }
+
+  /** Clic en una fila → panel de detalle (solo esa fila). */
+  seleccionar(f: AuditoriaActividadFila) {
+    this.seleccion.set(f);
+    this.historiaModo.set(false);
+    this.historiaFilas.set([]);
+    this.verJson.set(false);
+  }
+
+  cerrarDetalle() {
+    this.seleccion.set(null);
+    this.historiaModo.set(false);
+  }
+
+  /** "Ver toda la historia de {código}" → trae TODAS las acciones del registro. */
+  async verHistoriaCompleta(f: AuditoriaActividadFila) {
+    this.seleccion.set(f);
+    this.historiaModo.set(true);
+    this.historiaLoading.set(true);
+    try {
+      this.historiaFilas.set(await this.service.historiaRegistro(f.tabla, f.registro_id));
+    } catch (e: unknown) {
+      this.actError.set(e instanceof Error ? e.message : 'Error al cargar la historia del registro.');
+    } finally {
+      this.historiaLoading.set(false);
+    }
+  }
+
+  /** Ruta real para "abrir" el registro desde el detalle, si se conoce (regla 10/16: nunca inventar). */
+  rutaRegistro(f: AuditoriaActividadFila): string | null {
+    return RUTA_REGISTRO[f.tabla]?.(f.registro_id) ?? null;
+  }
+
+  /** Campo→valor "antes/después" SOLO de lo que cambió, con nombres legibles y
+   *  resolución best-effort de ids de usuario conocidos (regla AT11). */
+  cambiosDetalle(f: AuditoriaActividadFila): { campo: string; antes: string; despues: string }[] {
+    if (!f.cambios) return [];
+    return Object.entries(f.cambios).map(([campo, v]) => ({
+      campo: this.campoLabel(campo),
+      antes: this.fmtValor(campo, v.antes),
+      despues: this.fmtValor(campo, v.despues),
+    }));
+  }
+
+  campoLabel(c: string): string {
+    return CAMPO_LABELS[c] ?? c.replace(/_/g, ' ').replace(/\bid\b/gi, 'ID');
+  }
+
+  private usuarioNombre(id: unknown): string | null {
+    if (typeof id !== 'string') return null;
+    return this.actores().find((a) => a.actor_id === id)?.nombre ?? null;
+  }
+
+  private fmtValor(campo: string, v: unknown): string {
+    if (v === null || v === undefined) return '—';
+    if (typeof v === 'boolean') return v ? 'Sí' : 'No';
+    if (CAMPOS_USUARIO.has(campo)) {
+      const nombre = this.usuarioNombre(v);
+      if (nombre) return nombre;
+    }
+    const s = String(v);
+    return s.length > 80 ? s.slice(0, 80) + '…' : s;
+  }
+
+  exportando = signal(false);
+
+  /** Exporta a Excel TODO lo que coincide con el filtro actual de Actividad,
+   *  recorriendo el cursor hasta agotarlo (con un tope de seguridad). */
+  async exportarActividad() {
+    if (this.exportando()) return;
+    this.exportando.set(true);
+    try {
+      const filtro = this.filtroActividad();
+      const todas: AuditoriaActividadFila[] = [];
+      let cursor: string | null = null;
+      const MAX_PAGINAS = 250; // ~10k filas con pageSize=40
+      for (let i = 0; i < MAX_PAGINAS; i++) {
+        const { filas, cursorSiguiente, hayMas } = await this.service.actividad(filtro, cursor);
+        todas.push(...filas);
+        if (!hayMas || filas.length === 0) break;
+        cursor = cursorSiguiente;
+      }
+      const filas = todas.map((r) => ({
+        'Fecha y hora': this.formatTs(r.creado_en),
+        Usuario: r.actor_nombre ?? 'Sistema',
+        Acción: this.accionLabel(r.accion),
+        Área: this.tablaLabel(r.tabla),
+        Registro: r.codigo ?? r.registro_id,
+        Qué: r.frase_resumen,
+        'Qué cambió': r.resumen_cambio ?? '',
+        Desde: r.origen ?? 'No disponible',
+      }));
+      await exportarExcel('auditoria-actividad', filas);
+    } catch (e: unknown) {
+      this.actError.set(e instanceof Error ? e.message : 'Error al exportar la auditoría.');
+    } finally {
+      this.exportando.set(false);
+    }
+  }
+
+  // ── Resumen (panel analítico) ───────────────────────────────────────────────
   async loadResumen() {
     this.resumenLoading.set(true);
     try {
-      this.resumen.set(
-        await this.service.resumen({
-          desde: this.fDesde() || undefined,
-          hasta: this.fHasta() || undefined,
-          actorId: this.fActor() || undefined,
-          tabla: this.fTabla() || undefined,
-        }),
-      );
+      this.resumen.set(await this.service.resumen({ desde: this.rDesde() || undefined, hasta: this.rHasta() || undefined }));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar el panel.');
+      this.actError.set(e instanceof Error ? e.message : 'Error al cargar el panel.');
     } finally {
       this.resumenLoading.set(false);
     }
+  }
+
+  onRangoResumen(r: RangoFecha) {
+    this.rDesde.set(r.desde ?? '');
+    this.rHasta.set(r.hasta ?? '');
+    void this.loadResumen();
   }
 
   // Y2 — listas drill-down con top-N + "Ver más" (presentación).
@@ -271,153 +499,77 @@ export class AdminAuditoria implements OnInit {
     (this.resumen()?.por_hora ?? []).map((h) => ({ label: `${h.hora}h`, value: h.n, color: '#0E7490' })),
   );
 
-  // Drill-down: salta a las filas crudas filtradas SOLO por la métrica elegida
-  // (limpia los otros filtros; conserva el rango de fechas del período).
-  private resetFiltrosSalvoFecha() {
-    this.fActor.set('');
-    this.fTabla.set('');
-    this.fAccion.set('');
-    this.fBuscar.set('');
-  }
+  // Drill-down: salta a Actividad filtrada SOLO por la métrica elegida (conserva
+  // el rango de fechas del período del Resumen).
   verUsuario(actorId: string | null) {
     if (!actorId) return;
-    this.resetFiltrosSalvoFecha();
-    this.fActor.set(actorId);
-    this.irAFilas();
+    this.limpiarFiltrosActividadSalvoFecha();
+    this.actPersona.set(actorId);
+    this.irAActividad();
   }
   verModulo(tabla: string) {
-    this.resetFiltrosSalvoFecha();
-    this.fTabla.set(tabla);
-    this.irAFilas();
+    this.limpiarFiltrosActividadSalvoFecha();
+    this.actModulo.set(tabla);
+    this.irAActividad();
   }
   verAccionComun(tabla: string, accion: string) {
-    this.resetFiltrosSalvoFecha();
-    this.fTabla.set(tabla);
-    this.fAccion.set(accion);
-    this.irAFilas();
+    this.limpiarFiltrosActividadSalvoFecha();
+    this.actModulo.set(tabla);
+    this.actAccion.set(accion);
+    this.irAActividad();
   }
-  private irAFilas() {
-    this.vista.set('filas');
-    this.page.set(0);
-    void this.load();
+  private limpiarFiltrosActividadSalvoFecha() {
+    this.actTexto.set('');
+    this.actPersona.set('');
+    this.actModulo.set('');
+    this.actAccion.set('');
+    this.actDesde.set(this.rDesde());
+    this.actHasta.set(this.rHasta());
   }
-
-  private async loadFilterOptions() {
-    // CD2 — UN solo RPC (auditoria_opciones) trae tablas + actores. Antes eran dos
-    // llamadas en Promise.all y el fallo de una (auditoria_actores crasheaba por
-    // varchar↔text) vaciaba AMBOS selects, oculto por un catch mudo (regla 16).
-    try {
-      const { tablas, actores } = await this.service.opciones();
-      this.tablas.set(tablas);
-      this.actores.set(actores);
-    } catch (e: unknown) {
-      // No rompe la pantalla, pero deja de ser invisible: el error se ve.
-      this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar los filtros.');
-    }
+  private irAActividad() {
+    this.vista.set('actividad');
+    void this.loadActividad(true);
   }
 
-  async load() {
-    this.filasCargadas = true;
-    this.loading.set(true);
-    this.error.set('');
+  // ── AZ10 — Acciones de administración ─────────────────────────────────────
+  async loadAdmin() {
+    this.adminCargado = true;
+    this.adminLoading.set(true);
+    this.actError.set('');
     try {
-      const { rows, total } = await this.service.list(
-        {
-          tabla: this.fTabla() || undefined,
-          accion: this.fAccion() || undefined,
-          actorId: this.fActor() || undefined,
-          desde: this.fDesde() || undefined,
-          hasta: this.fHasta() || undefined,
-          buscar: this.fBuscar() || undefined,
-        },
-        this.page(),
-      );
-      this.rows.set(rows);
-      this.total.set(total);
+      const { rows, total } = await this.service.listAdmin(this.adminPage(), this.fAdminAccion() || undefined);
+      this.adminRows.set(rows);
+      this.adminTotal.set(total);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar la auditoría.');
+      this.actError.set(e instanceof Error ? e.message : 'Error al cargar las acciones de administración.');
     } finally {
-      this.loading.set(false);
+      this.adminLoading.set(false);
     }
   }
 
-  applyFilters() {
-    this.page.set(0);
-    void this.load();
-    void this.loadResumen();
+  adminApplyFilter() {
+    this.adminPage.set(0);
+    void this.loadAdmin();
   }
 
-  /** R12 — filtro de fechas unificado (aplica de inmediato). */
-  onRango(r: RangoFecha) {
-    this.fDesde.set(r.desde ?? '');
-    this.fHasta.set(r.hasta ?? '');
-    this.applyFilters();
+  adminGoToPage(p: number) {
+    if (p < 0 || p >= this.adminTotalPages()) return;
+    this.adminPage.set(p);
+    void this.loadAdmin();
   }
 
-  clearFilters() {
-    this.fTabla.set('');
-    this.fAccion.set('');
-    this.fActor.set('');
-    this.fDesde.set('');
-    this.fHasta.set('');
-    this.fBuscar.set('');
-    this.applyFilters();
+  adminAccionLabel(a: string): string {
+    return ADMIN_ACCION_LABELS[a] ?? a;
   }
 
-  hasFilters = computed(
-    () =>
-      !!(this.fTabla() || this.fAccion() || this.fActor() || this.fDesde() || this.fHasta() || this.fBuscar()),
-  );
-
-  goToPage(p: number) {
-    if (p < 0 || p >= this.totalPages()) return;
-    this.page.set(p);
-    void this.load();
-  }
-
-  exportando = signal(false);
-
-  /**
-   * Exporta a Excel TODAS las filas que coinciden con el filtro actual. La
-   * auditoría se pagina en el servidor (rows() es solo la página visible), así
-   * que recorremos todas las páginas del filtro — con un tope de seguridad.
-   */
-  async exportar() {
-    if (this.exportando()) return;
-    this.exportando.set(true);
-    try {
-      const filtro = {
-        tabla: this.fTabla() || undefined,
-        accion: this.fAccion() || undefined,
-        actorId: this.fActor() || undefined,
-        desde: this.fDesde() || undefined,
-        hasta: this.fHasta() || undefined,
-        buscar: this.fBuscar() || undefined,
-      };
-      const todas: AuditoriaRow[] = [];
-      const MAX_PAGINAS = 250; // ~10k filas con pageSize=40
-      for (let page = 0; page < MAX_PAGINAS; page++) {
-        const { rows, total } = await this.service.list(filtro, page);
-        todas.push(...rows);
-        if (rows.length === 0 || todas.length >= total) break;
-      }
-      const filas = todas.map((r) => ({
-        'Fecha y hora': this.formatTs(r.creado_en),
-        Usuario: r.actor?.nombre ?? 'Sistema',
-        Acción: this.accionLabel(r.accion),
-        Área: this.tablaLabel(r.tabla),
-        Registro: r.registro_id,
-      }));
-      await exportarExcel('auditoria', filas);
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al exportar la auditoría.');
-    } finally {
-      this.exportando.set(false);
-    }
-  }
-
-  toggle(id: number) {
-    this.expandedId.update((cur) => (cur === id ? null : id));
+  /** Texto de detalle de una acción de admin (metadata → frase corta). */
+  adminDetalle(r: AdminAccionRow): string {
+    const m = r.metadata ?? {};
+    const parts: string[] = [];
+    if (r.target_nombre) parts.push(`sobre ${r.target_nombre}`);
+    else if (m['nombre']) parts.push(`sobre ${m['nombre']}`);
+    if (m['email']) parts.push(String(m['email']));
+    return parts.join(' · ');
   }
 
   tablaLabel(t: string): string {
@@ -427,35 +579,8 @@ export class AdminAuditoria implements OnInit {
     return ACCION_LABELS[a] ?? a;
   }
 
-  /** Changed fields for an UPDATE, as a display-friendly list. */
-  cambiosList(row: AuditoriaRow): { campo: string; antes: string; despues: string }[] {
-    if (!row.cambios) return [];
-    return Object.entries(row.cambios).map(([campo, v]) => ({
-      campo: this.humanizeCampo(campo),
-      antes: this.fmt(v.antes),
-      despues: this.fmt(v.despues),
-    }));
-  }
-
-  /** Key fields of a created/deleted record. */
-  datosList(row: AuditoriaRow): { campo: string; valor: string }[] {
-    const data = row.datos_despues ?? row.datos_antes;
-    if (!data) return [];
-    return Object.entries(data)
-      .filter(([, v]) => v !== null && v !== '' && typeof v !== 'object')
-      .slice(0, 12)
-      .map(([campo, v]) => ({ campo: this.humanizeCampo(campo), valor: this.fmt(v) }));
-  }
-
-  private humanizeCampo(c: string): string {
-    return c.replace(/_/g, ' ').replace(/\bid\b/gi, 'ID');
-  }
-
-  private fmt(v: unknown): string {
-    if (v === null || v === undefined) return '—';
-    if (typeof v === 'boolean') return v ? 'Sí' : 'No';
-    if (typeof v === 'object') return JSON.stringify(v);
-    const s = String(v);
-    return s.length > 80 ? s.slice(0, 80) + '…' : s;
+  // Compat: el error visible de la pantalla (cualquier pestaña escribe aquí).
+  get error() {
+    return this.actError;
   }
 }

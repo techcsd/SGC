@@ -81,6 +81,8 @@
 .rf__acuerdo-add > input { flex: 1; min-width: 140px; }
 
 .rf__nota { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.rf__nota-foto { display: block; margin-top: 4px; }
+.rf__nota-foto img { max-width: 160px; max-height: 120px; border-radius: 8px; border: 1px solid var(--border); object-fit: cover; }
 
 .rf__participantes-list { margin: 0; font-size: 13px; color: var(--text-2); }
 .rf__ligada { margin: 0; font-size: 13px; color: var(--text-2); }

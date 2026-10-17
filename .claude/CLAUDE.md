@@ -60,3 +60,12 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - **Nada llega a prod sin pasar por dev.** Migraciones/edges/secrets: `--env dev` primero, probar, luego `--env prod` (rechaza lo que no esté en el ledger de dev salvo `--force-prod --motivo`). Sin `--env` los scripts no corren.
 - `environment.ts` local está gitignored → `npm run env:dev`. Nunca hardcodees el ref de prod (guard `verify-sin-ref-hardcodeado`).
 - Flujo: `feature/*` → `dev` → PR `dev → main`. Detalle en `docs/ENTORNOS.md`.
+
+## Sesiones en paralelo (CQ6 — regla permanente)
+
+Xaviel es el único dev, pero puede (o Claude Code puede, en una ronda larga) abrir más de una sesión de Claude Code a la vez. Dos sesiones escribiendo sobre la misma carpeta de trabajo a la vez ya causó archivos oscilando entre versiones y un `checkout` que chocó (ver HANDOFF, rondas CP/CQ del 16-oct-2026).
+
+- **Una sesión = un worktree (o una rama propia).** Nunca dos sesiones activas sobre el mismo directorio de trabajo (`git worktree add ../SGC-<ronda> feature/<ronda>` desde `dev`).
+- **Al empezar cualquier ronda:** correr `git status` + `git worktree list` (y revisar las ramas `feature/*` recientes) antes de tocar nada.
+- Si `git status` muestra cambios sin commitear que **no son tuyos de esta sesión**, o el HANDOFF/otro indicio dice que hay otra sesión trabajando: **parar y avisarle a Xaviel**, no seguir ni intentar "arreglarlo" solo.
+- **Nunca `checkout`/`reset`/`clean` sobre una carpeta que tenga trabajo de otra sesión** sin confirmar primero qué es ese trabajo.

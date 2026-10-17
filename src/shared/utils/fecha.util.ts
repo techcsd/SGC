@@ -180,6 +180,43 @@ export function formatFechaHumanaConDia(ts: string | null | undefined): string {
 }
 
 /**
+ * CQ3 — Igual que `formatFechaHumana` pero con segundos, ej. `16 oct 2026,
+ * 3:45:07 p. m.` — para el panel de detalle de Auditoría ("cuándo" exacto al
+ * segundo). Uso puntual; NO cambiar `formatFechaHumana`.
+ */
+export function formatFechaHumanaConSegundos(ts: string | null | undefined): string {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  let h = d.getHours();
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const seg = String(d.getSeconds()).padStart(2, '0');
+  const period = h >= 12 ? 'p. m.' : 'a. m.';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${d.getDate()} ${MESES_ABREV[d.getMonth()]} ${d.getFullYear()}, ${h}:${min}:${seg} ${period}`;
+}
+
+/**
+ * CQ3 — etiqueta de agrupación por día para una línea de tiempo (Auditoría ›
+ * Actividad): "Hoy", "Ayer", o "Jueves 16 oct" para lo demás. Compara por fecha
+ * LOCAL (no UTC), igual cuidado que `formatDiaCorto`.
+ */
+export function etiquetaDiaAgrupador(ts: string | null | undefined): string {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  const hoy = new Date();
+  const mismoDia = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (mismoDia(d, hoy)) return 'Hoy';
+  const ayer = new Date(hoy);
+  ayer.setDate(ayer.getDate() - 1);
+  if (mismoDia(d, ayer)) return 'Ayer';
+  return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES_ABREV[d.getMonth()]}`;
+}
+
+/**
  * U9 — Fecha media es-DO de un `timestamptz`, sin hora, ej. `14 jul 2026`.
  * Para listados donde la hora no aporta. El timestamp trae offset UTC (`Z`).
  */

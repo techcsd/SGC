@@ -1,98 +1,164 @@
-<div class="dev-notes">
-  <header class="dev-notes__head">
-    <h1><app-icon name="code" [size]="20" /> Dev notes</h1>
-    <div class="dev-notes__head-actions">
-      <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="Importar .md/.txt">
-        <app-icon name="upload" [size]="16" /> Importar
-        <input type="file" accept=".md,.txt,text/markdown,text/plain" hidden
-          (change)="importarMd($any($event.target))" />
-      </label>
-      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="nueva()">
-        <app-icon name="plus" [size]="16" /> Nueva
-      </button>
-    </div>
-  </header>
-
-  <div class="dev-notes__body">
-    <!-- Lista -->
-    <aside class="dev-notes__list">
-      <div class="dev-notes__tabs">
-        <button type="button" [class.active]="tab() === 'mias'" (click)="tab.set('mias')">Mis notas</button>
-        <button type="button" [class.active]="tab() === 'compartidas'" (click)="tab.set('compartidas')">Compartidas conmigo</button>
+@if (!activa()) {
+  <div class="dev-notes">
+    <header class="dev-notes__head">
+      <h1><app-icon name="code" [size]="20" /> Dev notes</h1>
+      <div class="dev-notes__head-actions">
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="Importar .md/.txt">
+          <app-icon name="upload" [size]="16" /> Importar
+          <input type="file" accept=".md,.txt,text/markdown,text/plain" hidden
+            (change)="importarMd($any($event.target))" />
+        </label>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="nueva()">
+          <app-icon name="plus" [size]="16" /> Nueva <span class="dev-notes__kbd">Ctrl+N</span>
+        </button>
       </div>
+    </header>
 
-      <div class="dev-notes__search">
-        <app-icon name="search" [size]="15" />
-        <input type="text" placeholder="Buscar…" [value]="query()" (input)="query.set($any($event.target).value)" />
-      </div>
-
-      @if (tagsDisponibles().length) {
-        <div class="dev-notes__tagbar">
-          <button type="button" class="tag-chip" [class.active]="!tagFiltro()" (click)="tagFiltro.set(null)">Todas</button>
-          @for (t of tagsDisponibles(); track t) {
-            <button type="button" class="tag-chip" [class.active]="tagFiltro() === t" (click)="tagFiltro.set(t)">#{{ t }}</button>
-          }
+    <div class="dev-notes__body">
+      <!-- Lista -->
+      <aside class="dev-notes__list">
+        <div class="dev-notes__tabs">
+          <button type="button" [class.active]="tab() === 'mias'" (click)="tab.set('mias')">Mis notas</button>
+          <button type="button" [class.active]="tab() === 'compartidas'" (click)="tab.set('compartidas')">Compartidas conmigo</button>
         </div>
-      }
 
-      @if (loading()) {
-        <p class="dev-notes__empty">Cargando…</p>
-      } @else if (lista().length === 0) {
-        <p class="dev-notes__empty">Sin notas todavía. Crea una con “Nueva”.</p>
-      } @else {
-        <ul class="dev-notes__items">
-          @for (n of lista(); track n.id) {
-            <li>
-              <button type="button" class="note-card" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
-                <span class="note-card__title">
-                  @if (n.pinned) { <app-icon name="star" [size]="13" /> }
-                  {{ n.titulo || '(sin título)' }}
-                </span>
-                <span class="note-card__preview">{{ n.contenido }}</span>
-                @if ((n.tags ?? []).length) {
-                  <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
-                }
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    </aside>
+        <div class="dev-notes__search">
+          <app-icon name="search" [size]="15" />
+          <input type="text" placeholder="Buscar en todas…" [value]="query()" (input)="query.set($any($event.target).value)" />
+        </div>
 
-    <!-- Editor -->
-    <section class="dev-notes__editor">
-      @if (!activa()) {
+        @if (tagsDisponibles().length) {
+          <div class="dev-notes__tagbar">
+            <button type="button" class="tag-chip" [class.active]="!tagFiltro()" (click)="tagFiltro.set(null)">Todas</button>
+            @for (t of tagsDisponibles(); track t) {
+              <button type="button" class="tag-chip" [class.active]="tagFiltro() === t" (click)="tagFiltro.set(t)">#{{ t }}</button>
+            }
+          </div>
+        }
+
+        @if (loading()) {
+          <p class="dev-notes__empty">Cargando…</p>
+        } @else if (lista().length === 0) {
+          <p class="dev-notes__empty">Sin notas todavía. Crea una con “Nueva”.</p>
+        } @else {
+          <div class="dev-notes__items">
+            @for (g of agrupada(); track g.label) {
+              <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
+              @for (n of g.notas; track n.id) {
+                <button type="button" class="note-card" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
+                  <span class="note-card__title">
+                    @if (n.pinned) { <app-icon name="star" [size]="13" /> }
+                    {{ n.titulo || '(sin título)' }}
+                  </span>
+                  <span class="note-card__preview">{{ n.contenido }}</span>
+                  @if ((n.tags ?? []).length) {
+                    <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
+                  }
+                </button>
+              }
+            }
+          </div>
+        }
+      </aside>
+
+      <!-- Placeholder (sin nota abierta) -->
+      <section class="dev-notes__editor">
         <div class="dev-notes__placeholder">
           <app-icon name="file-text" [size]="32" />
           <p>Selecciona una nota o crea una nueva.</p>
         </div>
-      } @else {
-        <div class="dev-notes__editor-head">
-          <input class="dev-notes__title" type="text" placeholder="Título" [value]="titulo()"
-            [disabled]="soloLectura()" (input)="titulo.set($any($event.target).value)" />
-          <div class="dev-notes__editor-actions">
-            @if (!soloLectura()) {
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="togglePin()" title="Fijar">
-                <app-icon name="star" [size]="16" />
-              </button>
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="insertarPlantilla()" title="Plantilla HANDOFF">HANDOFF</button>
-              @if (puedeCompartir()) {
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="moverANotas()" [disabled]="guardando()" title="Mover a Notas (ámbito general)">
-                  <app-icon name="arrow-left" [size]="16" /> Mover a Notas
-                </button>
-              }
-            }
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarMd()" title="Exportar .md">
-              <app-icon name="download" [size]="16" />
-            </button>
-            @if (!soloLectura()) {
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardar()" [disabled]="guardando()">
-                Guardar
-              </button>
-            }
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarEditor()"><app-icon name="x" [size]="16" /></button>
-          </div>
+      </section>
+    </div>
+  </div>
+} @else {
+  <!-- ── Editor a pantalla completa (CQ2) ── -->
+  <div class="dn-shell" [class.dn-shell--lista-plegada]="listaPlegada()">
+    <aside class="dn-list" [class.dn-list--plegada]="listaPlegada()">
+      <div class="dn-list__top">
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm dn-list__nueva" (click)="nueva()">
+          <app-icon name="plus" [size]="15" /> Nota nueva <span class="dev-notes__kbd">Ctrl+N</span>
+        </button>
+        <div class="dev-notes__search">
+          <app-icon name="search" [size]="15" />
+          <input type="text" placeholder="Buscar en todas…" [value]="query()" (input)="query.set($any($event.target).value)" />
         </div>
+      </div>
+
+      @if (lista().length === 0) {
+        <p class="dev-notes__empty">Sin notas todavía.</p>
+      } @else {
+        <div class="dn-list__items">
+          @for (g of agrupada(); track g.label) {
+            <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
+            @for (n of g.notas; track n.id) {
+              <button type="button" class="note-card note-card--sm" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
+                <span class="note-card__title">
+                  @if (n.pinned) { <app-icon name="star" [size]="12" /> }
+                  {{ n.titulo || '(sin título)' }}
+                </span>
+              </button>
+            }
+          }
+        </div>
+      }
+
+      <span class="dn-list__hint">Ocultar lista: Ctrl+\</span>
+    </aside>
+
+    <button type="button" class="dn-list-toggle" (click)="toggleListaPlegada()"
+      [attr.aria-label]="listaPlegada() ? 'Mostrar lista' : 'Ocultar lista'" [attr.title]="listaPlegada() ? 'Mostrar lista' : 'Ocultar lista'">
+      <app-icon [name]="listaPlegada() ? 'chevron-right' : 'chevron-left'" [size]="14" />
+    </button>
+
+    <section class="dn-editor">
+      <div class="dn-editor__head">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarEditor()" title="Cerrar nota" aria-label="Cerrar nota">
+          <app-icon name="arrow-left" [size]="16" />
+        </button>
+        <span class="dn-editor__guardado" [class.dn-editor__guardado--error]="!!errorGuardado()">
+          @if (errorGuardado()) {
+            <app-icon name="alert-triangle" [size]="13" /> {{ errorGuardado() }}
+          } @else if (guardadoTexto()) {
+            <span class="dn-dot" aria-hidden="true"></span> {{ guardadoTexto() }}
+          }
+        </span>
+        <span class="dn-spacer"></span>
+        @if (!soloLectura()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="togglePin()" title="Fijar">
+            <app-icon name="star" [size]="16" />
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleModoSimple()">
+            {{ modoSimple() ? 'Con formato' : 'Texto simple' }}
+          </button>
+        }
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ciclarAncho()">
+          Ancho: {{ ancho() === 'completo' ? 'completo' : 'cómodo' }}
+        </button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mandarARonda()" title="Copiar como texto plano para pegar en la ronda">
+          Mandar a ronda
+        </button>
+        @if (!soloLectura()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="insertarPlantilla()" title="Plantilla HANDOFF">HANDOFF</button>
+          @if (puedeCompartir()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="moverANotas()" [disabled]="guardando()" title="Mover a Notas (ámbito general)">
+              Mover a Notas
+            </button>
+          }
+        }
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarMd()" title="Exportar .md">
+          <app-icon name="download" [size]="16" /> .md
+        </button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarTxt()" title="Exportar .txt">
+          <app-icon name="download" [size]="16" /> .txt
+        </button>
+        @if (!soloLectura()) {
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardar()" [disabled]="guardando()">Guardar</button>
+        }
+      </div>
+
+      <div class="dn-editor__canvas" [class.dn-editor__canvas--comodo]="ancho() === 'comodo'">
+        <input class="dn-titulo" type="text" placeholder="Título" [value]="titulo()"
+          [disabled]="soloLectura()" (input)="titulo.set($any($event.target).value)" />
 
         @if (!soloLectura()) {
           <div class="dev-notes__tags-edit">
@@ -105,8 +171,12 @@
           </div>
         }
 
-        <app-markdown-editor [value]="contenido()" [disabled]="soloLectura()"
-          (valueChange)="contenido.set($event)" />
+        @if (modoSimple()) {
+          <textarea class="dn-plano" [value]="contenido()" [disabled]="soloLectura()"
+            (input)="contenido.set($any($event.target).value)" spellcheck="false"></textarea>
+        } @else {
+          <app-rich-editor [value]="contenido()" [disabled]="soloLectura()" (valueChange)="contenido.set($event)" />
+        }
 
         <!-- Compartir (solo dueño de nota persistida). La RLS 'dev' mantiene la
              nota visible solo para Tecnología, aunque se comparta. -->
@@ -154,7 +224,13 @@
             </button>
           </div>
         }
-      }
+      </div>
+
+      <div class="dn-editor__status">
+        <span>{{ palabras() }} palabras</span>
+        <span class="dn-editor__status-sep">·</span>
+        <span>Markdown: **negrita**, # título, - lista funcionan al escribir</span>
+      </div>
     </section>
   </div>
-</div>
+}

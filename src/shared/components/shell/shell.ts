@@ -20,6 +20,7 @@ import { DatosPruebaViewService } from '../../services/datos-prueba-view.service
 import { ActividadService } from '../../services/actividad.service';
 import { ThemeService } from '../../services/theme.service';
 import { ModuloOrdenService } from '../../services/modulo-orden.service';
+import { FullscreenModeService } from '../../services/fullscreen-mode.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { Novedades } from '../novedades/novedades';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
@@ -112,6 +113,8 @@ export class Shell implements OnInit {
   protected theme = inject(ThemeService);
   private moduloOrden = inject(ModuloOrdenService);
   private destroyRef = inject(DestroyRef);
+  /** CQ2 — modo inmersivo (oculta sidebar + header), activado por pantallas como Dev notes. */
+  protected fullscreenMode = inject(FullscreenModeService);
 
   // AF38 — orden configurable del menú (vacío = orden por defecto del array).
   private ordenMap = signal<Record<string, number>>({});
@@ -595,6 +598,12 @@ export class Shell implements OnInit {
         // Close the bell dropdown + mobile drawer when navigating away.
         this.notifOpen.set(false);
         this.mobileNavOpen.set(false);
+        // CQ2 — red de seguridad: si se navega fuera de la pantalla que activó el
+        // modo inmersivo sin que esta alcanzara a desactivarlo (p. ej. un enlace
+        // directo), el shell no debe quedar con el chrome oculto para siempre.
+        if (this.fullscreenMode.activo() && !event.urlAfterRedirects.startsWith('/tecnologia/dev-notes')) {
+          this.fullscreenMode.desactivar();
+        }
       }
     });
     // W12 — ping inicial al montar el shell (sesión iniciada).

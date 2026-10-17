@@ -4,10 +4,10 @@
     <h1 class="page-title">Compras tecnológicas</h1>
     <span class="page-count">{{ compras().length }} solicitud{{ compras().length !== 1 ? 'es' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+  <a class="sgc-btn sgc-btn--primary" routerLink="/tecnologia/compras/nueva">
     <app-icon name="plus" [size]="16" />
     Nueva compra
-  </button>
+  </a>
 </div>
 
 <div class="compras-intro sgc-card">
@@ -65,10 +65,10 @@
           }
         </div>
         <div class="compra-card__body">
-          <span class="compra-card__notas">{{ c.notas || ((c.items ?? [])[0]?.descripcion ?? 'Sin descripción') }}</span>
+          <span class="compra-card__notas">{{ c.titulo || c.notas || ((c.items ?? [])[0]?.descripcion ?? 'Sin descripción') }}</span>
           <span class="compra-card__meta text-muted">{{ formatTimestamp(c.created_at) }} · {{ (c.items ?? []).length }} renglón{{ (c.items ?? []).length !== 1 ? 'es' : '' }}</span>
           @if (totalDe(c) > 0) {
-            <span class="compra-card__total">{{ totalDe(c) | number:'1.2-2' }}</span>
+            <span class="compra-card__total">RD$ {{ totalDe(c) | number:'1.2-2' }}</span>
           }
         </div>
         <span class="sgc-badge compra-card__estado" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">
@@ -79,119 +79,20 @@
   </div>
 }
 
-<!-- ── Form Drawer: crear ── -->
-<app-form-drawer title="Nueva compra tecnológica" [open]="drawerOpen()" (closed)="closeDrawer()">
-  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
-
-    <div class="sgc-field">
-      <label for="notas">Notas / justificación</label>
-      <textarea
-        id="notas"
-        formControlName="notas"
-        rows="2"
-        placeholder="Motivo de la compra, urgencia, presupuesto aproximado…"
-      ></textarea>
-    </div>
-
-    <!-- Items -->
-    <div class="sgc-field">
-      <div class="items-header">
-        <label>Artículos <span class="required">*</span></label>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
-          + Agregar artículo
-        </button>
-      </div>
-
-      @for (item of formItems(); track $index) {
-        <div class="item-row">
-          <input
-            class="item-row__desc"
-            type="text"
-            placeholder="Descripción (ej: Laptop 16GB RAM)"
-            [value]="item.descripcion"
-            (input)="updateItemDescripcion($index, $any($event.target).value)"
-            aria-label="Descripción"
-          />
-          <input
-            class="item-row__cantidad"
-            type="number"
-            min="1"
-            step="1"
-            placeholder="Cant."
-            [value]="item.cantidad"
-            (input)="updateItemCantidad($index, $any($event.target).value)"
-            aria-label="Cantidad"
-          />
-          <input
-            class="item-row__precio"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Precio unit."
-            [value]="item.precio_unitario"
-            (input)="updateItemPrecio($index, $any($event.target).value)"
-            aria-label="Precio unitario"
-          />
-          <input
-            class="item-row__proveedor"
-            type="text"
-            placeholder="Proveedor sugerido"
-            [value]="item.proveedor_sugerido"
-            (input)="updateItemProveedor($index, $any($event.target).value)"
-            aria-label="Proveedor sugerido"
-          />
-          <button
-            type="button"
-            class="item-row__remove"
-            (click)="removeItem($index)"
-            [disabled]="formItems().length === 1"
-            aria-label="Eliminar artículo"
-          ><app-icon name="x" [size]="16" /></button>
-
-          <div class="item-row__foto">
-            @if (item.fotoPreview) {
-              <img class="item-foto-thumb" [src]="item.fotoPreview" alt="Vista previa" />
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearItemFoto($index)">Quitar foto</button>
-            } @else {
-              <label class="sgc-btn sgc-btn--ghost sgc-btn--sm foto-picker">
-                <app-icon name="camera" [size]="16" /> Agregar foto
-                <input type="file" accept="image/*" hidden (change)="onItemFoto($index, $event)" />
-              </label>
-            }
-          </div>
-        </div>
-      }
-    </div>
-
-    @if (saveError()) {
-      <div class="save-error" role="alert">
-        <app-icon name="info" [size]="14" />
-        {{ saveError() }}
-      </div>
-    }
-
-    <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
-      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) {
-          <span class="spinner" aria-hidden="true"></span>
-          Guardando…
-        } @else {
-          Guardar borrador
-        }
-      </button>
-    </div>
-
-  </form>
-</app-form-drawer>
-
 <!-- ── Ficha (detalle) ── -->
 <app-form-drawer title="Detalle de la compra" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as c) {
     <div class="compra-detail">
+      @if (c.titulo) { <h2 class="compra-detail__titulo">{{ c.titulo }}</h2> }
       <div class="compra-detail__meta">
         <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">{{ getEstadoLabel(c.estado) }}</span>
+        @if (c.urgencia === 'urgente') { <span class="sgc-badge sgc-badge--danger">Urgente</span> }
         <span class="text-muted">{{ formatTimestamp(c.created_at) }}</span>
+        @if (puedeEditar(c)) {
+          <a class="sgc-btn sgc-btn--ghost sgc-btn--sm compra-detail__editar" [routerLink]="['/tecnologia/compras', c.id, 'editar']">
+            <app-icon name="edit" [size]="14" /> Editar
+          </a>
+        }
       </div>
       @if (c.notas) { <p class="compra-detail__notas">{{ c.notas }}</p> }
 
@@ -301,7 +202,12 @@
         }
       </ul>
       @if (totalDe(c) > 0) {
-        <div class="compra-detail__total">Total: <strong>{{ totalDe(c) | number:'1.2-2' }}</strong></div>
+        <div class="compra-detail__total">
+          @if (c.subtotal != null && c.itbis != null) {
+            <span class="text-muted">Subtotal {{ c.subtotal | number:'1.2-2' }} · ITBIS {{ c.itbis | number:'1.2-2' }}</span><br />
+          }
+          Total: <strong>RD$ {{ totalDe(c) | number:'1.2-2' }}</strong>
+        </div>
       }
 
       <!-- Acciones por estado -->

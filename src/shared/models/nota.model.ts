@@ -18,6 +18,8 @@ export interface Nota {
   owner_nombre?: string;
   /** Enriquecido en el cliente: mi permiso sobre una nota compartida conmigo. */
   mi_permiso?: NotaPermiso;
+  /** CQ2 — última vez que "Mandar a ronda" copió esta nota al portapapeles. */
+  enviada_a_ronda_at?: string | null;
 }
 
 /** AD9 — un ítem de checklist estructurado de una nota. Puede vincularse a una Tarea.

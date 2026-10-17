@@ -16,7 +16,6 @@
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 150 | 0 | 150 | 0% |
-| admin/auditoria | - | 96 | 0 | 96 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
 | admin/empresa | - | 53 | 0 | 53 | 0% |
 | admin/historial-versiones | - | 46 | 0 | 46 | 0% |
@@ -135,10 +134,10 @@
 | tareas/historial | - | 33 | 0 | 33 | 0% |
 | tareas/mis-tareas | - | 17 | 0 | 17 | 0% |
 | tecnologia/apis-consumo | - | 48 | 0 | 48 | 0% |
-| tecnologia/compras | - | 89 | 0 | 89 | 0% |
+| tecnologia/compras | - | 134 | 0 | 134 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
-| tecnologia/dev-notes | - | 53 | 0 | 53 | 0% |
+| tecnologia/dev-notes | - | 81 | 0 | 81 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -163,4 +162,5 @@
 | asistente | - | 54 | 26 | 28 | 48% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | reuniones/reuniones-lista | - | 75 | 37 | 38 | 49% |
-| reuniones/reunion-ficha | - | 50 | 26 | 24 | 52% |
+| reuniones/reunion-ficha | - | 53 | 27 | 26 | 51% |
+| admin/auditoria | - | 104 | 57 | 47 | 55% |

@@ -59,6 +59,43 @@ export interface AuditoriaResumen {
   acciones_comunes: { tabla: string; accion: string; n: number }[];
 }
 
+/** CQ3 — filtros de la pestaña "Actividad" (resueltos a valores concretos por el
+ *  front antes de llamar al RPC — p.ej. los atajos de fecha ya vienen como YYYY-MM-DD). */
+export interface AuditoriaActividadFiltro {
+  persona?: string; // actor_id
+  texto?: string; // código / nombre / texto libre — el RPC decide cómo buscarlo
+  desde?: string; // yyyy-mm-dd
+  hasta?: string; // yyyy-mm-dd
+  modulo?: string; // tabla
+  accion?: string;
+}
+
+/** CQ3 — una fila de la línea de tiempo de Actividad (ya resuelta en servidor:
+ *  frase legible + código + resumen del cambio en palabras). */
+export interface AuditoriaActividadFila {
+  id: number;
+  tabla: string;
+  registro_id: string;
+  accion: 'INSERT' | 'UPDATE' | 'DELETE';
+  creado_en: string;
+  actor_id: string | null;
+  actor_nombre: string | null;
+  actor_roles: string[];
+  impersonado_por: string | null;
+  impersonador_nombre: string | null;
+  /** "web@1.193.0" / "app@2.55.0" / null si es anterior a CQ3 o el cliente no lo mandó. */
+  origen: string | null;
+  /** Ej. "aprobó la requisición REQ-000091". Nunca vacío (cae a genérico). */
+  frase_resumen: string;
+  /** Ej. "REQ-000091" — null si la tabla no tiene un código legible configurado. */
+  codigo: string | null;
+  /** Ej. "Estado: pendiente → despachada". Null si no hubo campos (INSERT/DELETE). */
+  resumen_cambio: string | null;
+  cambios: Record<string, { antes: unknown; despues: unknown }> | null;
+  datos_antes: Record<string, unknown> | null;
+  datos_despues: Record<string, unknown> | null;
+}
+
 /** Reads the comprehensive change-audit log (sgc.auditoria). Server-side
  *  filtered + paginated (the log grows unbounded, unlike other SGC lists). */
 @Injectable({ providedIn: 'root' })
@@ -129,5 +166,46 @@ export class AuditoriaService {
     });
     if (error) throw new Error(error.message);
     return (data ?? {}) as AuditoriaResumen;
+  }
+
+  readonly actividadPageSize = 40;
+
+  /**
+   * CQ3 — pestaña "Actividad": línea de tiempo en lenguaje normal, paginada por
+   * CURSOR (no OFFSET — el log pasa de 40k filas y seguirá creciendo). Pasar
+   * `cursor` null para la primera página; usar `cursorSiguiente` de la respuesta
+   * anterior para pedir la próxima.
+   */
+  async actividad(
+    filtro: AuditoriaActividadFiltro,
+    cursor: string | null,
+    limite = this.actividadPageSize,
+  ): Promise<{ filas: AuditoriaActividadFila[]; cursorSiguiente: string | null; hayMas: boolean }> {
+    const { data, error } = await this.supabase.client.rpc('auditoria_actividad', {
+      p_filtros: {
+        persona: filtro.persona || null,
+        texto: filtro.texto?.trim() || null,
+        desde: filtro.desde || null,
+        hasta: filtro.hasta || null,
+        modulo: filtro.modulo || null,
+        accion: filtro.accion || null,
+      },
+      p_cursor: cursor || null,
+      p_limite: limite,
+    });
+    if (error) throw new Error(error.message);
+    const d = (data ?? {}) as { filas?: AuditoriaActividadFila[]; cursor_siguiente?: string | null; hay_mas?: boolean };
+    return { filas: d.filas ?? [], cursorSiguiente: d.cursor_siguiente ?? null, hayMas: !!d.hay_mas };
+  }
+
+  /** CQ3 — toda la vida de UN registro (todas las acciones, de todos los usuarios,
+   *  en orden cronológico ascendente) — para el panel de detalle "historia completa". */
+  async historiaRegistro(tabla: string, registroId: string): Promise<AuditoriaActividadFila[]> {
+    const { data, error } = await this.supabase.client.rpc('auditoria_historia_registro', {
+      p_tabla: tabla,
+      p_registro_id: registroId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as AuditoriaActividadFila[];
   }
 }

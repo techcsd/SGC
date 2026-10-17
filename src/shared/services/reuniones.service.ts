@@ -46,7 +46,7 @@ export interface ReunionParticipanteDetalle {
   asistio: boolean | null;
 }
 export interface ReunionAgendaItem { id: string; orden: number; texto: string }
-export interface ReunionNota { id: string; usuario_id: string; usuario_nombre: string; texto: string; es_mia: boolean }
+export interface ReunionNota { id: string; usuario_id: string; usuario_nombre: string; texto: string; foto_path: string | null; es_mia: boolean }
 export interface ReunionAcuerdo {
   id: string; texto: string; responsable_id: string | null; responsable_nombre: string | null;
   fecha: string | null; tarea_id: string | null;
@@ -138,8 +138,15 @@ export class ReunionesService {
     return data as { conectado: boolean; mensaje?: string; enlace?: string };
   }
 
-  async guardarNota(reunionId: string, texto: string): Promise<void> {
-    const { error } = await this.supabase.client.rpc('reunion_nota_guardar', { p_reunion_id: reunionId, p_texto: texto });
+  /** CP8c — la nota puede llevar una "foto de pizarra" (bucket privado `reuniones`). */
+  async guardarNota(reunionId: string, texto: string, foto?: File | null): Promise<void> {
+    let fotoPath: string | null = null;
+    if (foto) {
+      fotoPath = `${reunionId}/${crypto.randomUUID()}-${foto.name}`;
+      const { error: upErr } = await this.supabase.client.storage.from('reuniones').upload(fotoPath, foto, { upsert: true });
+      if (upErr) throw new Error(upErr.message);
+    }
+    const { error } = await this.supabase.client.rpc('reunion_nota_guardar', { p_reunion_id: reunionId, p_texto: texto, p_foto_path: fotoPath });
     if (error) throw new Error(error.message);
   }
 

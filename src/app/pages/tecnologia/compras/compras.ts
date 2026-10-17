@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -10,15 +11,6 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
-
-interface CompraItemForm {
-  descripcion: string;
-  cantidad: number;
-  proveedor_sugerido: string;
-  precio_unitario: number | null;
-  foto?: File | null;
-  fotoPreview?: string | null;
-}
 
 // CO8 — flujo nuevo de Compras tecnológicas. El flujo viejo (pendiente/convertida/
 // rechazada) se mantiene por si quedan filas históricas.
@@ -34,7 +26,7 @@ const ESTADO_META: Record<SolicitudCompraEstado, { label: string; badge: string 
 
 @Component({
   selector: 'app-tec-compras',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Icon, DecimalPipe],
   templateUrl: './compras.html',
   styleUrl: './compras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,17 +36,14 @@ export class TecCompras implements OnInit {
   private toast = inject(ToastService);
   private userService = inject(UserService);
   private sanitizer = inject(DomSanitizer);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   formatTimestamp = formatTimestampDisplay;
 
   compras = signal<SolicitudCompra[]>([]);
   loading = signal(true);
-  saving = signal(false);
   error = signal('');
-  saveError = signal('');
-
-  drawerOpen = signal(false);
-  formItems = signal<CompraItemForm[]>([{ descripcion: '', cantidad: 1, proveedor_sugerido: '', precio_unitario: null }]);
 
   // CO8 — filtro por estado con conteo.
   filtroEstado = signal<SolicitudCompraEstado | 'all'>('all');
@@ -83,10 +72,6 @@ export class TecCompras implements OnInit {
     monto: new FormControl<number | null>(null),
   });
 
-  form = new FormGroup({
-    notas: new FormControl<string | null>(null),
-  });
-
   miUsuarioId = computed(() => this.userService.profile()?.id ?? null);
   // CO8 — la RPC compra_tec_decidir también permite is_admin() además del aprobador_id fijado.
   esAprobador = computed(() => {
@@ -97,6 +82,12 @@ export class TecCompras implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // AT11 — enlaces de notificación/redirección (?id=) abren la ficha directamente.
+    const id = this.route.snapshot.queryParamMap.get('id');
+    if (id) {
+      const c = this.compras().find((x) => x.id === id);
+      if (c) await this.openDetail(c);
+    }
   }
 
   private async loadAll() {
@@ -124,95 +115,17 @@ export class TecCompras implements OnInit {
     return this.getEstadoLabel(c.estado);
   }
   totalDe(c: SolicitudCompra): number {
+    if (c.total != null) return c.total; // CQ1 — total calculado en servidor (preferido).
     return (c.items ?? []).reduce((sum, it) => sum + it.cantidad * (it.precio_unitario ?? 0), 0);
   }
 
-  // ── Drawer: crear ──────────────────────────────────────────
-  openCreate() {
-    this.saveError.set('');
-    this.form.reset({ notas: null });
-    this.formItems.set([{ descripcion: '', cantidad: 1, proveedor_sugerido: '', precio_unitario: null }]);
-    this.drawerOpen.set(true);
+  /** CQ1 — solo el dueño (o admin) puede editar, y solo mientras está en 'borrador'. */
+  puedeEditar(c: SolicitudCompra): boolean {
+    if (c.estado !== 'borrador') return false;
+    return c.solicitante_id === this.miUsuarioId() || this.userService.hasRole('admin');
   }
-  closeDrawer() {
-    this.drawerOpen.set(false);
-  }
-  addItem() {
-    this.formItems.update((items) => [...items, { descripcion: '', cantidad: 1, proveedor_sugerido: '', precio_unitario: null }]);
-  }
-  removeItem(index: number) {
-    this.formItems.update((items) => items.filter((_, i) => i !== index));
-  }
-
-  async onItemFoto(index: number, event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    let preview: string | null = null;
-    if (file) preview = await this.fileToDataUrl(file);
-    this.formItems.update((items) => items.map((it, i) => (i === index ? { ...it, foto: file, fotoPreview: preview } : it)));
-  }
-  clearItemFoto(index: number) {
-    this.formItems.update((items) => items.map((it, i) => (i === index ? { ...it, foto: null, fotoPreview: null } : it)));
-  }
-  private fileToDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  updateItemDescripcion(index: number, value: string) {
-    this.formItems.update((items) => items.map((it, i) => (i === index ? { ...it, descripcion: value } : it)));
-  }
-  updateItemCantidad(index: number, value: string) {
-    const parsed = value.trim() === '' ? 0 : Number(value);
-    const cantidad = Number.isNaN(parsed) ? 0 : parsed;
-    this.formItems.update((items) => items.map((it, i) => (i === index ? { ...it, cantidad } : it)));
-  }
-  updateItemProveedor(index: number, value: string) {
-    this.formItems.update((items) => items.map((it, i) => (i === index ? { ...it, proveedor_sugerido: value } : it)));
-  }
-  updateItemPrecio(index: number, value: string) {
-    const precio = value.trim() === '' ? null : Number(value);
-    this.formItems.update((items) => items.map((it, i) => (i === index ? { ...it, precio_unitario: Number.isNaN(precio) ? null : precio } : it)));
-  }
-
-  async onSave() {
-    if (this.saving()) return;
-    const conDescripcion = this.formItems().filter((i) => i.descripcion.trim());
-    const validRows = conDescripcion.filter((i) => i.cantidad > 0);
-    if (validRows.length === 0) {
-      this.saveError.set('Agrega al menos un artículo con descripción y cantidad mayor a 0.');
-      return;
-    }
-    if (validRows.length < conDescripcion.length) {
-      this.saveError.set('Hay artículos con cantidad en 0. Corrige la cantidad o elimina esos renglones.');
-      return;
-    }
-
-    this.saving.set(true);
-    this.saveError.set('');
-    try {
-      const items = await Promise.all(
-        validRows.map(async (i) => ({
-          descripcion: i.descripcion.trim(),
-          cantidad: i.cantidad,
-          proveedor_sugerido: i.proveedor_sugerido.trim() || null,
-          precio_unitario: i.precio_unitario,
-          foto_path: i.foto ? await this.tecnologia.uploadCompraTecFoto(i.foto) : null,
-        })),
-      );
-      await this.tecnologia.crearCompraTec(this.form.value.notas ?? null, items);
-      await this.loadAll();
-      this.toast.success('Borrador creado', 'Agrega la cotización y envíala a aprobación desde la ficha.');
-      this.drawerOpen.set(false);
-    } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al crear la solicitud.');
-    } finally {
-      this.saving.set(false);
-    }
+  irAEditar(c: SolicitudCompra) {
+    this.router.navigate(['/tecnologia/compras', c.id, 'editar']);
   }
 
   // ── Detalle ──────────────────────────────────────────────────

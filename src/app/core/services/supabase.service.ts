@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
+import { APP_VERSION } from '../../../environments/version';
 import { PracticaClienteService } from '../practica/practica-cliente.service';
 
 @Injectable({ providedIn: 'root' })
@@ -33,6 +34,11 @@ export class SupabaseService {
     }
     return createClient(supabaseUrl, supabaseAnonKey, {
       db: { schema: 'sgc' },
+      // CQ3 — "desde dónde" en Auditoría: sgc.fn_auditoria() lee este header y lo
+      // guarda en auditoria.origen ("web@1.193.0"). Solo aplica hacia adelante
+      // (filas anteriores a esa migración quedan con origen=null) — ver
+      // sql/2026-10-16-cq3-auditoria-contexto.sql.
+      global: { headers: { 'x-sgc-client': `web@${APP_VERSION}` } },
     });
   }
 }

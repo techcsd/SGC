@@ -1,4 +1,4 @@
-<div class="shell" [class.collapsed]="collapsedEfectivo()" [class.mobile-open]="mobileNavOpen()">
+<div class="shell" [class.collapsed]="collapsedEfectivo()" [class.mobile-open]="mobileNavOpen()" [class.shell--inmersivo]="fullscreenMode.activo()">
 
   <!-- Mobile drawer backdrop -->
   <div class="shell-backdrop" (click)="closeMobileNav()" aria-hidden="true"></div>
