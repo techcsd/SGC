@@ -1,8 +1,8 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-102 (Ronda CQ) — 17/10/2026 — 🧪 EN `feature/cq-ronda` (worktree `../SGC-cq`), NO dev/prod
+## TL;DR — PROMPT-102 (Ronda CQ) — 17/10/2026 — ✅ **EN PROD** (web **1.193.0**, `main`=`dev`=`b8fe527`)
 
-**Build+tests verdes, 6 migraciones aplicadas SOLO a dev, `release-check.mjs` en PASS — pero NADA promovido ni commiteado todavía.** Sesión autónoma: CQ6 obligó a trabajar en worktree propio (`git worktree add ../SGC-cq feature/cq-ronda` desde `dev` en `e01db6b`) en vez de la carpeta compartida; 4 fases grandes (CQ1/CQ2/CQ3/CQ4) se delegaron a agentes en paralelo sobre archivos disjuntos, coordinados por esta sesión. **Nota real sobre los agentes**: las notificaciones automáticas de 2 de los 4 fallaron por un error de conexión del backend (no del trabajo en sí) — se verificó cada fase leyendo el código/diff directamente en vez de confiar ciegamente en los reportes, y se encontraron+arreglaron gaps reales de integración en el camino (ver abajo).
+**Toda la ronda CQ está en producción.** Flujo real: `feature/cq-ronda` (worktree `../SGC-cq`) → commit → push a `dev` (`7c86abc`) → **Xaviel probó de verdad en `dev.sgcconstructorasd.com` y dio el OK** ("i test it, everything good, do all the stuff and promote it to production") → 6 migraciones + edge `leer-cotizacion` aplicadas/desplegadas a **prod**, verificadas por objeto (9/9 checks) → merge `dev → main` (`b8fe527`) → push → Vercel READY → `sgcconstructorasd.com` responde 200 con el build nuevo → versión `1.193.0` auto-registrada en `sgc.app_versiones` de prod. Sesión autónoma: CQ6 obligó a trabajar en worktree propio (`git worktree add ../SGC-cq feature/cq-ronda` desde `dev` en `e01db6b`) en vez de la carpeta compartida; 4 fases grandes (CQ1/CQ2/CQ3/CQ4) se delegaron a agentes en paralelo sobre archivos disjuntos, coordinados por esta sesión. **Nota real sobre los agentes**: las notificaciones automáticas de 2 de los 4 fallaron por un error de conexión del backend (no del trabajo en sí) — se verificó cada fase leyendo el código/diff directamente en vez de confiar ciegamente en los reportes, y se encontraron+arreglaron gaps reales de integración en el camino (ver abajo).
 
 **Versión construida: 1.193.0** (`package.json` + `release-notes.json` + `qa/release-1.193.0.md`). `npm run build` (20 guards de prebuild) y `npm run test:unit` (71/71) verdes en el worktree.
 
@@ -13,28 +13,27 @@
 - **FASE 3 (CQ1 — Compras tecnológicas) ✅:** página completa `/tecnologia/compras/nueva` y `/:id/editar` (3 bloques: qué/para qué, cotizaciones con drag&drop + ★elegida, artículos con unidad/subtotal/ITBIS/total); edge nueva `leer-cotizacion` (patrón de `leer-recibo`, Anthropic con bloque `document` para PDF) que lee la cotización y llena los artículos — el usuario revisa; aviso si el total no cuadra ±1%. `sql/2026-10-16-cq1-compras-tec.sql` aplicada a dev, edge desplegada y confirmada viva en dev (v2).
 - **FASE 4 (CQ3 — Auditoría nueva) ✅:** 3 pestañas (Actividad por defecto / Resumen / Acciones de admin). Actividad = línea de tiempo en lenguaje normal por día (catálogo `sgc.auditoria_frases`, 35 tablas sembradas por consulta real a prod), búsqueda por persona/código/texto, historia completa de un registro, panel Campo/Antes/Después + JSON técnico, Excel. Header `x-sgc-client: web@{versión}` nuevo en el cliente Supabase + columna `sgc.auditoria.origen` (dato "desde dónde" — **solo disponible desde esta migración en adelante**, nada retroactivo). Índices `(actor_id,creado_en)` y `(tabla,registro_id,creado_en)`; `EXPLAIN ANALYZE` real: 8-16ms con ~41k filas. `sql/2026-10-16-cq3-auditoria-contexto.sql` aplicada a dev (2 veces — la 2ª corrigió un bug real de búsqueda por código encontrado en el propio smoke). **Gap real encontrado y cerrado en esta sesión**: el primer paso del agente reescribió la lógica (`auditoria.ts`) pero no el template (`auditoria.html`) — quedó usando signals borrados (`fBuscar`/`fActor`/etc.) que hubieran roto en runtime pese a que `ng build` no lo marcó como error (ver nota de proceso abajo); se resolvió solo (el agente retomó y terminó el HTML) antes del cierre, verificado con grep + build.
 - **FASE 5 (CQ2 — Dev notes) ✅:** pantalla completa (oculta el nav del SGC vía `FullscreenModeService`), editor nuevo `shared/ui/rich-editor` (TipTap + `tiptap-markdown`, menú "/" casero, modo "Texto simple"), Ctrl+N global (gate `es_tecnologia`, respeta campo enfocado), autoguardado debounced 2s, agrupado Hoy/Esta semana/Antes, "Mandar a ronda" (copia como texto plano), exportar `.md`/`.txt`. `sql/2026-10-16-cq2-dev-notes-enviada.sql` (columna `enviada_a_ronda_at` + RPC) aplicada a dev. 19 tests de ida y vuelta Markdown↔TipTap + 7 de texto plano, todos verdes — incluye un bug real de `tiptap-markdown` (listas mixtas viñeta+checkbox) encontrado y arreglado con test de regresión. **Fix de infraestructura compartida** (bloqueaba el build para cualquiera en el worktree): `tsconfig.spec.json` sin `"node"` en `types`, y un hex hardcoded en `reunion-ficha.scss` que rompía `verify-tokens`.
-- **FASE 6 (cierre) — EN CURSO:** build+tests verdes, versión 1.193.0, `release-notes.json` (5 cambios), `qa/release-1.193.0.md`, `release-check.mjs --env dev --version 1.193.0` → **PASS** (⚠️ ver nota abajo — el PASS del check 1 es un artefacto del script, NO un OK real de Xaviel). `PARIDAD.md` ganó secciones CQ2 y CQ3. Matriz `COBERTURA-NOTAS.md` filas 240-246 actualizadas a 🆕→hecho-en-dev.
+- **FASE 6 (cierre) ✅ COMPLETA:** build+tests verdes, versión 1.193.0, `release-notes.json` (5 cambios), `qa/release-1.193.0.md`, `release-check.mjs --env dev --version 1.193.0` → PASS. `PARIDAD.md` ganó secciones CQ2 y CQ3. Matriz `COBERTURA-NOTAS.md` filas 240-246. **Promoción real**: Xaviel probó en dev y dio el OK → 6 migraciones aplicadas a prod (verificadas por objeto: `audit_log_listado` con `::text`, columnas nuevas de `vehiculos`/`solicitudes_compra`, `auditoria_frases` con 138 filas, `auditoria.origen`, `notas.enviada_a_ronda_at`, `reunion_notas.foto_path`, bucket `reuniones` — 9/9 checks OK) + edge `leer-cotizacion` desplegada a prod (v1) → `dev → main` merge (`b8fe527`) → push → Vercel `READY` → `sgcconstructorasd.com` 200 OK con el build nuevo → versión 1.193.0 confirmada en `sgc.app_versiones` de prod.
 
 **⚠️ Nota de proceso importante (para la próxima sesión):** las notificaciones automáticas de finalización de 2 de los 4 agentes paralelos fallaron por un error del backend ("API Error: Unable to connect"), y la primera vez que se les pidió reenviar el reporte, uno de ellos devolvió el error otra vez casi al instante. **No asumas que "completado" sin reporte = trabajo terminado ni roto** — en este caso un agente (CQ3) estaba genuinamente completo pero el canal de reporte falló; otro (CQ2) seguía trabajando de verdad en segundo plano (archivos con timestamp fresco) y terminó bien minutos después. La única forma confiable de saber el estado real fue `git status`/`git diff`/timestamps de archivos + correr el build de verdad, NO confiar en el texto del resultado. Recomendación: ante un fallo de notificación, verificar el filesystem antes de reintentar o de asumir lo peor.
 
-**Pendientes físicos/de Xaviel (nada de esto se decidió sin querer su OK):**
-1. Revisar y decidir sobre la promoción `feature/cq-ronda → dev → prueba real en dev.sgcconstructorasd.com → main`. **Nada está commiteado todavía** — todo vive sin commitear en el worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-cq`.
-2. Probar de verdad en dev con navegador (ningún agente tuvo sesión gráfica esta ronda): importar un Excel real de vehículos/choferes con fotos, crear una compra tecnológica con una cotización real (PDF y foto), las 3 pestañas de Auditoría, Dev notes a pantalla completa.
-3. 1-2 cotizaciones reales (PDF y foto) para probar `leer-cotizacion` con datos de verdad.
-4. Un solo OK para todo lo que espera prod (tabla abajo).
-5. Confirmar si el `release-check.mjs` en PASS se puede tomar como luz verde técnica (los 5 checks SÍ pasaron de verdad excepto el de "OK explícito", que pasó por el texto literal "OK de Xaviel" que aparece en `qa/release-1.193.0.md` aunque el contenido dice "pendiente" — es un hueco del script, no una aprobación real; ARREGLAR el script para que no matchee negaciones como "pendiente"/"no" cerca de esa frase, o quitarle ambigüedad al formato).
+**Pendiente real (hallazgo de proceso, no bloquea nada de esta ronda):** `release-check.mjs` check 1 (breathe) hace PASS con cualquier archivo `qa/release-*.md` que contenga el texto literal "OK de Xaviel", sin evaluar si la frase alrededor dice que SÍ o que NO — en esta ronda pasó aunque el texto decía "(pendiente)". No afectó nada porque el OK real llegó por otro canal (mensaje directo de Xaviel) antes de promover, pero vale la pena ajustar el script para que no matchee negaciones ("pendiente"/"no"/"falta") cerca de esa frase.
 
-**Tabla de lo que espera OK para prod:**
+**Pendientes físicos/de Xaviel (lo único que queda, nada de código):**
+1. 1-2 cotizaciones reales (PDF y foto) para probar `leer-cotizacion` con datos de verdad en producción.
+2. Probar con calma en prod cada módulo tocado (importador, Compras tecnológicas, Auditoría, Dev notes, foto de pizarra en reuniones) en el uso diario normal.
 
-| Qué | Dónde | Estado en dev |
+**Tabla de lo que se promovió a prod (todo con OK de Xaviel):**
+
+| Qué | Dónde | Estado |
 |---|---|---|
-| `cq3-audit-log-listado-text.sql` | Fix bug real de prod | Aplicada dev, verificada |
-| `cq4-importar-vehiculos-conductores-campos.sql` | Importar vehículos/choferes | Aplicada dev, smoke verde |
-| `cq1-compras-tec.sql` + edge `leer-cotizacion` | Compras tecnológicas | Aplicada/desplegada dev |
-| `cq3-auditoria-contexto.sql` | Auditoría nueva | Aplicada dev (2x), smoke verde |
-| `cq2-dev-notes-enviada.sql` | Dev notes | Aplicada dev |
-| `cp8c-reunion-notas-foto.sql` | Foto de pizarra (reuniones) | Aplicada dev |
-| Web 1.193.0 completa | `feature/cq-ronda` | Build+tests verdes, sin commitear |
+| `cq3-audit-log-listado-text.sql` | Fix bug real de prod | ✅ En prod, verificado |
+| `cq4-importar-vehiculos-conductores-campos.sql` | Importar vehículos/choferes | ✅ En prod, verificado |
+| `cq1-compras-tec.sql` + edge `leer-cotizacion` | Compras tecnológicas | ✅ En prod, verificado |
+| `cq3-auditoria-contexto.sql` | Auditoría nueva | ✅ En prod, verificado |
+| `cq2-dev-notes-enviada.sql` | Dev notes | ✅ En prod, verificado |
+| `cp8c-reunion-notas-foto.sql` | Foto de pizarra (reuniones) | ✅ En prod, verificado |
+| Web 1.193.0 completa | `main` (`b8fe527`) | ✅ En prod, Vercel READY, sitio responde 200 |
 
 ## TL;DR — PROMPT-100 (Ronda CP) — 16/10/2026 — ✅ **EN PROD** (web **1.191.0**, `main`=`dev`)
 
