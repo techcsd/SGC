@@ -1,0 +1,204 @@
+<!-- ── Encabezado a pantalla completa (CQ1) ── -->
+<div class="cn-header">
+  <div class="cn-header__left">
+    <a routerLink="/tecnologia/compras" class="cn-back">
+      <app-icon name="chevron-left" [size]="14" /> Compras tecnológicas
+    </a>
+    <h1 class="page-title">{{ modoEdicion() ? 'Editar compra tecnológica' : 'Nueva compra tecnológica' }}</h1>
+  </div>
+  <div class="cn-header__actions">
+    <button type="button" appButton variant="secondary" [disabled]="guardando() || enviando() || cargando()" (click)="guardarBorrador()">
+      @if (guardando()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar borrador }
+    </button>
+    <button type="button" appButton variant="accent" [disabled]="!puedeEnviar() || guardando() || enviando() || cargando()" (click)="enviarAprobacion()">
+      @if (enviando()) {
+        <span class="spinner" aria-hidden="true"></span> Enviando…
+      } @else {
+        {{ envioLabel() }}
+      }
+    </button>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="save-error" role="alert"><app-icon name="info" [size]="14" /> {{ error() }}</div>
+}
+
+@if (cargando()) {
+  <div class="cn-skeleton sgc-card"></div>
+} @else {
+
+<div class="cn-layout">
+  <!-- ── Columna izquierda: qué/para qué + artículos ── -->
+  <div class="cn-main">
+
+    <!-- 1 · Qué y para qué -->
+    <section class="sgc-card cn-section">
+      <h2 class="cn-section__title">1 · ¿Qué se compra y para qué?</h2>
+      <form [formGroup]="form" class="cn-form">
+        <div class="sgc-field">
+          <label for="cn-titulo">Título</label>
+          <input id="cn-titulo" type="text" formControlName="titulo" placeholder="Ej: 2 laptops + 1 UPS para oficina técnica" />
+        </div>
+        <div class="cn-grid3">
+          <div class="sgc-field">
+            <label for="cn-para">Para quién / área</label>
+            <input id="cn-para" type="text" formControlName="paraQuien" placeholder="Ej: Oficina técnica" />
+          </div>
+          <div class="sgc-field">
+            <label for="cn-urg">Urgencia</label>
+            <select id="cn-urg" formControlName="urgencia">
+              <option value="normal">Normal</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+          <div class="sgc-field">
+            <label for="cn-obra">Obra (opcional)</label>
+            <select id="cn-obra" formControlName="proyectoId">
+              <option [ngValue]="null">Oficina central / ninguna</option>
+              @for (p of proyectos(); track p.id) {
+                <option [ngValue]="p.id">{{ p.nombre }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="sgc-field">
+          <label for="cn-just">Justificación</label>
+          <textarea id="cn-just" rows="2" formControlName="justificacion" placeholder="Motivo de la compra, estado de lo actual, presupuesto aproximado…"></textarea>
+        </div>
+      </form>
+    </section>
+
+    <!-- 3 · Artículos -->
+    <section class="sgc-card cn-section">
+      <div class="cn-section__head">
+        <h2 class="cn-section__title">3 · Artículos</h2>
+        @if (llenadoDesdeIA()) {
+          <span class="cn-ia-banner"><app-icon name="check" [size]="13" /> Llenados desde la cotización · revísalos</span>
+        }
+      </div>
+
+      <div class="cn-items">
+        <div class="cn-items__header" aria-hidden="true">
+          <span>Descripción</span><span>Cant.</span><span>Unidad</span><span>Precio unit.</span><span>Subtotal</span><span></span>
+        </div>
+        @for (it of items(); track $index; let i = $index, last = $last) {
+          <div class="cn-items__row">
+            <input
+              type="text"
+              [value]="it.descripcion"
+              (input)="updateItem(i, 'descripcion', $any($event.target).value)"
+              (keydown.enter)="last && onUltimoCampoEnter(i, $event)"
+              placeholder="Descripción"
+              aria-label="Descripción"
+            />
+            <input
+              type="number" min="0" step="1"
+              [value]="it.cantidad"
+              (input)="updateItem(i, 'cantidad', $any($event.target).value)"
+              aria-label="Cantidad"
+            />
+            <select [value]="it.unidad" (change)="updateItem(i, 'unidad', $any($event.target).value)" aria-label="Unidad">
+              @for (u of unidadesCatalogo(); track u.codigo) {
+                <option [value]="u.codigo">{{ u.nombre }}</option>
+              }
+            </select>
+            <input
+              type="number" min="0" step="0.01"
+              [value]="it.precio_unitario"
+              (input)="updateItem(i, 'precio_unitario', $any($event.target).value)"
+              (keydown.enter)="last && onUltimoCampoEnter(i, $event)"
+              placeholder="0.00"
+              aria-label="Precio unitario"
+            />
+            <span class="cn-items__subtotal tnum">{{ (it.cantidad || 0) * (it.precio_unitario ?? 0) | number: '1.2-2' }}</span>
+            <button type="button" class="cn-items__remove" (click)="removeItem(i)" [disabled]="items().length === 1" aria-label="Quitar artículo">
+              <app-icon name="x" [size]="14" />
+            </button>
+          </div>
+        }
+
+        <div class="cn-items__footer">
+          <button type="button" class="cn-items__add" (click)="addItem()">+ Agregar artículo (Enter)</button>
+          <div class="cn-items__totales">
+            <span class="text-muted">Subtotal {{ subtotal() | number: '1.2-2' }} · ITBIS 18 % {{ itbisCalc() | number: '1.2-2' }}</span>
+            <b>Total RD$ {{ total() | number: '1.2-2' }}</b>
+          </div>
+        </div>
+
+        <label class="cn-itbis-check">
+          <input type="checkbox" [checked]="itbisIncluido()" (change)="toggleItbisIncluido($any($event.target).checked)" />
+          Los precios ya incluyen ITBIS
+        </label>
+
+        @if (descuadre(); as d) {
+          <div class="cn-warning" role="alert">
+            <app-icon name="alert-triangle" [size]="14" />
+            El total de los artículos ({{ total() | number: '1.2-2' }}) difiere de la cotización elegida ({{ d.ref | number: '1.2-2' }}) en {{ d.diff * 100 | number: '1.0-1' }}%. Revisa antes de enviar.
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- ── Columna derecha: cotización + requisitos ── -->
+  <div class="cn-side">
+    <section class="sgc-card cn-section">
+      <h2 class="cn-section__title">2 · Cotización</h2>
+
+      <app-file-upload
+        [accept]="'application/pdf,image/*'"
+        [max]="6"
+        [showList]="false"
+        label="Arrastra el PDF o la foto aquí"
+        hint="o búscalo · el sistema lee proveedor, artículos y precios"
+        (add)="onCotizacionFiles($event)"
+      />
+
+      @if (cotizaciones().length > 0) {
+        <ul class="cn-cotizaciones">
+          @for (c of cotizaciones(); track c.key) {
+            <li class="cn-cotizacion" [class.cn-cotizacion--elegida]="elegidaKey() === c.key">
+              <span class="cn-cotizacion__icon" aria-hidden="true"><app-icon name="file-text" [size]="18" /></span>
+              <div class="cn-cotizacion__body">
+                <span class="cn-cotizacion__nombre">{{ c.tipo === 'existente' ? c.adjunto.nombre : c.data.nombre }}</span>
+                @if (c.tipo === 'pendiente' && c.data.leyendo) {
+                  <span class="text-muted">Leyendo…</span>
+                } @else if (c.tipo === 'pendiente' && c.data.error) {
+                  <span class="cn-cotizacion__error">{{ c.data.error }} — llena los artículos a mano.</span>
+                } @else {
+                  <span class="text-muted">
+                    {{ (c.tipo === 'existente' ? c.adjunto.proveedor : c.data.proveedor) || 'Sin proveedor' }}
+                    @if ((c.tipo === 'existente' ? c.adjunto.monto : c.data.monto); as monto) { · {{ monto | number: '1.2-2' }} }
+                  </span>
+                }
+              </div>
+              @if (elegidaKey() === c.key) {
+                <span class="sgc-badge sgc-badge--success">★ elegida</span>
+              } @else {
+                <button type="button" class="cn-cotizacion__elegir" (click)="elegirCotizacion(c)">elegir esta</button>
+              }
+              @if (c.tipo === 'pendiente') {
+                <button type="button" class="cn-cotizacion__quitar" (click)="removeCotizacionPendiente(c.key)" aria-label="Quitar cotización">
+                  <app-icon name="x" [size]="14" />
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <div class="cn-requisitos">
+      <b>Para enviar a aprobar hace falta:</b>
+      <span [class.cn-requisitos__ok]="items().some((i) => i.descripcion.trim() && (i.precio_unitario ?? 0) > 0)">
+        {{ items().some((i) => i.descripcion.trim() && (i.precio_unitario ?? 0) > 0) ? '✓' : '—' }} al menos un artículo con precio
+      </span>
+      <span [class.cn-requisitos__ok]="hayCotizaciones()">
+        {{ hayCotizaciones() ? '✓' : '—' }} una cotización adjunta
+      </span>
+    </div>
+  </div>
+</div>
+
+}

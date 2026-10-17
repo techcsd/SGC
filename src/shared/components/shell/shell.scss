@@ -871,3 +871,17 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+
+// ── CQ2 — Modo inmersivo (pantalla completa, p. ej. Dev notes) ──────────────
+// Oculta el chrome del shell (sidebar + header) para que la pantalla activa
+// use toda la ventana. El contenido pasa a controlar su propio scroll/padding.
+.shell--inmersivo {
+  .shell-sidebar,
+  .shell-header {
+    display: none;
+  }
+  .shell-content {
+    padding: 0;
+    overflow: hidden;
+  }
+}

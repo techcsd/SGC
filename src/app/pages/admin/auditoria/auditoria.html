@@ -1,153 +1,269 @@
 <div class="aud">
   <header class="aud__head">
     <div>
-      <h1 class="aud__title">Auditoría</h1>
-      <p class="aud__sub">Registro de todo lo que cada usuario crea, modifica o elimina — web y app.</p>
+      <h1 class="aud__title">{{ 'Auditoría' | t }}</h1>
+      <p class="aud__sub">{{ 'Qué hizo cada persona, cuándo, desde dónde y qué cambió.' | t }}</p>
     </div>
   </header>
 
-  <!-- Filters -->
-  <div class="aud__filters">
-    <input
-      class="aud__input"
-      type="search"
-      placeholder="Buscar por registro o tabla…"
-      [value]="fBuscar()"
-      (input)="fBuscar.set($any($event.target).value)"
-      (keyup.enter)="applyFilters()"
-    />
-    <select class="aud__input" [value]="fActor()" (change)="fActor.set($any($event.target).value)">
-      <option value="">Todos los usuarios</option>
-      @for (a of actores(); track a.actor_id) {
-        <option [value]="a.actor_id">{{ a.nombre }}</option>
-      }
-    </select>
-    <select class="aud__input" [value]="fTabla()" (change)="fTabla.set($any($event.target).value)">
-      <option value="">Todas las áreas</option>
-      @for (t of tablas(); track t) {
-        <option [value]="t">{{ tablaLabel(t) }}</option>
-      }
-    </select>
-    <select class="aud__input" [value]="fAccion()" (change)="fAccion.set($any($event.target).value)">
-      <option value="">Toda acción</option>
-      <option value="INSERT">Creó</option>
-      <option value="UPDATE">Modificó</option>
-      <option value="DELETE">Eliminó</option>
-    </select>
-    <app-date-range-filter [desde]="fDesde()" [hasta]="fHasta()" (rangeChange)="onRango($event)" />
-    <button type="button" class="sgc-btn sgc-btn--primary" (click)="applyFilters()">Filtrar</button>
-    @if (hasFilters()) {
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearFilters()">Limpiar</button>
-    }
-    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
-            [disabled]="exportando()" title="Exportar a Excel todo lo que coincide con el filtro actual">
-      @if (exportando()) { Exportando… } @else { <app-icon name="download" [size]="16" /> Excel }
-    </button>
-  </div>
-
-  <!-- W6 — vistas: panel analítico (por defecto) / filas crudas (drill-down) -->
   <div class="aud__tabs">
-    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'panel'" (click)="cambiarVista('panel')"><app-icon name="bar-chart" [size]="16" /> Panel</button>
-    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'filas'" (click)="cambiarVista('filas')"><app-icon name="file-text" [size]="16" /> Filas</button>
-    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'admin'" (click)="cambiarVista('admin')">Acciones de admin</button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'actividad'" (click)="cambiarVista('actividad')">
+      <app-icon name="activity" [size]="16" /> {{ 'Actividad' | t }}
+    </button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'resumen'" (click)="cambiarVista('resumen')">
+      <app-icon name="bar-chart" [size]="16" /> {{ 'Resumen' | t }}
+    </button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'admin'" (click)="cambiarVista('admin')">
+      <app-icon name="shield" [size]="16" /> {{ 'Acciones de admin' | t }}
+    </button>
   </div>
 
   @if (error()) {
     <p class="aud__error">{{ error() }}</p>
   }
 
-  <!-- ── Panel analítico ── -->
-  @if (vista() === 'panel') {
+  <!-- ══════════════════════════ ACTIVIDAD ══════════════════════════ -->
+  @if (vista() === 'actividad') {
+    <div class="aud__filters">
+      <input
+        class="aud__input aud__input--search"
+        type="search"
+        [placeholder]="'Buscar por persona, código (REQ-000091) o texto…' | t"
+        [value]="actTexto()"
+        (input)="actTexto.set($any($event.target).value)"
+        (keyup.enter)="onBuscarEnter($event)"
+      />
+      @if (actPersona()) {
+        <button type="button" class="aud__chip aud__chip--active" (click)="quitarFiltroPersona()">
+          {{ personaChipLabel() }} <app-icon name="x" [size]="13" />
+        </button>
+      } @else {
+        <app-filter-select [label]="'Persona' | t" [options]="personaOptions()" [value]="actPersona()" (valueChange)="actPersona.set($event); aplicarFiltrosActividad()" />
+      }
+      <app-date-range-filter [desde]="actDesde()" [hasta]="actHasta()" (rangeChange)="onRangoActividad($event)" />
+      <app-filter-select [label]="'Módulo' | t" [options]="moduloOptions()" [value]="actModulo()" (valueChange)="actModulo.set($event); aplicarFiltrosActividad()" />
+      <app-filter-select [label]="'Acción' | t" [options]="accionOptions" [value]="actAccion()" (valueChange)="actAccion.set($event); aplicarFiltrosActividad()" />
+      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="aplicarFiltrosActividad()">{{ 'Filtrar' | t }}</button>
+      @if (actHasFilters()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFiltrosActividad()">{{ 'Limpiar' | t }}</button>
+      }
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarActividad()" [disabled]="exportando()"
+              [title]="'Exportar a Excel todo lo que coincide con el filtro actual' | t">
+        @if (exportando()) { {{ 'Exportando…' | t }} } @else { <app-icon name="download" [size]="16" /> Excel }
+      </button>
+    </div>
+
+    <div class="aud__layout">
+      <div class="aud__timeline sgc-card">
+        @if (actLoading()) {
+          <div class="aud__skeleton">
+            @for (i of [1,2,3,4,5,6]; track i) { <div class="aud__skel-row"></div> }
+          </div>
+        } @else if (gruposPorDia().length === 0) {
+          <p class="aud__muted aud__empty">{{ 'No hay actividad que coincida con el filtro.' | t }}</p>
+        } @else {
+          @for (g of gruposPorDia(); track g.clave) {
+            <div class="aud__dia-head">{{ g.etiqueta | t | uppercase }}</div>
+            @for (f of g.filas; track f.id) {
+              <div class="aud__fila" [class.aud__fila--sel]="seleccion()?.id === f.id && !historiaModo()" (click)="seleccionar(f)">
+                <span class="aud__hora">{{ formatHora(f.creado_en) }}</span>
+                <span class="aud__contenido">
+                  <span class="aud__frase">
+                    @if (f.actor_nombre) {
+                      <button type="button" class="aud__actor" (click)="filtrarPorPersona(f.actor_id); $event.stopPropagation()">{{ f.actor_nombre }}</button>
+                    } @else {
+                      <b>{{ 'Sistema' | t }}</b>
+                    }
+                    {{ ' ' }}{{ f.frase_resumen }}
+                    @if (f.impersonado_por) {
+                      <span class="aud__imp" [title]="'Escritura hecha por un administrador impersonando a este usuario (soporte)' | t">
+                        · {{ 'por' | t }} {{ f.impersonador_nombre ?? ('un admin' | t) }} ({{ 'soporte' | t }})
+                      </span>
+                    }
+                  </span>
+                  @if (f.resumen_cambio) {
+                    <span class="aud__resumen-cambio">{{ f.resumen_cambio }}</span>
+                  }
+                </span>
+                <span class="aud__chips-der">
+                  <span class="aud__origen" [class.aud__origen--na]="!f.origen">{{ f.origen ?? ('No disponible' | t) }}</span>
+                  <span class="aud__badge" [attr.data-accion]="f.accion">{{ accionLabel(f.accion) | uppercase }}</span>
+                </span>
+              </div>
+            }
+          }
+          @if (actHayMas()) {
+            <button type="button" class="aud__vermas" [disabled]="actLoadingMas()" (click)="cargarMasActividad()">
+              {{ (actLoadingMas() ? 'Cargando…' : 'Cargar más') | t }}
+            </button>
+          }
+        }
+      </div>
+
+      @if (seleccion(); as sel) {
+        <div class="aud__detalle sgc-card">
+          <div class="aud__detalle-head">
+            <span class="aud__detalle-title">{{ 'Detalle' | t }} · {{ formatPreciso(sel.creado_en) }}</span>
+            <button type="button" class="aud__cerrar" (click)="cerrarDetalle()" [attr.aria-label]="'Cerrar' | t"><app-icon name="x" [size]="16" /></button>
+          </div>
+
+          <div class="aud__detalle-campo"><b>{{ 'Quién' | t }}:</b> {{ sel.actor_nombre ?? ('Sistema' | t) }}
+            @if (sel.actor_roles.length) { <span class="aud__muted"> ({{ sel.actor_roles.join(', ') }})</span> }
+          </div>
+          <div class="aud__detalle-campo"><b>{{ 'Desde' | t }}:</b> {{ sel.origen ?? ('No disponible (antes del 16 oct 2026)' | t) }}</div>
+          <div class="aud__detalle-campo">
+            <b>{{ 'Registro' | t }}:</b> {{ tablaLabel(sel.tabla) }}{{ sel.codigo ? ' · ' + sel.codigo : '' }}
+            @if (rutaRegistro(sel); as ruta) { · <a [routerLink]="ruta">{{ 'abrir' | t }}</a> }
+          </div>
+
+          @if (!historiaModo()) {
+            @if (cambiosDetalle(sel).length > 0) {
+              <div class="aud__diff-box">
+                <div class="aud__diff-row aud__diff-row--head"><span>{{ 'Campo' | t }}</span><span>{{ 'Antes' | t }}</span><span>{{ 'Después' | t }}</span></div>
+                @for (c of cambiosDetalle(sel); track c.campo) {
+                  <div class="aud__diff-row">
+                    <span>{{ c.campo }}</span>
+                    <span class="aud__diff-antes">{{ c.antes }}</span>
+                    <span class="aud__diff-despues">{{ c.despues }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="aud__muted">{{ 'Sin cambios de campo (alta o baja de registro).' | t }}</p>
+            }
+            <button type="button" class="aud__link-btn" (click)="verHistoriaCompleta(sel)">
+              {{ 'Ver toda la historia de' | t }} {{ sel.codigo ?? tablaLabel(sel.tabla) }} →
+            </button>
+          } @else {
+            <div class="aud__historia">
+              <p class="aud__historia-title">{{ 'Historia completa de' | t }} {{ sel.codigo ?? tablaLabel(sel.tabla) }}</p>
+              @if (historiaLoading()) {
+                <div class="aud__skeleton">
+                  @for (i of [1,2,3]; track i) { <div class="aud__skel-row"></div> }
+                </div>
+              } @else {
+                @for (h of historiaFilas(); track h.id) {
+                  <div class="aud__historia-item">
+                    <span class="aud__historia-fecha">{{ formatTs(h.creado_en) }} {{ formatHora(h.creado_en) }}</span>
+                    <span>
+                      <b>{{ h.actor_nombre ?? ('Sistema' | t) }}</b> {{ h.frase_resumen }}
+                      @if (h.resumen_cambio) { <span class="aud__resumen-cambio">{{ h.resumen_cambio }}</span> }
+                    </span>
+                  </div>
+                } @empty {
+                  <p class="aud__muted">{{ 'Sin más eventos.' | t }}</p>
+                }
+              }
+            </div>
+          }
+
+          <button type="button" class="aud__link-btn" (click)="verJson.set(!verJson())">
+            {{ (verJson() ? 'Ocultar datos técnicos (JSON)' : 'Ver datos técnicos (JSON)') | t }}
+          </button>
+          @if (verJson()) {
+            <pre class="aud__json">{{ { cambios: sel.cambios, datos_antes: sel.datos_antes, datos_despues: sel.datos_despues } | json }}</pre>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══════════════════════════ RESUMEN ══════════════════════════ -->
+  @if (vista() === 'resumen') {
+    <div class="aud__filters">
+      <app-date-range-filter [desde]="rDesde()" [hasta]="rHasta()" (rangeChange)="onRangoResumen($event)" />
+    </div>
+
     @if (resumenLoading()) {
       <app-skeleton variant="cards" [rows]="6" />
     } @else if (resumen(); as r) {
       <div class="kpi-grid">
-        <div class="kpi-card kpi-card--primary"><span class="kpi-label">Acciones</span><span class="kpi-value">{{ r.total | number }}</span></div>
-        <div class="kpi-card"><span class="kpi-label">Usuarios activos</span><span class="kpi-value">{{ r.usuarios_activos | number }}</span></div>
-        <div class="kpi-card"><span class="kpi-label">Áreas con actividad</span><span class="kpi-value">{{ r.modulos_activos | number }}</span></div>
-        <div class="kpi-card"><span class="kpi-label">Días con actividad</span><span class="kpi-value">{{ r.por_dia.length | number }}</span></div>
+        <div class="kpi-card kpi-card--primary"><span class="kpi-label">{{ 'Acciones' | t }}</span><span class="kpi-value">{{ r.total | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">{{ 'Usuarios activos' | t }}</span><span class="kpi-value">{{ r.usuarios_activos | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">{{ 'Áreas con actividad' | t }}</span><span class="kpi-value">{{ r.modulos_activos | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">{{ 'Días con actividad' | t }}</span><span class="kpi-value">{{ r.por_dia.length | number }}</span></div>
       </div>
 
       <div class="direccion-charts">
         @if (rankingUsuarios().length > 0) {
           <div class="sgc-card chart-card">
-            <app-bar-chart titulo="Usuarios con más interacción" [data]="rankingUsuarios()" />
+            <app-bar-chart [titulo]="'Usuarios con más interacción' | t" [data]="rankingUsuarios()" />
           </div>
         }
         @if (porAccionChart().length > 0) {
           <div class="sgc-card chart-card">
-            <app-donut-chart titulo="Por tipo de acción" [data]="porAccionChart()" />
+            <app-donut-chart [titulo]="'Por tipo de acción' | t" [data]="porAccionChart()" />
           </div>
         }
         @if (porModuloChart().length > 0) {
           <div class="sgc-card chart-card chart-card--wide">
-            <app-bar-chart titulo="Actividad por área" [data]="porModuloChart()" />
+            <app-bar-chart [titulo]="'Actividad por área' | t" [data]="porModuloChart()" />
           </div>
         }
         @if (porDiaChart().length > 0) {
           <div class="sgc-card chart-card chart-card--wide">
-            <app-bar-chart titulo="Actividad por día" [data]="porDiaChart()" />
+            <app-bar-chart [titulo]="'Actividad por día' | t" [data]="porDiaChart()" />
           </div>
         }
         @if (porHoraChart().length > 0) {
           <div class="sgc-card chart-card chart-card--wide">
-            <app-bar-chart titulo="Actividad por hora del día" [data]="porHoraChart()" />
+            <app-bar-chart [titulo]="'Actividad por hora del día' | t" [data]="porHoraChart()" />
           </div>
         }
       </div>
 
-      <!-- Drill-down: cada métrica salta a las filas crudas ya filtradas -->
+      <!-- Drill-down: cada métrica salta a Actividad ya filtrada -->
       <div class="aud__drill">
         <div class="sgc-card aud__drill-box">
-          <h3 class="aud__drill-title">Ranking de usuarios</h3>
+          <h3 class="aud__drill-title">{{ 'Ranking de usuarios' | t }}</h3>
           <ul class="aud__drill-list">
             @for (u of usuariosDrill(); track u.actor_id) {
               <li>
                 <span>{{ u.nombre }}</span>
                 <span class="aud__drill-n">{{ u.n | number }}</span>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verUsuario(u.actor_id)">Ver →</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verUsuario(u.actor_id)">{{ 'Ver' | t }} →</button>
               </li>
-            } @empty { <li class="aud__muted">Sin datos en el período.</li> }
+            } @empty { <li class="aud__muted">{{ 'Sin datos en el período.' | t }}</li> }
           </ul>
-          @if ((r.por_usuario.length ?? 0) > DRILL_TOP) {
+          @if (r.por_usuario.length > DRILL_TOP) {
             <button type="button" class="aud__vermas" (click)="expandU.set(!expandU())">
-              {{ expandU() ? 'Ver menos' : 'Ver más (' + (r.por_usuario.length - DRILL_TOP) + ')' }}
+              {{ (expandU() ? 'Ver menos' : 'Ver más (' + (r.por_usuario.length - DRILL_TOP) + ')') | t }}
             </button>
           }
         </div>
 
         <div class="sgc-card aud__drill-box">
-          <h3 class="aud__drill-title">Acciones más comunes</h3>
+          <h3 class="aud__drill-title">{{ 'Acciones más comunes' | t }}</h3>
           <ul class="aud__drill-list">
             @for (a of accionesDrill(); track a.tabla + a.accion) {
               <li>
                 <span>{{ accionLabel(a.accion) }} · {{ tablaLabel(a.tabla) }}</span>
                 <span class="aud__drill-n">{{ a.n | number }}</span>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verAccionComun(a.tabla, a.accion)">Ver →</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verAccionComun(a.tabla, a.accion)">{{ 'Ver' | t }} →</button>
               </li>
-            } @empty { <li class="aud__muted">Sin datos en el período.</li> }
+            } @empty { <li class="aud__muted">{{ 'Sin datos en el período.' | t }}</li> }
           </ul>
-          @if ((r.acciones_comunes.length ?? 0) > DRILL_TOP) {
+          @if (r.acciones_comunes.length > DRILL_TOP) {
             <button type="button" class="aud__vermas" (click)="expandA.set(!expandA())">
-              {{ expandA() ? 'Ver menos' : 'Ver más (' + (r.acciones_comunes.length - DRILL_TOP) + ')' }}
+              {{ (expandA() ? 'Ver menos' : 'Ver más (' + (r.acciones_comunes.length - DRILL_TOP) + ')') | t }}
             </button>
           }
         </div>
 
         <div class="sgc-card aud__drill-box">
-          <h3 class="aud__drill-title">Actividad por área</h3>
+          <h3 class="aud__drill-title">{{ 'Actividad por área' | t }}</h3>
           <ul class="aud__drill-list">
             @for (m of modulosDrill(); track m.tabla) {
               <li>
                 <span>{{ tablaLabel(m.tabla) }}</span>
                 <span class="aud__drill-n">{{ m.n | number }}</span>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verModulo(m.tabla)">Ver →</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verModulo(m.tabla)">{{ 'Ver' | t }} →</button>
               </li>
-            } @empty { <li class="aud__muted">Sin datos en el período.</li> }
+            } @empty { <li class="aud__muted">{{ 'Sin datos en el período.' | t }}</li> }
           </ul>
-          @if ((r.por_modulo.length ?? 0) > DRILL_TOP) {
+          @if (r.por_modulo.length > DRILL_TOP) {
             <button type="button" class="aud__vermas" (click)="expandM.set(!expandM())">
-              {{ expandM() ? 'Ver menos' : 'Ver más (' + (r.por_modulo.length - DRILL_TOP) + ')' }}
+              {{ (expandM() ? 'Ver menos' : 'Ver más (' + (r.por_modulo.length - DRILL_TOP) + ')') | t }}
             </button>
           }
         </div>
@@ -155,110 +271,18 @@
     }
   }
 
-  <!-- ── Filas crudas (drill-down) ── -->
-  @if (vista() === 'filas') {
-  @if (loading()) {
-    <div class="aud__skeleton">
-      @for (i of [1,2,3,4,5,6,7,8]; track i) {
-        <div class="aud__skel-row"></div>
-      }
-    </div>
-  } @else {
-    <div class="aud__table-wrap">
-      <table class="data-table aud__table" aria-label="Registro de auditoría">
-        <thead>
-          <tr>
-            <th>Fecha y hora</th>
-            <th>Usuario</th>
-            <th>Acción</th>
-            <th>Área</th>
-            <th>Registro</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of rows(); track r.id) {
-            <tr class="aud__row" (click)="toggle(r.id)">
-              <td class="aud__ts">{{ formatTs(r.creado_en) }}</td>
-              <td>
-                {{ r.actor?.nombre ?? 'Sistema' }}
-                @if (r.impersonado_por) {
-                  <span class="aud__imp" title="Escritura hecha por un administrador impersonando a este usuario (soporte)">
-                    · por {{ r.impersonador?.nombre ?? 'un admin' }} (soporte)
-                  </span>
-                }
-              </td>
-              <td>
-                <span class="aud__badge" [attr.data-accion]="r.accion">{{ accionLabel(r.accion) }}</span>
-              </td>
-              <td>{{ tablaLabel(r.tabla) }}</td>
-              <td class="aud__reg"><code>{{ r.registro_id }}</code></td>
-              <td class="aud__chev">@if (expandedId() === r.id) { <app-icon name="chevron-up" [size]="16" /> } @else { <app-icon name="chevron-down" [size]="16" /> }</td>
-            </tr>
-            @if (expandedId() === r.id) {
-              <tr class="aud__detail-row">
-                <td colspan="6">
-                  @if (r.accion === 'UPDATE') {
-                    <table class="aud__diff">
-                      <thead>
-                        <tr><th>Campo</th><th>Antes</th><th>Después</th></tr>
-                      </thead>
-                      <tbody>
-                        @for (c of cambiosList(r); track c.campo) {
-                          <tr>
-                            <td class="aud__diff-campo">{{ c.campo }}</td>
-                            <td class="aud__diff-antes">{{ c.antes }}</td>
-                            <td class="aud__diff-despues">{{ c.despues }}</td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  } @else {
-                    <div class="aud__datos">
-                      @for (d of datosList(r); track d.campo) {
-                        <div class="aud__dato">
-                          <span class="aud__dato-campo">{{ d.campo }}</span>
-                          <span class="aud__dato-valor">{{ d.valor }}</span>
-                        </div>
-                      } @empty {
-                        <p class="aud__muted">Sin detalles adicionales.</p>
-                      }
-                    </div>
-                  }
-                </td>
-              </tr>
-            }
-          } @empty {
-            <tr>
-              <td colspan="6" class="aud__muted aud__empty">No hay movimientos que coincidan con el filtro.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    @if (total() > 0) {
-      <div class="aud__pager">
-        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() === 0" (click)="goToPage(page() - 1)">← Anterior</button>
-        <span class="aud__pager-info">{{ rangeLabel() }}</span>
-        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() >= totalPages() - 1" (click)="goToPage(page() + 1)">Siguiente →</button>
-      </div>
-    }
-  }
-  }
-
-  <!-- ── AZ10 — Acciones de administración (audit_log) ── -->
+  <!-- ══════════════════════════ ACCIONES DE ADMIN ══════════════════════════ -->
   @if (vista() === 'admin') {
     <div class="aud__filters">
-      <select [value]="fAdminAccion()" (change)="fAdminAccion.set($any($event.target).value); adminApplyFilter()" aria-label="Filtrar por acción">
-        <option value="">Todas las acciones</option>
-        <option value="impersonacion_inicio">Entró como usuario (soporte)</option>
-        <option value="impersonacion_fin">Salió de soporte</option>
-        <option value="usuario_test_login">Entró como usuario de prueba</option>
-        <option value="usuario_test_creado">Creó usuario de prueba</option>
-        <option value="usuario_marcado_prueba">Marcó como prueba</option>
-        <option value="roles_actualizados">Actualizó roles</option>
-        <option value="usuario_eliminado">Eliminó usuario</option>
+      <select class="aud__input" [value]="fAdminAccion()" (change)="fAdminAccion.set($any($event.target).value); adminApplyFilter()" [attr.aria-label]="'Filtrar por acción' | t">
+        <option value="">{{ 'Todas las acciones' | t }}</option>
+        <option value="impersonacion_inicio">{{ 'Entró como usuario (soporte)' | t }}</option>
+        <option value="impersonacion_fin">{{ 'Salió de soporte' | t }}</option>
+        <option value="usuario_test_login">{{ 'Entró como usuario de prueba' | t }}</option>
+        <option value="usuario_test_creado">{{ 'Creó usuario de prueba' | t }}</option>
+        <option value="usuario_marcado_prueba">{{ 'Marcó como prueba' | t }}</option>
+        <option value="roles_actualizados">{{ 'Actualizó roles' | t }}</option>
+        <option value="usuario_eliminado">{{ 'Eliminó usuario' | t }}</option>
       </select>
     </div>
 
@@ -270,18 +294,18 @@
       <div class="aud__table-wrap">
         <table class="aud__table">
           <thead>
-            <tr><th>Fecha y hora</th><th>Quién</th><th>Acción</th><th>Detalle</th></tr>
+            <tr><th>{{ 'Fecha y hora' | t }}</th><th>{{ 'Quién' | t }}</th><th>{{ 'Acción' | t }}</th><th>{{ 'Detalle' | t }}</th></tr>
           </thead>
           <tbody>
             @for (r of adminRows(); track r.id) {
               <tr>
                 <td>{{ formatTs(r.created_at) }}</td>
-                <td>{{ r.actor_nombre ?? 'Sistema' }}</td>
+                <td>{{ r.actor_nombre ?? ('Sistema' | t) }}</td>
                 <td>{{ adminAccionLabel(r.action) }}</td>
                 <td class="aud__muted">{{ adminDetalle(r) || '—' }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="4" class="aud__muted aud__empty">No hay acciones de administración registradas.</td></tr>
+              <tr><td colspan="4" class="aud__muted aud__empty">{{ 'No hay acciones de administración registradas.' | t }}</td></tr>
             }
           </tbody>
         </table>
@@ -289,9 +313,9 @@
 
       @if (adminTotal() > 0) {
         <div class="aud__pager">
-          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="adminPage() === 0" (click)="adminGoToPage(adminPage() - 1)">← Anterior</button>
-          <span class="aud__pager-info">{{ adminTotal() }} registro(s)</span>
-          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="adminPage() >= adminTotalPages() - 1" (click)="adminGoToPage(adminPage() + 1)">Siguiente →</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="adminPage() === 0" (click)="adminGoToPage(adminPage() - 1)">← {{ 'Anterior' | t }}</button>
+          <span class="aud__pager-info">{{ adminTotal() }} {{ 'registro(s)' | t }}</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="adminPage() >= adminTotalPages() - 1" (click)="adminGoToPage(adminPage() + 1)">{{ 'Siguiente' | t }} →</button>
         </div>
       }
     }

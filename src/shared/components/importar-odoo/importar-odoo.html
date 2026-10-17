@@ -70,16 +70,24 @@
       </div>
     }
 
-    <label class="sgc-btn sgc-btn--primary imp__file">
-      {{ 'Elegir archivo (.xlsx / .csv)' | t }}
-      <input type="file" class="sr-only" accept=".xlsx,.xls,.csv" (change)="onArchivo($event)" />
-    </label>
+    <!-- CQ4-b — dropzone real (arrastrar y soltar) + "...o búscalo" como alternativa. -->
+    <div class="imp__dropzone" [class.imp__dropzone--dragging]="dragExcel()"
+      role="button" tabindex="0" [attr.aria-label]="'Soltar o elegir archivo de ' + e.label"
+      (click)="abrirSelectorExcel()" (keydown)="onKeydownExcel($event)"
+      (dragover)="onDragOverExcel($event)" (dragleave)="onDragLeaveExcel($event)" (drop)="onDropExcel($event)">
+      <svg class="imp__dropzone-ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      <p class="imp__dropzone-text">{{ 'Arrastra el archivo aquí, o' | t }} <span class="imp__dropzone-link">{{ 'búscalo' | t }}</span></p>
+      <p class="imp__dropzone-hint">.xlsx, .xls, .csv</p>
+      <input #excelInput type="file" class="sr-only" accept=".xlsx,.xls,.csv" (click)="$event.stopPropagation()" (change)="onArchivo($event)" />
+    </div>
     @if (!bloqueada()) {
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reiniciar()">{{ 'Volver' | t }}</button>
     }
   }
 
-  <!-- Paso 3 — mapeo -->
+  <!-- Paso 3 — mapeo (archivo que NO es la plantilla reconocida, o el usuario pidió editarlo) -->
   @if (paso() === 3 && entidad(); as e) {
     <h2 class="imp__step">3 · Revisa el mapeo — {{ nombreArchivo() }} ({{ rows().length }} filas)</h2>
     <div class="imp__mapeo">
@@ -106,12 +114,38 @@
   @if (paso() === 4 && entidad(); as e) {
     @if (!resultado()) {
       <h2 class="imp__step">4 · Vista previa ({{ rows().length }} filas) — con las transformaciones de Odoo</h2>
+
+      <!-- CQ4-a — banner "columnas reconocidas solas" cuando es la plantilla propia del SGC. -->
+      @if (esPlantillaSgc() && !mapeoForzado()) {
+        <div class="imp__banner imp__banner--ok">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+          <span>{{ 'Columnas reconocidas solas (es la plantilla del SGC).' | t }}</span>
+          <button type="button" class="imp__banner-link" (click)="editarMapeo()">{{ 'Editar mapeo' | t }}</button>
+        </div>
+      }
+
       <div class="imp__table-wrap">
         <table class="imp__table">
-          <thead><tr>@for (c of e.campos; track c.t) { <th>{{ c.label }}</th> }</tr></thead>
+          <thead>
+            <tr>
+              @if (e.foto) { <th>{{ 'Foto' | t }}</th> }
+              @for (c of e.campos; track c.t) { <th>{{ c.label }}</th> }
+            </tr>
+          </thead>
           <tbody>
             @for (row of preview(); track $index) {
               <tr>
+                @if (e.foto) {
+                  <td class="imp__thumb-cell">
+                    @if (fotoDeFila($index); as nombre) {
+                      <button type="button" class="imp__thumb" (click)="abrirLightboxFila($index)">
+                        <img [src]="urlFoto(nombre)" [alt]="'Foto de la fila ' + ($index + 1)" />
+                      </button>
+                    } @else {
+                      <span class="imp__thumb-empty">{{ 'Sin foto' | t }}</span>
+                    }
+                  </td>
+                }
                 @for (c of e.campos; track c.t) {
                   <td>
                     {{ celda(row, c.t).valor }}
@@ -127,15 +161,44 @@
 
       @if (e.foto; as f) {
         <div class="imp__fotos">
-          <p class="imp__fotos-hint">{{ 'Fotos (opcional): nombra cada archivo con el mismo valor de «{campo}» de su fila (ej. {ejemplo}.jpg) y sube un .zip con todas.' | t:{ campo: claveLabel(e), ejemplo: claveEjemplo(e) } }}</p>
           @if (!nombreZip()) {
-            <label class="sgc-btn sgc-btn--ghost sgc-btn--sm imp__file">
-              {{ 'Elegir .zip de fotos' | t }}
-              <input type="file" class="sr-only" accept=".zip" (change)="onZip($event)" />
-            </label>
+            <!-- CQ4-b — dropzone también para el .zip de fotos. -->
+            <div class="imp__dropzone imp__dropzone--zip" [class.imp__dropzone--dragging]="dragZip()"
+              role="button" tabindex="0" aria-label="Soltar o elegir .zip de fotos"
+              (click)="abrirSelectorZip()" (keydown)="onKeydownZip($event)"
+              (dragover)="onDragOverZip($event)" (dragleave)="onDragLeaveZip($event)" (drop)="onDropZip($event)">
+              <p class="imp__fotos-hint">{{ 'Fotos (opcional): nombra cada archivo con el mismo valor de «{campo}» de su fila (ej. {ejemplo}.jpg) y arrastra aquí un .zip con todas, o búscalo.' | t:{ campo: claveLabel(e), ejemplo: claveEjemplo(e) } }}</p>
+              <input #zipInput type="file" class="sr-only" accept=".zip" (click)="$event.stopPropagation()" (change)="onZip($event)" />
+            </div>
           } @else {
-            <span class="imp__zip-nombre">{{ nombreZip() }} ({{ zipFotos()?.size ?? 0 }} {{ 'archivo(s)' | t }})</span>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarZip()">{{ 'Quitar' | t }}</button>
+            <div class="imp__zip-info">
+              <span class="imp__zip-nombre">
+                {{ nombreZip() }} ({{ zipFotos()?.size ?? 0 }} {{ 'archivo(s)' | t }}) ·
+                {{ matchFinal().size }} {{ 'enlazada(s)' | t }}
+                @if (fotosSinDueno().length) { , {{ fotosSinDueno().length }} {{ 'sin dueño' | t }} }
+              </span>
+              <button type="button" class="imp__banner-link" (click)="quitarZip()">{{ 'Cambiar' | t }}</button>
+            </div>
+          }
+
+          <!-- CQ4-c — fotos del .zip que no coincidieron con ninguna fila: asignación manual. -->
+          @if (fotosSinDueno().length) {
+            <div class="imp__sin-dueno">
+              @for (nombre of fotosSinDueno(); track nombre) {
+                <div class="imp__sin-dueno-item">
+                  <button type="button" class="imp__thumb" (click)="abrirLightboxSinDueno(nombre)">
+                    <img [src]="urlFoto(nombre)" [alt]="nombre" />
+                  </button>
+                  <span class="imp__sin-dueno-text">
+                    <strong>{{ nombre }}</strong> {{ 'no coincide con ninguna fila. ¿De cuál es?' | t }}
+                  </span>
+                  <select class="sgc-input" aria-label="Asignar foto" (change)="$any($event.target).value && asignarFotoAFila(nombre, +$any($event.target).value)">
+                    <option value="">{{ '— elegir fila —' | t }}</option>
+                    @for (f of filasPreviewConIndice(); track f.indice) { <option [value]="f.indice">{{ f.label }}</option> }
+                  </select>
+                </div>
+              }
+            </div>
           }
         </div>
       }
@@ -146,39 +209,109 @@
           {{ procesando() ? ('Importando…' | t) : ('Importar {n} fila(s)' | t:{ n: rows().length }) }}
         </button>
       </div>
-    } @else {
-      <h2 class="imp__step">{{ 'Resultado' | t }}</h2>
-      <p class="imp__result">
-        <strong>{{ resultado()!.nuevos }}</strong> {{ 'nuevas' | t }} ·
-        <strong>{{ resultado()!.actualizados }}</strong> {{ 'actualizadas' | t }} ·
-        <strong>{{ resultado()!.errores.length }}</strong> {{ 'con error' | t }}
-      </p>
-      @if (resultadoFotos(); as rf) {
-        <p class="imp__result imp__result--fotos">
-          <strong>{{ rf.subidas }}</strong> {{ 'foto(s) subida(s)' | t }}
-          @if (rf.sinUsar.length) {
-            · <strong>{{ rf.sinUsar.length }}</strong> {{ 'archivo(s) del .zip sin usar' | t }}
+    }
+  }
+</div>
+
+<!-- CQ4-c — vista ampliada de una miniatura, con quitar/mover. -->
+<app-form-drawer [open]="!!lightbox()" variant="modal" title="Foto" (closed)="cerrarLightbox()">
+  @if (lightbox(); as lb) {
+    <div class="imp__lightbox">
+      <img class="imp__lightbox-img" [src]="lb.url" [alt]="lb.nombre" />
+      <p class="imp__muted">{{ lb.nombre }}</p>
+      @if (!moviendoFoto()) {
+        <div class="imp__actions">
+          @if (lb.filaIndex !== null) {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="quitarFotoDeFila(lb.filaIndex)">{{ 'Quitar' | t }}</button>
           }
-        </p>
-        @if (rf.sinUsar.length) {
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="moviendoFoto.set(true)">
+            {{ lb.filaIndex !== null ? ('Mover a otra fila' | t) : ('Asignar a una fila' | t) }}
+          </button>
+        </div>
+      } @else {
+        <div class="imp__actions">
+          <select class="sgc-input" aria-label="Elegir fila" (change)="$any($event.target).value && asignarFotoAFila(lb.nombre, +$any($event.target).value)">
+            <option value="">{{ '— elegir fila —' | t }}</option>
+            @for (f of filasPreviewConIndice(); track f.indice) { <option [value]="f.indice">{{ f.label }}</option> }
+          </select>
+        </div>
+      }
+    </div>
+  }
+</app-form-drawer>
+
+<!-- CQ4-d — modal de resultado (fondo oscurecido y borroso: conteos + tarjeta por registro). -->
+<app-form-drawer [open]="!!resultado()" variant="modal" [wide]="true" title="Importación lista" (closed)="cerrarResultado()">
+  @if (resultado(); as r) {
+    @if (entidad(); as e) {
+      <div class="imp__resultado">
+        <div class="imp__resultado-conteos">
+          <div class="imp__resultado-conteo imp__resultado-conteo--nuevos">
+            <span>{{ 'Nuevos' | t }}</span><strong>{{ r.nuevos }}</strong>
+          </div>
+          <div class="imp__resultado-conteo imp__resultado-conteo--act">
+            <span>{{ 'Actualizados' | t }}</span><strong>{{ r.actualizados }}</strong>
+          </div>
+          <div class="imp__resultado-conteo imp__resultado-conteo--err">
+            <span>{{ 'Con error' | t }}</span><strong>{{ r.errores.length }}</strong>
+          </div>
+        </div>
+
+        @if (resultadoFotos(); as rf) {
+          <p class="imp__result imp__result--fotos">
+            <strong>{{ rf.subidas }}</strong> {{ 'foto(s) subida(s)' | t }}
+            @if (rf.sinUsar.length) { · <strong>{{ rf.sinUsar.length }}</strong> {{ 'archivo(s) del .zip sin usar' | t }} }
+          </p>
+        }
+
+        @if (registrosResultado().length) {
+          <div class="imp__resultado-grid">
+            @for (reg of registrosResultado(); track reg.id) {
+              <div class="imp__resultado-card">
+                <div class="imp__resultado-thumb">
+                  @if (reg.fotoUrl) { <img [src]="reg.fotoUrl" alt="" /> } @else { <span class="imp__thumb-empty">{{ 'Sin foto' | t }}</span> }
+                </div>
+                <div class="imp__resultado-body">
+                  <span class="imp__resultado-badge" [class.imp__resultado-badge--nuevo]="reg.accion === 'creado'" [class.imp__resultado-badge--act]="reg.accion === 'actualizado'">
+                    {{ (reg.accion === 'creado' ? 'NUEVO' : 'ACTUALIZADO') | t }}
+                  </span>
+                  <strong>{{ reg.resumen }}</strong>
+                  @if (cambiosLegibles(reg.cambios).length) {
+                    <span class="imp__resultado-cambios">{{ 'Cambió' | t }}: {{ cambiosLegibles(reg.cambios).join(', ') }}</span>
+                  }
+                  @if (rutaPerfil(e, reg.id); as ruta) {
+                    <a [routerLink]="ruta" class="imp__resultado-link">{{ 'Abrir perfil' | t }}</a>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (r.errores.length) {
           <div class="imp__errores">
-            @for (nombre of rf.sinUsar; track nombre) {
+            @for (err of r.errores; track $index) {
+              <div class="imp__error">{{ 'Fila' | t }} {{ err.i }}: {{ err.motivo }}</div>
+            }
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarErrores(e)">{{ 'Descargar errores (Excel)' | t }}</button>
+          </div>
+        }
+        @if (resultadoFotos()?.sinUsar?.length) {
+          <div class="imp__errores">
+            @for (nombre of resultadoFotos()!.sinUsar; track nombre) {
               <div class="imp__error">{{ 'No coincide con ninguna fila (revisa el nombre):' | t }} {{ nombre }}</div>
             }
           </div>
         }
-      }
-      @if (resultado()!.errores.length) {
-        <div class="imp__errores">
-          @for (err of resultado()!.errores; track $index) {
-            <div class="imp__error">{{ 'Fila' | t }} {{ err.i }}: {{ err.motivo }}</div>
-          }
+
+        <div class="imp__actions imp__actions--end">
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">{{ 'Importar otro archivo' | t }}</button>
+          <a [routerLink]="rutaListado(e)" class="sgc-btn sgc-btn--primary">{{ labelListado(e) | t }}</a>
         </div>
-      }
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">{{ 'Importar otro archivo' | t }}</button>
+      </div>
     }
   }
-</div>
+</app-form-drawer>
 
 <!-- Historial + deshacer -->
 @if (historial().length) {

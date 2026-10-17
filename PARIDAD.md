@@ -806,3 +806,73 @@ mismas RPCs que usa la web — nada de esto es exclusivo del front:
 conectado — copiar invitación" (botón que arma un texto plano con título/fecha/participantes para
 compartir a mano); sin `transcripcion_url`, no ofrecer "Ver transcripción"; "Aprobar y enviar minuta"
 hoy NO manda correo real (solo marca `enviada_at` tras aprobar) — no afirmar que se envió un correo.
+
+### CQ3 — Auditoría › Actividad (contrato para la app)
+Rediseño del módulo de Auditoría en la web (3 pestañas: Actividad / Resumen / Acciones de admin —
+mock `Auditoria.dc.html`). Si `csd-app` necesita alguna vez una vista mínima de "qué hice / qué pasó"
+(ej. para un admin de obra en el teléfono), estas son las mismas RPCs que usa la web — nada exclusivo
+del front. Migración: `sql/2026-10-16-cq3-auditoria-contexto.sql` (dev; prod pendiente de OK de
+Xaviel — ver HANDOFF).
+
+- `sgc.auditoria_actividad(p_filtros jsonb, p_cursor text, p_limite int default 40) returns jsonb`
+  — línea de tiempo paginada por **cursor** (no OFFSET — el log pasa de 40k filas). `p_filtros` acepta
+  `{persona, texto, desde, hasta, modulo, accion}` — **`desde`/`hasta` deben venir ya resueltos a
+  `YYYY-MM-DD`** (el RPC no entiende atajos como "7 días", eso lo resuelve el cliente). Devuelve
+  `{filas: [...], cursor_siguiente: string|null, hay_mas: boolean}`. Para la página siguiente, mandar
+  `cursor_siguiente` tal cual (es opaco — base64 de `creado_en|id`, no parsear).
+  Cada fila: `{id, tabla, registro_id, accion, creado_en, actor_id, actor_nombre, actor_roles[],
+  impersonado_por, impersonador_nombre, origen, frase_resumen, codigo, resumen_cambio, cambios,
+  datos_antes, datos_despues}`. `frase_resumen` y `codigo` ya vienen armados en servidor (catálogo
+  `sgc.auditoria_frases`) — **nunca** reconstruir la frase en el cliente a partir de `cambios` crudo,
+  usar `frase_resumen` tal cual. `origen` es `"web@1.193.0"` / `"app@2.55.0"` / `null` (si es anterior
+  al 16-oct-2026 o el cliente no mandó el header — mostrar "No disponible", nunca inventar un valor).
+- `sgc.auditoria_historia_registro(p_tabla text, p_registro_id text) returns jsonb` — TODAS las
+  acciones de TODOS los usuarios sobre un registro, en **orden cronológico ascendente** (mismas
+  columnas por fila que `auditoria_actividad`, sin paginar — un registro no tiene miles de eventos).
+- Gate: ambas llaman `sgc.puede_ver_auditoria()` (admin, módulo `auditoria`, o `es_tecnologia()`) —
+  mismo gate que ya usa `auditoria_listar`/`auditoria_resumen`.
+- **"Desde dónde" en la app**: si `csd-app` manda su propio header `x-sgc-client: app@2.55.0` en las
+  llamadas a Supabase (mismo patrón que la web, ver `supabase.service.ts` de la web), `fn_auditoria()`
+  ya lo captura automáticamente — no requiere ningún cambio de servidor adicional. Sin ese header,
+  las filas de auditoría generadas por la app seguirán quedando con `origen=null`.
+- `sgc.auditoria_frases` es un catálogo de 35 tablas (de las ~30 más auditadas en prod); si la app
+  necesita una tabla que no está ahí, el RPC cae a un genérico ("modificó un registro de {tabla}") —
+  nunca revienta ni deja la frase vacía. Agregar tablas nuevas al catálogo es un `insert` aditivo en
+  `sql/`, no requiere tocar los RPCs.
+
+### CQ2 — Dev notes: editor con formato (contrato para la app)
+Rediseño del editor de Dev notes en la web (mock `Dev-notes.dc.html`): reemplaza el `<textarea>` de
+Markdown crudo por un editor **con formato real**, a pantalla completa. NO implementado en `csd-app`
+en esta ronda — solo se documenta el contrato por si el hijo construye su propia versión más adelante
+(dev notes hoy es una pantalla solo-web, gateada a Tecnología; la app no la tiene).
+
+- **Mismo storage, sin cambios de esquema de datos**: `sgc.notas.contenido` sigue siendo **Markdown
+  plano**, igual que antes de esta ronda. El editor nuevo es puramente de presentación — convierte
+  Markdown→doc visual al abrir y doc→Markdown al guardar; la base de datos nunca ve HTML ni JSON de
+  ProseMirror. Si la app alguna vez edita una nota 'dev' directamente contra la tabla (hoy no lo hace),
+  sigue leyendo/escribiendo el mismo Markdown de siempre — no necesita saber nada de TipTap.
+- **Tecnología usada (si el hijo migra su propio editor de notas)**: TipTap 2.x (`@tiptap/core` +
+  `starter-kit` + `extension-task-list`/`extension-task-item`/`extension-link`) + el paquete
+  `tiptap-markdown` para la conversión Markdown↔ProseMirror. Implementación de referencia en
+  `src/shared/ui/rich-editor/rich-editor.ts` (web) — el menú "/" es un popup casero (sin librería de
+  suggestion), y hay un workaround documentado ahí mismo (`repararListaFantasma`) para un bug real de
+  `tiptap-markdown`/`markdown-it-task-lists` con listas mixtas (bullet normal seguida de checkboxes
+  con el mismo marcador `-` en el mismo bloque) — si el hijo usa la misma librería, revisar ese mismo
+  workaround o el bug reaparecerá ahí también.
+- **Columna nueva (aditiva, no rompe nada): `sgc.notas.enviada_a_ronda_at timestamptz`** — se pone en
+  `now()` cuando el usuario usa "Mandar a ronda" (copia el contenido al portapapeles como texto plano
+  legible, sin sintaxis Markdown cruda, para pegar en un chat). RPC: `sgc.nota_marcar_enviada_ronda(p_id
+  uuid)` (mismo gate que editar la nota, vía `sgc.puede_editar_nota`). Puramente informativo — no
+  bloquea nada ni cambia visibilidad. Migración: `sql/2026-10-16-cq2-dev-notes-enviada.sql` (aplicada a
+  dev; prod pendiente del flujo normal `dev→main`).
+- **Pantalla completa**: mecanismo nuevo y genérico, `FullscreenModeService`
+  (`src/shared/services/fullscreen-mode.service.ts`) — un signal `activo` que el shell web consulta
+  para ocultar su propio chrome (sidebar+header) mientras hay una nota abierta. Es un concepto de la
+  WEB (sidebar persistente); no aplica igual a la app (que ya es pantalla completa por naturaleza al
+  ser móvil) — no hace falta portarlo, solo tenerlo en cuenta si el hijo agrega algún "modo inmersivo"
+  propio para otra pantalla.
+- **Ctrl+N global** (`DevNotesAtajosService`, atajo de teclado — no aplica a touch/móvil, es
+  exclusivamente de la web).
+- **"Texto simple"**: alterna el MISMO editor a un `<textarea>` monoespaciado sin formato — el
+  contenido subyacente no cambia (sigue siendo el Markdown). Si la app quisiera un modo similar, es
+  trivial (es solo una UI alternativa sobre el mismo string).

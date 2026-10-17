@@ -25,7 +25,35 @@ const TEC_EQUIPO_COLS = new Set<string>([
   'moneda', 'fotos', 'foto_portada',
 ]);
 import { formatFechaMedia } from '../utils/fecha.util';
-import { SolicitudCompra } from '../models/solicitud.model';
+import { SolicitudCompra, LecturaCotizacion } from '../models/solicitud.model';
+
+/** CQ1 — payload del encabezado + renglones de una compra tecnológica (crear/editar). */
+export interface CompraTecFormPayload {
+  notas: string | null;
+  titulo: string | null;
+  urgencia: 'normal' | 'urgente';
+  proyecto_id: string | null;
+  itbis_incluido: boolean;
+  items: {
+    descripcion: string;
+    cantidad: number;
+    unidad: string | null;
+    precio_unitario: number | null;
+    proveedor_sugerido?: string | null;
+    foto_path?: string | null;
+  }[];
+}
+
+/** CQ1 — respuesta de la edge `leer-cotizacion`. */
+export interface LeerCotizacionResultado {
+  ok: boolean;
+  lectura?: LecturaCotizacion;
+  confianza?: Record<string, number>;
+  modelo?: string;
+  costo_usd?: number;
+  error?: string;
+  error_code?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class TecnologiaService {
@@ -338,6 +366,42 @@ export class TecnologiaService {
     return (data ?? []) as unknown as SolicitudCompra[];
   }
 
+  /** CQ1 — una compra tecnológica por id (para la página de edición de borrador). */
+  async getCompraTecById(id: string): Promise<SolicitudCompra | null> {
+    const { data, error } = await this.supabase.client
+      .from('solicitudes_compra')
+      .select(this.COMPRA_TEC_SELECT)
+      .eq('id', id)
+      .eq('categoria', 'tecnologia')
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data ?? null) as unknown as SolicitudCompra | null;
+  }
+
+  /** CQ1 — nombre de quien aprueba compras tecnológicas hoy (para mostrarlo en el
+   *  botón "Enviar a <nombre> para aprobar" ANTES de crear la solicitud). Best-effort:
+   *  null si no hay parámetro configurado o la lectura falla (el botón cae a un
+   *  texto genérico). */
+  async getAprobadorCompraTecNombre(): Promise<string | null> {
+    try {
+      const { data: param } = await this.supabase.client
+        .from('parametros')
+        .select('valor')
+        .eq('clave', 'compras_tec_aprobador')
+        .maybeSingle();
+      const aprobadorId = (param as { valor?: string } | null)?.valor;
+      if (!aprobadorId) return null;
+      const { data: usuario } = await this.supabase.client
+        .from('usuarios')
+        .select('nombre')
+        .eq('id', aprobadorId)
+        .maybeSingle();
+      return (usuario as { nombre?: string } | null)?.nombre ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   // CO8 — flujo borrador → esperando aprobación → aprobada/rechazada → comprada.
   async enviarAprobacionCompraTec(id: string): Promise<void> {
     const { error } = await this.supabase.client.rpc('compra_tec_enviar_aprobacion', { p_id: id });
@@ -352,11 +416,20 @@ export class TecnologiaService {
     if (error) throw new Error(error.message);
   }
 
-  /** CO8 — sube la cotización (PDF/imagen) al bucket privado y la registra. */
+  /** CO8/CQ1 — sube la cotización (PDF/imagen) al bucket privado y la registra,
+   *  incluyendo lo que leyó la IA (CQ1, para auditoría — AT11: todo lo que se envía
+   *  debe poder verse; `lectura` queda guardada tal cual en el adjunto). */
   async subirCotizacion(
     solicitudId: string,
     file: File,
-    datos: { tipo: 'cotizacion' | 'factura' | 'otro'; proveedor: string | null; monto: number | null },
+    datos: {
+      tipo: 'cotizacion' | 'factura' | 'otro';
+      proveedor: string | null;
+      monto: number | null;
+      fecha?: string | null;
+      lectura?: LecturaCotizacion | null;
+      lectura_costo_usd?: number | null;
+    },
   ): Promise<string> {
     const path = `${solicitudId}/${crypto.randomUUID()}-${file.name}`;
     const { error: upErr } = await this.supabase.client.storage.from('compras-cotizaciones').upload(path, file);
@@ -364,9 +437,45 @@ export class TecnologiaService {
     const { data, error } = await this.supabase.client.rpc('compra_tec_adjuntar_cotizacion', {
       p_id: solicitudId, p_tipo: datos.tipo, p_proveedor: datos.proveedor, p_monto: datos.monto,
       p_path: path, p_nombre: file.name,
+      p_fecha: datos.fecha ?? null, p_lectura: datos.lectura ?? null, p_lectura_costo_usd: datos.lectura_costo_usd ?? null,
     });
     if (error) throw new Error(error.message);
     return data as string;
+  }
+
+  /** CQ1 — lee una cotización (PDF/foto) con IA; NUNCA bloquea el flujo: si falla,
+   *  el llamador deja al usuario llenar a mano. Convierte el File a base64 aquí
+   *  para que la página no repita ese código. */
+  async leerCotizacion(file: File): Promise<LeerCotizacionResultado> {
+    const base64 = await this.fileToBase64(file);
+    const mime = file.type || 'application/pdf';
+    const { data, error } = await this.supabase.client.functions.invoke('leer-cotizacion', {
+      body: { archivo: { data: base64, mime } },
+    });
+    if (error) {
+      // La edge devuelve un cuerpo JSON incluso en 4xx/5xx (error_code incluido); intenta leerlo.
+      const ctx = (error as { context?: { body?: unknown } }).context;
+      if (ctx?.body) {
+        try {
+          const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+          if (parsed && typeof parsed === 'object') return { ok: false, ...parsed };
+        } catch { /* cae al mensaje genérico */ }
+      }
+      return { ok: false, error: 'No se pudo leer la cotización.' };
+    }
+    return data as LeerCotizacionResultado;
+  }
+
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.includes(',') ? result.split(',')[1] : result);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
   }
   async elegirCotizacion(adjuntoId: string): Promise<void> {
     const { error } = await this.supabase.client.rpc('compra_tec_elegir_cotizacion', { p_adjunto_id: adjuntoId });
@@ -408,31 +517,35 @@ export class TecnologiaService {
     }
   }
 
-  async crearCompraTec(
-    notas: string | null,
-    items: {
-      descripcion: string;
-      cantidad: number;
-      proveedor_sugerido: string | null;
-      foto_path?: string | null;
-      precio_unitario?: number | null;
-    }[],
-  ): Promise<string> {
+  /** CQ1 — crea el borrador con encabezado completo (título/urgencia/obra/ITBIS).
+   *  El subtotal/ITBIS/total los calcula el SERVIDOR a partir de `items` (regla 3 —
+   *  integridad: nunca se confía en un total mandado por el cliente). */
+  async crearCompraTec(payload: CompraTecFormPayload): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('crear_solicitud_compra_tec', {
-      p_notas: notas,
-      p_items: items,
+      p_notas: payload.notas,
+      p_items: payload.items,
+      p_titulo: payload.titulo,
+      p_urgencia: payload.urgencia,
+      p_proyecto_id: payload.proyecto_id,
+      p_itbis_incluido: payload.itbis_incluido,
     });
     if (error) throw new Error(error.message);
     return data as string;
   }
 
-  // ── U17 — Foto de un renglón de compra tecnológica (bucket `inventario`) ──
-  async uploadCompraTecFoto(file: File): Promise<string> {
-    const path = `compra-tec/${crypto.randomUUID()}.jpg`;
-    const { error } = await this.supabase.client.storage
-      .from('inventario')
-      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+  /** CQ1 — edita un borrador existente (servidor valida estado='borrador' + dueño/admin).
+   *  Reemplaza los renglones (borra + reinserta, mismo patrón que otros módulos). */
+  async actualizarBorradorCompraTec(id: string, payload: CompraTecFormPayload): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compra_tec_actualizar_borrador', {
+      p_id: id,
+      p_notas: payload.notas,
+      p_titulo: payload.titulo,
+      p_urgencia: payload.urgencia,
+      p_proyecto_id: payload.proyecto_id,
+      p_itbis_incluido: payload.itbis_incluido,
+      p_items: payload.items,
+    });
     if (error) throw new Error(error.message);
-    return path;
   }
+
 }

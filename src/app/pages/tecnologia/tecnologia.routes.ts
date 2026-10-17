@@ -35,6 +35,19 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./compras/compras').then((m) => m.TecCompras),
     title: 'Compras tecnológicas — Tecnología',
   },
+  // CQ1 — alta/edición a página completa (reemplaza el drawer de creación).
+  {
+    path: 'compras/nueva',
+    canActivate: [moduleGuard('tecnologia')],
+    loadComponent: () => import('./compras/compras-nueva/compras-nueva').then((m) => m.ComprasNueva),
+    title: 'Nueva compra tecnológica — Tecnología',
+  },
+  {
+    path: 'compras/:id/editar',
+    canActivate: [moduleGuard('tecnologia')],
+    loadComponent: () => import('./compras/compras-nueva/compras-nueva').then((m) => m.ComprasNueva),
+    title: 'Editar compra tecnológica — Tecnología',
+  },
 
   // ── Y11 — Plataforma / sistema: reservado a admin | rol tecnologia ──────────
   // Reportes de errores (Y6), historial de versiones y versiones de la app.

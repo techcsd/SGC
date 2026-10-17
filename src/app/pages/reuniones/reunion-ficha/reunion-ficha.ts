@@ -9,6 +9,7 @@ import { UserService } from '../../../../app/core/services/user.service';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { SignedUrlCache } from '../../../../shared/services/signed-url-cache.service';
 
 @Component({
   selector: 'app-reunion-ficha',
@@ -24,6 +25,7 @@ export class ReunionFicha implements OnInit {
   private toast = inject(ToastService);
   private userService = inject(UserService);
   private i18n = inject(I18nService);
+  private signedUrlCache = inject(SignedUrlCache);
 
   id = signal<string>('');
   cargando = signal(true);
@@ -34,7 +36,9 @@ export class ReunionFicha implements OnInit {
   aprobando = signal(false);
 
   notaPropia = signal('');
+  fotoPropia = signal<File | null>(null);
   guardandoNota = signal(false);
+  fotosNotas = signal<Record<string, string>>({});
 
   nuevoAcuerdoTexto = signal('');
   nuevoAcuerdoResponsable = signal<{ id: string; nombre: string } | null>(null);
@@ -67,6 +71,10 @@ export class ReunionFicha implements OnInit {
       this.resumenEdit.set(d.acta?.resumen ?? '');
       const miNota = d.notas.find((n) => n.es_mia);
       this.notaPropia.set(miNota?.texto ?? '');
+      const conFoto = d.notas.filter((n) => n.foto_path);
+      if (conFoto.length) {
+        this.fotosNotas.set(await this.signedUrlCache.signedMany('reuniones', conFoto.map((n) => n.foto_path)));
+      }
     } catch (e) {
       this.toast.error(this.i18n.t('No se pudo abrir la reunión'), e instanceof Error ? e.message : undefined);
       void this.router.navigate(['/reuniones']);
@@ -107,7 +115,8 @@ export class ReunionFicha implements OnInit {
   async guardarNota() {
     this.guardandoNota.set(true);
     try {
-      await this.service.guardarNota(this.id(), this.notaPropia());
+      await this.service.guardarNota(this.id(), this.notaPropia(), this.fotoPropia());
+      this.fotoPropia.set(null);
       this.toast.success(this.i18n.t('Nota guardada'));
       await this.cargar();
     } catch (e) {
@@ -115,6 +124,11 @@ export class ReunionFicha implements OnInit {
     } finally {
       this.guardandoNota.set(false);
     }
+  }
+
+  onFotoPropiaElegida(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    this.fotoPropia.set(input.files?.[0] ?? null);
   }
 
   onResponsableElegido(sel: UserPickerSelection) {

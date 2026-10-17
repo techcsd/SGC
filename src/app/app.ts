@@ -11,6 +11,7 @@ import { EntornoBadge } from '../shared/ui/entorno-badge/entorno-badge';
 import { LogoReveal } from '../shared/ui/logo-reveal/logo-reveal';
 import { LogoRevealService } from '../shared/ui/logo-reveal/logo-reveal.service';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
+import { DevNotesAtajosService } from '../shared/services/dev-notes-atajos.service';
 
 @Component({
   selector: 'app-root',
@@ -28,6 +29,9 @@ export class App implements OnInit {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private logoReveal = inject(LogoRevealService);
+  // CQ2 — Ctrl+N (nota nueva) global; el servicio registra su propio listener
+  // en el constructor, solo necesitamos que se instancie una vez.
+  private devNotesAtajos = inject(DevNotesAtajosService);
 
   ngOnInit() {
     // CJ1 — aplica la preferencia de movimiento (por dispositivo) lo antes posible.

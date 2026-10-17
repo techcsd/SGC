@@ -1,0 +1,27 @@
+<div class="re" [class.re--disabled]="disabled()">
+  @if (vacio() && !disabled()) {
+    <div class="re__placeholder" aria-hidden="true">{{ placeholder() }}</div>
+  }
+  <div #host class="re__host"></div>
+</div>
+
+@if (slash(); as s) {
+  <div class="re__slash" [style.left.px]="s.x" [style.top.px]="s.y" role="listbox" aria-label="Insertar bloque">
+    @for (opt of opcionesFiltradas(); track opt.id; let i = $index) {
+      <button
+        type="button"
+        class="re__slash-item"
+        [class.active]="i === s.seleccion"
+        role="option"
+        [attr.aria-selected]="i === s.seleccion"
+        (mousedown)="$event.preventDefault()"
+        (click)="ejecutar(opt, s)"
+      >
+        <span class="re__slash-item-label">{{ opt.label }}</span>
+        <span class="re__slash-item-hint">{{ opt.hint }}</span>
+      </button>
+    } @empty {
+      <span class="re__slash-empty">Sin coincidencias</span>
+    }
+  </div>
+}

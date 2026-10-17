@@ -130,6 +130,22 @@ export interface SolicitudCompraItem {
 export type SolicitudCompraTecEstado =
   | 'borrador' | 'esperando_aprobacion' | 'aprobada' | 'rechazada' | 'comprada';
 
+/** CQ1 — lo que la edge `leer-cotizacion` extrajo del PDF/foto (revisable, nunca autoritativo). */
+export interface LecturaCotizacionArticulo {
+  descripcion: string;
+  cantidad: number | null;
+  unidad: string | null;
+  precio: number | null;
+}
+export interface LecturaCotizacion {
+  proveedor: string | null;
+  fecha: string | null;
+  moneda: string | null;
+  articulos: LecturaCotizacionArticulo[];
+  itbis: number | null;
+  total: number | null;
+}
+
 export interface SolicitudCompraAdjunto {
   id: string;
   solicitud_id: string;
@@ -141,6 +157,12 @@ export interface SolicitudCompraAdjunto {
   elegida: boolean;
   subido_por: string | null;
   created_at: string;
+  /** CQ1 — fecha de la cotización (si se leyó o la indicó el usuario). */
+  fecha?: string | null;
+  /** CQ1 — lo que devolvió la lectura automática (IA), tal cual, para auditoría. */
+  lectura?: LecturaCotizacion | null;
+  /** CQ1 — costo estimado (USD) de la lectura con IA de ESTE adjunto. */
+  lectura_costo_usd?: number | null;
 }
 
 export interface SolicitudCompra {
@@ -173,6 +195,13 @@ export interface SolicitudCompra {
   decidida_at?: string | null;
   motivo_rechazo?: string | null;
   adjuntos?: SolicitudCompraAdjunto[];
+  // CQ1 — rediseño de alta: encabezado + ITBIS calculado en servidor.
+  titulo?: string | null;
+  urgencia?: 'normal' | 'urgente' | null;
+  itbis_incluido?: boolean | null;
+  subtotal?: number | null;
+  itbis?: number | null;
+  total?: number | null;
 }
 
 export interface SolicitudCompraFormData {

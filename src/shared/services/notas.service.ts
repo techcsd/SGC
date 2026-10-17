@@ -256,6 +256,16 @@ export class NotasService {
     await Promise.all(items.map((it) => this.updateChecklistItem(it.id, { orden: it.orden })));
   }
 
+  /** CQ2 — marca la nota como "enviada a ronda" (copiada al portapapeles en texto
+   *  plano). Solo informativo; no toca `contenido`. */
+  async marcarEnviadaARonda(notaId: string): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('nota_marcar_enviada_ronda', {
+      p_id: notaId,
+    });
+    if (error) throw new Error(error.message);
+    return (data as { enviada_a_ronda_at: string })?.enviada_a_ronda_at;
+  }
+
   /** Tareas que el usuario puede ver (RLS), para el selector "Vincular a tarea…". */
   async getTareasVinculables(): Promise<TareaVinculable[]> {
     const { data, error } = await this.supabase.client

@@ -9,6 +9,7 @@ import { ImportadorService, ENTIDADES, EntidadImportable } from './importador.se
 const svc = Object.create(ImportadorService.prototype) as ImportadorService;
 const prov = ENTIDADES.find((e) => e.key === 'proveedores') as EntidadImportable;
 const art = ENTIDADES.find((e) => e.key === 'articulos') as EntidadImportable;
+const veh = ENTIDADES.find((e) => e.key === 'vehiculos') as EntidadImportable;
 const campo = (e: EntidadImportable, t: string) => e.campos.find((c) => c.t === t)!;
 
 describe('Importador — perfil Odoo res.partner (proveedores)', () => {
@@ -70,5 +71,57 @@ describe('Importador — fusión de filas de continuación', () => {
     const out = svc.aplicarMapeo(prov, rows, mapeo);
     expect(out[0]['odoo_ref']).toBe('__export__.res_partner_9');
     expect(out[0]['rnc']).toBe('131999999');
+  });
+});
+
+// CQ4-a — el bug real: "importar un archivo nuevo deja casi todo sin mapear".
+// Causa: el mapeo recordado de una importación anterior pisaba el auto-mapeo
+// fresco (incluso vacío, o con una columna que no existe en ESTE archivo).
+describe('Importador — fusión del mapeo recordado (CQ4-a, el auto-mapeo manda)', () => {
+  it('recordado vacío ({}) no afecta nada — gana el auto-mapeo', () => {
+    const headers = ['Placa', 'Marca', 'Modelo'];
+    const auto = svc.autoMapeo(veh, headers);
+    const fusion = svc.fusionarMapeoRecordado(auto, {}, headers);
+    expect(fusion).toEqual(auto);
+    expect(fusion['placa']).toBe('Placa');
+  });
+
+  it('recordado de OTRO archivo (columna que no existe aquí) se ignora', () => {
+    const headers = ['Placa', 'Marca']; // este archivo NO tiene "VIN"
+    const auto = svc.autoMapeo(veh, headers);
+    const recordado = { placa: 'Placa', vin: 'VIN' }; // 'VIN' no existe en este archivo
+    const fusion = svc.fusionarMapeoRecordado(auto, recordado, headers);
+    expect(fusion['vin']).toBeUndefined();
+    expect(fusion['placa']).toBe('Placa');
+  });
+
+  it('columna renombrada en el archivo nuevo: el auto-mapeo gana sobre lo recordado', () => {
+    // La sesión anterior tenía "Marca" mapeada a una columna distinta ("Fabricante",
+    // que YA NO EXISTE); el archivo nuevo sí trae "Marca" tal cual — debe ganar el
+    // auto-mapeo fresco, no la columna vieja/recordada.
+    const headers = ['Placa', 'Marca', 'Modelo'];
+    const auto = svc.autoMapeo(veh, headers);
+    const recordado = { placa: 'Placa', marca: 'Fabricante' }; // "Fabricante" no existe ya
+    const fusion = svc.fusionarMapeoRecordado(auto, recordado, headers);
+    expect(fusion['marca']).toBe('Marca'); // gana el auto-mapeo, no 'Fabricante'
+  });
+
+  it('recordado SÍ rellena un campo que el auto-mapeo no pudo mapear, si la columna existe', () => {
+    const headers = ['Placa', 'ColumnaRara'];
+    const auto = svc.autoMapeo(veh, headers); // 'ColumnaRara' no automapea a nada
+    const recordado = { color: 'ColumnaRara' }; // el usuario la había mapeado a mano antes
+    const fusion = svc.fusionarMapeoRecordado(auto, recordado, headers);
+    expect(fusion['color']).toBe('ColumnaRara');
+  });
+
+  it('autoMapeo reconoce su PROPIA plantilla (label verboso) al 100%', () => {
+    // La plantilla SGC usa el label completo como encabezado — debe automapear
+    // siempre, incluso para labels largos con texto entre paréntesis.
+    const headers = veh.campos.filter((c) => c.t !== 'odoo_ref').map((c) => c.label);
+    const auto = svc.autoMapeo(veh, headers);
+    for (const c of veh.campos) {
+      if (c.t === 'odoo_ref') continue;
+      expect(auto[c.t], `campo "${c.t}" no automapeó su propio label "${c.label}"`).toBe(c.label);
+    }
   });
 });
