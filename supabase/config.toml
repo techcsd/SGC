@@ -99,3 +99,10 @@ verify_jwt = true
 # Se auto-protege (honeypot + throttle); crea la solicitud con service role.
 [functions.solicitar-eliminacion]
 verify_jwt = false
+
+# CR1 (FASE 0.5) — servidor MCP remoto. verify_jwt=false A PROPÓSITO: el gateway
+# de Supabase no sabe validar tokens OAuth de este recurso (audiencia/client_id);
+# withSupabase({auth:'user'}) de @supabase/server valida el token él mismo contra
+# el JWKS del proyecto y responde 401+WWW-Authenticate cuando corresponde.
+[functions.mcp]
+verify_jwt = false

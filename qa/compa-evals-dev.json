@@ -1,5 +1,5 @@
 {
-  "corrido_en": "2026-10-16T17:15:46.469Z",
+  "corrido_en": "2026-10-18T23:09:54.586Z",
   "entorno": "dev",
   "resultados": [
     {
@@ -10,7 +10,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Aquí tienes la lista completa de almacenes, Flaco:\n\n**Centrales (no ligados a obra):**\n1. ALMACÉN Las Américas\n2. Bodega Central\n\n**Por obra:**\n3. ALMACEN - Sol"
+      "texto": "Aquí tienes los almacenes que vi, Flaco:\n\n**Centrales**\n1. ALMACÉN LAS AMÉRICAS\n2. Bodega Central\n\n**Por obra**\n3. ALMACEN - SOLHE SIGNATURE CONDOS\n4. Almacén -"
     },
     {
       "id": "hector-pdf-prometido",
@@ -21,7 +21,7 @@
         "listar_almacenes",
         "generar_reporte_pdf"
       ],
-      "texto": "Listo, Flaco: tu PDF de stock por almacén ya está generado y disponible para descargar abajo, con una sección por cada almacén/bodega."
+      "texto": "Listo, Flaco. Tu PDF \"Stock por almacén\" ya está generado, con una sección por cada almacén — descárgalo abajo. 📄"
     },
     {
       "id": "admin-vehiculos",
@@ -31,7 +31,7 @@
       "herramientas": [
         "resumen_flota"
       ],
-      "texto": "Según lo que acabo de consultar, la flota tiene **24 vehículos** en total:\n\n- 20 activos\n- 1 en mantenimiento\n- 2 de baja\n- 0 en uso en este momento\n\nAdemás hay"
+      "texto": "Según la flota que acabo de consultar: tenemos **24 vehículos en total**, de los cuales **20 están activos**, 1 en mantenimiento, 2 de baja y ahora mismo ningun"
     },
     {
       "id": "admin-requisiciones-pdf",
@@ -42,7 +42,7 @@
         "listar_requisiciones",
         "generar_reporte_pdf"
       ],
-      "texto": "Listo, tu descarga está lista abajo: **Requisiciones de material.pdf**.\n\nOjo: solo trae 1 requisición, y es de la **OBRA DEMO — Residencial Ejemplo** (obra de p"
+      "texto": "Listo, tu PDF ya está generado y disponible para descargar en la tarjeta de abajo.\n\nOjo: solo hay 1 requisición en lo que va de octubre, y pertenece a la **OBRA"
     },
     {
       "id": "oficina-stock-multi",
@@ -52,7 +52,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Encontré **15 almacenes** en el sistema:\n\n**Centrales (no ligados a una obra):**\n1. ALMACÉN las Américas\n2. Bodega Central\n\n**Por obra:**\n3. Solhe Signature Con"
+      "texto": "Hay **15 almacenes** en el sistema (2 centrales y 13 de obra):\n\n**Centrales**\n1. ALMACÉN las AMERICAS\n2. Bodega Central\n\n**Por obra**\n3. ALMACEN - Solhe Signatu"
     },
     {
       "id": "oficina-requisiciones-obra",
@@ -62,7 +62,7 @@
       "herramientas": [
         "listar_requisiciones"
       ],
-      "texto": "Ing. Angel, consulté las requisiciones del 1 al 16 de octubre y encontré **1 sola**:\n\n- **Pendiente**, urgencia normal, en la obra **OBRA DEMO — Residencial Eje"
+      "texto": "Este mes (del 1 al 18 de octubre de 2026) acabo de consultar el sistema y encontré **1 sola requisición** registrada:\n\n- Estado: pendiente, urgencia normal\n- Ob"
     },
     {
       "id": "campo-conduces-firmar",
@@ -72,7 +72,7 @@
       "herramientas": [
         "mis_conduces_por_firmar"
       ],
-      "texto": "No, Ing. Abraham, ahora mismo no tiene ningún conduce pendiente de firmar."
+      "texto": "No tiene conduces pendientes de firmar en este momento, Ing. Abraham. Si le surge algo o quiere revisar otra cosa (como conduces por entregar), dígame."
     },
     {
       "id": "campo-disponibilidad-articulo",
@@ -83,7 +83,7 @@
         "disponibilidad_de_articulo",
         "buscar_articulos"
       ],
-      "texto": "Ing. Abraham, busqué \"cemento\" tanto en disponibilidad como en el catálogo de artículos y no encontré ningún ítem con ese nombre ni como apodo registrado en el "
+      "texto": "No encontré ningún artículo llamado \"cemento\" en el catálogo, Ing. Abraham — ni por nombre ni por apodo. ¿Podría ser que se llame distinto (p. ej. \"Cemento Gris"
     },
     {
       "id": "logistica-rutas-hoy",
@@ -93,7 +93,7 @@
       "herramientas": [
         "rutas_del_dia"
       ],
-      "texto": "No hay rutas registradas para hoy, viernes 16 de octubre — el total es 0, tanto a nivel global como en cualquier estado. Si esperabas ver alguna en particular, "
+      "texto": "No hay rutas registradas para hoy, domingo 18 de octubre — el sistema no muestra ninguna en todo el panorama (total 0). ¿Quieres que revise otro día?"
     },
     {
       "id": "logistica-requisiciones-atascadas",
@@ -104,7 +104,7 @@
         "resumen_estatus_requisiciones",
         "requisiciones_pendientes"
       ],
-      "texto": "Ahí sí hay bastante en la bandeja en vivo. Esto es lo que está pendiente ahora mismo, de más urgente/antigua a más reciente:\n\n**Urgentes:**\n- **Torre Alpha** — "
+      "texto": "Aquí está el panorama actual, Flaco. La herramienta de estatus semanal (la del embudo) muestra la última semana cerrada (5-11 oct) sin movimiento, pero la bande"
     },
     {
       "id": "chofer-rutas-hoy",
@@ -114,7 +114,7 @@
       "herramientas": [
         "mis_rutas_hoy"
       ],
-      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge algo más tarde te avisarán o puedes preguntarme de nuevo."
+      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge algo, avísame y te lo reviso de nuevo."
     },
     {
       "id": "cp8-mis-reuniones",
@@ -124,7 +124,7 @@
       "herramientas": [
         "mis_reuniones"
       ],
-      "texto": "Sí, QA, tienes 3 reuniones próximas — todas mañana sábado 17 de octubre, tipo \"Reunión de prueba CP8\" (obra, modalidad Meet):\n\n1. 12:55 p.m. – 1:55 p.m.\n2. 1:01"
+      "texto": "No tienes ninguna reunión próxima registrada, QA. Si quieres, puedo revisar acuerdos pendientes o algo más."
     }
   ]
 }
