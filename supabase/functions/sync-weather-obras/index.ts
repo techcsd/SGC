@@ -20,7 +20,7 @@ const OPEN_METEO_AIR = "https://air-quality-api.open-meteo.com/v1/air-quality";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
