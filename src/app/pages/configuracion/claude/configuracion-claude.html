@@ -1,0 +1,99 @@
+<div class="perfil-claude">
+  <a routerLink="/configuracion" class="perfil-claude__volver">← {{ 'Perfil' | t }}</a>
+  <h1>{{ 'Usar el SGC desde Claude' | t }}</h1>
+  <p class="perfil-claude__sub">
+    {{ 'Pregúntale a Claude Desktop sobre el SGC con tu cuenta, sin abrir Compa. Claude solo ve lo que tú ves.' | t }}
+  </p>
+
+  <div class="perfil-claude__layout">
+    <div class="perfil-claude__pasos">
+      <span class="perfil-claude__titulo-card">{{ 'Conéctalo en 3 pasos' | t }}</span>
+
+      <div class="perfil-claude__paso">
+        <span class="perfil-claude__num">1</span>
+        <div class="perfil-claude__paso-cuerpo">
+          <span>{{ 'Copia el enlace del conector del SGC.' | t }}</span>
+          <div class="perfil-claude__enlace">
+            <input type="text" readonly [value]="enlace" />
+            <button appButton variant="accent" type="button" (click)="copiarEnlace()">
+              {{ copiado() ? ('¡Copiado!' | t) : ('Copiar enlace' | t) }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="perfil-claude__paso">
+        <span class="perfil-claude__num">2</span>
+        <span class="perfil-claude__paso-texto">
+          {{ 'En' | t }} <b>Claude Desktop</b>: <b>{{ 'Personalizar › Conectores › Agregar conector personalizado' | t }}</b>,
+          {{ 'pega el enlace y ponle de nombre' | t }} <b>SGC</b>.
+          <span class="perfil-claude__nota">({{ 'En una cuenta de equipo, el conector lo agrega primero un owner de la organización; luego cada persona lo conecta.' | t }})</span>
+        </span>
+      </div>
+
+      <div class="perfil-claude__paso">
+        <span class="perfil-claude__num">3</span>
+        <span class="perfil-claude__paso-texto">
+          {{ 'Pulsa' | t }} <b>Connect</b>. {{ 'Se abre el SGC, inicias sesión y tocas' | t }} <b>Permitir a Claude</b>. {{ '¡Listo!' | t }}
+        </span>
+      </div>
+
+      <span class="perfil-claude__otro-dispositivo">
+        {{ 'Si usas Claude en otro lugar (web o celular) también aparece, porque el conector queda en tu cuenta de Claude.' | t }}
+      </span>
+    </div>
+
+    <div class="perfil-claude__lateral">
+      <div class="perfil-claude__card">
+        <div class="perfil-claude__card-header">
+          <span class="perfil-claude__titulo-card">{{ 'Tu conexión' | t }}</span>
+          @if (!cargando() && conexion(); as c) {
+            <span class="perfil-claude__estado" [class.perfil-claude__estado--on]="c.conectado">
+              {{ c.conectado ? ('CONECTADO' | t) : ('NO CONECTADO' | t) }}
+            </span>
+          }
+        </div>
+        @if (conexion(); as c) {
+          @if (c.conectado) {
+            <span class="perfil-claude__dato">{{ c.consultas_7d }} {{ 'consultas esta semana' | t }} · {{ c.borradores_pendientes }} {{ 'borrador(es) pendiente(s)' | t }}</span>
+          } @else {
+            <span class="perfil-claude__dato">{{ 'Todavía no has conectado Claude Desktop.' | t }}</span>
+          }
+          <div class="perfil-claude__acciones-card">
+            <button appButton variant="secondary" size="sm" type="button" (click)="verActividad()">
+              {{ 'Ver qué hizo Claude' | t }}
+            </button>
+            @if (c.conectado) {
+              <button appButton variant="danger" size="sm" type="button" [disabled]="desconectando()" (click)="desconectar()">
+                {{ 'Desconectar' | t }}
+              </button>
+            }
+          </div>
+          @if (mostrarActividad()) {
+            <div class="perfil-claude__actividad">
+              @for (l of llamadas(); track l.creado_en + l.herramienta) {
+                <div class="perfil-claude__actividad-fila">
+                  <span>{{ l.herramienta }}</span>
+                  <b [class.perfil-claude__ok]="l.ok" [class.perfil-claude__fail]="!l.ok">{{ l.ok ? 'OK' : ('Error' | t) }}</b>
+                </div>
+              } @empty {
+                <span class="perfil-claude__dato">{{ 'Sin actividad todavía.' | t }}</span>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <div class="perfil-claude__card">
+        <span class="perfil-claude__titulo-card">{{ 'Prueba preguntando' | t }}</span>
+        <span class="perfil-claude__ejemplo">«¿Qué requisiciones están pendientes de aprobar?»</span>
+        <span class="perfil-claude__ejemplo">«Dame el stock de los 3 almacenes y compáralo.»</span>
+        <span class="perfil-claude__ejemplo">«Prepárame una requisición de 20 sacos de cemento.»</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="perfil-claude__aviso">
+    {{ 'Claude puede' | t }} <b>{{ 'preparar' | t }}</b> {{ 'tareas, requisiciones y conduces, pero nunca las crea solo: te manda un enlace y tú las confirmas aquí.' | t }}
+  </div>
+</div>

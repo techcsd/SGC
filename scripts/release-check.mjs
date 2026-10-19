@@ -33,6 +33,7 @@
 // Exit code: 1 si algún check es FAIL. 0 si todo es PASS/SKIP.
 import './lib/load-env.mjs';
 import { resolverEnv, dbQuery } from './lib/entorno.mjs';
+import { okLineaValida } from './lib/ok-linea.mjs';
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -92,20 +93,23 @@ function archivosCambiadosDesde(pathSpec) {
 }
 
 // ── Check 1 — dev respiró, o hay OK explícito ────────────────────────────────
+// CR3 (hallazgo del HANDOFF de CQ): antes bastaba con que el archivo contuviera
+// el TEXTO "OK de Xaviel" en cualquier parte, así que "**OK de Xaviel** (pendiente)"
+// pasaba igual que un OK real. okLineaValida() (scripts/lib/ok-linea.mjs, con
+// su propia prueba en release-check.test.mjs) exige fecha y sin negaciones.
 function check1() {
   const ts = git('log -1 --format=%ct dev') ?? git('log -1 --format=%ct origin/dev');
   const releasePath = join(ROOT, 'qa', `release-${VERSION}.md`);
-  const okRegex = /^(OK:|\*\*OK de Xaviel\*\*)/im;
   let okMarcado = false;
   if (existsSync(releasePath)) {
-    try { okMarcado = okRegex.test(readFileSync(releasePath, 'utf8')); } catch { /* noop */ }
+    try { okMarcado = okLineaValida(readFileSync(releasePath, 'utf8')); } catch { /* noop */ }
   }
 
   if (!ts) {
     if (okMarcado) return reportar('breathe', 'Dev tuvo tiempo de respirar / OK explícito', 'PASS', [`no se pudo leer la fecha del último commit de 'dev' (¿rama local ausente?), pero hay un OK explícito en ${releasePath}.`]);
     return reportar('breathe', 'Dev tuvo tiempo de respirar / OK explícito', 'FAIL', [
       `no se pudo determinar la fecha del último commit de 'dev' (ni local ni origin/dev) y no hay OK explícito en qa/release-${VERSION}.md.`,
-      'Convención del OK: una línea que empiece con "OK:" o "**OK de Xaviel**" en ese archivo.',
+      'Convención del OK: una línea que empiece con "OK:" o "**OK de Xaviel**", CON FECHA, y sin "pendiente/falta/no/skip" en esa misma línea.',
     ]);
   }
   const horas = (Date.now() / 1000 - Number(ts)) / 3600;
@@ -165,7 +169,7 @@ function check3() {
       '  - Resultado: OK | FALLA (detalle)',
       '  - Fecha: <YYYY-MM-DD>',
       '',
-      'Si Xaviel ya dio el visto bueno sin esperar 24h, agrega además una línea "OK: <detalle>" (ver check 1).',
+      'Si Xaviel ya dio el visto bueno sin esperar 24h, agrega además una línea "OK: <detalle> <fecha>" sin negaciones (ver check 1).',
     ]);
   }
   const contenido = readFileSync(path, 'utf8');

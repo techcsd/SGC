@@ -1,0 +1,149 @@
+// CR1 (FASE 4) — /borrador/:id (mock `Borrador-claude`). Piel CB.
+.borrador-claude {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  &__volver {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  h1 {
+    margin: 0;
+    font: var(--fw-bold) var(--fs-2xl) var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--nav-bg);
+  }
+
+  &__estado {
+    color: var(--text-2);
+  }
+
+  &__error {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+  }
+
+  &__aviso {
+    background: var(--info-bg);
+    border: 1px solid var(--info);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: var(--fs-sm);
+    color: var(--info);
+
+    &--ok {
+      background: var(--success-bg);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    &--neutro {
+      background: var(--surface-3);
+      border-color: var(--border);
+      color: var(--text-2);
+    }
+  }
+
+  &__cuerpo {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+
+    @media (max-width: 860px) {
+      flex-direction: column;
+    }
+  }
+
+  &__ficha {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  &__resumen {
+    padding: var(--space-3) var(--space-4);
+    font-weight: var(--fw-bold);
+    font-family: var(--font-display);
+    color: var(--nav-bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  &__fila {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-base);
+
+    &:first-child {
+      border-top: none;
+    }
+  }
+
+  &__etiqueta {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  &__valor {
+    color: var(--text);
+  }
+
+  &__panel {
+    width: 340px;
+    flex: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    @media (max-width: 860px) {
+      width: 100%;
+    }
+  }
+
+  &__panel-titulo {
+    font: var(--fw-bold) var(--fs-md) var(--font-display);
+    color: var(--nav-bg);
+  }
+
+  &__panel-sub {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    line-height: var(--lh-normal);
+  }
+
+  &__descartar {
+    border: 0;
+    background: transparent;
+    color: var(--danger);
+    font: var(--fw-semibold) var(--fs-sm) var(--font-body);
+    cursor: pointer;
+    padding: var(--space-2) 0;
+  }
+}

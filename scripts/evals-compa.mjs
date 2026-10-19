@@ -18,6 +18,10 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const INDEX = join(ROOT, 'supabase', 'functions', 'assistant', 'index.ts');
+// CR1 (FASE 1) — TOOLS/ToolDef/toolsParaUsuario/claveIdem viven ahora en el
+// registro compartido con el servidor MCP; los guards de fuente que buscan
+// "name: ..." de una tool concreta deben mirar también ahí.
+const HERRAMIENTAS = join(ROOT, 'supabase', 'functions', '_shared', 'herramientas.ts');
 
 const fails = [];
 const ok = [];
@@ -97,6 +101,7 @@ check('desambiguación: sin coincidencia real → empate → preguntar', r2.eleg
 // ─────────────────────────────────────────────────────────────────────────────
 let src = '';
 try { src = readFileSync(INDEX, 'utf8'); } catch { fails.push(`✗ no se pudo leer ${INDEX}`); }
+try { src += '\n' + readFileSync(HERRAMIENTAS, 'utf8'); } catch { fails.push(`✗ no se pudo leer ${HERRAMIENTAS}`); }
 
 check('fuente: tool_choice cableado (router BB4.2)', /tool_choice/.test(src) && /fuerzaHerramienta/.test(src));
 check('fuente: validador post-respuesta presente (BB4.4)', /afirmaVerificacionSinTool/.test(src) && /validador_honestidad/.test(src));

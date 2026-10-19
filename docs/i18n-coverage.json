@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 6,
+  "pctScopeEn": 7,
   "pctHt": 0,
   "filas": [
     {
@@ -649,15 +649,15 @@
     },
     {
       "pantalla": "configuracion",
-      "total": 62,
-      "cubiertos": 40,
+      "total": 63,
+      "cubiertos": 41,
       "sin": 22,
       "pct": 65,
       "enScope": true,
       "enforce": false,
       "faltantes": [
         "@for (s of secciones(); track s.id) {",
-        "} @if (esTecnologia()) {",
+        "@if (esTecnologia()) {",
         "@switch (seccion()) { @case ('cuenta') {",
         "} @case ('idioma') {",
         "} @case ('apariencia') {",
@@ -14479,11 +14479,42 @@
       ]
     },
     {
+      "pantalla": "admin/compa-conversaciones",
+      "total": 39,
+      "cubiertos": 19,
+      "sin": 20,
+      "pct": 49,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (error()) {",
+        "@if (soloConProblemas()) { ✕ }",
+        "@if (loading()) {",
+        "} @else if (!listaVisible().length) {",
+        "} @else {",
+        "@for (c of listaVisible(); track c.conversacion_id) {",
+        "@if (c.contradicciones || c.promesas_sin_accion || c.errores_tool) {",
+        "@if (c.contradicciones) {",
+        "} @if (c.promesas_sin_accion) {",
+        "} @if (c.errores_tool) {",
+        "@if (!seleccion()) {",
+        "} @else if (cargandoDetalle()) {",
+        "} @else {",
+        "@for (m of mensajes(); track m.mensaje_id) {",
+        "@if (m.herramientas && m.herramientas.length) {",
+        "@for (h of m.herramientas; track $index) {",
+        "} @if (m.es_contradiccion) {",
+        "} @if (m.es_promesa_sin_accion) {",
+        "} @if (m.rol === 'assistant' && (m.es_contradiccion || m.es_promesa_sin_accion)) {",
+        "Usuario…"
+      ]
+    },
+    {
       "pantalla": "asistente",
-      "total": 54,
-      "cubiertos": 26,
+      "total": 55,
+      "cubiertos": 27,
       "sin": 28,
-      "pct": 48,
+      "pct": 49,
       "enScope": false,
       "enforce": false,
       "faltantes": [
@@ -14515,37 +14546,6 @@
         "} @if (error()) {",
         "@if (mostrarCompartir()) {",
         "Herramientas que consultó Compa para responder"
-      ]
-    },
-    {
-      "pantalla": "admin/compa-conversaciones",
-      "total": 39,
-      "cubiertos": 19,
-      "sin": 20,
-      "pct": 49,
-      "enScope": false,
-      "enforce": false,
-      "faltantes": [
-        "@if (error()) {",
-        "@if (soloConProblemas()) { ✕ }",
-        "@if (loading()) {",
-        "} @else if (!listaVisible().length) {",
-        "} @else {",
-        "@for (c of listaVisible(); track c.conversacion_id) {",
-        "@if (c.contradicciones || c.promesas_sin_accion || c.errores_tool) {",
-        "@if (c.contradicciones) {",
-        "} @if (c.promesas_sin_accion) {",
-        "} @if (c.errores_tool) {",
-        "@if (!seleccion()) {",
-        "} @else if (cargandoDetalle()) {",
-        "} @else {",
-        "@for (m of mensajes(); track m.mensaje_id) {",
-        "@if (m.herramientas && m.herramientas.length) {",
-        "@for (h of m.herramientas; track $index) {",
-        "} @if (m.es_contradiccion) {",
-        "} @if (m.es_promesa_sin_accion) {",
-        "} @if (m.rol === 'assistant' && (m.es_contradiccion || m.es_promesa_sin_accion)) {",
-        "Usuario…"
       ]
     },
     {
@@ -14690,6 +14690,84 @@
         "} @else {",
         "@for (r of adminRows(); track r.id) {",
         "} @empty {"
+      ]
+    },
+    {
+      "pantalla": "borrador-claude",
+      "total": 22,
+      "cubiertos": 12,
+      "sin": 10,
+      "pct": 55,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (cargando()) {",
+        "} @else if (error()) {",
+        "} @else if (borrador(); as b) { @if (b.estado === 'pendiente') {",
+        "} @else if (b.estado === 'confirmado') {",
+        "} @else if (b.estado === 'descartado') {",
+        "} @else if (b.estado === 'caducado') {",
+        "@if (b.resumen) {",
+        "@for (linea of detalle(); track linea.etiqueta + linea.valor) {",
+        "@if (b.estado === 'pendiente') {",
+        "} @else {"
+      ]
+    },
+    {
+      "pantalla": "configuracion/claude",
+      "total": 37,
+      "cubiertos": 24,
+      "sin": 13,
+      "pct": 65,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "Claude Desktop",
+        "Connect",
+        "Permitir a Claude",
+        "@if (!cargando() && conexion(); as c) {",
+        "@if (conexion(); as c) { @if (c.conectado) {",
+        "} @else {",
+        "@if (c.conectado) {",
+        "@if (mostrarActividad()) {",
+        "@for (l of llamadas(); track l.creado_en + l.herramienta) {",
+        "} @empty {",
+        "«¿Qué requisiciones están pendientes de aprobar?»",
+        "«Dame el stock de los 3 almacenes y compáralo.»",
+        "«Prepárame una requisición de 20 sacos de cemento.»"
+      ]
+    },
+    {
+      "pantalla": "oauth-consent",
+      "total": 24,
+      "cubiertos": 18,
+      "sin": 6,
+      "pct": 75,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (cargando()) {",
+        "} @else if (error()) {",
+        "} @else if (detalles(); as d) {",
+        "Cl",
+        "@if (!clienteConfiable()) {",
+        "@if (d.redirect_uri) {"
+      ]
+    },
+    {
+      "pantalla": "admin/claude",
+      "total": 27,
+      "cubiertos": 22,
+      "sin": 5,
+      "pct": 81,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (resumen(); as r) {",
+        "@for (c of conexiones(); track c.usuario_id) {",
+        "} @empty { @if (!cargando()) {",
+        "@for (l of llamadas(); track l.hora + l.herramienta) {",
+        "} @empty { @if (!cargando()) {"
       ]
     }
   ]

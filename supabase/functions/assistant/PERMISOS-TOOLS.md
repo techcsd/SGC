@@ -72,3 +72,23 @@ usuario real. Con AY7 (usuarios test por rol), esto pasa a smoke reproducible po
 ## Vetos (§5) — NO existen ni se construyen
 Tools de credenciales/API keys/configuración del sistema · escritura de permisos por
 chat · ejecución de escritura sin confirmación · datos en archivos sin tool detrás.
+
+## MCP (CR1) — el conector de Claude Desktop
+
+El servidor `mcp` (`supabase/functions/mcp/`) usa el MISMO registro
+(`_shared/herramientas.ts`) y el MISMO `toolsParaUsuario(cap, modulos)`, filtrado
+además por canal (`canales: ['compa','mcp']`). Diferencias de comportamiento
+frente a Compa:
+
+| Qué | Compa | MCP |
+|---|---|---|
+| `generar_reporte_pdf`, `recordar` | ✔ | ✘ (canales:['compa'] — B1) |
+| `buscar_usuarios` | id+nombre+**email** | id+nombre (**email recortado** — uso interno vs. tercero) |
+| `proponer_*` | borrador + confirmar en el chat | borrador (`claude_borrador_crear`) + confirmar en `/borrador/:id` — **nunca ejecuta** |
+| `reportar_gap` | matching contra tools disponibles (CP3/CP9) | registra directo (`registrar_consulta_no_atendida`), sin el matching fino de Compa |
+| Auditoría | `assistant_acciones` | `sgc.claude_llamadas` (sin el resultado completo, solo resumen) |
+| Gate previo a cualquier tool | consentimiento IA + rate limit propio | **además**: `claude_conector_activo` (503 si apagado), `claude_conector_max_hora` (429) |
+| RPC de alto riesgo (roles, permisos extra, fusión de usuarios, claves) | nunca expuestas como tool | nunca expuestas como tool, **y además** la RPC misma rechaza el token (`client_id` presente) si alguien la llamara por otra vía — ver `docs/CLAUDE-CONECTOR.md` §7 |
+
+No hay tool de SQL libre ni de lectura de archivos sin tool detrás — el
+servidor `mcp` solo ofrece lo que está en el registro, igual que Compa.

@@ -1,0 +1,90 @@
+<div class="admin-claude">
+  <div class="admin-claude__header">
+    <div>
+      <h1>{{ 'Claude conectado' | t }}</h1>
+      <p>{{ 'Quién conectó Claude al SGC, qué consultó y qué dejó preparado.' | t }}</p>
+    </div>
+    <div class="admin-claude__switch-box">
+      <span>{{ 'Conector de Claude' | t }}</span>
+      <button type="button" class="admin-claude__switch" [class.admin-claude__switch--on]="activo()"
+              [disabled]="cambiandoActivo()" (click)="toggleActivo()"
+              [attr.aria-pressed]="activo()" [attr.aria-label]="'Conector de Claude' | t">
+        <span class="admin-claude__switch-knob"></span>
+      </button>
+      <b [class.admin-claude__activo]="activo()" [class.admin-claude__inactivo]="!activo()">
+        {{ activo() ? ('Activo' | t) : ('Apagado' | t) }}
+      </b>
+    </div>
+  </div>
+
+  @if (resumen(); as r) {
+    <div class="admin-claude__grid">
+      <div class="admin-claude__stat">
+        <span>{{ 'Personas conectadas' | t }}</span>
+        <div>{{ r.personas_conectadas }}</div>
+      </div>
+      <div class="admin-claude__stat">
+        <span>{{ 'Consultas (7 días)' | t }}</span>
+        <div>{{ r.consultas_7d }}</div>
+      </div>
+      <div class="admin-claude__stat">
+        <span>{{ 'Borradores preparados' | t }}</span>
+        <div>{{ r.borradores_preparados }}</div>
+        <span class="admin-claude__stat-sub">{{ r.borradores_confirmados }} {{ 'confirmados' | t }} · {{ r.borradores_preparados - r.borradores_confirmados }} {{ 'sin confirmar' | t }}</span>
+      </div>
+      <div class="admin-claude__stat admin-claude__stat--warn">
+        <span>{{ 'Con error (7 días)' | t }}</span>
+        <div>{{ r.con_error_7d }}</div>
+      </div>
+    </div>
+  }
+
+  <div class="admin-claude__tabla-box">
+    <div class="admin-claude__tabla-header">{{ 'Personas' | t }}</div>
+    <div class="admin-claude__fila admin-claude__fila--head">
+      <span>{{ 'Persona' | t }}</span>
+      <span>{{ 'Conectó' | t }}</span>
+      <span>{{ 'Última actividad' | t }}</span>
+      <span>{{ 'Consultas 7 d' | t }}</span>
+      <span></span>
+    </div>
+    @for (c of conexiones(); track c.usuario_id) {
+      <div class="admin-claude__fila">
+        <b>{{ c.nombre }}</b>
+        <span>{{ c.conectado_desde | date: 'd MMM' }}</span>
+        <span>{{ c.ultima_actividad | date: 'd MMM, HH:mm' }}</span>
+        <span>{{ c.consultas_7d }}</span>
+        <button type="button" class="admin-claude__revocar" [disabled]="revocando() === c.usuario_id"
+                (click)="revocar(c.usuario_id, c.nombre)">
+          {{ revocando() === c.usuario_id ? ('Revocando…' | t) : ('Revocar' | t) }}
+        </button>
+      </div>
+    } @empty {
+      @if (!cargando()) {
+        <div class="admin-claude__vacio">{{ 'Nadie ha conectado Claude todavía.' | t }}</div>
+      }
+    }
+  </div>
+
+  <div class="admin-claude__tabla-box admin-claude__tabla-box--flex">
+    <div class="admin-claude__tabla-header">{{ 'Lo que hizo Claude' | t }}</div>
+    <div class="admin-claude__fila admin-claude__fila--head admin-claude__fila--log">
+      <span>{{ 'Hora' | t }}</span>
+      <span>{{ 'Persona' | t }}</span>
+      <span>{{ 'Herramienta' | t }}</span>
+      <span>{{ 'Resultado' | t }}</span>
+    </div>
+    @for (l of llamadas(); track l.hora + l.herramienta) {
+      <div class="admin-claude__fila admin-claude__fila--log">
+        <span>{{ l.hora | date: 'HH:mm' }}</span>
+        <span>{{ l.nombre }}</span>
+        <span>{{ l.herramienta }}</span>
+        <b [class.admin-claude__ok]="l.ok" [class.admin-claude__err]="!l.ok">{{ l.ok ? 'OK' : ('Error' | t) }}</b>
+      </div>
+    } @empty {
+      @if (!cargando()) {
+        <div class="admin-claude__vacio">{{ 'Sin actividad todavía.' | t }}</div>
+      }
+    }
+  </div>
+</div>

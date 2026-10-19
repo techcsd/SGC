@@ -117,6 +117,12 @@ export const adminRoutes: Routes = [
     title: 'Solicitudes de eliminación — Administración',
   },
   {
+    // CR1 — conector de Claude Desktop: interruptor, contadores, personas, revocar.
+    path: 'claude',
+    loadComponent: () => import('./claude/admin-claude').then((m) => m.AdminClaude),
+    title: 'Claude — Administración',
+  },
+  {
     // CL5 — catálogo de animaciones/movimiento (solo consulta; admin + tecnología).
     path: 'animaciones',
     loadComponent: () => import('./animaciones/animaciones').then((m) => m.AdminAnimaciones),

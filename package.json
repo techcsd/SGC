@@ -1,6 +1,6 @@
 {
   "name": "sgc",
-  "version": "1.193.0",
+  "version": "1.194.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
@@ -19,7 +19,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:unit": "ng test --no-watch",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:mcp": "node evals/mcp/run.mjs"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
