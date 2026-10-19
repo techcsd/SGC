@@ -1,5 +1,75 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-104 (Ronda CR) — 18-19/10/2026 — 🧪 **EN DEV, versión 1.194.0** (push a `dev` hecho; `main`/prod sin tocar, espera OK de Xaviel)
+
+**Conecta el SGC con Claude Desktop** (CR1) — Eduardo NG pedía usar el sistema desde
+*su* Claude, con su cuenta, más potencia, sin pasar por Compa. Sesión autónoma larga
+(worktree `../SGC-cr`), FASE 0-9 completas con verificación real en dev en cada paso
+(no solo "debería funcionar" — evidencia con curl/Node/Playwright contra el backend
+real). Commits en `feature/cr-ronda`, mergeados y pusheados a `dev`.
+
+**Hallazgos no planeados, encontrados y arreglados en el camino:**
+1. 🔴 **`sgc.get_resend_api_key()` en DEV tenía `GRANT EXECUTE` a `PUBLIC`** — cualquiera,
+   sin login, podía pedir la API key real de Resend por REST. Verificado con una llamada
+   anónima real (sin imprimir el secreto). **Prod no tenía el problema** (solo
+   `postgres`+`service_role`) — era desviación de dev, ya corregida
+   (`sql/2026-10-18-cr1-fase5-revoca-grant-publico-resend-key.sql`). Queda documentado
+   un barrido más amplio (~30 funciones con grant `PUBLIC` solo en dev) como pendiente
+   de Tecnología.
+2. CORS: faltaba `x-sgc-client` en el allow-list de `assistant` Y de la nueva
+   `claude-borrador` — cualquier llamada desde el navegador fallaba en el preflight
+   pese a funcionar por curl/Node. Corregido en ambas; 26 edges más comparten el mismo
+   defecto (pendiente, fuera de esta ronda).
+3. CR2 (hallazgo del CONTEXTO-51, suponía que había que migrar claves de firma a
+   asimétricas) **resultó ser un no-problema**: dev y prod ya firman con ES256 desde
+   sept/jun-2026 — verificado por API, cero migración necesaria.
+
+**Por fase:**
+- **FASE 0** ✅: servidor OAuth de Supabase activado en dev **por la Management API**
+  (sin pedirle el clic a Xaviel); edge `mcp` mínima verificada de punta a punta (401+
+  metadata, DCR con el `redirect_uri` real de Claude, tools/call real). `docs/CLAUDE-CONECTOR.md`
+  con todo lo confirmado releyendo las fuentes (no de memoria — es beta).
+- **FASE 1** ✅: `TOOLS`/`toolsParaUsuario`/`claveIdem` extraídos a `_shared/herramientas.ts`
+  (registro único Compa+MCP, por `canales`) sin cambiar el comportamiento de Compa — 12/12
+  evals antes y después.
+- **FASE 2** ✅: `sql/2026-10-18-cr1-claude-conector.sql` — `claude_borradores`,
+  `claude_llamadas`, 7 RPCs, parámetros, cron de retención, `auditoria.origen='claude'`.
+- **FASE 3** ✅: edge `mcp` real (tools/list+tools/call con revalidación, límites,
+  instructions, 3 prompts) + `/oauth/consent` (mock `Main`, lista blanca de clientes) —
+  verificado con 49 tools para admin / 19 para un rol de un módulo, capturas 1440/390.
+- **FASE 4** ✅: edge `claude-borrador` (AU1, mismo `execRpc`/`assistant_idempotencia`
+  que Compa) + `/borrador/:id` — verificado con una tarea real creada y un 2º confirm
+  que NO duplicó. Campana in-app sin push.
+- **FASE 5** ✅: `sgc.rechazar_si_cliente_oauth()` en 11 RPC de alto riesgo + 11 edges
+  `admin-*`; `claude-conexiones` (desconectar/revocar); `buscar_usuarios` recorta email
+  en MCP. Todo verificado con un JWT simulado con `client_id` (rechazado) vs sin (pasa).
+- **FASE 6** ✅: Perfil › Claude + Admin › Claude + enlace discreto en Compa — capturadas
+  con datos reales, interruptor probado con clics reales en el navegador.
+- **FASE 7** ✅: `docs/CLAUDE-CONECTOR.md` completo, `evals/mcp/run.mjs` (10/10,
+  `npm run test:mcp`), `PARIDAD.md` (contrato para la app, PROMPT-105).
+- **FASE 8** ✅ (CR3): `scripts/lib/ok-linea.mjs` — el gate de `release-check.mjs` ya
+  exige fecha y sin negaciones cerca de la línea `OK:` (antes coló "(pendiente)" en CQ).
+  4/4 casos de prueba verdes. **Pendiente avisar al PROMPT-105** (mismo fix en csd-app).
+- **FASE 9** ✅: `npm run build` (28 guards) + `npm run test:unit` (71/71 — se encontró
+  y arregló una regresión real: `auth.spec.ts` no proveía `ActivatedRoute` tras el cambio
+  de FASE 3) verdes. `release-check.mjs --env dev --version 1.194.0` → **5/5 PASS**.
+  Versión 1.194.0, `release-notes.json` curado, `qa/release-1.194.0.md`.
+
+**Pendientes físicos/de Xaviel (nada de código):**
+1. Quién es el **Owner/Primary Owner** de la cuenta Claude Team/Enterprise de la empresa
+   (para agregar el conector a nivel organización — paso a paso en `docs/CLAUDE-CONECTOR.md` §9).
+2. **Probar en dev** (`dev.sgcconstructorasd.com`): Perfil › Claude, Admin › Claude, y si
+   es posible, conectar Claude Desktop de verdad contra dev (MCP Inspector ya cubrió el
+   protocolo completo, pero no reemplaza la prueba real).
+3. Con su OK: activar el servidor OAuth en **prod** + aplicar las 4 migraciones de esta
+   ronda + desplegar las edges nuevas/tocadas (`mcp`, `claude-borrador`, `claude-conexiones`,
+   `assistant`, 11× `admin-*`) — orden y checklist en `docs/CLAUDE-CONECTOR.md`.
+4. Revisar el hallazgo #1 (grant público de la API key de Resend) y decidir si vale la
+   pena el barrido más amplio de las ~30 funciones con grant `PUBLIC` solo-dev.
+5. `OK:` con fecha en `qa/release-1.194.0.md` antes de promover (el gate ya lo exige).
+
+---
+
 ## TL;DR — PROMPT-102 (Ronda CQ) — 17/10/2026 — ✅ **EN PROD** (web **1.193.0**, `main`=`dev`=`b8fe527`)
 
 **Toda la ronda CQ está en producción.** Flujo real: `feature/cq-ronda` (worktree `../SGC-cq`) → commit → push a `dev` (`7c86abc`) → **Xaviel probó de verdad en `dev.sgcconstructorasd.com` y dio el OK** ("i test it, everything good, do all the stuff and promote it to production") → 6 migraciones + edge `leer-cotizacion` aplicadas/desplegadas a **prod**, verificadas por objeto (9/9 checks) → merge `dev → main` (`b8fe527`) → push → Vercel READY → `sgcconstructorasd.com` responde 200 con el build nuevo → versión `1.193.0` auto-registrada en `sgc.app_versiones` de prod. Sesión autónoma: CQ6 obligó a trabajar en worktree propio (`git worktree add ../SGC-cq feature/cq-ronda` desde `dev` en `e01db6b`) en vez de la carpeta compartida; 4 fases grandes (CQ1/CQ2/CQ3/CQ4) se delegaron a agentes en paralelo sobre archivos disjuntos, coordinados por esta sesión. **Nota real sobre los agentes**: las notificaciones automáticas de 2 de los 4 fallaron por un error de conexión del backend (no del trabajo en sí) — se verificó cada fase leyendo el código/diff directamente en vez de confiar ciegamente en los reportes, y se encontraron+arreglaron gaps reales de integración en el camino (ver abajo).

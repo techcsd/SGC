@@ -1,0 +1,64 @@
+<div class="borrador-claude">
+  <div class="borrador-claude__header">
+    <a routerLink="/dashboard" class="borrador-claude__volver">← {{ 'SGC' | t }}</a>
+    <h1>{{ titulo() | t }}</h1>
+  </div>
+
+  @if (cargando()) {
+    <p class="borrador-claude__estado">{{ 'Cargando…' | t }}</p>
+  } @else if (error()) {
+    <div class="borrador-claude__error">{{ error() }}</div>
+  } @else if (borrador(); as b) {
+    @if (b.estado === 'pendiente') {
+      <div class="borrador-claude__aviso">
+        <b>{{ 'Preparado por Claude Desktop' | t }}</b>
+        <span>· {{ 'a tu nombre · caduca en' | t }} {{ tiempoRestante() }} · {{ 'todavía no existe en el SGC' | t }}</span>
+      </div>
+    } @else if (b.estado === 'confirmado') {
+      <div class="borrador-claude__aviso borrador-claude__aviso--ok">
+        <b>{{ 'Ya confirmado' | t }}</b>
+        <span>{{ b.resultado?.mensaje }}</span>
+      </div>
+    } @else if (b.estado === 'descartado') {
+      <div class="borrador-claude__aviso borrador-claude__aviso--neutro">{{ 'Este borrador fue descartado.' | t }}</div>
+    } @else if (b.estado === 'caducado') {
+      <div class="borrador-claude__aviso borrador-claude__aviso--neutro">{{ 'Este borrador caducó (24 h) — pídele a Claude que lo prepare de nuevo.' | t }}</div>
+    }
+
+    <div class="borrador-claude__cuerpo">
+      <div class="borrador-claude__ficha">
+        @if (b.resumen) {
+          <div class="borrador-claude__resumen">{{ b.resumen }}</div>
+        }
+        <div class="borrador-claude__tabla">
+          @for (linea of detalle(); track linea.etiqueta + linea.valor) {
+            <div class="borrador-claude__fila">
+              <span class="borrador-claude__etiqueta">{{ linea.etiqueta | t }}</span>
+              <span class="borrador-claude__valor">{{ linea.valor }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (b.estado === 'pendiente') {
+        <div class="borrador-claude__panel">
+          <span class="borrador-claude__panel-titulo">{{ '¿Lo creamos?' | t }}</span>
+          <span class="borrador-claude__panel-sub">{{ 'Se crea con la misma validación de siempre. Si algo no cumple, te lo dice aquí.' | t }}</span>
+          <button appButton variant="accent" type="button" [disabled]="enviando()" (click)="confirmar()">
+            {{ enviando() ? ('Creando…' | t) : ('Confirmar y crear' | t) }}
+          </button>
+          <button appButton variant="secondary" type="button" [disabled]="enviando()" (click)="editarAntesDeCrear()">
+            {{ 'Editar antes de crear' | t }}
+          </button>
+          <button type="button" class="borrador-claude__descartar" [disabled]="enviando()" (click)="descartar()">
+            {{ 'Descartar borrador' | t }}
+          </button>
+        </div>
+      } @else {
+        <div class="borrador-claude__panel">
+          <a appButton variant="accent" [routerLink]="rutaVolver()">{{ 'Ir al módulo' | t }}</a>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, ElementRef, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AsistenteService, AsistenteMensaje, AsistenteConversacion, AsistentePropuesta, CompaCompartida } from '../../../shared/services/asistente.service';
 import { ConsentimientoIA } from '../../../shared/ui/consentimiento-ia/consentimiento-ia';
 import { PrivacidadService } from '../../../shared/services/privacidad.service';
@@ -16,7 +17,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
  */
 @Component({
   selector: 'app-asistente',
-  imports: [FormsModule, ConsentimientoIA, UserPicker, TranslatePipe],
+  imports: [FormsModule, ConsentimientoIA, UserPicker, TranslatePipe, RouterLink],
   templateUrl: './asistente.html',
   styleUrl: './asistente.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

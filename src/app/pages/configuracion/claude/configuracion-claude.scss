@@ -1,0 +1,214 @@
+// CR1 (FASE 6) — Perfil › Claude (mock Perfil-claude). Piel CB.
+.perfil-claude {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &__volver {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  h1 {
+    margin: 0;
+    font: var(--fw-bold) var(--fs-2xl) var(--font-display);
+    letter-spacing: -0.03em;
+    color: var(--nav-bg);
+  }
+
+  &__sub {
+    margin: 0;
+    color: var(--text-2);
+    font-size: var(--fs-base);
+  }
+
+  &__layout {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    margin-top: var(--space-2);
+
+    @media (max-width: 960px) {
+      flex-direction: column;
+    }
+  }
+
+  &__pasos {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  &__titulo-card {
+    font: var(--fw-bold) var(--fs-md) var(--font-display);
+    color: var(--nav-bg);
+  }
+
+  &__paso {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  &__num {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    border-radius: var(--radius-pill);
+    background: var(--brand-soft);
+    color: var(--brand);
+    font: var(--fw-bold) var(--fs-sm) var(--font-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__paso-cuerpo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-size: var(--fs-base);
+    color: var(--text);
+  }
+
+  &__paso-texto {
+    flex: 1;
+    font-size: var(--fs-base);
+    color: var(--text);
+    line-height: var(--lh-normal);
+  }
+
+  &__nota {
+    color: var(--text-2);
+  }
+
+  &__enlace {
+    display: flex;
+    gap: var(--space-2);
+
+    input {
+      flex: 1;
+      height: 40px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 0 var(--space-3);
+      font-family: monospace;
+      font-size: var(--fs-sm);
+      background: var(--surface-2);
+      color: var(--text-2);
+    }
+  }
+
+  &__otro-dispositivo {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-3);
+  }
+
+  &__lateral {
+    width: 380px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    @media (max-width: 960px) {
+      width: 100%;
+    }
+  }
+
+  &__card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__estado {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--surface-3);
+    color: var(--text-2);
+
+    &--on {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+  }
+
+  &__dato {
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+
+  &__acciones-card {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  &__actividad {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  &__actividad-fila {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--fs-sm);
+    padding: var(--space-1) 0;
+  }
+
+  &__ok {
+    color: var(--success);
+  }
+  &__fail {
+    color: var(--danger);
+  }
+
+  &__ejemplo {
+    font-size: var(--fs-sm);
+    color: var(--text);
+    padding: var(--space-2);
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+  }
+
+  &__aviso {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--fs-sm);
+    color: var(--warning);
+    line-height: var(--lh-normal);
+  }
+}

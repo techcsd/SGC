@@ -15,6 +15,12 @@
           <span>{{ s.label | t }}</span>
         </button>
       }
+      <!-- CR1 — Claude Desktop, enlazado como "Configuración del sistema" -->
+      <a class="cfg__nav-item cfg__nav-item--link" routerLink="/configuracion/claude">
+        <app-icon name="sparkles" [size]="18" />
+        <span>{{ 'Claude' | t }}</span>
+        <app-icon name="external-link" [size]="14" />
+      </a>
       @if (esTecnologia()) {
         <a class="cfg__nav-item cfg__nav-item--link" routerLink="/admin/parametros">
           <app-icon name="settings" [size]="18" />

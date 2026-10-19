@@ -1,0 +1,80 @@
+<div class="oauth-consent">
+  <div class="oauth-consent__card">
+    @if (cargando()) {
+      <p class="oauth-consent__estado">{{ 'Cargando…' | t }}</p>
+    } @else if (error()) {
+      <div class="oauth-consent__badges">
+        <span class="oauth-consent__badge oauth-consent__badge--sgc">SGC</span>
+      </div>
+      <h1>{{ 'No se pudo cargar la solicitud' | t }}</h1>
+      <p class="oauth-consent__sub">{{ error() }}</p>
+      <div class="oauth-consent__acciones">
+        <a appButton variant="secondary" routerLink="/dashboard">{{ 'Ir al SGC' | t }}</a>
+      </div>
+    } @else if (detalles(); as d) {
+      <div class="oauth-consent__badges">
+        <span class="oauth-consent__badge oauth-consent__badge--sgc">SGC</span>
+        <span class="oauth-consent__plus">+</span>
+        <span class="oauth-consent__badge oauth-consent__badge--cliente">Cl</span>
+      </div>
+
+      <div class="oauth-consent__titulo">
+        <h1>{{ 'Claude pide conectarse a tu SGC' | t }}</h1>
+        <p class="oauth-consent__sub">
+          {{ 'Vas a poder consultar el sistema desde Claude Desktop con tu propia cuenta. Claude solo ve lo mismo que tú ves aquí.' | t }}
+        </p>
+      </div>
+
+      @if (!clienteConfiable()) {
+        <div class="oauth-consent__aviso-riesgo">
+          <b>{{ 'Este cliente no es Claude' | t }}</b>
+          <span>{{ 'La dirección a la que volvería no es una de las oficiales de Claude. Por seguridad, no se puede autorizar desde aquí.' | t }}</span>
+          @if (d.redirect_uri) {
+            <code>{{ d.redirect_uri }}</code>
+          }
+        </div>
+      }
+
+      <div class="oauth-consent__grid">
+        <div class="oauth-consent__col oauth-consent__col--ok">
+          <b>{{ 'Podrá' | t }}</b>
+          <span>{{ 'Consultar lo que tú puedes consultar: almacenes, requisiciones, flota, tareas, reuniones…' | t }}</span>
+          <span>{{ 'Preparar borradores de tarea, requisición o conduce.' | t }}</span>
+        </div>
+        <div class="oauth-consent__col oauth-consent__col--no">
+          <b>{{ 'No podrá' | t }}</b>
+          <span>{{ 'Crear ni aprobar nada sin que tú lo confirmes en el SGC.' | t }}</span>
+          <span>{{ 'Ver lo que tú no ves, ni tocar permisos, claves o configuración.' | t }}</span>
+        </div>
+      </div>
+
+      <label class="oauth-consent__check">
+        <input type="checkbox" [checked]="entendido()" (change)="entendido.set(!entendido())" />
+        <span>{{ 'Entiendo que lo que Claude consulte se envía a la cuenta de Claude de la empresa (Anthropic) y queda registrado en la auditoría del SGC.' | t }}</span>
+      </label>
+
+      <span class="oauth-consent__conectado">
+        {{ 'Conectado como' | t }} <b>{{ nombreUsuario() }}</b> ·
+        <a href="javascript:void(0)" (click)="noSoyYo()">{{ 'No soy yo' | t }}</a>
+      </span>
+
+      <div class="oauth-consent__acciones">
+        <button appButton variant="secondary" type="button" [disabled]="enviando()" (click)="cancelar()">
+          {{ 'Cancelar' | t }}
+        </button>
+        <button
+          appButton
+          variant="accent"
+          type="button"
+          [disabled]="enviando() || !clienteConfiable() || !entendido()"
+          (click)="permitir()"
+        >
+          {{ enviando() ? ('Conectando…' | t) : ('Permitir a Claude' | t) }}
+        </button>
+      </div>
+      <span class="oauth-consent__nota">
+        {{ 'Puedes quitar el permiso cuando quieras en Perfil › Claude.' | t }}
+      </span>
+    }
+  </div>
+</div>
