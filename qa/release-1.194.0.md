@@ -26,14 +26,23 @@ Eduardo agregue el conector, es Owner). Dio el OK explícitamente aceptando que
 Claude Code haga la prueba de Claude Desktop por su cuenta en vez de esperar su
 prueba manual.
 
-## Límites de la prueba (aceptados por Xaviel con su OK, no bloquean la promoción)
-1. **Claude Desktop real**: es una app nativa de escritorio — Claude Code no
-   puede abrirla desde esta sesión. Lo que SÍ se hizo: el protocolo MCP completo
-   de punta a punta (equivalente a lo que probaría MCP Inspector) contra dev, y
-   se repite contra prod tras el despliegue.
+## Límites de la prueba al momento del OK (ya cerrados después)
+1. ~~**Claude Desktop real**: Claude Code no podía abrirlo desde la sesión.~~
+   **Cerrado 19-oct-2026**: Xaviel (ya Owner en claude.ai) agregó el conector a
+   nivel organización, lo conectó con su cuenta real del SGC en **prod**
+   (ciclo completo: Connect → `/oauth/consent` → Permitir a Claude) y le
+   preguntó algo real — Claude respondió con datos correctos de su cuenta.
+   Ver `docs/CLAUDE-CONECTOR.md` §5.
 2. El flujo completo de `/oauth/consent` (aprobar/denegar) no se pudo ejercitar
    desde `localhost` por el chequeo de `Origin` del servidor OAuth de Supabase
-   (docs/CLAUDE-CONECTOR.md §5b) — verificado con datos reales inyectados en la
-   respuesta de red, y la mecánica de fondo con `curl` usando el `Origin`
-   correcto. La prueba interactiva completa queda para cuando alguien lo
-   conecte desde Claude Desktop real.
+   (docs/CLAUDE-CONECTOR.md §5b) — verificado entonces con datos reales
+   inyectados en la respuesta de red, y la mecánica de fondo con `curl` usando
+   el `Origin` correcto. **Cerrado por el punto 1**: el ciclo real en prod ya
+   lo ejercitó de punta a punta con el cliente real.
+
+## Promoción a producción — 19-oct-2026
+Servidor OAuth activado en prod · 5 migraciones aplicadas y verificadas por
+objeto · 15 edges desplegadas (`mcp`, `claude-borrador`, `claude-conexiones`,
+`assistant`, 11× `admin-*`) · `dev → main` mergeado y pusheado (`6f5fe9d`) ·
+`sgc.app_versiones` confirma 1.194.0 registrada en prod · Claude Desktop real
+conectado y probado por Xaviel (arriba). **Ronda CR cerrada.**

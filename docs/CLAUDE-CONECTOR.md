@@ -143,15 +143,17 @@ Supabase ya lo anuncia (`code_challenge_methods_supported`).
 organización; luego cada miembro lo conecta con su propia cuenta del SGC (eso es
 lo que ya decía el CONTEXTO-51, confirmado por la doc de Claude).
 
-## 5. Pendiente de verificar con el MCP Inspector / Claude Desktop real
-El flujo manual (curl + magic link) ya prueba que el servidor responde correcto
-en cada paso. Falta la prueba **interactiva** real:
-- `npx @modelcontextprotocol/inspector` contra
-  `https://fzfrnrvndzrjwyvdpkgg.supabase.co/functions/v1/mcp` → flujo completo de
-  browser (registro → `/oauth/consent` → token → `tools/call`). **La pantalla
-  `/oauth/consent` todavía no existe (llega en FASE 3)** — hasta entonces, el
-  Inspector puede probar discovery/401/tools pero no el consentimiento completo.
-- Con Claude Desktop real: pendiente físico (ver lista de pedidos).
+## 5. Verificado con Claude Desktop real — ✅ 19-oct-2026
+
+El flujo manual (curl + magic link) ya probaba que el servidor respondía
+correcto en cada paso por separado. **Confirmado además con el cliente real**:
+Xaviel (ya Owner de la organización en claude.ai) agregó el conector
+`https://jeeqhgccqefbqilntcpu.supabase.co/functions/v1/mcp` en **Settings ›
+Connectors**, lo conectó con su propia cuenta del SGC (ciclo completo:
+Connect → `/oauth/consent` en prod → Permitir a Claude → vuelta a Claude) y le
+preguntó algo real — Claude respondió con datos correctos de su cuenta. Ciclo
+de punta a punta (DCR → consentimiento → token → `tools/call`) confirmado con
+el cliente real, no solo con el protocolo simulado.
 
 ## 5b. Gotcha real — el servidor OAuth valida el header `Origin` (CSRF)
 

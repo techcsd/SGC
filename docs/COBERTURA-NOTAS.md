@@ -70,7 +70,7 @@
 1. 1-2 cotizaciones reales (PDF y foto) para probar `leer-cotizacion` con datos de verdad en producción.
 2. Hacer la prueba del APK 2.54/2.55 en el Samsung (pendiente de CP/CQ7, no se puede automatizar).
 
-## CR (filas 247-250) — tanda nueva, 18-19/oct — ✅ **COMPLETA EN DEV (1.194.0)**, prod espera OK de Xaviel
+## CR (filas 247-250) — tanda nueva, 18-19/oct — ✅ **EN PROD (1.194.0)**, Claude Desktop real conectado y probado
 
 | # | Nota (literal) | ID | Dónde vive | Estado |
 |---|---|---|---|---|
@@ -86,10 +86,8 @@ podía pedir la API key real de Resend; corregido (prod nunca lo tuvo). (2) CORS
 faltaba `x-sgc-client` en `assistant` y en la nueva `claude-borrador` — cualquier
 llamada desde el navegador fallaba en el preflight; corregido en ambas.
 
-**Pendientes físicos de Xaviel (tanda CR):**
-1. Probar en dev (Perfil › Claude, Admin › Claude, y si se puede, conectar Claude
-   Desktop real — MCP Inspector ya cubrió el protocolo completo).
-2. Saber quién es el **Owner/Primary Owner** de la cuenta Claude Team de la empresa.
-3. Con su OK: activar el servidor OAuth en prod + 4 migraciones + edges nuevas/tocadas
-   (checklist en `docs/CLAUDE-CONECTOR.md`).
-4. `OK:` con fecha en `qa/release-1.194.0.md` (el gate de FASE 8 ya lo exige).
+**Tanda CR — cerrada.** Xaviel recibió el rol de Owner en Claude Team, agregó el
+conector a nivel organización, lo conectó con su cuenta real en prod y lo
+probó con una pregunta real (respondió bien). Único pendiente que queda, sin
+bloquear nada: revisar/decidir sobre el barrido más amplio de funciones con
+grant `PUBLIC` solo-dev (hallazgo de FASE 5, ver `HANDOFF.md`).
