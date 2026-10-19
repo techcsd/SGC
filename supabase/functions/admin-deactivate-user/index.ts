@@ -46,6 +46,9 @@ Deno.serve(async (req: Request) => {
     if (callerError || !callerData.user) {
       return json({ error: "Sesión inválida." }, 401);
     }
+    // CR1 (FASE 5) — las acciones admin-* rechazan tokens OAuth (Claude).
+    const { error: oauthErr } = await callerClient.schema("sgc").rpc("rechazar_si_cliente_oauth");
+    if (oauthErr) return json({ error: "Esta acción no está permitida desde un conector externo (Claude)." }, 403);
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
     if (!isAdmin) {
       return json({ error: "No autorizado." }, 403);

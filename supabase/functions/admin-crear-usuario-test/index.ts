@@ -38,6 +38,9 @@ Deno.serve(async (req: Request) => {
     const callerClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
+    // CR1 (FASE 5) — las acciones admin-* rechazan tokens OAuth (Claude).
+    const { error: oauthErr } = await callerClient.schema("sgc").rpc("rechazar_si_cliente_oauth");
+    if (oauthErr) return json({ error: "Esta acción no está permitida desde un conector externo (Claude)." }, 403);
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
     if (!isAdmin) return json({ error: "No autorizado. Solo un administrador puede crear usuarios de prueba." }, 403);
 

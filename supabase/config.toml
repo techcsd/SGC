@@ -110,3 +110,7 @@ verify_jwt = false
 # CR1 (FASE 4) — la llama la persona desde /borrador/:id con su sesión normal.
 [functions.claude-borrador]
 verify_jwt = true
+
+# CR1 (FASE 5) — desconectar (propia persona) / revocar (admin) el conector.
+[functions.claude-conexiones]
+verify_jwt = true

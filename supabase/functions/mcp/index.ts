@@ -119,6 +119,12 @@ async function ejecutarTool(sgc: Any, cfg: ToolDef, input: Any, cap: Cap): Promi
     const esPermiso = /42501|permission|no autorizado|autorizad/i.test(error.message || "");
     return { ok: false, out: esPermiso ? "No tienes acceso a eso con tu rol." : `La consulta falló: ${error.message}` };
   }
+  // CR1 §5 (defensa en profundidad) — PERMISOS-TOOLS.md ya anota que
+  // buscar_usuarios expone email; Compa lo tolera (uso interno), MCP sale
+  // hacia un tercero (Anthropic) y lo recorta.
+  if (cfg.name === "buscar_usuarios" && Array.isArray(data)) {
+    return { ok: true, out: data.map((u: Any) => ({ id: u.id, nombre: u.nombre })) };
+  }
   return { ok: true, out: data ?? [] };
 }
 

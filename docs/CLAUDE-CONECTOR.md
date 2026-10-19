@@ -209,6 +209,59 @@ https://claude.com/api/mcp/auth_callback
 Cualquier cliente registrado con otro `redirect_uri` → aviso rojo en
 `/oauth/consent`, bloqueado salvo `claude_conector_clientes_extra=true`.
 
-## 8. RPC de alto riesgo (se completa en FASE 5)
-Placeholder — el inventario real de funciones que deben rechazar tokens OAuth
-(`auth.jwt() ->> 'client_id' is not null`) se arma y documenta aquí en FASE 5.
+## 8. RPC y edges de alto riesgo (FASE 5) — rechazan tokens OAuth
+
+**No es exhaustivo** (el schema completo de `sgc` tiene cientos de funciones);
+es el inventario real de lo que la propia web llama para administración de
+usuarios/roles/permisos/claves/acceso-a-dev/fusión de cuentas, encontrado con
+`pg_proc` + grep de `rpc('...')` en `src/shared/services/{admin,roles}.service.ts`
+y las edges `admin-*`. Cada una llama `sgc.rechazar_si_cliente_oauth()` (`raise
+42501` si `auth.jwt()->>'client_id'` no es nulo) como PRIMERA línea del cuerpo —
+regla 19, mismo cuerpo verificado hoy en vivo contra dev.
+
+**RPC** (`sql/2026-10-18-cr1-fase5-seguridad.sql`):
+`assign_roles` (asignar/quitar roles) · `eliminar_rol` · `dev_acceso_agregar` /
+`dev_acceso_quitar` (CC2, quién entra a dev) · `hacer_conductor` (otorga rol
+chofer) · `fusionar_usuarios` (destructivo) · `otorgar_permiso_extra` /
+`revocar_permiso_extra` · `otorgar_permiso_combustible_retro` /
+`revocar_permiso_combustible_retro` · `set_rol_comparte_ubicacion`.
+
+**Edges `admin-*`** (mismo patrón: `rechazar_si_cliente_oauth()` justo después
+de validar la sesión, antes del chequeo `is_admin`): `admin-create-user`,
+`admin-deactivate-user`, `admin-reset-user-password`, `admin-delete-user`,
+`admin-resend-invite`, `admin-entrar-como`, `admin-fin-impersonacion`,
+`admin-procesar-eliminacion`, `admin-crear-usuario-test`,
+`admin-usuario-test-login`, `admin-set-password`.
+
+**`claude-conexiones`** (nueva, FASE 5): `desconectar` (la propia persona,
+self-service, `auth.oauth.listGrants`/`revokeGrant` con su propio JWT — REST
+`GET`/`DELETE /auth/v1/user/oauth/grants`, sin service role) · `revocar` (solo
+admin, para otra persona — no existe un endpoint "admin" para revocar el grant
+de un tercero, así que se emite una sesión real de esa persona con la service
+role, como el puente de WhatsApp, y se llama el mismo endpoint self-service con
+ESE token, solo dentro de esta edge).
+
+**Hallazgo de seguridad no planeado, encontrado auditando esto mismo**
+(`sql/2026-10-18-cr1-fase5-revoca-grant-publico-resend-key.sql`):
+`sgc.get_resend_api_key()` en **dev** tenía `GRANT EXECUTE ... TO PUBLIC` —
+cualquiera, **sin login**, podía pedir la API key real de Resend por REST.
+Verificado con una llamada anónima real (sin imprimir el secreto). **Prod no
+tiene este problema** (solo `postgres`+`service_role`, verificado aparte) — es
+una desviación de dev, ya corregida para que dev quede igual a prod.
+
+**Pendiente (fuera de esta ronda, para Tecnología):** comparando los grants
+`PUBLIC` de `sgc` entre dev y prod aparecieron ~30 funciones más con grant
+`PUBLIC` en dev que no están en prod — la mayoría son probablemente inocuas
+(ya validan `auth.uid()`/rol internamente, a diferencia de `get_resend_api_key`
+que no validaba nada), pero no se revisaron una por una. Vale una pasada
+dedicada.
+
+**Pruebas negativas (FASE 5), todas verificadas hoy:**
+- Token con `client_id` simulado (vía `set_config('request.jwt.claims', …)`,
+  mismo patrón de smoke que usa el repo) contra `set_rol_comparte_ubicacion` →
+  **rechazado con 42501** y el mensaje en español.
+- La misma llamada sin `client_id` → pasa (no la bloquea nuestro guard).
+- `admin-crear-usuario-test` con una sesión normal de admin → sigue
+  funcionando igual que antes (400 de validación normal, no 403 del guard).
+- `claude-conexiones` acción `revocar` sin ser admin → 403.
+- `buscar_usuarios` por MCP → ya no trae `email`, solo `id`+`nombre`.
