@@ -265,3 +265,31 @@ dedicada.
   funcionando igual que antes (400 de validación normal, no 403 del guard).
 - `claude-conexiones` acción `revocar` sin ser admin → 403.
 - `buscar_usuarios` por MCP → ya no trae `email`, solo `id`+`nombre`.
+
+## 9. Paso a paso — Owner de Claude Team y cada persona
+
+**Una sola vez, el Owner/Primary Owner de la cuenta Claude Team/Enterprise de
+la empresa** (pendiente saber quién es — lista de pedidos de FASE 0):
+1. En claude.ai (web), **Configuración de la organización › Conectores**.
+2. **Agregar conector personalizado** → pega `https://<ref>.supabase.co/functions/v1/mcp`
+   (el de **prod**, una vez promovido; en pruebas, el de dev) → nómbralo **SGC**.
+3. En **OAuth client**, elige **"Register automatically"** (DCR — §4: Supabase
+   no soporta CIMD ni tiene credenciales pre-cargadas con Anthropic).
+4. Déjalo disponible para el equipo.
+
+**Cada persona**, luego: Perfil › Claude (web) tiene los 3 pasos completos
+(copiar enlace, Claude Desktop → Conectores, Connect → login → Permitir a
+Claude). El enlace es el **mismo** que puso el Owner — cada quien solo conecta
+*su propia cuenta del SGC* al tocar Connect.
+
+## 10. Qué ve Claude y qué no (resumen para quien pregunte)
+
+**Ve**: exactamente lo que esa persona ve en el SGC (RLS real, su rol y
+módulos) — listados, fichas, resúmenes, lo mismo que le mostraría la pantalla.
+**Prepara** (no crea) tareas/requisiciones/conduces/rutas como borrador.
+**Nunca ve**: lo que esa persona no ve, claves/secretos/API keys, configuración
+del sistema, permisos de otros, ni puede ejecutar SQL libre (§8). **Nunca
+crea/aprueba/borra nada por sí mismo** — toda escritura pasa por un borrador
+que la persona confirma en el SGC. Todo lo que Claude toca queda en
+`sgc.claude_llamadas` y, si escribió un borrador confirmado, en Auditoría con
+`origen = claude`.

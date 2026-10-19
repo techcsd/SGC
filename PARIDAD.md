@@ -876,3 +876,35 @@ en esta ronda — solo se documenta el contrato por si el hijo construye su prop
 - **"Texto simple"**: alterna el MISMO editor a un `<textarea>` monoespaciado sin formato — el
   contenido subyacente no cambia (sigue siendo el Markdown). Si la app quisiera un modo similar, es
   trivial (es solo una UI alternativa sobre el mismo string).
+
+### CR1 — Conector de Claude Desktop (contrato para la app, PROMPT-105)
+
+MCP/OAuth son conceptos de **web** (Claude Desktop se configura en una computadora,
+no en el teléfono — mock `Perfil-claude-app`). La app solo necesita el contrato
+de **borradores** y **conexión**, todo vía Supabase directo (no hay edge nueva
+exclusiva de app):
+
+- **`sgc.claude_borradores`** (tabla, RLS dueño/admin): `{id, tool, params jsonb,
+  resumen, estado: 'pendiente'|'confirmado'|'descartado'|'caducado', creado_en,
+  expira_en, resultado jsonb}`. La app puede listar los propios con
+  `select * from sgc.claude_borradores where estado='pendiente' and expira_en > now()`
+  (RLS ya filtra a `usuario_id = auth.uid()`).
+- **Edge `claude-borrador`** (`POST`, JWT de usuario): `{accion: 'get'|'confirmar'|'descartar', id}`.
+  `get` devuelve `{borrador, detalle: [{etiqueta, valor}]}` con nombres ya
+  resueltos (obra, artículos) — la app NO necesita resolverlos ella misma.
+  `confirmar` devuelve `{ok, mensaje, duplicado?}`; confirmar dos veces el mismo
+  borrador es seguro (AU1, idempotente — nunca duplica el documento).
+- **Edge `claude-conexiones`** (`POST`, JWT de usuario): `{accion: 'desconectar'}`
+  corta las conexiones OAuth de Claude de la propia persona (self-service, sin
+  parámetros extra). `{accion: 'revocar', usuario_id}` es solo-admin.
+- **RPC `sgc.claude_mi_conexion()`** (sin argumentos): `{conectado, desde,
+  ultima_actividad, consultas_7d, borradores_pendientes}` — todo lo que la
+  pantalla `Perfil-claude-app` necesita (mock: estado, desconectar, borradores
+  pendientes con "Revisar y confirmar").
+- **Texto de la hoja "Revisar y confirmar"**: el mock app usa `resumen` +
+  `creado_en`/`expira_en` del propio borrador — mismo shape que la web, no hace
+  falta un endpoint aparte.
+- **Conectar Claude Desktop es solo-web**: la app únicamente MUESTRA el estado y
+  deja desconectar/revisar — el flujo de los "3 pasos" (copiar enlace, Claude
+  Desktop, Connect) vive en `Perfil-claude` (web) y el mock app lo dice
+  explícitamente ("usa la guía en Perfil › Claude de la web del SGC").
