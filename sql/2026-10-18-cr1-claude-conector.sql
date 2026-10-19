@@ -85,13 +85,40 @@ grant select, insert         on sgc.claude_llamadas   to authenticated;
 create or replace function sgc.claude_borrador_crear(
   p_tool text, p_params jsonb, p_resumen text, p_idem text
 ) returns sgc.claude_borradores
- language sql security invoker set search_path to 'sgc','pg_temp'
+ language plpgsql security definer set search_path to 'sgc','pg_temp'
 as $function$
+declare
+  v_row sgc.claude_borradores;
+  v_es_nuevo boolean;
+begin
+  -- security definer (no invoker): insertar en sgc.notificaciones exige permisos
+  -- que un usuario normal no tiene directo (solo RPCs elevados como
+  -- notificar_usuarios). auth.uid() se revalida explícitamente — nunca confiar
+  -- en el invocador para el usuario_id de lo que se crea.
+  if auth.uid() is null then raise exception 'No autenticado' using errcode = '28000'; end if;
+
+  select not exists(
+    select 1 from sgc.claude_borradores where usuario_id = auth.uid() and idem = p_idem and estado = 'pendiente'
+  ) into v_es_nuevo;
+
   insert into sgc.claude_borradores (usuario_id, tool, params, resumen, idem, client_id)
   values (auth.uid(), p_tool, coalesce(p_params, '{}'::jsonb), p_resumen, p_idem, auth.jwt() ->> 'client_id')
   on conflict (usuario_id, idem) where (estado = 'pendiente')
   do update set params = excluded.params, resumen = excluded.resumen, creado_en = now(), expira_en = now() + interval '24 hours'
-  returning *;
+  returning * into v_row;
+
+  -- CR1 §B3 — campana in-app ("Claude preparó un borrador para ti"), SIN push
+  -- (insert directo a sgc.notificaciones, no sgc.notificar_usuarios — esa manda
+  -- push siempre). Solo en el primer borrador de esta intención, no en cada
+  -- reintento idempotente del mismo pedido.
+  if v_es_nuevo then
+    insert into sgc.notificaciones (usuario_id, tipo, titulo, mensaje, ruta, referencia_id, referencia_tipo)
+    values (auth.uid(), 'claude_borrador', 'Claude preparó un borrador para ti',
+      coalesce(p_resumen, 'Revísalo y confírmalo cuando quieras.'), '/borrador/' || v_row.id, v_row.id, 'claude_borrador');
+  end if;
+
+  return v_row;
+end;
 $function$;
 grant execute on function sgc.claude_borrador_crear(text, jsonb, text, text) to authenticated;
 

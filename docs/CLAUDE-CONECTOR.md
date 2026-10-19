@@ -153,6 +153,39 @@ en cada paso. Falta la prueba **interactiva** real:
   Inspector puede probar discovery/401/tools pero no el consentimiento completo.
 - Con Claude Desktop real: pendiente físico (ver lista de pedidos).
 
+## 5b. Gotcha real — el servidor OAuth valida el header `Origin` (CSRF)
+
+`GET /auth/v1/oauth/authorizations/{id}` (lo que llama
+`getAuthorizationDetails`) y seguramente `approveAuthorization`/
+`denyAuthorization` **rechazan cualquier `Origin` que no sea el `site_url`
+exacto del proyecto** (`https://dev.sgcconstructorasd.com` en dev) con
+`400 "unauthorized request origin"` — verificado hoy con el mismo token real
+mandando `Origin: http://localhost:4200` (falla) vs `Origin:
+https://dev.sgcconstructorasd.com` (200 OK) vs sin `Origin` (200 OK, server-to-
+server). **Consecuencia:** `/oauth/consent` no se puede probar de punta a
+punta corriendo `ng serve` en `localhost:4200` contra el backend de dev — hay
+que probarlo ya desplegado en `dev.sgcconstructorasd.com` (o un dominio que
+coincida con el `site_url` configurado). Las capturas de FASE 3 se hicieron
+interceptando la respuesta de red con los datos reales (mismo cliente DCR,
+mismo `redirect_uri`) en vez de pelear con esto — la mecánica de fondo
+(`curl` con el `Origin` correcto) está verificada aparte.
+
+## 5c. Hallazgo real — CORS: faltaba `x-sgc-client` en el allow-list
+
+`SupabaseService` (web) manda el header `x-sgc-client` en **todas** sus
+llamadas (incluida `functions.invoke`, no solo `.from()/.rpc()` — CQ3). El
+`corsHeaders` de `claude-borrador` (copiado del patrón de `assistant`) no lo
+incluía → el navegador bloqueaba el `POST` real en el preflight ("Request
+header field x-sgc-client is not allowed"), aunque una llamada por `curl`/Node
+(sin CORS) funcionaba perfecto — así se detectó: la página `/borrador/:id`
+fallaba en el navegador pero el edge function respondía bien por fuera de él.
+**Se corrigió en `claude-borrador` Y en `assistant`** (mismo defecto,
+reproducido con un `OPTIONS` directo contra la edge real en dev — ver FASE 4).
+**Pendiente (fuera de esta ronda):** otras 26 edge functions comparten el
+mismo `corsHeaders` sin `x-sgc-client`; ninguna de las que se invocan desde el
+navegador con este patrón debería tenerlo si hace falta — queda para una
+pasada de Tecnología (barrido simple, grep del patrón).
+
 ## 6. Diagnóstico — qué mirar si algo falla
 - **"Connect" falla / no aparece el conector** → revisar que
   `oauth_server_enabled=true` en el entorno correcto y que el `redirect_uri` que

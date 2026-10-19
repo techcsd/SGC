@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgOptimizedImage } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
@@ -23,6 +23,7 @@ export class Auth {
   private preferencias = inject(PreferenciasService);
   private logoReveal = inject(LogoRevealService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   loading = signal(false);
   errorMessage = signal('');
@@ -173,6 +174,16 @@ export class Auth {
     if (profile.debe_cambiar_password) {
       this.loading.set(false);
       this.router.navigate(['/auth/set-password']);
+      return;
+    }
+
+    // CR1 — si venimos de /oauth/consent (u otro destino interno) con ?redirect=,
+    // volvemos ahí en vez del dashboard/módulo de inicio. Solo rutas internas
+    // (empiezan con '/', nunca '//' ni un esquema) — nada de open-redirect.
+    const redirect = this.route.snapshot.queryParamMap.get('redirect');
+    if (redirect && /^\/(?!\/)/.test(redirect)) {
+      this.logoReveal.reproducir();
+      this.router.navigateByUrl(redirect);
       return;
     }
 

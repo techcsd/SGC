@@ -106,3 +106,7 @@ verify_jwt = false
 # el JWKS del proyecto y responde 401+WWW-Authenticate cuando corresponde.
 [functions.mcp]
 verify_jwt = false
+
+# CR1 (FASE 4) — la llama la persona desde /borrador/:id con su sesión normal.
+[functions.claude-borrador]
+verify_jwt = true

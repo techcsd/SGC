@@ -164,3 +164,5 @@
 | reuniones/reuniones-lista | - | 75 | 37 | 38 | 49% |
 | reuniones/reunion-ficha | - | 53 | 27 | 26 | 51% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
+| borrador-claude | - | 22 | 12 | 10 | 55% |
+| oauth-consent | - | 24 | 18 | 6 | 75% |

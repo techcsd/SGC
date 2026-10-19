@@ -14691,6 +14691,44 @@
         "@for (r of adminRows(); track r.id) {",
         "} @empty {"
       ]
+    },
+    {
+      "pantalla": "borrador-claude",
+      "total": 22,
+      "cubiertos": 12,
+      "sin": 10,
+      "pct": 55,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (cargando()) {",
+        "} @else if (error()) {",
+        "} @else if (borrador(); as b) { @if (b.estado === 'pendiente') {",
+        "} @else if (b.estado === 'confirmado') {",
+        "} @else if (b.estado === 'descartado') {",
+        "} @else if (b.estado === 'caducado') {",
+        "@if (b.resumen) {",
+        "@for (linea of detalle(); track linea.etiqueta + linea.valor) {",
+        "@if (b.estado === 'pendiente') {",
+        "} @else {"
+      ]
+    },
+    {
+      "pantalla": "oauth-consent",
+      "total": 24,
+      "cubiertos": 18,
+      "sin": 6,
+      "pct": 75,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (cargando()) {",
+        "} @else if (error()) {",
+        "} @else if (detalles(); as d) {",
+        "Cl",
+        "@if (!clienteConfiable()) {",
+        "@if (d.redirect_uri) {"
+      ]
     }
   ]
 }

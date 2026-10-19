@@ -36,6 +36,15 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/politicas/politicas').then((m) => m.Politicas),
   },
   {
+    // CR1 (FASE 3) — pantalla de autorización del servidor OAuth de Supabase
+    // (Claude Desktop y, a futuro, cualquier conector). Fuera del Shell: la
+    // propia página exige sesión (vía authService) y vuelve aquí tras el login
+    // conservando authorization_id — un canActivate normal perdería el query param.
+    path: 'oauth/consent',
+    loadComponent: () => import('./pages/oauth-consent/oauth-consent').then((m) => m.OauthConsent),
+    title: 'Autorizar a Claude · SGC',
+  },
+  {
     path: '',
     loadComponent: () => import('../shared/components/shell/shell').then((m) => m.Shell),
     canActivate: [authGuard],
@@ -44,6 +53,13 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        // CR1 (FASE 4) — borrador preparado por Claude Desktop (mock `Borrador-claude`).
+        // Dentro del Shell: cualquier usuario autenticado puede tener borradores propios
+        // (sin gate de módulo — como Mensajería/Notas), igual que "Mis tareas".
+        path: 'borrador/:id',
+        loadComponent: () => import('./pages/borrador-claude/borrador-claude').then((m) => m.BorradorClaude),
       },
       {
         path: 'direccion',

@@ -42,7 +42,11 @@ const MAX_TOOL_LOOPS = 8;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  // CR1 (FASE 4) — hallazgo real: x-sgc-client (CQ3, SupabaseService) faltaba
+  // aquí, así que el preflight del navegador bloqueaba el POST real (reproducido
+  // con un OPTIONS directo contra esta edge en dev). Se encontró construyendo
+  // claude-borrador (mismo patrón de cabeceras) y se corrige aquí también.
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 function json(body: unknown, status = 200) {
