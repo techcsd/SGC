@@ -36,25 +36,70 @@
           </div>
         }
 
+        <!-- CS2 — grupos: crear + conmutador "por mes y año" (solo en Mis notas). -->
+        @if (tab() === 'mias') {
+          <div class="dev-notes__grupos-bar">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="crearGrupo(null)">
+              <app-icon name="plus" [size]="14" /> Nuevo grupo
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [class.active]="agruparPorMes()"
+              (click)="toggleAgruparPorMes()" title="Reagrupa en pantalla lo que no tiene grupo propio">
+              Agrupar por mes y año
+            </button>
+          </div>
+        }
+
         @if (loading()) {
           <p class="dev-notes__empty">Cargando…</p>
         } @else if (lista().length === 0) {
           <p class="dev-notes__empty">Sin notas todavía. Crea una con “Nueva”.</p>
         } @else {
           <div class="dev-notes__items">
-            @for (g of agrupada(); track g.label) {
-              <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
-              @for (n of g.notas; track n.id) {
-                <button type="button" class="note-card" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
-                  <span class="note-card__title">
-                    @if (n.pinned) { <app-icon name="star" [size]="13" /> }
-                    {{ n.titulo || '(sin título)' }}
-                  </span>
-                  <span class="note-card__preview">{{ n.contenido }}</span>
-                  @if ((n.tags ?? []).length) {
-                    <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
-                  }
-                </button>
+            @for (g of agrupada(); track g.label + (g.grupo?.id ?? '')) {
+              @if (g.esGrupo) {
+                <div class="dev-notes__grupo-head" [style.padding-left.px]="(g.profundidad ?? 0) * 14">
+                  <button type="button" class="dev-notes__grupo-toggle" (click)="toggleGrupoPlegado(g.grupo!.id)"
+                    [attr.aria-expanded]="!gruposPlegados().has(g.grupo!.id)">
+                    @if (g.tieneHijos) {
+                      <app-icon [name]="gruposPlegados().has(g.grupo!.id) ? 'chevron-right' : 'chevron-down'" [size]="13" />
+                    }
+                    <app-icon name="folder" [size]="14" />
+                    <span class="dev-notes__grupo-nombre">{{ g.label }}</span>
+                    <span class="dev-notes__grupo-n">{{ g.totalRecursivo }}</span>
+                  </button>
+                  <div class="dev-notes__grupo-acciones">
+                    <button type="button" title="Nuevo subgrupo" (click)="crearGrupo(g.grupo!.id)"><app-icon name="plus" [size]="13" /></button>
+                    <button type="button" title="Renombrar" (click)="renombrarGrupo(g.grupo!)"><app-icon name="edit" [size]="13" /></button>
+                    <button type="button" title="Mover a…" (click)="moverGrupo(g.grupo!)"><app-icon name="arrow-right" [size]="13" /></button>
+                    <button type="button" title="Eliminar" (click)="eliminarGrupoConfirm(g.grupo!)"><app-icon name="trash" [size]="13" /></button>
+                  </div>
+                </div>
+              } @else {
+                <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
+              }
+              @if (!g.esGrupo || !gruposPlegados().has(g.grupo!.id)) {
+                @for (n of g.notas; track n.id) {
+                  <div class="note-card-wrap" [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 14 + 14) : 0">
+                    <button type="button" class="note-card" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
+                      <span class="note-card__title">
+                        @if (n.pinned) { <app-icon name="star" [size]="13" /> }
+                        {{ n.titulo || '(sin título)' }}
+                      </span>
+                      <span class="note-card__preview">{{ n.contenido }}</span>
+                      @if ((n.tags ?? []).length) {
+                        <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
+                      }
+                    </button>
+                    @if (tab() === 'mias') {
+                      <select class="note-card__mover" [value]="n.grupo_id ?? ''" title="Mover a…"
+                        (click)="$event.stopPropagation()" (change)="moverNotaAGrupo(n, $any($event.target).value)">
+                        @for (o of opcionesMoverA(); track o.id) {
+                          <option [value]="o.id">{{ o.label }}</option>
+                        }
+                      </select>
+                    }
+                  </div>
+                }
               }
             }
           </div>
@@ -88,15 +133,30 @@
         <p class="dev-notes__empty">Sin notas todavía.</p>
       } @else {
         <div class="dn-list__items">
-          @for (g of agrupada(); track g.label) {
-            <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
-            @for (n of g.notas; track n.id) {
-              <button type="button" class="note-card note-card--sm" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
-                <span class="note-card__title">
-                  @if (n.pinned) { <app-icon name="star" [size]="12" /> }
-                  {{ n.titulo || '(sin título)' }}
-                </span>
+          @for (g of agrupada(); track g.label + (g.grupo?.id ?? '')) {
+            @if (g.esGrupo) {
+              <button type="button" class="dev-notes__grupo-head dev-notes__grupo-head--sm"
+                [style.padding-left.px]="(g.profundidad ?? 0) * 12" (click)="toggleGrupoPlegado(g.grupo!.id)">
+                @if (g.tieneHijos) {
+                  <app-icon [name]="gruposPlegados().has(g.grupo!.id) ? 'chevron-right' : 'chevron-down'" [size]="12" />
+                }
+                <app-icon name="folder" [size]="13" />
+                <span class="dev-notes__grupo-nombre">{{ g.label }}</span>
+                <span class="dev-notes__grupo-n">{{ g.totalRecursivo }}</span>
               </button>
+            } @else {
+              <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
+            }
+            @if (!g.esGrupo || !gruposPlegados().has(g.grupo!.id)) {
+              @for (n of g.notas; track n.id) {
+                <button type="button" class="note-card note-card--sm" [class.active]="activa()?.id === n.id" (click)="abrir(n)"
+                  [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 12 + 14) : null">
+                  <span class="note-card__title">
+                    @if (n.pinned) { <app-icon name="star" [size]="12" /> }
+                    {{ n.titulo || '(sin título)' }}
+                  </span>
+                </button>
+              }
             }
           }
         </div>
@@ -175,7 +235,8 @@
           <textarea class="dn-plano" [value]="contenido()" [disabled]="soloLectura()"
             (input)="contenido.set($any($event.target).value)" spellcheck="false"></textarea>
         } @else {
-          <app-rich-editor [value]="contenido()" [disabled]="soloLectura()" (valueChange)="contenido.set($event)" />
+          <app-rich-editor [value]="contenido()" [disabled]="soloLectura()" [imagenes]="imagenesConfig"
+            (valueChange)="contenido.set($event)" />
         }
 
         <!-- Compartir (solo dueño de nota persistida). La RLS 'dev' mantiene la

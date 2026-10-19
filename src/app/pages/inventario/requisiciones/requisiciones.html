@@ -235,20 +235,15 @@
       <table class="data-table" aria-label="Requisiciones de material">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Fecha</th>
-            <th>Obra</th>
+            <!-- CS1 — Código/Fecha/Obra/Necesidad/Estado ordenables (▲▼), recordado por dispositivo. -->
+            <th appOrdenTh label="Código" clave="folio" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
+            <th appOrdenTh label="Fecha" clave="fecha" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
+            <th appOrdenTh label="Obra" clave="obra" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
             <th>Solicitante</th>
             <th>Urgencia</th>
-            <!-- BO8 — cabecera clicable para ordenar por fecha de necesidad. -->
-            <th>
-              <button type="button" class="req-th-sort" (click)="setOrden(orden() === 'necesidad' ? 'reciente' : 'necesidad')"
-                      [attr.aria-pressed]="orden() === 'necesidad'" title="Ordenar por fecha de necesidad">
-                Necesidad {{ orden() === 'necesidad' ? '▲' : '' }}
-              </button>
-            </th>
+            <th appOrdenTh label="Necesidad" clave="necesidad" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
             <th>Artículos</th>
-            <th>Estado</th>
+            <th appOrdenTh label="Estado" clave="estado" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
             <th></th>
           </tr>
         </thead>

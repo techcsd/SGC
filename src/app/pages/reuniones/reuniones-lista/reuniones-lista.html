@@ -18,6 +18,8 @@
       <button type="button" class="rl__chip" [class.rl__chip--active]="filtro() === 'acta_pendiente'" (click)="setFiltro('acta_pendiente')">{{ 'Acta pendiente' | t }}</button>
       <button type="button" class="rl__chip" [class.rl__chip--active]="filtro() === 'pasadas'" (click)="setFiltro('pasadas')">{{ 'Pasadas' | t }}</button>
       <button type="button" class="rl__chip" [class.rl__chip--active]="soloMias()" (click)="toggleMias()">{{ 'Mis reuniones' | t }}</button>
+      <!-- CS10 — «Mi calendario de Google» (lectura): eventos de tu Google Calendar, no solo lo creado en el SGC. -->
+      <button type="button" class="rl__chip" [class.rl__chip--active]="verGoogle()" (click)="toggleGoogle()">{{ 'Mi calendario de Google' | t }}</button>
     </div>
     <div class="rl__selects">
       <select class="sgc-input sgc-select" [ngModel]="filtroTipo() ?? ''" (ngModelChange)="onFiltroTipo($event)" aria-label="Filtrar por tipo">
@@ -31,7 +33,56 @@
     </div>
   </div>
 
-  @if (cargando()) {
+  @if (verGoogle()) {
+    <div class="rl__google">
+      <div class="rl__google-head">
+        @if (actualizadoHace()) {
+          <span class="rl__google-actualizado">{{ 'Actualizado hace' | t }} {{ fechaCorta(actualizadoHace()!) }}</span>
+        }
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="cargandoGoogle()" (click)="cargarGoogle()">
+          {{ (cargandoGoogle() ? 'Actualizando…' : 'Actualizar') | t }}
+        </button>
+      </div>
+      @if (cargandoGoogle() && !eventosGoogle().length) {
+        <p class="rl__empty">{{ 'Cargando…' | t }}</p>
+      } @else if (!googleConectado()) {
+        <p class="rl__empty">{{ googleMensaje() ?? ('Calendar no conectado.' | t) }}</p>
+      } @else if (!eventosGoogle().length) {
+        <p class="rl__empty">{{ 'No tienes eventos en tu calendario de Google en los próximos días.' | t }}</p>
+      } @else {
+        <div class="rl__list">
+          @for (g of eventosGoogleAgrupados(); track g.dia) {
+            <span class="rl__group-label">{{ fechaCorta(g.dia) }}</span>
+            @for (ev of g.eventos; track ev.id) {
+              <div class="rl__item rl__item--google">
+                <span class="rl__item-body">
+                  <span class="rl__item-top">
+                    <b>{{ ev.inicio ? hora(ev.inicio) : '' }}</b>
+                    <span class="rl__item-titulo">{{ ev.titulo }}</span>
+                  </span>
+                  @if (!ev.privado) {
+                    <span class="rl__item-meta">
+                      @if (ev.lugar) { {{ ev.lugar }} · }
+                      @if (ev.organizador) { {{ 'organiza' | t }} {{ ev.organizador }} · }
+                      {{ ev.participantes ?? 0 }} {{ 'participantes' | t }}
+                    </span>
+                  }
+                </span>
+                @if (enElSgc(ev)) {
+                  <span class="sgc-badge sgc-badge--success">{{ 'EN EL SGC' | t }}</span>
+                } @else {
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'SOLO EN GOOGLE' | t }}</span>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="llevandoId() === ev.id" (click)="llevarAlSgc(ev)">
+                    {{ (llevandoId() === ev.id ? 'Llevando…' : 'Llevar al SGC') | t }}
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  } @else if (cargando()) {
     <p class="rl__empty">{{ 'Cargando…' | t }}</p>
   } @else if (!reuniones().length) {
     <p class="rl__empty">{{ 'No hay reuniones con ese filtro.' | t }}</p>

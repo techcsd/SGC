@@ -3,6 +3,11 @@
     <div>
       <h1>{{ 'Claude conectado' | t }}</h1>
       <p>{{ 'Quién conectó Claude al SGC, qué consultó y qué dejó preparado.' | t }}</p>
+      <!-- CS5 — "Lo que Claude no pudo contestar" ya vive en Tecnología › Consultas
+           de Compa (mismo backlog: reportar_gap de MCP usa la misma tabla). -->
+      <a routerLink="/tecnologia/consultas-compa" class="admin-claude__gaps-link">
+        {{ 'Lo que Claude no pudo contestar →' | t }}
+      </a>
     </div>
     <div class="admin-claude__switch-box">
       <span>{{ 'Conector de Claude' | t }}</span>

@@ -69,9 +69,13 @@ export function markdownAPlano(markdown: string): string {
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-/** Quita negrita/cursiva/tachado/código inline y deja enlaces como "texto (url)". */
+/** Quita negrita/cursiva/tachado/código inline y deja enlaces como "texto (url)".
+ *  CS2 — una imagen pegada (`![alt](nota-img:<ruta>)`) nunca sale como ruta
+ *  rota interna: se avisa que no viaja con el texto plano. */
 function aplicarEnfasisInline(texto: string): string {
   return texto
+    .replace(/!\[([^\]]*)\]\(nota-img:[^)]+\)/g, (_m, alt: string) =>
+      alt.trim() ? `[imagen no incluida: ${alt.trim()}]` : '[imagen no incluida]')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)') // [texto](url)
     .replace(/~~(.+?)~~/g, '$1') // ~~tachado~~
     .replace(/\*\*\*(.+?)\*\*\*/g, '$1') // ***negrita cursiva***

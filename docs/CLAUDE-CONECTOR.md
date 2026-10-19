@@ -295,3 +295,66 @@ crea/aprueba/borra nada por sí mismo** — toda escritura pasa por un borrador
 que la persona confirma en el SGC. Todo lo que Claude toca queda en
 `sgc.claude_llamadas` y, si escribió un borrador confirmado, en Auditoría con
 `origen = claude`.
+
+## 11. CS5 — cobertura total por módulo (19-oct-2026)
+
+Diagnóstico de la ronda CS: las 52 herramientas de antes cubrían inventario,
+requisiciones, flota, rutas, conduces, proyectos/obras, bitácoras, tareas,
+reuniones, ayuda y usuarios — **pero no** Dev notes/Notas, Mensajes, Soporte,
+Documentos, Legal, RRHH, Compras, Administración (lectura) ni Auditoría. La
+prueba: Claude Desktop, al preguntarle por "Dev notes", contestó honestamente
+que no tenía herramienta y lo dejó en `reportar_gap` (un gap real, no un bug).
+
+**`que_puedo_consultar`** (nueva) — catálogo vivo: por módulo, `puede_ver`
+(con los permisos reales de quien pregunta) + qué herramienta(s) usar. Mismo
+predicado que la barra lateral (`sgc.tiene_modulo`/`sgc.is_admin`). Las
+instrucciones del servidor (MCP y Compa) le dicen a Claude que la llame
+PRIMERO cuando no sepa dónde buscar.
+
+**Herramientas nuevas de esta ronda** (todas solo lectura, `modulos: null` =
+sin gate, como ya era Mensajería/Notas/Mis tareas en la web):
+
+| Herramienta | RPC | Módulo | Notas |
+|---|---|---|---|
+| `mis_notas` | `mis_notas_resumen` | ninguno (identidad: propias + compartidas) | Dev notes (solo si `es_desarrollador`) + Notas generales; imágenes → `[imagen]`, nunca la ruta interna |
+| `mis_mensajes` | `mis_conversaciones_resumen` | ninguno (identidad) | Solo el ÚLTIMO mensaje de cada conversación + no-leídos, nunca el historial completo |
+| `mis_reportes_soporte` | `mis_reportes_soporte` | ninguno (identidad) | Reportes que el propio usuario envió a Tecnología |
+| `listar_plantillas_documento` | `listar_plantillas_documento` | `documentos` | Solo metadatos (nombre/categoría), nunca el HTML/docx |
+| `listar_expedientes_legales` | `listar_expedientes_legales` | `legal` | Metadatos del expediente; la RPC revalida el módulo (defensa en profundidad) |
+| `listar_aprobaciones_legales` | `listar_aprobaciones_legales` (ya existía) | `legal` | Reusa la RPC que ya usa `/legal/aprobaciones` |
+| `directorio_empleados` | `directorio_empleados` (ya existía) | `rrhh` | Nombre/cargo/activo — **nunca sueldo** (la RPC ni lo selecciona) |
+| `mis_ordenes_de_compra` | `mis_ordenes_de_compra` (ya existía) | `compras` | Identidad: solo las del propio usuario |
+| `mis_solicitudes_movimiento` | `solicitudes_movimiento_listar` (ya existía) | `ingenieria`/`transporte`/`flota` | Reusa la RPC de la pantalla real |
+| `mi_rendimiento` | `incentivo_mi_rendimiento` (ya existía) | ninguno (identidad) | Solo el propio rendimiento del chofer |
+| `mi_actividad_auditoria` | `auditoria_listar` (ya existía) | `admin` | La RPC ya exige `puede_ver_auditoria()` — doble gate |
+| `listar_usuarios_admin` | `listar_usuarios_admin` | `admin` | Nombre/correo/roles — **nunca** contraseñas/PINs |
+
+**Exenciones documentadas** (el guard `scripts/cobertura-conector.mjs` las
+acepta; motivo por qué NO tienen herramienta propia esta ronda):
+
+| Módulo/pantalla | Motivo |
+|---|---|
+| `plantillas` (crear/editar plantillas) | Es edición, no lectura — fuera de alcance de un conector de solo lectura; se cubre si algún día hay `proponer_*` |
+| `obra` (Producción de Obra) | Sin pantallas propias construidas aún en este repo (AT6 — ver roles.service.ts); nada que cubrir todavía |
+| `plataforma` (personalización launcher app) | Preferencia de UI de la app móvil, no dato de negocio — no aplica a un conector de datos |
+| `tecnologia` (compras tec., inventario de equipos) | Pendiente — próxima ronda (contexto 53+) |
+| `reuniones` | Ya cubierto por `mis_reuniones`/`acuerdos_pendientes`/`resumen_reunion` (identidad estricta, `modulos: null` — no se declaran bajo `reuniones` a propósito, ver PERMISOS-TOOLS.md) |
+| Políticas (`/politicas/*`) | Contenido público y estático (no hay tabla en BD); se puede leer directo por URL, no necesita una herramienta del conector |
+| Dudas | Ya cubierto por `buscar_ayuda` (existía antes de esta ronda) |
+
+**CS10 — el calendario de Google NO se expone al conector** en esta ronda
+(decisión pendiente para más adelante): `mis_reuniones`/`resumen_reunion`
+siguen leyendo solo lo que ya vive en `sgc.reuniones`. Darle a Claude acceso al
+calendario de Google de cada persona es una decisión de alcance mayor (abre la
+puerta a leer reuniones que nunca pasaron por el SGC) que no se tomó en CS10.
+
+**Compa (`canales`)**: todas las herramientas nuevas de esta tabla se
+agregaron con `canales: ["compa", "mcp"]` — Compa las comparte también, salvo
+que el propio registro diga lo contrario. Ninguna nueva excluye a Compa (no
+hay razón: son lectura, mismo recorte de permisos).
+
+**`scripts/cobertura-conector.mjs`** (enganchado a `release-check`): compara
+los módulos de `MODULOS_DISPONIBLES` (+ las pantallas "siempre visibles" —
+Dev notes/Notas, Mensajes, Soporte, Requisiciones) contra `modulos` en
+`_shared/herramientas.ts`, y contra la tabla de exenciones de esta sección.
+Falla si un módulo no aparece en ninguna de las dos.

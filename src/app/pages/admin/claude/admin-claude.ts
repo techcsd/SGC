@@ -1,8 +1,10 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
 
 interface Resumen {
   personas_conectadas: number;
@@ -30,7 +32,7 @@ interface LlamadaReciente {
 /** CR1 (FASE 6) — Admin › Claude (mock `Admin-claude`). */
 @Component({
   selector: 'app-admin-claude',
-  imports: [TranslatePipe, DatePipe],
+  imports: [TranslatePipe, DatePipe, RouterLink],
   templateUrl: './admin-claude.html',
   styleUrl: './admin-claude.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -97,7 +99,7 @@ export class AdminClaude implements OnInit {
       const { data, error } = await this.supabase.client.functions.invoke('claude-conexiones', {
         body: { accion: 'revocar', usuario_id: usuarioId },
       });
-      if (error) throw error;
+      if (error) throw new Error(await edgeErrorMessage(error));
       this.toast.success(`Conexión de ${nombre} revocada.`);
       await this.cargar();
     } catch (e) {

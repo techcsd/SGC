@@ -49,3 +49,18 @@ Copiar al `CLAUDE.md` de `csd-app`:
 - **`sgc.chofer_privado_detalle(p_usuario_id uuid) returns jsonb`** (DEFINER, gate `is_admin()/es_flota_elevado()`): `{ chofer, vigencias[], usos[], entregas[] (con fotos[]), echadas[] (foto_recibo_path/foto_tablero_path/foto_origen), inspecciones[] }`. Combustible/checklists enlazan por `conductores.id` (no usuario_id). Fotos en bucket `vehiculos`. La app puede reusar este RPC para la ficha del chofer privado.
 - **bg4 retiro dañado:** `solicitudes_movimiento.es_danado boolean` (nuevo). `apoyo_transporte_crear(...)` lo guarda; **`apoyo_transporte_agregar_foto(...)`** ahora, en la 1.ª foto de un apoyo `retiro_material + es_danado`, genera un **borrador de retiro bg4** (`crear_retiro_material`, estado `pendiente`, motivo `'otro'`, NO toca cuarentena) y lo enlaza en `solicitudes_movimiento.retiro_material_id`. Idempotente; mejor esfuerzo (si falla no bloquea la foto). La app no cambia su llamada; el borrador se crea solo.
 - **CK5 videos:** campos de video en `ayuda_contenido.contenido` (`video_path/poster_path/vtt_path/duracion_s/plataforma`), bucket privado `tutoriales` (lectura authenticated por URL firmada). La app (Soporte y ayuda) lee los mismos campos. **Solo videos de datos demo**: los gated (Inventario/Flota/Transporte) requieren demo-aislar las fuentes DEFINER antes de grabarse seguros.
+
+## 8. CS (PROMPT-106, 19-oct-2026) — lo que el hijo puede reusar
+
+Esta tanda fue **100% web** (Dev notes/grupos/imágenes son del repo padre; csd-app
+usa un editor de notas más simple, contenteditable, sin TipTap — no se tocó).
+Lo que SÍ es reusable por la app si hace falta:
+- **`sgc.mis_sesiones()` / `sgc.cerrar_mi_sesion(p_id)`** (SECURITY DEFINER,
+  sin service role): si la app alguna vez quiere una pantalla de "sesiones
+  activas" (hoy no la tiene), son los mismos RPCs, sin cambios.
+- **`sgc.notas.grupo_id`** (nuevo, nullable, `on delete set null`): aditivo —
+  cualquier select/insert existente de la app sobre `notas` sigue funcionando
+  igual sin tocarlo.
+- **El conector de Claude (CS5) y "Mi calendario de Google" (CS10) son
+  exclusivos de la web** — no aplican a la app (MCP es un servidor remoto, no
+  algo que la app consuma; Fireflies/Calendar siguen siendo del lado servidor).

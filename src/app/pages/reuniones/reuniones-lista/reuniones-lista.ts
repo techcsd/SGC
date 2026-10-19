@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   ReunionesService, ReunionTipo, ReunionListado, ReunionFiltro, ReunionModalidad, ParticipanteExterno,
+  EventoGoogle,
 } from '../../../../shared/services/reuniones.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -41,6 +42,75 @@ export class ReunionesLista implements OnInit {
   // Conteos de referencia para los chips (se recalculan al cambiar de filtro base).
   conteoProximas = signal(0);
   conteoActaPendiente = signal(0);
+
+  // ── CS10 — «Mi calendario de Google» ────────────────────────────────────────
+  verGoogle = signal(false);
+  cargandoGoogle = signal(false);
+  googleConectado = signal(true);
+  googleMensaje = signal<string | null>(null);
+  eventosGoogle = signal<EventoGoogle[]>([]);
+  actualizadoHace = signal<string | null>(null);
+  llevandoId = signal<string | null>(null);
+
+  /** CS10 — un evento de Google ya existe en el SGC si algún google_event_id
+   *  de las reuniones YA CARGADAS coincide (mejor esfuerzo: solo compara contra
+   *  lo que ya se trajo bajo el filtro actual, no contra toda la historia). */
+  private googleEventIdsEnSgc = computed(() => new Set(this.reuniones().map((r) => r.google_event_id).filter((x): x is string => !!x)));
+
+  eventosGoogleAgrupados = computed(() => {
+    const byDia = new Map<string, EventoGoogle[]>();
+    for (const ev of this.eventosGoogle()) {
+      const dia = (ev.inicio ?? '').slice(0, 10) || 'sin-fecha';
+      const arr = byDia.get(dia);
+      if (arr) arr.push(ev);
+      else byDia.set(dia, [ev]);
+    }
+    return [...byDia.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([dia, eventos]) => ({ dia, eventos }));
+  });
+
+  enElSgc(ev: EventoGoogle): boolean {
+    return this.googleEventIdsEnSgc().has(ev.id);
+  }
+
+  toggleGoogle() {
+    this.verGoogle.update((v) => !v);
+    if (this.verGoogle() && !this.eventosGoogle().length) void this.cargarGoogle();
+  }
+
+  async cargarGoogle() {
+    this.cargandoGoogle.set(true);
+    this.googleMensaje.set(null);
+    try {
+      const r = await this.service.miCalendarioGoogle();
+      this.googleConectado.set(r.conectado);
+      if (!r.conectado) {
+        this.googleMensaje.set(r.mensaje ?? 'Calendar no conectado.');
+        this.eventosGoogle.set([]);
+      } else {
+        this.eventosGoogle.set(r.eventos ?? []);
+        this.actualizadoHace.set(r.actualizado_en ?? null);
+      }
+    } catch (e) {
+      this.googleConectado.set(false);
+      this.googleMensaje.set(e instanceof Error ? e.message : 'No se pudo actualizar.');
+    } finally {
+      this.cargandoGoogle.set(false);
+    }
+  }
+
+  async llevarAlSgc(ev: EventoGoogle) {
+    if (this.llevandoId()) return;
+    this.llevandoId.set(ev.id);
+    try {
+      const id = await this.service.llevarAlSgc(ev);
+      this.toast.success(this.i18n.t('Reunión llevada al SGC'));
+      await this.router.navigate(['/reuniones', id]);
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo llevar al SGC'), e instanceof Error ? e.message : undefined);
+    } finally {
+      this.llevandoId.set(null);
+    }
+  }
 
   conGrupos = computed(() => {
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);

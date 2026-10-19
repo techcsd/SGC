@@ -128,10 +128,45 @@
           <div class="cfg__card">
             <h2>{{ 'Sesión y dispositivos' | t }}</h2>
             <p class="cfg__muted">
-              {{ 'Si perdiste un dispositivo o iniciaste sesión en uno prestado, cierra la sesión en todos los demás.' | t }}
+              {{ 'Dónde tienes la sesión iniciada. La ubicación no se guarda (solo la IP, parcial); si Claude Desktop está conectado también aparece aquí.' | t }}
             </p>
-            <button type="button" class="cfg__btn cfg__btn--danger"
-                    [disabled]="cerrandoSesiones()" (click)="cerrarOtrasSesiones()">
+
+            @if (cargandoSesiones()) {
+              <p class="cfg__muted">{{ 'Cargando…' | t }}</p>
+            } @else if (errorSesiones()) {
+              <p class="cfg__error">{{ errorSesiones() }}</p>
+            } @else if (sesiones().length === 0) {
+              <p class="cfg__muted">{{ 'No encontramos sesiones activas.' | t }}</p>
+            } @else {
+              <div class="cfg__sesiones">
+                @for (s of sesiones(); track s.id) {
+                  <div class="cfg__sesion" [class.cfg__sesion--actual]="s.es_actual">
+                    <div class="cfg__sesion-info">
+                      <b>
+                        {{ s.cliente ?? dispositivoLabel(s.user_agent) }}
+                        @if (s.es_actual) {
+                          <span class="cfg__sesion-badge">{{ 'ESTE DISPOSITIVO' | t }}</span>
+                        }
+                      </b>
+                      <span class="cfg__muted cfg__sesion-meta">
+                        {{ s.ip_parcial ?? '—' }} ·
+                        {{ s.es_actual ? ('activo ahora' | t) : ('última actividad {rel}' | t:{ rel: formatRelativa(s.ultima_actividad) }) }}
+                        · {{ 'inició el {f}' | t:{ f: formatMedia(s.created_at) } }}
+                      </span>
+                    </div>
+                    @if (!s.es_actual) {
+                      <button type="button" class="cfg__btn cfg__btn--danger cfg__btn--sm"
+                              [disabled]="cerrandoSesionId() === s.id" (click)="cerrarUnaSesion(s)">
+                        {{ (cerrandoSesionId() === s.id ? 'Cerrando…' : 'Cerrar sesión') | t }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <button type="button" class="cfg__btn cfg__btn--primary"
+                    [disabled]="cerrandoSesiones() || sesiones().length <= 1" (click)="cerrarOtrasSesiones()">
               <app-icon name="log-out" [size]="16" />
               {{ (cerrandoSesiones() ? 'Cerrando…' : 'Cerrar sesión en otros dispositivos') | t }}
             </button>

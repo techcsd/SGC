@@ -59,7 +59,13 @@ Deno.serve(async (req: Request) => {
   if (!userData?.user) return json({ error: "Sesión inválida" }, 401);
 
   const { error: oauthErr } = await supabase.rpc("rechazar_si_cliente_oauth");
-  if (oauthErr) return json({ error: "Esta acción no está permitida desde un conector externo (Claude)." }, 403);
+  if (oauthErr) {
+    if (oauthErr.code === "42501") {
+      return json({ error: "Esta acción no está permitida desde un conector externo (Claude)." }, 403);
+    }
+    console.error("rechazar_si_cliente_oauth falló (no es Claude):", oauthErr);
+    return json({ error: `No se pudo verificar el origen de la sesión: ${oauthErr.message}` }, 500);
+  }
 
   let payload: { accion?: string; usuario_id?: string };
   try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }

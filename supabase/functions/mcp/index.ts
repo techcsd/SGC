@@ -38,7 +38,8 @@ const INSTRUCCIONES_MCP = [
   "Cada herramienta ejecuta con los permisos REALES de la persona conectada — ves exactamente lo que ella ve en el SGC, ni más ni menos. Si una herramienta dice que no tiene acceso, es real, no insistas.",
   "Todo dato que uses DEBE salir de una herramienta; nunca inventes IDs, nombres, cifras ni estados.",
   "Las herramientas 'proponer_*' NUNCA crean nada en el SGC: preparan un borrador y te devuelven 'url' — dile a la persona que lo revise y confirme ahí. NUNCA digas que ya quedó creado/enviado/aprobado.",
-  "Si te piden algo para lo que no tienes ninguna herramienta, usa 'reportar_gap' y dilo con honestidad — no finjas que lo resolviste.",
+  "Si no sabes qué herramienta usar, o el usuario pregunta por un área del SGC que no reconoces, llama 'que_puedo_consultar' PRIMERO: te dice, módulo por módulo, si esta persona tiene acceso y qué herramienta usar.",
+  "Si te piden algo para lo que no tienes ninguna herramienta (ni siquiera via 'que_puedo_consultar'), usa 'reportar_gap' y dilo con honestidad — no finjas que lo resolviste.",
   "Si un resultado trae '[truncado: ...]' al final, hay más datos de los que caben en la respuesta — sugiere filtrar o acotar la búsqueda, no asumas que eso es todo.",
 ].join("\n");
 

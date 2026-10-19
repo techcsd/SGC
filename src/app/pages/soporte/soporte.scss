@@ -253,6 +253,17 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+// CS2 — zona de arrastrar/soltar una captura.
+.soporte__fotos--drop {
+  padding: 8px;
+  border: 1px dashed var(--sgc-border, #e2e5ea);
+  border-radius: var(--sgc-radius-md, 10px);
+}
+.soporte__fotos-hint {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--sgc-text-muted, #6b7280);
+}
 .soporte__foto {
   position: relative;
 

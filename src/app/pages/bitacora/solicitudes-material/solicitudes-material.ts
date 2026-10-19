@@ -25,6 +25,12 @@ import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/a
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay, formatTimestampDisplay, todayIso, daysUntil } from '../../../../shared/utils/fecha.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
+import { OrdenTh } from '../../../../shared/ui/orden-th/orden-th';
+import { OrdenColumna, compararConNulosAlFinal, leerOrdenGuardado, guardarOrden } from '../../../../shared/utils/orden-columnas.util';
+
+/** CS1 — columnas ordenables (mismas que Inventario › Requisiciones). */
+export type ClaveOrdenReq = 'fecha' | 'necesidad' | 'folio' | 'obra' | 'estado';
 
 /**
  * Renglón de la requisición. Si articulo_id está vacío → es un "Otro" (texto
@@ -83,7 +89,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe, StaggerDirective],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe, StaggerDirective, FilterSelect, OrdenTh],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -149,17 +155,81 @@ export class SolicitudesMaterial implements OnInit {
   faseLabel = (f: string | null | undefined) =>
     ({ pendiente: 'Pendiente', en_proceso: 'En proceso', completada: 'Completada', rechazada: 'Rechazada' }[f ?? 'pendiente'] ?? '—');
 
-  /** BY3 — Activas por fecha de necesidad asc (vencidas primero); Historial por reciente. */
+  // CS1 — filtros mínimos (buscar, obra, estado, rango de fechas) reutilizando
+  // los mismos controles que ya usa Inventario; sin Excel/Semana-Mes/"Con fecha
+  // de necesidad" (son de quien surte, no de quien pide).
+  search = signal('');
+  fObra = signal('');
+  fEstado = signal('');
+  fDesde = signal('');
+  fHasta = signal('');
+  readonly estadoOpt: FilterOption[] = [
+    { value: 'pendiente', label: 'Pendiente' },
+    { value: 'aprobada', label: 'Aprobada (en compra)' },
+    { value: 'entregada', label: 'Entregada' },
+    { value: 'cerrada', label: 'Cerrada' },
+    { value: 'rechazada', label: 'Rechazada' },
+    { value: 'cancelada', label: 'Cancelada' },
+  ];
+  obrasDisponibles = computed(() =>
+    [...this.proyectos()].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+  );
+  hasActiveFilters = computed(
+    () => !!this.search() || !!this.fObra() || !!this.fEstado() || !!this.fDesde() || !!this.fHasta(),
+  );
+  clearFilters() {
+    this.search.set('');
+    this.fObra.set('');
+    this.fEstado.set('');
+    this.fDesde.set('');
+    this.fHasta.set('');
+  }
+
+  // CS1 — mismo orden por columna que Inventario; default Fecha ▼ (antes fijo en
+  // el código: Activas por necesidad asc, Historial por reciente).
+  orden = signal<OrdenColumna<ClaveOrdenReq>>(
+    leerOrdenGuardado<ClaveOrdenReq>('sgc-solmat-orden', {}, { clave: 'fecha', dir: 'desc' }),
+  );
+  setOrden(v: OrdenColumna<ClaveOrdenReq>) { this.orden.set(v); guardarOrden('sgc-solmat-orden', v); }
+
+  /** BY3 — Activas/Historial + filtros + orden por la columna elegida. */
   listaVisible = computed(() => {
     const hist = this.vistaTab() === 'historial';
-    const rows = this.solicitudes().filter((s) => this.esHistorialSol(s) === hist);
-    if (hist) return [...rows].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
+    const obra = this.fObra();
+    const est = this.fEstado();
+    const desde = this.fDesde();
+    const hasta = this.fHasta();
+    const q = this.search().trim().toLowerCase();
+    const rows = this.solicitudes().filter((s) => {
+      if (this.esHistorialSol(s) !== hist) return false;
+      if (obra && s.proyecto_id !== obra) return false;
+      if (est && s.estado !== est) return false;
+      const fecha = (s.created_at ?? '').slice(0, 10);
+      if (desde && fecha < desde) return false;
+      if (hasta && fecha > hasta) return false;
+      if (q) {
+        const hay = [s.proyecto?.nombre, s.notas, ...(s.items ?? []).map((i) => i.descripcion)]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    const o = this.orden();
     return [...rows].sort((a, b) => {
-      const fa = a.fecha_necesidad, fb = b.fecha_necesidad;
-      if (fa && fb) return fa < fb ? -1 : fa > fb ? 1 : 0;
-      if (fa) return -1; // con fecha primero
-      if (fb) return 1;
-      return (b.created_at ?? '').localeCompare(a.created_at ?? ''); // sin fecha: reciente primero
+      switch (o.clave) {
+        case 'fecha':
+          return compararConNulosAlFinal(a.created_at, b.created_at, o.dir, (x, y) => (x < y ? -1 : x > y ? 1 : 0));
+        case 'necesidad':
+          return compararConNulosAlFinal(a.fecha_necesidad, b.fecha_necesidad, o.dir, (x, y) => (x < y ? -1 : x > y ? 1 : 0));
+        case 'folio':
+          return compararConNulosAlFinal(a.folio, b.folio, o.dir, (x, y) => x - y);
+        case 'obra':
+          return compararConNulosAlFinal(a.proyecto?.nombre, b.proyecto?.nombre, o.dir, (x, y) => x.localeCompare(y));
+        case 'estado':
+          return compararConNulosAlFinal(this.estadoLabel(a.estado), this.estadoLabel(b.estado), o.dir, (x, y) => x.localeCompare(y));
+        default:
+          return 0;
+      }
     });
   });
 

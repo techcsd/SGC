@@ -163,6 +163,13 @@ describe('Markdown → TipTap → Markdown (round-trip de contenido)', () => {
     expect(out).not.toMatch(/-\s*\[\s?\]\s*\n/);
   });
 
+  it('imagen de nota (CS2): conserva el src nota-img: y el alt', () => {
+    const out = roundtrip('Antes.\n\n![captura.png](nota-img:abc/def/00000000-0000-0000-0000-000000000000.png)\n\nDespués.');
+    expect(out).toContain('Antes.');
+    expect(out).toContain('Después.');
+    expect(out).toMatch(/!\[captura\.png\]\(nota-img:abc\/def\/00000000-0000-0000-0000-000000000000\.png\)/);
+  });
+
   it('doble ida y vuelta es estable (idempotente tras la 2ª pasada)', () => {
     const original = '# Notas\n\nUn párrafo con **negrita** y *cursiva*.\n\n- uno\n- dos\n\n- [ ] pendiente\n- [x] hecho';
     const primera = roundtrip(original);

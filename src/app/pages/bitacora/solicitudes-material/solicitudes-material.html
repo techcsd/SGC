@@ -15,6 +15,37 @@
   <div class="page-error" role="alert">{{ error() }}</div>
 }
 
+<!-- CS1 — filtros mínimos (buscar, obra, estado, rango de fechas), igual a Inventario. -->
+<div class="filters-bar">
+  <div class="sgc-field">
+    <label class="filters-bar__label">Buscar</label>
+    <input type="search" [value]="search()" (input)="search.set($any($event.target).value)"
+           placeholder="Obra, artículo, nota…" aria-label="Buscar requisiciones" />
+  </div>
+  <div class="sgc-field filters-bar__select">
+    <label class="filters-bar__label">Obra</label>
+    <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="Filtrar por obra">
+      <option value="">Todas las obras</option>
+      @for (o of obrasDisponibles(); track o.id) {
+        <option [value]="o.id">{{ o.nombre }}</option>
+      }
+    </select>
+  </div>
+  <app-filter-select label="Estado" [options]="estadoOpt" [value]="fEstado()"
+    (valueChange)="fEstado.set($event)" placeholder="Todos" [searchable]="false" />
+  <div class="sgc-field">
+    <label class="filters-bar__label">Desde</label>
+    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" />
+  </div>
+  <div class="sgc-field">
+    <label class="filters-bar__label">Hasta</label>
+    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" />
+  </div>
+  @if (hasActiveFilters()) {
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearFilters()">Limpiar filtros</button>
+  }
+</div>
+
 <!-- BV8 — material que recibí en mis obras y aún no devolví (a mi cargo) -->
 @if (materialesACargo().length) {
   <div class="sgc-card mac-card">
@@ -65,15 +96,16 @@
     <table class="data-table" aria-label="Requisiciones">
       <thead>
         <tr>
-          <th>Código</th>
-          <th>Fecha</th>
-          <th>Obra</th>
+          <!-- CS1 — Código/Fecha/Obra/Necesidad/Estado ordenables (▲▼), recordado por dispositivo. -->
+          <th appOrdenTh label="Código" clave="folio" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
+          <th appOrdenTh label="Fecha" clave="fecha" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
+          <th appOrdenTh label="Obra" clave="obra" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
           <th>Solicitante</th>
           <th>Artículos</th>
           <th>Urgencia</th>
-          <th>Necesidad</th>
+          <th appOrdenTh label="Necesidad" clave="necesidad" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
           <th>Fase</th>
-          <th>Estado</th>
+          <th appOrdenTh label="Estado" clave="estado" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
           <th>Atendida</th>
         </tr>
       </thead>

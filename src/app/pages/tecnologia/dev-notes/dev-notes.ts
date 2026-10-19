@@ -1,14 +1,15 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Icon } from '../../../../shared/ui/icon/icon';
-import { RichEditor } from '../../../../shared/ui/rich-editor/rich-editor';
+import { RichEditor, ImagenEditorConfig } from '../../../../shared/ui/rich-editor/rich-editor';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotasService, DirectorioUsuario } from '../../../../shared/services/notas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { FullscreenModeService } from '../../../../shared/services/fullscreen-mode.service';
-import { Nota, NotaCompartido, NotaPermiso } from '../../../../shared/models/nota.model';
+import { Nota, NotaCompartido, NotaPermiso, NotaGrupo } from '../../../../shared/models/nota.model';
 import { markdownAPlano } from '../../../../shared/utils/markdown-a-plano.util';
+import { copiarImagenAlPortapapeles, descargarDesdeUrl } from '../../../../shared/utils/clipboard-imagen.util';
 
 type Tab = 'mias' | 'compartidas';
 type Ancho = 'comodo' | 'completo';
@@ -34,6 +35,21 @@ const LS_ANCHO = 'sgc.devnotes.ancho';
 const LS_LISTA_PLEGADA = 'sgc.devnotes.lista-plegada';
 const LS_ULTIMA_ID = 'sgc.devnotes.ultima-id';
 const AUTOSAVE_DEBOUNCE_MS = 2000;
+// CS2 — grupos (carpetas anidadas) y vista "por mes y año".
+const LS_GRUPOS_PLEGADOS = 'sgc.devnotes.grupos-plegados';
+const LS_AGRUPAR_MES = 'sgc.devnotes.agrupar-mes';
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+interface BucketLista {
+  label: string;
+  notas: Nota[];
+  /** Si representa un grupo real (vs. un cubo de fecha como "Hoy"/"Octubre 2026"). */
+  esGrupo?: boolean;
+  grupo?: NotaGrupo;
+  profundidad?: number;
+  tieneHijos?: boolean;
+  totalRecursivo?: number;
+}
 
 /** Días (locales, medianoche a medianoche) entre una fecha y hoy. 0 = hoy. */
 function diasDesdeHoy(iso: string): number {
@@ -74,6 +90,15 @@ export class DevNotes implements OnInit, OnDestroy {
   tab = signal<Tab>('mias');
   mias = signal<Nota[]>([]);
   compartidas = signal<Nota[]>([]);
+
+  // ── CS2 — grupos (carpetas anidadas, tipo Notion) ───────────────────────────
+  grupos = signal<NotaGrupo[]>([]);
+  gruposPlegados = signal<Set<string>>(
+    new Set(typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem(LS_GRUPOS_PLEGADOS) || '[]') : []),
+  );
+  /** "Agrupar por mes y año" — solo reagrupa en pantalla lo que está en «Sin grupo»;
+   *  no escribe datos. Una nota con grupo real se queda en su grupo. */
+  agruparPorMes = signal(typeof localStorage !== 'undefined' && localStorage.getItem(LS_AGRUPAR_MES) === 'true');
   loading = signal(true);
   query = signal('');
   tagFiltro = signal<string | null>(null);
@@ -125,6 +150,33 @@ export class DevNotes implements OnInit, OnDestroy {
   /** true cuando la nota abierta ya existe en BD (se puede compartir/mover). */
   persistida = signal(false);
 
+  // ── CS2 — imágenes pegadas/arrastradas en el editor ─────────────────────────
+  readonly imagenesConfig: ImagenEditorConfig = {
+    subir: (file) => this.subirImagenEnNotaActiva(file),
+    resolverUrl: (src) => this.notasSvc.resolverImagenNota(src),
+    copiarAlPortapapeles: async (url) => {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      await copiarImagenAlPortapapeles(blob);
+      this.toast.success('Imagen copiada', 'Ya la puedes pegar (Ctrl+V) en Claude Desktop, un correo, etc.');
+    },
+    descargar: (url, nombre) => descargarDesdeUrl(url, nombre),
+    quitar: (src) => { void this.notasSvc.borrarImagenNota(src); },
+  };
+
+  /** CS2 — si la nota es nueva (nunca se guardó), guárdala primero: el bucket
+   *  exige que la nota ya exista (RLS por nota_id). */
+  private async subirImagenEnNotaActiva(file: File): Promise<string> {
+    if (!this.activa()) throw new Error('No hay una nota abierta.');
+    if (!this.persistida()) {
+      await this.guardar();
+      if (!this.persistida()) throw new Error('Guarda la nota antes de agregar imágenes.');
+    }
+    const n = this.activa();
+    if (!n) throw new Error('No hay una nota abierta.');
+    return this.notasSvc.subirImagenNota(n.id, n.owner_id, file);
+  }
+
   soloLectura = computed(() => {
     const n = this.activa();
     const miId = this.userService.profile()?.id;
@@ -150,23 +202,191 @@ export class DevNotes implements OnInit, OnDestroy {
       .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updated_at.localeCompare(a.updated_at));
   });
 
-  /** CQ2 — lista() agrupada por Hoy / Esta semana / Antes (orden preservado, incl. pines). */
-  agrupada = computed(() => {
-    const hoy: Nota[] = [];
-    const semana: Nota[] = [];
-    const antes: Nota[] = [];
+  /** CS2 — grupos (del dueño) indexados por padre. */
+  private gruposPorPadre = computed(() => {
+    const m = new Map<string | null, NotaGrupo[]>();
+    for (const g of this.grupos()) {
+      const arr = m.get(g.parent_id);
+      if (arr) arr.push(g);
+      else m.set(g.parent_id, [g]);
+    }
+    for (const arr of m.values()) arr.sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
+    return m;
+  });
+  /** Notas de `lista()` (ya filtradas por búsqueda/etiqueta) agrupadas por grupo_id. */
+  private notasPorGrupoId = computed(() => {
+    const m = new Map<string, Nota[]>();
     for (const n of this.lista()) {
+      if (!n.grupo_id) continue;
+      const arr = m.get(n.grupo_id);
+      if (arr) arr.push(n);
+      else m.set(n.grupo_id, [n]);
+    }
+    return m;
+  });
+  private sinGrupoNotas = computed(() => this.lista().filter((n) => !n.grupo_id));
+
+  /** CS2 — cuenta recursiva de notas bajo un grupo (incluidos subgrupos), para el badge. */
+  private contarNotasRecursivo(grupoId: string): number {
+    let total = (this.notasPorGrupoId().get(grupoId) ?? []).length;
+    for (const hijo of this.gruposPorPadre().get(grupoId) ?? []) total += this.contarNotasRecursivo(hijo.id);
+    return total;
+  }
+
+  toggleGrupoPlegado(id: string) {
+    this.gruposPlegados.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try { localStorage.setItem(LS_GRUPOS_PLEGADOS, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
+  toggleAgruparPorMes() {
+    this.agruparPorMes.update((v) => {
+      const nuevo = !v;
+      try { localStorage.setItem(LS_AGRUPAR_MES, String(nuevo)); } catch { /* ignore */ }
+      return nuevo;
+    });
+  }
+
+  /** CQ2/CS2 — lista() agrupada: en «Mis notas», primero el árbol de grupos (con
+   *  indentación), luego «Sin grupo» por Hoy/Semana/Antes (o por mes/año si el
+   *  conmutador está activo). En «Compartidas conmigo», sin cambios (sin grupos). */
+  agrupada = computed<BucketLista[]>(() => {
+    if (this.tab() !== 'mias') return this.agruparPorFecha(this.lista());
+
+    const out: BucketLista[] = [];
+    const porGrupo = this.notasPorGrupoId();
+    const plegados = this.gruposPlegados();
+    const recorrer = (padreId: string | null, profundidad: number) => {
+      for (const g of this.gruposPorPadre().get(padreId) ?? []) {
+        const hijos = this.gruposPorPadre().get(g.id) ?? [];
+        out.push({
+          label: g.nombre, notas: porGrupo.get(g.id) ?? [], esGrupo: true, grupo: g,
+          profundidad, tieneHijos: hijos.length > 0, totalRecursivo: this.contarNotasRecursivo(g.id),
+        });
+        if (!plegados.has(g.id)) recorrer(g.id, profundidad + 1);
+      }
+    };
+    recorrer(null, 0);
+
+    const sinGrupo = this.sinGrupoNotas();
+    if (sinGrupo.length) {
+      out.push(...(this.agruparPorMes() ? this.agruparPorMesAno(sinGrupo) : this.agruparPorFecha(sinGrupo)));
+    }
+    return out;
+  });
+
+  /** Hoy / Esta semana / Antes (comportamiento original). */
+  private agruparPorFecha(notas: Nota[]): BucketLista[] {
+    const hoy: Nota[] = [], semana: Nota[] = [], antes: Nota[] = [];
+    for (const n of notas) {
       const dias = diasDesdeHoy(n.updated_at);
       if (dias <= 0) hoy.push(n);
       else if (dias <= 6) semana.push(n);
       else antes.push(n);
     }
-    const grupos: { label: string; notas: Nota[] }[] = [];
-    if (hoy.length) grupos.push({ label: 'Hoy', notas: hoy });
-    if (semana.length) grupos.push({ label: 'Esta semana', notas: semana });
-    if (antes.length) grupos.push({ label: 'Antes', notas: antes });
-    return grupos;
+    const out: BucketLista[] = [];
+    if (hoy.length) out.push({ label: 'Hoy', notas: hoy });
+    if (semana.length) out.push({ label: 'Esta semana', notas: semana });
+    if (antes.length) out.push({ label: 'Antes', notas: antes });
+    return out;
+  }
+
+  /** CS2 — "Agrupar por mes y año": no escribe datos, solo reagrupa en pantalla. */
+  private agruparPorMesAno(notas: Nota[]): BucketLista[] {
+    const byKey = new Map<string, Nota[]>();
+    for (const n of notas) {
+      const d = new Date(n.updated_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const arr = byKey.get(key);
+      if (arr) arr.push(n);
+      else byKey.set(key, [n]);
+    }
+    return [...byKey.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, notas]) => {
+        const [y, m] = key.split('-').map(Number);
+        return { label: `${MESES[m - 1]} ${y}`, notas };
+      });
+  }
+
+  /** CS2 — opciones para el selector «Mover a…» de cada nota: árbol indentado + «Sin grupo». */
+  opcionesMoverA = computed<{ id: string; label: string }[]>(() => {
+    const out: { id: string; label: string }[] = [{ id: '', label: 'Sin grupo' }];
+    const recorrer = (padreId: string | null, prefijo: string) => {
+      for (const g of this.gruposPorPadre().get(padreId) ?? []) {
+        out.push({ id: g.id, label: `${prefijo}${g.nombre}` });
+        recorrer(g.id, prefijo + '— ');
+      }
+    };
+    recorrer(null, '');
+    return out;
   });
+
+  async moverNotaAGrupo(nota: Nota, grupoId: string) {
+    const destino = grupoId || null;
+    if ((nota.grupo_id ?? null) === destino) return;
+    try {
+      await this.notasSvc.moverNotaAGrupo(nota.id, destino);
+      const aplicar = (l: Nota[]) => l.map((x) => (x.id === nota.id ? { ...x, grupo_id: destino } : x));
+      this.mias.update(aplicar);
+      if (this.activa()?.id === nota.id) this.activa.update((a) => (a ? { ...a, grupo_id: destino } : a));
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo mover la nota');
+    }
+  }
+
+  async crearGrupo(parentId: string | null) {
+    const miId = this.userService.profile()?.id;
+    if (!miId) return;
+    const nombre = (prompt(parentId ? 'Nombre del subgrupo:' : 'Nombre del grupo:') ?? '').trim();
+    if (!nombre) return;
+    try {
+      const g = await this.notasSvc.crearGrupo(nombre, parentId, miId);
+      this.grupos.update((l) => [...l, g]);
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo crear el grupo');
+    }
+  }
+
+  async renombrarGrupo(g: NotaGrupo) {
+    const nombre = (prompt('Nuevo nombre:', g.nombre) ?? '').trim();
+    if (!nombre || nombre === g.nombre) return;
+    try {
+      await this.notasSvc.renombrarGrupo(g.id, nombre);
+      this.grupos.update((l) => l.map((x) => (x.id === g.id ? { ...x, nombre } : x)));
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo renombrar el grupo');
+    }
+  }
+
+  /** Mover un grupo a otro padre (prompt con las opciones ya indentadas). */
+  async moverGrupo(g: NotaGrupo) {
+    const opciones = this.opcionesMoverA().filter((o) => o.id !== g.id);
+    const texto = opciones.map((o, i) => `${i}: ${o.label || 'Sin grupo'}`).join('\n');
+    const idx = Number((prompt(`Mover «${g.nombre}» a… (escribe el número)\n${texto}`) ?? '').trim());
+    if (!Number.isInteger(idx) || idx < 0 || idx >= opciones.length) return;
+    const destino = opciones[idx].id || null;
+    try {
+      await this.notasSvc.moverGrupo(g.id, destino);
+      this.grupos.update((l) => l.map((x) => (x.id === g.id ? { ...x, parent_id: destino } : x)));
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo mover el grupo');
+    }
+  }
+
+  async eliminarGrupoConfirm(g: NotaGrupo) {
+    if (!confirm(`¿Eliminar el grupo «${g.nombre}»? Sus subgrupos y notas suben al nivel de arriba.`)) return;
+    try {
+      await this.notasSvc.eliminarGrupo(g.id);
+      await this.recargar();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo eliminar el grupo');
+    }
+  }
 
   /** Conteo de palabras del contenido (pie del editor, como en el mock). */
   palabras = computed(() => {
@@ -237,12 +457,14 @@ export class DevNotes implements OnInit, OnDestroy {
     const miId = this.userService.profile()?.id;
     if (!miId) { this.loading.set(false); return; }
     try {
-      const [mias, comp] = await Promise.all([
+      const [mias, comp, grupos] = await Promise.all([
         this.notasSvc.getMisNotas(miId, true, 'dev'),
         this.notasSvc.getCompartidasConmigo(miId, 'dev'),
+        this.notasSvc.getGrupos(),
       ]);
       this.mias.set(mias);
       this.compartidas.set(comp);
+      this.grupos.set(grupos);
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudieron cargar las notas');
     } finally {
@@ -298,9 +520,16 @@ export class DevNotes implements OnInit, OnDestroy {
     this.baseline = this.snapshot();
   }
 
-  cerrarEditor() {
-    if (this.autosaveTimer) clearTimeout(this.autosaveTimer);
+  async cerrarEditor() {
+    if (this.autosaveTimer) { clearTimeout(this.autosaveTimer); this.autosaveTimer = null; }
+    const n = this.activa();
+    // CS3 — si hay cambios sin guardar (incl. una nota nueva que nunca llegó a
+    // autoguardarse por el debounce), guárdalos antes de cerrar: si no, se pierden.
+    if (n && !this.soloLectura() && this.snapshot() !== this.baseline) {
+      await this.autoguardar();
+    }
     this.activa.set(null);
+    await this.recargar();
   }
 
   addTag() {
@@ -370,11 +599,20 @@ export class DevNotes implements OnInit, OnDestroy {
     }
   }
 
-  /** Refleja una nota recién guardada en mias()/compartidas() sin refetch. */
+  /** Refleja una nota recién guardada en mias()/compartidas() sin refetch. CS3 —
+   *  si es una nota NUEVA (el primer autoguardado), no está todavía en la lista:
+   *  hay que agregarla, no solo reemplazar. */
   private actualizarEnListaLocal(nota: Nota) {
-    const reemplazar = (lista: Nota[]) => lista.map((x) => (x.id === nota.id ? { ...x, ...nota } : x));
-    this.mias.update(reemplazar);
-    this.compartidas.update(reemplazar);
+    const miId = this.userService.profile()?.id ?? '';
+    const upsert = (lista: Nota[]): Nota[] => {
+      const i = lista.findIndex((x) => x.id === nota.id);
+      if (i === -1) return [{ ...nota }, ...lista];
+      const copia = [...lista];
+      copia[i] = { ...copia[i], ...nota };
+      return copia;
+    };
+    if (nota.owner_id === miId) this.mias.update(upsert);
+    else this.compartidas.update(upsert);
   }
 
   async eliminar() {
@@ -451,9 +689,15 @@ export class DevNotes implements OnInit, OnDestroy {
   }
 
   // ── Exportar / importar ─────────────────────────────────────────────────
+  /** CS2 — una imagen pegada nunca sale como ruta interna rota al exportar. */
+  private sinImagenesDeNota(markdown: string): string {
+    return markdown.replace(/!\[([^\]]*)\]\(nota-img:[^)]+\)/g, (_m, alt: string) =>
+      alt.trim() ? `[imagen no incluida: ${alt.trim()}]` : '[imagen no incluida]');
+  }
+
   exportarMd() {
     const nombre = (this.titulo().trim() || 'dev-note').replace(/[^\w.-]+/g, '-');
-    const blob = new Blob([this.contenido()], { type: 'text/markdown' });
+    const blob = new Blob([this.sinImagenesDeNota(this.contenido())], { type: 'text/markdown' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${nombre}.md`;

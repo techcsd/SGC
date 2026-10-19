@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { DatePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
 
 interface SolicitudEliminacion {
   id: string;
@@ -73,7 +74,7 @@ export class AdminSolicitudesEliminacion implements OnInit {
       const { error } = await this.supabase.client.functions.invoke('admin-procesar-eliminacion', {
         body: { solicitudId: s.id, accion, nota },
       });
-      if (error) throw error;
+      if (error) throw new Error(await edgeErrorMessage(error));
       this.toast.success('Listo', accion === 'procesar' ? 'Cuenta eliminada y anonimizada.' : 'Solicitud rechazada.');
       await this.cargar();
     } catch (e) {

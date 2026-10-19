@@ -1,0 +1,4 @@
+<button type="button" class="orden-th__btn" (click)="alternar()" [attr.aria-pressed]="activa()"
+        [attr.title]="'Ordenar por ' + label()">
+  {{ label() }}{{ flecha() ? ' ' + flecha() : '' }}
+</button>

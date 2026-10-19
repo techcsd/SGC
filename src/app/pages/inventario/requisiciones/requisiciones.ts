@@ -21,6 +21,11 @@ import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil, todayIso } from 
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { OrdenTh } from '../../../../shared/ui/orden-th/orden-th';
+import { OrdenColumna, compararConNulosAlFinal, leerOrdenGuardado, guardarOrden } from '../../../../shared/utils/orden-columnas.util';
+
+/** CS1 — columnas ordenables de la bandeja de requisiciones. */
+export type ClaveOrdenReq = 'fecha' | 'necesidad' | 'folio' | 'obra' | 'estado';
 
 const ESTADO_BADGE: Record<string, string> = {
   pendiente: 'warning',
@@ -60,7 +65,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective, OrdenTh],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -117,9 +122,15 @@ export class Requisiciones implements OnInit {
   search = signal('');
   // BH1 — una prueba cancelada no debe parecer trabajo pendiente: ocultas por defecto.
   // BV10 — orden por defecto = por fecha de NECESIDAD (más próxima/vencida primero)
-  // para priorizar por obra; se recuerda por dispositivo. Antes era 'reciente'.
-  orden = signal<'reciente' | 'necesidad'>(
-    (typeof localStorage !== 'undefined' && (localStorage.getItem('sgc-req-orden') as 'reciente' | 'necesidad' | null)) || 'necesidad',
+  // para priorizar por obra; se recuerda por dispositivo.
+  // CS1 — ahora cualquier columna es ordenable (Fecha, Necesidad, Folio, Obra,
+  // Estado), no solo Necesidad; migra el valor viejo ('reciente'/'necesidad').
+  orden = signal<OrdenColumna<ClaveOrdenReq>>(
+    leerOrdenGuardado<ClaveOrdenReq>(
+      'sgc-req-orden',
+      { reciente: { clave: 'fecha', dir: 'desc' }, necesidad: { clave: 'necesidad', dir: 'asc' } },
+      { clave: 'necesidad', dir: 'asc' },
+    ),
   );
   /** BY3 — vista principal: Activas (pendiente + en proceso) o Historial (completadas
    *  + rechazadas + canceladas). Por defecto Activas; recordada por dispositivo. */
@@ -137,7 +148,7 @@ export class Requisiciones implements OnInit {
   setVistaTab(v: 'activas' | 'historial') {
     this.vistaTab.set(v);
     try { localStorage.setItem('sgc-req-vista', v); } catch { /* ignore */ }
-    if (v === 'activas') this.setOrden('necesidad'); // Activas = por entrega más cercana.
+    if (v === 'activas') this.setOrden({ clave: 'necesidad', dir: 'asc' }); // Activas = por entrega más cercana.
   }
   setHistSub(s: 'todas' | 'completada' | 'rechazada' | 'cancelada') { this.histSub.set(s); }
   /** BY3 — ¿la requisición está cerrada (Historial)? completada/rechazada/cancelada. */
@@ -145,8 +156,8 @@ export class Requisiciones implements OnInit {
     return r.estado === 'cancelada'
       || (r.fase ?? 'pendiente') === 'completada' || (r.fase ?? 'pendiente') === 'rechazada';
   }
-  /** BV10 — recuerda el orden elegido (por dispositivo). */
-  setOrden(v: 'reciente' | 'necesidad') { this.orden.set(v); try { localStorage.setItem('sgc-req-orden', v); } catch { /* ignore */ } }
+  /** CS1 — recuerda el orden elegido (por dispositivo). */
+  setOrden(v: OrdenColumna<ClaveOrdenReq>) { this.orden.set(v); guardarOrden('sgc-req-orden', v); }
   /** BY3 — conteos para las pestañas Activas / Historial (+ sub-filtros). */
   tabCount = computed(() => {
     const c = { activas: 0, historial: 0, completada: 0, rechazada: 0, cancelada: 0 };
@@ -471,21 +482,29 @@ export class Requisiciones implements OnInit {
     return buckets.filter((b) => b.items.length);
   });
 
-  /** BO8 — orden aplicado sobre lo filtrado. 'reciente' preserva created_at desc
-   *  (orden del getAll); 'necesidad' pone la fecha más próxima/vencida primero y las
-   *  sin fecha al final. No muta el array de la señal (copia con [...]). */
+  /** CS1 — orden aplicado sobre lo filtrado, por la columna elegida (Fecha,
+   *  Necesidad, Folio, Obra, Estado); nulos siempre al final. No muta el array
+   *  de la señal (copia con [...]). */
   ordenadas = computed(() => {
     const rows = this.filtered();
     // BY3 — Historial: lo más recientemente cerrado primero (created_at desc = orden del getAll).
     if (this.vistaTab() === 'historial') return rows;
-    if (this.orden() !== 'necesidad') return rows;
+    const o = this.orden();
     return [...rows].sort((a, b) => {
-      const fa = a.fecha_necesidad ?? null;
-      const fb = b.fecha_necesidad ?? null;
-      if (fa && fb) return fa < fb ? -1 : fa > fb ? 1 : 0;
-      if (fa) return -1;
-      if (fb) return 1;
-      return 0;
+      switch (o.clave) {
+        case 'fecha':
+          return compararConNulosAlFinal(a.created_at, b.created_at, o.dir, (x, y) => (x < y ? -1 : x > y ? 1 : 0));
+        case 'necesidad':
+          return compararConNulosAlFinal(a.fecha_necesidad, b.fecha_necesidad, o.dir, (x, y) => (x < y ? -1 : x > y ? 1 : 0));
+        case 'folio':
+          return compararConNulosAlFinal(a.folio, b.folio, o.dir, (x, y) => x - y);
+        case 'obra':
+          return compararConNulosAlFinal(a.proyecto?.nombre, b.proyecto?.nombre, o.dir, (x, y) => x.localeCompare(y));
+        case 'estado':
+          return compararConNulosAlFinal(this.estadoLabel(a.estado), this.estadoLabel(b.estado), o.dir, (x, y) => x.localeCompare(y));
+        default:
+          return 0;
+      }
     });
   });
 

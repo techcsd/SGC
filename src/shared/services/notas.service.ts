@@ -7,6 +7,7 @@ import {
   NotaChecklistItem,
   NotaChecklistRefTipo,
   TareaVinculable,
+  NotaGrupo,
 } from '../models/nota.model';
 
 export interface DirectorioUsuario {
@@ -31,6 +32,11 @@ export interface GuardarNotaResult {
   conflict: boolean;
   nota: Nota;
 }
+
+// CS2 — imágenes pegadas/arrastradas en notas (bucket privado `notas-imagenes`).
+export const NOTA_IMAGEN_MAX_BYTES = 5 * 1024 * 1024;
+export const NOTA_IMAGEN_MAX_POR_NOTA = 20;
+const NOTA_IMAGEN_PREFIJO = 'nota-img:';
 
 @Injectable({ providedIn: 'root' })
 export class NotasService {
@@ -137,6 +143,93 @@ export class NotasService {
   async eliminarNota(id: string): Promise<void> {
     const { error } = await this.supabase.client.from('notas').delete().eq('id', id);
     if (error) throw new Error(error.message);
+  }
+
+  // ── CS2 — grupos (carpetas anidadas) ─────────────────────────────────────────
+
+  /** Todos MIS grupos (la RLS ya filtra por usuario_id = auth.uid()). */
+  async getGrupos(): Promise<NotaGrupo[]> {
+    const { data, error } = await this.supabase.client.from('nota_grupos').select('*').order('orden').order('nombre');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as NotaGrupo[];
+  }
+
+  async crearGrupo(nombre: string, parentId: string | null, usuarioId: string): Promise<NotaGrupo> {
+    const { data, error } = await this.supabase.client
+      .from('nota_grupos')
+      .insert({ usuario_id: usuarioId, nombre: nombre.trim(), parent_id: parentId })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as NotaGrupo;
+  }
+
+  async renombrarGrupo(id: string, nombre: string): Promise<void> {
+    const { error } = await this.supabase.client.from('nota_grupos').update({ nombre: nombre.trim() }).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Mueve un grupo bajo otro padre (o a nivel raíz si `parentId` es null). El
+   *  trigger de BD rechaza ciclos y más de 4 niveles de profundidad. */
+  async moverGrupo(id: string, parentId: string | null): Promise<void> {
+    const { error } = await this.supabase.client.from('nota_grupos').update({ parent_id: parentId }).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Borra el grupo; sus subgrupos y notas suben al nivel de arriba (trigger de BD). */
+  async eliminarGrupo(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('nota_grupos').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Mueve una nota a un grupo (o a «Sin grupo» si `grupoId` es null). */
+  async moverNotaAGrupo(notaId: string, grupoId: string | null): Promise<void> {
+    const { error } = await this.supabase.client.from('notas').update({ grupo_id: grupoId }).eq('id', notaId);
+    if (error) throw new Error(error.message);
+  }
+
+  // ── CS2 — imágenes pegadas/arrastradas en notas ─────────────────────────────
+
+  /** Cuántas imágenes ya tiene la nota (para el aviso de "máximo 20 por nota"). */
+  private async contarImagenesNota(notaId: string, ownerId: string): Promise<number> {
+    const { data, error } = await this.supabase.client.storage.from('notas-imagenes').list(`${ownerId}/${notaId}`);
+    if (error) return 0; // best-effort: un fallo de listado no debe bloquear pegar
+    return data?.length ?? 0;
+  }
+
+  /** Sube el archivo y devuelve `nota-img:<ruta>` (lo que se guarda en el Markdown). */
+  async subirImagenNota(notaId: string, ownerId: string, file: File): Promise<string> {
+    if (file.size > NOTA_IMAGEN_MAX_BYTES) {
+      throw new Error(`La imagen pesa más de ${Math.round(NOTA_IMAGEN_MAX_BYTES / 1024 / 1024)} MB. Comprímela o recórtala e inténtalo de nuevo.`);
+    }
+    const yaHay = await this.contarImagenesNota(notaId, ownerId);
+    if (yaHay >= NOTA_IMAGEN_MAX_POR_NOTA) {
+      throw new Error(`Esta nota ya tiene ${NOTA_IMAGEN_MAX_POR_NOTA} imágenes (el máximo). Borra alguna antes de agregar otra.`);
+    }
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+    const path = `${ownerId}/${notaId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await this.supabase.client.storage
+      .from('notas-imagenes')
+      .upload(path, file, { contentType: file.type || 'image/png' });
+    if (error) throw new Error(error.message);
+    return `${NOTA_IMAGEN_PREFIJO}${path}`;
+  }
+
+  /** Resuelve `nota-img:<ruta>` a una URL firmada (1 h) para mostrarla. Si ya es
+   *  una URL normal (imagen externa pegada como link), la devuelve tal cual. */
+  async resolverImagenNota(src: string): Promise<string> {
+    if (!src.startsWith(NOTA_IMAGEN_PREFIJO)) return src;
+    const path = src.slice(NOTA_IMAGEN_PREFIJO.length);
+    const { data, error } = await this.supabase.client.storage.from('notas-imagenes').createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) throw new Error(error?.message ?? 'No se pudo generar el enlace de la imagen.');
+    return data.signedUrl;
+  }
+
+  /** Borra el archivo de Storage cuando se quita la imagen de la nota (best-effort). */
+  async borrarImagenNota(src: string): Promise<void> {
+    if (!src.startsWith(NOTA_IMAGEN_PREFIJO)) return;
+    const path = src.slice(NOTA_IMAGEN_PREFIJO.length);
+    await this.supabase.client.storage.from('notas-imagenes').remove([path]).catch(() => { /* best-effort */ });
   }
 
   /**

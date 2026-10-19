@@ -140,8 +140,8 @@ export class AuthService {
       body: { userId: targetId },
     });
     if (error) {
-      const msg = (data as { error?: string } | null)?.error ?? error.message;
-      return { error: msg };
+      const detail = await edgeErrorDetail(error);
+      return { error: detail.message };
     }
     const res = data as { email: string; nombre?: string; token_hash: string; started_at: string; error?: string };
     if (res?.error) return { error: res.error };

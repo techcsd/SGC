@@ -168,3 +168,60 @@
   font-size: 12.5px;
   color: var(--sgc-text-muted, #9aa8ba);
 }
+
+// CS2 — estado de subida/error de imágenes pegadas/arrastradas.
+.re__imagen-estado {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--sgc-text-muted, #6b7280);
+}
+.re__imagen-error {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--sgc-danger, #b91c1c);
+}
+
+// CS2 — NodeView de la imagen (nota-imagen.extension.ts): el ::ng-deep aplica
+// porque ProseMirror inyecta este DOM fuera del template de Angular.
+.re__host ::ng-deep .nota-img {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: 4px 0;
+
+  &__img {
+    display: block;
+    max-width: 100%;
+    border-radius: var(--sgc-radius-md, 10px);
+    border: 1px solid var(--sgc-border, #e2e5ea);
+  }
+  &__estado {
+    padding: 10px 12px;
+    font-size: 12.5px;
+    color: var(--sgc-text-muted, #6b7280);
+    border: 1px dashed var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius-md, 10px);
+  }
+  &__toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover &__toolbar, &__toolbar:focus-within { opacity: 1; }
+  &__btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    background: color-mix(in srgb, #0f1f33 72%, transparent);
+    color: #fff;
+    cursor: pointer;
+    &:hover { background: #0f1f33; }
+    &--danger:hover { background: var(--sgc-danger, #b91c1c); }
+  }
+}

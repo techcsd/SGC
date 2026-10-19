@@ -20,6 +20,18 @@ export interface Nota {
   mi_permiso?: NotaPermiso;
   /** CQ2 — última vez que "Mandar a ronda" copió esta nota al portapapeles. */
   enviada_a_ronda_at?: string | null;
+  /** CS2 — carpeta (grupo) a la que pertenece, null = «Sin grupo». */
+  grupo_id?: string | null;
+}
+
+/** CS2 — carpeta anidada (hasta 4 niveles) para organizar notas, por dueño. */
+export interface NotaGrupo {
+  id: string;
+  usuario_id: string;
+  parent_id: string | null;
+  nombre: string;
+  orden: number;
+  created_at: string;
 }
 
 /** AD9 — un ítem de checklist estructurado de una nota. Puede vincularse a una Tarea.

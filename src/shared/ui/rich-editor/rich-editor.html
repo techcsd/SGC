@@ -3,6 +3,12 @@
     <div class="re__placeholder" aria-hidden="true">{{ placeholder() }}</div>
   }
   <div #host class="re__host"></div>
+  @if (subiendoImagen()) {
+    <div class="re__imagen-estado" role="status">Subiendo imagen…</div>
+  }
+  @if (errorImagen()) {
+    <div class="re__imagen-error" role="alert">{{ errorImagen() }}</div>
+  }
 </div>
 
 @if (slash(); as s) {
