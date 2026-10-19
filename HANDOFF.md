@@ -15,6 +15,8 @@ Contexto completo: `C:\developer\improvements\octubre 2026\imp 19102026\CONTEXTO
 
 **6 migraciones en dev** (ledger `sgc.migraciones_aplicadas`): `cs2-nota-grupos`, `cs2-notas-imagenes`, `cs4-sesiones`, `cs5-conector-cobertura`, `cs10-reuniones-google-event-unico`. 1 edge nueva (`reuniones-mi-calendario`) + 12 edges redeployadas (guard 42501) + `mcp`/`assistant` redeployadas (nuevas tools).
 
+**🔴 Hallazgo mayor (post-OK de Xaviel, probado con Playwright real contra `localhost` + dev Supabase — `dev.sgcconstructorasd.com` está detrás del login de Vercel, sin permiso para generar un bypass token):** "Entrar como" seguía sin funcionar en el navegador real incluso con los arreglos CS6/CS7, porque el preflight CORS de **40 edges** (no solo las 12 del guard) rechazaba `x-sgc-client` (header que `SupabaseService` manda en TODA petición, para `auditoria.origen`). Era el defecto ya anotado en la ronda CR como "26 edges más comparten el mismo defecto (pendiente)" — esta ronda lo cerró en los 40 que faltaban. **Verificado end-to-end en navegador real**: "Entrar como", la nota nueva en la lista tras cerrar rápido, Sesión y dispositivos con datos reales, y el orden por columna de Requisiciones — los 4 confirmados visualmente, no solo por API. Commit `b809772`.
+
 **Pendientes físicos (lista única, ver el reporte de la ronda para el detalle completo):**
 1. Probar en dev (`dev.sgcconstructorasd.com`): "entrar como", crear una nota y cerrarla rápido, Ctrl+V en Dev notes y en Reportes, copiar una imagen y pegarla en Claude Desktop, Sesión y dispositivos con dos dispositivos reales.
 2. Probar el conector con Claude Desktop real contra dev (preguntar por Dev notes, Mensajes, Compras, Legal…).
