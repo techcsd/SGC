@@ -70,21 +70,26 @@
 1. 1-2 cotizaciones reales (PDF y foto) para probar `leer-cotizacion` con datos de verdad en producción.
 2. Hacer la prueba del APK 2.54/2.55 en el Samsung (pendiente de CP/CQ7, no se puede automatizar).
 
-## CR (filas 247-250) — tanda nueva, 18-oct — 🧪 **EN DEV** (worktree `../SGC-cr`, NO en main todavía)
+## CR (filas 247-250) — tanda nueva, 18-19/oct — ✅ **COMPLETA EN DEV (1.194.0)**, prod espera OK de Xaviel
 
 | # | Nota (literal) | ID | Dónde vive | Estado |
 |---|---|---|---|---|
-| 247 | *"Eduardo NG wants to make the system accesible to claude, yes claude desktop... we gonna connect our system with claude trough api or if a better way exist, let me know."* | **CR1** | CONTEXTO-51 §A-B · mocks `Main`/`Perfil-claude`/`Admin-claude`/`Borrador-claude`/`Perfil-claude-app` · **PROMPT-104 F0-F7, F9** | 🧪 FASE 0 completa en dev; FASE 1+ en construcción. |
+| 247 | *"Eduardo NG wants to make the system accesible to claude, yes claude desktop... we gonna connect our system with claude trough api or if a better way exist, let me know."* | **CR1** | CONTEXTO-51 §A-B · mocks `Main`/`Perfil-claude`/`Admin-claude`/`Borrador-claude`/`Perfil-claude-app` · **PROMPT-104 F0-F9** | ✅ Las 10 fases completas, verificadas en dev. `main`/prod sin tocar — espera que Xaviel pruebe en dev y dé el OK. |
 | 248 | *(hallazgo)* El inicio de sesión de Supabase para MCP está en beta y exige claves de firma asimétricas | **CR2** | CONTEXTO-51 §C | ✅ **Resuelto sin trabajo**: dev y prod ya firman con ES256 desde sep/jun-2026 (verificado por API, ver `docs/CLAUDE-CONECTOR.md`). |
-| 249 | *(hallazgo)* `release-check` da PASS a una prueba que dice "(pendiente)" | **CR3** | CONTEXTO-51 §D · PROMPT-104 F8 | 🆕 pendiente (FASE 8 de esta ronda). |
+| 249 | *(hallazgo)* `release-check` da PASS a una prueba que dice "(pendiente)" | **CR3** | CONTEXTO-51 §D · PROMPT-104 F8 | ✅ `scripts/lib/ok-linea.mjs` exige fecha + sin negaciones cerca de la línea `OK:`. 4/4 casos de prueba verdes. 👤 pendiente avisar al PROMPT-105 (mismo fix en csd-app). |
 | 250 | *(hallazgo)* La prueba de actualización en el teléfono se saltó por 3ª vez | **CR4** | CONTEXTO-51 §E | 👤 de `csd-app` (PROMPT-105), no de esta ronda. |
 
-**FASE 0 — hecho hoy (18-oct):**
-- Servidor OAuth de Supabase **activado en dev por la Management API** (sin pedirle el clic a Xaviel): `oauth_server_enabled=true`, `authorization_path=/oauth/consent`, registro dinámico encendido. Prod sigue apagado (se activa en la promoción final).
-- Edge `mcp` mínima desplegada en dev (v2) con una tool (`quien_soy`); verificada de punta a punta: 401+`WWW-Authenticate`, metadata del recurso protegido, `tools/list`/`tools/call` con una sesión real (`qa_admin`), token inválido → 401, y registro dinámico de un cliente con el `redirect_uri` real de Claude → 201.
-- `docs/CLAUDE-CONECTOR.md` con todo lo confirmado hoy (fuentes releídas, no de memoria).
+**Resumen de las 10 fases — ver el detalle completo en `HANDOFF.md` (TL;DR PROMPT-104).**
+Dos hallazgos de seguridad no planeados, encontrados auditando esto mismo (FASE 5):
+(1) 🔴 `sgc.get_resend_api_key()` en DEV tenía grant `PUBLIC` — cualquiera sin login
+podía pedir la API key real de Resend; corregido (prod nunca lo tuvo). (2) CORS:
+faltaba `x-sgc-client` en `assistant` y en la nueva `claude-borrador` — cualquier
+llamada desde el navegador fallaba en el preflight; corregido en ambas.
 
-**Pendientes físicos de Xaviel (tanda CR, hasta ahora):**
-1. Probar el conector **con Claude Desktop real** contra dev cuando FASE 3-6 estén listas (necesita la pantalla `/oauth/consent`, que todavía no existe).
-2. Saber quién es el **Owner/Primary Owner** de la cuenta Claude Team de la empresa (para agregar el conector a nivel organización).
-3. OK para activar el servidor OAuth + migrar lo que falte en **prod** (al cierre de la ronda).
+**Pendientes físicos de Xaviel (tanda CR):**
+1. Probar en dev (Perfil › Claude, Admin › Claude, y si se puede, conectar Claude
+   Desktop real — MCP Inspector ya cubrió el protocolo completo).
+2. Saber quién es el **Owner/Primary Owner** de la cuenta Claude Team de la empresa.
+3. Con su OK: activar el servidor OAuth en prod + 4 migraciones + edges nuevas/tocadas
+   (checklist en `docs/CLAUDE-CONECTOR.md`).
+4. `OK:` con fecha en `qa/release-1.194.0.md` (el gate de FASE 8 ya lo exige).

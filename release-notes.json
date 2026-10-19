@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.194.0": {
+      "titulo": "Conecta el SGC con Claude Desktop",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Perfil",
+          "d": "Ahora puedes conectar el SGC con Claude Desktop (tu propia cuenta de Claude, con tu propio modelo) y preguntarle por tus obras, requisiciones, flota o reuniones sin abrir Compa — Claude solo ve lo que tú ves. Puede preparar borradores de tarea, requisición o conduce, pero nunca crea nada por su cuenta: te manda un enlace y tú lo confirmas. Actívalo en Perfil › Claude."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nueva pantalla Admin › Claude: quién conectó Claude al SGC, qué consultó, cuántos borradores dejó preparados, y un botón para revocar la conexión de cualquier persona."
+        }
+      ]
+    },
     "1.193.0": {
       "titulo": "Importar más fácil, Compras tecnológicas con lectura automática, Auditoría legible y Dev notes con formato real",
       "cambios": [
