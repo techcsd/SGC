@@ -1,12 +1,16 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-104 (Ronda CR) — 18-19/10/2026 — 🧪 **EN DEV, versión 1.194.0** (push a `dev` hecho; `main`/prod sin tocar, espera OK de Xaviel)
+## TL;DR — PROMPT-104 (Ronda CR) — 18-19/10/2026 — ✅ **EN PROD** (web **1.194.0**, `main`=`dev`=`6f5fe9d`)
 
 **Conecta el SGC con Claude Desktop** (CR1) — Eduardo NG pedía usar el sistema desde
 *su* Claude, con su cuenta, más potencia, sin pasar por Compa. Sesión autónoma larga
-(worktree `../SGC-cr`), FASE 0-9 completas con verificación real en dev en cada paso
-(no solo "debería funcionar" — evidencia con curl/Node/Playwright contra el backend
-real). Commits en `feature/cr-ronda`, mergeados y pusheados a `dev`.
+(worktree `../SGC-cr`), FASE 0-9 completas con verificación real en cada paso (no
+solo "debería funcionar" — evidencia con curl/Node/Playwright contra el backend
+real). Promovido a prod con el OK explícito de Xaviel (2026-10-19: *"i give u my
+OK, do all the stuff"*) — servidor OAuth activado en prod, 5 migraciones aplicadas
+y verificadas por objeto, 15 edges desplegadas, `dev → main` mergeado y pusheado.
+**Xaviel ya conectó su Claude Desktop real contra prod y lo probó con una
+pregunta real — respondió bien** (cierra el único pendiente que quedaba).
 
 **Hallazgos no planeados, encontrados y arreglados en el camino:**
 1. 🔴 **`sgc.get_resend_api_key()` en DEV tenía `GRANT EXECUTE` a `PUBLIC`** — cualquiera,
@@ -55,18 +59,19 @@ real). Commits en `feature/cr-ronda`, mergeados y pusheados a `dev`.
   de FASE 3) verdes. `release-check.mjs --env dev --version 1.194.0` → **5/5 PASS**.
   Versión 1.194.0, `release-notes.json` curado, `qa/release-1.194.0.md`.
 
-**Pendientes físicos/de Xaviel (nada de código):**
-1. Quién es el **Owner/Primary Owner** de la cuenta Claude Team/Enterprise de la empresa
-   (para agregar el conector a nivel organización — paso a paso en `docs/CLAUDE-CONECTOR.md` §9).
-2. **Probar en dev** (`dev.sgcconstructorasd.com`): Perfil › Claude, Admin › Claude, y si
-   es posible, conectar Claude Desktop de verdad contra dev (MCP Inspector ya cubrió el
-   protocolo completo, pero no reemplaza la prueba real).
-3. Con su OK: activar el servidor OAuth en **prod** + aplicar las 4 migraciones de esta
-   ronda + desplegar las edges nuevas/tocadas (`mcp`, `claude-borrador`, `claude-conexiones`,
-   `assistant`, 11× `admin-*`) — orden y checklist en `docs/CLAUDE-CONECTOR.md`.
-4. Revisar el hallazgo #1 (grant público de la API key de Resend) y decidir si vale la
-   pena el barrido más amplio de las ~30 funciones con grant `PUBLIC` solo-dev.
-5. `OK:` con fecha en `qa/release-1.194.0.md` antes de promover (el gate ya lo exige).
+**Ya resuelto (lo que eran pendientes físicos al cerrar la ronda):**
+1. ✅ Owner de Claude Team: Xaviel recibió el rol de Owner, agregó el conector
+   a nivel organización (`docs/CLAUDE-CONECTOR.md` §9), lo conectó con su
+   propia cuenta en prod y lo probó con una pregunta real — respondió bien.
+2. ✅ Prod promovido con su OK (2026-10-19): servidor OAuth activado, 5
+   migraciones + 15 edges desplegadas, `dev → main` pusheado, `sgc.app_versiones`
+   confirma 1.194.0 en prod.
+
+**Pendientes físicos/de Xaviel (lo único que queda, nada de código):**
+1. Revisar el hallazgo del grant público de la API key de Resend (ya corregido
+   en dev y prod) y decidir si vale la pena el barrido más amplio de las ~30
+   funciones con grant `PUBLIC` solo-dev — queda para Tecnología, no bloquea nada.
+2. Avisar al PROMPT-105 (csd-app) del mismo fix de `release-check` (CR3).
 
 ---
 
