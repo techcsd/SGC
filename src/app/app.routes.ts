@@ -97,6 +97,14 @@ export const routes: Routes = [
         redirectTo: () => inject(Router).parseUrl('/configuracion#cuenta'),
       },
       {
+        // CR1 (FASE 6) — Perfil › Claude (mock Perfil-claude). Ruta propia (no
+        // una pestaña de Configuración: es una pantalla rica, como Mensajes/Notas).
+        path: 'configuracion/claude',
+        loadComponent: () =>
+          import('./pages/configuracion/claude/configuracion-claude').then((m) => m.ConfiguracionClaude),
+        title: 'Claude — Perfil',
+      },
+      {
         // AT23/BS3 — Ajustes › Notificaciones vive ahora en Configuración › Notificaciones.
         // Sin gate de módulo: preferencia personal. Los deep-links de correos siguen vivos.
         path: 'ajustes/notificaciones',

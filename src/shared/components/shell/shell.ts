@@ -492,6 +492,7 @@ export class Shell implements OnInit {
       { label: 'Usuarios duplicados', route: '/admin/usuarios-duplicados' },
       { label: 'Solicitudes de eliminación', route: '/admin/solicitudes-eliminacion' },
       { label: 'Auditoría', route: '/admin/auditoria' },
+      { label: 'Claude', route: '/admin/claude' },
       { label: 'Animaciones', route: '/admin/animaciones' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],

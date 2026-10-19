@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 6%** (42/654 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 7%** (43/655 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,7 +12,7 @@
 | inventario/requisiciones | scope | 245 | 0 | 245 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
-| configuracion | scope | 62 | 40 | 22 | 65% |
+| configuracion | scope | 63 | 41 | 22 | 65% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 150 | 0 | 150 | 0% |
@@ -159,10 +159,12 @@
 | app-movil | - | 55 | 8 | 47 | 15% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
-| asistente | - | 54 | 26 | 28 | 48% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
+| asistente | - | 55 | 27 | 28 | 49% |
 | reuniones/reuniones-lista | - | 75 | 37 | 38 | 49% |
 | reuniones/reunion-ficha | - | 53 | 27 | 26 | 51% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
+| configuracion/claude | - | 37 | 24 | 13 | 65% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
+| admin/claude | - | 27 | 22 | 5 | 81% |
