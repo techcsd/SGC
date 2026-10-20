@@ -6,6 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
@@ -65,6 +66,7 @@ export class Entradas implements OnInit {
   private ordenesCompraService = inject(OrdenesCompraService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
+  private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
   private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
@@ -544,6 +546,13 @@ export class Entradas implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // CT3c — "Registrar entrada de esta orden" (Compras › Órdenes) llega con ?oc=<id>:
+    // abre el drawer con esa OC ya precargada (misma precarga de onOrdenCompraChange).
+    const ocId = this.route.snapshot.queryParamMap.get('oc');
+    if (ocId) {
+      this.openCreate();
+      await this.onOrdenCompraChange(ocId);
+    }
   }
 
   private async loadAll() {

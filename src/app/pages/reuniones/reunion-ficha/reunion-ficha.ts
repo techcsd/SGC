@@ -46,6 +46,9 @@ export class ReunionFicha implements OnInit {
   creandoAcuerdo = signal(false);
   creandoTareas = signal(false);
 
+  sincronizandoCalendar = signal(false);
+  cancelando = signal(false);
+
   esOrganizadorOAdmin = computed(() => {
     const d = this.detalle();
     if (!d) return false;
@@ -162,6 +165,33 @@ export class ReunionFicha implements OnInit {
       this.toast.error(this.i18n.t('No se pudieron crear las tareas'), e instanceof Error ? e.message : undefined);
     } finally {
       this.creandoTareas.set(false);
+    }
+  }
+
+  async reintentarCalendar() {
+    this.sincronizandoCalendar.set(true);
+    try {
+      const r = await this.service.reintentarSincronizacion(this.id(), 'crear');
+      if (r.conectado) this.toast.success(this.i18n.t('Sincronizado con Google Calendar'));
+      else if (r.motivo === 'no_configurado') this.toast.error(this.i18n.t('Google Calendar no está conectado'), r.mensaje);
+      else this.toast.error(this.i18n.t('No se pudo sincronizar con Google Calendar'), r.mensaje);
+      await this.cargar();
+    } finally {
+      this.sincronizandoCalendar.set(false);
+    }
+  }
+
+  async cancelarReunion() {
+    if (!confirm(this.i18n.t('¿Cancelar esta reunión? Se avisará por Google Calendar si está conectado.'))) return;
+    this.cancelando.set(true);
+    try {
+      await this.service.cancelar(this.id());
+      this.toast.success(this.i18n.t('Reunión cancelada'));
+      await this.cargar();
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo cancelar la reunión'), e instanceof Error ? e.message : undefined);
+    } finally {
+      this.cancelando.set(false);
     }
   }
 

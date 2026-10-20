@@ -248,7 +248,7 @@ export class ReunionesLista implements OnInit {
     }
     this.guardando.set(true);
     try {
-      const id = await this.service.crear({
+      const { id, calendar } = await this.service.crear({
         tipoId, titulo, inicio: inicio.toISOString(), fin: fin.toISOString(),
         modalidad: this.nuevoModalidad(), lugar: this.nuevoLugar().trim() || null,
         proyectoId: this.nuevoProyectoId(),
@@ -256,7 +256,14 @@ export class ReunionesLista implements OnInit {
         participantesExternos: this.nuevosExternos(),
         agenda: this.nuevaAgenda(),
       });
-      this.toast.success(this.i18n.t('Reunión programada'));
+      // CT1 — aviso honesto del resultado real de Calendar (antes se descartaba).
+      if (calendar.conectado) {
+        this.toast.success(this.i18n.t('Reunión creada'), this.i18n.t('Se creó el evento en Google Calendar.'));
+      } else if (calendar.motivo === 'no_configurado') {
+        this.toast.success(this.i18n.t('Reunión creada'), this.i18n.t('Google Calendar no está conectado: copia la invitación y mándala tú.'));
+      } else {
+        this.toast.error(this.i18n.t('Reunión creada, pero Google Calendar falló'), calendar.mensaje);
+      }
       this.drawerOpen.set(false);
       await this.router.navigate(['/reuniones', id]);
     } catch (e) {

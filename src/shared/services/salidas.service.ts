@@ -488,6 +488,25 @@ export class SalidasService {
     if (error) throw new Error(error.message);
   }
 
+  /** CT8 — cambia el despachante DESPUÉS de emitido (ficha del conduce). Si ya
+   *  firmó, el servidor exige admin + `motivo` (queda auditado). `p_motivo` solo
+   *  hace falta en ese caso. */
+  async cambiarDespachante(
+    salidaId: string,
+    nuevo: { nombre?: string | null; usuarioId?: string | null; empleadoId?: string | null },
+    motivo?: string | null,
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('conduce_cambiar_despachante', {
+      p_salida_id: salidaId,
+      p_despachante_nombre: nuevo.nombre ?? null,
+      p_despachante_usuario_id: nuevo.usuarioId ?? null,
+      p_despachante_empleado_id: nuevo.empleadoId ?? null,
+      p_motivo: motivo ?? null,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   /** AV5/BJ3 — feature flag del wizard de conduce en la web. Se lee por RPC
    *  SECURITY DEFINER (`conduce_wizard_web_habilitado`): la tabla `parametros`
    *  solo la puede leer admin/dirección, y quien crea conduces (chofer/almacén)

@@ -71,11 +71,12 @@ export class OrdenesCompraService {
     return this.getById(ordenId as string);
   }
 
-  /** Transition validity (borrador -> aprobada|cancelada, aprobada -> recibida|cancelada) is enforced server-side. */
-  async updateEstado(id: string, estado: OrdenEstado): Promise<void> {
+  /** Transition validity (borrador -> aprobada|cancelada, aprobada -> recibida|cancelada) is enforced server-side.
+   *  CT3c — pasar a "recibida" con reconciliación incompleta exige `motivo` (solo admin; el servidor lo valida igual). */
+  async updateEstado(id: string, estado: OrdenEstado, motivo?: string | null): Promise<void> {
     const { error } = await this.supabase.client
       .schema('sgc')
-      .rpc('actualizar_estado_orden', { p_orden_id: id, p_nuevo_estado: estado });
+      .rpc('actualizar_estado_orden', { p_orden_id: id, p_nuevo_estado: estado, p_motivo: motivo ?? null });
 
     if (error) throw new Error(error.message);
   }

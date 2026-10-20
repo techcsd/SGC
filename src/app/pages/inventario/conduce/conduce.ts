@@ -217,6 +217,18 @@ export class Conduce implements OnInit {
   /** CK4 — flota elevada (para ofrecer "Buscar otro usuario" fuera de la obra). */
   esElevado = computed(() => this.userService.esFlotaElevado());
 
+  // ── CT8 — "Cambiar" despachante (Raykler: corregir error humano de quién despachó) ──
+  /** Mismo universo de permiso que "Entregar a": flota elevada o el creador del conduce. */
+  puedeCambiarDespachante = computed(() => {
+    const s = this.salida();
+    return !!s && s.estado !== 'anulado' && (this.userService.esFlotaElevado() || s.creado_por === this.userService.profile()?.id);
+  });
+  despachanteOpen = signal(false);
+  despachantesPicker = signal<{ tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null }[]>([]);
+  selDespachante = signal<string | null>(null); // "usuario:<id>" | "empleado:<id>"
+  despachanteMotivo = signal('');
+  despachanteBusy = signal(false);
+
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.numeroConduce = conduceNumero(id);
@@ -425,6 +437,50 @@ export class Conduce implements OnInit {
       this.toast.error('No se pudo asignar', e instanceof Error ? e.message : undefined);
     } finally {
       this.receptorBusy.set(false);
+    }
+  }
+
+  // ── CT8 — "Cambiar" despachante ──
+  async abrirCambiarDespachante() {
+    const s = this.salida();
+    if (!s) return;
+    this.selDespachante.set(
+      s.despachante_usuario_id ? `usuario:${s.despachante_usuario_id}`
+        : s.despachante_empleado_id ? `empleado:${s.despachante_empleado_id}` : null,
+    );
+    this.despachanteMotivo.set('');
+    this.despachanteOpen.set(true);
+    if (this.despachantesPicker().length === 0) {
+      try {
+        this.despachantesPicker.set(await this.salidasService.getDespachantes(s.bodega_id ?? null, s.proyecto_id ?? null));
+      } catch { /* opcional */ }
+    }
+  }
+
+  async confirmarCambiarDespachante() {
+    const s = this.salida();
+    if (!s || this.despachanteBusy()) return;
+    const sel = this.selDespachante();
+    if (!sel) { this.toast.error('Elige quién despachó', 'Selecciona a la persona de la lista.'); return; }
+    const [tipo, id] = sel.split(':');
+    if (this.firmaEmisor() && !this.despachanteMotivo().trim()) {
+      this.toast.error('Falta el motivo', 'El despachante anterior ya firmó: da un motivo para cambiarlo.');
+      return;
+    }
+    this.despachanteBusy.set(true);
+    try {
+      await this.salidasService.cambiarDespachante(
+        s.id,
+        { usuarioId: tipo === 'usuario' ? id : null, empleadoId: tipo === 'empleado' ? id : null },
+        this.despachanteMotivo().trim() || null,
+      );
+      this.toast.success('Despachante cambiado', 'Se avisó a la persona nueva (y a la anterior, si aplica).');
+      this.despachanteOpen.set(false);
+      await this.recargarSalida();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cambiar el despachante', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.despachanteBusy.set(false);
     }
   }
 

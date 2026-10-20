@@ -430,6 +430,7 @@ export class Shell implements OnInit {
         { label: 'Conversaciones de Compa', route: '/admin/compa-conversaciones', soloAdmin: true },
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
         { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
+        { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
       ],
     },
     {

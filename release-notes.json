@@ -1,5 +1,40 @@
 {
   "web": {
+    "1.196.0": {
+      "titulo": "Reuniones avisa si Google Calendar falló, imágenes de Dev notes con pantalla completa, órdenes de compra exigen inventario real",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Reuniones",
+          "d": "Ahora se ve de verdad si una reunión quedó sincronizada con Google Calendar, no conectada, o con error (con el motivo) — antes el sistema se quedaba callado y la reunión parecía creada sin más. Botón «Reintentar» en la ficha, y se agregó «Cancelar reunión» (no existía ninguna forma de cancelar una reunión del SGC)."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Dev notes: las imágenes pegadas ahora se ven en un tamaño razonable (antes una captura de teléfono podía ocupar varias pantallas), con un botón para verlas a pantalla completa y «Quitar» siempre visible (antes solo aparecía al pasar el mouse) con confirmación antes de borrar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "Una orden de compra ya no se puede marcar «recibida» si el inventario todavía no recibió esos artículos de verdad (repite el caso de la OC-202610-0006) — un admin puede forzarlo dando un motivo, que queda registrado. Se agregó el botón «Registrar entrada de esta orden» para ir directo a Entradas con esa orden precargada."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Si mandas la misma requisición dos veces por error (mismos renglones, misma obra, menos de 24 horas), el sistema ya no crea una segunda — reutiliza la que ya existe y avisa cuál es."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Ya se puede corregir «Despachado por» en un conduce después de emitido (botón «Cambiar», junto a «Entregar a») — antes era solo texto y un error humano quedaba sin forma de arreglarse."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nuevo panel «Envíos automáticos» (Tecnología) con un interruptor por reporte (Resumen semanal de operaciones, Incentivo semanal, Avisos de reporte semanal, Cronograma) — antes la única forma de evitar un envío de prueba era desprogramar el cron a mano."
+        }
+      ]
+    },
     "1.195.0": {
       "titulo": "Dev notes con grupos e imágenes, Sesión y dispositivos real, Claude lee todo el SGC",
       "cambios": [

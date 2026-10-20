@@ -104,11 +104,19 @@
                     </svg>
                   </span>
                 }
+                @if (r.calendar_sync_estado === 'error') {
+                  <span class="rl__item-calendar rl__item-calendar--error" title="{{ 'Google Calendar: no se pudo sincronizar' | t }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </span>
+                }
               </span>
               <span class="rl__item-meta">{{ r.tipo_nombre }} @if (r.proyecto_nombre) { · {{ r.proyecto_nombre }} } · {{ duracion(r.inicio, r.fin) }} · {{ r.participantes_n }} {{ 'participantes' | t }}</span>
             </span>
             @if (r.estado === 'acta_borrador') { <span class="sgc-badge sgc-badge--warning">{{ 'Acta pendiente' | t }}</span> }
             @if (r.estado === 'acta_aprobada') { <span class="sgc-badge sgc-badge--success">{{ 'Acta aprobada' | t }}</span> }
+            @if (r.estado === 'cancelada') { <span class="sgc-badge">{{ 'Cancelada' | t }}</span> }
           </button>
         }
       }
@@ -128,11 +136,19 @@
                     </svg>
                   </span>
                 }
+                @if (r.calendar_sync_estado === 'error') {
+                  <span class="rl__item-calendar rl__item-calendar--error" title="{{ 'Google Calendar: no se pudo sincronizar' | t }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </span>
+                }
               </span>
               <span class="rl__item-meta">{{ r.tipo_nombre }} @if (r.proyecto_nombre) { · {{ r.proyecto_nombre }} } · {{ duracion(r.inicio, r.fin) }} · {{ r.participantes_n }} {{ 'participantes' | t }}</span>
             </span>
             @if (r.estado === 'acta_borrador') { <span class="sgc-badge sgc-badge--warning">{{ 'Acta pendiente' | t }}</span> }
             @if (r.estado === 'acta_aprobada') { <span class="sgc-badge sgc-badge--success">{{ 'Acta aprobada' | t }}</span> }
+            @if (r.estado === 'cancelada') { <span class="sgc-badge">{{ 'Cancelada' | t }}</span> }
           </button>
         }
       }

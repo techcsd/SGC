@@ -63,6 +63,7 @@
 .rl__item-top { display: flex; align-items: center; gap: 8px; }
 .rl__item-titulo { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rl__item-fireflies { color: var(--accent); display: inline-flex; }
+.rl__item-calendar--error { color: var(--danger); display: inline-flex; }
 .rl__item-meta { font-size: 12px; color: var(--text-3); }
 
 .rl__empty { color: var(--text-3); font-size: 13px; padding: 30px; text-align: center; }

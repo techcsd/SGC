@@ -3,12 +3,12 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 7%** (47/660 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 7%** (47/674 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
-| inventario/conduce | scope | 212 | 0 | 212 | 0% |
+| inventario/conduce | scope | 226 | 0 | 226 | 0% |
 | inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
@@ -44,7 +44,7 @@
 | bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | bitacora/solicitudes-material | - | 126 | 0 | 126 | 0% |
-| compras/ordenes | - | 166 | 0 | 166 | 0% |
+| compras/ordenes | - | 169 | 0 | 169 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
 | dashboard | - | 141 | 0 | 141 | 0% |
@@ -137,6 +137,7 @@
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
 | tecnologia/dev-notes | - | 96 | 0 | 96 | 0% |
+| tecnologia/envios-automaticos | - | 19 | 0 | 19 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -159,10 +160,10 @@
 | app-movil | - | 55 | 8 | 47 | 15% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
-| reuniones/reuniones-lista | - | 95 | 45 | 50 | 47% |
+| reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | asistente | - | 55 | 27 | 28 | 49% |
-| reuniones/reunion-ficha | - | 53 | 27 | 26 | 51% |
+| reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
