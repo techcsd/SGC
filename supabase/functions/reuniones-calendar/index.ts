@@ -97,7 +97,11 @@ Deno.serve(async (req: Request) => {
   if (!reunionId) return json({ error: "Falta reunion_id" }, 400);
 
   if (!SA_JSON || !DELEGATED_USER) {
-    return json({ conectado: false, mensaje: "Calendar no conectado. Copia la invitación y mándala tú — avísale a Tecnología que falta configurar Google Calendar." });
+    const mensaje = "Calendar no conectado. Copia la invitación y mándala tú — avísale a Tecnología que falta configurar Google Calendar.";
+    await supabase.from("reuniones").update({
+      calendar_sync_estado: "no_conectado", calendar_sync_error: mensaje, calendar_sync_at: new Date().toISOString(),
+    }).eq("id", reunionId);
+    return json({ conectado: false, mensaje, motivo: "no_configurado" });
   }
 
   // Trae la reunión + participantes CON el JWT del usuario (RLS: solo si puede verla).
@@ -122,6 +126,9 @@ Deno.serve(async (req: Request) => {
           method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` },
         });
       }
+      await supabase.from("reuniones").update({
+        calendar_sync_estado: "sincronizado", calendar_sync_error: null, calendar_sync_at: new Date().toISOString(),
+      }).eq("id", reunionId);
       return json({ conectado: true, cancelado: true });
     }
 
@@ -143,13 +150,26 @@ Deno.serve(async (req: Request) => {
       method, headers: { Authorization: `Bearer ${accessToken}`, "content-type": "application/json" }, body: JSON.stringify(body),
     });
     const ev = await evRes.json();
-    if (!evRes.ok) return json({ error: `No se pudo crear el evento: ${ev.error?.message ?? "error"}` }, 502);
+    if (!evRes.ok) {
+      const motivo = ev.error?.message ?? "error";
+      await supabase.from("reuniones").update({
+        calendar_sync_estado: "error", calendar_sync_error: motivo, calendar_sync_at: new Date().toISOString(),
+      }).eq("id", reunionId);
+      return json({ conectado: false, error: `No se pudo crear el evento: ${motivo}` }, 502);
+    }
 
     const enlace = ev.hangoutLink ?? ev.conferenceData?.entryPoints?.find((e: Any) => e.entryPointType === "video")?.uri ?? null;
-    await supabase.from("reuniones").update({ google_event_id: ev.id, enlace, updated_at: new Date().toISOString() }).eq("id", reunionId);
+    await supabase.from("reuniones").update({
+      google_event_id: ev.id, enlace, updated_at: new Date().toISOString(),
+      calendar_sync_estado: "sincronizado", calendar_sync_error: null, calendar_sync_at: new Date().toISOString(),
+    }).eq("id", reunionId);
 
     return json({ conectado: true, google_event_id: ev.id, enlace });
   } catch (e) {
-    return json({ error: `No se pudo conectar con Google Calendar: ${e instanceof Error ? e.message : "error"}` }, 502);
+    const motivo = e instanceof Error ? e.message : "error";
+    await supabase.from("reuniones").update({
+      calendar_sync_estado: "error", calendar_sync_error: motivo, calendar_sync_at: new Date().toISOString(),
+    }).eq("id", reunionId);
+    return json({ conectado: false, error: `No se pudo conectar con Google Calendar: ${motivo}` }, 502);
   }
 });

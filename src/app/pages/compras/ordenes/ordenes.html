@@ -509,6 +509,15 @@
         }
       </div>
 
+      @if (orden.estado === 'recibida' && reconciliacionIncompleta()) {
+        <div class="detail-estado__aviso">
+          <span>Figura recibida pero el inventario no recibió estos artículos.</span>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="irARegistrarEntrada(orden)">
+            Registrar entrada de esta orden
+          </button>
+        </div>
+      }
+
       <!-- Items table -->
       @if (orden.items && orden.items.length > 0) {
         <div class="detail-items">

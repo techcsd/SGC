@@ -64,8 +64,10 @@ export class SolicitudesMaterialService {
     return (data ?? []) as unknown as SolicitudMaterial[];
   }
 
-  async create(payload: SolicitudMaterialFormData): Promise<SolicitudMaterial> {
-    const { data: id, error } = await this.supabase.client.rpc('crear_solicitud_material', {
+  /** CT4/CT7 — el servidor detecta duplicado (mismo solicitante+obra+renglones en
+   *  24h) y devuelve `duplicadaDe` sin crear otra fila; el llamador decide el aviso. */
+  async create(payload: SolicitudMaterialFormData): Promise<{ solicitud: SolicitudMaterial; duplicadaDe: string | null; folio: string }> {
+    const { data: resultado, error } = await this.supabase.client.rpc('crear_solicitud_material', {
       p_proyecto_id: payload.proyecto_id,
       p_solicitante_id: payload.solicitante_id,
       p_urgencia: payload.urgencia,
@@ -75,17 +77,20 @@ export class SolicitudesMaterialService {
     });
 
     if (error) throw new Error(error.message);
+    const r = resultado as { id: string; duplicada_de: string | null; folio: string };
 
     const { data, error: fetchError } = await this.supabase.client
       .from('solicitudes_material')
       .select(SELECT_QUERY)
-      .eq('id', id as string)
+      .eq('id', r.id)
       .single();
 
     if (fetchError) throw new Error(fetchError.message);
-    notificarSolicitud(this.supabase.client, 'material', id as string, 'creada');
-    this.notificaciones.refresh();
-    return data as unknown as SolicitudMaterial;
+    if (!r.duplicada_de) {
+      notificarSolicitud(this.supabase.client, 'material', r.id, 'creada');
+      this.notificaciones.refresh();
+    }
+    return { solicitud: data as unknown as SolicitudMaterial, duplicadaDe: r.duplicada_de, folio: r.folio };
   }
 
   /**

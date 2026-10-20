@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
@@ -89,6 +89,7 @@ export class Ordenes implements OnInit {
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   formatFecha = formatFechaDisplay;
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -232,6 +233,11 @@ export class Ordenes implements OnInit {
 
   async reabrirRecepcion(orden: OrdenCompra) {
     await this.cambiarEstado(orden, 'recibida_parcial');
+  }
+
+  /** CT3c — repite QA-OC6/OC6c: lleva directo a Entradas con esta OC precargada. */
+  irARegistrarEntrada(orden: OrdenCompra) {
+    void this.router.navigate(['/inventario/entradas'], { queryParams: { oc: orden.id } });
   }
 
   // ── QA-076b — vincular un renglón "sin artículo" a uno del catálogo ───────
@@ -668,6 +674,19 @@ export class Ordenes implements OnInit {
 
   // ── Estado ───────────────────────────────────────────────
   async cambiarEstado(orden: OrdenCompra, estado: OrdenEstado) {
+    // CT3c — el servidor igual lo valida, pero si ya sabemos que va a pedir
+    // motivo (admin + reconciliación incompleta) se lo pedimos aquí para no
+    // hacer un viaje al servidor solo para recibir el error y reintentar.
+    let motivo: string | null = null;
+    if (estado === 'recibida' && this.reconciliacionIncompleta()) {
+      if (!this.esAdmin()) {
+        this.toast.error('No se puede marcar "recibida"', 'Hay renglones sin recibir en el inventario. Usa "Registrar entrada de esta orden".');
+        return;
+      }
+      motivo = prompt('Hay renglones sin recibir en el inventario. Escribe el motivo para forzar "recibida" de todas formas:');
+      if (!motivo || !motivo.trim()) return;
+    }
+
     const prev = orden.estado;
     this.ordenes.update((list) =>
       list.map((o) => (o.id === orden.id ? { ...o, estado } : o)),
@@ -677,7 +696,7 @@ export class Ordenes implements OnInit {
       this.detailOrden.update((o) => (o ? { ...o, estado } : null));
     }
     try {
-      await this.ordenesService.updateEstado(orden.id, estado);
+      await this.ordenesService.updateEstado(orden.id, estado, motivo);
     } catch (e: unknown) {
       this.ordenes.update((list) =>
         list.map((o) => (o.id === orden.id ? { ...o, estado: prev } : o)),

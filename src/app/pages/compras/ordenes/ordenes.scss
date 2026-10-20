@@ -329,6 +329,20 @@ textarea {
     font-size: 12px;
     padding: 5px 12px;
   }
+
+  &__aviso {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--warning-bg);
+    color: var(--warning);
+    font-size: 13px;
+  }
 }
 
 // ── Detail items ──────────────────────────────────────────

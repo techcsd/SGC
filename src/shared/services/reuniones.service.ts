@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { invokeEdge } from '../utils/edge.util';
 
 /** CP8 — tipo de reunión configurable (con agenda por defecto). */
 export interface ReunionTipo {
@@ -15,6 +16,8 @@ export interface ReunionTipo {
 export type ReunionModalidad = 'presencial' | 'meet' | 'mixta';
 export type ReunionEstado = 'programada' | 'en_curso' | 'acta_borrador' | 'acta_aprobada' | 'cancelada';
 export type ReunionFiltro = 'proximas' | 'acta_pendiente' | 'pasadas' | 'mias';
+/** CT1 — estado real de la sincronización con Google Calendar (lo escribe la edge en cada intento). */
+export type CalendarSyncEstado = 'no_conectado' | 'sincronizado' | 'error' | 'pendiente';
 
 /** CS10 — un evento del calendario de Google propio (solo lectura). */
 export interface EventoGoogle {
@@ -58,6 +61,7 @@ export interface ReunionListado {
   acta_lista: boolean;
   /** CS10 — para cruzar con «Mi calendario de Google» (EN EL SGC / SOLO EN GOOGLE). */
   google_event_id: string | null;
+  calendar_sync_estado: CalendarSyncEstado;
 }
 
 export interface ReunionParticipanteDetalle {
@@ -83,6 +87,7 @@ export interface ReunionRow {
   proyecto_id: string | null; organizador_id: string; estado: ReunionEstado;
   fireflies_id: string | null; tipo_codigo: string; tipo_nombre: string; tipo_color: string;
   proyecto_nombre: string | null; organizador_nombre: string;
+  calendar_sync_estado: CalendarSyncEstado; calendar_sync_error: string | null; calendar_sync_at: string | null;
 }
 export interface ReunionDetalle {
   reunion: ReunionRow;
@@ -134,7 +139,7 @@ export class ReunionesService {
     proyectoId?: string | null; expedienteId?: string | null; solicitudCompraId?: string | null;
     participantesUsuarios: string[]; participantesExternos: ParticipanteExterno[];
     agenda?: string[] | null;
-  }): Promise<string> {
+  }): Promise<{ id: string; calendar: { conectado: boolean; mensaje?: string; enlace?: string } }> {
     const { data, error } = await this.supabase.client.rpc('reunion_crear', {
       p_tipo_id: p.tipoId, p_titulo: p.titulo, p_inicio: p.inicio, p_fin: p.fin,
       p_modalidad: p.modalidad, p_lugar: p.lugar ?? null,
@@ -144,11 +149,11 @@ export class ReunionesService {
     });
     if (error) throw new Error(error.message);
     const id = data as string;
-    // CP8 — crea el evento de Google Calendar (con Meet) si el módulo está
-    // conectado; si no, el edge responde {conectado:false} y no rompe nada.
-    // Fire-and-forget: la reunión ya existe en el SGC aunque Calendar falle.
-    void this.sincronizarCalendar(id).catch(() => {});
-    return id;
+    // CP8/CT1 — crea el evento de Google Calendar (con Meet) si el módulo está
+    // conectado; la reunión ya existe en el SGC aunque Calendar falle, pero el
+    // resultado real ya no se descarta (antes: fire-and-forget con .catch(()=>{})).
+    const calendar = await this.reintentarSincronizacion(id, 'crear');
+    return { id, calendar };
   }
 
   // ── CS10 — "Mi calendario de Google" (lectura) ──────────────────────────────
@@ -187,7 +192,7 @@ export class ReunionesService {
     return id;
   }
 
-  /** Igual que `crear()` pero SIN disparar `sincronizarCalendar` (CS10:
+  /** Igual que `crear()` pero SIN disparar la sincronización con Calendar (CS10:
    *  "Llevar al SGC" nunca debe escribir de vuelta en Google — ya existe allá). */
   private async crearSinSincronizar(p: {
     tipoId: string; titulo: string; inicio: string; fin: string;
@@ -205,13 +210,24 @@ export class ReunionesService {
     return data as string;
   }
 
-  /** CP8 — crea/actualiza el evento de Calendar de una reunión. {conectado:false} si no hay llaves.
-   *  Privado: hoy solo se llama desde `crear()` (fire-and-forget). Si se agrega
-   *  un botón "Reintentar sincronizar con Calendar" en la ficha, se vuelve público. */
-  private async sincronizarCalendar(reunionId: string, accion: 'crear' | 'actualizar' | 'cancelar' = 'crear'): Promise<{ conectado: boolean; mensaje?: string; enlace?: string }> {
-    const { data, error } = await this.supabase.client.functions.invoke('reuniones-calendar', { body: { accion, reunion_id: reunionId } });
-    if (error) return { conectado: false, mensaje: 'No se pudo conectar con Calendar.' };
-    return data as { conectado: boolean; mensaje?: string; enlace?: string };
+  /** CT1 — crea/actualiza/cancela el evento de Calendar de una reunión y escribe
+   *  `calendar_sync_estado/error/at` en el lado del servidor. Pública: la usan
+   *  `crear()`, `cancelar()` y el botón "Reintentar" de la ficha. */
+  async reintentarSincronizacion(reunionId: string, accion: 'crear' | 'actualizar' | 'cancelar' = 'crear'): Promise<{ conectado: boolean; mensaje?: string; enlace?: string; motivo?: 'no_configurado' }> {
+    try {
+      return await invokeEdge<{ conectado: boolean; mensaje?: string; enlace?: string; motivo?: 'no_configurado' }>(
+        this.supabase.client, 'reuniones-calendar', { accion, reunion_id: reunionId },
+      );
+    } catch (e) {
+      return { conectado: false, mensaje: e instanceof Error ? e.message : 'No se pudo conectar con Calendar.' };
+    }
+  }
+
+  /** CT1 — cancela la reunión en el SGC y dispara la cancelación del evento de Calendar. */
+  async cancelar(reunionId: string): Promise<{ conectado: boolean; mensaje?: string; motivo?: 'no_configurado' }> {
+    const { error } = await this.supabase.client.rpc('reunion_cancelar', { p_id: reunionId });
+    if (error) throw new Error(error.message);
+    return this.reintentarSincronizacion(reunionId, 'cancelar');
   }
 
   /** CP8c — la nota puede llevar una "foto de pizarra" (bucket privado `reuniones`). */

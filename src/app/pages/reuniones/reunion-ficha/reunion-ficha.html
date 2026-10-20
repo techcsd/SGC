@@ -27,6 +27,11 @@
             {{ (aprobando() ? 'Aprobando…' : 'Aprobar y enviar minuta') | t }}
           </button>
         }
+        @if (esOrganizadorOAdmin() && d.reunion.estado !== 'cancelada') {
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarReunion()" [disabled]="cancelando()">
+            {{ (cancelando() ? 'Cancelando…' : 'Cancelar reunión') | t }}
+          </button>
+        }
       </div>
     </header>
 
@@ -135,6 +140,23 @@
             }
           </p>
           <span class="rf__card-hint">{{ 'La minuta va solo a los correos @constructorasd.com' | t }}</span>
+        </section>
+
+        <section class="rf__card">
+          <span class="rf__card-title">{{ 'Google Calendar' | t }}</span>
+          <p class="rf__calendar-estado" [class.rf__calendar-estado--error]="d.reunion.calendar_sync_estado === 'error'">
+            @switch (d.reunion.calendar_sync_estado) {
+              @case ('sincronizado') { {{ 'Sincronizado ✓' | t }} }
+              @case ('error') { {{ 'Error: {motivo}' | t:{ motivo: d.reunion.calendar_sync_error || ('sin detalle' | t) } }} }
+              @case ('pendiente') { {{ 'Sincronizando…' | t }} }
+              @default { {{ 'No conectado' | t }} }
+            }
+          </p>
+          <div class="rf__card-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="reintentarCalendar()" [disabled]="sincronizandoCalendar() || d.reunion.estado === 'cancelada'">
+              {{ (sincronizandoCalendar() ? 'Sincronizando…' : 'Reintentar') | t }}
+            </button>
+          </div>
         </section>
 
         <section class="rf__card">

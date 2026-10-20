@@ -87,3 +87,6 @@
 .rf__participantes-list { margin: 0; font-size: 13px; color: var(--text-2); }
 .rf__ligada { margin: 0; font-size: 13px; color: var(--text-2); }
 .rf__ligada--vacio { color: var(--text-3); }
+
+.rf__calendar-estado { margin: 0 0 10px; font-size: 13px; color: var(--text-2); }
+.rf__calendar-estado--error { color: var(--danger); }
