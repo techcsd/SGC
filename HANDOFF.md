@@ -1,5 +1,39 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-108 (Ronda CT) — 20/10/2026 — ✅ **EN PROD** (web **1.196.0**, `main`=`dev`=`af485aa`)
+
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 20102026\CONTEXTO-ACTUALIZACION-53.md`. IDs CT1-CT10, matriz filas 261-269.
+
+**Hallazgo de proceso al empezar (CQ6):** `dev` estaba 5 commits detrás de `main` — la ronda CS se había mergeado `feature/cs-ronda → main` directo, sin que `dev` se hubiera adelantado nunca. Se verificó que `dev` era ancestro estricto de `main` (0 commits propios) y, con el OK explícito de Xaviel, se hizo fast-forward (`git branch -f dev main` + push) antes de seguir — si no, el trabajo de esta ronda se habría basado en código viejo y habría pisado CS10 (Calendar/notas-imágenes) sin darse cuenta.
+
+**Promovido a prod con el OK explícito de Xaviel** tras presentarle 3 opciones (probar él mismo en dev / esperar 24h / saltarse la prueba de dev) — eligió saltarse la prueba de dev y promover con la verificación automatizada (build, 91/91 tests, smoke transaccional real contra dev con rollback intencional de cada RPC nueva). **Nadie probó esto a mano todavía en `dev.sgcconstructorasd.com` ni en `sgcconstructorasd.com`** — queda anotado así en `qa/release-1.196.0.md`, sin disfrazarlo. 5 migraciones aplicadas y verificadas en prod por objeto (metadata: sin overloads ambiguos, columnas correctas), 1 edge redeployada a prod (`reuniones-calendar` v5), `dev → main` mergeado (`af485aa`) y pusheado, Vercel prod `READY`, versión 1.196.0 confirmada en `sgc.app_versiones` de prod, sitio responde 200.
+
+**Por ID:**
+- **CT1** (Calendar no sincroniza): el SGC descartaba la respuesta de la edge (`.catch(()=>{})`) — ahora `sgc.reuniones` gana `calendar_sync_estado/error/at`, la ficha muestra el estado real + "Reintentar", y se agregó "Cancelar reunión" (no existía ninguna forma de cancelar). El creador de la reunión YA estaba siempre invitado (verificado, sin cambio). Sigue sin secretos de Google en ningún entorno — ahora el "no conectado" es visible en vez de silencioso.
+- **CT2** (imágenes Dev notes): miniatura 320×240, barra de acciones siempre visible (antes solo hover), visor a pantalla completa, "Quitar" con confirmación (+ `Supr`/`Backspace` con la imagen seleccionada). 2 tests nuevos.
+- **CT3a** (ver conduce sin crear borrador): 100% app, pendiente PROMPT-109.
+- **CT3b** (artículos "EXTERNO" no se actualizan): 🔴 **NO reproducido leyendo código** — se revisaron a fondo 5 superficies (Entradas desde OC, el mapeador compartido `requisicion-items-mapper.ts`, Salidas `crearConduceDesdeReq`/`atenderSolicitud`/`aprobarRequisicion`, `articulo-picker.ts`) y todas están correctamente reactivas. Falta el paso exacto de Raykler o una sesión en vivo.
+- **CT3c** (OC "recibida" sin inventario real): `sgc.actualizar_estado_orden` ya no deja pasar a "recibida" con reconciliación incompleta (admin puede forzar con motivo, auditado en `motivo_recepcion_forzada`). Botón "Registrar entrada de esta orden" (deep-link a Entradas con `?oc=<id>`). El data-fix de OC-202610-0006 (botas de Raykler) sigue sin correr — espera que Raykler confirme qué llegó de verdad.
+- **CT4/CT7** (requisición duplicada): `crear_solicitud_app`/`crear_solicitud_material` ahora `returns jsonb` con `p_forzar` — detectan mismo solicitante+obra+renglones en 24h y devuelven `duplicada_de` en vez de crear otra. Contrato nuevo documentado en `PARIDAD.md` para PROMPT-109. Confirmado con datos reales que las 2 requisiciones de Emmanuel Peralta llegaron (no se perdió ninguna); falta que él/Compras decidan cuál conservar.
+- **CT5** (cámara 0.6x + borrador): 100% app, pendiente PROMPT-109. Necesita `adb logcat` de un teléfono real.
+- **CT8** (cambiar despachante): nueva RPC `sgc.conduce_cambiar_despachante` (mismo permiso que "Entregar a"/CK4; si ya firmó, solo admin+motivo, auditado en `conduce_despachante_cambios`). Botón "Cambiar" en la ficha del conduce.
+- **CT9** (seguridad — RLS en `public`): auditoría real (solo lectura) en dev y prod — la única tabla en `public` en ambos entornos es `n8n_chat_histories` (stack n8n/WhatsApp, ajena al SGC, 0 filas). Bloqueada con RLS sin políticas + revoke a anon/authenticated/public, verificado en vivo en los dos entornos. No se tocó ningún dato del SGC.
+- **CT10** (demasiados correos de prueba en dev): tabla `sgc.envios_automaticos` (4 familias) + panel Tecnología › Envíos automáticos. Dev nace con las 4 apagadas, prod nace con las 4 encendidas (mismo patrón de `sgc.config_entorno` de BU1 — un solo archivo de migración vale para los dos entornos). "Enviar prueba ahora (solo a mí)" del diseño original no se implementó (requiere que cada edge soporte un override de destinatarios).
+
+**6 migraciones en dev y PROD** (ledger): `ct1-reuniones-calendar-estado`, `ct3c-oc-recibida-exige-reconciliacion`, `ct4-requisicion-duplicada`, `ct8-conduce-cambiar-despachante`, `ct9-bloquear-n8n-chat-histories`, `ct10-envios-automaticos`. 1 edge redeployada (`reuniones-calendar`).
+
+**Pendientes físicos de Xaviel:**
+1. Probar en persona en `sgcconstructorasd.com` (ya en prod, sin probar): crear/cancelar una reunión, imágenes en Dev notes, el flujo de una OC con reconciliación incompleta, cambiar el despachante de un conduce, el panel de Envíos automáticos.
+2. **Raykler**: decirle cuál pantalla usó para cambiar los artículos "EXTERNO" (CT3b, no reproducido) y qué botas de OC-202610-0006 llegaron de verdad (con cantidades, para el data-fix pendiente). Confirmar si "El flaco" (CT8) tiene usuario o es empleado sin cuenta.
+3. **Emmanuel Peralta**: confirmar cuál de sus 2 requisiciones conservar (default: la primera, `7103ccef…`) para que Compras cancele la otra.
+4. **Google Calendar (CT1)**: sigue pendiente la cuenta de servicio + secretos (mismo pendiente de CS10).
+5. **Confirmar que n8n sigue funcionando** tras el bloqueo de `n8n_chat_histories` (CT9) — se conecta por Postgres directo, no debería verse afectado, pero vale la pena un `/health` check.
+6. Worktree `SGC-cs` y proceso `ng serve` huérfano de la ronda anterior ya fueron limpiados (commit `b5358b0`, hecho por Xaviel directamente).
+
+**App (PROMPT-109, pendiente, dev2\csd-app)**: CT3a (ver conduce sin borrador), CT4 (contrato `jsonb`/`p_forzar` + UI "Enviando…/Enviada"), CT5 (borrador de recepción en "Documentación en proceso" + banner + diagnóstico de cámara). Contratos documentados en `PARIDAD.md` sección "Ronda CT".
+
+---
+
 ## TL;DR — PROMPT-106 (Ronda CS) — 19-20/10/2026 — ✅ **EN PROD** (web **1.195.0**, `main`=`dev`=`a8a28e8`)
 
 Contexto completo: `C:\developer\improvements\octubre 2026\imp 19102026\CONTEXTO-ACTUALIZACION-52.md`. IDs CS1-CS10, matriz filas 251-260.
