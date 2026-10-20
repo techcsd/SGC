@@ -18,5 +18,6 @@
   - **CT9 (seguridad)**: migración de bloqueo aplicada y VERIFICADA por consulta real en los dos entornos: `n8n_chat_histories` quedó con `relrowsecurity=true` y 0 grants a anon/authenticated/public tanto en dev como en PROD.
 - Versión de origen: 1.195.0.
 - **No se montó un navegador real (Playwright) esta vez** — no hay credenciales QA en esta máquina (`qa/qa-users.local.json` gitignoreado, ausente) y crear/resetear una cuenta de prueba se dejó fuera por tiempo. Lo verificado es: build, 91/91 tests unitarios, y smoke transaccional real contra dev (con rollback intencional) de cada RPC nueva con datos reales del entorno — no una sesión de navegador.
-- OK: Xaviel autorizó explícitamente promover sin esperar a que dev respire 24h ("yes, do it... promote to production if is all is good", 2026-10-20), con la verificación de arriba como base — no hubo clic de Xaviel en el navegador de dev todavía.
+- **Nadie probó esto a mano en `dev.sgcconstructorasd.com` todavía.** Se le presentaron a Xaviel 3 opciones explícitas (probarlo él mismo / esperar 24h / saltarse la prueba de dev y promover igual) y eligió la tercera, 2026-10-20 — queda anotado tal cual, sin disfrazarlo de una prueba que no ocurrió.
+OK: 2026-10-20 — Xaviel decidió explícitamente saltarse la prueba manual de dev y promover con la verificación automatizada de arriba como base.
 - Fecha: 2026-10-20
