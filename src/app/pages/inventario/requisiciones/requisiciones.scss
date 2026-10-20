@@ -36,16 +36,7 @@
 .req-grupo__linea2 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; font-size: 0.85rem; }
 .req-grupo__fecha { font-weight: 500; }
 
-// BO8 — cabecera clicable para ordenar por fecha de necesidad.
-.req-th-sort {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  &[aria-pressed='true'] { color: var(--sgc-primary, var(--primary)); font-weight: 600; }
-}
+// CS1 — el encabezado ordenable (app-orden-th) trae su propio estilo.
 
 .requisiciones__intro {
   color: var(--sgc-text-secondary);

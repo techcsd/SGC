@@ -22,6 +22,20 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { aplicarDensidad, aplicarTamanoLetra, guardarMovimientoReducido, leerMovimientoReducido, leerLogoAlRefrescar, guardarLogoAlRefrescar, Densidad, TamanoLetra } from '../../../shared/utils/apariencia.util';
 import { MODULOS_DISPONIBLES } from '../../../shared/services/roles.service';
 import { APP_VERSION } from '../../../environments/version';
+import { edgeErrorMessage } from '../../../shared/utils/edge.util';
+import { dispositivoLabel } from '../../../shared/utils/dispositivo-label.util';
+import { formatFechaRelativa, formatFechaMedia } from '../../../shared/utils/fecha.util';
+
+/** CS4 — fila de `sgc.mis_sesiones()`. */
+export interface MiSesion {
+  id: string;
+  created_at: string;
+  ultima_actividad: string;
+  user_agent: string | null;
+  ip_parcial: string | null;
+  es_actual: boolean;
+  cliente: string | null;
+}
 
 type Seccion =
   | 'cuenta' | 'idioma' | 'apariencia' | 'notificaciones'
@@ -59,6 +73,16 @@ export class Configuracion implements OnInit {
   appVersion = APP_VERSION;
 
   cerrandoSesiones = signal(false);
+
+  // CS4 — lista real de sesiones (antes solo existía el botón de cerrar-en-otros).
+  sesiones = signal<MiSesion[]>([]);
+  cargandoSesiones = signal(false);
+  errorSesiones = signal('');
+  cerrandoSesionId = signal<string | null>(null);
+  private sesionesCargadas = false;
+  dispositivoLabel = dispositivoLabel;
+  formatRelativa = formatFechaRelativa;
+  formatMedia = formatFechaMedia;
 
   // CI10 — consentimiento de IA. CI4 — solicitud de eliminación de cuenta.
   consentIA = signal<boolean>(false);
@@ -121,7 +145,10 @@ export class Configuracion implements OnInit {
   async ngOnInit() {
     // Sección inicial por fragmento (#cuenta, #idioma, …) desde los deep-links.
     const frag = this.route.snapshot.fragment as Seccion | null;
-    if (frag && this.secciones().some((s) => s.id === frag)) this.seccion.set(frag);
+    if (frag && this.secciones().some((s) => s.id === frag)) {
+      this.seccion.set(frag);
+      if (frag === 'sesion') void this.cargarSesiones();
+    }
     try {
       await this.prefsService.cargar();
     } catch {
@@ -166,6 +193,40 @@ export class Configuracion implements OnInit {
 
   ir(id: Seccion) {
     this.seccion.set(id);
+    if (id === 'sesion' && !this.sesionesCargadas) void this.cargarSesiones();
+  }
+
+  /** CS4 — carga perezosa (solo al entrar a la sección) de las sesiones reales. */
+  async cargarSesiones() {
+    this.cargandoSesiones.set(true);
+    this.errorSesiones.set('');
+    try {
+      const { data, error } = await this.supabase.client.schema('sgc').rpc('mis_sesiones');
+      if (error) throw new Error(await edgeErrorMessage(error));
+      this.sesiones.set((data as MiSesion[]) ?? []);
+      this.sesionesCargadas = true;
+    } catch (e) {
+      this.errorSesiones.set(e instanceof Error ? e.message : 'No se pudieron cargar tus sesiones.');
+    } finally {
+      this.cargandoSesiones.set(false);
+    }
+  }
+
+  /** CS4 — cierra UNA sesión (no la actual; el servidor también lo bloquea). */
+  async cerrarUnaSesion(s: MiSesion) {
+    if (s.es_actual || this.cerrandoSesionId()) return;
+    if (!confirm(`¿Cerrar la sesión en "${this.dispositivoLabel(s.user_agent)}"?`)) return;
+    this.cerrandoSesionId.set(s.id);
+    try {
+      const { error } = await this.supabase.client.schema('sgc').rpc('cerrar_mi_sesion', { p_id: s.id });
+      if (error) throw new Error(await edgeErrorMessage(error));
+      this.sesiones.update((list) => list.filter((x) => x.id !== s.id));
+      this.toast.success('Sesión cerrada');
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo cerrar esa sesión');
+    } finally {
+      this.cerrandoSesionId.set(null);
+    }
   }
 
   async setTema(pref: TemaPreferencia) {
@@ -220,8 +281,9 @@ export class Configuracion implements OnInit {
       const { error } = await this.supabase.client.functions.invoke('auth-signout-others', {
         body: {},
       });
-      if (error) throw error;
+      if (error) throw new Error(await edgeErrorMessage(error));
       this.toast.success('Listo', 'Cerramos tu sesión en los demás dispositivos.');
+      this.sesiones.update((list) => list.filter((x) => x.es_actual)); // CS4 — refleja el cierre sin refetch
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo cerrar la sesión en otros dispositivos');
     } finally {

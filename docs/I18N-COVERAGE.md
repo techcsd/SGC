@@ -3,16 +3,16 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 7%** (43/655 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 7%** (47/660 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
 | inventario/conduce | scope | 212 | 0 | 212 | 0% |
-| inventario/requisiciones | scope | 245 | 0 | 245 | 0% |
+| inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
-| configuracion | scope | 63 | 41 | 22 | 65% |
+| configuracion | scope | 74 | 45 | 29 | 61% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 150 | 0 | 150 | 0% |
@@ -43,7 +43,7 @@
 | bitacora/moldes | - | 28 | 0 | 28 | 0% |
 | bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| bitacora/solicitudes-material | - | 117 | 0 | 117 | 0% |
+| bitacora/solicitudes-material | - | 126 | 0 | 126 | 0% |
 | compras/ordenes | - | 166 | 0 | 166 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
@@ -129,7 +129,6 @@
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
 | rrhh/reportes | - | 29 | 0 | 29 | 0% |
 | solicitudes-movimiento | - | 122 | 0 | 122 | 0% |
-| soporte | - | 51 | 0 | 51 | 0% |
 | tareas/gestion | - | 55 | 0 | 55 | 0% |
 | tareas/historial | - | 33 | 0 | 33 | 0% |
 | tareas/mis-tareas | - | 17 | 0 | 17 | 0% |
@@ -137,7 +136,7 @@
 | tecnologia/compras | - | 134 | 0 | 134 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
-| tecnologia/dev-notes | - | 81 | 0 | 81 | 0% |
+| tecnologia/dev-notes | - | 96 | 0 | 96 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -151,6 +150,7 @@
 | trabajos-transporte | - | 31 | 0 | 31 | 0% |
 | verificar | - | 13 | 0 | 13 | 0% |
 | legal/expedientes | - | 140 | 3 | 137 | 2% |
+| soporte | - | 52 | 1 | 51 | 2% |
 | inventario/conduce-externo-ficha | - | 59 | 2 | 57 | 3% |
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
@@ -159,12 +159,12 @@
 | app-movil | - | 55 | 8 | 47 | 15% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
+| reuniones/reuniones-lista | - | 95 | 45 | 50 | 47% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | asistente | - | 55 | 27 | 28 | 49% |
-| reuniones/reuniones-lista | - | 75 | 37 | 38 | 49% |
 | reuniones/reunion-ficha | - | 53 | 27 | 26 | 51% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
-| admin/claude | - | 27 | 22 | 5 | 81% |
+| admin/claude | - | 28 | 23 | 5 | 82% |

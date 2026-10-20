@@ -30,6 +30,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.reuniones-calendar]
 verify_jwt = false
+[functions.reuniones-mi-calendario]
+verify_jwt = false
 [functions.check-domains]
 verify_jwt = false
 [functions.check-subscriptions]

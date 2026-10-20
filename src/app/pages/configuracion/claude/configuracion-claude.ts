@@ -5,6 +5,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { environment } from '../../../../environments/environment';
+import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
 
 interface MiConexion {
   conectado: boolean;
@@ -83,7 +84,7 @@ export class ConfiguracionClaude implements OnInit {
       const { data, error } = await this.supabase.client.functions.invoke('claude-conexiones', {
         body: { accion: 'desconectar' },
       });
-      if (error) throw error;
+      if (error) throw new Error(await edgeErrorMessage(error));
       this.toast.success('Claude desconectado del SGC.');
       await this.cargar();
     } catch (e) {

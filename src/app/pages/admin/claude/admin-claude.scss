@@ -26,6 +26,17 @@
     font-size: var(--fs-base);
   }
 
+  // CS5 — enlace a Tecnología › Consultas de Compa (mismo backlog de gaps).
+  &__gaps-link {
+    display: inline-block;
+    margin-top: var(--space-2);
+    color: var(--brand);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
   &__switch-box {
     display: flex;
     align-items: center;

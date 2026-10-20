@@ -16,6 +16,26 @@ export type ReunionModalidad = 'presencial' | 'meet' | 'mixta';
 export type ReunionEstado = 'programada' | 'en_curso' | 'acta_borrador' | 'acta_aprobada' | 'cancelada';
 export type ReunionFiltro = 'proximas' | 'acta_pendiente' | 'pasadas' | 'mias';
 
+/** CS10 — un evento del calendario de Google propio (solo lectura). */
+export interface EventoGoogle {
+  id: string;
+  titulo: string;
+  inicio: string | null;
+  fin: string | null;
+  lugar: string | null;
+  enlace_meet: string | null;
+  organizador: string | null;
+  participantes: number | null;
+  privado: boolean;
+}
+export interface MiCalendarioGoogle {
+  conectado: boolean;
+  motivo?: 'no_configurado' | 'sin_cuenta_google' | 'error_google';
+  mensaje?: string;
+  eventos?: EventoGoogle[];
+  actualizado_en?: string;
+}
+
 export interface ReunionListado {
   id: string;
   tipo_codigo: string;
@@ -36,6 +56,8 @@ export interface ReunionListado {
   participantes_n: number;
   acuerdos_n: number;
   acta_lista: boolean;
+  /** CS10 — para cruzar con «Mi calendario de Google» (EN EL SGC / SOLO EN GOOGLE). */
+  google_event_id: string | null;
 }
 
 export interface ReunionParticipanteDetalle {
@@ -127,6 +149,60 @@ export class ReunionesService {
     // Fire-and-forget: la reunión ya existe en el SGC aunque Calendar falle.
     void this.sincronizarCalendar(id).catch(() => {});
     return id;
+  }
+
+  // ── CS10 — "Mi calendario de Google" (lectura) ──────────────────────────────
+  /** Trae los eventos del calendario de Google del usuario (solo lectura, solo
+   *  el suyo). `conectado:false` con `motivo` cuando no hay nada que mostrar. */
+  async miCalendarioGoogle(): Promise<MiCalendarioGoogle> {
+    const { data, error } = await this.supabase.client.functions.invoke('reuniones-mi-calendario', { body: {} });
+    if (error) return { conectado: false, motivo: 'error_google', mensaje: 'No se pudo actualizar tu calendario de Google.' };
+    return data as MiCalendarioGoogle;
+  }
+
+  /** CS10 — convierte un evento "solo en Google" en una reunión del SGC
+   *  (idempotente: el índice único de `google_event_id` evita duplicar si se
+   *  pulsa dos veces). Usa el tipo "Otra" por defecto. */
+  async llevarAlSgc(evento: EventoGoogle): Promise<string> {
+    // Idempotencia por adelantado (evita crear un huérfano si el índice único
+    // rechaza luego): si ya existe una reunión con este google_event_id, úsala.
+    const { data: existente } = await this.supabase.client.from('reuniones').select('id').eq('google_event_id', evento.id).maybeSingle();
+    if (existente) return existente.id as string;
+
+    const tipos = await this.tipos();
+    const tipoOtra = tipos.find((t) => t.codigo === 'otra' || t.nombre.toLowerCase() === 'otra') ?? tipos[0];
+    if (!tipoOtra) throw new Error('No hay tipos de reunión configurados.');
+    if (!evento.inicio) throw new Error('El evento no tiene hora de inicio.');
+    const id = await this.crearSinSincronizar({
+      tipoId: tipoOtra.id, titulo: evento.titulo, inicio: evento.inicio, fin: evento.fin ?? evento.inicio,
+      modalidad: evento.enlace_meet ? 'meet' : 'presencial', lugar: evento.lugar ?? null,
+      participantesUsuarios: [], participantesExternos: [],
+    });
+    const { error } = await this.supabase.client.from('reuniones').update({ google_event_id: evento.id, enlace: evento.enlace_meet }).eq('id', id);
+    if (error) {
+      // CS10 — idempotente: dos clics no duplican (índice único de google_event_id).
+      if (error.code === '23505') throw new Error('Esta reunión ya estaba en el SGC.');
+      throw new Error(error.message);
+    }
+    return id;
+  }
+
+  /** Igual que `crear()` pero SIN disparar `sincronizarCalendar` (CS10:
+   *  "Llevar al SGC" nunca debe escribir de vuelta en Google — ya existe allá). */
+  private async crearSinSincronizar(p: {
+    tipoId: string; titulo: string; inicio: string; fin: string;
+    modalidad: ReunionModalidad; lugar?: string | null;
+    participantesUsuarios: string[]; participantesExternos: ParticipanteExterno[];
+  }): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('reunion_crear', {
+      p_tipo_id: p.tipoId, p_titulo: p.titulo, p_inicio: p.inicio, p_fin: p.fin,
+      p_modalidad: p.modalidad, p_lugar: p.lugar ?? null,
+      p_proyecto_id: null, p_expediente_id: null, p_solicitud_compra_id: null,
+      p_participantes_usuarios: p.participantesUsuarios, p_participantes_externos: p.participantesExternos,
+      p_agenda: null,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
   }
 
   /** CP8 — crea/actualiza el evento de Calendar de una reunión. {conectado:false} si no hay llaves.

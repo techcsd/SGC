@@ -138,9 +138,16 @@ export class NotaEditor implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroyed = true;
-    if (this.saveTimer) clearTimeout(this.saveTimer);
-    // Descarta una nota totalmente vacía creada al vuelo (sin título/cuerpo/checklist/compartidos).
-    void this.descartarSiVacia();
+    // CS3 — había un guardado pendiente (debounce de 800ms) y se cancelaba sin
+    // más: el último cambio se perdía en silencio al cerrar rápido. Lo volcamos
+    // antes de evaluar si la nota quedó vacía (si no, correrían en carrera).
+    const pendiente = this.saveTimer !== null;
+    if (this.saveTimer) { clearTimeout(this.saveTimer); this.saveTimer = null; }
+    (async () => {
+      if (pendiente) await this.guardar().catch(() => { /* best-effort */ });
+      // Descarta una nota totalmente vacía creada al vuelo (sin título/cuerpo/checklist/compartidos).
+      await this.descartarSiVacia();
+    })();
   }
 
   private async cargarSelectores() {

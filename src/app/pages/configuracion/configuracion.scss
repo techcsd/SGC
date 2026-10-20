@@ -143,6 +143,43 @@
       border-color: color-mix(in srgb, var(--sgc-danger, #b91c1c) 40%, var(--sgc-border, #e2e5ea));
       &:hover { border-color: var(--sgc-danger, #b91c1c); background: color-mix(in srgb, var(--sgc-danger, #b91c1c) 10%, var(--sgc-surface, #fff)); }
     }
+    // CS4 — la única acción naranja de la pantalla ("Cerrar sesión en otros dispositivos").
+    &--primary {
+      border-color: transparent;
+      background: var(--accent, var(--Hub, #ffb300));
+      color: var(--text-on-accent, #0f1f33);
+      &:hover:not(:disabled) { background: var(--accent-hover, #ea580c); }
+    }
+    &--sm { padding: 7px 12px; font-size: 12.5px; }
+  }
+
+  &__error { color: var(--sgc-danger, #b91c1c); font-size: 13.5px; margin: 0 0 16px; }
+
+  // CS4 — lista de sesiones/dispositivos.
+  &__sesiones { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  &__sesion {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius-md, 12px);
+
+    &--actual {
+      border-color: var(--sgc-success, #067647);
+      background: color-mix(in srgb, var(--sgc-success, #067647) 6%, var(--sgc-surface, #fff));
+    }
+  }
+  &__sesion-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  &__sesion-meta { margin: 0 !important; }
+  &__sesion-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sgc-success, #067647) 14%, transparent);
+    color: var(--sgc-success, #067647);
+    margin-left: 6px;
   }
 
   &__textarea {

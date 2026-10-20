@@ -10,7 +10,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 function json(body: unknown, status = 200) {
@@ -40,7 +40,13 @@ Deno.serve(async (req: Request) => {
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
     // CR1 (FASE 5) — las acciones admin-* rechazan tokens OAuth (Claude).
     const { error: oauthErr } = await callerClient.schema("sgc").rpc("rechazar_si_cliente_oauth");
-    if (oauthErr) return json({ error: "Esta acción no está permitida desde un conector externo (Claude)." }, 403);
+    if (oauthErr) {
+      if (oauthErr.code === "42501") {
+        return json({ error: "Esta acción no está permitida desde un conector externo (Claude)." }, 403);
+      }
+      console.error("rechazar_si_cliente_oauth falló (no es Claude):", oauthErr);
+      return json({ error: `No se pudo verificar el origen de la sesión: ${oauthErr.message}` }, 500);
+    }
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
     if (!isAdmin) return json({ error: "No autorizado. Solo un administrador puede crear usuarios de prueba." }, 403);
 

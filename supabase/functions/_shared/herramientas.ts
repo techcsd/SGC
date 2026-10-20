@@ -540,6 +540,101 @@ export const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: { tema: { type: "string", description: "título o tema de la reunión, tal como lo mencionó el usuario (opcional)" } }, additionalProperties: false },
     rpc: "reunion_resumen_compa", map: (i) => ({ p_texto: i.tema ?? null }),
   },
+
+  {
+    name: "que_puedo_consultar",
+    description: "LLÁMALA PRIMERO cuando no sepas qué herramienta usar o si el usuario pregunta algo de un área que no reconoces. Devuelve, por módulo del SGC, si ESTA persona (con sus permisos reales) puede verlo y qué herramienta(s) usar para eso. Si un módulo sale con puede_ver=false, esa persona de verdad no tiene acceso — no insistas ni inventes datos.",
+    modulos: null, canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "que_puedo_consultar", map: () => ({}),
+  },
+
+  // ── CS5 — cobertura del conector: módulos que hoy no tenían herramienta ────
+  // Mensajería/Notas/Dev notes/Soporte: sin gate de módulo (como en la web),
+  // identidad estricta (solo lo del propio usuario). Documentos/Legal/Admin:
+  // gate de módulo (la RPC ya revalida con sgc.tiene_modulo/is_admin).
+  {
+    name: "mis_notas",
+    description: "Las NOTAS del usuario (propias y compartidas con él): Dev notes (ambito='dev', solo si es desarrollador) y Notas generales. Devuelve título, un resumen del contenido (las imágenes salen como «[imagen]», no como ruta interna) y etiquetas. Pásale ambito='dev' para solo Dev notes, 'general' para solo Notas, u omite para ambas.",
+    modulos: null, canales: ["compa", "mcp"],
+    input_schema: { type: "object", properties: { ambito: { type: "string", enum: ["dev", "general"] } }, additionalProperties: false },
+    rpc: "mis_notas_resumen", map: (i) => ({ p_ambito: i.ambito ?? null }),
+  },
+  {
+    name: "mis_mensajes",
+    description: "Las conversaciones del usuario en Mensajería (DMs y grupos), con el ÚLTIMO mensaje de cada una y cuántos no ha leído. No trae el historial completo, solo el resumen de cada conversación.",
+    modulos: null, canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "mis_conversaciones_resumen", map: () => ({}),
+  },
+  {
+    name: "mis_reportes_soporte",
+    description: "Los reportes de error/sugerencia/comentario que el propio usuario envió a Tecnología (Soporte), con su estado.",
+    modulos: null, canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "mis_reportes_soporte", map: () => ({}),
+  },
+  {
+    name: "listar_plantillas_documento",
+    description: "Plantillas de Documentos disponibles para rellenar (nombre, categoría). No trae el contenido de la plantilla, solo el listado.",
+    modulos: ["documentos"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "listar_plantillas_documento", map: () => ({}),
+  },
+  {
+    name: "listar_expedientes_legales",
+    description: "Expedientes de Legal (contratos, reclamos, etc.): código, título, tipo, estado, prioridad, fecha límite y responsable. Filtra opcionalmente por estado.",
+    modulos: ["legal"], canales: ["compa", "mcp"],
+    input_schema: { type: "object", properties: { estado: { type: "string" } }, additionalProperties: false },
+    rpc: "listar_expedientes_legales", map: (i) => ({ p_estado: i.estado ?? null }),
+  },
+  {
+    name: "listar_aprobaciones_legales",
+    description: "Aprobaciones de Legal (contratos/documentos pendientes de visto bueno legal) y su estado.",
+    modulos: ["legal"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "listar_aprobaciones_legales", map: () => ({}),
+  },
+  {
+    name: "directorio_empleados",
+    description: "Directorio de empleados de RRHH: nombre, cargo, si está activo. NUNCA incluye sueldo ni datos personales sensibles (eso se consulta solo desde RRHH en el SGC, no por aquí).",
+    modulos: ["rrhh"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "directorio_empleados", map: () => ({}),
+  },
+  {
+    name: "mis_ordenes_de_compra",
+    description: "Las órdenes de compra del usuario (de sus solicitudes de compra): proveedor, total, estado.",
+    modulos: ["compras"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "mis_ordenes_de_compra", map: () => ({}),
+  },
+  {
+    name: "mis_solicitudes_movimiento",
+    description: "Solicitudes de movimiento (logística ingeniero→transporte): qué se mueve, origen, destino, prioridad y estado. Filtra opcionalmente por estado, obra, prioridad o rango de fechas.",
+    modulos: ["ingenieria", "transporte", "flota"], canales: ["compa", "mcp"],
+    input_schema: { type: "object", properties: {
+      estado: { type: "string" }, proyecto_id: { type: "string" }, prioridad: { type: "string" },
+      desde: { type: "string", description: "YYYY-MM-DD" }, hasta: { type: "string", description: "YYYY-MM-DD" },
+    }, additionalProperties: false },
+    rpc: "solicitudes_movimiento_listar",
+    map: (i) => ({ p_estado: i.estado ?? null, p_proyecto_id: i.proyecto_id ?? null, p_prioridad: i.prioridad ?? null, p_desde: i.desde ?? null, p_hasta: i.hasta ?? null }),
+  },
+  {
+    name: "mi_rendimiento",
+    description: "El rendimiento/incentivo semanal del propio usuario (chofer): puntaje, si cumplió el mínimo, decisión y motivo. Identidad estricta — solo lo del usuario que pregunta.",
+    modulos: null, canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "incentivo_mi_rendimiento", map: () => ({}),
+  },
+  {
+    name: "mi_actividad_auditoria",
+    description: "Auditoría del sistema (quién hizo qué y cuándo) — SOLO para quien tiene acceso a Auditoría (la RPC ya lo exige). Filtra por tabla, acción, actor o rango de fechas.",
+    modulos: ["admin"], canales: ["compa", "mcp"],
+    input_schema: { type: "object", properties: {
+      tabla: { type: "string" }, accion: { type: "string" }, desde: { type: "string" }, hasta: { type: "string" }, buscar: { type: "string" },
+    }, additionalProperties: false },
+    rpc: "auditoria_listar",
+    map: (i) => ({ p_tabla: i.tabla ?? null, p_accion: i.accion ?? null, p_actor: null, p_desde: i.desde ?? null, p_hasta: i.hasta ?? null, p_buscar: i.buscar ?? null, p_limite: 40, p_offset: 0 }),
+  },
+  {
+    name: "listar_usuarios_admin",
+    description: "Lista de usuarios con sus roles (nombre, correo, activo, roles) — solo administradores. NUNCA incluye contraseñas, PINs ni otros secretos.",
+    modulos: ["admin"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "listar_usuarios_admin", map: () => ({}),
+  },
 ];
 
 /** Herramientas visibles a este usuario (filtro por módulo/admin), opcionalmente

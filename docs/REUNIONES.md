@@ -23,3 +23,30 @@ Crear `minutas@constructorasd.com` en Workspace; asiento Fireflies Pro para esa 
 
 ## Mientras tanto (sin llaves)
 Todo el módulo de Reuniones (agenda, participantes, notas, acuerdos→tareas, acta escrita a mano) funciona sin ninguna de las piezas de arriba. Sin el scope de Calendar: el botón "Crear evento" muestra "Calendar no conectado — copia esta invitación" en vez de crear el evento real. Sin API key/webhook de Fireflies: no hay actas automáticas ni participación automática; se pega el resumen a mano en el acta. Nada de esto bloquea usar el módulo hoy mismo.
+
+## Calendario de Google (lectura) — CS10, 19-oct-2026
+
+**Hallazgo (regla 19 — verificado en vivo, no de memoria):** ni **dev** ni
+**prod** tienen hoy configurados los secretos `GOOGLE_SERVICE_ACCOUNT_JSON` ni
+`GOOGLE_CALENDAR_DELEGATED_USER` (confirmado leyendo los NOMBRES de secretos
+vía Management API — nunca se imprimió ningún valor). Esto **contradice** la
+nota de arriba ("hoy solo tiene lectura"): esa nota describe una intención o un
+estado anterior que ya no está — hoy **no hay ninguna cuenta de servicio de
+Google conectada al SGC, en ningún entorno**, así que `reuniones-calendar`
+(escritura) también responde siempre `{conectado:false}` hoy mismo, aunque
+nunca se haya reportado como "roto" (el módulo de Reuniones funciona completo
+sin Calendar, como dice arriba). **No puedo confirmar qué scopes tiene
+autorizados en Google Admin** una cuenta de servicio que no existe como
+secreto aquí — eso solo se ve en Google Admin (fuera de mi acceso).
+
+**Para que "Mi calendario de Google" (lectura) y la sincronización de
+escritura funcionen, falta, en orden:**
+1. Crear (o localizar) la cuenta de servicio de Google Cloud dedicada al SGC,
+   con **domain-wide delegation** habilitada.
+2. En Google Admin › Seguridad › Controles de API › Delegación de todo el
+   dominio: agregar esa cuenta con los scopes `https://www.googleapis.com/auth/calendar.events` (escritura, como minutas@) **y** `https://www.googleapis.com/auth/calendar.readonly` (lectura, como cada persona — domain-wide delegation permite que el `sub` sea cualquier correo del dominio, no hace falta un scope por persona).
+3. Descargar el JSON de la cuenta de servicio y ponerlo en los secretos de **dev primero** (`GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_CALENDAR_DELEGATED_USER=minutas@constructorasd.com`), probar, y solo entonces en prod (regla 18).
+
+**Edge nueva `reuniones-mi-calendario`** (solo lectura, `supabase/functions/reuniones-mi-calendario/`): token con scope `calendar.readonly` y `sub` = el correo de quien consulta (nunca uno fijo, nunca uno que llegue en el body); ventana hoy −7 a +60 días; eventos privados salen como «Ocupado» sin lugar/organizador/participantes; rechaza tokens OAuth de Claude (mismo guard que CS6, 42501 únicamente). Hoy responde `{conectado:false, motivo:'no_configurado'}` en dev y en prod — probado así (es el estado real); falta la cuenta de servicio de arriba para probar la lectura real.
+
+**"Llevar al SGC"**: crea la reunión con el tipo "Otra" por defecto y liga `google_event_id` (índice único — dos clics no duplican). No se expone el calendario de Google al conector de Claude en esta ronda (decisión pendiente, ver `docs/CLAUDE-CONECTOR.md`).

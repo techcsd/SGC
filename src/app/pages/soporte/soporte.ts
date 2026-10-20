@@ -11,10 +11,12 @@ import { comprimirImagen } from '../../../shared/utils/comprimir-imagen.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { BienvenidaService } from '../../../shared/services/bienvenida.service';
+import { imagenesDePortapapeles } from '../../../shared/utils/clipboard-imagen.util';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-soporte',
-  imports: [ReactiveFormsModule, RouterLink, DonutChart, BarChart, Skeleton, Icon],
+  imports: [ReactiveFormsModule, RouterLink, DonutChart, BarChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './soporte.html',
   styleUrl: './soporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -93,6 +95,28 @@ export class Soporte implements OnInit {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     input.value = '';
+    await this.agregarFotos(files);
+  }
+
+  /** CS2 — pegar una captura (Ctrl+V) en cualquier parte del formulario la adjunta,
+   *  sin tener que guardarla en una carpeta primero y elegirla con el picker. */
+  async onPaste(event: ClipboardEvent) {
+    const imgs = imagenesDePortapapeles(event);
+    if (!imgs.length) return;
+    event.preventDefault();
+    await this.agregarFotos(imgs);
+  }
+
+  /** CS2 — arrastrar y soltar una captura en la zona de fotos. */
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+  }
+  async onDrop(event: DragEvent) {
+    event.preventDefault();
+    await this.agregarFotos(imagenesDePortapapeles(event));
+  }
+
+  private async agregarFotos(files: File[]) {
     for (const file of files) {
       const comprimida = await comprimirImagen(file);
       this.fotos.update((list) => [...list, { file: comprimida, preview: URL.createObjectURL(comprimida) }]);

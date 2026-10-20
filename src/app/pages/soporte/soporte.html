@@ -47,7 +47,7 @@
 
   <!-- Form -->
   <section class="soporte__form-card">
-    <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+    <form [formGroup]="form" (ngSubmit)="onSave()" (paste)="onPaste($event)" novalidate>
 
       <div class="sgc-field">
         <label for="tipo">Tipo</label>
@@ -88,10 +88,11 @@
         }
       </div>
 
-      <!-- Fotos adjuntas (opcional) — paridad con la app de campo -->
+      <!-- Fotos adjuntas (opcional) — paridad con la app de campo. CS2 — también se
+           pueden pegar (Ctrl+V) desde cualquier parte del formulario o arrastrar aquí. -->
       <div class="sgc-field">
         <label>Fotos (opcional)</label>
-        <div class="soporte__fotos">
+        <div class="soporte__fotos soporte__fotos--drop" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
           @for (foto of fotos(); track foto.preview) {
             <div class="soporte__foto">
               <img [src]="foto.preview" alt="Foto adjunta" />
@@ -104,6 +105,7 @@
             <input type="file" accept="image/*" capture="environment" multiple hidden (change)="onFotos($event)" />
           </label>
         </div>
+        <p class="soporte__fotos-hint">{{ 'Pega con Ctrl+V o arrastra una captura aquí.' | t }}</p>
       </div>
 
       @if (saveError()) {

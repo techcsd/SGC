@@ -4,6 +4,7 @@ import { ButtonDirective } from '../../../shared/ui/button/button.directive';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { edgeErrorMessage } from '../../../shared/utils/edge.util';
 
 interface DetalleLinea {
   etiqueta: string;
@@ -72,7 +73,7 @@ export class BorradorClaude implements OnInit {
     const { data, error } = await this.supabase.client.functions.invoke('claude-borrador', {
       body: { accion, id },
     });
-    if (error) throw error;
+    if (error) throw new Error(await edgeErrorMessage(error));
     return data;
   }
 

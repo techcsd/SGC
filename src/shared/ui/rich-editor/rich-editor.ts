@@ -23,14 +23,29 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Link from '@tiptap/extension-link';
 import { Markdown } from 'tiptap-markdown';
+import { NotaImagen, NotaImagenOptions } from './nota-imagen.extension';
+import { imagenesDePortapapeles } from '../../utils/clipboard-imagen.util';
+
+/** CS2 — lo que el consumidor del editor (Dev notes) debe aportar para que las
+ *  imágenes pegadas/arrastradas funcionen. Sin esto, el editor simplemente no
+ *  intercepta paste/drop de imágenes (comportamiento de antes). */
+export interface ImagenEditorConfig {
+  /** Sube el archivo y devuelve `nota-img:<ruta>` para guardar en el Markdown. */
+  subir: (file: File) => Promise<string>;
+  resolverUrl: (src: string) => Promise<string>;
+  copiarAlPortapapeles: (url: string) => Promise<void>;
+  descargar: (url: string, nombre: string) => void;
+  quitar: (src: string) => void;
+}
 
 /**
  * Mismas extensiones que usa `<app-rich-editor>`, exportadas para que el test
  * de ida y vuelta Markdown↔TipTap (`markdown-roundtrip.spec.ts`) ejercite
  * EXACTAMENTE el mismo editor que corre en pantalla (sin duplicar la lista y
- * arriesgar que diverjan).
+ * arriesgar que diverjan). `opcionesImagen` es opcional (el test de round-trip
+ * no necesita resolver URLs reales).
  */
-export function extensionesNotasRicas(): AnyExtension[] {
+export function extensionesNotasRicas(opcionesImagen?: Partial<NotaImagenOptions>): AnyExtension[] {
   return [
     StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
     Underline,
@@ -41,6 +56,7 @@ export function extensionesNotasRicas(): AnyExtension[] {
     TaskList,
     TaskItem.configure({ nested: false }),
     Link.configure({ openOnClick: false, autolink: true }),
+    NotaImagen.configure(opcionesImagen ?? {}),
     Markdown.configure({
       html: false, // seguridad: el contenido se comparte entre usuarios (compartir_nota)
       tightLists: true,
@@ -143,8 +159,13 @@ export class RichEditor implements AfterViewInit, OnDestroy, OnChanges {
   value = input<string>('');
   disabled = input<boolean>(false);
   placeholder = input<string>('Escribe, o «/» para insertar lista, título, código, tabla…');
+  /** CS2 — si se pasa, Ctrl+V / arrastrar una captura la sube e inserta sola. */
+  imagenes = input<ImagenEditorConfig | null>(null);
 
   valueChange = output<string>();
+
+  subiendoImagen = signal(false);
+  errorImagen = signal<string | null>(null);
 
   @ViewChild('host', { static: false }) host?: ElementRef<HTMLDivElement>;
 
@@ -191,14 +212,21 @@ export class RichEditor implements AfterViewInit, OnDestroy, OnChanges {
 
   private crearEditor(markdownInicial: string) {
     if (!this.host) return;
+    const img = this.imagenes();
     this.editor = new Editor({
       element: this.host.nativeElement,
       editable: !this.disabled(),
-      extensions: extensionesNotasRicas(),
+      extensions: extensionesNotasRicas(
+        img
+          ? { resolverUrl: img.resolverUrl, copiarAlPortapapeles: img.copiarAlPortapapeles, descargar: img.descargar, onQuitar: img.quitar }
+          : undefined,
+      ),
       content: markdownInicial,
       editorProps: {
         attributes: { class: 're__prosemirror', 'aria-label': 'Contenido de la nota' },
         handleKeyDown: (_view, event) => this.manejarTecla(event),
+        handlePaste: (_view, event) => this.manejarImagenes(event),
+        handleDrop: (_view, event) => this.manejarImagenes(event),
       },
       onCreate: ({ editor }) => {
         repararListaFantasma(editor);
@@ -211,6 +239,31 @@ export class RichEditor implements AfterViewInit, OnDestroy, OnChanges {
       },
       onSelectionUpdate: ({ editor }) => this.actualizarSlash(editor),
     });
+  }
+
+  /** CS2 — Ctrl+V / arrastrar una captura: la sube sola, sin diálogo. */
+  private manejarImagenes(event: ClipboardEvent | DragEvent): boolean {
+    const cfg = this.imagenes();
+    if (!cfg || this.disabled()) return false;
+    const archivos = imagenesDePortapapeles(event);
+    if (!archivos.length) return false;
+    event.preventDefault();
+    void this.subirImagenes(archivos, cfg);
+    return true;
+  }
+
+  private async subirImagenes(archivos: File[], cfg: ImagenEditorConfig) {
+    this.subiendoImagen.set(true);
+    this.errorImagen.set(null);
+    for (const file of archivos) {
+      try {
+        const ruta = await cfg.subir(file);
+        this.editor?.chain().focus().setImage({ src: ruta, alt: file.name }).run();
+      } catch (e) {
+        this.errorImagen.set(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+      }
+    }
+    this.subiendoImagen.set(false);
   }
 
   private emitir(editor: Editor) {

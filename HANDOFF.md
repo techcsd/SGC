@@ -1,5 +1,34 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-106 (Ronda CS) — 19/10/2026 — 🧪 **EN DEV, web 1.195.0** (worktree `../SGC-cs`, rama `feature/cs-ronda`), NO prod
+
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 19102026\CONTEXTO-ACTUALIZACION-52.md`. IDs CS1-CS10, matriz filas 251-260.
+
+**Hecho y verificado (sesiones reales / MCP real / 23 tests nuevos, 89/89 total):**
+- **CS6/CS7** 🔴 "Entrar como" daba "error de edge function" sin explicar por qué: `functions.invoke` pierde el cuerpo real en error — `auth.service.ts` ahora lee `error.context.json()` (vía `edgeErrorMessage`, utilidad YA existente en `shared/utils/edge.util.ts` pero sin usar en estos sitios). Las 12 edges (11 `admin-*` + `claude-conexiones`) solo rechazan por 42501 (antes CUALQUIER error del guard se mostraba como "bloqueado por Claude", engañoso). Reproducido con sesiones reales: admin→normal OK, admin→admin 403 correcto, normal→acción-admin 403 correcto.
+- **CS3** la nota nueva no aparecía en la lista hasta cambiar de pantalla: `actualizarEnListaLocal` solo reemplazaba, nunca insertaba; `cerrarEditor()` no guardaba lo pendiente. Mismo patrón arreglado en `nota-editor.ts` (Notas v2: `ngOnDestroy` ya no tiraba el debounce de 800ms pendiente).
+- **CS1** orden por columna en Requisiciones (Inventario e Ingeniería): componente compartido `shared/ui/orden-th`, 8 tests unitarios (nulos al final en ambos sentidos, migración del valor legacy `'reciente'/'necesidad'`). Ingeniería gana buscar/obra/estado/fechas (reusando `app-filter-select`), sin Excel/Semana-Mes (son de quien surte).
+- **CS4** "Sesión y dispositivos" nunca tuvo lista: `sgc.mis_sesiones()`/`sgc.cerrar_mi_sesion()` (SECURITY DEFINER sobre `auth.sessions`, sin service role), IP con último octeto oculto, sin ciudad (no hay geolocalización — pendiente de decisión de Xaviel).
+- **CS2** grupos anidados (hasta 4 niveles, `sgc.nota_grupos` + triggers de profundidad/ciclo/reparentado-al-borrar, todo probado con sesiones reales) + vista "Agrupar por mes y año" (solo UI, no escribe datos) + imágenes pegadas/arrastradas (bucket `notas-imagenes`, extensión TipTap `nota-imagen.extension.ts` con NodeView de copiar/quitar, límites 5MB/20 por nota) + copiar imagen al portapapeles (`clipboard-imagen.util.ts`) + pegar captura en Reportar un problema (Soporte).
+- **CS5** 12 herramientas nuevas + `que_puedo_consultar` (catálogo vivo) en el conector de Claude: Dev notes/Notas, Mensajes, Soporte, Documentos, Legal (×2), RRHH, Compras, Solicitudes de movimiento, Mi rendimiento, Auditoría, Admin lectura. Probadas por protocolo MCP real (HTTP) contra el edge desplegado en dev, con gating de módulo confirmado (usuario sin "legal" no ve `listar_expedientes_legales`). `scripts/cobertura-conector.mjs` nuevo, enganchado a `prebuild`/`release-check`: falla si un módulo se queda sin herramienta Y sin exención documentada (`docs/CLAUDE-CONECTOR.md` §11).
+- **CS10** 🔴 **hallazgo no planeado**: ni dev ni prod tienen configurado `GOOGLE_SERVICE_ACCOUNT_JSON`/`GOOGLE_CALENDAR_DELEGATED_USER` (verificado por Management API, sin imprimir secretos) — el Calendar de Reuniones (CP8, escritura) NUNCA ha estado realmente conectado en ningún entorno, aunque nunca se notó (el módulo funciona completo sin él). Edge `reuniones-mi-calendario` (lectura) construida y desplegada, responde `{conectado:false}` correctamente (el estado real); NO se pudo probar la lectura real de Google por esto. Chip "Mi calendario de Google" + "Llevar al SGC" (idempotente, índice único en `google_event_id`) construidos, compilan, sin datos reales de Google para probar la pantalla llena.
+
+**6 migraciones en dev** (ledger `sgc.migraciones_aplicadas`): `cs2-nota-grupos`, `cs2-notas-imagenes`, `cs4-sesiones`, `cs5-conector-cobertura`, `cs10-reuniones-google-event-unico`. 1 edge nueva (`reuniones-mi-calendario`) + 12 edges redeployadas (guard 42501) + `mcp`/`assistant` redeployadas (nuevas tools).
+
+**🔴 Hallazgo mayor (post-OK de Xaviel, probado con Playwright real contra `localhost` + dev Supabase — `dev.sgcconstructorasd.com` está detrás del login de Vercel, sin permiso para generar un bypass token):** "Entrar como" seguía sin funcionar en el navegador real incluso con los arreglos CS6/CS7, porque el preflight CORS de **40 edges** (no solo las 12 del guard) rechazaba `x-sgc-client` (header que `SupabaseService` manda en TODA petición, para `auditoria.origen`). Era el defecto ya anotado en la ronda CR como "26 edges más comparten el mismo defecto (pendiente)" — esta ronda lo cerró en los 40 que faltaban. **Verificado end-to-end en navegador real**: "Entrar como", la nota nueva en la lista tras cerrar rápido, Sesión y dispositivos con datos reales, y el orden por columna de Requisiciones — los 4 confirmados visualmente, no solo por API. Commit `b809772`.
+
+**Pendientes físicos (lista única, ver el reporte de la ronda para el detalle completo):**
+1. Probar en dev (`dev.sgcconstructorasd.com`): "entrar como", crear una nota y cerrarla rápido, Ctrl+V en Dev notes y en Reportes, copiar una imagen y pegarla en Claude Desktop, Sesión y dispositivos con dos dispositivos reales.
+2. Probar el conector con Claude Desktop real contra dev (preguntar por Dev notes, Mensajes, Compras, Legal…).
+3. Decidir si quieres ciudad en las sesiones (exige un servicio externo de geolocalización) — hoy solo IP parcial.
+4. **CS10**: crear/ubicar la cuenta de servicio de Google con domain-wide delegation (`calendar.events` + `calendar.readonly`) y poner `GOOGLE_SERVICE_ACCOUNT_JSON`/`GOOGLE_CALENDAR_DELEGATED_USER` en dev primero — ver `docs/REUNIONES.md` nueva sección.
+5. OK explícito aquí o en `qa/release-1.195.0.md` (o esperar 24h) para que `release-check.mjs` deje promover `dev → main`.
+6. Worktree `SGC-cr` (ronda anterior) tenía un `ng serve` huérfano corriendo en el puerto 4200 (PID 15748) — no lo detuve (no lo arranqué yo esta sesión); ciérralo manualmente si ya no lo necesitas.
+
+**NO se tocó**: `main`/prod. Migraciones solo en dev. `release-check.mjs --env dev --version 1.195.0` da 3/5 PASS (build+tests, ledger, registro de prueba) y 1 SKIP — el único FAIL real es el gate de "OK explícito / 24h", que es intencional hasta que Xaviel pruebe.
+
+---
+
 ## TL;DR — PROMPT-104 (Ronda CR) — 18-19/10/2026 — ✅ **EN PROD** (web **1.194.0**, `main`=`dev`=`6f5fe9d`)
 
 **Conecta el SGC con Claude Desktop** (CR1) — Eduardo NG pedía usar el sistema desde

@@ -69,6 +69,22 @@ Manual, impersonando cada rol en la web y preguntándole a Compa las filas de ar
 confirmar que ningún tool devuelve datos ajenos y que `es_prueba` no se filtra a un
 usuario real. Con AY7 (usuarios test por rol), esto pasa a smoke reproducible por ronda.
 
+## CS5 (19-oct-2026) — cobertura total: módulos que antes no tenían tool
+
+Detalle completo (motivo de cada una, tabla por RPC) en `docs/CLAUDE-CONECTOR.md`
+§11. Resumen de mecanismo de filtrado (regla madre de arriba):
+
+| Tool | Mecanismo |
+|---|---|
+| `que_puedo_consultar` | Ninguno propio — refleja `sgc.tiene_modulo`/`sgc.is_admin` de TODOS los módulos, para que Claude sepa qué preguntar |
+| `mis_notas`, `mis_mensajes`, `mis_reportes_soporte`, `mi_rendimiento` | **Identidad estricta** (`auth.uid()`), como manda la regla madre — sin escape de módulo |
+| `listar_plantillas_documento`, `listar_expedientes_legales`, `listar_aprobaciones_legales`, `directorio_empleados`, `mis_ordenes_de_compra`, `mi_actividad_auditoria`, `listar_usuarios_admin` | **Módulo-scoped legítimo** — la RPC revalida el módulo/admin server-side (defensa en profundidad: no confía solo en que `toolsParaUsuario` ya filtró) |
+| `mis_solicitudes_movimiento` | Reusa `solicitudes_movimiento_listar` (misma RPC de la pantalla real — RLS ya probada) |
+
+`directorio_empleados` y `listar_usuarios_admin` **nunca** seleccionan
+`salario`/contraseñas/PINs — verificado leyendo la definición de la RPC antes
+de registrarla (regla 19), no solo confiando en el nombre.
+
 ## Vetos (§5) — NO existen ni se construyen
 Tools de credenciales/API keys/configuración del sistema · escritura de permisos por
 chat · ejecución de escritura sin confirmación · datos en archivos sin tool detrás.
