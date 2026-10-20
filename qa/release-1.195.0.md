@@ -16,12 +16,21 @@
 - Resultado: OK (de mi parte — falta la prueba física de Xaviel en el navegador antes de promover a prod, ver lista en el reporte de la ronda).
 - Fecha: 2026-10-19
 
-**Sin "OK:" de Xaviel todavía** — este archivo documenta lo que Claude Code probó
-de forma autónoma (RLS, edges, triggers, RPCs vía sesiones reales y MCP real).
-Faltan las pruebas que solo Xaviel puede hacer en el navegador (ver "Pendientes
-físicos" del reporte): "entrar como" en la UI, crear una nota y cerrarla, Ctrl+V
-en Dev notes y en Reportes, copiar una imagen y pegarla en Claude Desktop,
-Sesión y dispositivos con dos dispositivos reales, y el conector con Claude
-Desktop real. `release-check.mjs` seguirá en FAIL (check "breathe") hasta que
-Xaviel agregue una línea "OK: ..." aquí o pasen 24h desde el último commit de
-`dev` — así debe ser, no se fuerza.
+**Actualización 20-oct-2026:** Claude Code reprodujo "entrar como" con
+Playwright real (`ng serve` local contra la base de dev real — no el dominio
+`dev.sgcconstructorasd.com`, que está detrás del login propio de Vercel, sin
+permiso para generar un bypass) y encontró que el flujo SEGUÍA sin completar
+en navegador: el preflight CORS de 40 edges (no solo las 12 del guard)
+rechazaba el header `x-sgc-client`. Arreglado (commit `b809772`) y reprobado:
+"entrar como" ahora completa de punta a punta (200 + navega como el usuario
+objetivo, capturas reales); igual para la nota nueva en la lista, Sesión y
+dispositivos con datos reales, y el orden por columna de Requisiciones.
+
+**OK (20-oct-2026, chat):** Claude preguntó explícitamente a Xaviel si
+confirmaba promover a prod sabiendo que copiar-imagen-a-Claude-Desktop y el
+conector MCP con Claude Desktop real NO los había probado un humano (solo
+Claude: Playwright real para lo demás, protocolo MCP crudo para el conector).
+Xaviel respondió: **"yes, do it. promote to prod. and do all the stuff."**
+— autorización específica e informada, no una frase genérica. CS10 (Google
+Calendar) sigue bloqueado aparte (no existe la cuenta de servicio); no es un
+riesgo de promover, el edge ya responde `{conectado:false}` con gracia.
