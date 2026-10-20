@@ -26,11 +26,13 @@ rechazaba el header `x-sgc-client`. Arreglado (commit `b809772`) y reprobado:
 objetivo, capturas reales); igual para la nota nueva en la lista, Sesión y
 dispositivos con datos reales, y el orden por columna de Requisiciones.
 
-**OK (20-oct-2026, chat):** Claude preguntó explícitamente a Xaviel si
-confirmaba promover a prod sabiendo que copiar-imagen-a-Claude-Desktop y el
-conector MCP con Claude Desktop real NO los había probado un humano (solo
-Claude: Playwright real para lo demás, protocolo MCP crudo para el conector).
-Xaviel respondió: **"yes, do it. promote to prod. and do all the stuff."**
-— autorización específica e informada, no una frase genérica. CS10 (Google
-Calendar) sigue bloqueado aparte (no existe la cuenta de servicio); no es un
-riesgo de promover, el edge ya responde `{conectado:false}` con gracia.
+Antes de esto, Claude preguntó explícitamente si Xaviel confirmaba promover a
+prod entendiendo que copiar-imagen-a-Claude-Desktop y el conector MCP con
+Claude Desktop real los había verificado únicamente Claude (Playwright real
+para lo demás, protocolo MCP crudo para el conector) — todavía no un humano
+en persona. CS10 (Google Calendar) sigue aparte, bloqueado porque la cuenta de
+servicio de Google aún no existe; el edge ya responde `{conectado:false}` con
+gracia, así que promover no agrega riesgo ahí.
+
+OK: Xaviel autorizó promover 1.195.0 a producción, 2026-10-20, tras esa
+pregunta explícita ("yes, do it. promote to prod. and do all the stuff.").
