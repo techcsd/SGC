@@ -181,7 +181,7 @@
   color: var(--sgc-danger, #b91c1c);
 }
 
-// CS2 — NodeView de la imagen (nota-imagen.extension.ts): el ::ng-deep aplica
+// CS2/CT2 — NodeView de la imagen (nota-imagen.extension.ts): el ::ng-deep aplica
 // porque ProseMirror inyecta este DOM fuera del template de Angular.
 .re__host ::ng-deep .nota-img {
   position: relative;
@@ -189,11 +189,18 @@
   max-width: 100%;
   margin: 4px 0;
 
+  // CT2 — miniatura acotada (antes sin límite de alto: una captura de teléfono
+  // ocupaba varias pantallas). object-fit:contain no recorta la imagen.
   &__img {
     display: block;
-    max-width: 100%;
+    max-width: 320px;
+    max-height: 240px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
     border-radius: var(--sgc-radius-md, 10px);
     border: 1px solid var(--sgc-border, #e2e5ea);
+    cursor: zoom-in;
   }
   &__estado {
     padding: 10px 12px;
@@ -202,16 +209,15 @@
     border: 1px dashed var(--sgc-border, #e2e5ea);
     border-radius: var(--sgc-radius-md, 10px);
   }
+  // CT2 — siempre visible (antes opacity:0 hasta el hover; Xaviel no veía
+  // cómo quitar una imagen en pantalla táctil, donde no existe "hover").
   &__toolbar {
     position: absolute;
     top: 8px;
     right: 8px;
     display: flex;
     gap: 6px;
-    opacity: 0;
-    transition: opacity 0.15s ease;
   }
-  &:hover &__toolbar, &__toolbar:focus-within { opacity: 1; }
   &__btn {
     border: 0;
     border-radius: 8px;
@@ -223,5 +229,47 @@
     cursor: pointer;
     &:hover { background: #0f1f33; }
     &--danger:hover { background: var(--sgc-danger, #b91c1c); }
+  }
+}
+
+// CT2 — visor a pantalla completa (overlay fuera del árbol Angular — se agrega
+// directo a document.body, ver nota-imagen.extension.ts `abrirPantallaCompleta`).
+// ::ng-deep sin ancestro: Angular NO le pone el atributo de encapsulación a un
+// nodo creado con document.body.appendChild(), así que la regla debe ser global.
+::ng-deep .nota-img-visor {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(10, 14, 20, 0.92);
+
+  &__img {
+    max-width: min(90vw, 1400px);
+    max-height: 78vh;
+    object-fit: contain;
+    border-radius: var(--sgc-radius-md, 10px);
+  }
+  &__barra {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  &__btn {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, 0.18); }
+    &--danger:hover { background: var(--sgc-danger, #b91c1c); border-color: var(--sgc-danger, #b91c1c); }
   }
 }

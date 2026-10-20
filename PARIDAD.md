@@ -908,3 +908,64 @@ exclusiva de app):
   deja desconectar/revisar — el flujo de los "3 pasos" (copiar enlace, Claude
   Desktop, Connect) vive en `Perfil-claude` (web) y el mock app lo dice
   explícitamente ("usa la guía en Perfil › Claude de la web del SGC").
+
+## Ronda CT (PROMPT-108 web → PROMPT-109 app) — 1.196.0
+
+### CT4/CT7 — `crear_solicitud_app` cambia de `returns uuid` a `returns jsonb` + detección de duplicado
+**Causa:** Emmanuel Peralta mandó la misma requisición dos veces porque la primera "no aparecía"
+(el teléfono la guarda local antes de que el servidor confirme). `crear_solicitud_app` ya era
+idempotente por `p_id`, pero un reintento desde la app genera un `p_id` NUEVO, así que esa
+idempotencia no detecta el duplicado real.
+
+**Contrato nuevo (migración `sql/2026-10-20-ct4-requisicion-duplicada.sql`, aplicada a dev):**
+```
+sgc.crear_solicitud_app(
+  p_id uuid, p_proyecto_id uuid, p_urgencia text, p_notas text, p_items jsonb,
+  p_fecha_necesidad date default null, p_forzar boolean default false   -- NUEVO parámetro
+) returns jsonb   -- ANTES: returns uuid
+```
+La respuesta ahora es `{ "id": uuid, "duplicada_de": uuid | null, "folio": text }` en vez de un
+uuid plano:
+- `duplicada_de = null` → se creó una requisición nueva (`id` es la nueva).
+- `duplicada_de != null` (igual a `id`) → el servidor encontró una requisición del MISMO
+  solicitante + MISMA obra + MISMOS renglones (articulo_id/descripcion + cantidad) creada en las
+  últimas 24h, y devolvió **esa** en vez de crear otra. `folio` trae el código `REQ-xxxxxx` para
+  mostrarlo en el aviso.
+- Enviar `p_forzar: true` se salta la detección y siempre crea una requisición nueva (por si el
+  usuario de verdad quiere dos iguales).
+
+**Lo que la app (PROMPT-109 F2) necesita cambiar:**
+1. Donde hoy se lee `data` de `crear_solicitud_app` como un uuid string directo, pasar a leer
+   `data.id` (el shape cambió de `uuid` a `jsonb`).
+2. Si `data.duplicada_de` viene no-nulo: mostrar un aviso tipo "Ya enviaste una igual hace poco
+   (`{folio}`)" en vez de (o adicional a) la hoja de éxito normal — no es un error, la requisición
+   SÍ existe, solo que es la de antes.
+3. **CT7 (relacionado, resuelto en la app, no en el servidor):** la hoja de éxito y la barra "Todo
+   enviado" hoy confirman que la requisición se GUARDÓ EN EL TELÉFONO, no que el servidor la
+   recibió — por eso "siempre dice enviada" aunque el servidor nunca la vea. La requisición nueva
+   debería aparecer en "Mis requisiciones" como **"Enviando…"** hasta que la llamada real a
+   `crear_solicitud_app` confirme, y pasar a **"Enviada · REQ-xxxxxx"** con el folio real recién
+   entonces (ver CONTEXTO-53 §3 B4).
+4. `crear_solicitud_material` (la RPC que usa la web, no la app) tiene el MISMO cambio de
+   contrato (`returns jsonb` + `p_forzar`) — no debería afectar a la app salvo que algún flujo la
+   llame directamente.
+
+### CT3a — "Ver conduce" sin crear un borrador de recepción (pendiente, app)
+`recibir.ts`: tocar un conduce en la lista hoy llama `abrir(c)`, que abre la hoja de recepción y
+(por el `effect` de autosave) crea un borrador de recepción SOLO por mirarlo. Falta separar "Ver
+conduce" (solo lectura, sin tocar el borrador) de "Recibir" (sí lo crea) — pendiente de
+PROMPT-109 F1, no se tocó en esta ronda (es 100% app).
+
+### CT5 — borrador de recepción: falta listarlo + banner de retomar (pendiente, app)
+El borrador de recepción de conduces YA EXISTE (`recibir.ts` guarda cantidades/notas/fotos y
+`CameraService` lo restaura si el SO mata la Activity) — lo que falta es que
+`en-proceso.service.ts` incluya `recibir` en `BORRADOR_TIPOS` (hoy no aparece en "Documentación en
+proceso") y un banner "Tienes una recepción sin terminar · Retomar/Descartar" en inicio. El crash
+de la cámara a 0.6x necesita `adb logcat` de un teléfono real — no se puede diagnosticar desde el
+código. Pendiente de PROMPT-109 F3, no se tocó en esta ronda (es 100% app).
+
+### CT8 — "Cambiar despachante" (web, 100% — sin contrato nuevo para la app)
+Nueva RPC `sgc.conduce_cambiar_despachante(p_salida_id, p_despachante_nombre, p_despachante_usuario_id, p_despachante_empleado_id, p_motivo)` — solo la usa la ficha web del conduce. Si la app (csd-app) algún día necesita el mismo botón, puede llamar la misma RPC directo (mismas reglas de permiso que `conduce_asignar_receptor`/CK4, ya usada por la app).
+
+### CT10 — Envíos automáticos (100% servidor/web, sin acción para la app)
+Los 4 crons que ahora respetan `sgc.envios_automaticos` (resumen de operaciones, incentivo semanal, avisos de reporte semanal, cronograma) corren del lado del servidor — la app no los llama ni los necesita tocar.

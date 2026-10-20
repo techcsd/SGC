@@ -1,0 +1,102 @@
+.ea {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+  }
+  &__subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--text-3);
+  }
+  &__banda {
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  &__banda--dev {
+    background: var(--info-bg);
+    color: var(--info);
+  }
+  &__banda--prod {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+  &__empty {
+    color: var(--text-3);
+    font-size: 13px;
+    padding: 30px;
+    text-align: center;
+  }
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  &__row-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  &__row-nombre {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  &__row-meta {
+    font-size: 12.5px;
+    color: var(--text-3);
+  }
+}
+
+.ea-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 20, 0.5);
+
+  &__panel {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(420px, 92vw);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  &__sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-3);
+  }
+  &__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}

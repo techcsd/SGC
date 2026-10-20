@@ -1,0 +1,58 @@
+<div class="ea">
+  <header class="ea__head">
+    <div>
+      <h1 class="ea__title">Envíos automáticos</h1>
+      <p class="ea__subtitle">Interruptor por reporte/aviso que mandan los crons del SGC.</p>
+    </div>
+  </header>
+
+  @if (esProd) {
+    <p class="ea__banda ea__banda--prod">Este es PROD: apagar un envío aquí detiene correos/avisos reales.</p>
+  } @else {
+    <p class="ea__banda ea__banda--dev">Este es DEV: los correos se redirigen a Tecnología (no le llegan a nadie más).</p>
+  }
+
+  @if (loading()) {
+    <p class="ea__empty">Cargando…</p>
+  } @else if (error()) {
+    <p class="page-error" role="alert">{{ error() }}</p>
+  } @else {
+    <div class="ea__list">
+      @for (e of envios(); track e.familia) {
+        <div class="ea__row">
+          <div class="ea__row-main">
+            <span class="ea__row-nombre">{{ e.nombre }}</span>
+            <span class="ea__row-meta">
+              @if (e.ultimo_envio) { Último envío: {{ formatTs(e.ultimo_envio) }} } @else { Sin envíos registrados todavía }
+              @if (e.motivo_ultimo_cambio) { · Motivo del último cambio: «{{ e.motivo_ultimo_cambio }}» }
+            </span>
+          </div>
+          <span class="sgc-badge" [class.sgc-badge--success]="e.activo" [class.sgc-badge--neutral]="!e.activo">
+            {{ e.activo ? 'Encendido' : 'Apagado' }}
+          </span>
+          <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="busyFamilia() === e.familia" (click)="toggle(e)">
+            {{ busyFamilia() === e.familia ? 'Cambiando…' : (e.activo ? 'Apagar' : 'Encender') }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (motivoOpen()) {
+  <div class="ea-modal no-print" (click)="motivoOpen.set(false)">
+    <div class="ea-modal__panel" (click)="$event.stopPropagation()">
+      <h2>Apagar «{{ motivoFamilia()?.nombre }}»</h2>
+      <p class="ea-modal__sub">Esto es producción: da un motivo para apagar este envío automático (queda registrado).</p>
+      <label class="sgc-field">
+        <span>Motivo</span>
+        <textarea rows="2" [value]="motivoTexto()" (input)="motivoTexto.set($any($event.target).value)"
+                  placeholder="Ej. estamos probando algo y no quiero que salga el correo real"></textarea>
+      </label>
+      <div class="ea-modal__foot">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="motivoOpen.set(false)">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarMotivo()">Apagar</button>
+      </div>
+    </div>
+  </div>
+}

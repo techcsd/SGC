@@ -129,6 +129,41 @@
   </div>
 }
 
+<!-- CT8 — Cambiar despachante (corregir quién despachó el conduce) -->
+@if (despachanteOpen()) {
+  <div class="conduce-modal no-print" (click)="despachanteOpen.set(false)">
+    <div class="conduce-modal__panel" (click)="$event.stopPropagation()">
+      <h2>Cambiar despachante</h2>
+      <p class="conduce-modal__sub">Elige quién despachó de verdad el conduce {{ numeroConduce }}.</p>
+      <div class="sgc-field">
+        <label for="cd-despachante">Despachante</label>
+        <select id="cd-despachante" [value]="selDespachante()" (change)="selDespachante.set($any($event.target).value || null)">
+          <option value="">— Selecciona despachante —</option>
+          @for (d of despachantesPicker(); track d.tipo + ':' + d.id) {
+            <option [value]="d.tipo + ':' + d.id">{{ d.nombre }}@if (d.detalle) { — {{ d.detalle }} }</option>
+          }
+        </select>
+      </div>
+      @if (firmaEmisor()) {
+        <p class="conduce-modal__warn">
+          <app-icon name="alert-triangle" [size]="14" /> {{ firmaEmisor()?.nombre }} ya firmó como despachante — esa firma se quitará y se le pedirá a la persona nueva.
+        </p>
+        <div class="sgc-field">
+          <label for="cd-motivo">Motivo (obligatorio)</label>
+          <textarea id="cd-motivo" rows="2" [value]="despachanteMotivo()" (input)="despachanteMotivo.set($any($event.target).value)"
+                    placeholder="Ej. se asignó por error, el que despachó de verdad fue otra persona"></textarea>
+        </div>
+      }
+      <div class="conduce-modal__foot">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="despachanteOpen.set(false)" [disabled]="despachanteBusy()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarCambiarDespachante()" [disabled]="despachanteBusy()">
+          {{ despachanteBusy() ? 'Cambiando…' : 'Cambiar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- AY4 — banner de dato de prueba (visible solo a admin; el resto no ve estas filas) -->
 @if (salida()?.es_prueba) {
   <div class="conduce-prueba-banner no-print" role="note">
@@ -372,6 +407,9 @@
               <span class="sgc-badge sgc-badge--warning">Firma pendiente</span>
             }
           </span>
+          @if (puedeCambiarDespachante()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirCambiarDespachante()">Cambiar</button>
+          }
         </div>
       }
       <div>

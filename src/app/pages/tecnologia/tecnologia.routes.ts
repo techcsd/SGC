@@ -153,4 +153,12 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./design-system/design-system').then((m) => m.TecDesignSystem),
     title: 'Sistema de diseño — Tecnología',
   },
+  {
+    // CT10 — interruptor por familia de reporte/aviso automático (crons).
+    path: 'envios-automaticos',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('./envios-automaticos/envios-automaticos').then((m) => m.TecEnviosAutomaticos),
+    title: 'Envíos automáticos — Tecnología',
+  },
 ];

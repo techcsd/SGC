@@ -50,3 +50,16 @@ escritura funcionen, falta, en orden:**
 **Edge nueva `reuniones-mi-calendario`** (solo lectura, `supabase/functions/reuniones-mi-calendario/`): token con scope `calendar.readonly` y `sub` = el correo de quien consulta (nunca uno fijo, nunca uno que llegue en el body); ventana hoy −7 a +60 días; eventos privados salen como «Ocupado» sin lugar/organizador/participantes; rechaza tokens OAuth de Claude (mismo guard que CS6, 42501 únicamente). Hoy responde `{conectado:false, motivo:'no_configurado'}` en dev y en prod — probado así (es el estado real); falta la cuenta de servicio de arriba para probar la lectura real.
 
 **"Llevar al SGC"**: crea la reunión con el tipo "Otra" por defecto y liga `google_event_id` (índice único — dos clics no duplican). No se expone el calendario de Google al conector de Claude en esta ronda (decisión pendiente, ver `docs/CLAUDE-CONECTOR.md`).
+
+## El SGC ya avisa si Calendar falla (CT1, 20-oct-2026)
+
+**Hallazgo:** el SGC crea reuniones sin avisar nunca si Google Calendar funcionó o no — `reuniones.service.ts` descartaba la respuesta del edge (`.catch(() => {})`), así que una reunión "creada" en el SGC parecía normal aunque Calendar nunca recibiera nada. Esto hacía casi imposible notar que, como dice arriba, **ni dev ni prod tienen hoy la cuenta de servicio de Google configurada**.
+
+**Arreglado (sin tocar Google Admin, que sigue siendo 100% de Xaviel):**
+- `sgc.reuniones` gana 3 columnas (`calendar_sync_estado`, `calendar_sync_error`, `calendar_sync_at`) que la edge `reuniones-calendar` escribe en CADA intento (crear/actualizar/cancelar), incluido el caso "sin secretos" → `calendar_sync_estado='no_conectado'`.
+- La ficha de la reunión (y un ícono en la lista) ya muestra el estado real: "Sincronizado ✓ / No conectado / Error: `<motivo>`" + botón "Reintentar" (ahora público — antes solo se llamaba fire-and-forget al crear).
+- Nueva RPC `sgc.reunion_cancelar(p_id)` + botón "Cancelar reunión" en la ficha (antes NO existía ninguna forma de cancelar una reunión desde el SGC) — dispara la cancelación del evento de Calendar si está conectado.
+- El creador de la reunión YA estaba siempre invitado (se verificó `reunion_crear`: inserta a `auth.uid()` en `reunion_participantes` sin excepción) — no hacía falta ningún cambio ahí.
+- Migración: `sql/2026-10-20-ct1-reuniones-calendar-estado.sql` (dev; falta prod hasta el OK de Xaviel).
+
+**Sigue sin poder probarse con Google real** hasta que exista la cuenta de servicio + secretos (ver arriba) — el estado "no conectado" ahora es visible y honesto, en vez de silencioso.

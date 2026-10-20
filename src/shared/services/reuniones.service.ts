@@ -139,7 +139,7 @@ export class ReunionesService {
     proyectoId?: string | null; expedienteId?: string | null; solicitudCompraId?: string | null;
     participantesUsuarios: string[]; participantesExternos: ParticipanteExterno[];
     agenda?: string[] | null;
-  }): Promise<{ id: string; calendar: { conectado: boolean; mensaje?: string; enlace?: string } }> {
+  }): Promise<{ id: string; calendar: { conectado: boolean; mensaje?: string; enlace?: string; motivo?: 'no_configurado' } }> {
     const { data, error } = await this.supabase.client.rpc('reunion_crear', {
       p_tipo_id: p.tipoId, p_titulo: p.titulo, p_inicio: p.inicio, p_fin: p.fin,
       p_modalidad: p.modalidad, p_lugar: p.lugar ?? null,

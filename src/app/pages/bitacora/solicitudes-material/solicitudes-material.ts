@@ -628,7 +628,7 @@ export class SolicitudesMaterial implements OnInit {
         return;
       }
 
-      const created = await this.solicitudesService.create({
+      const { solicitud: created, duplicadaDe, folio } = await this.solicitudesService.create({
         proyecto_id: v.proyecto_id!,
         solicitante_id: solicitanteId,
         urgencia: v.urgencia!,
@@ -648,15 +648,21 @@ export class SolicitudesMaterial implements OnInit {
         }),
       });
 
-      // U25 — registrar los "Otros" (texto libre) para la inteligencia de otros_valores.
-      for (const i of items) {
-        if (i.esOtro && i.descripcion.trim()) {
-          this.solicitudesService.registrarOtro(i.descripcion, created.id);
+      if (duplicadaDe) {
+        // CT4/CT7 — el servidor detectó que ya existe una igual (mismo solicitante+
+        // obra+renglones) en las últimas 24h: no se creó otra, reusa la existente.
+        this.toast.warning('Ya enviaste una igual hace poco', `Se usó la requisición existente ${folio} en vez de crear otra.`);
+      } else {
+        // U25 — registrar los "Otros" (texto libre) para la inteligencia de otros_valores.
+        for (const i of items) {
+          if (i.esOtro && i.descripcion.trim()) {
+            this.solicitudesService.registrarOtro(i.descripcion, created.id);
+          }
         }
+        this.motion.momento('documento', { texto: 'Requisición enviada' });
       }
 
       this.solicitudes.update((list) => [created, ...list]);
-      this.motion.momento('documento', { texto: 'Requisición enviada' });
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');

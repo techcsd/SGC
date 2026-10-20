@@ -39,6 +39,10 @@ $$;
 grant execute on function sgc.reunion_cancelar(uuid) to authenticated;
 
 -- ── reuniones_listado gana el estado de sincronización (chip en la lista) ────
+-- Regla 19: mismo cuerpo que la versión viva en prod (CS10,
+-- sql/2026-10-19-cs10-reuniones-google-event-unico.sql — ya agregó
+-- `google_event_id`), solo se agrega `calendar_sync_estado` al final.
+drop function if exists sgc.reuniones_listado(text, uuid, uuid);
 create or replace function sgc.reuniones_listado(
   p_filtro text default 'proximas',
   p_tipo_id uuid default null, p_proyecto_id uuid default null
@@ -47,7 +51,7 @@ create or replace function sgc.reuniones_listado(
   inicio timestamptz, fin timestamptz, modalidad text, lugar text, enlace text,
   proyecto_id uuid, proyecto_nombre text, organizador_id uuid, organizador_nombre text,
   estado text, fireflies_id text, participantes_n bigint, acuerdos_n bigint, acta_lista boolean,
-  calendar_sync_estado text
+  google_event_id text, calendar_sync_estado text
 )
 language sql stable security definer
 set search_path to 'sgc', 'pg_temp'
@@ -57,6 +61,7 @@ as $$
          (select count(*) from sgc.reunion_participantes rp where rp.reunion_id = r.id),
          (select count(*) from sgc.reunion_acuerdos ra where ra.reunion_id = r.id),
          exists (select 1 from sgc.reunion_actas ac where ac.reunion_id = r.id and ac.resumen is not null),
+         r.google_event_id,
          r.calendar_sync_estado
     from sgc.reuniones r
     join sgc.reunion_tipos rt on rt.id = r.tipo_id
