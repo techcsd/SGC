@@ -147,6 +147,10 @@ Deno.serve(async (req: Request) => {
     { db: { schema: "sgc" } },
   );
   let anio = 0, semana = 0;
+  // CU3 — "Enviar prueba ahora (solo a mí)": override de destinatario, nunca
+  // toca sgc.incentivo_envio (esa tabla decide si el pago real "ya_enviado" se
+  // salta — una prueba manual jamás debe bloquear el envío real de la semana).
+  let destinatarioPrueba: string | null = null;
   try {
     const secret = req.headers.get("x-sync-secret");
     const expected = Deno.env.get("INFRA_SYNC_SECRET");
@@ -155,6 +159,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     anio = Number(body.anio); semana = Number(body.semana);
     if (!anio || !semana) return json({ error: "Falta anio/semana." }, 400);
+    destinatarioPrueba = typeof body.destinatario_prueba === "string" ? body.destinatario_prueba.trim() : null;
 
     // BF3 — reenvío versionado. Campos opcionales (retrocompatible con el cron v1).
     const version: number | null = body.version != null ? Number(body.version) : null;
@@ -194,7 +199,9 @@ Deno.serve(async (req: Request) => {
     // montos (sensible): solo roles elevados + admin.
     // BF3 — destinatarios dirigidos (si el reenvío los acotó) o los del informe.
     let to: string[];
-    if (destOverride) {
+    if (destinatarioPrueba) {
+      to = [destinatarioPrueba];
+    } else if (destOverride) {
       to = destOverride.map((u) => u.email).filter(Boolean);
     } else {
       const { data: dest } = await supabase.rpc("destinatarios_informe_incentivo");
@@ -275,7 +282,8 @@ Deno.serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(ajustarCorreoResend({
           from: fromEmail, to,
-          subject: `Incentivo semanal de choferes — Semana ${semana}/${anio}` + (esReenvio ? ` (v${version} — reemplaza)` : ""),
+          subject: (destinatarioPrueba ? "[PRUEBA] " : "") +
+            `Incentivo semanal de choferes — Semana ${semana}/${anio}` + (esReenvio ? ` (v${version} — reemplaza)` : ""),
           html, text: texto,
           attachments: [{ filename: `incentivo-semana-${anio}-${semana}.pdf`, content: toBase64(pdfBytes) }],
         })),
@@ -286,21 +294,25 @@ Deno.serve(async (req: Request) => {
       errMsg = !resendApiKey ? "sin Resend key" : "sin destinatarios";
     }
 
-    // Registrar el envío (idempotente por (anio,semana)).
-    await supabase.from("incentivo_envio").upsert(
-      { anio, semana, destinatarios: to, ok, error: errMsg, enviado_at: new Date().toISOString() },
-      { onConflict: "anio,semana" },
-    );
-
-    return json({ sent: ok, to, error: errMsg });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error desconocido.";
-    try {
+    // Registrar el envío (idempotente por (anio,semana)) — salvo prueba manual.
+    if (!destinatarioPrueba) {
       await supabase.from("incentivo_envio").upsert(
-        { anio, semana, ok: false, error: msg, enviado_at: new Date().toISOString() },
+        { anio, semana, destinatarios: to, ok, error: errMsg, enviado_at: new Date().toISOString() },
         { onConflict: "anio,semana" },
       );
-    } catch (_) { /* noop */ }
+    }
+
+    return json({ sent: ok, to, error: errMsg, prueba: !!destinatarioPrueba });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Error desconocido.";
+    if (!destinatarioPrueba) {
+      try {
+        await supabase.from("incentivo_envio").upsert(
+          { anio, semana, ok: false, error: msg, enviado_at: new Date().toISOString() },
+          { onConflict: "anio,semana" },
+        );
+      } catch (_) { /* noop */ }
+    }
     return json({ error: msg }, 500);
   }
 });

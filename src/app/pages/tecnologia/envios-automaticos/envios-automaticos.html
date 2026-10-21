@@ -1,19 +1,19 @@
 <div class="ea">
   <header class="ea__head">
     <div>
-      <h1 class="ea__title">Envíos automáticos</h1>
-      <p class="ea__subtitle">Interruptor por reporte/aviso que mandan los crons del SGC.</p>
+      <h1 class="ea__title">{{ 'Envíos automáticos' | t }}</h1>
+      <p class="ea__subtitle">{{ 'Interruptor por reporte/aviso que mandan los crons del SGC.' | t }}</p>
     </div>
   </header>
 
   @if (esProd) {
-    <p class="ea__banda ea__banda--prod">Este es PROD: apagar un envío aquí detiene correos/avisos reales.</p>
+    <p class="ea__banda ea__banda--prod">{{ 'Este es PROD: apagar un envío aquí detiene correos/avisos reales.' | t }}</p>
   } @else {
-    <p class="ea__banda ea__banda--dev">Este es DEV: los correos se redirigen a Tecnología (no le llegan a nadie más).</p>
+    <p class="ea__banda ea__banda--dev">{{ 'Este es DEV: los correos se redirigen a Tecnología (no le llegan a nadie más).' | t }}</p>
   }
 
   @if (loading()) {
-    <p class="ea__empty">Cargando…</p>
+    <p class="ea__empty">{{ 'Cargando…' | t }}</p>
   } @else if (error()) {
     <p class="page-error" role="alert">{{ error() }}</p>
   } @else {
@@ -23,15 +23,20 @@
           <div class="ea__row-main">
             <span class="ea__row-nombre">{{ e.nombre }}</span>
             <span class="ea__row-meta">
-              @if (e.ultimo_envio) { Último envío: {{ formatTs(e.ultimo_envio) }} } @else { Sin envíos registrados todavía }
-              @if (e.motivo_ultimo_cambio) { · Motivo del último cambio: «{{ e.motivo_ultimo_cambio }}» }
+              @if (e.ultimo_envio) { {{ 'Último envío: {fecha}' | t:{ fecha: formatTs(e.ultimo_envio) } }} } @else { {{ 'Sin envíos registrados todavía' | t }} }
+              @if (e.motivo_ultimo_cambio) { · {{ 'Motivo del último cambio: «{motivo}»' | t:{ motivo: e.motivo_ultimo_cambio } }} }
             </span>
           </div>
           <span class="sgc-badge" [class.sgc-badge--success]="e.activo" [class.sgc-badge--neutral]="!e.activo">
-            {{ e.activo ? 'Encendido' : 'Apagado' }}
+            {{ (e.activo ? 'Encendido' : 'Apagado') | t }}
           </span>
+          @if (FAMILIAS_CON_PRUEBA.has(e.familia)) {
+            <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="probandoFamilia() === e.familia" (click)="probar(e)">
+              {{ (probandoFamilia() === e.familia ? 'Mandando…' : 'Enviar prueba ahora (solo a mí)') | t }}
+            </button>
+          }
           <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="busyFamilia() === e.familia" (click)="toggle(e)">
-            {{ busyFamilia() === e.familia ? 'Cambiando…' : (e.activo ? 'Apagar' : 'Encender') }}
+            {{ (busyFamilia() === e.familia ? 'Cambiando…' : (e.activo ? 'Apagar' : 'Encender')) | t }}
           </button>
         </div>
       }
@@ -42,16 +47,16 @@
 @if (motivoOpen()) {
   <div class="ea-modal no-print" (click)="motivoOpen.set(false)">
     <div class="ea-modal__panel" (click)="$event.stopPropagation()">
-      <h2>Apagar «{{ motivoFamilia()?.nombre }}»</h2>
-      <p class="ea-modal__sub">Esto es producción: da un motivo para apagar este envío automático (queda registrado).</p>
+      <h2>{{ 'Apagar «{nombre}»' | t:{ nombre: motivoFamilia()?.nombre ?? '' } }}</h2>
+      <p class="ea-modal__sub">{{ 'Esto es producción: da un motivo para apagar este envío automático (queda registrado).' | t }}</p>
       <label class="sgc-field">
-        <span>Motivo</span>
+        <span>{{ 'Motivo' | t }}</span>
         <textarea rows="2" [value]="motivoTexto()" (input)="motivoTexto.set($any($event.target).value)"
-                  placeholder="Ej. estamos probando algo y no quiero que salga el correo real"></textarea>
+                  [placeholder]="'Ej. estamos probando algo y no quiero que salga el correo real' | t"></textarea>
       </label>
       <div class="ea-modal__foot">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="motivoOpen.set(false)">Cancelar</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarMotivo()">Apagar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="motivoOpen.set(false)">{{ 'Cancelar' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarMotivo()">{{ 'Apagar' | t }}</button>
       </div>
     </div>
   </div>

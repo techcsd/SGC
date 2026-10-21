@@ -3,6 +3,7 @@ import { environment } from '../../../../environments/environment';
 import { EnviosAutomaticosService, EnvioAutomatico } from '../../../../shared/services/envios-automaticos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * CT10 — panel "Envíos automáticos": interruptor por familia de reporte/aviso
@@ -15,6 +16,7 @@ import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
   templateUrl: './envios-automaticos.html',
   styleUrl: './envios-automaticos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class TecEnviosAutomaticos implements OnInit {
   private service = inject(EnviosAutomaticosService);
@@ -27,6 +29,11 @@ export class TecEnviosAutomaticos implements OnInit {
   error = signal('');
   envios = signal<EnvioAutomatico[]>([]);
   busyFamilia = signal<string | null>(null);
+  probandoFamilia = signal<string | null>(null);
+
+  /** CU3 — solo las familias que son correo a una lista tienen un "yo" al que
+   * mandarles una prueba; las de aviso in-app/webhook no tienen ese análogo. */
+  readonly FAMILIAS_CON_PRUEBA = new Set(['resumen_operaciones', 'incentivo_semanal']);
 
   // Modal de motivo (solo cuando hace falta: apagar en prod).
   motivoOpen = signal(false);
@@ -86,5 +93,17 @@ export class TecEnviosAutomaticos implements OnInit {
 
   private nombreDe(familia: string): string {
     return this.envios().find((e) => e.familia === familia)?.nombre ?? familia;
+  }
+
+  async probar(e: EnvioAutomatico) {
+    this.probandoFamilia.set(e.familia);
+    try {
+      const correo = await this.service.probar(e.familia);
+      this.toast.success('Prueba enviada', `Revisa ${correo} — llegará aunque «${e.nombre}» esté apagado.`);
+    } catch (err: unknown) {
+      this.toast.error('No se pudo mandar la prueba', err instanceof Error ? err.message : undefined);
+    } finally {
+      this.probandoFamilia.set(null);
+    }
   }
 }

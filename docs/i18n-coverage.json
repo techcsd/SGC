@@ -12043,36 +12043,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/envios-automaticos",
-      "total": 19,
-      "cubiertos": 0,
-      "sin": 19,
-      "pct": 0,
-      "enScope": false,
-      "enforce": false,
-      "faltantes": [
-        "Envíos automáticos",
-        "Interruptor por reporte/aviso que mandan los crons del SGC.",
-        "@if (esProd) {",
-        "Este es PROD: apagar un envío aquí detiene correos/avisos reales.",
-        "} @else {",
-        "Este es DEV: los correos se redirigen a Tecnología (no le llegan a nadie más).",
-        "} @if (loading()) {",
-        "Cargando…",
-        "} @else if (error()) {",
-        "} @else {",
-        "@for (e of envios(); track e.familia) {",
-        "@if (e.ultimo_envio) { Último envío: } @else { Sin envíos registrados todavía } @if (e.motivo_ultimo_cambio) { · Motivo del último cambio: « » }",
-        "@if (motivoOpen()) {",
-        "Apagar « »",
-        "Esto es producción: da un motivo para apagar este envío automático (queda registrado).",
-        "Motivo",
-        "Cancelar",
-        "Apagar",
-        "Ej. estamos probando algo y no quiero que salga el correo real"
-      ]
-    },
-    {
       "pantalla": "tecnologia/estadisticas",
       "total": 72,
       "cubiertos": 0,
@@ -14801,6 +14771,26 @@
         "@for (linea of detalle(); track linea.etiqueta + linea.valor) {",
         "@if (b.estado === 'pendiente') {",
         "} @else {"
+      ]
+    },
+    {
+      "pantalla": "tecnologia/envios-automaticos",
+      "total": 23,
+      "cubiertos": 14,
+      "sin": 9,
+      "pct": 61,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (esProd) {",
+        "} @else {",
+        "} @if (loading()) {",
+        "} @else if (error()) {",
+        "} @else {",
+        "@for (e of envios(); track e.familia) {",
+        "@if (e.ultimo_envio) { } @else { } @if (e.motivo_ultimo_cambio) { · }",
+        "@if (FAMILIAS_CON_PRUEBA.has(e.familia)) {",
+        "@if (motivoOpen()) {"
       ]
     },
     {

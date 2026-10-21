@@ -969,3 +969,7 @@ Nueva RPC `sgc.conduce_cambiar_despachante(p_salida_id, p_despachante_nombre, p_
 
 ### CT10 — Envíos automáticos (100% servidor/web, sin acción para la app)
 Los 4 crons que ahora respetan `sgc.envios_automaticos` (resumen de operaciones, incentivo semanal, avisos de reporte semanal, cronograma) corren del lado del servidor — la app no los llama ni los necesita tocar.
+
+## Ronda CU (PROMPT-110 web) — 1.197.0 — sin contrato nuevo para la app
+
+CU1 ya estaba cerrado por CT8 (ver arriba). CU2 (seguridad RLS/default privileges en `public`/`sgc`) y CU3 (`sgc.envio_automatico_probar` + override `destinatario_prueba` en los edges de resumen/incentivo) son 100% servidor/panel de Tecnología — la app no los llama ni los necesita tocar. PROMPT-111 (app) no tiene nada pendiente de esta ronda.

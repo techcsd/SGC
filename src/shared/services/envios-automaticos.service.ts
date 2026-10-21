@@ -37,4 +37,13 @@ export class EnviosAutomaticosService {
     });
     if (error) throw new Error(error.message);
   }
+
+  /** CU3 — "Enviar prueba ahora (solo a mí)": ignora el interruptor, manda solo
+   * al admin que la pide. Devuelve el correo al que se mandó. Solo aplica a las
+   * familias que son correo a una lista (el servidor rechaza las demás). */
+  async probar(familia: string): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('envio_automatico_probar', { p_familia: familia });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
 }

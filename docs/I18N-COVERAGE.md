@@ -137,7 +137,6 @@
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
 | tecnologia/dev-notes | - | 96 | 0 | 96 | 0% |
-| tecnologia/envios-automaticos | - | 19 | 0 | 19 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -166,6 +165,7 @@
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
+| tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
 | admin/claude | - | 28 | 23 | 5 | 82% |

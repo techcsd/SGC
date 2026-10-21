@@ -218,7 +218,21 @@ function check4() {
   return reportar('compa-evals', 'Evals de Compa (si tocó assistant/index.ts)', 'PASS', [`${resultadosEval.length} caso(s) OK (reporte de hace ${edadHoras.toFixed(1)}h, assistant/index.ts cambió desde ${referencia}).`]);
 }
 
-// ── Check 5 — build + tests (último por ser el más lento) ───────────────────
+// ── Check 5 — CU2: tablas de `public` expuestas sin RLS/política ────────────
+// Deliberadamente NO usa audit-rls-tablas-nuevas.mjs (ese audita `sgc` y hoy
+// tiene deuda preexistente sin relación con CU2 — no debe bloquear este gate).
+function check5Seguridad() {
+  const out = correr(`node scripts/audit-public-schema-cu2.mjs --env ${env.entorno} --yes`);
+  if (!out.ok) {
+    return reportar('seguridad-public', 'Tablas de `public` expuestas sin RLS/política — CU2', 'FAIL', [
+      'scripts/audit-public-schema-cu2.mjs encontró una tabla de `public` expuesta (RLS desactivada o GRANT directo sin política):',
+      ...out.out.split('\n').filter(Boolean).slice(-25),
+    ]);
+  }
+  return reportar('seguridad-public', 'Tablas de `public` expuestas sin RLS/política — CU2', 'PASS', ['sin tablas expuestas en `public` (sgc.* queda para audit-rls-tablas-nuevas.mjs, on-demand).']);
+}
+
+// ── Check 6 — build + tests (último por ser el más lento) ───────────────────
 function correr(cmd) {
   try {
     const out = execSync(cmd, { cwd: ROOT, encoding: 'utf8', stdio: 'pipe', maxBuffer: 1024 * 1024 * 50, timeout: 10 * 60 * 1000 });
@@ -227,7 +241,7 @@ function correr(cmd) {
     return { ok: false, out: `${e.stdout ?? ''}\n${e.stderr ?? ''}`.slice(-4000) };
   }
 }
-function check5() {
+function check6() {
   if (SKIP_BUILD) {
     return reportar('build', 'Build + tests', 'SKIP', ['--skip-build: SOLO para debugging local de release-check.mjs — nunca uses este flag para un release real.']);
   }
@@ -259,7 +273,8 @@ check1();
 await check2();
 check3();
 check4();
-check5();
+check5Seguridad();
+check6();
 
 console.log('\n── Resumen ──');
 for (const r of resultados) {

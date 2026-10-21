@@ -105,6 +105,10 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
   );
   let anio = 0, semana = 0;
+  // CU3 — "Enviar prueba ahora (solo a mí)": override de destinatario, nunca
+  // toca sgc.resumen_operaciones_envio (esa tabla rastrea el envío REAL de la
+  // semana; una prueba manual no debe marcarla como "ya_enviado").
+  let destinatarioPrueba: string | null = null;
   try {
     const secret = req.headers.get("x-sync-secret");
     const expected = Deno.env.get("INFRA_SYNC_SECRET");
@@ -113,6 +117,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     anio = Number(body.anio); semana = Number(body.semana);
     if (!anio || !semana) return json({ error: "Falta anio/semana." }, 400);
+    destinatarioPrueba = typeof body.destinatario_prueba === "string" ? body.destinatario_prueba.trim() : null;
 
     // ── Cada sección = una TOOL de Compa (misma RPC que el chat). AU1. ────────
     const p = { p_anio: anio, p_semana: semana };
@@ -251,12 +256,18 @@ Deno.serve(async (req: Request) => {
 
     const pdfBytes = await buildPdf(anio, semana, ini, fin, pdfSecs);
 
-    // Destinatarios (patrón "Quién recibe" AV7, administrable).
-    const { data: dest } = await supabase.rpc("destinatarios_resumen_operaciones");
-    const to = ((dest ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+    // Destinatarios (patrón "Quién recibe" AV7, administrable) — salvo prueba manual.
+    let to: string[];
+    if (destinatarioPrueba) {
+      to = [destinatarioPrueba];
+    } else {
+      const { data: dest } = await supabase.rpc("destinatarios_resumen_operaciones");
+      to = ((dest ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+    }
     const { data: resendApiKey } = await supabase.rpc("get_resend_api_key");
     const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
     const appUrl = Deno.env.get("APP_URL") ?? "https://sgcconstructorasd.com";
+    const asuntoPrefijo = destinatarioPrueba ? "[PRUEBA] " : "";
 
     let ok = true, errMsg: string | null = null;
     if (resendApiKey && to.length) {
@@ -292,7 +303,7 @@ Deno.serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(ajustarCorreoResend({
           from: fromEmail, to,
-          subject: `Resumen semanal de operaciones — Semana ${semana}/${anio}`,
+          subject: `${asuntoPrefijo}Resumen semanal de operaciones — Semana ${semana}/${anio}`,
           html, text: texto,
           attachments: [{ filename: `resumen-operaciones-${anio}-${semana}.pdf`, content: toBase64(pdfBytes) }],
         })),
@@ -303,19 +314,23 @@ Deno.serve(async (req: Request) => {
       errMsg = !resendApiKey ? "sin Resend key" : "sin destinatarios";
     }
 
-    await supabase.from("resumen_operaciones_envio").upsert(
-      { anio, semana, destinatarios: to, ok, error: errMsg, enviado_at: new Date().toISOString() },
-      { onConflict: "anio,semana" },
-    );
-    return json({ sent: ok, to, error: errMsg });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error desconocido.";
-    try {
+    if (!destinatarioPrueba) {
       await supabase.from("resumen_operaciones_envio").upsert(
-        { anio, semana, ok: false, error: msg, enviado_at: new Date().toISOString() },
+        { anio, semana, destinatarios: to, ok, error: errMsg, enviado_at: new Date().toISOString() },
         { onConflict: "anio,semana" },
       );
-    } catch (_) { /* noop */ }
+    }
+    return json({ sent: ok, to, error: errMsg, prueba: !!destinatarioPrueba });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Error desconocido.";
+    if (!destinatarioPrueba) {
+      try {
+        await supabase.from("resumen_operaciones_envio").upsert(
+          { anio, semana, ok: false, error: msg, enviado_at: new Date().toISOString() },
+          { onConflict: "anio,semana" },
+        );
+      } catch (_) { /* noop */ }
+    }
     return json({ error: msg }, 500);
   }
 });

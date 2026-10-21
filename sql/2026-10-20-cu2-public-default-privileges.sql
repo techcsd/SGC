@@ -1,0 +1,36 @@
+-- 2026-10-20-cu2-public-default-privileges.sql — CU2 (fila 269, prioridad máxima)
+-- Supabase Advisors marcó `rls_disabled_in_public` en sgc-dev y en PROD (csd-core) y
+-- `sensitive_columns_exposed` en sgc-dev. CT9 (ronda anterior, ver
+-- sql/2026-10-20-ct9-bloquear-n8n-chat-histories.sql) ya bloqueó la única tabla
+-- existente en `public` (n8n_chat_histories, ajena al SGC). Esta migración ataca la
+-- CAUSA RAÍZ encontrada en la auditoría de solo-lectura de esta ronda (CU2):
+-- `pg_default_acl` en schema `public` tenía `ALTER DEFAULT PRIVILEGES` que regalan
+-- acceso a `anon`/`authenticated` a CUALQUIER objeto NUEVO (tabla/función/secuencia)
+-- que cree el rol `postgres` en ese esquema — en dev, tablas nuevas nacían con
+-- `anon`/`authenticated` = SELECT+INSERT+UPDATE+DELETE+TRUNCATE+REFERENCES+TRIGGER+
+-- MAINTAIN automático; funciones nuevas nacían con EXECUTE automático a ambos roles
+-- en dev Y prod; secuencias nuevas nacían con USAGE/SELECT/UPDATE automático en
+-- ambos. Así fue como n8n_chat_histories quedó expuesta sin que ninguna migración
+-- de este repo lo pidiera: `public` está en el `db_schema` del Data API
+-- (`public, graphql_public, sgc, web` — confirmado con la Management API en ambos
+-- entornos) y cualquier tool que se conecte por Postgres directo (como n8n) como
+-- `postgres` dispara este regalo automático.
+--
+-- Esto es exactamente lo que el aviso de Supabase "Final notice: new tables in
+-- public need grants from October 30" viene a corregir a nivel de plataforma — esta
+-- migración no espera esa fecha: revoca el default ahora, en nuestro control.
+-- SOLO afecta objetos CREADOS DESPUÉS de este revoke (no toca privilegios ya
+-- otorgados a objetos existentes — por eso n8n_chat_histories necesitó su propio
+-- fix en ct9). No se toca `sgc` ni `web` (esquema de un sitio/CMS no relacionado con
+-- el SGC que comparte este mismo proyecto Supabase — fuera de alcance de este repo).
+--
+-- Verificado antes de tocar (solo lectura, ambos entornos): el default de
+-- `supabase_admin` en `public` tiene el mismo regalo, pero ese rol es el
+-- superusuario real de Supabase (más privilegiado que `postgres`) — se intenta
+-- igual; si el rol que ejecuta esto no tiene permiso para alterar el default de
+-- `supabase_admin`, ese ALTER falla solo (ver nota de aplicación en HANDOFF) sin
+-- afectar el resto de la transacción porque va en su propio bloque try separado
+-- de los de `postgres` (ejecutar statement por statement, no todo en un solo begin).
+alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated;
+alter default privileges for role postgres in schema public revoke all on functions from anon, authenticated;
+alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated;

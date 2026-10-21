@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.197.0": {
+      "titulo": "Seguridad: tablas expuestas por la API sin RLS cerradas; Envíos automáticos gana «Enviar prueba ahora»",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "m": "Tecnología",
+          "d": "Supabase avisó de tablas alcanzables por la API sin seguridad a nivel de fila (RLS) — se cerró el default que regalaba acceso automático a cualquier tabla/función/secuencia nueva en el esquema público, y se encontró y corrigió una tabla de catálogo interno (sin datos de usuarios) que llevaba tiempo expuesta por el mismo patrón. Se agregó un chequeo automático que avisa si vuelve a pasar."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "El panel «Envíos automáticos» ahora tiene un botón «Enviar prueba ahora (solo a mí)» para el Resumen semanal de operaciones y el Incentivo semanal — manda la prueba solo al admin que la pide, sin esperar al lunes ni afectar el envío real de la semana."
+        }
+      ]
+    },
     "1.196.0": {
       "titulo": "Reuniones avisa si Google Calendar falló, imágenes de Dev notes con pantalla completa, órdenes de compra exigen inventario real",
       "cambios": [
