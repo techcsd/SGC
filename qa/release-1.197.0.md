@@ -23,3 +23,5 @@
 - **Las 2 migraciones de CU2 (las de verdad críticas) siguen SIN aplicar a prod** — esperando el OK explícito de Xaviel (CONTEXTO-54 §7: "no pulses Resolve issue… dale o no el OK para aplicar el bloqueo en prod"). `--dry-run` contra prod ya corrido y verde para ambas.
 - Versión de origen: 1.196.0.
 - Fecha: 2026-10-21
+
+OK: 2026-10-21 — Xaviel dio el OK explícito ("ok, continue working, do all the stuff") para aplicar las migraciones de CU2 a prod, mergear `dev → main` y promover 1.197.0 a producción con la verificación automatizada de arriba como base (sin prueba manual en el navegador de `dev.sgcconstructorasd.com` previa a esto).
