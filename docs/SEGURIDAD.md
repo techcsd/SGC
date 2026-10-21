@@ -90,6 +90,24 @@ que el que consulta no vería fila por fila, p. ej. estadísticas de flota) o un
 necesita entender qué filtra cada vista — queda para una ronda aparte, no para
 decidirse a la ligera dentro de CU2. Anotado aquí para que no se pierda.
 
+## Hallazgo 4 — EXECUTE a `PUBLIC` en funciones nuevas (confirmado, NO corregido — deuda ya conocida)
+
+Verificando `sgc.envio_automatico_probar` (nueva, CU3) en prod se notó que tiene
+`EXECUTE` concedido a `PUBLIC` (el default de Postgres para funciones nuevas si
+no se hace `revoke execute from public` explícito — a diferencia de las tablas,
+que no regalan nada a `PUBLIC` por defecto). Se confirmó que **TODA la familia**
+`envio_automatico_*` (incluidas las de CT10, no solo la nueva) tiene el mismo
+default — no es un error de esta migración, es el comportamiento de Postgres
+que nadie cierra en ningún `create function` de este repo. **No representa un
+riesgo real hoy**: las funciones sensibles de la familia (`envio_automatico_set`,
+`envio_automatico_probar`) ya validan `sgc.is_admin()` por dentro — un llamado
+anónimo recibe un `42501` limpio, no datos. Es la misma clase de hallazgo que
+`CR1` (`sql/2026-10-18-cr1-fase5-revoca-grant-publico-resend-key.sql`,
+18-oct-2026) ya documentó para ~30 funciones de dev: "queda documentado un
+barrido más amplio... como pendiente de Tecnología". No se corrigió función por
+función aquí (inconsistente con sus hermanas de la misma familia) — se suma
+este hallazgo al barrido pendiente, no es un fix aislado de esta ronda.
+
 ## El esquema `web`
 
 `web` también está en `db_schema` (expuesto por la API) pero es de **otra
@@ -149,11 +167,9 @@ responsabilidad del SGC).
 | Hallazgo | dev | prod |
 |---|---|---|
 | `public.n8n_chat_histories` (rls_disabled_in_public + sensitive_columns_exposed) | ✅ cerrado (ronda CT) | ✅ cerrado (ronda CT) |
-| Default privileges de `public` regalando acceso a objetos nuevos | ✅ cerrado (CU2) | ⏳ **falta OK de Xaviel** |
-| `sgc.auditoria_frases` (rls_disabled_in_public) | ✅ cerrado (CU2) | ⏳ **falta OK de Xaviel** |
+| Default privileges de `public` regalando acceso a objetos nuevos | ✅ cerrado (CU2) | ✅ **cerrado (CU2, OK de Xaviel 21-oct)** |
+| `sgc.auditoria_frases` (rls_disabled_in_public) | ✅ cerrado (CU2) | ✅ **cerrado (CU2, OK de Xaviel 21-oct)** |
 | 10 vistas `SECURITY DEFINER` en `sgc` | 🟡 sin tocar, fuera de alcance de CU2 | (no aparecen) |
 | `sensitive_columns_exposed` | ✅ ya no aparece en el motor de advisors | ✅ ya no aparece |
 
-Tras el OK de Xaviel para prod: aplicar `sql/2026-10-20-cu2-public-default-privileges.sql`
-y `sql/2026-10-20-cu2-auditoria-frases-rls.sql` con `apply-migration.mjs --env prod`,
-y volver a correr el paso 2 contra prod para confirmar que ambos `ERROR` desaparecen.
+**Confirmado 21-oct-2026 contra el motor real de advisors tras aplicar ambas migraciones a prod: 0 lints `ERROR` en prod** (antes: 2 — `rls_disabled_in_public` × `sgc.auditoria_frases` y el riesgo de default privileges, que el advisor no reporta como lint propio pero era la causa raíz del hallazgo 1). Los 10 `security_definer_view` de dev siguen sin tocar (fuera de alcance, no aparecían en prod de todas formas).
