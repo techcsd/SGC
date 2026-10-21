@@ -39,13 +39,24 @@ sin Calendar, como dice arriba). **No puedo confirmar qué scopes tiene
 autorizados en Google Admin** una cuenta de servicio que no existe como
 secreto aquí — eso solo se ve en Google Admin (fuera de mi acceso).
 
-**Para que "Mi calendario de Google" (lectura) y la sincronización de
-escritura funcionen, falta, en orden:**
-1. Crear (o localizar) la cuenta de servicio de Google Cloud dedicada al SGC,
-   con **domain-wide delegation** habilitada.
-2. En Google Admin › Seguridad › Controles de API › Delegación de todo el
-   dominio: agregar esa cuenta con los scopes `https://www.googleapis.com/auth/calendar.events` (escritura, como minutas@) **y** `https://www.googleapis.com/auth/calendar.readonly` (lectura, como cada persona — domain-wide delegation permite que el `sub` sea cualquier correo del dominio, no hace falta un scope por persona).
-3. Descargar el JSON de la cuenta de servicio y ponerlo en los secretos de **dev primero** (`GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_CALENDAR_DELEGATED_USER=minutas@constructorasd.com`), probar, y solo entonces en prod (regla 18).
+**21-oct-2026 — resuelto para lectura, en dev y en prod:** Xaviel ya tenía la
+cuenta de servicio (`claude-workspace-bot@speedy-bonsai-501816-c9.iam.gserviceaccount.com`,
+creada para este propósito) con domain-wide delegation ya autorizada para
+`calendar.readonly`. Secretos `GOOGLE_SERVICE_ACCOUNT_JSON` +
+`GOOGLE_CALENDAR_DELEGATED_USER` sembrados en dev y prod (Management API, valor
+nunca impreso). **Probado con datos reales en dev** (`tecnologia@constructorasd.com`
+→ `conectado:true`, eventos reales incluyendo Meet links y organizador) — el
+secreto en prod se verificó por NOMBRE únicamente (no se montó una sesión real
+de prod para probarlo por API; verificación en vivo pendiente de que Xaviel
+abra Reuniones en `sgcconstructorasd.com`).
+
+**Lo que SIGUE bloqueado (no es CS10, es CP8 — la escritura/sync con Fireflies):**
+intentar mintar un token con scope `calendar.events` y `sub=minutas@constructorasd.com`
+da `invalid_grant: Invalid email or User ID` — **la cuenta
+`minutas@constructorasd.com` todavía no existe en Workspace** (ver sección de
+arriba, "Lo que necesita Xaviel"). Sin esa cuenta, `reuniones-calendar`
+(escritura, CP8) sigue respondiendo `{conectado:false}` aunque el secreto ya
+esté puesto — es exactamente el pendiente ya documentado arriba, no uno nuevo.
 
 **Edge nueva `reuniones-mi-calendario`** (solo lectura, `supabase/functions/reuniones-mi-calendario/`): token con scope `calendar.readonly` y `sub` = el correo de quien consulta (nunca uno fijo, nunca uno que llegue en el body); ventana hoy −7 a +60 días; eventos privados salen como «Ocupado» sin lugar/organizador/participantes; rechaza tokens OAuth de Claude (mismo guard que CS6, 42501 únicamente). Hoy responde `{conectado:false, motivo:'no_configurado'}` en dev y en prod — probado así (es el estado real); falta la cuenta de servicio de arriba para probar la lectura real.
 
