@@ -973,3 +973,65 @@ Los 4 crons que ahora respetan `sgc.envios_automaticos` (resumen de operaciones,
 ## Ronda CU (PROMPT-110 web) — 1.197.0 — sin contrato nuevo para la app
 
 CU1 ya estaba cerrado por CT8 (ver arriba). CU2 (seguridad RLS/default privileges en `public`/`sgc`) y CU3 (`sgc.envio_automatico_probar` + override `destinatario_prueba` en los edges de resumen/incentivo) son 100% servidor/panel de Tecnología — la app no los llama ni los necesita tocar. PROMPT-111 (app) no tiene nada pendiente de esta ronda.
+
+## Ronda CV (PROMPT-112 web) — 1.198.0 — contrato para PROMPT-113 (app)
+
+### CV1 — Compa prepara la echada ("Registra una echada" → `preparar_echada` → "Abrir formulario")
+Felix le pidió a Compa "Registra una echada" y Compa, con razón, dijo que no podía (solo
+`log_combustible`, de lectura). No se agregó una herramienta que EJECUTE: el servidor
+(`sgc.registrar_combustible_app`) no exige las 2 fotos, así que una echada creada desde el chat
+saldría sin evidencia (deuda anotada en `docs/SEGURIDAD.md`, no corregida aquí). El camino
+aprobado: **preparar + abrir el formulario real** — Compa nunca guarda, nunca sube fotos.
+
+**Herramienta nueva `preparar_echada`** (`supabase/functions/_shared/herramientas.ts`):
+`canales:['compa']` únicamente (no se ofrece en MCP). Entradas: `vehiculo_id`/`galones`/`monto`
+obligatorios, `km`/`estacion`/`producto` opcionales. Misma compuerta que la pantalla: módulo
+`flota` (confirmado: `tiene_modulo('flota')` ya implica `operar` en todo `flota.*`, incluido
+`flota.combustible` — no hace falta compuerta granular aparte).
+
+**Contrato de la propuesta** (`AsistentePropuesta` ampliada en `shared/services/asistente.service.ts`):
+```ts
+interface AsistentePropuesta {
+  tipo: 'tarea' | 'requisicion' | 'conduce' | 'ruta' | 'echada_formulario'; // nuevo valor
+  accion?: 'abrir';                 // presente SOLO en propuestas "preparar + abrir"
+  destino?: { vehiculo_id: string; query: Record<string, string | number> };
+  faltan?: string[];                // p. ej. ['Foto del recibo', 'Foto del tablero', 'Lectura del odómetro']
+  // … tool, params, titulo, lineas, idem?, es_prueba?, aviso_prueba? (igual que siempre)
+}
+```
+Cuando `accion === 'abrir'`: la tarjeta de Compa NO tiene "Confirmar" — una sola acción naranja
+"Abrir formulario" (navega con `destino.query` como parámetros) + "Descartar". La edge de
+`assistant` **rechaza** confirmar este tipo de propuesta por la vía de siempre (`payload.ejecutar`):
+si un cliente intenta confirmarla de todos modos, responde `{ejecutado:false, respuesta:"Esta
+acción se completa en el formulario de Combustible…"}` en vez de ejecutar algo o tirar un error.
+
+**`destino.query` para la echada** (los mismos nombres de parámetro que ya usa la app en sus
+propios deep-links `?fecha=`/`?corregir=`/`?reenviar=` de `transporte/combustible/combustible.ts:412-430`):
+`desde=compa` (fijo), `galones`, `monto`, `km` (si vino), `estacion` (si vino), `producto` (si
+vino) + `vehiculo` (el id, además de `destino.vehiculo_id`).
+
+**Lo que la app (PROMPT-113 F1) necesita construir:**
+1. La hoja inferior de Compa ya existe (`compa.ts:301-335` + `Propuesta` en
+   `core/models/compa.model.ts`) — ampliar el modelo con los mismos campos
+   `accion?/destino?/faltan?` y, cuando `accion==='abrir'`, mostrar el mismo patrón (aviso +
+   un solo botón "Abrir formulario", sin "Confirmar") en vez del genérico actual.
+2. "Abrir formulario" navega al wizard de combustible de la app con esos mismos nombres de
+   parámetro (puede reusar el parseo que ya existe para `?corregir=`/`?reenviar=` en
+   `combustible.ts:412-430`, añadiendo el caso `desde=compa`).
+3. **Mismo orden de prioridad** que ya tiene la app (`corregir` > `reenviar` > deep-link por
+   vehículo > borrador BT4) — `desde=compa` entra en el mismo nivel que el deep-link por
+   vehículo existente (antes del borrador BT4): si hay un borrador local sin terminar, se
+   muestra su aviso de siempre y los datos de Compa se aplican solo si la persona lo descarta
+   (CV1.6) — NUNCA pisa un borrador sin avisar.
+4. El odómetro, si no vino en `query`, se deja vacío (la app ya tiene su propio control de
+   "Compa no la inventa" — mismo texto que la web, por consistencia). Las fotos siguen 100%
+   obligatorias — el wizard ya las exige, no se toca esa validación.
+5. **CV1.7 (verificar, no construir):** el OCR del recibo (`leerReciboAuto`) de la app ya
+   respeta `sobrescribir=false` (`combustible.ts:~1030`) — confirmar que no pisa lo que Compa
+   prellenó; si el OCR lee algo distinto, debe salir el aviso de diferencia que ya existe.
+
+### CV2/CV3 — Dev notes: grupos y arrastre (100% web, sin acción para la app)
+La app (`core/services/notas.service.ts:73-75`) solo **lee** los grupos de Dev notes (CS2, ya
+en paridad) — no crea, renombra, mueve ni elimina grupos, y no tiene arrastre. PROMPT-113 F2
+solo necesita **verificar** que un grupo creado/renombrado/movido desde la web se refleje bien
+en la ruta "Carpeta / Sub" que ya pinta la app — sin construir nada nuevo.

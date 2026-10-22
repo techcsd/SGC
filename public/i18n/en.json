@@ -596,5 +596,8 @@
   "Google Calendar no está conectado": "Google Calendar isn't connected",
   "No se pudo sincronizar con Google Calendar": "Couldn't sync with Google Calendar",
   "Google Calendar: no se pudo sincronizar": "Google Calendar: couldn't sync",
-  "Cancelada": "Cancelled"
+  "Cancelada": "Cancelled",
+  "Faltan:": "Missing:",
+  "Descartar": "Discard",
+  "Abrir formulario": "Open form"
 }

@@ -58,7 +58,7 @@
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
 | flota/choferes-privados | - | 103 | 0 | 103 | 0% |
-| flota/combustible | - | 288 | 0 | 288 | 0% |
+| flota/combustible | - | 300 | 0 | 300 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
@@ -136,7 +136,7 @@
 | tecnologia/compras | - | 134 | 0 | 134 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
-| tecnologia/dev-notes | - | 96 | 0 | 96 | 0% |
+| tecnologia/dev-notes | - | 125 | 0 | 125 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -161,7 +161,7 @@
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
 | reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
-| asistente | - | 55 | 27 | 28 | 49% |
+| asistente | - | 61 | 30 | 31 | 49% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |

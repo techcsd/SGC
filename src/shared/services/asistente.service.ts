@@ -17,7 +17,7 @@ export interface AsistenteConversacion {
 
 /** AW4 v2 — borrador de acción que el usuario debe confirmar antes de ejecutar. */
 export interface AsistentePropuesta {
-  tipo: 'tarea' | 'requisicion' | 'conduce' | 'ruta';
+  tipo: 'tarea' | 'requisicion' | 'conduce' | 'ruta' | 'echada_formulario';
   tool: string;
   params: Record<string, unknown>;
   titulo: string;
@@ -28,6 +28,14 @@ export interface AsistentePropuesta {
   es_prueba?: boolean;
   /** BB3 — texto del aviso de prueba, para mostrarlo antes de confirmar. */
   aviso_prueba?: string | null;
+  /** CV1 — 'abrir': la propuesta NO se confirma aquí, navega a un formulario
+   *  real con `destino.query` como queryParams; no hay botón "Confirmar". Sin
+   *  este campo (u otro valor), el comportamiento de siempre (Confirmar/Cancelar). */
+  accion?: 'abrir';
+  /** CV1 — a dónde navegar y con qué queryParams, cuando accion==='abrir'. */
+  destino?: { vehiculo_id: string; query: Record<string, string | number> };
+  /** CV1 — qué le falta a la propuesta (p. ej. fotos, odómetro) — se muestra como aviso. */
+  faltan?: string[];
 }
 
 export interface AsistenteRespuesta {

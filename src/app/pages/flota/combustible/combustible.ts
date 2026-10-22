@@ -11,8 +11,9 @@ import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { CombustibleService, LecturaRecibo } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
@@ -46,6 +47,16 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
 
+/** CV1 — datos ya validados que llegaron por queryParams desde Compa (preparar_echada). */
+interface CompaPrefill {
+  vehiculo_id: string;
+  galones: number | null;
+  monto: number | null;
+  km: number | null;
+  estacion: string | null;
+  producto: string | null;
+}
+
 @Component({
   selector: 'app-combustible',
   imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton, DateRangeFilter, Icon],
@@ -64,6 +75,8 @@ export class Combustible implements OnInit {
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
   private motion = inject(MotionService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   formatFecha = formatFechaDisplay;
   esV2 = esRegistroV2;
@@ -158,9 +171,36 @@ export class Combustible implements OnInit {
   private readonly DRAFT_KEY = 'sgc:echada-borrador';
   borradorPendiente = signal<Record<string, unknown> | null>(null);
 
+  // CV1 — el formulario llegó prellenado desde Compa ("Abrir formulario" de la
+  // tarjeta "Echada preparada"). `avisoCompa` controla el banner + los mensajes
+  // "obligatoria"/"Compa no la inventa"; `prellenadoCompa` qué campos llevan el
+  // chip "Compa" (se quita si la persona edita ese campo a mano).
+  avisoCompa = signal(false);
+  prellenadoCompa = signal<Set<string>>(new Set());
+  /** CV1.6 — si había un borrador sin terminar, los datos de Compa esperan a que
+   *  la persona decida (Retomar = se pierden; Descartar = se aplican). */
+  private compaPendientePorAplicar: CompaPrefill | null = null;
+  /** Evita que aplicarPrefillCompa() dispare la lógica de "quitar chip al editar". */
+  private aplicandoPrefillCompa = false;
+
   constructor() {
     // BV5 — autoguardado del borrador mientras el drawer está abierto.
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.guardarBorrador());
+
+    // CV1 — un edit real del usuario sobre un campo "de Compa" le quita el chip
+    // (programático, vía aplicarPrefillCompa, no cuenta como edición).
+    (['vehiculo_id', 'galones', 'monto', 'kilometraje', 'estacionSel', 'producto'] as const).forEach((campo) => {
+      const valueChanges$: Observable<unknown> = this.form.controls[campo].valueChanges;
+      valueChanges$.pipe(takeUntilDestroyed()).subscribe(() => {
+        if (this.aplicandoPrefillCompa) return;
+        this.prellenadoCompa.update((s) => {
+          if (!s.has(campo)) return s;
+          const next = new Set(s);
+          next.delete(campo);
+          return next;
+        });
+      });
+    });
 
     // AC11 — el origen reconfigura las validaciones: en depósito de obra el monto
     // es opcional (garrafón sin factura) y la obra pasa a ser obligatoria.
@@ -580,6 +620,7 @@ export class Combustible implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    this.procesarQueryParamsCompa();
   }
 
   private async loadAll() {
@@ -655,13 +696,77 @@ export class Combustible implements OnInit {
       origen: 'estacion', proyecto_id: null,
       estacionSel: 'Total Energies', estacion: null, notas: null,
       producto: null, subtipo: null, tarjeta: null, titular: null, titular_es_persona: false });
+    this.avisoCompa.set(false);
+    this.prellenadoCompa.set(new Set());
     this.drawerOpen.set(true);
     // BV5 — ¿quedó una echada sin terminar? Ofrecer retomarla.
     const b = this.leerBorrador();
     this.borradorPendiente.set(b && this.tieneContenidoBorrador(b) ? b : null);
   }
 
-  closeDrawer() { this.drawerOpen.set(false); this.clearFiles(); this.borradorPendiente.set(null); }
+  closeDrawer() {
+    this.drawerOpen.set(false);
+    this.clearFiles();
+    this.borradorPendiente.set(null);
+    this.compaPendientePorAplicar = null;
+    this.avisoCompa.set(false);
+    this.prellenadoCompa.set(new Set());
+  }
+
+  // ── CV1 — Compa ("Registra una echada" → preparar_echada → "Abrir formulario") ──
+  /** CV1.5 — los parámetros de la URL son entrada NO confiable: se validan,
+   *  se recortan y se consumen (se quitan de la URL) de inmediato. Nunca autoenvía. */
+  private procesarQueryParamsCompa() {
+    const qp = this.route.snapshot.queryParamMap;
+    if (qp.get('desde') !== 'compa') return;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+
+    const vehiculoId = qp.get('vehiculo');
+    const vehiculo = vehiculoId ? this.vehiculosDisponibles().find((v) => v.id === vehiculoId) : null;
+    this.openCreate();
+    if (!vehiculo) {
+      this.toast.warning('Compa no pudo identificar el vehículo', 'Completa el formulario a mano.');
+      return;
+    }
+
+    const num = (raw: string | null, min: number, max: number): number | null => {
+      if (raw == null) return null;
+      const n = Number(raw);
+      return Number.isFinite(n) && n >= min && n <= max ? n : null;
+    };
+    const galones = num(qp.get('galones'), 0.01, 500);
+    const monto = num(qp.get('monto'), 0, 10_000_000);
+    const kmNum = num(qp.get('km'), 0, 10_000_000);
+    const km = kmNum !== null ? Math.trunc(kmNum) : null;
+    const estacion = (qp.get('estacion') ?? '').trim().slice(0, 60) || null;
+    const productoRaw = (qp.get('producto') ?? '').trim().toLowerCase();
+    const producto = productoRaw === 'diesel' || productoRaw === 'gasolina' ? productoRaw : null;
+
+    const datos: CompaPrefill = { vehiculo_id: vehiculo.id, galones, monto, km, estacion, producto };
+    // CV1.6 — si hay un borrador sin terminar, se muestra su aviso de siempre;
+    // los datos de Compa se aplican solo si la persona lo descarta (ver
+    // descartarBorrador()/retomarBorrador()).
+    if (this.borradorPendiente()) this.compaPendientePorAplicar = datos;
+    else this.aplicarPrefillCompa(datos);
+  }
+
+  private aplicarPrefillCompa(d: CompaPrefill) {
+    this.aplicandoPrefillCompa = true;
+    const campos = new Set<string>();
+    this.form.patchValue({ vehiculo_id: d.vehiculo_id }); campos.add('vehiculo_id');
+    if (d.galones !== null) { this.form.patchValue({ galones: d.galones }); campos.add('galones'); }
+    if (d.monto !== null) { this.form.patchValue({ monto: d.monto }); campos.add('monto'); }
+    if (d.km !== null) { this.form.patchValue({ kilometraje: d.km }); campos.add('kilometraje'); }
+    if (d.estacion) {
+      const match = this.estaciones().find((e) => e.nombre.toLowerCase() === d.estacion!.toLowerCase());
+      this.form.patchValue({ estacionSel: match ? match.nombre : 'Otro', estacion: match ? null : d.estacion });
+      campos.add('estacionSel');
+    }
+    if (d.producto) { this.form.patchValue({ producto: d.producto }); campos.add('producto'); }
+    this.aplicandoPrefillCompa = false;
+    this.prellenadoCompa.set(campos);
+    this.avisoCompa.set(true);
+  }
 
   // ── BV5 — borrador de echada ────────────────────────────────────────────────
   private tieneContenidoBorrador(v: Record<string, unknown>): boolean {
@@ -685,8 +790,21 @@ export class Combustible implements OnInit {
     const b = this.borradorPendiente();
     if (b) this.form.patchValue(b);
     this.borradorPendiente.set(null); // el banner se va; el borrador sigue hasta registrar
+    // CV1.6 — retomó el borrador: lo de Compa NO se aplica (no se pisa lo que ya tenía).
+    if (this.compaPendientePorAplicar) {
+      this.compaPendientePorAplicar = null;
+      this.toast.info('Compa había preparado otra echada', 'No se aplicó: tenías un borrador sin terminar.');
+    }
   }
-  descartarBorrador() { this.limpiarBorrador(); }
+  descartarBorrador() {
+    this.limpiarBorrador();
+    // CV1.6 — descartó el borrador: ahora sí se aplican los datos de Compa (si los había).
+    if (this.compaPendientePorAplicar) {
+      const datos = this.compaPendientePorAplicar;
+      this.compaPendientePorAplicar = null;
+      this.aplicarPrefillCompa(datos);
+    }
+  }
 
   private clearFiles() {
     const r = this.reciboPreview(); if (r) URL.revokeObjectURL(r);

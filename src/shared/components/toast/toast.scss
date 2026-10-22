@@ -87,6 +87,20 @@
 
     &:hover { color: var(--sgc-text); }
   }
+
+  // CV3 — acción secundaria (p. ej. "Deshacer").
+  &__action {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--brand-hover, #fb923c);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 2px 4px;
+
+    &:hover { text-decoration: underline; }
+  }
 }
 
 @keyframes toast-in {

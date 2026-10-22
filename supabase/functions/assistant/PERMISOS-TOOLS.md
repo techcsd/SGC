@@ -55,6 +55,7 @@
 | **mis_reuniones** (CP8) | mis_reuniones_compa | **identidad estricta** (organizador o participante = uid, SIN escape de módulo — corregido: una versión anterior usaba `reuniones_listado`, que para quien tiene el módulo `reuniones` trae TODA la empresa; eso rompe el contrato `mis_*`, la misma lección de la fuga `mis_tareas`) | solo suyas | solo suyas | solo suyas | solo suyas | solo suyas |
 | **acuerdos_pendientes** (CP8) | reunion_acuerdos_pendientes_mios | **identidad estricta** (responsable_id = auth.uid()) | solo suyos | solo suyos | solo suyos | solo suyos | solo suyos |
 | **resumen_reunion** (CP8) | reunion_resumen_compa | `puede_ver_reunion` por fila (participante/organizador/módulo/admin); busca por `tema` (texto libre, ilike sobre título) entre las reuniones visibles — si no hay pista, trae la próxima o la última pasada. No requiere resolver un id primero. | cualquiera visible | las suyas (participante/organizador) o todas si tiene el módulo | oculto salvo que participe | ✔ si tiene el módulo | oculto salvo que participe |
+| **preparar_echada** (CV1, solo Compa — `canales:['compa']`, no MCP) | ninguno (NO escribe: construye la propuesta `accion:'abrir'` con el JWT solo para resolver `vehiculo_display()`) | módulo `flota` (misma compuerta que la pantalla: `tiene_modulo('flota')` ya implica `operar` en todo `flota.*`, incluido `flota.combustible` — verificado contra `sgc.nivel_submodulo()` viva) | ✔ | oculto | ✔ si flota (choferes con flota) | ✔ si flota | oculto |
 
 "oculto" = el tool no se ofrece (o el RPC devuelve vacío/raise → el edge traduce a
 "no tengo acceso a eso").
@@ -63,6 +64,14 @@
 proponer_tarea (tareas) · proponer_requisicion (inv/compras) · proponer_conduce (inventario).
 La ejecución re-valida el módulo en el branch CONFIRMAR y corre la MISMA RPC del flujo
 normal (un solo camino, AU1) → validaciones/elegibilidad idénticas.
+
+## "Preparar + abrir" (CV1 — distinto de escritura)
+`preparar_echada` NO tiene `write`: no hay RPC que ejecutar ni branch CONFIRMAR real.
+Arma una propuesta `accion:'abrir'` con `destino.query` (queryParams) y el cliente
+navega al formulario real (fotos + odómetro + "Guardar" los pone la persona). Si un
+cliente viejo intenta confirmarla de todos modos, el edge responde con un mensaje
+claro en vez de ejecutar nada o tirar un error de "acción no reconocida" — ver
+`index.ts` branch CONFIRMAR, `cfgAbrir`.
 
 ## Cómo correr la suite (hasta tener AY7)
 Manual, impersonando cada rol en la web y preguntándole a Compa las filas de arriba;
