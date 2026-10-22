@@ -17,4 +17,4 @@
 - Versión de origen: 1.197.0.
 - Fecha: 2026-10-22
 
-OK: 2026-10-22 — Xaviel dio el OK explícito ("si, dale a todo. tienes mi ok") para commitear, pushear `feature/cv-ronda` y mergearlo a `dev` con la verificación automatizada de arriba como base (sin prueba manual en el navegador de `dev.sgcconstructorasd.com` previa a esto). Promoción a `main`/prod queda pendiente de que Xaviel pruebe en dev primero (ver HANDOFF.md).
+OK: 2026-10-22 — Xaviel dio el OK explícito ("si, dale a todo. tienes mi ok") para commitear, pushear la rama y mergearla a `dev` con la verificación automatizada de arriba como base. La promoción a `main`/prod se decide después de que Xaviel pruebe en dev (ver HANDOFF.md).
