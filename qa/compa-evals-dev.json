@@ -1,5 +1,5 @@
 {
-  "corrido_en": "2026-10-22T15:20:54.133Z",
+  "corrido_en": "2026-10-22T16:19:01.641Z",
   "entorno": "dev",
   "resultados": [
     {
@@ -11,7 +11,7 @@
         "listar_vehiculos",
         "preparar_echada"
       ],
-      "texto": "Listo, dejé preparada la echada de la Suburban (G661182) con 12 galones y RD$3,360 — abre el formulario para poner las fotos del recibo y tablero, y el odómetro"
+      "texto": "Listo, dejé preparada la echada de la Suburban (G661182): 12 galones por RD$3,360 con fecha de hoy — abre el formulario para que agregues las fotos del recibo y"
     }
   ]
 }
