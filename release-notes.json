@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.198.0": {
+      "titulo": "Compa deja preparada una echada de combustible; Dev notes: crear grupos en línea y arrastrar notas",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Compa ya puede ayudarte a registrar una echada de combustible: te pregunta el vehículo, los galones y el monto, y te deja el formulario de Combustible abierto con esos datos puestos. Las fotos del recibo y el tablero, y la lectura del odómetro, las pones tú — Compa nunca guarda nada por su cuenta."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Dev notes: crear o renombrar un grupo ya no abre una ventana del navegador — se escribe ahí mismo en la lista (Enter crea, Esc cancela), avisa si el nombre se repite y el grupo nuevo queda resaltado con una pista de qué hacer."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Dev notes: ahora se puede arrastrar una nota a un grupo (o a «Sin grupo», o soltarla para crear un grupo nuevo con ella), y también arrastrar un grupo dentro de otro. El menú «⋯» reemplaza el selector que tapaba el título de la nota; mover una nota avisa con «Deshacer»."
+        }
+      ]
+    },
     "1.197.0": {
       "titulo": "Seguridad: tablas expuestas por la API sin RLS cerradas; Envíos automáticos gana «Enviar prueba ahora»",
       "cambios": [

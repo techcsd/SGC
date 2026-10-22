@@ -27,6 +27,13 @@ export class ToastComponent {
     this.dismiss(t.id);
   }
 
+  /** CV3 — botón de acción (p. ej. "Deshacer"): no debe también disparar onClick/route. */
+  onAction(t: Toast, event: Event) {
+    event.stopPropagation();
+    t.action?.handler();
+    this.dismiss(t.id);
+  }
+
   iconFor(tipo: string): string {
     switch (tipo) {
       case 'success': return '✓';

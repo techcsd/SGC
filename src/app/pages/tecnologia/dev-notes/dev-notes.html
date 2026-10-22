@@ -39,7 +39,7 @@
         <!-- CS2 — grupos: crear + conmutador "por mes y año" (solo en Mis notas). -->
         @if (tab() === 'mias') {
           <div class="dev-notes__grupos-bar">
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="crearGrupo(null)">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCrearGrupo(null)">
               <app-icon name="plus" [size]="14" /> Nuevo grupo
             </button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [class.active]="agruparPorMes()"
@@ -51,60 +51,191 @@
 
         @if (loading()) {
           <p class="dev-notes__empty">Cargando…</p>
-        } @else if (lista().length === 0) {
-          <p class="dev-notes__empty">Sin notas todavía. Crea una con “Nueva”.</p>
         } @else {
+          <!-- CV3 — región viva para anunciar el resultado del arrastre a lectores de pantalla. -->
+          <span class="sr-only" aria-live="polite">{{ liveRegionMsg() }}</span>
+
           <div class="dev-notes__items">
+            <!-- CV2 — fila editable: crear grupo RAÍZ (aparece arriba de todo). -->
+            @if (tab() === 'mias' && grupoEditando(); as ed) {
+              @if (ed.modo === 'crear' && ed.parentId === null) {
+                <ng-container [ngTemplateOutlet]="filaEditableGrupo" [ngTemplateOutletContext]="{ $implicit: ed }" />
+              }
+            }
+
+            @if (lista().length === 0 && !grupoEditando()) {
+              <p class="dev-notes__empty">Sin notas todavía. Crea una con “Nueva”.</p>
+            }
+
             @for (g of agrupada(); track g.label + (g.grupo?.id ?? '')) {
               @if (g.esGrupo) {
-                <div class="dev-notes__grupo-head" [style.padding-left.px]="(g.profundidad ?? 0) * 14">
-                  <button type="button" class="dev-notes__grupo-toggle" (click)="toggleGrupoPlegado(g.grupo!.id)"
-                    [attr.aria-expanded]="!gruposPlegados().has(g.grupo!.id)">
-                    @if (g.tieneHijos) {
-                      <app-icon [name]="gruposPlegados().has(g.grupo!.id) ? 'chevron-right' : 'chevron-down'" [size]="13" />
+                @if (grupoEditando()?.modo === 'renombrar' && grupoEditando()?.grupoId === g.grupo!.id) {
+                  <ng-container [ngTemplateOutlet]="filaEditableGrupo" [ngTemplateOutletContext]="{ $implicit: grupoEditando()!, profundidad: g.profundidad }" />
+                } @else {
+                  <div class="dev-notes__grupo-head" [attr.data-grupo-id]="g.grupo!.id"
+                    [class.dev-notes__grupo-head--resaltado]="grupoResaltado() === g.grupo!.id"
+                    [class.dev-notes__grupo-head--hover]="destinoHover() === g.grupo!.id"
+                    [class.dev-notes__grupo-head--invalido]="destinoHover() === g.grupo!.id && !destinoGrupoValido()"
+                    [style.padding-left.px]="(g.profundidad ?? 0) * 14"
+                    [attr.draggable]="tab() === 'mias'" (dragstart)="onGrupoDragStart(g.grupo!, $event)" (dragend)="onDragEnd()"
+                    (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter(g.grupo!.id, $event)"
+                    (dragleave)="onZoneDragLeave(g.grupo!.id)" (drop)="onZoneDrop(g.grupo!.id, $event)">
+                    <button type="button" class="dev-notes__grupo-toggle" (click)="toggleGrupoPlegado(g.grupo!.id)"
+                      [attr.aria-expanded]="!gruposPlegados().has(g.grupo!.id)">
+                      @if (g.tieneHijos) {
+                        <app-icon [name]="gruposPlegados().has(g.grupo!.id) ? 'chevron-right' : 'chevron-down'" [size]="13" />
+                      }
+                      <app-icon name="folder" [size]="14" />
+                      <span class="dev-notes__grupo-nombre">{{ g.label }}</span>
+                      @if (destinoHover() === g.grupo!.id) {
+                        <span class="dev-notes__grupo-soltar">{{ destinoGrupoValido() ? 'Soltar para mover aquí' : 'No se puede meter dentro de sí mismo' }}</span>
+                      }
+                      <span class="dev-notes__grupo-n">{{ g.totalRecursivo }}</span>
+                    </button>
+                    @if (tab() === 'mias') {
+                      <div class="dev-notes__grupo-acciones">
+                        <button type="button" title="Nuevo subgrupo" [disabled]="!puedeAgregarSubgrupo(g.grupo!)" (click)="abrirCrearGrupo(g.grupo!.id)"><app-icon name="plus" [size]="13" /></button>
+                        <button type="button" class="dn-menu-trigger" title="Más acciones" aria-haspopup="true"
+                          [attr.data-menu-grupo]="g.grupo!.id"
+                          [attr.aria-expanded]="menuGrupoAbierto() === g.grupo!.id" (click)="toggleMenuGrupo(g.grupo!.id, $event)">
+                          <app-icon name="more-horizontal" [size]="14" />
+                        </button>
+                      </div>
+                      @if (menuGrupoAbierto() === g.grupo!.id) {
+                        <div class="dn-menu dn-menu--grupo" role="menu">
+                          <button type="button" role="menuitem" [disabled]="!puedeAgregarSubgrupo(g.grupo!)" (click)="abrirCrearGrupo(g.grupo!.id); menuGrupoAbierto.set(null)">Nuevo subgrupo</button>
+                          <button type="button" role="menuitem" (click)="abrirRenombrarGrupo(g.grupo!)">Renombrar</button>
+                          <span class="dn-menu__sep"></span>
+                          <span class="dn-menu__label">Mover a…</span>
+                          @for (o of opcionesMoverGrupoValidas(g.grupo!); track o.id) {
+                            <button type="button" role="menuitem" (click)="moverGrupoDesdeMenu(g.grupo!, o.id)">{{ o.label }}</button>
+                          }
+                          <span class="dn-menu__sep"></span>
+                          <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarGrupo(g.grupo!)">Eliminar</button>
+                        </div>
+                      }
                     }
-                    <app-icon name="folder" [size]="14" />
-                    <span class="dev-notes__grupo-nombre">{{ g.label }}</span>
-                    <span class="dev-notes__grupo-n">{{ g.totalRecursivo }}</span>
-                  </button>
-                  <div class="dev-notes__grupo-acciones">
-                    <button type="button" title="Nuevo subgrupo" (click)="crearGrupo(g.grupo!.id)"><app-icon name="plus" [size]="13" /></button>
-                    <button type="button" title="Renombrar" (click)="renombrarGrupo(g.grupo!)"><app-icon name="edit" [size]="13" /></button>
-                    <button type="button" title="Mover a…" (click)="moverGrupo(g.grupo!)"><app-icon name="arrow-right" [size]="13" /></button>
-                    <button type="button" title="Eliminar" (click)="eliminarGrupoConfirm(g.grupo!)"><app-icon name="trash" [size]="13" /></button>
                   </div>
-                </div>
+                }
               } @else {
                 <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
               }
+
+              <!-- CV2 — fila editable: crear SUBGRUPO (debajo de este padre). -->
+              @if (grupoEditando()?.modo === 'crear' && g.esGrupo && grupoEditando()?.parentId === g.grupo!.id) {
+                <ng-container [ngTemplateOutlet]="filaEditableGrupo" [ngTemplateOutletContext]="{ $implicit: grupoEditando()!, profundidad: (g.profundidad ?? 0) + 1 }" />
+              }
+
               @if (!g.esGrupo || !gruposPlegados().has(g.grupo!.id)) {
                 @for (n of g.notas; track n.id) {
-                  <div class="note-card-wrap" [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 14 + 14) : 0">
+                  <div class="note-card-wrap" [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 14 + 14) : 0"
+                    [attr.draggable]="tab() === 'mias'" (dragstart)="onNotaDragStart(n, $event)" (dragend)="onDragEnd()">
                     <button type="button" class="note-card" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
-                      <span class="note-card__title">
-                        @if (n.pinned) { <app-icon name="star" [size]="13" /> }
-                        {{ n.titulo || '(sin título)' }}
-                      </span>
-                      <span class="note-card__preview">{{ n.contenido }}</span>
-                      @if ((n.tags ?? []).length) {
-                        <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
+                      @if (tab() === 'mias') {
+                        <span class="note-card__handle" aria-hidden="true">
+                          <svg width="12" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg>
+                        </span>
                       }
+                      <span class="note-card__body">
+                        <span class="note-card__title">
+                          @if (n.pinned) { <app-icon name="star" [size]="13" /> }
+                          {{ n.titulo || '(sin título)' }}
+                        </span>
+                        <span class="note-card__preview">{{ n.contenido }}</span>
+                        @if ((n.tags ?? []).length) {
+                          <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
+                        }
+                      </span>
                     </button>
                     @if (tab() === 'mias') {
-                      <select class="note-card__mover" [value]="n.grupo_id ?? ''" title="Mover a…"
-                        (click)="$event.stopPropagation()" (change)="moverNotaAGrupo(n, $any($event.target).value)">
-                        @for (o of opcionesMoverA(); track o.id) {
-                          <option [value]="o.id">{{ o.label }}</option>
-                        }
-                      </select>
+                      <button type="button" class="dn-menu-trigger note-card__menu-btn" title="Más acciones" aria-haspopup="true"
+                        [attr.data-menu-nota]="n.id"
+                        [attr.aria-expanded]="menuNotaAbierto() === n.id" (click)="toggleMenuNota(n.id, $event)">
+                        <app-icon name="more-horizontal" [size]="14" />
+                      </button>
                     }
+                    @if (menuNotaAbierto() === n.id) {
+                      @if (submenuMoverA() === n.id) {
+                        <div class="dn-menu dn-menu--nota" role="menu">
+                          <span class="dn-menu__label">Mover a…</span>
+                          @for (o of opcionesMoverA(); track o.id) {
+                            @if (o.id !== (n.grupo_id ?? '')) {
+                              <button type="button" role="menuitem" (click)="moverNotaDesdeMenu(n, o.id); cerrarMenus()">{{ o.label }}</button>
+                            }
+                          }
+                        </div>
+                      } @else {
+                        <div class="dn-menu dn-menu--nota" role="menu">
+                          <button type="button" role="menuitem" (click)="abrirSubmenuMoverA(n.id)">Mover a…</button>
+                          <button type="button" role="menuitem" (click)="toggleFijarDesdeMenu(n)">{{ n.pinned ? 'Quitar de fijadas' : 'Fijar' }}</button>
+                          <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarNotaDesdeMenu(n)">Eliminar</button>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+                @if (g.esGrupo && g.notas.length === 0 && tab() === 'mias') {
+                  <div class="dn-dropzone-vacia" [style.margin-left.px]="(g.profundidad ?? 0) * 14 + 14"
+                    [class.dn-dropzone-vacia--hover]="destinoHover() === g.grupo!.id"
+                    (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter(g.grupo!.id, $event)"
+                    (dragleave)="onZoneDragLeave(g.grupo!.id)" (drop)="onZoneDrop(g.grupo!.id, $event)">
+                    Arrastra notas aquí para guardarlas en este grupo
                   </div>
                 }
               }
             }
+
+            <!-- CV3 — zonas de soltar al pie: SOLO mientras se arrastra algo. -->
+            @if (tab() === 'mias' && arrastrando(); as d) {
+              <div class="dn-dropzone-pie">
+                <div class="dn-dropzone dn-dropzone--neutra" [class.dn-dropzone--hover]="destinoHover() === 'sin-grupo'"
+                  (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter('sin-grupo', $event)"
+                  (dragleave)="onZoneDragLeave('sin-grupo')" (drop)="onZoneDrop('sin-grupo', $event)">
+                  Soltar aquí para dejarla sin grupo
+                </div>
+                @if (d.tipo === 'nota') {
+                  <div class="dn-dropzone dn-dropzone--nueva" [class.dn-dropzone--hover]="destinoHover() === 'nuevo-grupo'"
+                    (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter('nuevo-grupo', $event)"
+                    (dragleave)="onZoneDragLeave('nuevo-grupo')" (drop)="onZoneDrop('nuevo-grupo', $event)">
+                    Soltar aquí para crear un grupo nuevo con esta nota
+                  </div>
+                }
+              </div>
+            }
           </div>
         }
       </aside>
+
+      <!-- CV2 — fila editable de crear/renombrar grupo (plantilla reusada arriba). -->
+      <ng-template #filaEditableGrupo let-ed let-profundidad="profundidad">
+        <div class="dn-grupo-edit" [style.margin-left.px]="(profundidad ?? 0) * 14" [class.dn-grupo-edit--error]="!!ed.error">
+          <div class="dn-grupo-edit__row">
+            <app-icon name="folder" [size]="16" />
+            <input type="text" [value]="ed.valor" (input)="onGrupoEditandoInput($any($event.target).value)"
+              (keydown)="onGrupoEditandoKeydown($event)" (blur)="onGrupoEditandoBlur()"
+              aria-label="Nombre del grupo" placeholder="Nombre del grupo" maxlength="60" />
+          </div>
+          @if (ed.error) {
+            <span class="field-error">{{ ed.error }}</span>
+          } @else {
+            <div class="dn-grupo-edit__foot">
+              <span class="dn-grupo-edit__hint">Enter para crear · Esc para cancelar</span>
+              <div class="dn-grupo-edit__btns">
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="cancelarGrupoEditando()">Cancelar</button>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ ed.modo === 'crear' ? 'Crear' : 'Guardar' }}</button>
+              </div>
+            </div>
+          }
+        </div>
+      </ng-template>
+
+      <!-- CV2/CV3 — confirmaciones (reemplazan confirm() nativo). -->
+      <app-confirm-dialog [open]="!!grupoAEliminar()" title="¿Eliminar grupo?"
+        [message]="'¿Eliminar el grupo «' + (grupoAEliminar()?.nombre ?? '') + '»? Sus subgrupos y notas suben al nivel de arriba.'"
+        confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminarGrupo()" (cancelled)="cancelarEliminarGrupo()" />
+      <app-confirm-dialog [open]="!!notaAEliminar()" title="¿Eliminar nota?"
+        [message]="'¿Eliminar «' + (notaAEliminar()?.titulo || '(sin título)') + '»? No se puede deshacer.'"
+        confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminarNotaDesdeMenu()" (cancelled)="cancelarEliminarNota()" />
 
       <!-- Placeholder (sin nota abierta) -->
       <section class="dev-notes__editor">
@@ -135,8 +266,12 @@
         <div class="dn-list__items">
           @for (g of agrupada(); track g.label + (g.grupo?.id ?? '')) {
             @if (g.esGrupo) {
+              <!-- CV3.7 — acepta soltar notas (mismo resaltado, tamaño --sm); sin crear grupos aquí. -->
               <button type="button" class="dev-notes__grupo-head dev-notes__grupo-head--sm"
-                [style.padding-left.px]="(g.profundidad ?? 0) * 12" (click)="toggleGrupoPlegado(g.grupo!.id)">
+                [class.dev-notes__grupo-head--hover]="destinoHover() === g.grupo!.id"
+                [style.padding-left.px]="(g.profundidad ?? 0) * 12" (click)="toggleGrupoPlegado(g.grupo!.id)"
+                (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter(g.grupo!.id, $event)"
+                (dragleave)="onZoneDragLeave(g.grupo!.id)" (drop)="onZoneDrop(g.grupo!.id, $event)">
                 @if (g.tieneHijos) {
                   <app-icon [name]="gruposPlegados().has(g.grupo!.id) ? 'chevron-right' : 'chevron-down'" [size]="12" />
                 }
@@ -150,7 +285,8 @@
             @if (!g.esGrupo || !gruposPlegados().has(g.grupo!.id)) {
               @for (n of g.notas; track n.id) {
                 <button type="button" class="note-card note-card--sm" [class.active]="activa()?.id === n.id" (click)="abrir(n)"
-                  [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 12 + 14) : null">
+                  [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 12 + 14) : null"
+                  draggable="true" (dragstart)="onNotaDragStart(n, $event)" (dragend)="onDragEnd()">
                   <span class="note-card__title">
                     @if (n.pinned) { <app-icon name="star" [size]="12" /> }
                     {{ n.titulo || '(sin título)' }}

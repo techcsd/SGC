@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, inject, signal, computed, effect, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { RichEditor, ImagenEditorConfig } from '../../../../shared/ui/rich-editor/rich-editor';
@@ -10,6 +11,8 @@ import { FullscreenModeService } from '../../../../shared/services/fullscreen-mo
 import { Nota, NotaCompartido, NotaPermiso, NotaGrupo } from '../../../../shared/models/nota.model';
 import { markdownAPlano } from '../../../../shared/utils/markdown-a-plano.util';
 import { copiarImagenAlPortapapeles, descargarDesdeUrl } from '../../../../shared/utils/clipboard-imagen.util';
+import { validarNombreGrupo, puedeMoverGrupo, puedeCrearSubgrupo } from '../../../../shared/utils/nota-grupos.util';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 type Tab = 'mias' | 'compartidas';
 type Ancho = 'comodo' | 'completo';
@@ -51,6 +54,27 @@ interface BucketLista {
   totalRecursivo?: number;
 }
 
+/** CV2 — fila editable en línea (crear/renombrar grupo), en vez de prompt(). */
+interface GrupoEditando {
+  modo: 'crear' | 'renombrar';
+  /** Para 'crear': bajo qué padre (null = raíz). Para 'renombrar': el padre actual (informativo). */
+  parentId: string | null;
+  /** Para 'renombrar': el grupo que se edita. */
+  grupoId: string | null;
+  valor: string;
+  error: string | null;
+  /** CV3.3 — "Nuevo grupo con esta nota": al crear, mueve esta nota al grupo nuevo. */
+  notaPendienteId?: string;
+}
+
+/** CV3 — qué se está arrastrando ahora mismo. */
+type ArrastreActivo = { tipo: 'nota'; id: string } | { tipo: 'grupo'; id: string } | null;
+
+// CV3.1 — tipos MIME propios para el arrastre HTML5 nativo (sin @angular/cdk).
+const DT_NOTA = 'application/x-sgc-nota';
+const DT_GRUPO = 'application/x-sgc-grupo';
+const MS_AUTO_ABRIR_GRUPO = 600;
+
 /** Días (locales, medianoche a medianoche) entre una fecha y hoy. 0 = hoy. */
 function diasDesdeHoy(iso: string): number {
   const d = new Date(iso);
@@ -73,10 +97,11 @@ function diasDesdeHoy(iso: string): number {
  */
 @Component({
   selector: 'app-dev-notes',
-  imports: [Icon, RichEditor],
+  imports: [Icon, RichEditor, ConfirmDialog, NgTemplateOutlet],
   templateUrl: './dev-notes.html',
   styleUrl: './dev-notes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:click)': 'onDocClick($event)', '(document:keydown.escape)': 'onDocEscape()' },
 })
 export class DevNotes implements OnInit, OnDestroy {
   private notasSvc = inject(NotasService);
@@ -85,6 +110,7 @@ export class DevNotes implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
+  private host = inject(ElementRef<HTMLElement>);
   protected fullscreen = inject(FullscreenModeService);
 
   tab = signal<Tab>('mias');
@@ -99,6 +125,39 @@ export class DevNotes implements OnInit, OnDestroy {
   /** "Agrupar por mes y año" — solo reagrupa en pantalla lo que está en «Sin grupo»;
    *  no escribe datos. Una nota con grupo real se queda en su grupo. */
   agruparPorMes = signal(typeof localStorage !== 'undefined' && localStorage.getItem(LS_AGRUPAR_MES) === 'true');
+
+  // ── CV2 — crear/renombrar grupo: fila editable en línea (reemplaza prompt()) ──
+  grupoEditando = signal<GrupoEditando | null>(null);
+  /** Resalta el grupo recién creado 2 s (CV2, sin animación si prefers-reduced-motion). */
+  grupoResaltado = signal<string | null>(null);
+  /** Eliminar grupo: confirm-dialog propio (reemplaza confirm() nativo). */
+  grupoAEliminar = signal<NotaGrupo | null>(null);
+
+  // ── CV3 — menú "⋯" (nota/grupo) y "Mover a…" ──────────────────────────────
+  menuNotaAbierto = signal<string | null>(null);
+  menuGrupoAbierto = signal<string | null>(null);
+  /** Dentro del menú "⋯" de una nota: muestra la lista de destinos en vez del menú principal. */
+  submenuMoverA = signal<string | null>(null);
+  notaAEliminar = signal<Nota | null>(null);
+
+  // ── CV3 — arrastre nativo (sin @angular/cdk) ──────────────────────────────
+  arrastrando = signal<ArrastreActivo>(null);
+  /** id de grupo | 'sin-grupo' | 'nuevo-grupo' sobre el que está encima ahora mismo. */
+  destinoHover = signal<string | null>(null);
+  private dragEnterCount = new Map<string, number>();
+  private timerAutoAbrirGrupo: ReturnType<typeof setTimeout> | null = null;
+  /** aria-live="polite" — anuncia el resultado del arrastre a lectores de pantalla. */
+  liveRegionMsg = signal('');
+
+  /** CV3 — ¿el grupo bajo el mouse acepta lo que se arrastra ahora? Las notas
+   *  siempre caben; un grupo solo si no es a sí mismo/un descendiente/>4 niveles. */
+  destinoGrupoValido = computed(() => {
+    const d = this.arrastrando();
+    const hover = this.destinoHover();
+    if (!d || !hover || hover === 'sin-grupo' || hover === 'nuevo-grupo' || d.tipo !== 'grupo') return true;
+    return puedeMoverGrupo(d.id, hover, this.grupos());
+  });
+
   loading = signal(true);
   query = signal('');
   tagFiltro = signal<string | null>(null);
@@ -326,50 +385,177 @@ export class DevNotes implements OnInit, OnDestroy {
     return out;
   });
 
-  async moverNotaAGrupo(nota: Nota, grupoId: string) {
+  /** CV3.5 — mueve una nota y avisa con "Deshacer" (un solo paso, restaura `grupo_id`). */
+  async moverNotaAGrupoConAviso(nota: Nota, grupoId: string | null, nombreDestino: string) {
     const destino = grupoId || null;
-    if ((nota.grupo_id ?? null) === destino) return;
+    const anterior = nota.grupo_id ?? null;
+    if (anterior === destino) return;
     try {
       await this.notasSvc.moverNotaAGrupo(nota.id, destino);
       const aplicar = (l: Nota[]) => l.map((x) => (x.id === nota.id ? { ...x, grupo_id: destino } : x));
       this.mias.update(aplicar);
       if (this.activa()?.id === nota.id) this.activa.update((a) => (a ? { ...a, grupo_id: destino } : a));
+      this.liveRegionMsg.set(`Nota movida a «${nombreDestino}»`);
+      this.toast.show(`Nota movida a «${nombreDestino}»`, {
+        tipo: 'success',
+        action: { label: 'Deshacer', handler: () => void this.deshacerMoverNota(nota.id, anterior) },
+      });
     } catch (e) {
+      // CV3 — si falla, la tarjeta ya se había "soltado" visualmente (drop); al no
+      // tocarse mias()/activa() aquí, la UI refleja el grupo_id real (sin mover).
       this.toast.errorFrom(e, 'No se pudo mover la nota');
     }
   }
 
-  async crearGrupo(parentId: string | null) {
-    const miId = this.userService.profile()?.id;
-    if (!miId) return;
-    const nombre = (prompt(parentId ? 'Nombre del subgrupo:' : 'Nombre del grupo:') ?? '').trim();
-    if (!nombre) return;
+  /** Overload compatible con el menú "⋯" → "Mover a…" (resuelve el nombre del destino). */
+  async moverNotaDesdeMenu(nota: Nota, grupoId: string) {
+    const destino = grupoId || null;
+    const nombre = destino ? (this.grupos().find((g) => g.id === destino)?.nombre ?? 'grupo') : 'Sin grupo';
+    await this.moverNotaAGrupoConAviso(nota, destino, nombre);
+  }
+
+  private async deshacerMoverNota(notaId: string, grupoAnterior: string | null) {
     try {
-      const g = await this.notasSvc.crearGrupo(nombre, parentId, miId);
-      this.grupos.update((l) => [...l, g]);
+      await this.notasSvc.moverNotaAGrupo(notaId, grupoAnterior);
+      const aplicar = (l: Nota[]) => l.map((x) => (x.id === notaId ? { ...x, grupo_id: grupoAnterior } : x));
+      this.mias.update(aplicar);
+      if (this.activa()?.id === notaId) this.activa.update((a) => (a ? { ...a, grupo_id: grupoAnterior } : a));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo crear el grupo');
+      this.toast.errorFrom(e, 'No se pudo deshacer');
     }
   }
 
-  async renombrarGrupo(g: NotaGrupo) {
-    const nombre = (prompt('Nuevo nombre:', g.nombre) ?? '').trim();
-    if (!nombre || nombre === g.nombre) return;
-    try {
-      await this.notasSvc.renombrarGrupo(g.id, nombre);
-      this.grupos.update((l) => l.map((x) => (x.id === g.id ? { ...x, nombre } : x)));
-    } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo renombrar el grupo');
+  // ── CV2 — fila editable en línea: crear / renombrar ─────────────────────────
+  /** `notaPendienteId` — CV3.3 "Nuevo grupo con esta nota": al crear, la mueve ahí. */
+  abrirCrearGrupo(parentId: string | null, notaPendienteId?: string) {
+    this.grupoEditando.set({ modo: 'crear', parentId, grupoId: null, valor: '', error: null, notaPendienteId });
+    // La fila aparece debajo del padre, así que si estaba plegado, se abre primero.
+    if (parentId && this.gruposPlegados().has(parentId)) this.toggleGrupoPlegado(parentId);
+  }
+
+  abrirRenombrarGrupo(g: NotaGrupo) {
+    this.menuGrupoAbierto.set(null);
+    this.grupoEditando.set({ modo: 'renombrar', parentId: g.parent_id, grupoId: g.id, valor: g.nombre, error: null });
+  }
+
+  onGrupoEditandoInput(valor: string) {
+    this.grupoEditando.update((e) => (e ? { ...e, valor, error: null } : e));
+  }
+
+  onGrupoEditandoKeydown(ev: KeyboardEvent) {
+    if (ev.key === 'Enter') { ev.preventDefault(); void this.confirmarGrupoEditando(); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); this.cancelarGrupoEditando(); }
+  }
+
+  /** CV2.3 — perder el foco con la fila vacía la cancela; con texto escrito se queda
+   *  (un pequeño margen para que un click en "Crear"/"Cancelar" registre primero). */
+  onGrupoEditandoBlur() {
+    setTimeout(() => {
+      const e = this.grupoEditando();
+      if (e && !e.valor.trim()) this.grupoEditando.set(null);
+    }, 150);
+  }
+
+  cancelarGrupoEditando() { this.grupoEditando.set(null); }
+
+  async confirmarGrupoEditando() {
+    const e = this.grupoEditando();
+    if (!e) return;
+    const nombre = e.valor.trim();
+    if (!nombre) { this.grupoEditando.set(null); return; }
+    const hermanos = (this.gruposPorPadre().get(e.parentId) ?? [])
+      .filter((g) => g.id !== e.grupoId)
+      .map((g) => g.nombre);
+    const error = validarNombreGrupo(nombre, hermanos);
+    if (error) { this.grupoEditando.update((cur) => (cur ? { ...cur, error } : cur)); return; }
+
+    if (e.modo === 'crear') {
+      const miId = this.userService.profile()?.id;
+      if (!miId) return;
+      try {
+        const g = await this.notasSvc.crearGrupo(nombre, e.parentId, miId);
+        this.grupos.update((l) => [...l, g]);
+        this.grupoEditando.set(null);
+        this.toast.success('Grupo creado');
+        this.resaltarGrupo(g.id);
+        if (e.notaPendienteId) {
+          const nota = [...this.mias(), ...this.compartidas()].find((n) => n.id === e.notaPendienteId);
+          if (nota) await this.moverNotaAGrupoConAviso(nota, g.id, g.nombre);
+        }
+      } catch (err) {
+        this.grupoEditando.update((cur) => (cur ? { ...cur, error: this.mensajeErrorGrupo(err) } : cur));
+      }
+    } else {
+      if (nombre === this.grupos().find((g) => g.id === e.grupoId)?.nombre) { this.grupoEditando.set(null); return; }
+      try {
+        await this.notasSvc.renombrarGrupo(e.grupoId!, nombre);
+        this.grupos.update((l) => l.map((x) => (x.id === e.grupoId ? { ...x, nombre } : x)));
+        this.grupoEditando.set(null);
+      } catch (err) {
+        this.grupoEditando.update((cur) => (cur ? { ...cur, error: this.mensajeErrorGrupo(err) } : cur));
+      }
     }
   }
 
-  /** Mover un grupo a otro padre (prompt con las opciones ya indentadas). */
-  async moverGrupo(g: NotaGrupo) {
-    const opciones = this.opcionesMoverA().filter((o) => o.id !== g.id);
-    const texto = opciones.map((o, i) => `${i}: ${o.label || 'Sin grupo'}`).join('\n');
-    const idx = Number((prompt(`Mover «${g.nombre}» a… (escribe el número)\n${texto}`) ?? '').trim());
-    if (!Number.isInteger(idx) || idx < 0 || idx >= opciones.length) return;
-    const destino = opciones[idx].id || null;
+  /** CV2 — el trigger de BD sigue siendo la autoridad (ciclos/4 niveles); su mensaje
+   *  ya viene en español, pero se homologa al texto exacto del diseño aprobado. */
+  private mensajeErrorGrupo(err: unknown): string {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/4 niveles/i.test(msg)) return 'Los grupos admiten hasta 4 niveles.';
+    if (/propio padre|dentro de s[ií] mismo o de un descendiente/i.test(msg)) return 'Un grupo no se puede meter dentro de sí mismo.';
+    return 'No se pudo guardar el grupo. Inténtalo de nuevo.';
+  }
+
+  private resaltarGrupo(id: string) {
+    this.grupoResaltado.set(id);
+    setTimeout(() => this.grupoResaltado.update((cur) => (cur === id ? null : cur)), 2000);
+    setTimeout(() => {
+      const reducido = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      this.host.nativeElement.querySelector(`[data-grupo-id="${id}"]`)
+        ?.scrollIntoView({ block: 'nearest', behavior: reducido ? 'auto' : 'smooth' });
+    }, 0);
+  }
+
+  /** `profundidad` ya viene de `agrupada()` (0 = raíz); "+" se apaga en el nivel 4. */
+  puedeAgregarSubgrupo(g: NotaGrupo): boolean {
+    return puedeCrearSubgrupo(g.id, this.grupos());
+  }
+
+  // ── CV2 — eliminar grupo (confirm-dialog en vez de confirm() nativo) ────────
+  pedirEliminarGrupo(g: NotaGrupo) {
+    this.menuGrupoAbierto.set(null);
+    this.grupoAEliminar.set(g);
+  }
+  cancelarEliminarGrupo() { this.grupoAEliminar.set(null); }
+  async confirmarEliminarGrupo() {
+    const g = this.grupoAEliminar();
+    if (!g) return;
+    this.grupoAEliminar.set(null);
+    try {
+      await this.notasSvc.eliminarGrupo(g.id);
+      await this.recargar();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo eliminar el grupo');
+    }
+  }
+
+  // ── CV2 — mover un grupo a otro padre (desde el menú "⋯"; ver también CV3 arrastre) ──
+  /** CV3.6 — opciones de "Mover a…" para un GRUPO, ya filtradas (ni a sí mismo,
+   *  ni a un destino que violaría ciclos/4 niveles). */
+  opcionesMoverGrupoValidas(g: NotaGrupo): { id: string; label: string }[] {
+    return this.opcionesMoverA().filter((o) => o.id !== g.id && puedeMoverGrupo(g.id, o.id || null, this.grupos()));
+  }
+
+  async moverGrupoDesdeMenu(g: NotaGrupo, destinoId: string) {
+    this.menuGrupoAbierto.set(null);
+    const destino = destinoId || null;
+    if ((g.parent_id ?? null) === destino) return;
+    if (!puedeMoverGrupo(g.id, destino, this.grupos())) {
+      this.toast.error('No se pudo mover el grupo', destino === g.id
+        ? 'Un grupo no se puede meter dentro de sí mismo.'
+        : 'Mover este grupo dejaría a un subgrupo con más de 4 niveles.');
+      return;
+    }
     try {
       await this.notasSvc.moverGrupo(g.id, destino);
       this.grupos.update((l) => l.map((x) => (x.id === g.id ? { ...x, parent_id: destino } : x)));
@@ -378,13 +564,172 @@ export class DevNotes implements OnInit, OnDestroy {
     }
   }
 
-  async eliminarGrupoConfirm(g: NotaGrupo) {
-    if (!confirm(`¿Eliminar el grupo «${g.nombre}»? Sus subgrupos y notas suben al nivel de arriba.`)) return;
+  // ── CV3 — menú "⋯" (nota) ────────────────────────────────────────────────────
+  toggleMenuNota(notaId: string, ev: Event) {
+    ev.stopPropagation();
+    this.menuGrupoAbierto.set(null);
+    this.submenuMoverA.set(null);
+    this.menuNotaAbierto.update((cur) => (cur === notaId ? null : notaId));
+  }
+  abrirSubmenuMoverA(notaId: string, ev?: Event) {
+    ev?.stopPropagation();
+    this.submenuMoverA.set(notaId);
+  }
+  cerrarMenus() {
+    this.menuNotaAbierto.set(null);
+    this.menuGrupoAbierto.set(null);
+    this.submenuMoverA.set(null);
+  }
+  async toggleFijarDesdeMenu(n: Nota) {
+    this.cerrarMenus();
     try {
-      await this.notasSvc.eliminarGrupo(g.id);
-      await this.recargar();
+      await this.notasSvc.guardarNota(
+        { id: n.id, titulo: n.titulo, contenido: n.contenido, color: n.color, pinned: !n.pinned, archivada: n.archivada, ambito: 'dev', formato: 'markdown', tags: n.tags ?? [] },
+        n.updated_at,
+      );
+      const aplicar = (l: Nota[]) => l.map((x) => (x.id === n.id ? { ...x, pinned: !n.pinned } : x));
+      this.mias.update(aplicar);
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo eliminar el grupo');
+      this.toast.errorFrom(e, 'No se pudo fijar la nota');
+    }
+  }
+  pedirEliminarNotaDesdeMenu(n: Nota) {
+    this.cerrarMenus();
+    this.notaAEliminar.set(n);
+  }
+  cancelarEliminarNota() { this.notaAEliminar.set(null); }
+  async confirmarEliminarNotaDesdeMenu() {
+    const n = this.notaAEliminar();
+    if (!n) return;
+    this.notaAEliminar.set(null);
+    try {
+      await this.notasSvc.eliminarNota(n.id);
+      await this.recargar();
+      this.toast.success('Nota eliminada');
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo eliminar');
+    }
+  }
+
+  // ── CV3 — menú "⋯" (grupo) ───────────────────────────────────────────────────
+  toggleMenuGrupo(grupoId: string, ev: Event) {
+    ev.stopPropagation();
+    this.menuNotaAbierto.set(null);
+    this.submenuMoverA.set(null);
+    this.menuGrupoAbierto.update((cur) => (cur === grupoId ? null : grupoId));
+  }
+
+  /** Cierra cualquier menú abierto al hacer click fuera de él. */
+  onDocClick(ev: MouseEvent) {
+    const target = ev.target as Element;
+    if (target.closest?.('.dn-menu, .dn-menu-trigger')) return;
+    if (this.menuNotaAbierto() || this.menuGrupoAbierto() || this.submenuMoverA()) this.cerrarMenus();
+  }
+
+  /** Esc cierra el menú "⋯" abierto y devuelve el foco a su botón disparador. */
+  onDocEscape() {
+    const notaId = this.menuNotaAbierto();
+    const grupoId = this.menuGrupoAbierto();
+    if (!notaId && !grupoId) return;
+    this.cerrarMenus();
+    setTimeout(() => {
+      const selector = notaId ? `[data-menu-nota="${notaId}"]` : `[data-menu-grupo="${grupoId}"]`;
+      (this.host.nativeElement.querySelector(selector) as HTMLElement | null)?.focus();
+    }, 0);
+  }
+
+  // ── CV3 — arrastre HTML5 nativo (sin @angular/cdk) ───────────────────────────
+  onNotaDragStart(nota: Nota, ev: DragEvent) {
+    this.cerrarMenus();
+    this.arrastrando.set({ tipo: 'nota', id: nota.id });
+    ev.dataTransfer?.setData(DT_NOTA, nota.id);
+    if (ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move';
+  }
+  onGrupoDragStart(g: NotaGrupo, ev: DragEvent) {
+    this.cerrarMenus();
+    this.arrastrando.set({ tipo: 'grupo', id: g.id });
+    ev.dataTransfer?.setData(DT_GRUPO, g.id);
+    if (ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move';
+  }
+  onDragEnd() {
+    this.arrastrando.set(null);
+    this.destinoHover.set(null);
+    this.dragEnterCount.clear();
+    this.cancelarAutoAbrirGrupo();
+  }
+
+  onZoneDragOver(ev: DragEvent) {
+    if (!this.arrastrando()) return;
+    ev.preventDefault();
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+  }
+  /** `zoneId`: id de grupo real, 'sin-grupo' o 'nuevo-grupo'. Contador de
+   *  entradas/salidas (CV3.1) para no parpadear con hijos del mismo elemento. */
+  onZoneDragEnter(zoneId: string, ev: DragEvent) {
+    if (!this.arrastrando()) return;
+    ev.preventDefault();
+    this.dragEnterCount.set(zoneId, (this.dragEnterCount.get(zoneId) ?? 0) + 1);
+    this.destinoHover.set(zoneId);
+    this.evaluarAutoAbrirGrupo(zoneId);
+  }
+  onZoneDragLeave(zoneId: string) {
+    const n = Math.max(0, (this.dragEnterCount.get(zoneId) ?? 1) - 1);
+    this.dragEnterCount.set(zoneId, n);
+    if (n === 0 && this.destinoHover() === zoneId) {
+      this.destinoHover.set(null);
+      this.cancelarAutoAbrirGrupo();
+    }
+  }
+  /** CV3.3 — grupo cerrado con subgrupos: se abre solo tras 600 ms encima. */
+  private evaluarAutoAbrirGrupo(zoneId: string) {
+    this.cancelarAutoAbrirGrupo();
+    if (!this.gruposPlegados().has(zoneId)) return;
+    const tieneHijos = (this.gruposPorPadre().get(zoneId) ?? []).length > 0;
+    if (!tieneHijos) return;
+    this.timerAutoAbrirGrupo = setTimeout(() => {
+      if (this.destinoHover() === zoneId) this.toggleGrupoPlegado(zoneId);
+    }, MS_AUTO_ABRIR_GRUPO);
+  }
+  private cancelarAutoAbrirGrupo() {
+    if (this.timerAutoAbrirGrupo) { clearTimeout(this.timerAutoAbrirGrupo); this.timerAutoAbrirGrupo = null; }
+  }
+
+  async onZoneDrop(zoneId: string, ev: DragEvent) {
+    ev.preventDefault();
+    this.dragEnterCount.set(zoneId, 0);
+    this.destinoHover.set(null);
+    this.cancelarAutoAbrirGrupo();
+    const d = this.arrastrando();
+    this.arrastrando.set(null);
+    if (!d) return;
+
+    // CV3.3 — "Nuevo grupo con esta nota": abre la fila de crear con la nota pendiente.
+    if (zoneId === 'nuevo-grupo') {
+      if (d.tipo === 'nota') this.abrirCrearGrupo(null, d.id);
+      return;
+    }
+    const destinoId = zoneId === 'sin-grupo' ? null : zoneId;
+
+    if (d.tipo === 'nota') {
+      const nota = [...this.mias(), ...this.compartidas()].find((n) => n.id === d.id);
+      if (!nota) return;
+      const nombreDestino = destinoId ? (this.grupos().find((g) => g.id === destinoId)?.nombre ?? 'grupo') : 'Sin grupo';
+      await this.moverNotaAGrupoConAviso(nota, destinoId, nombreDestino);
+      return;
+    }
+
+    // Arrastrando un grupo (sobre otro grupo = subgrupo; sobre "Sin grupo" = raíz).
+    if (!puedeMoverGrupo(d.id, destinoId, this.grupos())) {
+      this.toast.error('No se pudo mover el grupo', destinoId === d.id
+        ? 'Un grupo no se puede meter dentro de sí mismo.'
+        : 'Mover este grupo dejaría a un subgrupo con más de 4 niveles.');
+      return;
+    }
+    try {
+      await this.notasSvc.moverGrupo(d.id, destinoId);
+      this.grupos.update((l) => l.map((x) => (x.id === d.id ? { ...x, parent_id: destinoId } : x)));
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo mover el grupo');
     }
   }
 
@@ -418,6 +763,15 @@ export class DevNotes implements OnInit, OnDestroy {
 
     // "Guardado hace Xs" — recalcula cada segundo mientras haya un guardado reciente.
     this.tickInterval = setInterval(() => this.tick.update((v) => v + 1), 1000);
+
+    // CV2 — la fila de crear/renombrar grupo aparece con el cursor ya escribiendo.
+    effect(() => {
+      if (!this.grupoEditando()) return;
+      setTimeout(() => {
+        const input = this.host.nativeElement.querySelector('.dn-grupo-edit__row input') as HTMLInputElement | null;
+        input?.focus();
+      }, 0);
+    });
   }
 
   async ngOnInit() {

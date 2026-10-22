@@ -153,13 +153,28 @@
             @if (p.aviso_prueba) {
               <p class="compa__propuesta-prueba" role="note">{{ p.aviso_prueba }}</p>
             }
-            <p class="compa__propuesta-nota">{{ 'Revisa y confirma. Se creará por el flujo normal, con sus validaciones.' | t }}</p>
-            <div class="compa__propuesta-actions">
-              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarPropuesta()" [disabled]="ejecutando()">{{ 'Cancelar' | t }}</button>
-              <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarPropuesta()" [disabled]="ejecutando()">
-                {{ (ejecutando() ? 'Creando…' : 'Confirmar') | t }}
-              </button>
-            </div>
+            @if (p.accion === 'abrir') {
+              <!-- CV1 — "preparar + abrir formulario": Compa nunca guarda, solo deja el
+                   formulario real listo. Una sola acción naranja, sin "Confirmar". -->
+              @if (p.faltan?.length) {
+                <div class="compa__propuesta-faltan" role="note">
+                  <span class="compa__propuesta-faltan-dot" aria-hidden="true"></span>
+                  {{ 'Faltan:' | t }} {{ p.faltan!.join(', ') }}.
+                </div>
+              }
+              <div class="compa__propuesta-actions">
+                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarPropuesta()">{{ 'Descartar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirFormularioPropuesta()">{{ 'Abrir formulario' | t }}</button>
+              </div>
+            } @else {
+              <p class="compa__propuesta-nota">{{ 'Revisa y confirma. Se creará por el flujo normal, con sus validaciones.' | t }}</p>
+              <div class="compa__propuesta-actions">
+                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarPropuesta()" [disabled]="ejecutando()">{{ 'Cancelar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarPropuesta()" [disabled]="ejecutando()">
+                  {{ (ejecutando() ? 'Creando…' : 'Confirmar') | t }}
+                </button>
+              </div>
+            }
           </div>
         }
 

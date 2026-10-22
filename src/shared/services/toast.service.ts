@@ -11,6 +11,8 @@ export interface Toast {
   mensaje?: string;
   /** Optional route to navigate to when the toast is clicked. */
   route?: string;
+  /** CV3 — acción secundaria (p. ej. "Deshacer"). Aditivo: no afecta los toasts existentes. */
+  action?: { label: string; handler: () => void };
 }
 
 /** App-wide, signal-based toast queue. Rendered once by <app-toast> in the root. */
@@ -24,7 +26,7 @@ export class ToastService {
   // is enough for unique keys.
   private seq = 0;
 
-  show(titulo: string, opts: { tipo?: ToastTipo; mensaje?: string; route?: string; durationMs?: number } = {}) {
+  show(titulo: string, opts: { tipo?: ToastTipo; mensaje?: string; route?: string; durationMs?: number; action?: Toast['action'] } = {}) {
     const id = ++this.seq;
     const toast: Toast = {
       id,
@@ -32,6 +34,7 @@ export class ToastService {
       titulo,
       mensaje: opts.mensaje,
       route: opts.route,
+      action: opts.action,
     };
     this._toasts.update((list) => [...list, toast]);
     const duration = opts.durationMs ?? 6000;

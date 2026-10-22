@@ -105,6 +105,7 @@ const INSTRUCCIONES_ESTATICAS = [
   "QUÉ PUEDES HACER:",
   "- CONSULTAR información (herramientas de lectura). Todo dato/número que des DEBE salir de una herramienta; si no tienes una, dilo (\"eso todavía no lo puedo consultar\"). NUNCA inventes datos ni IDs.",
   "- PREPARAR acciones con las herramientas 'proponer_*' (tarea, requisición, conduce, ruta). NUNCA ejecutas directo: al llamar una 'proponer_*' el sistema le muestra al usuario una tarjeta para CONFIRMAR. Tú solo dile en una frase corta qué preparaste y pídele que confirme.",
+  "- Si piden registrar/anotar una echada de combustible ('registra una echada', 'eché gasolina/diésel'): pregunta lo que falte (vehículo —resuélvelo con 'listar_vehiculos'—, galones, monto) y llama 'preparar_echada'. Esta NO crea nada: abre el formulario real de Combustible con esos datos puestos; las fotos del recibo y el tablero, y el odómetro si no lo diste, los completa la persona ahí. NUNCA digas que la echada quedó registrada — solo que la dejaste preparada.",
   "- GENERAR archivos (PDF/Excel) con 'generar_reporte_pdf' — aparecen como tarjeta descargable.",
   "- Explicar CÓMO funciona el sistema con 'buscar_ayuda' (usa esto para preguntas de uso, no de datos).",
   "- RECORDAR preferencias del usuario con 'recordar' (obra por defecto, formato, etc.).",
@@ -359,6 +360,70 @@ async function construirPropuesta(supabase: Any, cfg: ToolDef, input: Any, cap: 
   return { tipo, tool: cfg.name, params: input, titulo, lineas, idem: clave, es_prueba: esPrueba, aviso_prueba: avisoPrueba };
 }
 
+// CV1 — "preparar + abrir formulario": a diferencia de construirPropuesta()
+// (que arma una tarjeta Confirmar/Cancelar para una RPC de escritura), esta
+// arma una propuesta `accion:'abrir'` que SOLO navega al formulario real con
+// los datos como queryParams. Nunca ejecuta nada ni genera idem — no hay
+// documento que deduplicar, solo se abre una pantalla.
+async function construirPropuestaAbrir(supabase: Any, cfg: ToolDef, input: Any): Promise<Any> {
+  const tipo = cfg.abrir!.tipo; // 'echada'
+
+  if (tipo === "echada") {
+    // CV1.3 — validación ligera del servidor (el formulario/RPC aplican los
+    // topes reales de capacidad/precio/odómetro; esto solo evita basura obvia).
+    const galones = Number(input.galones);
+    const monto = Number(input.monto);
+    const km = input.km === undefined || input.km === null || input.km === "" ? null : Math.trunc(Number(input.km));
+    if (!Number.isFinite(galones) || galones <= 0 || galones > 500) {
+      return { error: "Los galones deben ser un número entre 0 y 500." };
+    }
+    if (!Number.isFinite(monto) || monto < 0) {
+      return { error: "El monto no es válido." };
+    }
+    if (km !== null && (!Number.isFinite(km) || km < 0)) {
+      return { error: "El kilometraje no es válido." };
+    }
+    const estacion = input.estacion ? String(input.estacion).slice(0, 60) : null;
+    const producto = input.producto ? String(input.producto).slice(0, 60) : null;
+
+    // CV1 — resuelve el nombre del vehículo CON EL JWT del usuario (RLS): si no
+    // lo ve, vehiculo_display() devuelve null (no hay fila visible que unir).
+    const { data: nombreVeh } = await supabase.rpc("vehiculo_display", { p_id: input.vehiculo_id });
+    if (!nombreVeh) {
+      return { error: "No pude identificar ese vehículo con tu acceso. Revisa cuál es y vuelve a intentarlo." };
+    }
+
+    const faltan = ["Foto del recibo", "Foto del tablero"];
+    if (km === null) faltan.push("Lectura del odómetro");
+
+    const query: Record<string, string | number> = { desde: "compa", vehiculo: input.vehiculo_id, galones, monto };
+    if (km !== null) query["km"] = km;
+    if (estacion) query["estacion"] = estacion;
+    if (producto) query["producto"] = producto;
+
+    return {
+      propuesta: {
+        tipo: "echada_formulario", tool: cfg.name, accion: "abrir",
+        titulo: "Echada preparada",
+        lineas: [
+          `Vehículo: ${nombreVeh}`,
+          `Galones: ${galones}`,
+          `Monto: RD$ ${monto.toLocaleString("es-DO", { minimumFractionDigits: 2 })}`,
+          `Fecha: Hoy`,
+          ...(km !== null ? [`Odómetro: ${km} km`] : []),
+        ],
+        faltan,
+        // Contrato CV1 (PARIDAD.md): el destino NO fija una ruta — cada cliente
+        // (web: /flota/combustible; app: Transporte → Combustible) arma su propia
+        // navegación con estos queryParams.
+        destino: { vehiculo_id: input.vehiculo_id, query },
+        params: input,
+      },
+    };
+  }
+  return { error: "Tipo de propuesta desconocido." };
+}
+
 // ── AY11/C2 — Reportes PDF ──────────────────────────────────────────────────
 // Cada reporte trae sus datos de una consulta con el JWT del usuario (RLS aplica
 // → hereda permisos). Devuelve { titulo, cols, rows } o null si no hay/no puede.
@@ -590,6 +655,18 @@ Deno.serve(async (req: Request) => {
   if (payload.ejecutar) {
     const prop = payload.ejecutar;
     const convId = payload.conversacion_id ?? null;
+    // CV1.4 — una propuesta `accion:'abrir'` (p. ej. preparar_echada) no tiene
+    // `write`: nunca se "confirma" por esta vía, se completa en el formulario.
+    // Un cliente viejo (o uno que no sepa de accion:'abrir') que intente
+    // confirmarla de todos modos recibe un mensaje claro, no un 400 genérico.
+    const cfgAbrir = TOOLS.find((t) => t.name === prop.tool && t.abrir && !t.write);
+    if (cfgAbrir) {
+      return json({
+        conversacion_id: convId,
+        respuesta: "Esta acción se completa en el formulario de Combustible (Flota → Combustible; en la app, Transporte → Combustible). Ahí agregas las fotos.",
+        ejecutado: false,
+      });
+    }
     const cfg = TOOLS.find((t) => t.name === prop.tool && t.write);
     if (!cfg) return json({ error: "Acción no reconocida." }, 400);
     if (!(cfg.modulos === null || capObj.es_admin || cfg.modulos!.some((m) => modulos.includes(m)))) {
@@ -889,6 +966,30 @@ Deno.serve(async (req: Request) => {
                 }
               }
             } catch (e) { out = { error: "No se pudo generar el archivo." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
+          } else if (cfg.abrir) {
+            // CV1 — "preparar + abrir formulario": nunca ejecuta nada; solo arma
+            // la propuesta con accion:'abrir' para que el usuario la termine en
+            // el formulario real (fotos, odómetro, "Guardar" los pone él).
+            try {
+              const res = await construirPropuestaAbrir(supabase, cfg, block.input ?? {});
+              if (res.error) {
+                out = { error: res.error };
+                resumen = res.error.slice(0, 200);
+              } else {
+                propuesta = res.propuesta;
+                out = {
+                  preparado: true,
+                  resumen: propuesta.lineas.join("\n"),
+                  faltan: propuesta.faltan,
+                  instruccion: "Dile al usuario EN UNA FRASE qué dejaste preparado y que las fotos y el odómetro se completan en el formulario — todavía NO está registrada. Nunca digas que ya quedó guardada.",
+                };
+                ok = true; resumen = `propuesta abrir ${cfg.abrir.tipo}`;
+                huboAccionEjecutable = true;
+              }
+            } catch (e) {
+              out = { error: "No pude preparar la acción." };
+              resumen = (e instanceof Error ? e.message : "error").slice(0, 200);
+            }
           } else if (cfg.write) {
             // Acción de ESCRITURA: se PREPARA, no se ejecuta. Devuelve borrador.
             try {
@@ -989,7 +1090,9 @@ Deno.serve(async (req: Request) => {
   }
   // BE2 — NUNCA una excusa vacía: si no hubo texto, el fallback lleva causa + salida.
   if (!respuestaFinal) {
-    if (propuesta) respuestaFinal = "Preparé la acción; revísala y confírmala abajo.";
+    if (propuesta) respuestaFinal = propuesta.accion === "abrir"
+      ? "Te dejé la echada preparada; ábrela abajo para agregar las fotos y guardarla."
+      : "Preparé la acción; revísala y confírmala abajo.";
     else if (archivos.length) respuestaFinal = archivos.length > 1 ? "Tus archivos están listos para descargar abajo." : "Tu archivo está listo para descargar abajo.";
     else if (ultimoFallo?.motivo === "sin_permiso")
       respuestaFinal = "Eso no lo puedo ver con tu acceso actual. Si crees que deberías tenerlo, avísale a Tecnología — ya lo dejé anotado.";

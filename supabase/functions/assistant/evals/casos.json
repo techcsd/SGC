@@ -75,6 +75,13 @@
       "rol_codigo": "admin",
       "mensaje": "¿Tengo alguna reunión próxima?",
       "expect": { "tool_llamada": "mis_reuniones", "sin_contradiccion": true }
+    },
+    {
+      "id": "cv1-felix-registra-echada",
+      "descripcion": "CV1 (#270) — caso real de Felix: 'Registra una echada' hoy hacía que Compa llamara reportar_gap (solo tenía log_combustible, de lectura). Con preparar_echada debe llamarla en vez de rendirse — no debe decir que ya quedó registrada, ver sin_promesa_vacia (el 'propuesta' en la respuesta cuenta como acción ejecutada, no como promesa vacía).",
+      "rol_codigo": "admin",
+      "mensaje": "Registra una echada: la Suburban, 12 galones, 3360 pesos",
+      "expect": { "tool_llamada": "preparar_echada", "sin_gap_falso": true, "sin_contradiccion": true, "sin_promesa_vacia": true }
     }
   ]
 }
