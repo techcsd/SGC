@@ -1,6 +1,6 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-112 (Ronda CV) — 22/10/2026 — 🧪 **EN DEV, NO prod** (web **1.198.0**, worktree `../SGC-cv` rama `feature/cv-ronda`)
+## TL;DR — PROMPT-112 (Ronda CV) — 22/10/2026 — ✅ **EN PROD** (web **1.198.0**, `main`=`dev`=`d8bfa08`)
 
 Contexto completo: `C:\developer\improvements\octubre 2026\imp 21102026\CONTEXTO-ACTUALIZACION-55.md`. IDs CV1-CV3, matriz filas 270-272. Sesión autónoma (CQ6: `git status`/`worktree list` limpios al empezar, worktree propia desde `dev`=`main`=`f4d4fb7`).
 
@@ -13,13 +13,14 @@ Contexto completo: `C:\developer\improvements\octubre 2026\imp 21102026\CONTEXTO
 
 **Gotcha de la sesión:** el magic-link de Supabase en dev redirige a `dev.sgcconstructorasd.com` (Site URL configurado), que está detrás del SSO de Vercel — no sirve para inyectar sesión en un `localhost:4200` de pruebas. Solución: capturar el fragmento `#access_token=…` del 302 antes de que el navegador siga la redirección, y navegarlo directo a `http://localhost:4200/#…` (el cliente de supabase-js lo recoge solo, `detectSessionInUrl`). Mismo patrón que el puente de WhatsApp/`compa-evals.mjs` (magic link con service role, sin tocar contraseñas) — reutilizable para futuros smokes de Playwright contra dev.
 
-**Build + tests:** `npm run build` (28 guards, incluye `verify-version-notes`) y `npm run test:unit` (**105/105**, 14 nuevas de `nota-grupos.util.spec.ts`) verdes. 0 migraciones SQL esta ronda (CV1.1 — nada que registrar en el ledger). 1 edge redeployada a **dev únicamente** (`assistant` v26 — incluye el fix de un bug real que encontró el propio smoke: el primer intento no mandaba el id del vehículo como queryParam, así que el formulario nunca lo encontraba y mostraba "Compa no pudo identificar el vehículo"; corregido y verificado).
+**Build + tests:** `npm run build` (28 guards, incluye `verify-version-notes`) y `npm run test:unit` (**105/105**, 14 nuevas de `nota-grupos.util.spec.ts`) verdes. 0 migraciones SQL esta ronda (CV1.1 — nada que registrar en el ledger).
 
-**Pendientes físicos de Xaviel (antes de promover a prod):**
-1. Repetir en dev `sgcconstructorasd.com`-equivalente (`dev.sgcconstructorasd.com`) con su propio usuario (no `qa_admin`), idealmente con el rol de Felix, y confirmar que Compa no le ofrece `preparar_echada` si Felix no tiene el módulo Flota.
+**✅ Promovido a prod 22-oct-2026 con el OK explícito de Xaviel** (probó en `dev.sgcconstructorasd.com` y dio el OK para mergear a `main` y desplegar todo). Flujo completo: `feature/cv-ronda` → commit (`ec6097f`) → merge a `dev` (`75e9676`) → `release-check.mjs --env dev --version 1.198.0` **6/6 PASS** (tuvo que corregirse la línea `OK:` de `qa/release-1.198.0.md`, el gate la rechazó una vez por contener la palabra "pendiente") → push `dev` → merge `dev → main` (`d8bfa08`) → push `main`. Edge `assistant` desplegada primero a **dev** (v26 — incluye el fix de un bug real que encontró el propio smoke: el primer intento no mandaba el id del vehículo como queryParam, así que el formulario nunca lo encontraba) y luego a **prod** (v32, mismo checksum ya verificado en el ledger de dev — sin `--force-prod`). Vercel prod `READY` en el commit del merge (`sgc-ashen.vercel.app`/`sgcconstructorasd.com`), versión 1.198.0 confirmada en `sgc.app_versiones` de prod. Worktree `../SGC-cv` y rama `feature/cv-ronda` (local+remota) limpiados tras el merge — ya está todo en `dev`/`main`.
+
+**Pendientes físicos de Xaviel (quedan igual, ya en prod):**
+1. Probar en persona en `sgcconstructorasd.com`: pedirle a Compa "registra una echada" con un usuario real (no `qa_admin`, el que usé yo) — confirmar que **no deja guardar sin fotos ni odómetro**, y que Compa no ofrece la herramienta a alguien sin módulo Flota (p. ej. Felix si no lo tiene).
 2. CV2/CV3 a mano: crear un grupo, arrastrar una nota, arrastrar un grupo dentro de otro, intentar meterlo dentro de sí mismo, menú "⋯" por teclado, "Deshacer", y con dos navegadores (confirmar que otro usuario no ve ni afecta los grupos — RLS ya probada en CS2, sin cambio aquí).
-3. Decidir si promover a prod con el release-check (`node scripts/release-check.mjs --env dev --version 1.198.0`) o esperar a que corra PROMPT-113 (app) primero — el plan original dice dev→Xaviel prueba→main, luego PROMPT-113 (edge `assistant` ya en dev, lista para que la app la consuma).
-4. **App (PROMPT-113, pendiente)**: contrato completo documentado en `PARIDAD.md` sección "Ronda CV" — hoja de Compa con `accion:'abrir'`, mismo `destino.query` para el deep-link del wizard de combustible de la app (mismo orden de prioridad que ya tiene: corregir > reenviar > deep-link vehículo > borrador BT4), y verificar (no construir) que CV2/CV3 se reflejen bien en la app de solo-lectura.
+3. **App (PROMPT-113, pendiente)**: contrato completo documentado en `PARIDAD.md` sección "Ronda CV" — hoja de Compa con `accion:'abrir'`, mismo `destino.query` para el deep-link del wizard de combustible de la app (mismo orden de prioridad que ya tiene: corregir > reenviar > deep-link vehículo > borrador BT4), y verificar (no construir) que CV2/CV3 se reflejen bien en la app de solo-lectura. La edge `assistant` ya está en dev Y prod, lista para que la app la consuma.
 
 ---
 
