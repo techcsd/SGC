@@ -391,8 +391,15 @@
       </div>
     }
 
+    <!-- CV1 — Compa llenó estos datos con lo que le dijo la persona en el chat. -->
+    @if (avisoCompa()) {
+      <div class="cmb-compa-banner" role="note">Compa llenó estos datos con lo que le dijiste. Revísalos antes de guardar.</div>
+    }
+
     <div class="sgc-field">
-      <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
+      <label for="vehiculo_id">Vehículo <span class="required">*</span>
+        @if (prellenadoCompa().has('vehiculo_id')) { <span class="cmb-chip-compa">Compa</span> }
+      </label>
       <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
       @if (odometroActual() !== null) {
         <span class="field-hint">Odómetro actual: {{ odometroActual() | number:'1.0-0' }} km · el nuevo km no puede ser menor.</span>
@@ -438,16 +445,24 @@
 
     <!-- Los 3 datos que digita el chofer -->
     <div class="sgc-field">
-      <label for="kilometraje">{{ labelLectura() }} <span class="required">*</span></label>
+      <label for="kilometraje">{{ labelLectura() }} <span class="required">*</span>
+        @if (prellenadoCompa().has('kilometraje')) { <span class="cmb-chip-compa">Compa</span> }
+      </label>
       <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1"
         [placeholder]="medidaSel() === 'horas' ? 'horas en el horómetro' : 'km en el tablero'"
-        [class.invalid]="f.kilometraje.invalid && f.kilometraje.touched" />
-      @if (f.kilometraje.invalid && f.kilometraje.touched) { <span class="field-error">La lectura es obligatoria.</span> }
+        [class.invalid]="(f.kilometraje.invalid && f.kilometraje.touched) || (avisoCompa() && !f.kilometraje.value)" />
+      @if (avisoCompa() && !f.kilometraje.value) {
+        <span class="field-error">Falta: Compa no la inventa.</span>
+      } @else if (f.kilometraje.invalid && f.kilometraje.touched) {
+        <span class="field-error">La lectura es obligatoria.</span>
+      }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="galones">Galones echados <span class="required">*</span></label>
+        <label for="galones">Galones echados <span class="required">*</span>
+          @if (prellenadoCompa().has('galones')) { <span class="cmb-chip-compa">Compa</span> }
+        </label>
         <input id="galones" type="number" formControlName="galones" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"
           [class.invalid]="f.galones.invalid && f.galones.touched" />
         @if (f.galones.invalid && f.galones.touched) { <span class="field-error">Requerido.</span> }
@@ -464,6 +479,7 @@
         <label for="monto">Monto pagado (RD$)
           @if (!esDepositoObra()) { <span class="required">*</span> }
           @else { <span class="sgc-field__opt">(opcional)</span> }
+          @if (prellenadoCompa().has('monto')) { <span class="cmb-chip-compa">Compa</span> }
         </label>
         <input id="monto" type="number" formControlName="monto" min="0.01" step="0.01" placeholder="0.00"
           [class.invalid]="f.monto.invalid && f.monto.touched" />
@@ -512,19 +528,21 @@
     <div class="form-row">
       <div class="sgc-field photo-field">
         <label>{{ esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo' }} <span class="required">*</span></label>
-        <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()">
+        <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()" [class.photo-drop--required]="avisoCompa() && !reciboPreview()">
           @if (reciboPreview()) { <img [src]="reciboPreview()" alt="Evidencia" /> }
           @else { <span><app-icon name="camera" [size]="16" /> {{ esDepositoObra() ? 'Subir foto' : 'Subir recibo' }}</span> }
           <input type="file" accept="image/*" capture (change)="onFileSelected('recibo', $event)" hidden />
         </label>
+        @if (avisoCompa() && !reciboPreview()) { <span class="cmb-photo-obligatoria">Obligatoria</span> }
       </div>
       <div class="sgc-field photo-field">
         <label>{{ esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)' }} <span class="required">*</span></label>
-        <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()">
+        <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()" [class.photo-drop--required]="avisoCompa() && !tableroPreview()">
           @if (tableroPreview()) { <img [src]="tableroPreview()" alt="Tablero" /> }
           @else { <span><app-icon name="camera" [size]="16" /> Subir tablero</span> }
           <input type="file" accept="image/*" (change)="onFileSelected('tablero', $event)" hidden />
         </label>
+        @if (avisoCompa() && !tableroPreview()) { <span class="cmb-photo-obligatoria">Obligatoria</span> }
       </div>
     </div>
 
@@ -553,7 +571,9 @@
     <div class="form-row">
       @if (!esDepositoObra()) {
         <div class="sgc-field">
-          <label for="estacionSel">Estación</label>
+          <label for="estacionSel">Estación
+            @if (prellenadoCompa().has('estacionSel')) { <span class="cmb-chip-compa">Compa</span> }
+          </label>
           <select id="estacionSel" formControlName="estacionSel">
             @for (e of estaciones(); track e.id) {
               <option [value]="e.nombre">{{ e.nombre }}</option>

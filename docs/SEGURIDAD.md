@@ -173,3 +173,21 @@ responsabilidad del SGC).
 | `sensitive_columns_exposed` | ✅ ya no aparece en el motor de advisors | ✅ ya no aparece |
 
 **Confirmado 21-oct-2026 contra el motor real de advisors tras aplicar ambas migraciones a prod: 0 lints `ERROR` en prod** (antes: 2 — `rls_disabled_in_public` × `sgc.auditoria_frases` y el riesgo de default privileges, que el advisor no reporta como lint propio pero era la causa raíz del hallazgo 1). Los 10 `security_definer_view` de dev siguen sin tocar (fuera de alcance, no aparecían en prod de todas formas).
+
+## Deuda anotada (CV1, 21-oct-2026) — `sgc.registrar_combustible_app` acepta echadas sin fotos
+
+El RPC que registra una echada de combustible recibe `p_foto_recibo_path`/`p_foto_tablero_path`
+con `DEFAULT NULL` (última versión en `sql/2026-10-14-co15-co3-co5-combustible-conduce-antidup.sql:27`,
+l.329-330 — guarda ambos con `nullif(...)`) — **las 2 fotos solo son obligatorias en el
+formulario (web/app), no en el servidor.** Cualquier cliente con un JWT válido podría llamar
+el RPC directo (vía REST, no por el formulario) y crear una echada sin evidencia.
+
+- **Encontrado haciendo CV1** (preparar_echada): el diseño de "preparar + abrir formulario" en
+  vez de "preparar + confirmar y ejecutar" existe PRECISAMENTE por esto — Compa nunca llama este
+  RPC, así que no empeora la brecha, pero tampoco la corrige.
+- **No se corrige aquí** porque cambiar el RPC a `NOT NULL` podría romper el outbox offline de
+  la app (las fotos se suben aparte del registro inicial, patrón ya usado en otros flujos
+  offline-aware) — necesita su propia ronda para revisar ese acoplamiento antes de endurecer.
+- **Pendiente:** una ronda que (a) confirme si el flujo offline de verdad depende de crear el
+  registro antes de subir las fotos, y (b) si no, agregue la validación `NOT NULL`/`CHECK` en el
+  RPC (defensa en profundidad — la UI ya la tiene, falta el servidor).

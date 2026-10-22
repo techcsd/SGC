@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, ElementRef, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AsistenteService, AsistenteMensaje, AsistenteConversacion, AsistentePropuesta, CompaCompartida } from '../../../shared/services/asistente.service';
 import { ConsentimientoIA } from '../../../shared/ui/consentimiento-ia/consentimiento-ia';
 import { PrivacidadService } from '../../../shared/services/privacidad.service';
@@ -26,6 +26,7 @@ export class Asistente implements OnInit {
   private service = inject(AsistenteService);
   private privacidad = inject(PrivacidadService);
   private toast = inject(ToastService);
+  private router = inject(Router);
 
   // CI10 — consentimiento de IA: null = aún sin saber, false = debe decidir.
   consentIA = signal<boolean | null>(null);
@@ -212,6 +213,16 @@ export class Asistente implements OnInit {
   cancelarPropuesta() {
     this.propuesta.set(null);
     this.mensajes.update((m) => [...m, { rol: 'assistant', contenido: 'Ok, cancelé esa acción. ¿Algo más?' }]);
+  }
+
+  /** CV1 — la propuesta accion:'abrir' (p. ej. preparar_echada) no se confirma
+   *  aquí: navega al formulario real con los datos como queryParams. Compa
+   *  nunca guarda nada; el botón del formulario lo hace. */
+  abrirFormularioPropuesta() {
+    const prop = this.propuesta();
+    if (!prop?.destino) return;
+    this.propuesta.set(null);
+    void this.router.navigate(['/flota/combustible'], { queryParams: prop.destino.query });
   }
 
   private scrollAlFinal() {

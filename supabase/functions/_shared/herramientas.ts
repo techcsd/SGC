@@ -44,6 +44,12 @@ export interface ToolDef {
     execRpc: string;
     execMap: (p: Any, cap: Cap) => Record<string, unknown>;
   };
+  // CV1 — "preparar + abrir formulario": a diferencia de `write`, esta
+  // herramienta NUNCA ejecuta nada por su cuenta (no hay execRpc). Solo arma
+  // una propuesta con `accion:'abrir'` + `destino` (pantalla/queryParams) para
+  // que el usuario termine la acción en el formulario real (fotos, odómetro,
+  // "Guardar" los pone la persona). `tipo` identifica la propuesta en la UI.
+  abrir?: { tipo: string };
 }
 
 export const TOOLS: ToolDef[] = [
@@ -196,6 +202,36 @@ export const TOOLS: ToolDef[] = [
     modulos: ["flota"], canales: ["compa", "mcp"],
     input_schema: { type: "object", properties: { desde: { type: "string" }, hasta: { type: "string" } } },
     rpc: "log_combustible", map: (i) => ({ p_desde: i.desde ?? null, p_hasta: i.hasta ?? null, p_vehiculo_id: null, p_usuario_id: null }),
+  },
+  {
+    // CV1 (#270) — Felix le pidió a Compa "Registra una echada" y Compa, con
+    // razón, dijo que no podía: `log_combustible` es de solo lectura y no había
+    // ninguna herramienta de escritura de combustible. No se agrega una que
+    // EJECUTE (el servidor no exige las 2 fotos — recibo y tablero — así que una
+    // echada creada desde el chat saldría sin evidencia); en vez de eso, esta
+    // herramienta PREPARA los datos y abre el formulario real de Combustible,
+    // que sigue exigiendo ambas fotos, el odómetro y el botón "Guardar" de la
+    // persona. Compa NUNCA guarda una echada. Solo canal 'compa' (no tiene
+    // sentido en MCP: Claude Desktop no puede abrir un formulario del SGC).
+    // Misma compuerta que la pantalla (flota — `tiene_modulo('flota')` ya
+    // implica 'operar' en todos sus submódulos, incluido flota.combustible;
+    // verificado contra la definición viva de sgc.nivel_submodulo()).
+    name: "preparar_echada",
+    description: "PREPARA (dejа los datos listos, NO registra) una echada de combustible y abre el formulario real de Combustible para que la persona termine: ahí pone las fotos del recibo y el tablero, y la lectura del odómetro si no la diste. Úsala cuando el usuario diga 'registra/anota/apunta una echada', 'carga de combustible', 'eché gasolina/diésel'. Resuelve el vehiculo_id con 'listar_vehiculos' y PREGUNTA lo que falte (vehículo, galones, monto) antes de llamarla — no inventes. El km/odómetro es opcional (si no lo da, lo escribe en el formulario); estación y producto son opcionales. La fecha siempre es hoy (una fecha pasada se corrige en el formulario, que ya tiene el permiso retroactivo). Tras llamarla, dile al usuario en una frase que la dejaste preparada y que las fotos y el odómetro los pone él — NUNCA digas que ya quedó registrada, eso solo pasa cuando la persona guarda en el formulario.",
+    modulos: ["flota"], canales: ["compa"],
+    input_schema: {
+      type: "object",
+      properties: {
+        vehiculo_id: { type: "string", description: "id del vehículo (de 'listar_vehiculos')" },
+        galones: { type: "number", description: "galones echados" },
+        monto: { type: "number", description: "monto pagado en RD$" },
+        km: { type: "integer", description: "lectura del odómetro (km), si el usuario la dio" },
+        estacion: { type: "string", description: "nombre de la estación, si lo dio" },
+        producto: { type: "string", description: "diesel | gasolina, si lo dio" },
+      },
+      required: ["vehiculo_id", "galones", "monto"], additionalProperties: false,
+    },
+    abrir: { tipo: "echada" },
   },
 
   // ── AY9/C1 — cobertura de lectura módulo por módulo ────────────────────────
