@@ -4,16 +4,18 @@ import { edgeErrorDetail } from '../utils/edge.util';
 import {
   OdooAccion,
   OdooProducto,
+  OdooRespuesta,
   OdooStockFiltro,
   OdooStockPagina,
-  OdooUbicacion,
+  OdooUbicaciones,
 } from '../models/odoo.model';
 
 /**
  * PoC Odoo — transporte tipado al gateway `odoo-api` (solo lectura). El navegador
  * solo manda `accion` + parámetros; modelo/método/dominio los fija el servidor.
  * Sin fallback a tablas locales: si Odoo falla, el error sube tal cual para que
- * `app-error-state` lo presente por rol (BS2).
+ * `app-error-state` lo presente por rol (BS2). El gateway cachea con TTL corto por
+ * tipo de dato; cada respuesta declara cuándo se leyó de Odoo (`consultado_en`).
  */
 @Injectable({ providedIn: 'root' })
 export class OdooApiService {
@@ -21,19 +23,18 @@ export class OdooApiService {
 
   async buscarProductos(termino: string, limite = 20): Promise<OdooProducto[]> {
     const r = await this.invocar<{ productos: OdooProducto[] }>('productos.buscar', { termino, limite });
-    return r.productos;
+    return r.data.productos;
   }
 
-  async listarUbicaciones(): Promise<OdooUbicacion[]> {
-    const r = await this.invocar<{ ubicaciones: OdooUbicacion[] }>('ubicaciones.listar', {});
-    return r.ubicaciones;
+  listarUbicaciones(refrescar = false): Promise<OdooRespuesta<OdooUbicaciones>> {
+    return this.invocar<OdooUbicaciones>('ubicaciones.listar', { refrescar });
   }
 
-  consultarStock(filtro: OdooStockFiltro): Promise<OdooStockPagina> {
+  consultarStock(filtro: OdooStockFiltro): Promise<OdooRespuesta<OdooStockPagina>> {
     return this.invocar<OdooStockPagina>('stock.consultar', { ...filtro });
   }
 
-  private async invocar<T>(accion: OdooAccion, params: Record<string, unknown>): Promise<T> {
+  private async invocar<T>(accion: OdooAccion, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {
     const { data, error } = await this.supabase.client.functions.invoke('odoo-api', {
       body: { accion, params },
     });
@@ -41,11 +42,13 @@ export class OdooApiService {
       const d = await edgeErrorDetail(error);
       const status = (error as { context?: { status?: number } }).context?.status;
       // 403 → el util de BS2 lo reconoce como acceso denegado (mensaje por rol).
-      throw new Error(status === 403 ? `forbidden: ${d.message}` : d.message);
+      // El código técnico va entre corchetes: lo muestra solo `app-error-state` a desarrolladores.
+      const detalle = d.code ? `${d.message} [${d.code}]` : d.message;
+      throw new Error(status === 403 ? `forbidden: ${d.message}` : detalle);
     }
     if (!data || typeof data !== 'object' || !('data' in data)) {
       throw new Error('Respuesta inesperada del gateway de Odoo.');
     }
-    return (data as { data: T }).data;
+    return data as OdooRespuesta<T>;
   }
 }

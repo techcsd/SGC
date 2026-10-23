@@ -3,6 +3,10 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { encodeCall, OdooClient, OdooError, parseResponse } from "../_shared/odoo-client.ts";
 import { type Deps, manejar } from "./handler.ts";
+import { ACCIONES, type Accion, escapaLike } from "./acciones.ts";
+import { CacheOdoo } from "../_shared/odoo-cache.ts";
+import { LimitePorUsuario } from "../_shared/odoo-limite.ts";
+import { validarUrl } from "../_shared/odoo-client.ts";
 
 const xmlInt = (n: number) => `<?xml version='1.0'?><methodResponse><params><param><value><int>${n}</int></value></param></params></methodResponse>`;
 const xmlStruct = (items: string) => `<methodResponse><params><param><value><array><data>${items}</data></array></value></param></params></methodResponse>`;
@@ -75,12 +79,17 @@ Deno.test("OdooClient: Odoo caído (red) y HTTP 502 → odoo_no_disponible", asy
 const req = (body: unknown, auth: string | null = "Bearer t") =>
   new Request("https://x/odoo-api", { method: "POST", headers: auth ? { Authorization: auth } : {}, body: JSON.stringify(body) });
 
+const cachesNuevos = (ttl: number) => Object.fromEntries(ACCIONES.map((a) => [a, new CacheOdoo(ttl)])) as Record<Accion, CacheOdoo>;
+
 function deps(over: Partial<Deps> & { calls?: string[]; respuesta?: string } = {}): Deps {
   const calls = over.calls ?? [];
   const f = fakeFetch((b) => b.includes("authenticate") ? xmlInt(2) : (over.respuesta ?? xmlStruct("")), calls);
   return {
-    autenticar: over.autenticar ?? (() => Promise.resolve({ es_admin: false, modulos: ["inventario"] })),
+    autenticar: over.autenticar ?? (() => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["inventario"] })),
     odoo: over.odoo ?? (() => new OdooClient(cfg(f))),
+    caches: over.caches ?? cachesNuevos(0),
+    limite: over.limite ?? new LimitePorUsuario(),
+    origenes: over.origenes ?? ["https://app.test"],
   };
 }
 
@@ -90,14 +99,14 @@ Deno.test("gateway: sin Authorization → 401", async () => {
 
 Deno.test("gateway: usuario sin módulo inventario → 403 y NO llama a Odoo", async () => {
   const calls: string[] = [];
-  const d = deps({ calls, autenticar: () => Promise.resolve({ es_admin: false, modulos: ["compras"] }) });
+  const d = deps({ calls, autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }) });
   const r = await manejar(req({ accion: "stock.consultar", params: {} }), d);
   assertEquals(r.status, 403);
   assertEquals(calls.length, 0);
 });
 
 Deno.test("gateway: admin sin módulo explícito pasa", async () => {
-  const d = deps({ autenticar: () => Promise.resolve({ es_admin: true, modulos: [] }) });
+  const d = deps({ autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: true, modulos: [] }) });
   assertEquals((await manejar(req({ accion: "ubicaciones.listar" }), d)).status, 200);
 });
 
@@ -142,7 +151,7 @@ Deno.test("gateway: timeout de Odoo → 504 sin fallback; Odoo caído → 502", 
   })) as typeof fetch;
   const r1 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ odoo: () => new OdooClient(cfg(lento, { timeoutMs: 30 })) }));
   assertEquals(r1.status, 504);
-  assertEquals((await r1.json()).codigo, "odoo_timeout");
+  assertEquals((await r1.json()).error_code, "odoo_timeout");
   const caido = (() => Promise.reject(new TypeError("down"))) as typeof fetch;
   const r2 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ odoo: () => new OdooClient(cfg(caido)) }));
   assertEquals(r2.status, 502);
@@ -151,5 +160,140 @@ Deno.test("gateway: timeout de Odoo → 504 sin fallback; Odoo caído → 502", 
 Deno.test("gateway: falta configuración de Odoo → 500 odoo_config", async () => {
   const r = await manejar(req({ accion: "ubicaciones.listar" }), deps({ odoo: () => { throw new OdooError("odoo_config", "Falta configurar"); } }));
   assertEquals(r.status, 500);
-  assertEquals((await r.json()).codigo, "odoo_config");
+  const b = await r.json();
+  assertEquals(b.error_code, "odoo_config");
+  assert(!JSON.stringify(b).includes("Falta configurar"), "no filtra el detalle de configuración");
+});
+
+Deno.test("gateway: un fault de Odoo NO llega crudo al cliente (BS2)", async () => {
+  const fault = `<methodResponse><fault><value><struct><member><name>faultString</name><value><string>odoo.exceptions.AccessError: modelo stock.quant campo secreto_x</string></value></member></struct></value></fault></methodResponse>`;
+  const r = await manejar(req({ accion: "ubicaciones.listar" }), deps({ respuesta: fault }));
+  const txt = await r.text();
+  assertEquals(r.status, 502);
+  assert(!txt.includes("stock.quant") && !txt.includes("secreto_x"), "sin detalle técnico: " + txt);
+  assert(txt.includes("error_code"));
+});
+
+Deno.test("gateway: body null/array/no-JSON → 400, no 500", async () => {
+  for (const raw of ["null", "[1]", "42", "{no json"]) {
+    const r = await manejar(new Request("https://x", { method: "POST", headers: { Authorization: "Bearer t" }, body: raw }), deps());
+    assertEquals(r.status, 400, raw);
+  }
+});
+
+Deno.test("gateway: caída de la autenticación → 503 (no 401)", async () => {
+  const r = await manejar(req({ accion: "ubicaciones.listar" }), deps({ autenticar: () => Promise.reject(new Error("supabase down")) }));
+  assertEquals(r.status, 503);
+});
+
+Deno.test("gateway: límite por usuario → 429 con Retry-After", async () => {
+  const d = deps({ limite: new LimitePorUsuario(2, 60_000) });
+  assertEquals((await manejar(req({ accion: "ubicaciones.listar" }), d)).status, 200);
+  assertEquals((await manejar(req({ accion: "ubicaciones.listar" }), d)).status, 200);
+  const r = await manejar(req({ accion: "ubicaciones.listar" }), d);
+  assertEquals(r.status, 429);
+  assert(Number(r.headers.get("Retry-After")) >= 1);
+});
+
+Deno.test("gateway: CORS solo para orígenes permitidos", async () => {
+  const ok = await manejar(new Request("https://x", { method: "OPTIONS", headers: { Origin: "https://app.test" } }), deps());
+  assertEquals(ok.headers.get("Access-Control-Allow-Origin"), "https://app.test");
+  const mal = await manejar(new Request("https://x", { method: "OPTIONS", headers: { Origin: "https://evil.test" } }), deps());
+  assertEquals(mal.headers.get("Access-Control-Allow-Origin"), null);
+});
+
+Deno.test("caché: TTL por tipo, single-flight y refrescar", async () => {
+  const calls: string[] = [];
+  const d = deps({ calls, caches: cachesNuevos(60_000) });
+  const pedir = (params: Record<string, unknown> = {}) => manejar(req({ accion: "ubicaciones.listar", params }), d).then((r) => r.json());
+  const [a, b] = await Promise.all([pedir(), pedir()]); // simultáneas → una sola llamada a Odoo
+  assertEquals(calls.filter((c) => c.includes("stock.location")).length, 1);
+  assert(a.consultado_en && b.consultado_en);
+  const c = await pedir();
+  assertEquals(c.cache, "hit");
+  assertEquals(calls.filter((x) => x.includes("stock.location")).length, 1);
+  const f = await pedir({ refrescar: true }); // salta el caché
+  assertEquals(f.cache, "refresh");
+  assertEquals(calls.filter((x) => x.includes("stock.location")).length, 2);
+});
+
+Deno.test("caché: un error de Odoo no se cachea ni se sirve dato viejo", async () => {
+  let falla = false;
+  const f = ((_u: unknown, _i?: RequestInit) => falla ? Promise.reject(new TypeError("down")) : Promise.resolve(new Response(String(_i?.body).includes("authenticate") ? xmlInt(2) : xmlStruct("")))) as typeof fetch;
+  const d = deps({ caches: cachesNuevos(20), odoo: () => new OdooClient(cfg(f)) });
+  assertEquals((await manejar(req({ accion: "ubicaciones.listar" }), d)).status, 200);
+  await new Promise((r) => setTimeout(r, 80)); // vence el TTL
+  falla = true;
+  assertEquals((await manejar(req({ accion: "ubicaciones.listar" }), d)).status, 502); // sin stale-if-error
+});
+
+Deno.test("caché: clave distinta por parámetros normalizados", async () => {
+  const calls: string[] = [];
+  const d = deps({ calls, caches: cachesNuevos(60_000) });
+  await manejar(req({ accion: "productos.buscar", params: { termino: "  cem   pvc " } }), d);
+  await manejar(req({ accion: "productos.buscar", params: { termino: "cem pvc" } }), d);
+  await manejar(req({ accion: "productos.buscar", params: { termino: "otro" } }), d);
+  assertEquals(calls.filter((c) => c.includes("product.product")).length, 2);
+});
+
+Deno.test("cliente: uid caducado (AccessDenied) reautentica una vez; sigue fallando → odoo_auth", async () => {
+  let auth = 0; let primera = true;
+  const denied = `<methodResponse><fault><value><struct><member><name>faultString</name><value><string>Traceback\nodoo.exceptions.AccessDenied: Access Denied</string></value></member></struct></value></fault></methodResponse>`;
+  const f = fakeFetch((b) => {
+    if (b.includes("authenticate")) { auth++; return xmlInt(7); }
+    if (primera) { primera = false; return denied; }
+    return xmlStruct("");
+  });
+  const c = new OdooClient(cfg(f));
+  await c.executeKw("m", "x", []);
+  assertEquals(auth, 2); // reautenticó
+  const siempre = new OdooClient(cfg(fakeFetch((b) => b.includes("authenticate") ? xmlInt(7) : denied)));
+  assertEquals(((await siempre.executeKw("m", "x", []).catch((x) => x)) as OdooError).codigo, "odoo_auth");
+});
+
+Deno.test("cliente: autenticaciones concurrentes comparten una sola llamada", async () => {
+  const calls: string[] = [];
+  const c = new OdooClient(cfg(fakeFetch((b) => b.includes("authenticate") ? xmlInt(3) : xmlStruct(""), calls)));
+  await Promise.all([c.executeKw("m", "x", []), c.executeKw("m", "y", []), c.executeKw("m", "z", [])]);
+  assertEquals(calls.filter((b) => b.includes("authenticate")).length, 1);
+});
+
+Deno.test("cliente: redirect=error y URL https obligatoria", () => {
+  assertEquals(validarUrl("https://odoo.test/"), "https://odoo.test");
+  assertEquals(validarUrl("http://localhost:8069"), "http://localhost:8069");
+  for (const mala of ["http://odoo.test", "ftp://x", "no-url"]) {
+    try { validarUrl(mala); throw new Error("no lanzó " + mala); } catch (e) { assert(e instanceof OdooError); }
+  }
+});
+
+Deno.test("serializador: quita caracteres de control y surrogates sueltos", () => {
+  const xml = encodeCall("m", ["a\u0001b\uD800c"]);
+  assert(xml.includes("<string>abc</string>"));
+});
+
+Deno.test("parser: CDATA, entidades hex, numéricos inválidos", () => {
+  const ok = `<methodResponse><params><param><value><string><![CDATA[a<b&c]]></string></value></param></params></methodResponse>`;
+  assertEquals(parseResponse(ok), "a<b&c");
+  const hex = `<methodResponse><params><param><value><string>&#x41;&#99999999;</string></value></param></params></methodResponse>`;
+  assertEquals(parseResponse(hex), "A\uFFFD");
+  for (const malo of ["<int>abc</int>", "<int></int>", "<double>x</double>"]) {
+    try { parseResponse(`<methodResponse><params><param><value>${malo}</value></param></params></methodResponse>`); throw new Error("no lanzó " + malo); } catch (e) { assert(e instanceof OdooError); }
+  }
+});
+
+Deno.test("acciones: redondea flotantes y avisa truncado de ubicaciones", async () => {
+  const grupo = `<value><struct><member><name>product_id</name><value><array><data><value><int>1</int></value><value><string>P</string></value></data></array></value></member>
+    <member><name>location_id</name><value><array><data><value><int>8</int></value><value><string>L</string></value></data></array></value></member>
+    <member><name>quantity</name><value><double>0.30000000000000004</double></value></member>
+    <member><name>reserved_quantity</name><value><double>0.1</double></value></member></struct></value>`;
+  const r = await manejar(req({ accion: "stock.consultar" }), deps({ respuesta: xmlStruct(grupo) }));
+  const f = (await r.json()).data.filas[0];
+  assertEquals([f.cantidad_fisica, f.cantidad_reservada, f.cantidad_disponible], [0.3, 0.1, 0.2]);
+});
+
+Deno.test("acciones: los comodines de LIKE del usuario se escapan", async () => {
+  assertEquals(escapaLike("50%_a\\b"), "50\\%\\_a\\\\b");
+  const calls: string[] = [];
+  await manejar(req({ accion: "productos.buscar", params: { termino: "a_%b" } }), deps({ calls }));
+  assert(calls.some((c) => c.includes("a\\_\\%b")), "el término viaja escapado");
 });

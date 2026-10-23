@@ -612,5 +612,11 @@
   "No hay existencias para este filtro.": "No stock for this filter.",
   "Cantidad física": "On-hand quantity",
   "Reservada": "Reserved",
-  "Disponible": "Available"
+  "Disponible": "Available",
+  "Consultado a las": "Queried at",
+  "desde caché": "from cache",
+  "No se pudo buscar productos. Intenta de nuevo.": "Couldn't search products. Try again.",
+  "Hay más ubicaciones de las que se muestran. Filtra por producto para acotar.": "There are more locations than shown. Filter by product to narrow down.",
+  "Existencia negativa en Odoo": "Negative stock in Odoo",
+  "el stock de Odoo": "Odoo stock"
 }

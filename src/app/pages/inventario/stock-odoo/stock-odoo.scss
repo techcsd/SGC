@@ -41,20 +41,16 @@
   border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius);
 
-  button {
+  li {
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    width: 100%;
     padding: 8px 10px;
-    text-align: left;
-    background: none;
-    border: 0;
     border-radius: var(--sgc-radius-sm);
     cursor: pointer;
 
     &:hover,
-    &:focus-visible {
+    &.so-sugerencias__op--activa {
       background: var(--sgc-primary-light);
     }
   }
@@ -70,4 +66,15 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 10px 14px;
+}
+
+.so-aviso {
+  font-size: 13px;
+  margin: 0 0 12px;
+  color: var(--sgc-text-muted, #666);
+}
+
+.so-consultado {
+  margin-right: auto;
+  font-size: 12px;
 }
