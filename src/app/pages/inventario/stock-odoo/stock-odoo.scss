@@ -12,13 +12,18 @@
 
 .so-buscador {
   position: relative;
-  min-width: 280px;
-  flex: 1 1 280px;
+  width: 100%;
+  max-width: 360px;
 
   &__caja {
     display: flex;
     align-items: center;
     gap: 6px;
+
+    input {
+      flex: 1;
+      min-width: 0;
+    }
   }
 }
 
