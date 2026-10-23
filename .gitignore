@@ -86,3 +86,6 @@ qa/visual/rutas.json
 qa/co-diagnostico-prod.md
 tutoriales/.voz-cache/
 tutoriales/assets/musica/
+
+# Plantillas de entorno versionadas (docs/ENTORNO-LOCAL.md); los .env.<target> reales siguen ignorados
+!.env.*.example
