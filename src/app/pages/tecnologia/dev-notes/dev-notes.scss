@@ -356,7 +356,9 @@
 }
 
 .dn-list {
-  width: 260px;
+  // CW3 — se ensanchó (antes 260px) para que quepa la barra completa compartida
+  // con la vista de lista (notas con vista previa/etiquetas, no la versión --sm).
+  width: 300px;
   flex: none;
   display: flex;
   flex-direction: column;
@@ -408,11 +410,6 @@
   &:hover { background: var(--sgc-surface-hover, #eef1f5); color: var(--sgc-text, inherit); }
 }
 
-.note-card--sm {
-  padding: 7px 8px;
-  .note-card__title { font-size: 12.5px; }
-}
-
 .dn-editor {
   flex: 1;
   display: flex;
@@ -449,6 +446,25 @@
   display: inline-block;
 }
 .dn-spacer { flex: 1; }
+
+// CW3 — selector de Carpeta en la cabecera del editor.
+.dn-editor__carpeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--sgc-text-muted, #7a8799);
+
+  select {
+    border: 1px solid var(--sgc-border, #e4e7ec);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 13px;
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text, #121212);
+    max-width: 160px;
+  }
+}
 
 .dn-editor__canvas {
   flex: 1;
@@ -584,11 +600,6 @@
   white-space: nowrap;
 }
 .dev-notes__grupo-head--invalido .dev-notes__grupo-soltar { color: var(--danger, #f04438); }
-// En el editor a pantalla completa (CV3.7): mismo resaltado, tamaño --sm.
-.dev-notes__grupo-head--sm.dev-notes__grupo-head--hover {
-  background: var(--brand-soft, #eef3f9);
-  box-shadow: 0 0 0 1.5px var(--brand, #1e3a5f);
-}
 
 // CV3 — zona de soltar vacía dentro de un grupo sin notas.
 .dn-dropzone-vacia {

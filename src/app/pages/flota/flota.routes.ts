@@ -126,6 +126,14 @@ export const flotaRoutes: Routes = [
     title: 'Conciliación de combustible — Flota',
   },
   {
+    // CW4 — reporte de rendimiento por vehículo (gate server-side en el RPC también).
+    path: 'rendimiento-vehiculos',
+    canActivate: [submoduloGuard('flota.combustible')],
+    loadComponent: () =>
+      import('./rendimiento-vehiculos/rendimiento-vehiculos').then((m) => m.RendimientoVehiculos),
+    title: 'Rendimiento por vehículo — Flota',
+  },
+  {
     path: 'rutas',
     canActivate: [submoduloGuard('flota.rutas')],
     loadComponent: () => import('./rutas/rutas').then((m) => m.Rutas),

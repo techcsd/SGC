@@ -128,4 +128,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./animaciones/animaciones').then((m) => m.AdminAnimaciones),
     title: 'Animaciones — Administración',
   },
+  {
+    // CW1 — conduces atascados en "despachado" sin confirmación (solo lectura + anular con motivo; gate server-side).
+    path: 'conduces-huerfanos',
+    loadComponent: () => import('./conduces-huerfanos/conduces-huerfanos').then((m) => m.AdminConducesHuerfanos),
+    title: 'Conduces huérfanos — Administración',
+  },
 ];
