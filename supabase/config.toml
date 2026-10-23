@@ -116,3 +116,7 @@ verify_jwt = true
 # CR1 (FASE 5) — desconectar (propia persona) / revocar (admin) el conector.
 [functions.claude-conexiones]
 verify_jwt = true
+
+# PoC Odoo (lectura de stock) — exige JWT de usuario; el módulo `inventario` se valida en el servidor.
+[functions.odoo-api]
+verify_jwt = true

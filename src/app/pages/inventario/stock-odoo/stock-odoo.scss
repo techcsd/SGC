@@ -1,0 +1,68 @@
+.so-lead {
+  font-size: 13px;
+  color: var(--sgc-text-muted, #666);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.so-filtros {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.so-buscador {
+  position: relative;
+  min-width: 280px;
+  flex: 1 1 280px;
+
+  &__caja {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.so-sugerencias {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--sgc-surface, #fff);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+
+  button {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    text-align: left;
+    background: none;
+    border: 0;
+    border-radius: var(--sgc-radius-sm);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--sgc-primary-light);
+    }
+  }
+}
+
+.so-estado {
+  font-size: 12px;
+}
+
+.so-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 10px 14px;
+}

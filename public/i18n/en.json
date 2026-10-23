@@ -599,5 +599,18 @@
   "Cancelada": "Cancelled",
   "Faltan:": "Missing:",
   "Descartar": "Discard",
-  "Abrir formulario": "Open form"
+  "Abrir formulario": "Open form",
+  "Stock en Odoo": "Stock in Odoo",
+  "Solo lectura": "Read-only",
+  "Existencias consultadas en vivo en Odoo (cantidad física y reservada por producto y ubicación). Cualquier cambio hecho en Odoo se ve en la siguiente consulta.": "Stock queried live from Odoo (on-hand and reserved quantity by product and location). Any change made in Odoo shows up on the next query.",
+  "Producto": "Product",
+  "Buscar por nombre o código…": "Search by name or code…",
+  "Quitar filtro de producto": "Remove product filter",
+  "Productos encontrados": "Products found",
+  "Ubicación": "Location",
+  "Todas las ubicaciones": "All locations",
+  "No hay existencias para este filtro.": "No stock for this filter.",
+  "Cantidad física": "On-hand quantity",
+  "Reservada": "Reserved",
+  "Disponible": "Available"
 }

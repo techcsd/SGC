@@ -1,0 +1,104 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Stock en Odoo' | t }}</h1>
+    <span class="page-count">{{ 'Solo lectura' | t }}</span>
+  </div>
+</div>
+
+<p class="so-lead">
+  {{ 'Existencias consultadas en vivo en Odoo (cantidad física y reservada por producto y ubicación). Cualquier cambio hecho en Odoo se ve en la siguiente consulta.' | t }}
+</p>
+
+<div class="filters-bar so-filtros">
+  <div class="sgc-field so-buscador">
+    <label for="so-producto">{{ 'Producto' | t }}</label>
+    <div class="so-buscador__caja">
+      <app-icon name="search" [size]="16" />
+      <input
+        id="so-producto"
+        type="search"
+        autocomplete="off"
+        [value]="termino()"
+        (input)="buscarProducto($any($event.target).value)"
+        [placeholder]="'Buscar por nombre o código…' | t"
+      />
+      @if (producto()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarProducto()" [attr.aria-label]="'Quitar filtro de producto' | t">
+          <app-icon name="x" [size]="16" />
+        </button>
+      }
+    </div>
+    @if (sugerencias().length > 0) {
+      <ul class="so-sugerencias" role="listbox" [attr.aria-label]="'Productos encontrados' | t">
+        @for (p of sugerencias(); track p.id) {
+          <li role="option">
+            <button type="button" (click)="elegirProducto(p)">
+              <span>{{ p.nombre }}</span>
+              @if (p.unidad) { <span class="text-muted">{{ p.unidad }}</span> }
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (buscando()) {
+      <span class="text-muted so-estado">{{ 'Buscando…' | t }}</span>
+    }
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <label for="so-ubicacion">{{ 'Ubicación' | t }}</label>
+    <select id="so-ubicacion" [value]="ubicacionId() ?? ''" (change)="onUbicacion($any($event.target).value)">
+      <option value="">{{ 'Todas las ubicaciones' | t }}</option>
+      @for (u of ubicaciones(); track u.id) {
+        <option [value]="u.id">{{ u.nombre }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (error()) {
+  <app-error-state [error]="error()" pantalla="el stock de Odoo" (retry)="ngOnInit()" />
+} @else if (loading() && !resultado()) {
+  <app-skeleton variant="table" [rows]="8" />
+} @else if (resultado(); as r) {
+  <div class="table-wrapper sgc-card" [attr.aria-busy]="loading()">
+    @if (r.filas.length === 0) {
+      <div class="table-empty">
+        <p>{{ 'No hay existencias para este filtro.' | t }}</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" [attr.aria-label]="'Stock en Odoo' | t">
+          <thead>
+            <tr>
+              <th>{{ 'Producto' | t }}</th>
+              <th>{{ 'Ubicación' | t }}</th>
+              <th class="text-right">{{ 'Cantidad física' | t }}</th>
+              <th class="text-right">{{ 'Reservada' | t }}</th>
+              <th class="text-right">{{ 'Disponible' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of r.filas; track $index) {
+              <tr>
+                <td>{{ f.producto?.nombre }}</td>
+                <td class="text-muted">{{ f.ubicacion?.nombre }}</td>
+                <td class="text-right">{{ f.cantidad_fisica }}</td>
+                <td class="text-right">{{ f.cantidad_reservada }}</td>
+                <td class="text-right">{{ f.cantidad_disponible }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <div class="so-paginacion">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="r.pagina <= 1 || loading()" (click)="irA(r.pagina - 1)">
+        <app-icon name="chevron-left" [size]="16" /> {{ 'Anterior' | t }}
+      </button>
+      <span class="text-muted">{{ 'Página' | t }} {{ r.pagina }}</span>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="!r.hay_mas || loading()" (click)="irA(r.pagina + 1)">
+        {{ 'Siguiente' | t }} <app-icon name="chevron-right" [size]="16" />
+      </button>
+    </div>
+  </div>
+}
