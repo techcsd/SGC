@@ -17,3 +17,11 @@
 - **Nadie probó esto a mano en `dev.sgcconstructorasd.com` todavía.** Se le presentaron a Xaviel las mismas 3 opciones del patrón ya establecido (probarlo él mismo / esperar / saltarse la prueba de dev y promover con la verificación automatizada) y, tras pedir que se profundizara la verificación automatizada (lo cual se hizo: 2 smokes adicionales con 12 asserts nuevos contra dev real), dio el OK explícito para promover — 2026-10-23, "yes, continue working. i give u my ok".
 OK: 2026-10-23 — Xaviel dio el OK explícito para promover con la verificación automatizada de arriba como base, tras pedir verificación adicional que se hizo (ver smokes CW6/CW7 y permisos negativos).
 - Fecha: 2026-10-23
+
+## Resultado de la promoción (post-OK, mismo día)
+
+- `dev → main` mergeado (`1b79b9a0`) y pusheado. 4 migraciones aplicadas y verificadas en el ledger de **PROD**. Edge `reporte-rendimiento-semanal` desplegada a prod (v1). Vercel prod `READY` confirmado por API (deployment del commit exacto, `target:"production"`).
+- `sgc.app_versiones` de prod confirma 1.199.0 registrada.
+- Re-verificado contra **PROD real** (no solo dev, transaccional con ROLLBACK): `smoke-cw-permisos-negativos.mjs --env prod` 5/5 PASS.
+- Envío de prueba real del correo semanal (`rendimiento_vehiculos`) disparado en prod: **`sent:true`**, llegó a `tecnologia@constructorasd.com` (confirmado en `net._http_response`). El envío automático real sigue **apagado** en prod (`envios_automaticos.activo=false`, verificado) — esto fue solo "enviar prueba ahora", no el cron real.
+- **Nadie ha probado esto a mano en `sgcconstructorasd.com` todavía** — el OK se dio antes de cualquier click-through humano, a diferencia de otras rondas. Queda como pendiente físico #0 en `HANDOFF.md`.
