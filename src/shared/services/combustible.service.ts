@@ -13,6 +13,24 @@ import { comprimirImagen } from '../utils/comprimir-imagen.util';
 
 const BUCKET = 'vehiculos';
 
+/** CW4 — fila del RPC reporte_rendimiento_vehiculos. */
+export interface RendimientoVehiculoRow {
+  vehiculo_id: string;
+  placa: string | null;
+  alias: string | null;
+  medida_uso: 'km' | 'horas';
+  echadas_total: number;
+  echadas_usadas: number;
+  echadas_excluidas_dup: number;
+  total_km: number;
+  total_galones: number;
+  rendimiento: number | null;
+  unidad: string;
+  confianza: 'sin_datos' | 'baja' | 'media' | 'alta';
+  baseline: number | null;
+  estado_actual: string | null;
+}
+
 /** AF17 — fila del log de echadas (RPC log_combustible). */
 export interface LogCombustibleRow {
   id: string;
@@ -153,6 +171,17 @@ export class CombustibleService {
     return data as { ok: boolean; lectura?: LecturaRecibo; confianza?: Record<string, number>; modelo?: string };
   }
 
+  /** CW4 — rendimiento por vehículo en un período (RPC reporte_rendimiento_vehiculos). */
+  async reporteRendimiento(desde: string, hasta: string, vehiculoId: string | null = null): Promise<RendimientoVehiculoRow[]> {
+    const { data, error } = await this.supabase.client.rpc('reporte_rendimiento_vehiculos', {
+      p_desde: desde,
+      p_hasta: hasta,
+      p_vehiculo_id: vehiculoId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RendimientoVehiculoRow[];
+  }
+
   async getAll(): Promise<RegistroCombustible[]> {
     const { data, error } = await this.supabase.client
       .from('registros_combustible')
@@ -246,6 +275,8 @@ export class CombustibleService {
       p_proyecto_id: cleanUuid(payload.proyecto_id),
       // AW3 — confirmación de valores inusuales (2º request tras el OK del usuario).
       p_confirmado: opts?.confirmado ?? false,
+      // CW5 — ya lo acepta el RPC (CO15); el formulario de creación no lo mandaba.
+      p_numero_recibo: payload.numero_recibo,
     });
     if (error) throw new Error(error.message);
     const derivados = data as unknown as CombustibleDerivados;

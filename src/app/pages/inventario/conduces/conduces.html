@@ -10,6 +10,10 @@
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">Ir a Salidas</a>
+    @if (esAdmin()) {
+      <a routerLink="/admin/conduces-huerfanos" class="sgc-btn sgc-btn--ghost"
+         title="Conduces atascados en despachado sin confirmación">Conduces huérfanos</a>
+    }
   </div>
 </div>
 

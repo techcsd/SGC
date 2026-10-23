@@ -1,22 +1,6 @@
-@if (!activa()) {
-  <div class="dev-notes">
-    <header class="dev-notes__head">
-      <h1><app-icon name="code" [size]="20" /> Dev notes</h1>
-      <div class="dev-notes__head-actions">
-        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="Importar .md/.txt">
-          <app-icon name="upload" [size]="16" /> Importar
-          <input type="file" accept=".md,.txt,text/markdown,text/plain" hidden
-            (change)="importarMd($any($event.target))" />
-        </label>
-        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="nueva()">
-          <app-icon name="plus" [size]="16" /> Nueva <span class="dev-notes__kbd">Ctrl+N</span>
-        </button>
-      </div>
-    </header>
-
-    <div class="dev-notes__body">
-      <!-- Lista -->
-      <aside class="dev-notes__list">
+<!-- CW3 — una sola barra lateral (lista + grupos) compartida por la vista de
+     lista y el editor a pantalla completa, para que no vuelvan a desfasarse. -->
+<ng-template #listaCompleta>
         <div class="dev-notes__tabs">
           <button type="button" [class.active]="tab() === 'mias'" (click)="tab.set('mias')">Mis notas</button>
           <button type="button" [class.active]="tab() === 'compartidas'" (click)="tab.set('compartidas')">Compartidas conmigo</button>
@@ -204,30 +188,52 @@
             }
           </div>
         }
-      </aside>
+</ng-template>
 
-      <!-- CV2 — fila editable de crear/renombrar grupo (plantilla reusada arriba). -->
-      <ng-template #filaEditableGrupo let-ed let-profundidad="profundidad">
-        <div class="dn-grupo-edit" [style.margin-left.px]="(profundidad ?? 0) * 14" [class.dn-grupo-edit--error]="!!ed.error">
-          <div class="dn-grupo-edit__row">
-            <app-icon name="folder" [size]="16" />
-            <input type="text" [value]="ed.valor" (input)="onGrupoEditandoInput($any($event.target).value)"
-              (keydown)="onGrupoEditandoKeydown($event)" (blur)="onGrupoEditandoBlur()"
-              aria-label="Nombre del grupo" placeholder="Nombre del grupo" maxlength="60" />
-          </div>
-          @if (ed.error) {
-            <span class="field-error">{{ ed.error }}</span>
-          } @else {
-            <div class="dn-grupo-edit__foot">
-              <span class="dn-grupo-edit__hint">Enter para crear · Esc para cancelar</span>
-              <div class="dn-grupo-edit__btns">
-                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="cancelarGrupoEditando()">Cancelar</button>
-                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ ed.modo === 'crear' ? 'Crear' : 'Guardar' }}</button>
-              </div>
-            </div>
-          }
+<!-- CV2 — fila editable de crear/renombrar grupo (usada por listaCompleta en ambas vistas). -->
+<ng-template #filaEditableGrupo let-ed let-profundidad="profundidad">
+  <div class="dn-grupo-edit" [style.margin-left.px]="(profundidad ?? 0) * 14" [class.dn-grupo-edit--error]="!!ed.error">
+    <div class="dn-grupo-edit__row">
+      <app-icon name="folder" [size]="16" />
+      <input type="text" [value]="ed.valor" (input)="onGrupoEditandoInput($any($event.target).value)"
+        (keydown)="onGrupoEditandoKeydown($event)" (blur)="onGrupoEditandoBlur()"
+        aria-label="Nombre del grupo" placeholder="Nombre del grupo" maxlength="60" />
+    </div>
+    @if (ed.error) {
+      <span class="field-error">{{ ed.error }}</span>
+    } @else {
+      <div class="dn-grupo-edit__foot">
+        <span class="dn-grupo-edit__hint">Enter para crear · Esc para cancelar</span>
+        <div class="dn-grupo-edit__btns">
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="cancelarGrupoEditando()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ ed.modo === 'crear' ? 'Crear' : 'Guardar' }}</button>
         </div>
-      </ng-template>
+      </div>
+    }
+  </div>
+</ng-template>
+
+@if (!activa()) {
+  <div class="dev-notes">
+    <header class="dev-notes__head">
+      <h1><app-icon name="code" [size]="20" /> Dev notes</h1>
+      <div class="dev-notes__head-actions">
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="Importar .md/.txt">
+          <app-icon name="upload" [size]="16" /> Importar
+          <input type="file" accept=".md,.txt,text/markdown,text/plain" hidden
+            (change)="importarMd($any($event.target))" />
+        </label>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="nueva()">
+          <app-icon name="plus" [size]="16" /> Nueva <span class="dev-notes__kbd">Ctrl+N</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="dev-notes__body">
+      <!-- Lista -->
+      <aside class="dev-notes__list">
+        <ng-container [ngTemplateOutlet]="listaCompleta" />
+      </aside>
 
       <!-- CV2/CV3 — confirmaciones (reemplazan confirm() nativo). -->
       <app-confirm-dialog [open]="!!grupoAEliminar()" title="¿Eliminar grupo?"
@@ -254,49 +260,10 @@
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm dn-list__nueva" (click)="nueva()">
           <app-icon name="plus" [size]="15" /> Nota nueva <span class="dev-notes__kbd">Ctrl+N</span>
         </button>
-        <div class="dev-notes__search">
-          <app-icon name="search" [size]="15" />
-          <input type="text" placeholder="Buscar en todas…" [value]="query()" (input)="query.set($any($event.target).value)" />
-        </div>
       </div>
 
-      @if (lista().length === 0) {
-        <p class="dev-notes__empty">Sin notas todavía.</p>
-      } @else {
-        <div class="dn-list__items">
-          @for (g of agrupada(); track g.label + (g.grupo?.id ?? '')) {
-            @if (g.esGrupo) {
-              <!-- CV3.7 — acepta soltar notas (mismo resaltado, tamaño --sm); sin crear grupos aquí. -->
-              <button type="button" class="dev-notes__grupo-head dev-notes__grupo-head--sm"
-                [class.dev-notes__grupo-head--hover]="destinoHover() === g.grupo!.id"
-                [style.padding-left.px]="(g.profundidad ?? 0) * 12" (click)="toggleGrupoPlegado(g.grupo!.id)"
-                (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter(g.grupo!.id, $event)"
-                (dragleave)="onZoneDragLeave(g.grupo!.id)" (drop)="onZoneDrop(g.grupo!.id, $event)">
-                @if (g.tieneHijos) {
-                  <app-icon [name]="gruposPlegados().has(g.grupo!.id) ? 'chevron-right' : 'chevron-down'" [size]="12" />
-                }
-                <app-icon name="folder" [size]="13" />
-                <span class="dev-notes__grupo-nombre">{{ g.label }}</span>
-                <span class="dev-notes__grupo-n">{{ g.totalRecursivo }}</span>
-              </button>
-            } @else {
-              <span class="dev-notes__group-label">{{ g.label.toUpperCase() }}</span>
-            }
-            @if (!g.esGrupo || !gruposPlegados().has(g.grupo!.id)) {
-              @for (n of g.notas; track n.id) {
-                <button type="button" class="note-card note-card--sm" [class.active]="activa()?.id === n.id" (click)="abrir(n)"
-                  [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 12 + 14) : null"
-                  draggable="true" (dragstart)="onNotaDragStart(n, $event)" (dragend)="onDragEnd()">
-                  <span class="note-card__title">
-                    @if (n.pinned) { <app-icon name="star" [size]="12" /> }
-                    {{ n.titulo || '(sin título)' }}
-                  </span>
-                </button>
-              }
-            }
-          }
-        </div>
-      }
+      <!-- CW3 — misma barra que la vista de lista: Sin grupo, menú ⋯, renombrar, Deshacer. -->
+      <ng-container [ngTemplateOutlet]="listaCompleta" />
 
       <span class="dn-list__hint">Ocultar lista: Ctrl+\</span>
     </aside>
@@ -319,6 +286,17 @@
           }
         </span>
         <span class="dn-spacer"></span>
+        <!-- CW3 — selector de Carpeta en la cabecera del editor (misma regla que el menú ⋯). -->
+        @if (!soloLectura() && tab() === 'mias' && activa(); as notaActiva) {
+          <label class="dn-editor__carpeta" title="Mover esta nota a otra carpeta">
+            <app-icon name="folder" [size]="14" />
+            <select [value]="notaActiva.grupo_id ?? ''" (change)="moverNotaDesdeMenu(notaActiva, $any($event.target).value)">
+              @for (o of opcionesMoverA(); track o.id) {
+                <option [value]="o.id">{{ o.label }}</option>
+              }
+            </select>
+          </label>
+        }
         @if (!soloLectura()) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="togglePin()" title="Fijar">
             <app-icon name="star" [size]="16" />

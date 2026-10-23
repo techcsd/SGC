@@ -45,6 +45,8 @@ export class Conduces implements OnInit {
   puedeAsignarChofer = computed(
     () => this.userService.hasRole('admin') || this.userService.hasModulo('flota'),
   );
+  // CW1 — "Conduces huérfanos" es admin-only (gate server-side en el RPC también).
+  esAdmin = computed(() => this.userService.hasRole('admin'));
   choferesDisponibles = signal<{ conductor_id: string; nombre: string }[]>([]);
   asignandoId = signal<string | null>(null);
   choferSel = signal<string>('');

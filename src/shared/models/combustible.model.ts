@@ -107,6 +107,10 @@ export interface RegistroCombustibleFormData {
   // Z23.4 — datos para conciliar con el reporte del proveedor (opcionales).
   producto: string | null;              // 'diesel' | 'gasolina'
   subtipo: string | null;               // AA20 — 'regular' | 'premium'
+  // CW5 — número de recibo/ticket; ya existía la columna y el RPC lo acepta
+  // desde CO15, pero el formulario de creación nunca lo mandaba (paridad con
+  // lo que lee la foto del recibo).
+  numero_recibo: string | null;
   tarjeta: string | null;               // número/identificador de tarjeta
   titular: string | null;               // titular si la tarjeta es de una persona
   titular_es_persona: boolean;          // true → la tarjeta pertenece a una persona

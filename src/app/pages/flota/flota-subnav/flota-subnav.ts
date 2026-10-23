@@ -23,6 +23,7 @@ const GRUPOS: Record<Grupo, Tab[]> = {
     { label: 'Echadas (log)', route: '/flota/combustible-log' },
     { label: 'Dashboards', route: '/flota/combustible-dashboard' },
     { label: 'Conciliación', route: '/flota/conciliacion-combustible' },
+    { label: 'Rendimiento', route: '/flota/rendimiento-vehiculos' },
   ],
   conductores: [
     { label: 'Conductores', route: '/flota/conductores' },

@@ -4,6 +4,20 @@ import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { SalidaInventario, SalidaFormData, SalidaFirma, ConduceListadoRow } from '../models/salida.model';
 import { NotificacionesService } from './notificaciones.service';
 
+/** CW1 — fila del RPC conduces_huerfanos (conduces atascados en despachado). */
+export interface ConduceHuerfano {
+  id: string;
+  codigo: string;
+  created_at: string;
+  dias_atascado: number;
+  estado: string;
+  chofer_nombre: string | null;
+  destino_texto: string | null;
+  tiene_confirmaciones: boolean;
+  anulable: boolean;
+  creado_por_nombre: string | null;
+}
+
 /** AK1 — fila del historial de confirmaciones de entrega (RPC confirmaciones_historial). */
 export interface ConfirmacionHistorial {
   id: string;
@@ -237,6 +251,13 @@ export class SalidasService {
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
     return data as string;
+  }
+
+  /** CW1 — conduces atascados en "despachado" hace p_dias_min días o más (solo lectura). */
+  async conducesHuerfanos(diasMin = 3): Promise<ConduceHuerfano[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_huerfanos', { p_dias_min: diasMin });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConduceHuerfano[];
   }
 
   /** AQ10 — Elimina (anula) un conduce pendiente: soft-delete + reversión de stock
