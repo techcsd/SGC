@@ -21,6 +21,8 @@ export interface ChoferPrivado {
   en_uso: { vehiculo_id: string; placa: string | null; marca: string | null; modelo: string | null; desde: string } | null;
   ultimo_uso_at: string | null;
   n_autorizadas: number;
+  /** CW6/CW7 D5 — ya tiene el rol chofer_transportista (también hace conduces/rutas de empresa). */
+  tiene_transportista: boolean;
 }
 
 /** CK1/CK2 — ficha (detalle) del chofer privado. */
@@ -94,6 +96,16 @@ export class ChoferesPrivadosService {
 
   async hacerPrivado(usuarioId: string): Promise<void> {
     const { error } = await this.supabase.client.rpc('hacer_conductor', { p_usuario: usuarioId, p_rol: 'chofer_privado' });
+    if (error) throw error;
+  }
+
+  /** CW6/CW7 D5 — interruptor: también conduces y rutas de empresa (rol chofer_transportista). */
+  async permitirTransporte(usuarioId: string, permitir: boolean, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('chofer_privado_permitir_transporte', {
+      p_usuario: usuarioId,
+      p_permitir: permitir,
+      p_motivo: motivo,
+    });
     if (error) throw error;
   }
 }

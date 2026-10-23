@@ -1,0 +1,60 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Conduces huérfanos</h1>
+    <span class="page-count">{{ filas().length }} conduce{{ filas().length !== 1 ? 's' : '' }}</span>
+  </div>
+</div>
+
+<p class="ch-intro">
+  Conduces que se quedaron en "despachado" sin que nadie confirmara la entrega. Puede ser
+  que el chofer entregó y su teléfono nunca pudo avisarle al servidor, o que quedó un
+  duplicado de un reintento. Esta lista es de solo lectura; «Anular» pide un motivo y
+  queda registrado.
+</p>
+
+<div class="ch-filtros">
+  <span class="cp-muted">Atascados hace al menos:</span>
+  @for (d of [3, 7, 14, 30]; track d) {
+    <button type="button" class="sgc-btn sgc-btn--sm"
+            [class.sgc-btn--primary]="diasMin() === d" [class.sgc-btn--ghost]="diasMin() !== d"
+            (click)="cambiarDias(d)">{{ d }} días</button>
+  }
+</div>
+
+@if (loading()) {
+  <app-skeleton variant="list" [rows]="4" />
+} @else if (!filas().length) {
+  <p class="cp-empty">No hay conduces huérfanos con ese filtro.</p>
+} @else {
+  <div class="ch-list">
+    @for (f of filas(); track f.id) {
+      <div class="ch-card">
+        <div class="ch-card__head">
+          <div>
+            <h3 class="ch-card__codigo">{{ f.codigo }}</h3>
+            <div class="ch-card__meta">
+              <span>Creado: {{ f.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span class="ch-badge ch-badge--atascado">{{ f.dias_atascado }} días atascado</span>
+            </div>
+          </div>
+          @if (f.anulable) {
+            <button class="sgc-btn sgc-btn--sm sgc-btn--danger" type="button"
+                    [disabled]="anulando() === f.id" (click)="anular(f)">
+              <app-icon name="trash" [size]="14" /> Anular con motivo
+            </button>
+          } @else {
+            <span class="ch-badge ch-badge--bloqueado" title="Tiene confirmaciones de entrega — no se puede anular desde aquí">
+              Tiene confirmaciones
+            </span>
+          }
+        </div>
+        <div class="ch-card__body">
+          <span><strong>Chofer:</strong> {{ f.chofer_nombre ?? '—' }}</span>
+          <span><strong>Creado por:</strong> {{ f.creado_por_nombre ?? '—' }}</span>
+          <span><strong>Destino:</strong> {{ f.destino_texto ?? '—' }}</span>
+          <span><strong>Estado:</strong> {{ f.estado }}</span>
+        </div>
+      </div>
+    }
+  </div>
+}

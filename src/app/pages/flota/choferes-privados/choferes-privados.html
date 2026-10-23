@@ -62,6 +62,20 @@
             <app-icon name="plus" [size]="14" /> Autorizar vehículos
           </button>
         </div>
+
+        <!-- CW6/CW7 D5 — interruptor: también conduces y rutas de empresa -->
+        <div class="cp-card__transporte">
+          <label class="toggle-label">
+            <input type="checkbox" class="toggle-input" [checked]="ch.tiene_transportista"
+                   [disabled]="permitiendoTransporte() === ch.usuario_id"
+                   (change)="toggleTransporte(ch)" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+            También conduces y rutas de empresa (chofer transportista)
+          </label>
+          @if (ch.tiene_transportista) {
+            <span class="cp-badge cp-badge--transportista">También transportista</span>
+          }
+        </div>
       </div>
     }
   </div>
