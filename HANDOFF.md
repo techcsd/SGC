@@ -1,6 +1,6 @@
 # HANDOFF — SGC
 
-## TL;DR — Ronda CY (continúa PROMPT-116) — 25/10/2026 — 🧪 EN `feature/cy-ronda`, NO dev/prod todavía
+## TL;DR — Ronda CY (continúa PROMPT-116) — 25/10/2026 — ✅ **EN PROD** (web **1.201.0**, `main`=`dev`=`71393606`)
 
 Xaviel pidió completar las fases 3-5 de su nota del conector ("no dejes nada pendiente") tras la promoción de CX. Sesión autónoma en worktree `../SGC-cy` desde `dev`=`main`=`fa59ac12`. **Todo el detalle, tabla por tool y motivo de lo que se dejó fuera están en `supabase/functions/assistant/PERMISOS-TOOLS.md` §"CY" y `docs/CLAUDE-CONECTOR.md` §13 — aquí solo el resumen ejecutivo.**
 
@@ -19,12 +19,11 @@ Xaviel pidió completar las fases 3-5 de su nota del conector ("no dejes nada pe
 
 **Hallazgo lateral (no relacionado con el conector):** `sgc.solicitudes_material_folio_seq` estaba desincronizada en dev (`max(folio)=9001` por el seed demo de CK, secuencia en 11) — bloqueaba crear cualquier solicitud de prueba nueva. Corregido con `scripts/data-fixes/2026-10-25-cy-resync-folio-seq-dev.mjs` (dev-only, `setval` idempotente y seguro; prod no tiene esa fila demo, no aplica — regla 18/CD10 respetadas).
 
-Versión **1.201.0** (siguiente libre tras 1.200.0), changelog en `release-notes.json`. **Queda en `feature/cy-ronda`, sin mergear a `dev` todavía** — falta avisar a Xaviel y pedirle confirmación explícita antes de cualquier push/merge (regla de la casa: "sin commit/push/despliegue sin avisarle"), tal como se hizo para la ronda CX.
+**✅ Promovido a prod 25-oct-2026 con el OK explícito de Xaviel** ("promote 1.201.0 to production"). Flujo: `qa/release-1.201.0.md` (honesto: sin prueba en navegador ni desde Claude Desktop) → `release-check.mjs --env dev --version 1.201.0` **6/6 PASS** → `dev → main` fast-forward (`71393606`) y pusheado → migración aplicada y verificada en el **ledger de PROD** (las 12 funciones nuevas confirmadas por objeto, `pg_proc`) → edges `mcp`/`assistant` redeployadas a prod → **smoke re-corrido contra PROD real** (9 asserts, ROLLBACK, mismos resultados que en dev) → Vercel prod `READY` confirmado por API en el commit exacto (`71393606`, `target:"production"`) → `sgc.app_versiones` prod confirma 1.201.0. Worktree `../SGC-cy` y rama `feature/cy-ronda` (local+remota) limpiados tras el merge.
 
-### Pendientes físicos de Xaviel
-1. Confirmar si empujo `feature/cy-ronda` → `dev` (y, si quiere, directo a prod como con CX) — nada se movió todavía.
+### Pendientes físicos de Xaviel (ya en prod, estos quedan igual)
+1. Probar desde **Claude Desktop real** alguna de las 18 herramientas nuevas — esta ronda solo se verificó por SQL transaccional + deploy exitoso, no por una llamada MCP real. Puede que haga falta reconectar el conector para que Claude Desktop vea las tools nuevas.
 2. Decidir sobre los 4 ítems deliberadamente no construidos: ¿vale la pena extender el mecanismo de confirmación de borradores para que pueda invocar una edge (abriría `reintentar_sync_calendario` y `revocar_conexion_claude`)? ¿Construir la infraestructura de "versión activa por usuario" o de snapshots del Security Advisor?
-3. Probar desde Claude Desktop real alguna de las 18 herramientas nuevas (esta ronda solo se verificó por SQL transaccional + deploy exitoso, no por una llamada MCP real).
 
 ---
 
