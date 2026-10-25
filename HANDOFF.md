@@ -1,5 +1,33 @@
 # HANDOFF — SGC
 
+## TL;DR — Ronda CY (continúa PROMPT-116) — 25/10/2026 — 🧪 EN `feature/cy-ronda`, NO dev/prod todavía
+
+Xaviel pidió completar las fases 3-5 de su nota del conector ("no dejes nada pendiente") tras la promoción de CX. Sesión autónoma en worktree `../SGC-cy` desde `dev`=`main`=`fa59ac12`. **Todo el detalle, tabla por tool y motivo de lo que se dejó fuera están en `supabase/functions/assistant/PERMISOS-TOOLS.md` §"CY" y `docs/CLAUDE-CONECTOR.md` §13 — aquí solo el resumen ejecutivo.**
+
+**18 herramientas nuevas, todas `canales:['mcp']`:**
+- **Fase 3 (9, visibilidad admin):** `conexiones_claude` (extendida con borradores pendientes), `estado_envios_automaticos`, `reglas_de_alertas` (nueva), `historial_importaciones` (nueva), `detalle_compra_tecnologica` (nueva), `listar_documentos_generados` (nueva), `bitacora_detalle` (nueva), `echada_detalle` (ya existía, nunca registrada), `errores_recientes` (ya existía, nunca registrada). Extensión aditiva: `reunion_resumen_compa` ganó el estado de sincronización con Google Calendar.
+- **Fase 4 (9, borradores `write`):** `proponer_cambio_tarea`, `proponer_reunion`, `proponer_cancelar_reunion`, `proponer_cerrar_acuerdo`, `proponer_decision_requisicion`, `proponer_orden_de_compra`, `proponer_entrada_inventario`, `proponer_solicitud_movimiento`, `proponer_correccion_conduce`, `proponer_mantenimiento`, `proponer_bitacora`, `proponer_decision_legal`, `proponer_actualizacion_expediente`, `proponer_mensaje`, `proponer_cambio_envio_automatico`, `proponer_probar_envio`, `proponer_nota_de_version` (17, no 9 — la mayoría reusan el RPC real de la pantalla; 5 son funciones nuevas que reproducen EXACTAMENTE el mismo update/insert que ya hacía Angular, misma RLS, sin lógica de negocio nueva: `actualizar_tarea_campos`, `reunion_acuerdo_cerrar`, `resolver_aprobacion_legal`, `actualizar_expediente_legal`, `enviar_mensaje_directo`).
+- **Fase 5:** `errores_recientes` ya contado arriba. `avisos_de_seguridad` y la tool de SQL libre NO se construyeron (ver abajo).
+
+**🔴 4 ítems deliberadamente NO construidos** (decisión de arquitectura confirmada por un patrón de seguridad YA EXISTENTE en el código, no un olvido ni una omisión por flojera):
+1. **`sesiones_de_usuario`** (admin viendo sesiones de otro) y **`proponer_cambio_usuario`** (activar/desactivar, roles): las RPCs equivalentes ya en prod (`sgc.mis_sesiones()`, `sgc.assign_roles()`) **YA llaman `sgc.rechazar_si_cliente_oauth()`** — una función que literalmente rechaza la llamada si viene de un cliente OAuth (Claude Desktop lo es). El propio proyecto ya decidió, antes de esta ronda, que esta familia de datos (sesiones/tokens, asignación de roles) no se expone a un conector externo. Construir una versión "para admin" habría ido en contra de esa decisión ya tomada.
+2. **`reintentar_sync_calendario`** y **`proponer_revocar_conexion_claude`**: la acción real es invocar OTRA edge function (`reuniones-calendar`, `claude-conexiones`), no un RPC. El mecanismo que confirma un borrador (`claude-borrador`, usado por los otros 17) solo sabe ejecutar `supabase.rpc(...)` — nunca invoca otra edge. Extender ese mecanismo para soportar esto es una decisión de arquitectura que afectaría TODOS los borradores, no solo estos dos — se dejó para que Xaviel la pida explícitamente si la quiere.
+3. **`proponer_echada_combustible`** (ejecutar, no solo preparar): `registrar_combustible_app` exige fotos de evidencia que un borrador de chat no tiene — por diseño ya existe `preparar_echada` (CV1, "abrir formulario") para esto exacto, no se duplicó.
+4. **`cambios_pendientes_de_publicar`/`version_por_usuario`** y **`avisos_de_seguridad`**: no existe ninguna tabla/infraestructura que una RPC pueda simplemente leer — harían falta piezas nuevas (reportar versión activa por sesión; snapshots del Security Advisor). La nota de Xaviel ya marcaba el primero como "Low" y el segundo como una decisión de arquitectura aparte. La tool de SQL libre sobre vistas `v_*` la propia nota la marca "Not now".
+
+**Verificado:** `npx tsc --noEmit` sobre `herramientas.ts` (0 errores) y `mcp/index.ts` (solo errores esperados de imports `npm:`/`Deno` — ningún error real), `npx esbuild` syntax-check de ambos limpio, `supabase functions deploy` de `mcp` y `assistant` a dev exitoso, `npx ng build`/`npx ng test` (105/105) verdes, `npm run prebuild` (29 guards) verde. 1 migración nueva (`sql/2026-10-25-cy-conector-fases-3-4-5.sql`) aplicada y en el ledger de dev, probada con `scripts/smoke-cy-conector-fases-3-4-5.mjs` (9 asserts transaccionales, ROLLBACK): regresión de las 2 funciones modificadas en el sitio (`claude_conexiones_listado`, `reunion_resumen_compa` — ambas reconstruidas a partir del cuerpo REAL leído de nuevo, no de memoria, tras detectar que mi primer intento tenía el shape equivocado) + 5 funciones nuevas con sus límites de permiso.
+
+**Hallazgo lateral (no relacionado con el conector):** `sgc.solicitudes_material_folio_seq` estaba desincronizada en dev (`max(folio)=9001` por el seed demo de CK, secuencia en 11) — bloqueaba crear cualquier solicitud de prueba nueva. Corregido con `scripts/data-fixes/2026-10-25-cy-resync-folio-seq-dev.mjs` (dev-only, `setval` idempotente y seguro; prod no tiene esa fila demo, no aplica — regla 18/CD10 respetadas).
+
+Versión **1.201.0** (siguiente libre tras 1.200.0), changelog en `release-notes.json`. **Queda en `feature/cy-ronda`, sin mergear a `dev` todavía** — falta avisar a Xaviel y pedirle confirmación explícita antes de cualquier push/merge (regla de la casa: "sin commit/push/despliegue sin avisarle"), tal como se hizo para la ronda CX.
+
+### Pendientes físicos de Xaviel
+1. Confirmar si empujo `feature/cy-ronda` → `dev` (y, si quiere, directo a prod como con CX) — nada se movió todavía.
+2. Decidir sobre los 4 ítems deliberadamente no construidos: ¿vale la pena extender el mecanismo de confirmación de borradores para que pueda invocar una edge (abriría `reintentar_sync_calendario` y `revocar_conexion_claude`)? ¿Construir la infraestructura de "versión activa por usuario" o de snapshots del Security Advisor?
+3. Probar desde Claude Desktop real alguna de las 18 herramientas nuevas (esta ronda solo se verificó por SQL transaccional + deploy exitoso, no por una llamada MCP real).
+
+---
+
 ## TL;DR — PROMPT-116 (Ronda CX) — 25/10/2026 — ✅ **EN PROD** (web **1.200.0**, `main`=`dev`=`c1124c06`)
 
 Contexto completo: `C:\developer\improvements\octubre 2026\imp 24102026\CONTEXTO-ACTUALIZACION-57.md`. IDs CX1-CX5, matriz filas 281-285. Sesión autónoma (CQ6: `git status`/`worktree list` limpios al empezar; worktree propia `../SGC-cx` desde `dev`=`main`=`8a341b38`). Trabajo en `feature/cx-ronda`.

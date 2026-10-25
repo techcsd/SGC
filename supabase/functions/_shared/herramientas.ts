@@ -806,6 +806,280 @@ export const TOOLS: ToolDef[] = [
     modulos: ["admin"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
     rpc: "listar_usuarios_admin", map: () => ({}),
   },
+
+  // ── CY — fases 3-5 del plan de Xaviel (continúa CX2 fase 1) ─────────────────
+  // Fase 3: visibilidad admin. Solo canal 'mcp' (mismo criterio que CX2: estas
+  // tools son del conector, no de Compa — ver PERMISOS-TOOLS.md §"CY").
+  {
+    name: "conexiones_claude",
+    description: "Quién conectó Claude al SGC, desde cuándo, su última actividad, cuántas consultas hizo en 7 días y cuántos borradores le quedan pendientes de confirmar — solo admin.",
+    modulos: ["admin"], canales: ["mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "claude_conexiones_listado", map: () => ({}),
+  },
+  {
+    name: "estado_envios_automaticos",
+    description: "Qué familias de correos/reportes automáticos están encendidas o apagadas, cuándo fue el último cambio y quién lo hizo — solo admin/Tecnología.",
+    modulos: ["admin", "tecnologia"], canales: ["mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "envios_automaticos_listar", map: () => ({}),
+  },
+  {
+    name: "reglas_de_alertas",
+    description: "Reglas de alertas por rol (encendida/apagada) y las exclusiones que un admin le puso a una persona en particular (p. ej. 'Eduardo ya no recibe la alerta de reporte de vehículo') — solo admin/Tecnología.",
+    modulos: ["admin", "tecnologia"], canales: ["mcp"], input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "reglas_de_alertas", map: () => ({}),
+  },
+  {
+    name: "historial_importaciones",
+    description: "Importaciones de Excel/ZIP (choferes, vehículos, etc.) ya corridas: cuántas filas, cuántas nuevas, cuántos errores, quién la hizo — solo admin/Tecnología/Inventario.",
+    modulos: ["admin", "tecnologia", "inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { limite: { type: "integer" } }, additionalProperties: false },
+    rpc: "historial_importaciones", map: (i) => ({ p_limite: Math.min(Number(i.limite ?? 30), 100) }),
+  },
+  {
+    name: "detalle_compra_tecnologica",
+    description: "Una compra tecnológica completa: subtotal, ITBIS, total y las cotizaciones comparadas (cuál se eligió). Requiere módulo tecnología o compras.",
+    modulos: ["tecnologia", "compras"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
+    rpc: "detalle_compra_tecnologica", map: (i) => ({ p_id: i.id }),
+  },
+  {
+    name: "listar_documentos_generados",
+    description: "Documentos ya generados a partir de una plantilla (nombre, plantilla, obra, quién lo generó), no solo el catálogo de plantillas. Filtra opcionalmente por obra. Requiere módulo documentos.",
+    modulos: ["documentos"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { proyecto_id: { type: "string" }, limite: { type: "integer" } }, additionalProperties: false },
+    rpc: "listar_documentos_generados", map: (i) => ({ p_proyecto_id: i.proyecto_id ?? null, p_limite: Math.min(Number(i.limite ?? 30), 100) }),
+  },
+  {
+    name: "bitacora_detalle",
+    description: "Una bitácora de obra completa (personal, actividades, incidente si lo hubo) por su id — mismo permiso que la pantalla de detalle.",
+    modulos: ["bitacora", "proyectos"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
+    rpc: "bitacora_detalle", map: (i) => ({ p_id: i.id }),
+  },
+  {
+    // Ya existía desde BZ1 (web + app comparten este camino); nunca se había
+    // registrado como tool del conector.
+    name: "echada_detalle",
+    description: "Una echada de combustible completa (vehículo, conductor, registrador, revisor, historial de revisión) por su id. Requiere módulo flota.",
+    modulos: ["flota"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
+    rpc: "echada_detalle", map: (i) => ({ p_id: i.id }),
+  },
+  {
+    // Fase 5 — dev/ops. Ya existía (Y6/BI4); nunca se había registrado como tool.
+    name: "errores_recientes",
+    description: "Errores de la app/web agrupados por firma (mensaje), con cuántas veces ocurrió, en cuántos dispositivos, primera y última vez — solo admin/Tecnología.",
+    modulos: ["admin", "tecnologia"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      desde: { type: "string" }, hasta: { type: "string" }, tipo: { type: "string" }, estado: { type: "string" }, limite: { type: "integer" },
+    }, additionalProperties: false },
+    rpc: "app_error_reports_grupos",
+    map: (i) => ({ p_desde: i.desde ?? null, p_hasta: i.hasta ?? null, p_error_type: i.tipo ?? null, p_limit: Math.min(Number(i.limite ?? 50), 200), p_source: null, p_estado: i.estado ?? null }),
+  },
+
+  // ── Fase 4: borradores nuevos (modo D — nunca ejecutan solos). Reusan el RPC
+  // real de cada pantalla donde existe; donde no, una función nueva que
+  // reproduce EXACTAMENTE el mismo update/insert, misma RLS. Canal 'mcp'.
+  {
+    name: "proponer_cambio_tarea",
+    description: "PREPARA (borrador, NO aplica) un cambio a una tarea ya existente: estado, a quién está asignada, fecha límite, o un comentario. Resuelve el id con 'mis_tareas' si es tuya, o 'buscar_usuarios' si necesitas reasignar. Requiere módulo tareas (o ser quien la asignó/a quien se asignó).",
+    modulos: ["tareas"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      id: { type: "string" }, estado: { type: "string", description: "pendiente | en_progreso | completada | cancelada" },
+      comentario: { type: "string" }, asignado_a: { type: "string" }, fecha_limite: { type: "string", description: "YYYY-MM-DD" },
+    }, required: ["id"], additionalProperties: false },
+    write: { tipo: "cambio_tarea", execRpc: "actualizar_tarea_campos",
+      execMap: (p) => ({ p_id: p.id, p_estado: p.estado ?? null, p_comentario: p.comentario ?? null, p_asignado_a: p.asignado_a ?? null, p_fecha_limite: p.fecha_limite ?? null }) },
+  },
+  {
+    name: "proponer_reunion",
+    description: "PREPARA (borrador, NO crea) una reunión nueva. Resuelve el tipo_id con el catálogo de tipos de reunión si lo tienes, o pregunta; participantes como usuario_id (buscar_usuarios). Requiere módulo reuniones.",
+    modulos: ["reuniones"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      tipo_id: { type: "string" }, titulo: { type: "string" }, inicio: { type: "string", description: "ISO 8601" }, fin: { type: "string", description: "ISO 8601" },
+      modalidad: { type: "string", description: "meet | presencial (por defecto meet)" }, lugar: { type: "string" },
+      proyecto_id: { type: "string" }, participantes_usuarios: { type: "array", items: { type: "string" } }, agenda: { type: "array", items: { type: "string" } },
+    }, required: ["tipo_id", "titulo", "inicio", "fin"], additionalProperties: false },
+    write: { tipo: "reunion", execRpc: "reunion_crear",
+      execMap: (p) => ({
+        p_tipo_id: p.tipo_id, p_titulo: p.titulo, p_inicio: p.inicio, p_fin: p.fin,
+        p_modalidad: p.modalidad ?? "meet", p_lugar: p.lugar ?? null, p_proyecto_id: p.proyecto_id ?? null,
+        p_expediente_id: null, p_solicitud_compra_id: null,
+        p_participantes_usuarios: p.participantes_usuarios ?? [], p_participantes_externos: [],
+        p_agenda: p.agenda ?? null,
+      }) },
+  },
+  {
+    name: "proponer_cancelar_reunion",
+    description: "PREPARA (borrador, NO cancela) la cancelación de una reunión existente. Resuelve el id con 'mis_reuniones' o 'resumen_reunion'. Requiere módulo reuniones.",
+    modulos: ["reuniones"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
+    write: { tipo: "cancelar_reunion", execRpc: "reunion_cancelar", execMap: (p) => ({ p_id: p.id }) },
+  },
+  {
+    name: "proponer_cerrar_acuerdo",
+    description: "PREPARA (borrador, NO aplica) marcar como cumplido un acuerdo de una reunión (completa la tarea que ese acuerdo dejó vinculada). Resuelve el acuerdo_id con 'acuerdos_pendientes'. Requiere módulo reuniones.",
+    modulos: ["reuniones"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { acuerdo_id: { type: "string" } }, required: ["acuerdo_id"], additionalProperties: false },
+    write: { tipo: "cerrar_acuerdo", execRpc: "reunion_acuerdo_cerrar", execMap: (p) => ({ p_acuerdo_id: p.acuerdo_id }) },
+  },
+  {
+    name: "proponer_decision_requisicion",
+    description: "PREPARA (borrador, NO aplica) aprobar o rechazar una requisición pendiente. Para aprobar, usa el artículo YA vinculado de cada renglón (no reasigna renglones LIBRE sin vincular — eso se resuelve en la app primero). Resuelve solicitud_id con 'requisiciones_pendientes' y bodega_id con 'listar_almacenes'. Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      solicitud_id: { type: "string" }, decision: { type: "string", description: "aprobar | rechazar" },
+      bodega_id: { type: "string", description: "obligatorio si decision=aprobar" }, notas: { type: "string" },
+    }, required: ["solicitud_id", "decision"], additionalProperties: false },
+    write: {
+      tipo: "decision_requisicion",
+      execRpc: "decidir_requisicion",
+      execMap: (p) => ({ p_solicitud_id: p.solicitud_id, p_decision: p.decision, p_bodega_id: p.bodega_id ?? null, p_notas: p.notas ?? null }),
+    },
+  },
+  {
+    name: "proponer_orden_de_compra",
+    description: "PREPARA (borrador, NO crea) una orden de compra. Resuelve proveedor_id/proyecto_id con las herramientas correspondientes. Requiere módulo compras.",
+    modulos: ["compras"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      proveedor_id: { type: "string" }, proyecto_id: { type: "string" }, fecha: { type: "string" }, fecha_entrega_esperada: { type: "string" },
+      subtotal: { type: "number" }, impuesto: { type: "number" }, total: { type: "number" }, notas: { type: "string" },
+      items: { type: "array", items: { type: "object", properties: { descripcion: { type: "string" }, cantidad: { type: "number" } } } },
+    }, required: ["proveedor_id", "proyecto_id", "items"], additionalProperties: false },
+    write: { tipo: "orden_compra", execRpc: "crear_orden_compra",
+      execMap: (p, cap) => ({
+        p_proveedor_id: p.proveedor_id, p_proyecto_id: p.proyecto_id, p_estado: "pendiente",
+        p_fecha: p.fecha ?? new Date().toISOString().slice(0, 10), p_fecha_entrega_esperada: p.fecha_entrega_esperada ?? null,
+        p_subtotal: p.subtotal ?? 0, p_impuesto: p.impuesto ?? 0, p_total: p.total ?? (p.subtotal ?? 0) + (p.impuesto ?? 0),
+        p_notas: p.notas ?? null, p_creado_por: cap.usuario_id, p_items: p.items ?? [],
+      }) },
+  },
+  {
+    name: "proponer_entrada_inventario",
+    description: "PREPARA (borrador, NO registra) la entrada de mercancía recibida de una orden de compra. Resuelve bodega_id/orden_compra_id con las herramientas correspondientes. Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      bodega_id: { type: "string" }, proveedor_id: { type: "string" }, orden_compra_id: { type: "string" },
+      referencia: { type: "string" }, observaciones: { type: "string" },
+      items: { type: "array", items: { type: "object", properties: { articulo_id: { type: "string" }, cantidad: { type: "number" } } } },
+    }, required: ["bodega_id", "items"], additionalProperties: false },
+    write: { tipo: "entrada_inventario", execRpc: "registrar_entrada_inventario",
+      execMap: (p, cap) => ({
+        p_fecha: new Date().toISOString().slice(0, 10), p_bodega_id: p.bodega_id, p_proveedor_id: p.proveedor_id ?? null,
+        p_orden_compra_id: p.orden_compra_id ?? null, p_referencia: p.referencia ?? null, p_observaciones: p.observaciones ?? null,
+        p_creado_por: cap.usuario_id, p_items: p.items ?? [], p_origen_tipo: null, p_origen_proyecto_id: null,
+      }) },
+  },
+  {
+    name: "proponer_solicitud_movimiento",
+    description: "PREPARA (borrador, NO crea) una solicitud de movimiento de material/equipo entre obras (logística ingeniero→transporte). proyecto_id es la obra 'dueña' de la solicitud (normalmente el destino). Requiere módulo ingeniería, transporte o flota.",
+    modulos: ["ingenieria", "transporte", "flota"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      proyecto_id: { type: "string" },
+      origen_proyecto_id: { type: "string" }, origen_bodega_id: { type: "string" }, origen_texto: { type: "string" },
+      destino_proyecto_id: { type: "string" }, destino_bodega_id: { type: "string" }, destino_texto: { type: "string" },
+      tipo_carga: { type: "string", description: "materiales | equipo (por defecto materiales)" },
+      prioridad: { type: "string" }, fecha_requerimiento: { type: "string" }, notas: { type: "string" }, que_se_mueve: { type: "string" },
+      items: { type: "array", items: { type: "object", properties: { articulo_id: { type: "string" }, cantidad: { type: "number" } } } },
+    }, required: ["proyecto_id", "items"], additionalProperties: false },
+    write: { tipo: "solicitud_movimiento", execRpc: "crear_solicitud_movimiento_v2",
+      execMap: (p) => ({
+        p_proyecto_id: p.proyecto_id, p_items: p.items ?? [], p_tipo_carga: p.tipo_carga ?? "materiales",
+        p_origen_tipo: p.origen_bodega_id ? "almacen" : "obra", p_origen_texto: p.origen_texto ?? null,
+        p_origen_bodega_id: p.origen_bodega_id ?? null, p_origen_proyecto_id: p.origen_proyecto_id ?? null,
+        p_destino_tipo: p.destino_bodega_id ? "almacen" : "obra", p_destino_texto: p.destino_texto ?? null,
+        p_destino_bodega_id: p.destino_bodega_id ?? null, p_destino_proyecto_id: p.destino_proyecto_id ?? null,
+        p_prioridad: p.prioridad ?? "media", p_fecha_requerimiento: p.fecha_requerimiento ?? null,
+        p_notas: p.notas ?? null, p_que_se_mueve: p.que_se_mueve ?? null,
+      }) },
+  },
+  {
+    name: "proponer_correccion_conduce",
+    description: "PREPARA (borrador, NO cambia) corregir el despachante de un conduce ya emitido. Resuelve salida_id con 'listar_requisiciones' o el conduce correspondiente, y despachante_usuario_id con 'buscar_usuarios'. Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      salida_id: { type: "string" }, despachante_usuario_id: { type: "string" }, despachante_nombre: { type: "string" }, motivo: { type: "string" },
+    }, required: ["salida_id"], additionalProperties: false },
+    write: { tipo: "correccion_conduce", execRpc: "conduce_cambiar_despachante",
+      execMap: (p) => ({ p_salida_id: p.salida_id, p_despachante_nombre: p.despachante_nombre ?? null, p_despachante_usuario_id: p.despachante_usuario_id ?? null, p_despachante_empleado_id: null, p_motivo: p.motivo ?? null }) },
+  },
+  {
+    name: "proponer_mantenimiento",
+    description: "PREPARA (borrador, NO registra) un mantenimiento de vehículo. El odómetro (km) es obligatorio — pregúntalo si no lo tienes. Requiere módulo flota.",
+    modulos: ["flota"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      vehiculo_id: { type: "string" }, tipo: { type: "string" }, descripcion: { type: "string" }, fecha: { type: "string" }, km: { type: "number" },
+      incluye_preventivo: { type: "boolean" }, costo: { type: "number" }, proveedor_id: { type: "string" }, notas: { type: "string" },
+    }, required: ["vehiculo_id", "tipo", "descripcion", "fecha", "km"], additionalProperties: false },
+    write: { tipo: "mantenimiento", execRpc: "crear_mantenimiento_app",
+      execMap: (p) => ({
+        p_id: p.__idem_id ?? crypto.randomUUID(), p_vehiculo_id: p.vehiculo_id, p_tipo: p.tipo, p_descripcion: p.descripcion, p_fecha: p.fecha,
+        p_km: p.km, p_fotos: [], p_capturado_en: new Date().toISOString(),
+        p_incluye_preventivo: !!p.incluye_preventivo, p_accidente_id: null, p_costo: p.costo ?? null, p_proveedor: null, p_notas: p.notas ?? null,
+        p_proveedor_id: p.proveedor_id ?? null,
+      }) },
+  },
+  {
+    name: "proponer_bitacora",
+    description: "PREPARA (borrador, NO crea) el inicio de una bitácora de obra para una fecha. El resto del formulario (personal, actividades, fotos) se completa después en el SGC. Requiere módulo bitácora.",
+    modulos: ["bitacora"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      proyecto_id: { type: "string" }, fecha: { type: "string", description: "YYYY-MM-DD" },
+      tipo: { type: "string" }, comentarios: { type: "string" },
+    }, required: ["proyecto_id", "fecha", "tipo"], additionalProperties: false },
+    write: { tipo: "bitacora", execRpc: "crear_bitacora_app",
+      execMap: (p) => ({ p_id: p.__idem_id ?? crypto.randomUUID(), p_proyecto_id: p.proyecto_id, p_fecha: p.fecha, p_tipo: p.tipo, p_comentarios: p.comentarios ?? null }) },
+  },
+  {
+    name: "proponer_decision_legal",
+    description: "PREPARA (borrador, NO aplica) aprobar o rechazar una aprobación legal pendiente. Resuelve el id con 'listar_aprobaciones_legales'. Requiere módulo legal.",
+    modulos: ["legal"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      id: { type: "string" }, estado: { type: "string", description: "aprobado | rechazado" }, comentario: { type: "string" },
+    }, required: ["id", "estado"], additionalProperties: false },
+    write: { tipo: "decision_legal", execRpc: "resolver_aprobacion_legal", execMap: (p) => ({ p_id: p.id, p_estado: p.estado, p_comentario: p.comentario ?? null }) },
+  },
+  {
+    name: "proponer_actualizacion_expediente",
+    description: "PREPARA (borrador, NO aplica) cambiar el estado o el responsable de un expediente legal. Resuelve el id con 'listar_expedientes_legales'. Requiere módulo legal.",
+    modulos: ["legal"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      id: { type: "string" }, estado: { type: "string" }, responsable_id: { type: "string" },
+    }, required: ["id"], additionalProperties: false },
+    write: { tipo: "actualizacion_expediente", execRpc: "actualizar_expediente_legal", execMap: (p) => ({ p_id: p.id, p_estado: p.estado ?? null, p_responsable_id: p.responsable_id ?? null }) },
+  },
+  {
+    name: "proponer_mensaje",
+    description: "PREPARA (borrador, NO envía) un mensaje directo a otro usuario (crea la conversación si no existe). Resuelve destinatario_usuario_id con 'buscar_usuarios'. Sin gate de módulo (como Mensajería en la web).",
+    modulos: null, canales: ["mcp"],
+    input_schema: { type: "object", properties: { destinatario_usuario_id: { type: "string" }, contenido: { type: "string" } }, required: ["destinatario_usuario_id", "contenido"], additionalProperties: false },
+    write: { tipo: "mensaje", execRpc: "enviar_mensaje_directo", execMap: (p) => ({ p_destinatario_usuario_id: p.destinatario_usuario_id, p_contenido: p.contenido }) },
+  },
+  {
+    name: "proponer_cambio_envio_automatico",
+    description: "PREPARA (borrador, NO cambia) encender o apagar una familia de correos/reportes automáticos. Usa 'estado_envios_automaticos' para ver los nombres de familia exactos. Solo admin.",
+    modulos: ["admin"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { familia: { type: "string" }, activo: { type: "boolean" }, motivo: { type: "string" } }, required: ["familia", "activo"], additionalProperties: false },
+    write: { tipo: "cambio_envio_automatico", execRpc: "envio_automatico_set", execMap: (p) => ({ p_familia: p.familia, p_activo: !!p.activo, p_motivo: p.motivo ?? null }) },
+  },
+  {
+    name: "proponer_probar_envio",
+    description: "PREPARA (borrador, NO envía) una prueba de un correo automático — al confirmar, llega SOLO a quien confirma, nunca a la lista real. Solo admin.",
+    modulos: ["admin"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { familia: { type: "string" } }, required: ["familia"], additionalProperties: false },
+    write: { tipo: "probar_envio", execRpc: "envio_automatico_probar", execMap: (p) => ({ p_familia: p.familia }) },
+  },
+  {
+    name: "proponer_nota_de_version",
+    description: "PREPARA (borrador, NO registra) la nota de una versión publicada. Solo rellena lo que esté vacío — nunca sobrescribe notas ya editadas por un admin. Requiere módulo tecnología.",
+    modulos: ["tecnologia"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      plataforma: { type: "string", description: "web | app" }, version: { type: "string" }, titulo: { type: "string" },
+      notas: { type: "string" }, cambios: { type: "array", items: { type: "object", properties: { t: { type: "string" }, d: { type: "string" } } } },
+    }, required: ["plataforma", "version"], additionalProperties: false },
+    write: { tipo: "nota_de_version", execRpc: "registrar_version",
+      execMap: (p) => ({ p_plataforma: p.plataforma, p_version: p.version, p_notas: p.notas ?? null, p_titulo: p.titulo ?? null, p_cambios: p.cambios ?? null }) },
+  },
 ];
 
 /** Herramientas visibles a este usuario (filtro por módulo/admin), opcionalmente
@@ -834,6 +1108,39 @@ export function claveIdem(usuarioId: string, tipo: string, params: Any): string 
     esenciales.p = params.proyecto_id; esenciales.t = (params.titulo ?? "").trim().toLowerCase(); esenciales.a = params.asignado_a ?? null;
   } else if (tipo === "ruta") {
     esenciales.c = params.conductor_usuario_id; esenciales.v = params.vehiculo_id; esenciales.cd = params.conduce_id ?? null; esenciales.p = params.proyecto_id ?? null;
+  } else if (tipo === "cambio_tarea") {
+    esenciales.id = params.id; esenciales.e = params.estado ?? null; esenciales.a = params.asignado_a ?? null;
+  } else if (tipo === "reunion") {
+    esenciales.t = (params.titulo ?? "").trim().toLowerCase(); esenciales.i = params.inicio;
+  } else if (tipo === "cancelar_reunion" || tipo === "cerrar_acuerdo") {
+    esenciales.id = params.id ?? params.acuerdo_id;
+  } else if (tipo === "decision_requisicion") {
+    esenciales.id = params.solicitud_id; esenciales.d = params.decision;
+  } else if (tipo === "orden_compra") {
+    esenciales.pr = params.proveedor_id; esenciales.p = params.proyecto_id;
+    esenciales.i = (params.items ?? []).map((it: Any) => `${it.descripcion}:${it.cantidad}`).sort();
+  } else if (tipo === "entrada_inventario") {
+    esenciales.b = params.bodega_id; esenciales.oc = params.orden_compra_id ?? null;
+    esenciales.i = (params.items ?? []).map((it: Any) => `${it.articulo_id}:${it.cantidad}`).sort();
+  } else if (tipo === "solicitud_movimiento") {
+    esenciales.o = params.origen_proyecto_id ?? params.origen; esenciales.d = params.destino_proyecto_id ?? params.destino;
+    esenciales.i = (params.items ?? []).map((it: Any) => `${it.articulo_id}:${it.cantidad}`).sort();
+  } else if (tipo === "correccion_conduce") {
+    esenciales.s = params.salida_id;
+  } else if (tipo === "mantenimiento") {
+    esenciales.v = params.vehiculo_id; esenciales.f = params.fecha; esenciales.t = params.tipo;
+  } else if (tipo === "bitacora") {
+    esenciales.p = params.proyecto_id; esenciales.f = params.fecha;
+  } else if (tipo === "decision_legal") {
+    esenciales.id = params.id; esenciales.e = params.estado;
+  } else if (tipo === "actualizacion_expediente") {
+    esenciales.id = params.id;
+  } else if (tipo === "mensaje") {
+    esenciales.d = params.destinatario_usuario_id; esenciales.c = (params.contenido ?? "").trim().toLowerCase();
+  } else if (tipo === "cambio_envio_automatico" || tipo === "probar_envio") {
+    esenciales.f = params.familia;
+  } else if (tipo === "nota_de_version") {
+    esenciales.p = params.plataforma; esenciales.v = params.version;
   }
   // Hash corto y estable (djb2) → hex, prefijado por tipo para legibilidad.
   const s = JSON.stringify(esenciales);

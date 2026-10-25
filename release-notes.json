@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.201.0": {
+      "titulo": "El conector de Claude gana 18 herramientas más: ver conexiones y envíos automáticos, y proponer cambios en tareas, reuniones, compras, inventario, flota, bitácora, legal y mensajes",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "El conector de Claude Desktop ahora puede, siempre con los permisos reales de quien pregunta: ver quién lo conectó y cuántos borradores le quedan, el estado de los envíos automáticos, las reglas de alertas, el historial de importaciones, documentos ya generados, el detalle de una compra tecnológica, una bitácora o una echada de combustible específica, y los errores recientes de la app."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "El conector también puede dejar preparados (nunca ejecutar solo, siempre con confirmación tuya) cambios de tarea, reuniones nuevas o canceladas, cerrar un acuerdo de reunión, aprobar o rechazar una requisición, una orden de compra, una entrada de inventario, una solicitud de movimiento, la corrección de un conduce, un mantenimiento de vehículo, el inicio de una bitácora, una decisión legal, actualizar un expediente, un mensaje directo, encender/apagar un envío automático o probarlo, y la nota de una versión."
+        }
+      ]
+    },
     "1.200.0": {
       "titulo": "Entregas por confirmar sin error 403; filtros que se mantienen en Inventario; error al recibir mercancía resuelto; Comentarios y Reportes con un clic",
       "cambios": [
