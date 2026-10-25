@@ -14917,6 +14917,32 @@
       ]
     },
     {
+      "pantalla": "inventario/stock-odoo",
+      "total": 41,
+      "cubiertos": 26,
+      "sin": 15,
+      "pct": 63,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (producto()) {",
+        "@for (p of sugerencias(); track p.id; let i = $index) {",
+        "@if (p.unidad) {",
+        "@if (buscando()) { } @else if (errorBusqueda()) { }",
+        "@for (u of ubicaciones(); track u.id) {",
+        "@if (ubicacionesTruncadas()) {",
+        "} @if (error()) {",
+        "} @else if (loading() && !resultado()) {",
+        "} @else if (resultado(); as r) {",
+        "@if (r.data.filas.length === 0) {",
+        "} @else {",
+        "@for (f of r.data.filas; track f.producto?.id + '-' + f.ubicacion?.id) {",
+        "@if (f.cantidad_fisica",
+        "} @else { }",
+        "@if (desdeCache()) { · }"
+      ]
+    },
+    {
       "pantalla": "configuracion/claude",
       "total": 37,
       "cubiertos": 24,

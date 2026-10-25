@@ -168,6 +168,7 @@
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
 | tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
+| inventario/stock-odoo | - | 41 | 26 | 15 | 63% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
