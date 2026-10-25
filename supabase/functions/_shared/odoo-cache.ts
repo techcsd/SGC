@@ -35,7 +35,7 @@ export class CacheOdoo {
 
   /** Lee `clave` del caché o la carga con `cargar`. `forzar` salta el caché (botón "Actualizar"). */
   async obtener<T>(clave: string, cargar: () => Promise<T>, forzar = false): Promise<{ entrada: Entrada<T>; origen: Origen }> {
-    const status: LRUCache.Status<Entrada> = {};
+    const status: LRUCache.Status<string, Entrada, Cargador> = {};
     const entrada = await this.lru.fetch(clave, { context: cargar, forceRefresh: forzar, status });
     if (!entrada) throw new Error("Caché Odoo devolvió vacío.");
     const origen: Origen = forzar ? "refresh" : status.fetch === "hit" ? "hit" : status.fetch === "inflight" ? "inflight" : "miss";
