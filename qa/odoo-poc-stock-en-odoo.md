@@ -9,8 +9,8 @@ Plan mayor (fases de migración del inventario a Odoo): issue #20 y notas de an�
 |---|---|
 | Edge `odoo-api` | desplegada con `deploy-edge.mjs --env dev` (v11 al 25-oct), `verify_jwt = true` |
 | Secrets | `ODOO_URL`, `ODOO_DB`, `ODOO_USER`, `ODOO_API_KEY`, `ODOO_COMPANY_ID=1` (aplicados con `aplicar-secret.mjs --env dev`; valores nunca impresos) |
-| Instancia Odoo | `scheker.chaiconsultoria.com`, base `scheker.chaiconsultoria.com`, compañía 1. **Es producción de Odoo** (no hay base de pruebas) |
-| Cuenta técnica | usuario "VISITANTE AUTORIZADO" (perfil `ODOO_LIMITED_*` en Doppler) |
+| Instancia Odoo | la de producción de la empresa (host, base y compañía: ver el documento privado que te pasa Alejandro). **No hay base de pruebas** |
+| Cuenta técnica | usuario técnico de pruebas de Odoo (credenciales en el gestor de secretos del equipo; no se publican aquí) |
 | Prod (Supabase) | **nada**: ni la edge ni los secrets |
 
 Variables opcionales de la edge: `ODOO_CACHE_TTL_S_<ACCION>` (p. ej. `ODOO_CACHE_TTL_S_STOCK_CONSULTAR`, segundos; `0` = sin caché) y `ODOO_CORS_ORIGINS` (lista separada por comas; por defecto prod, dev, app-dev y `localhost:4200`).
@@ -19,7 +19,7 @@ TTL por defecto: ubicaciones 10 min · productos 60 s · stock 15 s.
 ## 2. Usuarios de prueba en dev
 - `qa-odoo-con@dev.constructorasd.local` — rol `encargado_patio` (**con** módulo `inventario`).
 - `qa-odoo-sin@dev.constructorasd.local` — rol `capataz` (**sin** módulo `inventario`).
-- Ambos están en `sgc.dev_acceso`. La contraseña está en Doppler (proyecto `amp`, config `dev`, variable `SGC_DEV_QA_ODOO_PASSWORD`); si no tienes acceso a Doppler, fija una nueva con `node scripts/dev-set-password.mjs --env dev --email <correo> --password "<clave>"` o usa "Entrar como…" en Admin › Usuarios de prueba.
+- Ambos están en `sgc.dev_acceso`. La contraseña está en el gestor de secretos del equipo (pídesela a Alejandro); si no tienes acceso, fija una nueva con `node scripts/dev-set-password.mjs --env dev --email <correo> --password "<clave>"` o usa "Entrar como…" en Admin › Usuarios de prueba.
 - Al primer ingreso aparecen los modales de políticas y de "Novedades"; hay que aceptarlos/cerrarlos para ver la pantalla.
 - También sirve cualquier usuario real de dev con el módulo `inventario` (o admin).
 
@@ -73,7 +73,7 @@ Acciones válidas: `productos.buscar {termino, limite≤50}`, `ubicaciones.lista
 - Observaciones por caso:
 
 ## 7. Riesgos y condiciones antes de ir a `main`
-1. **La cuenta técnica de Odoo (`ODOO_LIMITED_*`) NO es de solo lectura.** Verificado con `check_access_rights`: puede crear/escribir/borrar en `product.*`, `stock.picking`, `purchase.order`, `res.partner` e incluso `ir.rule`. El código no tiene ninguna ruta de escritura (allowlist de 3 lecturas), pero la credencial sí podría. **No debe subir a prod**: pedir a Chai Consultoría un usuario técnico de solo lectura sobre `stock.quant`, `stock.location` y `product.product`.
+1. **La cuenta técnica de Odoo usada en estas pruebas tiene más permisos de los necesarios** (no es de solo lectura). El código no tiene ninguna ruta de escritura (allowlist de 3 lecturas), pero **esa credencial no debe subir a prod**: hay que pedir a Chai Consultoría un usuario técnico de solo lectura sobre existencias, ubicaciones y productos. Detalle de permisos: documento privado.
 2. **Prod**: subir los 5 secrets `ODOO_*` y desplegar `odoo-api` con `--env prod` (la regla 18 lo permite porque ya está en el ledger de dev). Mientras no se haga, en prod la pantalla mostraría el error traducido a quien tenga el módulo `inventario`.
 3. **Versión / gate** (PR `dev → main`): bump de versión, entrada en `release-notes.json`, `qa/release-<versión>.md` y `node scripts/release-check.mjs --env dev --version X.Y.Z`. No están en este PR.
 4. El gateway es compartido entre isolates solo por acceso a Odoo: la caché es **por isolate** (memoria efímera). Con mucho tráfico repartido el acierto baja; si importa, el siguiente paso es una caché compartida (KV/tabla `UNLOGGED`). Medir antes de decidir.
