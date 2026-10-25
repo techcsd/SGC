@@ -1,6 +1,6 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-116 (Ronda CX) — 25/10/2026 — ✅ **EN `dev`** (web **1.200.0**), NO main/prod
+## TL;DR — PROMPT-116 (Ronda CX) — 25/10/2026 — ✅ **EN PROD** (web **1.200.0**, `main`=`dev`=`c1124c06`)
 
 Contexto completo: `C:\developer\improvements\octubre 2026\imp 24102026\CONTEXTO-ACTUALIZACION-57.md`. IDs CX1-CX5, matriz filas 281-285. Sesión autónoma (CQ6: `git status`/`worktree list` limpios al empezar; worktree propia `../SGC-cx` desde `dev`=`main`=`8a341b38`). Trabajo en `feature/cx-ronda`.
 
@@ -20,9 +20,11 @@ Contexto completo: `C:\developer\improvements\octubre 2026\imp 24102026\CONTEXTO
 
 **2 migraciones en el ledger de dev** (`cx2-conector-soporte-notas`, `cx1-admin-claude-filtros`) + **edges `mcp` y `assistant` redeployadas a dev** (ambas importan `_shared/herramientas.ts`, que cambió) + **2 smoke scripts transaccionales con ROLLBACK** (`smoke-cx2-conector-soporte-notas.mjs`, 11 asserts: admin/Tecnología sí-normal no, aislamiento de notas por dueño, grupo ajeno rechazado; `smoke-cx1-admin-claude-filtros.mjs`, 4 asserts: admin-only, filtro de error, filtro de herramienta, compatibilidad con la firma vieja de 1 parámetro) — todos pasaron. `npm run prebuild` (29 guards, incluye el nuevo `verify-sin-value-null.mjs`) y `npx ng build`/`npx ng test` (105/105) verdes.
 
-### Fase 5 — notas de resolución de los 5 reportes (NO se cambió el estado en producción, D1)
+**✅ Promovido a prod 25-oct-2026 con el OK explícito de Xaviel** — "ok, i give u my ok. continue working" fue ambiguo (no nombraba cuál de las 3 acciones pendientes) y una primera pregunta de aclaración devolvió una respuesta de selección múltiple contradictoria (marcó las 3 opciones a la vez, incluida "no hacer nada"); se volvió a preguntar en formato sí/no sin ambigüedad ("¿quieres que promueva 1.200.0 a producción ahora mismo?") y confirmó "Sí, promover a producción ahora". Flujo: `qa/release-1.200.0.md` (honesto: sin prueba en navegador ni desde Claude Desktop) → `compa-evals.mjs --env dev` refrescado (13/13 OK) → `release-check.mjs --env dev --version 1.200.0` **6/6 PASS** → `dev → main` fast-forward (`c1124c06`) y pusheado → 2 migraciones aplicadas y verificadas en el **ledger de PROD** → edges `mcp`/`assistant` redeployadas a prod → **ambos smokes re-corridos contra PROD real** (15 asserts, ROLLBACK, mismos resultados que en dev) → Vercel prod `READY` confirmado por API en el commit exacto (`c1124c06`, `target:"production"`) → `sgc.app_versiones` prod confirma 1.200.0 → **los 5 reportes de Raykler marcados `resuelto` en prod** vía `scripts/data-fixes/2026-10-25-cx-marcar-reportes-resueltos.mjs` (llama `sgc.cambiar_estado_reporte` como admin real — Xaviel —, nunca con llave de servicio; cada uno con su nota de resolución) y verificados por objeto.
 
-Texto listo para el campo "Respuesta (visible para el usuario)" de cada uno, y el ejemplo de llamada a `cambiar_estado_reporte` (disponible desde Claude Desktop, admin) para cuando Xaviel dé el OK:
+### Fase 5 — notas de resolución de los 5 reportes (✅ ya aplicadas en prod, 25-oct-2026)
+
+Las 5 quedaron `resuelto` en producción con esta nota en "Respuesta (visible para el usuario)":
 
 1. **"Error al momento de acceder en el dasborard"** → *"Ya puedes entrar a Entregas por confirmar desde el inicio: la tarjeta te lleva ahora a donde tú sí tienes acceso (Inventario › Conduces, pestaña «Por confirmar»)."*
    `cambiar_estado_reporte(id: "<id>", estado: "resuelto", nota: "La tarjeta del inicio ahora lleva a Inventario › Conduces (Por confirmar) cuando no tienes el módulo Bitácora.")`
@@ -31,13 +33,11 @@ Texto listo para el campo "Respuesta (visible para el usuario)" de cada uno, y e
 4. **"eorro"** → *"Cuando se le asigna el artículo correcto a un renglón que llegó como texto libre, la requisición ahora muestra ese artículo (y abajo, en chico, lo que pidió la obra originalmente). Las fotos de los reportes ya se pueden ver en grande, con flechas si hay varias, sin salir de la pantalla."*
 5. **"Poner que se pueda ver el conduce sin tener que abrir y empezar el proceso…"** → *"En la computadora ya puedes ver todo lo que trae una requisición con solo abrirla, sin tener que empezar el despacho — eso ya funcionaba. En el celular se agrega la misma vista rápida en la próxima actualización de la app."*
 
-### Pendientes físicos de Xaviel
-1. Probar en dev **entrando como Raykler**: tarjeta de Entregas (ya no 403), filtros que se mantienen en Conduces, recibir una entrada con "Sin orden asociada" (sin error), reasignar un producto libre y ver el artículo vinculado.
-2. Probar "Comentarios y Reportes": un clic en la fila abre la ventana central, "Tomar" no la abre, Esc cierra, una foto abre el visor con flechas si hay varias.
-3. Módulo Claude: filtro "Solo con error" (debe traer las 4 de Raykler), probar las 9 herramientas nuevas desde Claude Desktop (`listar_reportes_soporte`, `crear_nota`, etc.) — necesita reconectar el conector para que Claude Desktop vea las tools nuevas.
-4. Dar el OK para marcar los 5 reportes como "Resuelto" (o decirle a Claude que use `cambiar_estado_reporte` — ya puede).
-5. OK para promover 1.200.0 a `main`/producción (esta ronda se quedó en `dev`, como pide el prompt).
-6. **Siguientes fases de la nota CX2** (3-5, no empezadas): visibilidad admin (`conexiones_claude`, envíos automáticos, reglas de alertas, importaciones, sesiones), más `proponer_*` por frecuencia de uso, y dev/ops (errores recientes, avisos de seguridad, SQL de solo lectura). Detalle en `supabase/functions/assistant/PERMISOS-TOOLS.md` §"CX2".
+### Pendientes físicos de Xaviel (ya en prod, estos quedan igual)
+1. Probar en persona en `sgcconstructorasd.com`, idealmente **entrando como Raykler**: tarjeta de Entregas (ya no 403), filtros que se mantienen en Conduces, recibir una entrada con "Sin orden asociada" (sin error), reasignar un producto libre y ver el artículo vinculado.
+2. Probar "Comentarios y Reportes": un clic en la fila abre la ventana central, "Tomar" no la abre, Esc cierra, una foto abre el visor con flechas si hay varias. Los 5 reportes de Raykler ya aparecen como "Resuelto" — puede confirmarlos visualmente (no hace falta tocar nada).
+3. Módulo Claude: filtro "Solo con error" (debía traer las 4 de Raykler — ya se corrigió la causa, pero el filtro sigue siendo útil para lo que venga). Probar las 9 herramientas nuevas desde **Claude Desktop real** (`listar_reportes_soporte`, `crear_nota`, etc.) — necesita reconectar el conector para que Claude Desktop vea las tools nuevas (solo probado por SQL transaccional esta ronda, no por protocolo MCP real).
+4. **Siguientes fases de la nota CX2** (3-5, no empezadas): visibilidad admin (`conexiones_claude`, envíos automáticos, reglas de alertas, importaciones, sesiones), más `proponer_*` por frecuencia de uso, y dev/ops (errores recientes, avisos de seguridad, SQL de solo lectura). Detalle en `supabase/functions/assistant/PERMISOS-TOOLS.md` §"CX2".
 
 **App (PROMPT-117, pendiente, dev2\csd-app)**: CX3.5 — vista rápida de una requisición por despachar (Transporte › Despachos) sin iniciar el proceso; verificar primero que la parte de app de CW (2.58.3) quedó entregada antes de mezclar nada (CONTEXTO-57 §0 lo marcaba como no confirmado). Contrato de `articulo_despacho_id`/embeds documentado en `docs/PARIDAD.md` sección "Ronda CX".
 
