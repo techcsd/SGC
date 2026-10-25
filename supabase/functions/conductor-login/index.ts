@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // P5 — Login por cédula + PIN (público, pre-auth: verify_jwt=false).
 // AX2 — GENERALIZADO por rol: la misma cédula puede pertenecer a un CHOFER
@@ -13,19 +14,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const MAX_INTENTOS = 5;
 const BLOQUEO_MIN = 15;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 // AX2 — dominios de email sintético por rol, en orden de intento. El de chofer
 // va primero (retrocompatibilidad). Añadir un rol nuevo = una línea aquí + su
@@ -41,6 +29,13 @@ function emailsCandidatos(cedula: string): string[] {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

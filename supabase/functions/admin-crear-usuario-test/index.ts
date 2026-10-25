@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // AY7 — Crea un USUARIO DE PRUEBA: usuario real de auth con email sintético SIN
 // buzón (t-<n>@test.constructorasd.local), rol(es) reales y es_prueba=true. Se
@@ -7,15 +8,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Devuelve las credenciales (email + password generado) para "credenciales" y
 // "entrar como". El password NO se guarda; para re-entrar se rota vía
 // admin-usuario-test-login.
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 
 const TEST_DOMAIN = "@test.constructorasd.local";
 function genPassword(): string {
@@ -26,6 +18,10 @@ function genPassword(): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");

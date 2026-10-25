@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // AA22 — Transcripción automática de notas de voz.
 // Barre los audios pendientes de sgc.audio_notas (bucket,path) y
@@ -11,15 +12,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Invocada por pg_cron con x-sync-secret. Si no hay STT_API_KEY, no toca nada
 // (no gasta reintentos): cuando pongas la key, procesa todos los pendientes.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-
 const PROVIDERS: Record<string, { url: string; model: string }> = {
   openai: { url: "https://api.openai.com/v1/audio/transcriptions", model: "gpt-4o-mini-transcribe" },
   groq: { url: "https://api.groq.com/openai/v1/audio/transcriptions", model: "whisper-large-v3-turbo" },
@@ -29,6 +21,10 @@ const MAX_INTENTOS = 3;
 const BATCH = 20;
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
   const expected = Deno.env.get("STT_SYNC_SECRET") ?? Deno.env.get("INFRA_SYNC_SECRET");

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // AT2 — Informe semanal del INCENTIVO por chofer: envía por email (Resend, PDF
 // adjunto + tabla legible en el cuerpo) a los roles con el módulo `incentivos`
@@ -11,19 +12,6 @@ import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 //
 // Este correo DECIDE UN PAGO: registra el envío en sgc.incentivo_envio (ok/error)
 // para poder reenviar a mano si falla — nunca se pierde en silencio.
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function esc(s: unknown): string {
   return String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -140,6 +128,13 @@ async function buildPdf(anio: number, semana: number, inicio: string, fin: strin
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,

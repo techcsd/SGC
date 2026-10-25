@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // CC3 — Un admin FIJA la contraseña de un usuario (los QA/sintéticos no tienen
 // buzón para el "reset por correo"). service_role solo aquí; gate is_admin().
@@ -9,14 +10,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // → el usuario la cambia al entrar (nadie queda conociendo la contraseña de otro).
 // Audita `password_establecida_por_admin` (sin la contraseña).
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 function genPassword(): string {
   // Genera una contraseña fuerte (letras sin ambigüedad + al menos un dígito).
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
@@ -36,6 +29,10 @@ function esFuerte(pw: string): boolean {
 const SYNTH_DOMAINS = ["@conductores.constructorasd.local", "@personal.constructorasd.local", "@test.constructorasd.local"];
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");

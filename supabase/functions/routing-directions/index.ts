@@ -5,13 +5,10 @@
 // Google Directions (web service) no envía cabeceras CORS y su key no debe
 // exponerse en el navegador → por eso se llama desde aquí (servidor).
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sgc-client',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

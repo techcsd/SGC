@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // Email alert for Flota v2 operational events (bloqueo, consumo anormal,
 // pre-cita, mantenimiento vencido, vencimientos). Called by the SGC web/app
@@ -10,19 +11,6 @@ import { ajustarCorreoResend } from "../_shared/entorno.ts";
 // (regla_usuario/regla_rol/regla_global); excluded recipients are recorded in
 // notif_entregas for traceability. Resend key from Vault (no-ops if unset). A
 // failed email must NEVER block the flow.
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function escapeHtml(value: string): string {
   return value
@@ -58,6 +46,13 @@ const PREFIJO: Record<string, string> = {
 };
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // AG16 · FASE 5 — Genera el PDF del informe semanal de obra y lo envía por email
 // a Gerencia (Resend, con el PDF adjunto). Llamada SERVER-TO-SERVER desde el RPC
@@ -11,19 +12,6 @@ import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 //
 // Best-effort: si falta config, no-opea en vez de fallar — un email perdido no
 // debe romper el envío del informe (que ya quedó marcado 'enviado' en la BD).
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function fmtDate(s: string | null): string {
   if (!s) return "";
@@ -122,6 +110,13 @@ async function buildPdf(informe: any, proyectoNombre: string): Promise<Uint8Arra
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   try {
     const secret = req.headers.get("x-sync-secret");

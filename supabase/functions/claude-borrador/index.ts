@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { TOOLS, type Cap, type Any } from "../_shared/herramientas.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // ============================================================================
 // CR1 (FASE 4) — confirma/descarta un borrador que Claude Desktop preparó por
@@ -16,19 +17,6 @@ import { TOOLS, type Cap, type Any } from "../_shared/herramientas.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  // x-sgc-client: el cliente Supabase del front (web y app) lo manda SIEMPRE
-  // (CQ3, auditoria.origen) — sin él en la lista, el preflight del navegador
-  // bloquea CUALQUIER llamada desde el navegador (hallazgo real de FASE 4:
-  // reproducido también en supabase/functions/assistant, mismo defecto).
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 
 function mensajeExito(tipo: string): string {
   return tipo === "conduce" ? "Conduce creado. Queda pendiente de firma por el flujo normal."
@@ -90,6 +78,10 @@ async function resolverDetalle(supabase: Any, tool: string, params: Any) {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 

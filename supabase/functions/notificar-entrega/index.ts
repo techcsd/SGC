@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // Notifies inventario staff when a delivery is confirmed incomplete —
 // closing the loop the other direction from notificar-solicitud (which
@@ -10,19 +11,6 @@ import { ajustarCorreoResend } from "../_shared/entorno.ts";
 // excluded recipients are recorded in notif_entregas for traceability. Same
 // fire-and-forget, no-op-if-unconfigured design: a missing notification must
 // never block the real confirmation workflow, and the caller doesn't wait on this.
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 // notas_recepcion is free-text typed by whoever confirmed the delivery —
 // the least trusted input in this function — plus article/project/recibido
@@ -37,6 +25,13 @@ function escapeHtml(value: string): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

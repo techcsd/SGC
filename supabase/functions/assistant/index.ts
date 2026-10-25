@@ -8,6 +8,7 @@ import * as XLSX from "npm:xlsx@0.18.5";
 import {
   type Cap, type ToolDef, TOOLS, toolsParaUsuario, claveIdem, idemUuid, ejecutarHerramientaLectura,
 } from "../_shared/herramientas.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // ============================================================================
 // AW4 — Asistente de IA "Compa".
@@ -39,19 +40,6 @@ const WHATSAPP_ASSISTANT_SECRET = Deno.env.get("WHATSAPP_ASSISTANT_SECRET");
 
 const MAX_MSGS_HORA = 60;
 const MAX_TOOL_LOOPS = 8;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  // CR1 (FASE 4) — hallazgo real: x-sgc-client (CQ3, SupabaseService) faltaba
-  // aquí, así que el preflight del navegador bloqueaba el POST real (reproducido
-  // con un OPTIONS directo contra esta edge en dev). Se encontró construyendo
-  // claude-borrador (mismo patrón de cabeceras) y se corrige aquí también.
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -582,6 +570,10 @@ function componerExcel(titulo: string, cols: string[], rows: string[][]): Uint8A
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 

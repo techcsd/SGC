@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // P5 — Genera o rota el acceso (cédula + PIN) de un conductor. service_role.
 // Dado un conductor_id + PIN (6 dígitos): crea un usuario auth con email
@@ -9,19 +10,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // rota el PIN (reset). Gated a admin o módulo flota (re-verificado aquí, no se
 // confía en el front).
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
 /** Email sintético determinista a partir de la cédula (solo dígitos). */
 function syntheticEmail(cedula: string): string {
   const digits = (cedula || "").replace(/\D/g, "");
@@ -29,6 +17,13 @@ function syntheticEmail(cedula: string): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

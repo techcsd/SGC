@@ -1,24 +1,20 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // CI4 — Edge PÚBLICA (verify_jwt=false) para solicitar la eliminación de cuenta
 // desde la página /politicas/eliminar-cuenta (para quien ya no tiene acceso a la app).
 // Recibe correo o cédula + motivo, crea la solicitud (origen='publica') vía service role,
 // y SIEMPRE responde igual (no revela si el usuario existe). Honeypot + throttle simple.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-
 // Respuesta neutra: siempre la misma, exista o no el usuario.
 const OK = { ok: true, message: "Recibimos tu solicitud. Si tus datos corresponden a una cuenta, la procesaremos en un máximo de 30 días." };
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ ok: false, error: "Método no permitido" }, 405);
 

@@ -1,24 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // V4 — Email a TODOS los usuarios activos cuando se publica una nueva versión
 // de la app móvil. Se llama desde la web justo después de publicar (el aviso
 // in-app ya se creó vía RPC notificar_todos). Resend key desde Vault (no-op si
 // no está). Un fallo de correo NUNCA debe bloquear la publicación.
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function escapeHtml(value: string): string {
   return value
@@ -30,6 +18,13 @@ function escapeHtml(value: string): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

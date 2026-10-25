@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // Y15 — Email de avisos del Cronograma de Proyectos (por iniciar / por vencer /
 // atrasada). Lo invoca el sweep pg_cron `sgc.evaluar_avisos_cronograma()` vía
@@ -12,19 +13,6 @@ import { ajustarCorreoResend } from "../_shared/entorno.ts";
 // email fallido NUNCA debe bloquear el flujo.
 //
 // Deploy: --no-verify-jwt (auth por header x-sync-secret == CRONOGRAMA_SYNC_SECRET).
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function escapeHtml(value: string): string {
   return value
@@ -39,6 +27,13 @@ const PREFIJO: Record<string, string> = {
 };
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

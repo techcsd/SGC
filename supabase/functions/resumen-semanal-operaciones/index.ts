@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 
 // BE1 — Resumen semanal de OPERACIONES: envía por email (Resend, HTML + PDF
 // detallado) a los roles administrables (destinatarios_resumen_operaciones) el
@@ -13,14 +14,6 @@ import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 // números del correo = los números de la pantalla. El correo COMPONE las secciones
 // construidas 1 a 1 (BE1). PDF adjunto con el detalle (lección BB9).
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 function esc(s: unknown): string {
   return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 }
@@ -100,6 +93,10 @@ function tabla(cols: string[], rows: string[][], vacio = "Sin datos esta semana.
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
