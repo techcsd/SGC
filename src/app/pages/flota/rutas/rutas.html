@@ -202,7 +202,7 @@
       <div class="sgc-field">
         <label for="conductor_id">Conductor</label>
         <select id="conductor_id" formControlName="conductor_id">
-          <option [value]="null">Sin asignar</option>
+          <option [ngValue]="null">Sin asignar</option>
           @for (c of activeConductores(); track c.id) {
             <option [value]="c.id">{{ c.nombre }}</option>
           }
@@ -277,7 +277,7 @@
     <div class="sgc-field">
       <label for="destino_proyecto_id">Obra de destino (opcional)</label>
       <select id="destino_proyecto_id" formControlName="destino_proyecto_id" (change)="onObraChange($any($event.target).value)">
-        <option [value]="null">No es una obra / seleccionar en el mapa</option>
+        <option [ngValue]="null">No es una obra / seleccionar en el mapa</option>
         @for (o of obrasDestino(); track o.id) {
           <option [value]="o.id">{{ o.codigo }} — {{ o.nombre }}</option>
         }

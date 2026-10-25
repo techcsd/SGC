@@ -147,7 +147,7 @@
       <div class="sgc-field">
         <label for="nc-proy">Obra <span class="required">*</span></label>
         <select id="nc-proy" formControlName="proyecto_id" [class.invalid]="fNC.proyecto_id.invalid && fNC.proyecto_id.touched">
-          <option [value]="null">Selecciona…</option>
+          <option [ngValue]="null">Selecciona…</option>
           @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
         </select>
       </div>
@@ -181,7 +181,7 @@
     <div class="sgc-field">
       <label for="nc-resp">Responsable (opcional)</label>
       <select id="nc-resp" formControlName="responsable_id">
-        <option [value]="null">Sin asignar</option>
+        <option [ngValue]="null">Sin asignar</option>
         @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
       </select>
     </div>
@@ -209,7 +209,7 @@
       <div class="sgc-field">
         <label for="inc-proy">Obra <span class="required">*</span></label>
         <select id="inc-proy" formControlName="proyecto_id" [class.invalid]="fInc.proyecto_id.invalid && fInc.proyecto_id.touched">
-          <option [value]="null">Selecciona…</option>
+          <option [ngValue]="null">Selecciona…</option>
           @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
         </select>
       </div>
@@ -345,7 +345,7 @@
       <div class="sgc-field">
         <label for="ac-resp">Responsable</label>
         <select id="ac-resp" formControlName="responsable_id">
-          <option [value]="null">Sin asignar</option>
+          <option [ngValue]="null">Sin asignar</option>
           @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
         </select>
       </div>

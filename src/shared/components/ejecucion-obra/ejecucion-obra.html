@@ -47,7 +47,7 @@
             <span class="ejec__label">Elemento (opcional)</span>
             <select
               [value]="ncElementoId()"
-              (change)="ncElementoId.set($any($event.target).value || null)"
+              (change)="ncElementoId.set(cleanUuid($any($event.target).value))"
             >
               <option [value]="null">Todo el proyecto…</option>
               @for (el of elementos(); track el.id) {
@@ -60,7 +60,7 @@
             <span class="ejec__label">Vaciado (opcional)</span>
             <select
               [value]="ncVaciadoId()"
-              (change)="ncVaciadoId.set($any($event.target).value || null)"
+              (change)="ncVaciadoId.set(cleanUuid($any($event.target).value))"
             >
               <option [value]="null">Ninguno…</option>
               @for (v of vaciados(); track v.id) {
@@ -148,7 +148,7 @@
           <div class="ejec__form-grid">
             <label class="sgc-field">
               <span class="ejec__label">Tipo</span>
-              <select [value]="elTipo()" (change)="elTipo.set($any($event.target).value || null)">
+              <select [value]="elTipo()" (change)="elTipo.set(cleanUuid($any($event.target).value))">
                 <option [value]="null">Sin tipo…</option>
                 @for (t of TIPOS_ELEMENTO; track t) {
                   <option [value]="t">{{ t }}</option>
@@ -185,7 +185,7 @@
         <div class="ejec__form-grid">
           <label class="sgc-field">
             <span class="ejec__label">Elemento</span>
-            <select [value]="vElementoId()" (change)="vElementoId.set($any($event.target).value || null)">
+            <select [value]="vElementoId()" (change)="vElementoId.set(cleanUuid($any($event.target).value))">
               <option [value]="null">Sin elemento…</option>
               @for (el of elementos(); track el.id) {
                 <option [value]="el.id">{{ elementoLabel(el.id) }}</option>

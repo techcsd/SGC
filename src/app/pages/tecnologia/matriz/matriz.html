@@ -100,7 +100,7 @@
         formControlName="herramienta_id"
         [class.invalid]="f.herramienta_id.invalid && f.herramienta_id.touched"
       >
-        <option [value]="null">Seleccionar herramienta…</option>
+        <option [ngValue]="null">Seleccionar herramienta…</option>
         @for (h of herramientas(); track h.id) {
           <option [value]="h.id">{{ h.nombre }}</option>
         }

@@ -65,7 +65,7 @@
         <div class="sgc-field">
           <label for="proyecto_id">Obra / Proyecto <span class="required">*</span></label>
           <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-            <option [value]="null">Seleccionar obra…</option>
+            <option [ngValue]="null">Seleccionar obra…</option>
             @for (p of activeProyectos(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }
@@ -82,7 +82,7 @@
         <div class="sgc-field">
           <label for="cronograma_tarea_id">Tarea del cronograma (opcional)</label>
           <select id="cronograma_tarea_id" formControlName="cronograma_tarea_id">
-            <option [value]="null">Ninguna</option>
+            <option [ngValue]="null">Ninguna</option>
             @for (t of tareasCronograma(); track t.id) {
               <option [value]="t.id">{{ t.nombre }}</option>
             }
@@ -119,7 +119,7 @@
                 (change)="actualizarReqMotivoDetallePublic()"
                 [class.invalid]="f.motivo_sin_actividad.invalid && f.motivo_sin_actividad.touched"
               >
-                <option [value]="null">Selecciona el motivo…</option>
+                <option [ngValue]="null">Selecciona el motivo…</option>
                 @for (m of MOTIVOS_SIN_ACTIVIDAD; track m.value) {
                   <option [value]="m.value">{{ m.label }}</option>
                 }
@@ -205,7 +205,7 @@
           <div class="sgc-field">
             <label for="visita_tipo_visitante">Tipo de visitante <span class="required">*</span></label>
             <select id="visita_tipo_visitante" formControlName="visita_tipo_visitante" [class.invalid]="f.visita_tipo_visitante.invalid && f.visita_tipo_visitante.touched">
-              <option [value]="null">Seleccionar…</option>
+              <option [ngValue]="null">Seleccionar…</option>
               @for (vt of VISITANTE_TIPOS; track vt.value) {
                 <option [value]="vt.value">{{ vt.label }}</option>
               }
@@ -241,7 +241,7 @@
         <div class="sgc-field">
           <label for="incidente_tipo">Tipo <span class="required">*</span></label>
           <select id="incidente_tipo" formControlName="incidente_tipo" [class.invalid]="f.incidente_tipo.invalid && f.incidente_tipo.touched">
-            <option [value]="null">Seleccionar…</option>
+            <option [ngValue]="null">Seleccionar…</option>
             @for (it of INCIDENTE_TIPOS; track it.value) {
               <option [value]="it.value">{{ it.label }}</option>
             }
@@ -257,7 +257,7 @@
             <div class="sgc-field">
               <label for="incidente_gravedad">Gravedad <span class="required">*</span></label>
               <select id="incidente_gravedad" formControlName="incidente_gravedad" [class.invalid]="f.incidente_gravedad.invalid && f.incidente_gravedad.touched">
-                <option [value]="null">Seleccionar…</option>
+                <option [ngValue]="null">Seleccionar…</option>
                 @for (g of INCIDENTE_GRAVEDADES; track g.value) {
                   <option [value]="g.value">{{ g.label }}</option>
                 }
@@ -337,7 +337,7 @@
           <div class="sgc-field">
             <label for="incidente_suceso">¿Qué pasó? <span class="required">*</span></label>
             <select id="incidente_suceso" formControlName="incidente_suceso" [class.invalid]="f.incidente_suceso.invalid && f.incidente_suceso.touched">
-              <option [value]="null">Seleccionar…</option>
+              <option [ngValue]="null">Seleccionar…</option>
               @for (s of sucesosActuales(); track s) {
                 <option [value]="s">{{ sucesoLabel(s) }}</option>
               }

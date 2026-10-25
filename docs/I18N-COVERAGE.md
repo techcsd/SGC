@@ -3,13 +3,13 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 7%** (47/674 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 7%** (47/676 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
 | inventario/conduce | scope | 226 | 0 | 226 | 0% |
-| inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
+| inventario/requisiciones | scope | 241 | 0 | 241 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
 | configuracion | scope | 74 | 45 | 29 | 61% |
@@ -26,7 +26,7 @@
 | admin/orden-modulos | - | 11 | 0 | 11 | 0% |
 | admin/otros-valores | - | 17 | 0 | 17 | 0% |
 | admin/parametros | - | 20 | 0 | 20 | 0% |
-| admin/reportes | - | 49 | 0 | 49 | 0% |
+| admin/reportes | - | 50 | 0 | 50 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
@@ -48,7 +48,7 @@
 | compras/ordenes | - | 169 | 0 | 169 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
-| dashboard | - | 141 | 0 | 141 | 0% |
+| dashboard | - | 143 | 0 | 143 | 0% |
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |
 | documentos/historial | - | 15 | 0 | 15 | 0% |
@@ -169,5 +169,5 @@
 | borrador-claude | - | 22 | 12 | 10 | 55% |
 | tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
+| admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
-| admin/claude | - | 28 | 23 | 5 | 82% |

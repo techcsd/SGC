@@ -44,6 +44,12 @@ const REGLAS: { re: RegExp; mensaje: string }[] = [
     mensaje: 'Faltan datos obligatorios.' },
   { re: /check constraint|violates check|23514/i,
     mensaje: 'Alguno de los datos no es válido.' },
+  // CX3.3 — "invalid input syntax for type uuid/integer/date: ..." (22P02): un
+  // <select> mandó el sentinel sin elegir nada (p. ej. "Sin orden asociada" guardó
+  // el texto "null" en vez de vacío real — ver verify-sin-value-null.mjs). El
+  // usuario solo necesita saber que falta elegir algo, no el detalle de Postgres.
+  { re: /invalid input syntax for type|22p02/i,
+    mensaje: 'Falta elegir una opción en uno de los campos. Revísalo e inténtalo de nuevo.' },
   // BG5/varchar — texto más largo que el máximo de la columna (SQLSTATE 22001).
   { re: /value too long|right truncation|22001/i,
     mensaje: 'Uno de los textos es demasiado largo. Acórtalo e inténtalo de nuevo.' },
@@ -59,7 +65,7 @@ const REGLAS: { re: RegExp; mensaje: string }[] = [
 ];
 
 // Señales de que un string es un error técnico crudo (aunque no matchee arriba).
-const TECNICO = /(permission denied|violates|constraint|jwt|recursion|relation |column |function |schema |postgres|pgrst|sql|null value|does not exist|failed to fetch|networkerror|\b4\d{2}\b|\b5\d{2}\b|error:)/i;
+const TECNICO = /(permission denied|violates|constraint|jwt|recursion|relation |column |function |schema |postgres|pgrst|sql|null value|does not exist|failed to fetch|networkerror|invalid input syntax|22p02|\b4\d{2}\b|\b5\d{2}\b|error:)/i;
 
 /**
  * Traduce un error crudo a un mensaje amable. Si el texto ya parece un mensaje
@@ -174,7 +180,7 @@ export function clasificarError(error: unknown): ErrorClasificado {
   // Sistema: cualquier SQLSTATE de infra (23/42/57/53/08) o texto técnico.
   const esSistema =
     (sqlstate && /^(0[8A]|22|23|42|53|57|58|xx)/i.test(sqlstate) && sqlstate !== '22023') ||
-    /violates|insert or update on table|foreign key|constraint|permission denied|does not exist|failed to fetch|network/i.test(raw);
+    /violates|insert or update on table|foreign key|constraint|permission denied|does not exist|failed to fetch|network|invalid input syntax/i.test(raw);
   return {
     clase: esSistema ? 'sistema' : 'negocio',
     mensaje: esSistema ? 'Con problema al enviar. Ya se reportó a Tecnología.' : humanizeError(error).mensaje,

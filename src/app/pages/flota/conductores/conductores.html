@@ -460,7 +460,7 @@
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo principal (opcional)</label>
       <select id="vehiculo_id" formControlName="vehiculo_id">
-        <option [value]="null">Sin vehículo principal</option>
+        <option [ngValue]="null">Sin vehículo principal</option>
         @for (v of availableVehiculos(); track v.id) {
           <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} {{ v.anio }}</option>
         }

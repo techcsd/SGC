@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto, ConduceExternoSuelto, RequisicionCoberturaItem } from '../../../../shared/services/solicitudes-material.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -8,7 +9,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { StockService } from '../../../../shared/services/stock.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { SolicitudMaterial, requisicionCodigo, solicitanteRolLabel } from '../../../../shared/models/solicitud.model';
+import { SolicitudMaterial, SolicitudMaterialItem, requisicionCodigo, solicitanteRolLabel } from '../../../../shared/models/solicitud.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
@@ -26,6 +27,20 @@ import { OrdenColumna, compararConNulosAlFinal, leerOrdenGuardado, guardarOrden 
 
 /** CS1 — columnas ordenables de la bandeja de requisiciones. */
 export type ClaveOrdenReq = 'fecha' | 'necesidad' | 'folio' | 'obra' | 'estado';
+
+// CX3.2 — snapshot de filtros recordado mientras la persona siga en Inventario
+// (ver ListaEstadoService). Sin página (esta bandeja no pagina).
+interface EstadoRequisiciones {
+  fObra: string;
+  fSolicitante: string;
+  fEstado: string;
+  fUrgencia: string;
+  fDesde: string;
+  fHasta: string;
+  fArticulo: string;
+  search: string;
+  soloConNecesidad: boolean;
+}
 
 const ESTADO_BADGE: Record<string, string> = {
   pendiente: 'warning',
@@ -80,6 +95,11 @@ export class Requisiciones implements OnInit {
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  private listaEstado = inject(ListaEstadoService);
+  // CX3.2 — clave de pantalla para recordar filtros mientras la persona siga en
+  // Inventario (se limpia al cambiar de módulo o cerrar sesión).
+  private readonly ESTADO_KEY = 'inventario.requisiciones';
+  private restaurandoEstado = false;
 
   readonly formatFecha = formatFechaDisplay;
   // AT22 — created_at es timestamptz: fecha + hora exacta en lista y detalle.
@@ -508,9 +528,48 @@ export class Requisiciones implements OnInit {
     });
   });
 
+  constructor() {
+    // CX3.2 — estos filtros se setean directo desde la plantilla (sin setters
+    // dedicados); un effect() los guarda sin tocar cada binding. `restaurandoEstado`
+    // evita que la restauración inicial en ngOnInit se guarde a sí misma de más.
+    effect(() => {
+      const estado: EstadoRequisiciones = {
+        fObra: this.fObra(),
+        fSolicitante: this.fSolicitante(),
+        fEstado: this.fEstado(),
+        fUrgencia: this.fUrgencia(),
+        fDesde: this.fDesde(),
+        fHasta: this.fHasta(),
+        fArticulo: this.fArticulo(),
+        search: this.search(),
+        soloConNecesidad: this.soloConNecesidad(),
+      };
+      if (!this.restaurandoEstado) this.listaEstado.guardar(this.ESTADO_KEY, estado);
+    });
+  }
+
   async ngOnInit() {
-    const obra = this.route.snapshot.queryParamMap.get('obra');
-    if (obra) this.fObra.set(obra);
+    // CX3.2 — restaura filtros si la persona ya estaba en esta pantalla dentro del
+    // mismo módulo; el deep-link ?obra= (si viene) gana sobre lo recordado.
+    const obraParam = this.route.snapshot.queryParamMap.get('obra');
+    if (obraParam) {
+      this.fObra.set(obraParam);
+    } else {
+      const guardado = this.listaEstado.obtener<EstadoRequisiciones>(this.ESTADO_KEY);
+      if (guardado) {
+        this.restaurandoEstado = true;
+        this.fObra.set(guardado.fObra);
+        this.fSolicitante.set(guardado.fSolicitante);
+        this.fEstado.set(guardado.fEstado);
+        this.fUrgencia.set(guardado.fUrgencia);
+        this.fDesde.set(guardado.fDesde);
+        this.fHasta.set(guardado.fHasta);
+        this.fArticulo.set(guardado.fArticulo);
+        this.search.set(guardado.search);
+        this.soloConNecesidad.set(guardado.soloConNecesidad);
+        this.restaurandoEstado = false;
+      }
+    }
     await this.loadAll();
     // AS6 — deep-link desde el email (?req=<id>): abre directamente esa requisición.
     const reqId = this.route.snapshot.queryParamMap.get('req');
@@ -595,6 +654,21 @@ export class Requisiciones implements OnInit {
 
   itemsCount(r: SolicitudMaterial): number {
     return (r.items ?? []).length;
+  }
+
+  // CX3.4 — el renglón muestra SIEMPRE el artículo vinculado (el que trae desde el
+  // origen, o el que se eligió al aprobar un renglón LIBRE vía articulo_despacho_id/
+  // CJ7); el texto libre que escribió quien pidió queda como detalle pequeño
+  // ("pidió: …") en vez de perderse detrás de la descripción original.
+  articuloVinculado(i: SolicitudMaterialItem): string | null {
+    return i.articulo_despacho?.nombre ?? i.articulo?.nombre ?? null;
+  }
+
+  pidioTexto(i: SolicitudMaterialItem): string | null {
+    const vinculado = this.articuloVinculado(i);
+    if (!vinculado) return null;
+    const pidio = (i.descripcion ?? '').trim();
+    return pidio && pidio.toLowerCase() !== vinculado.trim().toLowerCase() ? pidio : null;
   }
 
   // BC4 — código citable (REQ-XXXXXX) y rol del solicitante para el contexto.

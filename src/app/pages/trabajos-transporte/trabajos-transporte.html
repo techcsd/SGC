@@ -77,7 +77,7 @@
     <div class="sgc-field">
       <label for="act-obra">Obra (opcional)</label>
       <select id="act-obra" formControlName="proyecto_id">
-        <option [value]="null">— Sin obra —</option>
+        <option [ngValue]="null">— Sin obra —</option>
         @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
       </select>
     </div>
@@ -88,7 +88,7 @@
     <div class="sgc-field">
       <label for="act-chofer">Chofer (opcional)</label>
       <select id="act-chofer" formControlName="conductor_id">
-        <option [value]="null">— Sin asignar —</option>
+        <option [ngValue]="null">— Sin asignar —</option>
         @for (c of choferes(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>

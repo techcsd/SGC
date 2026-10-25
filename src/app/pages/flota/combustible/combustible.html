@@ -410,7 +410,7 @@
     <div class="sgc-field">
       <label for="conductor_id">Conductor</label>
       <select id="conductor_id" formControlName="conductor_id">
-        <option [value]="null">Sin conductor asignado</option>
+        <option [ngValue]="null">Sin conductor asignado</option>
         @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>
@@ -433,7 +433,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">Obra <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-          <option [value]="null">Selecciona la obra…</option>
+          <option [ngValue]="null">Selecciona la obra…</option>
           @for (p of proyectosVisibles(); track p.id) {
             <option [value]="p.id">{{ p.codigo ? p.codigo + ' · ' + p.nombre : p.nombre }}</option>
           }
@@ -596,7 +596,7 @@
         <div class="sgc-field">
           <label for="producto">Producto</label>
           <select id="producto" formControlName="producto">
-            <option [value]="null">Sin especificar</option>
+            <option [ngValue]="null">Sin especificar</option>
             <option value="diesel">Diésel</option>
             <option value="gasolina">Gasolina</option>
           </select>
@@ -605,7 +605,7 @@
         <div class="sgc-field">
           <label for="subtipo">Tipo</label>
           <select id="subtipo" formControlName="subtipo" [disabled]="!f.producto.value">
-            <option [value]="null">Sin especificar</option>
+            <option [ngValue]="null">Sin especificar</option>
             <option value="regular">Regular</option>
             <option value="premium">Premium / Óptimo</option>
           </select>

@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { EntradasService, RecepcionConfirmacion } from '../../../../shared/services/entradas.service';
@@ -50,6 +51,16 @@ interface EntradaItemRow extends EntradaItemFormData {
   ocDescripcion?: string;
 }
 
+// CX3.2 — snapshot de filtros/página recordado mientras la persona siga en
+// Inventario (ver ListaEstadoService).
+interface EstadoEntradas {
+  searchQuery: string;
+  selectedBodega: string;
+  dateFrom: string;
+  dateTo: string;
+  currentPage: number;
+}
+
 @Component({
   selector: 'app-entradas',
   imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective, ArticuloPicker],
@@ -70,6 +81,10 @@ export class Entradas implements OnInit {
   private toast = inject(ToastService);
   private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
+  private listaEstado = inject(ListaEstadoService);
+  // CX3.2 — clave de pantalla para recordar filtros/página mientras la persona
+  // siga en Inventario (se limpia al cambiar de módulo o cerrar sesión).
+  private readonly ESTADO_KEY = 'inventario.entradas';
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -545,6 +560,17 @@ export class Entradas implements OnInit {
   resumenValido = computed(() => this.resumenItems().length > 0);
 
   async ngOnInit() {
+    // CX3.2 — restaura filtros/página si la persona ya estaba en esta pantalla
+    // dentro del mismo módulo (p. ej. volvió de ver el detalle de una entrada).
+    const guardado = this.listaEstado.obtener<EstadoEntradas>(this.ESTADO_KEY);
+    if (guardado) {
+      this.searchQuery.set(guardado.searchQuery);
+      this.selectedBodega.set(guardado.selectedBodega);
+      this.dateFrom.set(guardado.dateFrom);
+      this.dateTo.set(guardado.dateTo);
+      this.currentPage.set(guardado.currentPage);
+    }
+
     await this.loadAll();
     // CT3c — "Registrar entrada de esta orden" (Compras › Órdenes) llega con ?oc=<id>:
     // abre el drawer con esa OC ya precargada (misma precarga de onOrdenCompraChange).
@@ -553,6 +579,17 @@ export class Entradas implements OnInit {
       this.openCreate();
       await this.onOrdenCompraChange(ocId);
     }
+  }
+
+  // CX3.2 — se llama tras cada cambio de filtro/página.
+  private guardarEstado() {
+    this.listaEstado.guardar<EstadoEntradas>(this.ESTADO_KEY, {
+      searchQuery: this.searchQuery(),
+      selectedBodega: this.selectedBodega(),
+      dateFrom: this.dateFrom(),
+      dateTo: this.dateTo(),
+      currentPage: this.currentPage(),
+    });
   }
 
   private async loadAll() {
@@ -587,21 +624,25 @@ export class Entradas implements OnInit {
   onSearch(value: string) {
     this.searchQuery.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onBodegaChange(value: string) {
     this.selectedBodega.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onDateFromChange(value: string) {
     this.dateFrom.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onDateToChange(value: string) {
     this.dateTo.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   /** R12 — filtro de fechas unificado. */
@@ -609,6 +650,7 @@ export class Entradas implements OnInit {
     this.dateFrom.set(r.desde ?? '');
     this.dateTo.set(r.hasta ?? '');
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   clearFilters() {
@@ -617,6 +659,7 @@ export class Entradas implements OnInit {
     this.dateFrom.set('');
     this.dateTo.set('');
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   // ── Pagination ───────────────────────────────────────────
@@ -624,6 +667,7 @@ export class Entradas implements OnInit {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
+    this.guardarEstado();
   }
 
   get pages(): number[] {

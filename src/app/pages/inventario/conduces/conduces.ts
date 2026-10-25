@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import {
   ConduceListadoRow,
@@ -16,6 +17,20 @@ import { UserService } from '../../../core/services/user.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 type Tab = 'activos' | 'pendientes_entrega' | 'por_confirmar' | 'historico';
+
+// CX3.2 — snapshot de filtros/pestaña/página que se recuerda mientras la persona
+// siga en el módulo Inventario (ver ListaEstadoService).
+interface EstadoConduces {
+  tab: Tab;
+  searchQuery: string;
+  obraFilter: string;
+  origenFilter: string;
+  choferFilter: string;
+  responsableFilter: string;
+  desde: string;
+  hasta: string;
+  currentPage: number;
+}
 
 const FASE_LABELS: Record<string, string> = {
   emitido: 'Emitido',
@@ -40,6 +55,11 @@ export class Conduces implements OnInit {
   private salidasService = inject(SalidasService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
+  private route = inject(ActivatedRoute);
+  private listaEstado = inject(ListaEstadoService);
+  // CX3.2 — clave de pantalla para recordar filtros/pestaña/página mientras la
+  // persona siga en Inventario (se limpia al cambiar de módulo o cerrar sesión).
+  private readonly ESTADO_KEY = 'inventario.conduces';
 
   // BV7 — asignar chofer a un conduce sin chofer (logística/flota/admin).
   puedeAsignarChofer = computed(
@@ -207,6 +227,29 @@ export class Conduces implements OnInit {
   );
 
   async ngOnInit() {
+    // CX3.1 — deep link desde el Dashboard ("Entregas por confirmar" sin Bitácora
+    // → aquí, pestaña "Por confirmar"). Un link explícito gana sobre el estado
+    // recordado (CX3.2): la persona pidió ver justo eso.
+    const tabParam = this.route.snapshot.queryParamMap.get('tab') as Tab | null;
+    if (tabParam && this.TABS.some((t) => t.key === tabParam)) {
+      this.tab.set(tabParam);
+    } else {
+      // CX3.2 — restaura filtros/pestaña/página si la persona ya estaba en esta
+      // pantalla (p. ej. volvió de abrir un conduce) dentro del mismo módulo.
+      const guardado = this.listaEstado.obtener<EstadoConduces>(this.ESTADO_KEY);
+      if (guardado) {
+        this.tab.set(guardado.tab);
+        this.searchQuery.set(guardado.searchQuery);
+        this.obraFilter.set(guardado.obraFilter);
+        this.origenFilter.set(guardado.origenFilter);
+        this.choferFilter.set(guardado.choferFilter);
+        this.responsableFilter.set(guardado.responsableFilter);
+        this.desde.set(guardado.desde);
+        this.hasta.set(guardado.hasta);
+        this.currentPage.set(guardado.currentPage);
+      }
+    }
+
     this.loading.set(true);
     this.error.set('');
     try {
@@ -225,9 +268,25 @@ export class Conduces implements OnInit {
     }
   }
 
+  // CX3.2 — se llama tras cada cambio de filtro/pestaña/página.
+  private guardarEstado() {
+    this.listaEstado.guardar<EstadoConduces>(this.ESTADO_KEY, {
+      tab: this.tab(),
+      searchQuery: this.searchQuery(),
+      obraFilter: this.obraFilter(),
+      origenFilter: this.origenFilter(),
+      choferFilter: this.choferFilter(),
+      responsableFilter: this.responsableFilter(),
+      desde: this.desde(),
+      hasta: this.hasta(),
+      currentPage: this.currentPage(),
+    });
+  }
+
   setTab(t: Tab) {
     this.tab.set(t);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   // ── BV7 — asignar chofer ────────────────────────────────────────────────────
@@ -284,30 +343,37 @@ export class Conduces implements OnInit {
   onSearch(value: string) {
     this.searchQuery.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
   onObra(value: string) {
     this.obraFilter.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
   onOrigen(value: string) {
     this.origenFilter.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
   onChofer(value: string) {
     this.choferFilter.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
   onResponsable(value: string) {
     this.responsableFilter.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
   onDesde(value: string) {
     this.desde.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
   onHasta(value: string) {
     this.hasta.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   clearFilters() {
@@ -319,10 +385,12 @@ export class Conduces implements OnInit {
     this.desde.set('');
     this.hasta.set('');
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) this.currentPage.set(page);
+    this.guardarEstado();
   }
 
   get pages(): number[] {

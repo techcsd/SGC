@@ -423,8 +423,13 @@
             @for (i of s.items ?? []; track i.id) {
               <tr>
                 <td>
-                  {{ i.descripcion }}
-                  @if (!i.articulo_id) { <span class="req-detail__free">libre</span> }
+                  @if (articuloVinculado(i); as nombre) {
+                    {{ nombre }}
+                    @if (pidioTexto(i); as pidio) { <span class="req-detail__pidio">pidió: {{ pidio }}</span> }
+                  } @else {
+                    {{ i.descripcion }}
+                    @if (!i.articulo_id) { <span class="req-detail__free">libre</span> }
+                  }
                 </td>
                 <td>{{ i.cantidad }}</td>
                 <td class="text-muted">{{ i.unidad ?? '—' }}</td>

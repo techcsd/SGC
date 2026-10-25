@@ -205,15 +205,30 @@ export class Dashboard implements OnInit {
   modulosAccesibles = computed(() => this.allModules.filter((m) => this.canAccess(m.modulo)));
   modulosSinAcceso = computed(() => this.allModules.filter((m) => !this.canAccess(m.modulo)).length);
 
-  canSeeSolicitudes = computed(
-    () => this.isAdmin() || this.canAccess('inventario') || this.canAccess('compras'),
-  );
-  canSeeBitacora = computed(
-    () => this.isAdmin() || this.canAccess('proyectos') || this.canAccess('bitacora'),
-  );
-  canSeeEntregas = computed(
-    () => this.isAdmin() || this.canAccess('inventario') || this.canAccess('proyectos'),
-  );
+  // CX3.1 — cada tarjeta del inicio debe llevar a donde la persona SÍ puede
+  // entrar; si no hay ningún destino permitido, la tarjeta no se muestra (en vez
+  // de prometer algo que su botón no deja abrir, como pasaba con "Entregas por
+  // confirmar" → 403 para Raykler, almacén con Inventario pero sin Bitácora).
+  //
+  // "Solicitudes pendientes" mezcla material (Inventario) y compra (Compras); el
+  // guard real de /inventario/salidas no es por módulo (puedeCrearConduceGuard),
+  // así que un compras-sin-inventario va a /compras/ordenes en su lugar.
+  solicitudesDestino = computed<{ ruta: string; label: string } | null>(() => {
+    if (this.isAdmin() || this.canAccess('inventario')) return { ruta: '/inventario/salidas', label: 'Solicitudes pendientes' };
+    if (this.canAccess('compras')) return { ruta: '/compras/ordenes', label: 'Solicitudes pendientes' };
+    return null;
+  });
+  // /bitacora/historial exige el módulo Bitácora exacto (moduleGuard('bitacora'));
+  // Proyectos no tiene una vista equivalente de conteo de bitácoras, así que sin
+  // Bitácora la tarjeta no se muestra (no hay a dónde llevar).
+  canSeeBitacora = computed(() => this.isAdmin() || this.canAccess('bitacora'));
+  // /bitacora/entregas exige el módulo Bitácora; sin él, Inventario › Conduces
+  // (pestaña "Por confirmar") es el destino equivalente para almacén.
+  entregasDestino = computed<{ ruta: string; queryParams?: Record<string, string> } | null>(() => {
+    if (this.isAdmin() || this.canAccess('bitacora')) return { ruta: '/bitacora/entregas' };
+    if (this.canAccess('inventario')) return { ruta: '/inventario/conduces', queryParams: { tab: 'por_confirmar' } };
+    return null;
+  });
 
   // ── Raw data signals ─────────────────────────────────────
   private articulos = signal<{ id: string; precio_estimado: number | null; stock_minimo: number; activo: boolean; categoria_id: number; categoria?: { nombre: string } }[]>([]);
@@ -442,6 +457,11 @@ export class Dashboard implements OnInit {
   // ── Ranking de Encargados (compacto; sin exponer montos) ──
   private kpiRaw = signal<KpiProyectoRaw[]>([]);
   canSeeRanking = computed(() => this.canSee('proyectos') || this.canSee('direccion'));
+  // CX3.1 — el footer "Ver ranking completo" lleva a /proyectos/kpi, cuyo guard
+  // real es el submódulo proyectos.ranking (no "módulo proyectos O direccion"):
+  // alguien con solo el módulo Dirección puede ver este resumen pero chocar con
+  // 403 al pedir el detalle completo si su rol no tiene ese submódulo granular.
+  canSeeRankingCompleto = computed(() => this.isAdmin() || this.userService.puedeVerSubmodulo('proyectos.ranking'));
   ranking = computed(() => {
     return [...this.kpiRaw()]
       .map((k) => {

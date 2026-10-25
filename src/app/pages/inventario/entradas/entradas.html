@@ -247,7 +247,7 @@
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option [value]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">Seleccionar almacén…</option>
           @for (b of bodegasVisibles(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
@@ -290,7 +290,7 @@
         <label for="origen_proyecto_id">Obra de origen <span class="required">*</span></label>
         <select id="origen_proyecto_id" formControlName="origen_proyecto_id"
                 (change)="onOrigenProyectoChange($any($event.target).value)">
-          <option [value]="null">Seleccionar obra…</option>
+          <option [ngValue]="null">Seleccionar obra…</option>
           @for (p of obrasActivas(); track p.id) {
             <option [value]="p.id">{{ p.codigo ? p.codigo + ' — ' : '' }}{{ p.nombre }}</option>
           }
@@ -313,7 +313,7 @@
       <div class="sgc-field">
         <label for="proveedor_id">Proveedor</label>
         <select id="proveedor_id" formControlName="proveedor_id">
-          <option [value]="null">Sin proveedor</option>
+          <option [ngValue]="null">Sin proveedor</option>
           @for (p of activeProveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -328,7 +328,7 @@
           formControlName="orden_compra_id"
           (change)="onOrdenCompraChange($any($event.target).value)"
         >
-          <option [value]="null">Sin orden asociada</option>
+          <option [ngValue]="null">Sin orden asociada</option>
           @for (o of ordenesRecibibles(); track o.id) {
             <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
           }

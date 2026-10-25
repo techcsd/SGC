@@ -3,6 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ReportesUsuarioService } from '../../../../shared/services/reportes-usuario.service';
 import { UserService } from '../../../core/services/user.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { LightboxService } from '../../../../shared/ui/lightbox/lightbox.service';
 import {
   ReporteUsuario,
   ReporteFoto,
@@ -25,6 +26,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 export class AdminReportes implements OnInit {
   private reportesService = inject(ReportesUsuarioService);
   private userService = inject(UserService);
+  private lightbox = inject(LightboxService);
 
   readonly TIPO_LABELS = REPORTE_TIPO_LABELS;
   readonly ESTADO_LABELS = REPORTE_ESTADO_LABELS;
@@ -134,6 +136,14 @@ export class AdminReportes implements OnInit {
     }
   }
 
+  // CX4 — toda la fila/tarjeta abre el detalle; accesible por teclado (Enter/Espacio).
+  onRowKeydown(e: KeyboardEvent, r: ReporteUsuario) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.openDetail(r);
+    }
+  }
+
   openDetail(r: ReporteUsuario) {
     this.selected.set(r);
     this.saveError.set('');
@@ -158,6 +168,16 @@ export class AdminReportes implements OnInit {
 
   getFotoUrl(f: ReporteFoto): string {
     return this.fotoUrls().get(f.id) ?? '';
+  }
+
+  // CX5 — abre el visor de pantalla completa compartido (shared/ui/lightbox) en vez
+  // de la pestaña nueva de antes; con flechas/contador si el reporte trae varias.
+  verFoto(index: number) {
+    const r = this.selected();
+    if (!r) return;
+    const urls = (r.fotos ?? []).map((f) => this.getFotoUrl(f)).filter(Boolean);
+    if (!urls.length) return;
+    this.lightbox.abrirGaleria(urls, index, r.asunto);
   }
 
   closeDrawer() {

@@ -599,5 +599,9 @@
   "Cancelada": "Cancelled",
   "Faltan:": "Missing:",
   "Descartar": "Discard",
-  "Abrir formulario": "Open form"
+  "Abrir formulario": "Open form",
+  "Solo con error": "Only with errors",
+  "Todas las herramientas": "All tools",
+  "Todas las personas": "All people",
+  "Ver más": "See more"
 }

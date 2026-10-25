@@ -820,7 +820,7 @@
         <select
           class="proyectos__select"
           [value]="filterSector()"
-          (change)="filterSector.set($any($event.target).value ? +$any($event.target).value : null)"
+          (change)="onFilterSector($any($event.target).value)"
           aria-label="Filtrar por sector"
         >
           <option [value]="null">Todos los sectores</option>
@@ -1141,7 +1141,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="tipo">Tipo</label>
         <select id="tipo" class="proyectos__select proyectos__input" formControlName="tipo">
-          <option [value]="null">Seleccionar tipo</option>
+          <option [ngValue]="null">Seleccionar tipo</option>
           @for (t of PROYECTO_TIPOS; track t.value) {
             <option [value]="t.value">{{ t.label }}</option>
           }
@@ -1162,7 +1162,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="responsable_id">Ingeniero principal</label>
         <select id="responsable_id" class="proyectos__select proyectos__input" formControlName="responsable_id">
-          <option [value]="null">Sin responsable</option>
+          <option [ngValue]="null">Sin responsable</option>
           @for (u of usuarios(); track u.id) {
             <option [value]="u.id">{{ u.nombre }}</option>
           }
@@ -1250,7 +1250,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="zona">Zona / región</label>
         <select id="zona" class="proyectos__input" formControlName="zona">
-          <option [value]="null">— Sin zona —</option>
+          <option [ngValue]="null">— Sin zona —</option>
           @for (z of zonasRd; track z) { <option [value]="z">{{ z }}</option> }
         </select>
       </div>

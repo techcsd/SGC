@@ -42,7 +42,7 @@
     <div class="sgc-field">
       <label for="re-comb">Nivel de combustible <span class="required">*</span></label>
       <select id="re-comb" formControlName="combustible">
-        <option [value]="null">Seleccionar…</option>
+        <option [ngValue]="null">Seleccionar…</option>
         @for (n of NIVELES; track n) { <option [value]="n">{{ n }}</option> }
       </select>
       @if (form.controls.combustible.invalid && form.controls.combustible.touched) {

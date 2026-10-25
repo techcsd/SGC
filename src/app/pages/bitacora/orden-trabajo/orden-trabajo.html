@@ -24,7 +24,7 @@
           <label for="proyecto_id">Obra / Proyecto <span class="required">*</span></label>
           <select id="proyecto_id" formControlName="proyecto_id"
                   [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-            <option [value]="null">Seleccionar obra…</option>
+            <option [ngValue]="null">Seleccionar obra…</option>
             @for (p of proyectosVisibles(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }

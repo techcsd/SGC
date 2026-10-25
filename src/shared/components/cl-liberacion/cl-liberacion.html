@@ -26,7 +26,7 @@
             <span class="cl__label">Tipo de checklist <span class="required">*</span></span>
             <select
               [value]="fPlantillaId()"
-              (change)="onPlantillaChange($any($event.target).value || null)"
+              (change)="onPlantillaChange(cleanUuid($any($event.target).value))"
             >
               <option [value]="null">Selecciona un CL…</option>
               @for (p of plantillas(); track p.id) {
@@ -37,7 +37,7 @@
 
           <label class="sgc-field">
             <span class="cl__label">Elemento (opcional)</span>
-            <select [value]="fElementoId()" (change)="fElementoId.set($any($event.target).value || null)">
+            <select [value]="fElementoId()" (change)="fElementoId.set(cleanUuid($any($event.target).value))">
               <option [value]="null">Sin elemento…</option>
               @for (el of elementos(); track el.id) {
                 <option [value]="el.id">{{ elementoLabel(el.id) }}</option>
@@ -47,7 +47,7 @@
 
           <label class="sgc-field">
             <span class="cl__label">Vaciado (opcional)</span>
-            <select [value]="fVaciadoId()" (change)="fVaciadoId.set($any($event.target).value || null)">
+            <select [value]="fVaciadoId()" (change)="fVaciadoId.set(cleanUuid($any($event.target).value))">
               <option [value]="null">Sin vaciado…</option>
               @for (v of vaciados(); track v.id) {
                 <option [value]="v.id">N° {{ v.numero ?? '—' }}</option>
@@ -361,7 +361,7 @@
                         <div class="cl__form-grid">
                           <label class="sgc-field">
                             <span class="cl__label">Rol que firma</span>
-                            <select [value]="firmaRol()" (change)="onFirmaRolChange($any($event.target).value || null)">
+                            <select [value]="firmaRol()" (change)="onFirmaRolChange(cleanUuid($any($event.target).value))">
                               <option [value]="null">Selecciona…</option>
                               @for (rol of CL_FIRMA_ROLES; track rol.value) {
                                 <option [value]="rol.value" [disabled]="rolYaFirmado(r, rol.value)">

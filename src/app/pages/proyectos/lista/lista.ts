@@ -59,6 +59,7 @@ import { WeatherCard } from '../../../../shared/context/weather-card/weather-car
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { UserService } from '../../../core/services/user.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
@@ -515,6 +516,13 @@ export class Lista implements OnInit {
 
   onZonaChange(value: string) {
     this.filterZona.set(value);
+  }
+
+  // CX3.3 — <select> nativo sin formControlName/ngModel: `cleanUuid` normaliza el
+  // sentinel "null"/"" del DOM antes de convertir a número (evitaba +"null" = NaN).
+  onFilterSector(value: string) {
+    const limpio = cleanUuid(value);
+    this.filterSector.set(limpio ? +limpio : null);
   }
 
   clearFilters() {

@@ -12,7 +12,18 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+
+// CX3.2 — snapshot de filtros/página recordado mientras la persona siga en
+// Inventario (ver ListaEstadoService).
+interface EstadoMovimientos {
+  selectedBodega: string;
+  selectedTipo: string;
+  dateFrom: string;
+  dateTo: string;
+  page: number;
+}
 
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
@@ -29,6 +40,10 @@ export class Movimientos implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private datosPruebaView = inject(DatosPruebaViewService);
+  private listaEstado = inject(ListaEstadoService);
+  // CX3.2 — clave de pantalla para recordar filtros/página mientras la persona
+  // siga en Inventario (se limpia al cambiar de módulo o cerrar sesión).
+  private readonly ESTADO_KEY = 'inventario.movimientos';
 
   formatFecha = formatFechaDisplay;
 
@@ -79,9 +94,21 @@ export class Movimientos implements OnInit {
   );
 
   async ngOnInit() {
-    // U16 — pre-filtrar por almacén al entrar desde "Ver movimientos".
+    // U16 — pre-filtrar por almacén al entrar desde "Ver movimientos" (deep-link
+    // explícito; gana sobre el estado recordado, CX3.2).
     const bodega = this.route.snapshot.queryParamMap.get('bodega');
-    if (bodega) this.selectedBodega.set(bodega);
+    if (bodega) {
+      this.selectedBodega.set(bodega);
+    } else {
+      const guardado = this.listaEstado.obtener<EstadoMovimientos>(this.ESTADO_KEY);
+      if (guardado) {
+        this.selectedBodega.set(guardado.selectedBodega);
+        this.selectedTipo.set(guardado.selectedTipo);
+        this.dateFrom.set(guardado.dateFrom);
+        this.dateTo.set(guardado.dateTo);
+        this.page.set(guardado.page);
+      }
+    }
     this.loading.set(true);
     this.error.set('');
     try {
@@ -118,18 +145,34 @@ export class Movimientos implements OnInit {
     }
   }
 
-  onBodega(v: string) { this.selectedBodega.set(v); this.page.set(1); }
-  onTipo(v: string) { this.selectedTipo.set(v); this.page.set(1); }
-  onFrom(v: string) { this.dateFrom.set(v); this.page.set(1); }
-  onTo(v: string) { this.dateTo.set(v); this.page.set(1); }
+  // CX3.2 — el paginador usa [page]/(pageChange) en vez de [(page)] para poder
+  // guardar el estado también cuando solo cambia la página.
+  onPageChange(p: number) { this.page.set(p); this.guardarEstado(); }
+
+  onBodega(v: string) { this.selectedBodega.set(v); this.page.set(1); this.guardarEstado(); }
+  onTipo(v: string) { this.selectedTipo.set(v); this.page.set(1); this.guardarEstado(); }
+  onFrom(v: string) { this.dateFrom.set(v); this.page.set(1); this.guardarEstado(); }
+  onTo(v: string) { this.dateTo.set(v); this.page.set(1); this.guardarEstado(); }
   /** R12 — filtro de fechas unificado (presets + rango). */
-  onRango(r: RangoFecha) { this.dateFrom.set(r.desde ?? ''); this.dateTo.set(r.hasta ?? ''); this.page.set(1); }
+  onRango(r: RangoFecha) { this.dateFrom.set(r.desde ?? ''); this.dateTo.set(r.hasta ?? ''); this.page.set(1); this.guardarEstado(); }
   clearFilters() {
     this.selectedBodega.set('');
     this.selectedTipo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
     this.page.set(1);
+    this.guardarEstado();
+  }
+
+  // CX3.2 — se llama tras cada cambio de filtro/página.
+  private guardarEstado() {
+    this.listaEstado.guardar<EstadoMovimientos>(this.ESTADO_KEY, {
+      selectedBodega: this.selectedBodega(),
+      selectedTipo: this.selectedTipo(),
+      dateFrom: this.dateFrom(),
+      dateTo: this.dateTo(),
+      page: this.page(),
+    });
   }
 
   /** Exporta los movimientos filtrados a Excel. */

@@ -202,7 +202,7 @@
           formControlName="proveedor_id"
           [class.invalid]="f.proveedor_id.invalid && f.proveedor_id.touched"
         >
-          <option [value]="null">Seleccionar proveedor…</option>
+          <option [ngValue]="null">Seleccionar proveedor…</option>
           @for (p of activeProveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -245,7 +245,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">Proyecto <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [value]="null">Seleccionar proyecto…</option>
+          <option [ngValue]="null">Seleccionar proyecto…</option>
           @for (proy of proyectos(); track proy.id) {
             <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
           }
