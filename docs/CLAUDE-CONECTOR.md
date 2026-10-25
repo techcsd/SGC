@@ -392,13 +392,17 @@ visibilidad admin (`conexiones_claude`, `estado_envios_automaticos`,
 `proponer_nota_de_version`). Migración `sql/2026-10-25-cy-conector-fases-3-4-5.sql`.
 Todas `canales: ['mcp']`.
 
-**4 ítems quedan deliberadamente fuera** (decisión de arquitectura confirmada
-por un patrón de seguridad ya existente, no un olvido): `sesiones_de_usuario` y
-`proponer_cambio_usuario` — las RPCs equivalentes (`mis_sesiones`,
+**✅ 4 ítems quedan fuera por decisión final de Xaviel (25-oct-2026, preguntado
+directo — no es una omisión ni algo pendiente de decidir)**: `sesiones_de_usuario`
+y `proponer_cambio_usuario` — las RPCs equivalentes (`mis_sesiones`,
 `assign_roles`) YA llaman `sgc.rechazar_si_cliente_oauth()`, es decir, el
-proyecto ya decidió que esa familia no se expone a un cliente OAuth como Claude
-Desktop; `reintentar_sync_calendario` y `proponer_revocar_conexion_claude`
-necesitarían que el mecanismo de confirmar un borrador invoque OTRA edge
-function (hoy solo ejecuta RPCs) — detalle completo en `PERMISOS-TOOLS.md`. No
-queda ninguna fase pendiente de la nota de Xaviel salvo estas 4 decisiones de
-arquitectura, explícitamente señaladas para que él decida si construirlas aparte.
+proyecto ya había decidido que esa familia no se expone a un cliente OAuth como
+Claude Desktop, y Xaviel confirmó mantenerlo así; `reintentar_sync_calendario` y
+`proponer_revocar_conexion_claude` necesitarían que el mecanismo de confirmar un
+borrador invoque OTRA edge function (hoy solo ejecuta RPCs) — Xaviel confirmó no
+extenderlo por estos 2 casos de uso bajo; `cambios_pendientes_de_publicar`/
+`version_por_usuario` y `avisos_de_seguridad` necesitan infraestructura nueva que
+Xaviel confirmó que no vale la pena todavía — detalle completo en
+`PERMISOS-TOOLS.md`. **Con esto, el "SGC Connector – Full Access Improvement
+Plan" de Xaviel queda completo: las 5 fases están construidas o decididas
+explícitamente en su contra — nada sigue abierto.**

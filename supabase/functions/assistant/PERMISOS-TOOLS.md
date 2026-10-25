@@ -216,36 +216,41 @@ update/insert con la MISMA RLS, sin lógica de negocio nueva):**
 | `proponer_probar_envio` | `envio_automatico_probar` (ya existía, CU3) | sí |
 | `proponer_nota_de_version` | `registrar_version` (ya existía) — ya es idempotente ("solo rellena lo vacío") | sí |
 
-**Deliberadamente NO construido esta ronda** (decisión de arquitectura, no un
-olvido — detalle completo en el comentario de cabecera de
-`sql/2026-10-25-cy-conector-fases-3-4-5.sql`):
-- **`sesiones_de_usuario`** (ver sesiones de OTRO usuario): `mis_sesiones()` y
-  `cerrar_mi_sesion()` YA llaman `sgc.rechazar_si_cliente_oauth()` — el propio
-  proyecto ya decidió que esta familia no se expone a un cliente OAuth (Claude
-  Desktop lo es). Iría contra una decisión de seguridad ya tomada.
-- **`proponer_cambio_usuario`** (activar/desactivar, roles): `assign_roles()`
-  TAMBIÉN llama `rechazar_si_cliente_oauth()` — confirma el mismo criterio;
-  además activar/desactivar pasa por una edge function (banea en Auth, no solo
-  un flag), sin RPC equivalente.
+**✅ DECIDIDO — NO se construyen (confirmado por Xaviel, 25-oct-2026, las 4
+preguntas directas sobre estos puntos — no quedan pendientes, es una decisión
+cerrada, no un "todavía no"):**
+- **`sesiones_de_usuario`** (ver sesiones de OTRO usuario) y
+  **`proponer_cambio_usuario`** (activar/desactivar, roles): `mis_sesiones()`/
+  `cerrar_mi_sesion()`/`assign_roles()` YA llaman `sgc.rechazar_si_cliente_oauth()`
+  — el propio proyecto ya había decidido que esta familia no se expone a un
+  cliente OAuth (Claude Desktop lo es); Xaviel confirmó mantener ese bloqueo tal
+  cual. Además, activar/desactivar pasa por una edge function (banea en Auth,
+  no solo un flag), sin RPC equivalente.
 - **`reintentar_sync_calendario`**, **`proponer_revocar_conexion_claude`**: la
   acción real en ambos casos es invocar OTRA edge function
   (`reuniones-calendar`, `claude-conexiones`), no un RPC — el mecanismo de
   confirmar un borrador (`claude-borrador`) solo ejecuta `supabase.rpc(...)`,
-  nunca invoca otra edge. Extender ese mecanismo es una decisión de
-  arquitectura aparte (afectaría TODOS los borradores, no solo estos dos).
+  nunca invoca otra edge. Xaviel confirmó NO extender ese mecanismo compartido
+  (afectaría los otros 17 borradores) por el uso bajo esperado de estas 2.
 - **`proponer_echada_combustible`** (ejecutar, no solo preparar):
   `registrar_combustible_app` exige fotos de evidencia que un borrador de chat
   no tiene — por eso ya existe `preparar_echada` (CV1, "abrir formulario"), que
   se queda como está.
 - **`cambios_pendientes_de_publicar` / `version_por_usuario`**: no existe
-  ninguna tabla que trackee qué versión usa cada usuario ahora mismo — haría
-  falta infraestructura nueva (reportar versión activa por sesión), no un SELECT.
-  Marcado "Low" en la nota de Xaviel.
+  ninguna tabla que trackee qué versión usa cada usuario ahora mismo. Xaviel
+  confirmó que no vale la pena la infraestructura nueva (reportar versión activa
+  por sesión en app y web) para una necesidad que no ha aparecido todavía.
 - **`avisos_de_seguridad`**: el Security Advisor de Supabase solo se audita
-  on-demand vía Management API (`scripts/audit-public-schema-cu2.mjs`) — no hay
-  tabla persistida que una RPC pueda leer.
+  on-demand vía Management API (`scripts/audit-public-schema-cu2.mjs`). Xaviel
+  confirmó dejarlo manual — automatizarlo le daría a un tercero (Claude)
+  visibilidad sobre vulnerabilidades del sistema, más sensible que el resto del
+  conector.
 - **SQL de solo lectura sobre vistas `v_*`**: la propia nota de Xaviel lo marca
-  "Not now" en su tabla de decisiones.
+  "Not now" en su tabla de decisiones (sin cambio).
+
+**Con esto, el "SGC Connector – Full Access Improvement Plan" de Xaviel (23-oct-2026)
+queda completo** — las 5 fases de la nota están construidas o decididas
+explícitamente en su contra, ninguna sigue "pendiente de decisión".
 
 **Hallazgo lateral (no relacionado con el conector):** el smoke de esta ronda
 encontró `sgc.solicitudes_material_folio_seq` desincronizada en dev
