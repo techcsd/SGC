@@ -273,9 +273,9 @@
     },
     {
       "pantalla": "inventario/requisiciones",
-      "total": 239,
+      "total": 241,
       "cubiertos": 0,
-      "sin": 239,
+      "sin": 241,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -400,7 +400,9 @@
         "Unidad",
         "Talla",
         "@for (i of s.items ?? []; track i.id) {",
-        "@if (!i.articulo_id) {",
+        "@if (articuloVinculado(i); as nombre) { @if (pidioTexto(i); as pidio) {",
+        "pidió:",
+        "} } @else { @if (!i.articulo_id) {",
         "libre",
         "} @empty {",
         "Sin renglones.",
@@ -1425,9 +1427,9 @@
     },
     {
       "pantalla": "admin/reportes",
-      "total": 49,
+      "total": 50,
       "cubiertos": 0,
-      "sin": 49,
+      "sin": 50,
       "pct": 0,
       "enScope": false,
       "enforce": false,
@@ -1463,7 +1465,7 @@
         "reporte encontrado",
         "@if (selected(); as r) {",
         "Fotos ( )",
-        "@for (foto of r.fotos; track foto.id) { @let url = getFotoUrl(foto); @if (url) {",
+        "@for (foto of r.fotos; track foto.id; let i = $index) { @let url = getFotoUrl(foto); @if (url) {",
         "} @else {",
         "Estado",
         "Abierto",
@@ -1480,7 +1482,8 @@
         "Filtrar por tipo",
         "Lista de reportes",
         "Foto del reporte",
-        "Escribe una respuesta o nota de resolución..."
+        "Escribe una respuesta o nota de resolución...",
+        "Ver detalle:"
       ]
     },
     {
@@ -3624,9 +3627,9 @@
     },
     {
       "pantalla": "dashboard",
-      "total": 141,
+      "total": 143,
       "cubiertos": 0,
-      "sin": 141,
+      "sin": 143,
       "pct": 0,
       "enScope": false,
       "enforce": false,
@@ -3675,11 +3678,11 @@
         "Documentos de flota por vencer",
         "Checklists de hoy",
         "Vehículos activos",
-        "} @if (canSeeSolicitudes()) {",
+        "} @if (solicitudesDestino(); as destSol) {",
         "Solicitudes pendientes",
         "} @if (canSeeBitacora()) {",
         "Bitácoras esta semana",
-        "} @if (canSeeEntregas()) {",
+        "} @if (entregasDestino(); as destEnt) {",
         "Entregas por confirmar",
         "Entregas incompletas (30 días)",
         "} @if (canAccess('legal') || isAdmin()) {",
@@ -3741,14 +3744,16 @@
         "Ranking de encargados",
         "@for (r of ranking(); track r.proyecto) {",
         "· avance %",
+        "@if (canSeeRankingCompleto()) {",
         "Ver ranking completo →",
-        "@if (canSeeSolicitudes()) {",
+        "@if (solicitudesDestino(); as destSolSeccion) {",
         "Solicitudes pendientes",
         "@if (solicitudesRecientes().length === 0) {",
         "Sin solicitudes pendientes de ingenieros de campo.",
         "} @else {",
         "@for (s of solicitudesRecientes(); track s.created_at + s.tipo) {",
         "pendiente(s) en total — ver en Inventario o Compras.",
+        "@if (canSee('flota')) {",
         "Próximos mantenimientos (7 días)",
         "@if (proximosMantenimientos().length === 0) {",
         "Sin mantenimientos programados esta semana.",
@@ -14936,6 +14941,26 @@
       ]
     },
     {
+      "pantalla": "admin/claude",
+      "total": 35,
+      "cubiertos": 26,
+      "sin": 9,
+      "pct": 74,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (resumen(); as r) {",
+        "@for (c of conexiones(); track c.usuario_id) {",
+        "} @empty { @if (!cargando()) {",
+        "@for (h of filtros().herramientas; track h) {",
+        "@for (p of filtros().personas; track p.id) {",
+        "@for (l of llamadas(); track l.hora + l.herramienta + l.usuario_id) {",
+        "@if (!l.ok && l.error) {",
+        "} @empty { @if (!cargandoLlamadas()) {",
+        "} } @if (hayMas()) {"
+      ]
+    },
+    {
       "pantalla": "oauth-consent",
       "total": 24,
       "cubiertos": 18,
@@ -14950,22 +14975,6 @@
         "Cl",
         "@if (!clienteConfiable()) {",
         "@if (d.redirect_uri) {"
-      ]
-    },
-    {
-      "pantalla": "admin/claude",
-      "total": 28,
-      "cubiertos": 23,
-      "sin": 5,
-      "pct": 82,
-      "enScope": false,
-      "enforce": false,
-      "faltantes": [
-        "@if (resumen(); as r) {",
-        "@for (c of conexiones(); track c.usuario_id) {",
-        "} @empty { @if (!cargando()) {",
-        "@for (l of llamadas(); track l.hora + l.herramienta) {",
-        "} @empty { @if (!cargando()) {"
       ]
     }
   ]

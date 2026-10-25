@@ -358,3 +358,19 @@ los módulos de `MODULOS_DISPONIBLES` (+ las pantallas "siempre visibles" —
 Dev notes/Notas, Mensajes, Soporte, Requisiciones) contra `modulos` en
 `_shared/herramientas.ts`, y contra la tabla de exenciones de esta sección.
 Falla si un módulo no aparece en ninguna de las dos.
+
+## §12. CX2 (24-oct-2026) — fase 1 del plan de acceso completo de Xaviel
+
+9 herramientas nuevas, **solo canal `mcp`** (no Compa — ver justificación y
+tabla completa en `supabase/functions/assistant/PERMISOS-TOOLS.md` sección
+"CX2"): `listar_reportes_soporte`, `detalle_reporte_soporte`,
+`resumen_reportes_soporte`, `cambiar_estado_reporte` (escritura directa,
+admin-only), `ver_gaps_registrados` (reusa `consultas_no_atendidas_listado`,
+ya existía), `detalle_nota`, `crear_nota` (escritura directa), `actualizar_nota`
+(escritura directa), `mover_nota_a_grupo` (escritura directa). Migración
+`sql/2026-10-24-cx2-conector-soporte-notas.sql`. Nuevo modo de ejecución,
+`escrituraDirecta` (distinto de `write`/borrador): ejecuta YA MISMO con los
+permisos reales de quien llama — reservado a lo que la nota de Xaviel marcó
+bajo riesgo (notas propias, estado de un reporte de soporte). Fases 3-5 de la
+nota (visibilidad admin, más `proponer_*`, dev/ops) **no se empezaron** —
+quedan listadas en `PERMISOS-TOOLS.md`.

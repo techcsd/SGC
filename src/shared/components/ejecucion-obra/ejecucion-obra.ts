@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { ObraEjecucionService } from '../../services/obra-ejecucion.service';
 import { ToastService } from '../../services/toast.service';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../utils/fecha.util';
+import { cleanUuid } from '../../utils/uuid.util';
 import {
   ObraElemento,
   ObraVaciado,
@@ -62,6 +63,10 @@ export class EjecucionObra {
     () => this.ncs().filter((n) => n.estado === 'abierta' && n.bloquea_vaciado).length,
   );
   openCount = computed(() => this.ncs().filter((n) => n.estado === 'abierta').length);
+
+  // CX3.3 — <select> nativo sin formControlName/ngModel: el (change) del template
+  // normaliza el sentinel "null"/"" del DOM antes de llegar a estos signals.
+  readonly cleanUuid = cleanUuid;
 
   // ── NC form ────────────────────────────────────────────────
   ncDescripcion = signal('');

@@ -347,7 +347,7 @@
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option [value]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">Seleccionar almacén…</option>
           @for (b of bodegasVisibles(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
@@ -381,7 +381,7 @@
           formControlName="motivo"
           [class.invalid]="f.motivo.invalid && f.motivo.touched"
         >
-          <option [value]="null">Seleccionar motivo…</option>
+          <option [ngValue]="null">Seleccionar motivo…</option>
           @for (m of MOTIVOS_SALIDA; track m.value) {
             <option [value]="m.value">{{ m.label }}</option>
           }
@@ -396,7 +396,7 @@
         <div class="sgc-field">
           <label for="proyecto_id">Obra destino</label>
           <select id="proyecto_id" formControlName="proyecto_id">
-            <option [value]="null">Sin proyecto</option>
+            <option [ngValue]="null">Sin proyecto</option>
             @for (p of activeProyectos(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }
@@ -416,7 +416,7 @@
           <div class="sgc-field">
             <label for="receptor_usuario_id">Receptor en la obra (opcional)</label>
             <select id="receptor_usuario_id" formControlName="receptor_usuario_id">
-              <option [value]="null">Sin designar (se confirma en la entrega)</option>
+              <option [ngValue]="null">Sin designar (se confirma en la entrega)</option>
               @for (r of receptores(); track r.id) {
                 <option [value]="r.id">{{ r.nombre }}{{ r.detalle ? ' · ' + r.detalle : '' }}</option>
               }
@@ -438,7 +438,7 @@
         <div class="sgc-field">
           <label for="despachante_usuario_id">Despachante (opcional)</label>
           <select id="despachante_usuario_id" formControlName="despachante_usuario_id">
-            <option [value]="null">Sin designar (firma en mostrador al despachar)</option>
+            <option [ngValue]="null">Sin designar (firma en mostrador al despachar)</option>
             @for (d of despachantes(); track d.id) {
               @if (d.tipo === 'usuario') {
                 <option [value]="d.id">{{ d.nombre }}{{ d.detalle ? ' · ' + d.detalle : '' }}</option>
@@ -455,7 +455,7 @@
         <div class="sgc-field">
           <label for="conductor_id">Chofer (opcional)</label>
           <select id="conductor_id" formControlName="conductor_id">
-            <option [value]="null">Sin asignar (se entrega en mostrador)</option>
+            <option [ngValue]="null">Sin asignar (se entrega en mostrador)</option>
             @for (c of conductores(); track c.id) {
               <option [value]="c.id">{{ c.nombre }}</option>
             }
@@ -468,7 +468,7 @@
         <div class="sgc-field">
           <label for="vehiculo_id">Vehículo (opcional)</label>
           <select id="vehiculo_id" formControlName="vehiculo_id">
-            <option [value]="null">Sin asignar</option>
+            <option [ngValue]="null">Sin asignar</option>
             @for (ve of vehiculos(); track ve.id) {
               <option [value]="ve.id">{{ ve.label }}</option>
             }
@@ -481,7 +481,7 @@
         <div class="sgc-field">
           <label for="destino_almacen_id">Almacén destino <span class="required">*</span></label>
           <select id="destino_almacen_id" formControlName="destino_almacen_id">
-            <option [value]="null">Seleccionar almacén…</option>
+            <option [ngValue]="null">Seleccionar almacén…</option>
             @for (a of almacenesDestino(); track a.id) {
               <option [value]="a.id">{{ a.nombre }} · Central</option>
             }

@@ -171,7 +171,7 @@
       <div class="sgc-field">
         <label for="conductor_id">Conductor</label>
         <select id="conductor_id" formControlName="conductor_id">
-          <option [value]="null">Sin conductor…</option>
+          <option [ngValue]="null">Sin conductor…</option>
           @for (c of conductoresVisibles(); track c.id) {
             <option [value]="c.id">{{ c.nombre }}</option>
           }
@@ -203,7 +203,7 @@
         (change)="onPlantillaChange($any($event.target).value)"
         [class.invalid]="f.plantilla_id.invalid && f.plantilla_id.touched"
       >
-        <option [value]="null">Seleccionar plantilla…</option>
+        <option [ngValue]="null">Seleccionar plantilla…</option>
         @if (plantillasPreuso().length > 0) {
           <optgroup label="Uso de vehículo (inspección diaria)">
             @for (p of plantillasPreuso(); track p.id) {
@@ -244,7 +244,7 @@
     <div class="sgc-field">
       <label for="nivel_combustible">Nivel de combustible</label>
       <select id="nivel_combustible" formControlName="nivel_combustible">
-        <option [value]="null">—</option>
+        <option [ngValue]="null">—</option>
         @for (n of NIVELES; track n) { <option [value]="n">{{ n }}</option> }
       </select>
     </div>

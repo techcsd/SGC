@@ -1,5 +1,50 @@
 {
   "web": {
+    "1.200.0": {
+      "titulo": "Entregas por confirmar sin error 403; filtros que se mantienen en Inventario; error al recibir mercancía resuelto; Comentarios y Reportes con un clic",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Dashboard",
+          "d": "La tarjeta «Entregas por confirmar» (y «Entregas incompletas») ya no manda a quien no tiene el módulo Bitácora a una pantalla de «Acceso restringido»: ahora lleva a Inventario › Conduces, pestaña «Por confirmar». Se revisaron todas las tarjetas del inicio con la misma regla: solo se muestran si la persona de verdad puede abrir su destino."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Los filtros, la pestaña y la página de Conduces, Entradas, Salidas, Requisiciones y Movimientos ahora se mantienen mientras sigas en Inventario (por ejemplo, al abrir un conduce y volver). Se limpian solo al cambiar de módulo o cerrar sesión."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Al recibir mercancía eligiendo «Sin orden asociada» o «Sin proveedor» ya no aparece el error «invalid input syntax for type uuid». Se revisó el mismo defecto en el resto de la aplicación (97 listas desplegables) y se agregó una validación automática para que no vuelva a aparecer."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Cuando se le asigna el artículo correcto a un renglón de requisición que llegó como texto libre, ahora se ve ese artículo en vez del texto original (que queda abajo, en chico, como «pidió: …»)."
+        },
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Las fotos (de un reporte, por ejemplo) se pueden ver en grande dentro de la misma pantalla, con flechas y contador si hay varias — en vez de abrirse en otra pestaña."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "En «Comentarios y Reportes», toda la fila abre el detalle con un solo clic (antes había que acertarle al botón «Ver»), y el detalle ahora sale como ventana centrada con el fondo desenfocado en vez de panel lateral."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "El módulo «Claude» ahora deja ver TODAS las llamadas con error (antes solo mostraba las últimas 20, casi nunca las que fallaban), con filtro de «solo con error», por herramienta y por persona."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "El conector de Claude Desktop gana 9 herramientas nuevas para administración y Tecnología (ver todos los reportes de soporte y cambiar su estado, crear y organizar notas) — siempre con los permisos reales de quien pregunta, nunca con una llave maestra."
+        }
+      ]
+    },
     "1.199.0": {
       "titulo": "Choferes privados ganan interruptor de transportista; Dev notes con la misma barra en pantalla completa; rendimiento por vehículo",
       "cambios": [

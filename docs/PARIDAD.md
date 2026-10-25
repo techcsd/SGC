@@ -131,3 +131,38 @@ Lo que SÍ es reusable por la app si hace falta:
 - **El conector de Claude (CS5) y "Mi calendario de Google" (CS10) son
   exclusivos de la web** — no aplican a la app (MCP es un servidor remoto, no
   algo que la app consuma; Fireflies/Calendar siguen siendo del lado servidor).
+
+---
+
+## 9. CX (PROMPT-116, 24-oct-2026) — lo que el hijo puede reusar / debe saber
+
+Ronda 100% web/servidor; la contraparte de app es **PROMPT-117** (CX3.5 —
+vista rápida de una requisición por despachar, sin iniciar el despacho). Lo
+que SÍ cruza o es reusable:
+
+- **CX3.4 — `articulo_despacho_id` en `solicitud_material_items`**: ya existía
+  desde CJ7, pero la web no lo mostraba (el renglón libre se veía como texto
+  libre para siempre aunque el artículo ya se hubiera vinculado al aprobar).
+  El SELECT de `SolicitudesMaterialService` ahora embebe
+  `articulo:articulos!solicitud_material_items_articulo_id_fkey(nombre)` y
+  `articulo_despacho:articulos!solicitud_material_items_articulo_despacho_id_fkey(nombre)`
+  — si la app lee esta misma tabla/vista para mostrar renglones de
+  requisición, aplica el mismo embed (dos FKs a `articulos`, hay que
+  desambiguar con `!fkey` o PostgREST rechaza el embed).
+- **CX3.3 — `cleanUuid`/`sanitizeUuidFields`** (`shared/utils/uuid.util.ts`,
+  ya existía desde CK6, no es nuevo): si la app tiene selects nativos con un
+  sentinel "ninguno" que mande el string literal `"null"` a un parámetro
+  uuid del servidor, el mismo patrón aplica (normalizar antes de enviar).
+- **Lightbox con galería** (`shared/ui/lightbox`, antes de un solo `src`,
+  ahora acepta `images[]` + `startIndex` con flechas/contador): es
+  exclusivamente web (Angular); la app tiene su propio visor nativo, sin
+  cambio necesario de su lado.
+- **El conector de Claude (CX1/CX2) sigue siendo exclusivo de la web** — 9
+  herramientas nuevas, todas `canales: ['mcp']` (ni siquiera Compa esta
+  ronda). No hay nada que la app deba consumir aquí.
+- **CX3.5 (web, confirmado)**: la bandeja de Requisiciones ya deja ver todos
+  los renglones (artículo, cantidad, notas) con solo abrir el detalle — no
+  hace falta "iniciar" ningún despacho para verlos. La app sí necesitaba esto
+  (PROMPT-117): la pantalla de Despachos solo mostraba
+  «REQ-… · obra · N renglón(es)» y exigía tocar "Despachar" para ver el
+  contenido.

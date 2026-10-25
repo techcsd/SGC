@@ -21,7 +21,7 @@
         <span class="cuadre__control-label">Almacén de obra (opcional)</span>
         <select
           [value]="initBodegaId()"
-          (change)="initBodegaId.set($any($event.target).value || null)"
+          (change)="initBodegaId.set(cleanUuid($any($event.target).value))"
         >
           <option [value]="null">Sin almacén asignado…</option>
           @for (b of bodegas(); track b.id) {

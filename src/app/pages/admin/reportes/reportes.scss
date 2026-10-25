@@ -151,8 +151,10 @@
 
     tbody tr {
       transition: background 0.15s ease;
+      cursor: pointer; // CX4 — toda la fila abre el detalle
       &:last-child td { border-bottom: none; }
       &:hover { background: var(--sgc-surface-hover); }
+      &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
     }
   }
 
@@ -253,6 +255,12 @@
   overflow: hidden;
   border: 1px solid var(--sgc-border);
   background: var(--sgc-surface);
+  // CX5 — ahora es un <button> (abre el visor compartido, no una pestaña nueva).
+  padding: 0;
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+  &:hover, &:focus-visible { filter: brightness(1.08); }
+  &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: 2px; }
 }
 .admin-reportes__foto img {
   width: 100%;

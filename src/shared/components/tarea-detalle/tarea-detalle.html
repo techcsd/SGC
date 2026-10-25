@@ -33,7 +33,7 @@
           <div class="sgc-field">
             <label for="edit-asignado">Responsable <span class="required">*</span></label>
             <select id="edit-asignado" formControlName="asignado_a" [class.invalid]="ef.asignado_a.invalid && ef.asignado_a.touched">
-              <option [value]="null">Selecciona…</option>
+              <option [ngValue]="null">Selecciona…</option>
               @for (u of usuarios(); track u.id) {
                 <option [value]="u.id">{{ u.nombre }}</option>
               }

@@ -128,8 +128,8 @@
           <span class="kpi-value" [appCountUp]="vehiculosActivos()"></span>
         </a>
       }
-      @if (canSeeSolicitudes()) {
-        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/inventario/salidas">
+      @if (solicitudesDestino(); as destSol) {
+        <a class="kpi-card kpi-card--warning kpi-card--link" [routerLink]="destSol.ruta">
           <span class="kpi-label">Solicitudes pendientes</span>
           <span class="kpi-value" [appCountUp]="solicitudesPendientesTotal()"></span>
         </a>
@@ -140,12 +140,12 @@
           <span class="kpi-value" [appCountUp]="bitacorasSemana()"></span>
         </a>
       }
-      @if (canSeeEntregas()) {
-        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/bitacora/entregas">
+      @if (entregasDestino(); as destEnt) {
+        <a class="kpi-card kpi-card--warning kpi-card--link" [routerLink]="destEnt.ruta" [queryParams]="destEnt.queryParams">
           <span class="kpi-label">Entregas por confirmar</span>
           <span class="kpi-value" [appCountUp]="entregasPendientesCount()"></span>
         </a>
-        <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/bitacora/entregas">
+        <a class="kpi-card kpi-card--danger kpi-card--link" [routerLink]="destEnt.ruta" [queryParams]="destEnt.queryParams">
           <span class="kpi-label">Entregas incompletas (30 días)</span>
           <span class="kpi-value" [appCountUp]="entregasIncompletasCount()"></span>
         </a>
@@ -376,12 +376,17 @@
               </li>
             }
           </ol>
-          <a class="chart-footnote chart-footnote--link" routerLink="/proyectos/kpi">Ver ranking completo →</a>
+          <!-- CX3.1 — el link lleva a /proyectos/kpi (submódulo proyectos.ranking);
+               alguien con solo el módulo Dirección ve este resumen pero no
+               necesariamente el detalle completo, así que el link se oculta. -->
+          @if (canSeeRankingCompleto()) {
+            <a class="chart-footnote chart-footnote--link" routerLink="/proyectos/kpi">Ver ranking completo →</a>
+          }
         </section>
       }
 
       <!-- Solicitudes pendientes (Bitácora → Inventario/Compras) -->
-      @if (canSeeSolicitudes()) {
+      @if (solicitudesDestino(); as destSolSeccion) {
         <section class="chart-card" aria-labelledby="solicitudes-title">
           <h2 class="chart-title" id="solicitudes-title">Solicitudes pendientes</h2>
           @if (solicitudesRecientes().length === 0) {
@@ -403,7 +408,9 @@
         </section>
       }
 
-      <!-- Próximos mantenimientos -->
+      <!-- Próximos mantenimientos — CX3.1: es data de Flota; sin el módulo no
+           debería verse (antes se mostraba a cualquiera sin gate). -->
+      @if (canSee('flota')) {
       <section class="chart-card" aria-labelledby="proximos-mant-title">
         <h2 class="chart-title" id="proximos-mant-title">Próximos mantenimientos (7 días)</h2>
         @if (proximosMantenimientos().length === 0) {
@@ -420,6 +427,7 @@
           </ul>
         }
       </section>
+      }
 
     </div>
   }

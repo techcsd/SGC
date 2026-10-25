@@ -84,7 +84,7 @@
     <div class="sgc-field">
       <label for="ac-cond">Conductor</label>
       <select id="ac-cond" formControlName="conductor_id">
-        <option [value]="null">— Sin conductor —</option>
+        <option [ngValue]="null">— Sin conductor —</option>
         @for (c of conductoresVisibles(); track c.id) {
           <option [value]="c.id">{{ c.nombre }}</option>
         }

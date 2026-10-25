@@ -290,7 +290,7 @@
     <div class="sgc-field">
       <label for="proyecto_id">Obra (almacén de obra)</label>
       <select id="proyecto_id" formControlName="proyecto_id">
-        <option [value]="null">Almacén general (sin obra)</option>
+        <option [ngValue]="null">Almacén general (sin obra)</option>
         @for (proyecto of proyectosVisibles(); track proyecto.id) {
           <option [value]="proyecto.id">{{ proyecto.nombre }}</option>
         }

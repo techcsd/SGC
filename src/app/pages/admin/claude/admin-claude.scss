@@ -191,4 +191,63 @@
     color: var(--text-3);
     font-size: var(--fs-sm);
   }
+
+  // CX1 — filtros de "Lo que hizo Claude" (solo error, herramienta, persona).
+  &__filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0 var(--space-4) var(--space-3);
+  }
+  &__filtro-check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    cursor: pointer;
+  }
+  &__select {
+    min-height: 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    padding: 0 var(--space-2);
+  }
+
+  &__stat--link {
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    transition: var(--transition-fast);
+    &:hover { filter: brightness(1.05); }
+  }
+
+  &__fila--con-error {
+    align-items: start;
+    background: color-mix(in srgb, var(--warning) 6%, transparent);
+  }
+  &__error-texto {
+    margin: var(--space-1) 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-2);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__ver-mas {
+    width: 100%;
+    min-height: 40px;
+    border: none;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--brand);
+    font: var(--fw-semibold) var(--fs-sm) var(--font-body);
+    cursor: pointer;
+    &:disabled { opacity: 0.6; cursor: default; }
+    &:hover:not(:disabled) { filter: brightness(1.05); }
+  }
 }

@@ -382,7 +382,7 @@
       <div class="sgc-field">
         <label for="departamento">Departamento</label>
         <select id="departamento" formControlName="departamento">
-          <option [value]="null">Sin departamento</option>
+          <option [ngValue]="null">Sin departamento</option>
           @for (dept of DEPARTAMENTOS; track dept) {
             <option [value]="dept">{{ dept }}</option>
           }
@@ -468,7 +468,7 @@
       <div class="sgc-field">
         <label for="genero">Género</label>
         <select id="genero" formControlName="genero">
-          <option [value]="null">—</option>
+          <option [ngValue]="null">—</option>
           @for (g of GENEROS; track g.value) {
             <option [value]="g.value">{{ g.label }}</option>
           }
@@ -479,7 +479,7 @@
       <div class="sgc-field">
         <label for="estado_civil">Estado civil</label>
         <select id="estado_civil" formControlName="estado_civil">
-          <option [value]="null">—</option>
+          <option [ngValue]="null">—</option>
           @for (ec of ESTADOS_CIVILES; track ec.value) {
             <option [value]="ec.value">{{ ec.label }}</option>
           }
@@ -488,7 +488,7 @@
       <div class="sgc-field">
         <label for="jefe_id">Supervisor / Jefe directo</label>
         <select id="jefe_id" formControlName="jefe_id">
-          <option [value]="null">Sin supervisor</option>
+          <option [ngValue]="null">Sin supervisor</option>
           @for (j of jefeOptions(); track j.id) {
             <option [value]="j.id">{{ j.nombre }} {{ j.apellido }}</option>
           }
