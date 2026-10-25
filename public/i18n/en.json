@@ -618,5 +618,9 @@
   "No se pudo buscar productos. Intenta de nuevo.": "Couldn't search products. Try again.",
   "Hay más ubicaciones de las que se muestran. Filtra por producto para acotar.": "There are more locations than shown. Filter by product to narrow down.",
   "Existencia negativa en Odoo": "Negative stock in Odoo",
-  "el stock de Odoo": "Odoo stock"
+  "el stock de Odoo": "Odoo stock",
+  "Solo con error": "Only with errors",
+  "Todas las herramientas": "All tools",
+  "Todas las personas": "All people",
+  "Ver más": "See more"
 }

@@ -1,7 +1,130 @@
 {
-  "corrido_en": "2026-10-22T16:19:01.641Z",
+  "corrido_en": "2026-10-25T18:53:27.558Z",
   "entorno": "dev",
   "resultados": [
+    {
+      "id": "hector-almacenes",
+      "ok": true,
+      "fallos": [],
+      "email": "u-8262b283@dev.constructorasd.local",
+      "herramientas": [
+        "listar_almacenes"
+      ],
+      "texto": "Acá está, Flaco. Tenemos **15 almacenes**:\n\n**Centrales (no ligados a una obra específica):**\n1. ALMACÉN las AMERICAS\n2. Bodega Central\n\n**Por obra:**\n3. ALMACE"
+    },
+    {
+      "id": "hector-pdf-prometido",
+      "ok": true,
+      "fallos": [],
+      "email": "u-8262b283@dev.constructorasd.local",
+      "herramientas": [
+        "listar_almacenes",
+        "generar_reporte_pdf"
+      ],
+      "texto": "Listo, Flaco. Ya está tu PDF con el stock de todos los almacenes, una sección por cada uno. Tu descarga está lista abajo."
+    },
+    {
+      "id": "admin-vehiculos",
+      "ok": true,
+      "fallos": [],
+      "email": "qa_admin@constructorasd.com",
+      "herramientas": [
+        "resumen_flota"
+      ],
+      "texto": "Actualmente la flota tiene **24 vehículos** en total. De esos:\n\n- **20 activos**\n- **1 en mantenimiento**\n- **2 de baja**\n- **0 en uso** en este momento\n- Hay *"
+    },
+    {
+      "id": "admin-requisiciones-pdf",
+      "ok": true,
+      "fallos": [],
+      "email": "qa_admin@constructorasd.com",
+      "herramientas": [
+        "listar_requisiciones",
+        "generar_reporte_pdf"
+      ],
+      "texto": "Listo, tu descarga está lista abajo: **Requisiciones de material.pdf**, con la única requisición de octubre (la de OBRA DEMO — que es de prueba, como te comenté"
+    },
+    {
+      "id": "oficina-stock-multi",
+      "ok": true,
+      "fallos": [],
+      "email": "u-ca9e85a5@dev.constructorasd.local",
+      "herramientas": [
+        "listar_almacenes"
+      ],
+      "texto": "Encontré **15 almacenes** en el sistema, Ing. Angel:\n\n**Centrales:**\n- ALMACÉN las Américas\n- Bodega Central\n\n**Por obra:**\n- Solhe Signature Condos\n- Villa Cal"
+    },
+    {
+      "id": "oficina-requisiciones-obra",
+      "ok": true,
+      "fallos": [],
+      "email": "u-ca9e85a5@dev.constructorasd.local",
+      "herramientas": [
+        "listar_requisiciones"
+      ],
+      "texto": "Ing. Angel, consulté el sistema y en lo que va de octubre (1 al 25) solo aparece **1 requisición**:\n\n- Esa única requisición está en la obra **\"OBRA DEMO — Resi"
+    },
+    {
+      "id": "campo-conduces-firmar",
+      "ok": true,
+      "fallos": [],
+      "email": "u-fe6e2b15@dev.constructorasd.local",
+      "herramientas": [
+        "mis_conduces_por_firmar"
+      ],
+      "texto": "Ing. Abraham, no tiene conduces pendientes de firmar en este momento. ¿Necesita algo más?"
+    },
+    {
+      "id": "campo-disponibilidad-articulo",
+      "ok": true,
+      "fallos": [],
+      "email": "u-fe6e2b15@dev.constructorasd.local",
+      "herramientas": [
+        "disponibilidad_de_articulo",
+        "buscar_articulos"
+      ],
+      "texto": "Ing. Abraham, acabo de consultar el catálogo y no existe ningún artículo registrado como \"cemento\" (ni por ese nombre ni por apodo). Puede que esté catalogado c"
+    },
+    {
+      "id": "logistica-rutas-hoy",
+      "ok": true,
+      "fallos": [],
+      "email": "u-8262b283@dev.constructorasd.local",
+      "herramientas": [
+        "rutas_del_dia"
+      ],
+      "texto": "No hay rutas registradas para hoy, domingo 25 de octubre — el sistema devuelve 0 rutas en total, tanto para ti como para el resto (es el panorama global, ya que"
+    },
+    {
+      "id": "logistica-requisiciones-atascadas",
+      "ok": true,
+      "fallos": [],
+      "email": "u-8262b283@dev.constructorasd.local",
+      "herramientas": [
+        "resumen_estatus_requisiciones"
+      ],
+      "texto": "La semana pasada (12–18 de octubre) no hubo ningún movimiento atascado: el embudo salió en cero en todas las categorías (creadas, pendientes, aprobadas, despach"
+    },
+    {
+      "id": "chofer-rutas-hoy",
+      "ok": true,
+      "fallos": [],
+      "email": "u-700dab80@dev.constructorasd.local",
+      "herramientas": [
+        "mis_rutas_hoy"
+      ],
+      "texto": "No tienes rutas asignadas para hoy, Edward. Si quieres, puedo revisarte otra fecha o avisarte cuando te asignen una."
+    },
+    {
+      "id": "cp8-mis-reuniones",
+      "ok": true,
+      "fallos": [],
+      "email": "qa_admin@constructorasd.com",
+      "herramientas": [
+        "mis_reuniones"
+      ],
+      "texto": "No tienes ninguna reunión próxima registrada, QA. Si quieres, puedo revisar tus acuerdos pendientes de reuniones pasadas u otra cosa."
+    },
     {
       "id": "cv1-felix-registra-echada",
       "ok": true,
@@ -11,7 +134,7 @@
         "listar_vehiculos",
         "preparar_echada"
       ],
-      "texto": "Listo, dejé preparada la echada de la Suburban (G661182): 12 galones por RD$3,360 con fecha de hoy — abre el formulario para que agregues las fotos del recibo y"
+      "texto": "Listo, dejé preparada la echada de la Suburban (G661182): 12 galones, RD$3,360, fecha de hoy — abre el formulario para poner las fotos del recibo y el tablero, "
     }
   ]
 }

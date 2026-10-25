@@ -139,7 +139,7 @@
     <div class="sgc-field">
       <label for="t-resp">Responsable (capataz) <span class="required">*</span></label>
       <select id="t-resp" formControlName="asignado_a" [class.invalid]="fT.asignado_a.invalid && fT.asignado_a.touched">
-        <option [value]="null">Selecciona…</option>
+        <option [ngValue]="null">Selecciona…</option>
         @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
       </select>
     </div>

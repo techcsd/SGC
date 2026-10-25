@@ -3,6 +3,7 @@ import { AuthError, Session, User } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { environment } from '../../../environments/environment';
 import { edgeErrorDetail } from '../../../shared/utils/edge.util';
+import { ListaEstadoService } from '../../../shared/services/lista-estado.service';
 
 export interface AuthResult {
   user: User | null;
@@ -21,6 +22,7 @@ export interface ConductorLoginResult {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private supabase = inject(SupabaseService);
+  private listaEstado = inject(ListaEstadoService);
 
   /**
    * True mientras se procesa un cierre de sesión iniciado por el usuario. Deja
@@ -210,6 +212,9 @@ export class AuthService {
     } finally {
       // El evento SIGNED_OUT se emite dentro de signOut(); lo reseteamos después.
       this.manualSignOut = false;
+      // CX3.2 — los filtros/pestañas recordados por módulo son de ESTA sesión,
+      // nunca del siguiente que use el dispositivo.
+      this.listaEstado.limpiarTodo();
     }
   }
 

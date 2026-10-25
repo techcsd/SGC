@@ -4,6 +4,7 @@ import { UserService } from '../../../app/core/services/user.service';
 import { ToastService } from '../../services/toast.service';
 import { ExpedienteDoc, ExpedienteEstado, EXPEDIENTE_ESTADOS } from '../../models/proyecto.model';
 import { formatTimestampDisplay } from '../../utils/fecha.util';
+import { cleanUuid } from '../../utils/uuid.util';
 
 @Component({
   selector: 'app-expediente-obra',
@@ -102,7 +103,7 @@ export class ExpedienteObra {
   }
 
   async onResponsableChange(doc: ExpedienteDoc, value: string) {
-    const responsable_id = value || null;
+    const responsable_id = cleanUuid(value);
     const previo = doc.responsable_id;
     this.patchLocal(doc.id, { responsable_id });
     try {

@@ -345,7 +345,7 @@
         formControlName="vehiculo_id"
         [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
       >
-        <option [value]="null">Seleccionar vehículo…</option>
+        <option [ngValue]="null">Seleccionar vehículo…</option>
         @for (v of vehiculosVisibles(); track v.id) {
           <option [value]="v.id">{{ idVehiculo(v) }}</option>
         }

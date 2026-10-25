@@ -18,7 +18,12 @@ const SELECT_QUERY =
   'atendido:usuarios!solicitudes_material_atendido_por_fkey(nombre), ' +
   // BA6 — quién canceló/cerró (para "Cancelada: motivo · por X").
   // BV9 — fase derivada (columna computada requisicion_fase): pendiente/en_proceso/completada/rechazada.
-  'cerrada:usuarios!solicitudes_material_cerrada_por_fkey(nombre), items:solicitud_material_items(*), fase:requisicion_fase';
+  'cerrada:usuarios!solicitudes_material_cerrada_por_fkey(nombre), ' +
+  // CX3.4 — dos FK de solicitud_material_items hacia articulos (articulo_id del
+  // origen + articulo_despacho_id elegido al aprobar un renglón LIBRE): hay que
+  // desambiguar ambos embeds con !fkey o PostgREST rechaza la consulta.
+  'items:solicitud_material_items(*, articulo:articulos!solicitud_material_items_articulo_id_fkey(nombre), articulo_despacho:articulos!solicitud_material_items_articulo_despacho_id_fkey(nombre)), ' +
+  'fase:requisicion_fase';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudesMaterialService {

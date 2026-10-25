@@ -382,7 +382,7 @@
       <div class="sgc-field">
         <label for="colorSel">Color</label>
         <select id="colorSel" formControlName="colorSel">
-          <option [value]="null">—</option>
+          <option [ngValue]="null">—</option>
           @for (c of COLORES; track c) {
             <option [value]="c">{{ c }}</option>
           }
@@ -408,7 +408,7 @@
       <div class="sgc-field">
         <label for="capacidad_unidad">Unidad</label>
         <select id="capacidad_unidad" formControlName="capacidad_unidad">
-          <option [value]="null">—</option>
+          <option [ngValue]="null">—</option>
           @for (u of CAPACIDAD_UNIDADES; track u.value) {
             <option [value]="u.value">{{ u.label }}</option>
           }
@@ -432,7 +432,7 @@
     <div class="sgc-field">
       <label for="aseguradoraSel">Compañía aseguradora</label>
       <select id="aseguradoraSel" formControlName="aseguradoraSel">
-        <option [value]="null">—</option>
+        <option [ngValue]="null">—</option>
         @for (a of ASEGURADORAS; track a) {
           <option [value]="a">{{ a }}</option>
         }

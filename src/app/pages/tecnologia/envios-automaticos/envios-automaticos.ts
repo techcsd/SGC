@@ -33,7 +33,7 @@ export class TecEnviosAutomaticos implements OnInit {
 
   /** CU3 — solo las familias que son correo a una lista tienen un "yo" al que
    * mandarles una prueba; las de aviso in-app/webhook no tienen ese análogo. */
-  readonly FAMILIAS_CON_PRUEBA = new Set(['resumen_operaciones', 'incentivo_semanal']);
+  readonly FAMILIAS_CON_PRUEBA = new Set(['resumen_operaciones', 'incentivo_semanal', 'rendimiento_vehiculos']);
 
   // Modal de motivo (solo cuando hace falta: apagar en prod).
   motivoOpen = signal(false);

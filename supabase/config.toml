@@ -46,6 +46,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.resumen-semanal-operaciones]
 verify_jwt = false
+[functions.reporte-rendimiento-semanal]
+verify_jwt = false
 
 # ── Requieren JWT de usuario ──
 [functions.notificar-solicitud]

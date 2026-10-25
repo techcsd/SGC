@@ -155,7 +155,7 @@
       <div class="sgc-field">
         <label for="proveedor_id">Proveedor vinculado</label>
         <select id="proveedor_id" formControlName="proveedor_id">
-          <option [value]="null">Sin vincular</option>
+          <option [ngValue]="null">Sin vincular</option>
           @for (p of proveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -164,7 +164,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">Proyecto relacionado</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [value]="null">Sin proyecto</option>
+          <option [ngValue]="null">Sin proyecto</option>
           @for (p of proyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -192,7 +192,7 @@
     <div class="sgc-field">
       <label for="documento_generado_id">Documento ligado (opcional)</label>
       <select id="documento_generado_id" formControlName="documento_generado_id">
-        <option [value]="null">Sin documento — lo subo firmado después</option>
+        <option [ngValue]="null">Sin documento — lo subo firmado después</option>
         @for (d of documentosDisponibles(); track d.id) {
           <option [value]="d.id">{{ d.nombre }}</option>
         }

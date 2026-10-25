@@ -8,6 +8,7 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -46,6 +47,18 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+// CX3.2 — snapshot de filtros/página recordado mientras la persona siga en
+// Inventario (ver ListaEstadoService).
+interface EstadoSalidas {
+  searchQuery: string;
+  selectedBodega: string;
+  selectedMotivo: string;
+  dateFrom: string;
+  dateTo: string;
+  soloSinReceptor: boolean;
+  currentPage: number;
+}
+
 @Component({
   selector: 'app-salidas',
   imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon, UserPicker, StaggerDirective],
@@ -69,6 +82,10 @@ export class Salidas implements OnInit {
   private userService = inject(UserService);
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
+  private listaEstado = inject(ListaEstadoService);
+  // CX3.2 — clave de pantalla para recordar filtros/página mientras la persona
+  // siga en Inventario (se limpia al cambiar de módulo o cerrar sesión).
+  private readonly ESTADO_KEY = 'inventario.salidas';
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -397,6 +414,19 @@ export class Salidas implements OnInit {
   );
 
   async ngOnInit() {
+    // CX3.2 — restaura filtros/página si la persona ya estaba en esta pantalla
+    // dentro del mismo módulo (p. ej. volvió de ver el detalle de una salida).
+    const guardado = this.listaEstado.obtener<EstadoSalidas>(this.ESTADO_KEY);
+    if (guardado) {
+      this.searchQuery.set(guardado.searchQuery);
+      this.selectedBodega.set(guardado.selectedBodega);
+      this.selectedMotivo.set(guardado.selectedMotivo);
+      this.dateFrom.set(guardado.dateFrom);
+      this.dateTo.set(guardado.dateTo);
+      this.soloSinReceptor.set(guardado.soloSinReceptor);
+      this.currentPage.set(guardado.currentPage);
+    }
+
     await this.loadAll();
     // AV5 — feature flag del wizard de conduce web (selector de despachante).
     this.salidasService.wizardConduceHabilitado().then((on) => {
@@ -611,26 +641,31 @@ export class Salidas implements OnInit {
   onSearch(value: string) {
     this.searchQuery.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onBodegaChange(value: string) {
     this.selectedBodega.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onMotivoChange(value: string) {
     this.selectedMotivo.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onDateFromChange(value: string) {
     this.dateFrom.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onDateToChange(value: string) {
     this.dateTo.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   /** R12 — filtro de fechas unificado. */
@@ -638,11 +673,13 @@ export class Salidas implements OnInit {
     this.dateFrom.set(r.desde ?? '');
     this.dateTo.set(r.hasta ?? '');
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   onSinReceptorToggle(value: boolean) {
     this.soloSinReceptor.set(value);
     this.currentPage.set(1);
+    this.guardarEstado();
   }
 
   clearFilters() {
@@ -653,6 +690,20 @@ export class Salidas implements OnInit {
     this.dateTo.set('');
     this.soloSinReceptor.set(false);
     this.currentPage.set(1);
+    this.guardarEstado();
+  }
+
+  // CX3.2 — se llama tras cada cambio de filtro/página.
+  private guardarEstado() {
+    this.listaEstado.guardar<EstadoSalidas>(this.ESTADO_KEY, {
+      searchQuery: this.searchQuery(),
+      selectedBodega: this.selectedBodega(),
+      selectedMotivo: this.selectedMotivo(),
+      dateFrom: this.dateFrom(),
+      dateTo: this.dateTo(),
+      soloSinReceptor: this.soloSinReceptor(),
+      currentPage: this.currentPage(),
+    });
   }
 
   // ── Pagination ───────────────────────────────────────────
@@ -660,6 +711,7 @@ export class Salidas implements OnInit {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
+    this.guardarEstado();
   }
 
   get pages(): number[] {

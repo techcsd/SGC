@@ -12,6 +12,7 @@ import { DecimalPipe } from '@angular/common';
 import { Icon } from '../../ui/icon/icon';
 import { CuadreService } from '../../services/cuadre.service';
 import { ToastService } from '../../services/toast.service';
+import { cleanUuid } from '../../utils/uuid.util';
 import {
   CuadreObra,
   CuadreItem,
@@ -51,6 +52,11 @@ export class CuadreObraComponent {
   readonly FASES_CUADRE = FASES_CUADRE;
 
   // ── Data state ──────────────────────────────────────────
+  // CX3.3 — <option [ngValue]/[value]="null"> no funciona en <select> nativos sin
+  // formControlName/ngModel (sin SelectControlValueAccessor); se expone cleanUuid
+  // para que el (change) del template normalice el sentinel "null"/"" del DOM.
+  readonly cleanUuid = cleanUuid;
+
   cuadre = signal<CuadreObra | null>(null);
   items = signal<CuadreItem[]>([]);
   consumo = signal<Record<string, number>>({});
@@ -159,7 +165,7 @@ export class CuadreObraComponent {
   }
 
   async onBodegaChange(value: string) {
-    const bodega_id = value || null;
+    const bodega_id = cleanUuid(value);
     const previo = this.cuadre();
     if (!previo || bodega_id === previo.bodega_id) return;
     this.cuadre.update((c) => (c ? { ...c, bodega_id } : c));
@@ -241,7 +247,7 @@ export class CuadreObraComponent {
 
   /** Picking an article prefills the description from its name. */
   onArticuloPick(value: string) {
-    const id = value || null;
+    const id = cleanUuid(value);
     this.fArticuloId.set(id);
     if (id) {
       const art = this.articulos().find((a) => a.id === id);

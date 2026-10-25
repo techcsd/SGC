@@ -117,3 +117,62 @@ frente a Compa:
 
 No hay tool de SQL libre ni de lectura de archivos sin tool detrás — el
 servidor `mcp` solo ofrece lo que está en el registro, igual que Compa.
+
+## CX2 (24-oct-2026) — fase 1 del plan de Xaviel: soporte global, notas, escritura directa
+
+Nota completa: `NOTA-CX2-PLAN-CONECTOR.md` (carpeta `imp 24102026`). Solo canal
+`['mcp']` (no Compa — ver "Por qué solo MCP" abajo). Tercer modo de ejecución,
+**escritura DIRECTA** (`escrituraDirecta`, distinto de `write`/borrador): ejecuta
+YA MISMO con el cliente del usuario (RLS/chequeo del RPC deciden, nunca llave de
+servicio). Reservado a lo que la nota marcó bajo riesgo:
+
+| Tool | RPC | Mecanismo | Quién |
+|---|---|---|---|
+| `listar_reportes_soporte` | `listar_reportes_soporte` | chequeo explícito `is_admin() or es_tecnologia()` (raise 42501 si no) | admin/Tecnología |
+| `detalle_reporte_soporte` | `detalle_reporte_soporte` | ídem; "historial de estado" sale de `sgc.auditoria` (no hay hilo de comentarios real — no se inventó uno) | admin/Tecnología |
+| `resumen_reportes_soporte` | `resumen_reportes_soporte` | ídem | admin/Tecnología |
+| `cambiar_estado_reporte` (W) | `cambiar_estado_reporte` | `is_admin()` a secas (mismo gate que la pantalla `admin/reportes` — NO se amplió a Tecnología) | admin |
+| `ver_gaps_registrados` | `consultas_no_atendidas_listado` (ya existía, CS5/BE2) | `es_tecnologia()` (ya la tenía la RPC) | admin/Tecnología |
+| `detalle_nota` | `detalle_nota` | `security invoker`, RLS de `sgc.notas` (dueño o compartida) | propia o compartida |
+| `crear_nota` (W) | `guardar_nota` (ya existía, reusada sin tocar) | RLS de inserción (`owner_id = auth.uid()`); 'dev' exige `es_desarrollador()` dentro del propio RPC | propias |
+| `actualizar_nota` (W) | `guardar_nota` (ídem) | `sgc.puede_editar_nota` (dueño o compartida con permiso editar) | propias/compartidas-editor |
+| `mover_nota_a_grupo` (W) | `mover_nota_a_grupo` (nueva, mismo UPDATE que ya hacía Angular) | ídem `puede_editar_nota` | propias/compartidas-editor |
+
+(W) = escritura directa. El resto es lectura.
+
+**Por qué solo MCP, no Compa:** la nota de Xaviel titula el plan "SGC Connector"
+y su «Prompt for Claude Code (phase 1)» habla del conector de Claude Desktop en
+todo momento. Ampliar la escritura directa a Compa (usado por TODO usuario en
+la app/web) habría cambiado el contrato de un producto distinto sin que se
+pidiera — decisión de esta ronda, documentada para que una fase futura la
+revierta a propósito si hace falta, no por accidente.
+
+**Guardrails (§ "no limits" seguro) aplicados a las 9 tools nuevas:**
+- Ninguna usa llave de servicio; todas corren con el cliente del usuario que llama.
+- Cero `delete` — `cambiar_estado_reporte` solo cambia estado (nunca borra el reporte).
+- `listar_reportes_soporte`/`detalle_reporte_soporte` nunca devuelven contraseñas/
+  PINs/tokens — solo columnas de `reportes_usuario` (ninguna es un secreto).
+- El asunto/descripción de un reporte es texto de otra persona: la descripción de
+  la tool le dice a Claude explícitamente que lo trate como datos, no instrucciones.
+- `limite` + `cursor` en `listar_reportes_soporte` (hasta 100 por página) +
+  `total_coincidencias` en cada fila para que Claude sepa cuánto falta, en vez de
+  solo `[truncado]`.
+- Errores: el edge ya traduce `42501`/permiso a "No tienes acceso a eso con tu rol."
+  (mismo patrón que el resto de `ejecutarTool`), el resto del mensaje de Postgres
+  pasa tal cual (son mensajes ya pensados para humanos: "Reporte no encontrado.",
+  "Ese estado no es válido.").
+- Auditoría: TODA llamada (de cualquier tool) ya quedaba en `sgc.claude_llamadas`
+  desde CR1 — nada nuevo que agregar ahí; Admin › Claude (CX1) le agrega filtro
+  por herramienta/persona para poder usarla de verdad.
+- `que_puedo_consultar` se actualizó con la fila nueva `soporte_admin` y los 4
+  tools nuevos de notas en la fila `notas` ya existente (`sql/2026-10-24-cx2-*`).
+
+**Siguientes pasos de la nota (fases 3-5, NO empezadas esta ronda — solo listadas):**
+3. Visibilidad admin: `conexiones_claude`, `estado_envios_automaticos`,
+   `reglas_de_alertas`, `historial_importaciones`, `sesiones_de_usuario`, y las
+   extensiones marcadas "verify" (sync de Reuniones, Compras tecnológicas, etc.).
+4. Más borradores (`proponer_*`) por frecuencia de uso: tareas, reuniones,
+   requisiciones (decisión), compras, inventario, flota, bitácora, legal, mensajes,
+   admin (activar/desactivar usuario — nunca contraseñas/PIN).
+5. Dev/ops: errores recientes, avisos de seguridad (Supabase Advisor), y una
+   tool de SQL de solo lectura sobre vistas `v_*` si todavía hace falta.

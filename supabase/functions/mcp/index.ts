@@ -89,6 +89,18 @@ function resumenBorrador(cfg: ToolDef, input: Any): string {
 }
 
 async function ejecutarTool(sgc: Any, cfg: ToolDef, input: Any, cap: Cap): Promise<{ ok: boolean; out: Any }> {
+  if (cfg.escrituraDirecta) {
+    // CX2 — tercer modo, además de lectura y borrador: ejecuta YA MISMO (nunca un
+    // borrador), con el cliente del usuario — RLS/chequeos del RPC deciden, nunca
+    // una llave de servicio. Reservado a lo que la nota de Xaviel marcó bajo
+    // riesgo (notas propias, estado de un reporte de soporte).
+    const { data, error } = await sgc.rpc(cfg.escrituraDirecta.rpc, cfg.escrituraDirecta.map(input, cap));
+    if (error) {
+      const esPermiso = /42501|permission|no autorizado|autorizad/i.test(error.message || "");
+      return { ok: false, out: esPermiso ? "No tienes acceso a eso con tu rol." : `No se pudo completar: ${error.message}` };
+    }
+    return { ok: true, out: data ?? { hecho: true } };
+  }
   if (cfg.gap) {
     const tema = String(input?.tema ?? "");
     const { error } = await sgc.rpc("registrar_consulta_no_atendida", {
@@ -117,8 +129,21 @@ async function ejecutarTool(sgc: Any, cfg: ToolDef, input: Any, cap: Cap): Promi
   // Lectura — mismo camino que Compa (RPC + map del registro compartido).
   const { data, error } = await ejecutarHerramientaLectura(sgc, cfg, input);
   if (error) {
-    const esPermiso = /42501|permission|no autorizado|autorizad/i.test(error.message || "");
-    return { ok: false, out: esPermiso ? "No tienes acceso a eso con tu rol." : `La consulta falló: ${error.message}` };
+    const msg = error.message || "";
+    const esPermiso = /42501|permission|no autorizado|autorizad/i.test(msg);
+    // CX1 — "Could not find the function ... in the schema cache" (PostgREST)
+    // casi siempre significa que a la llamada le faltó un parámetro obligatorio
+    // o vino con un nombre que no es el del esquema (ej. Raykler pidiendo
+    // 'almacen'/'almacen_id' cuando la tool pide 'bodega_id'). El mensaje crudo
+    // de Postgres no le sirve a nadie (BS2) — se traduce a algo que Claude
+    // pueda de verdad corregir en el siguiente intento.
+    const esFirmaNoEncontrada = /could not find the function|pgrst202/i.test(msg);
+    const out = esPermiso
+      ? "No tienes acceso a eso con tu rol."
+      : esFirmaNoEncontrada
+        ? "Faltó un dato obligatorio o el nombre de un parámetro no es el que espera esta herramienta — revisa el esquema de entrada (input_schema) y vuelve a intentar con los nombres exactos."
+        : `La consulta falló: ${msg}`;
+    return { ok: false, out };
   }
   // CR1 §5 (defensa en profundidad) — PERMISOS-TOOLS.md ya anota que
   // buscar_usuarios expone email; Compa lo tolera (uso interno), MCP sale
@@ -176,8 +201,8 @@ Deno.serve(
             name: t.name,
             description: t.description,
             inputSchema: t.input_schema,
-            annotations: t.write
-              ? { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
+            annotations: t.write || t.escrituraDirecta
+              ? { readOnlyHint: false, destructiveHint: false, idempotentHint: !!t.write }
               : { readOnlyHint: true, idempotentHint: true },
           })),
         }));

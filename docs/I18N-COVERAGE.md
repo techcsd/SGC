@@ -3,13 +3,13 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 7%** (47/674 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 7%** (47/676 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
 | inventario/conduce | scope | 226 | 0 | 226 | 0% |
-| inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
+| inventario/requisiciones | scope | 241 | 0 | 241 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
 | configuracion | scope | 74 | 45 | 29 | 61% |
@@ -17,6 +17,7 @@
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 150 | 0 | 150 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
+| admin/conduces-huerfanos | - | 22 | 0 | 22 | 0% |
 | admin/empresa | - | 53 | 0 | 53 | 0% |
 | admin/historial-versiones | - | 46 | 0 | 46 | 0% |
 | admin/importar | - | 2 | 0 | 2 | 0% |
@@ -25,7 +26,7 @@
 | admin/orden-modulos | - | 11 | 0 | 11 | 0% |
 | admin/otros-valores | - | 17 | 0 | 17 | 0% |
 | admin/parametros | - | 20 | 0 | 20 | 0% |
-| admin/reportes | - | 49 | 0 | 49 | 0% |
+| admin/reportes | - | 50 | 0 | 50 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
@@ -47,7 +48,7 @@
 | compras/ordenes | - | 169 | 0 | 169 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
-| dashboard | - | 141 | 0 | 141 | 0% |
+| dashboard | - | 143 | 0 | 143 | 0% |
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |
 | documentos/historial | - | 15 | 0 | 15 | 0% |
@@ -57,8 +58,8 @@
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
-| flota/choferes-privados | - | 103 | 0 | 103 | 0% |
-| flota/combustible | - | 300 | 0 | 300 | 0% |
+| flota/choferes-privados | - | 106 | 0 | 106 | 0% |
+| flota/combustible | - | 302 | 0 | 302 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
@@ -66,6 +67,7 @@
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
 | flota/panel-dia | - | 36 | 0 | 36 | 0% |
 | flota/recorrido-diario | - | 32 | 0 | 32 | 0% |
+| flota/rendimiento-vehiculos | - | 27 | 0 | 27 | 0% |
 | flota/reporte-semanal | - | 94 | 0 | 94 | 0% |
 | flota/reportes | - | 64 | 0 | 64 | 0% |
 | flota/responsabilidad | - | 122 | 0 | 122 | 0% |
@@ -81,7 +83,7 @@
 | inventario/articulos | - | 168 | 0 | 168 | 0% |
 | inventario/bodegas | - | 116 | 0 | 116 | 0% |
 | inventario/categorias | - | 34 | 0 | 34 | 0% |
-| inventario/conduces | - | 66 | 0 | 66 | 0% |
+| inventario/conduces | - | 69 | 0 | 69 | 0% |
 | inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
 | inventario/confirmaciones | - | 44 | 0 | 44 | 0% |
 | inventario/conteos | - | 110 | 0 | 110 | 0% |
@@ -136,7 +138,7 @@
 | tecnologia/compras | - | 134 | 0 | 134 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
-| tecnologia/dev-notes | - | 125 | 0 | 125 | 0% |
+| tecnologia/dev-notes | - | 120 | 0 | 120 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -167,5 +169,5 @@
 | borrador-claude | - | 22 | 12 | 10 | 55% |
 | tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
+| admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
-| admin/claude | - | 28 | 23 | 5 | 82% |

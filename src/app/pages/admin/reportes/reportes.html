@@ -12,6 +12,7 @@
     <h2 id="enprogreso-title">En progreso (asignados a mí)</h2>
     <div class="admin-reportes__enprogreso-list">
       @for (r of misEnProgreso(); track r.id) {
+        <!-- CX4 — ya era un <button>, por lo tanto clicable y accesible por teclado; sin cambios. -->
         <button type="button" class="admin-reportes__enprogreso-card" (click)="openDetail(r)">
           <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
           <span class="admin-reportes__enprogreso-asunto">{{ r.asunto }}</span>
@@ -73,7 +74,19 @@
       </thead>
       <tbody>
         @for (r of paginated(); track r.id) {
-          <tr>
+          <!-- CX4 — toda la fila abre el detalle con un clic; accesible con teclado
+               (tabindex + Enter/Espacio). Sin role="button": lo rompería como <tr> para
+               lectores de pantalla (deja de anunciarse como fila de tabla); el
+               aria-label describe la acción y el botón "Ver" sigue como alternativa
+               visible. "Tomar"/"Ver" detienen la propagación para no abrir el detalle
+               dos veces (o confundir los clics). -->
+          <tr
+            class="admin-reportes__row"
+            tabindex="0"
+            [attr.aria-label]="'Ver detalle: ' + r.asunto"
+            (click)="openDetail(r)"
+            (keydown)="onRowKeydown($event, r)"
+          >
             <td><span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span></td>
             <td class="admin-reportes__asunto">{{ r.asunto }}</td>
             <td>{{ r.usuario?.nombre ?? '—' }}</td>
@@ -89,9 +102,9 @@
             <td class="admin-reportes__date">{{ formatFecha(r.created_at) }}</td>
             <td class="admin-reportes__actions">
               @if (r.estado === 'abierto') {
-                <button class="sgc-btn sgc-btn--ghost" type="button" (click)="tomar(r)">Tomar</button>
+                <button class="sgc-btn sgc-btn--ghost" type="button" (click)="$event.stopPropagation(); tomar(r)">Tomar</button>
               }
-              <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openDetail(r)">Ver</button>
+              <button class="sgc-btn sgc-btn--ghost" type="button" (click)="$event.stopPropagation(); openDetail(r)">Ver</button>
             </td>
           </tr>
         } @empty {
@@ -110,8 +123,8 @@
   </p>
 }
 
-<!-- Detail drawer -->
-<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
+<!-- Detail drawer — CX5: ventana centrada con fondo desenfocado (variant="modal", CJ9) -->
+<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" variant="modal" (closed)="closeDrawer()">
   @if (selected(); as r) {
     <div class="admin-reportes__detail">
       <div class="admin-reportes__detail-meta">
@@ -125,12 +138,14 @@
         <div class="admin-reportes__fotos">
           <h4 class="admin-reportes__fotos-title">Fotos ({{ (r.fotos ?? []).length }})</h4>
           <div class="admin-reportes__fotos-grid">
-            @for (foto of r.fotos; track foto.id) {
+            @for (foto of r.fotos; track foto.id; let i = $index) {
               @let url = getFotoUrl(foto);
               @if (url) {
-                <a class="admin-reportes__foto" [href]="url" target="_blank" rel="noopener">
+                <!-- CX5 — visor de pantalla completa compartido (shared/ui/lightbox),
+                     en vez de abrir en otra pestaña; flechas/contador si hay varias. -->
+                <button type="button" class="admin-reportes__foto" (click)="verFoto(i)">
                   <img [src]="url" alt="Foto del reporte" loading="lazy" />
-                </a>
+                </button>
               } @else {
                 <div class="admin-reportes__foto admin-reportes__foto--loading">…</div>
               }

@@ -187,7 +187,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">Proyecto relacionado</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [value]="null">Sin proyecto</option>
+          <option [ngValue]="null">Sin proyecto</option>
           @for (p of proyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }

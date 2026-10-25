@@ -124,6 +124,29 @@ export class ChoferesPrivados implements OnInit {
     }
   }
 
+  // ── CW6/CW7 D5 — interruptor "también conduces y rutas de empresa" ─────────
+  permitiendoTransporte = signal<string | null>(null);
+
+  async toggleTransporte(ch: ChoferPrivado) {
+    const activar = !ch.tiene_transportista;
+    const pregunta = activar
+      ? `¿Dar a ${ch.nombre} también el trabajo de chofer transportista (conduces y rutas de empresa)?`
+      : `¿Quitarle a ${ch.nombre} el trabajo de chofer transportista? Seguirá siendo chofer privado.`;
+    if (!window.confirm(pregunta)) return;
+    this.permitiendoTransporte.set(ch.usuario_id);
+    try {
+      await this.service.permitirTransporte(ch.usuario_id, activar, null);
+      this.toast.success('Listo', activar
+        ? `${ch.nombre} ahora también hace conduces y rutas de empresa.`
+        : `${ch.nombre} ya no hace trabajo de transportista.`);
+      await this.cargar();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo cambiar el interruptor');
+    } finally {
+      this.permitiendoTransporte.set(null);
+    }
+  }
+
   // ── Agregar chofer privado ──────────────────────────────────────────────────
   abrirAgregar() {
     this.addUsuario.set(null);

@@ -102,7 +102,7 @@
     <div class="sgc-field">
       <label for="empleado_id">Empleado <span class="required">*</span></label>
       <select id="empleado_id" formControlName="empleado_id" (change)="onEmpleadoChange($any($event.target).value)" [class.invalid]="f.empleado_id.invalid && f.empleado_id.touched">
-        <option [value]="null">Selecciona…</option>
+        <option [ngValue]="null">Selecciona…</option>
         @for (e of empleados(); track e.id) {
           <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option>
         }

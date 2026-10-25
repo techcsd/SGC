@@ -314,7 +314,7 @@
     <div class="sgc-field">
       <label for="categoria_id">Categoría</label>
       <select id="categoria_id" formControlName="categoria_id">
-        <option [value]="null">Sin categoría</option>
+        <option [ngValue]="null">Sin categoría</option>
         @for (cat of categories(); track cat.id) {
           <option [value]="cat.id">{{ cat.label }}</option>
         }

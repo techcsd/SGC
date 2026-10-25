@@ -213,6 +213,21 @@
   letter-spacing: 0.03em;
   color: var(--sgc-text-muted, #929090);
 }
+// CX3.3 — renglón sin artículo vinculado todavía.
+.req-detail__free {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sgc-text-muted, #929090);
+}
+// CX3.4 — texto libre original, una vez que el renglón ya tiene artículo vinculado.
+.req-detail__pidio {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--sgc-text-muted, #929090);
+  margin-top: 2px;
+}
 .req-detail__cancelar {
   display: flex;
   flex-direction: column;

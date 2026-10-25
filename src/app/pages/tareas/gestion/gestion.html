@@ -136,7 +136,7 @@
       <div class="sgc-field">
         <label for="asignado_a">Responsable <span class="required">*</span></label>
         <select id="asignado_a" formControlName="asignado_a" [class.invalid]="f.asignado_a.invalid && f.asignado_a.touched">
-          <option [value]="null">Selecciona…</option>
+          <option [ngValue]="null">Selecciona…</option>
           @for (u of usuarios(); track u.id) {
             <option [value]="u.id">{{ optLabel(u) }}</option>
           }
@@ -159,7 +159,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">Proyecto (opcional)</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [value]="null">Sin proyecto</option>
+          <option [ngValue]="null">Sin proyecto</option>
           @for (p of proyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }

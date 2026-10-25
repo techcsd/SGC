@@ -1,5 +1,80 @@
 {
   "web": {
+    "1.200.0": {
+      "titulo": "Entregas por confirmar sin error 403; filtros que se mantienen en Inventario; error al recibir mercancía resuelto; Comentarios y Reportes con un clic",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Dashboard",
+          "d": "La tarjeta «Entregas por confirmar» (y «Entregas incompletas») ya no manda a quien no tiene el módulo Bitácora a una pantalla de «Acceso restringido»: ahora lleva a Inventario › Conduces, pestaña «Por confirmar». Se revisaron todas las tarjetas del inicio con la misma regla: solo se muestran si la persona de verdad puede abrir su destino."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Los filtros, la pestaña y la página de Conduces, Entradas, Salidas, Requisiciones y Movimientos ahora se mantienen mientras sigas en Inventario (por ejemplo, al abrir un conduce y volver). Se limpian solo al cambiar de módulo o cerrar sesión."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Al recibir mercancía eligiendo «Sin orden asociada» o «Sin proveedor» ya no aparece el error «invalid input syntax for type uuid». Se revisó el mismo defecto en el resto de la aplicación (97 listas desplegables) y se agregó una validación automática para que no vuelva a aparecer."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Cuando se le asigna el artículo correcto a un renglón de requisición que llegó como texto libre, ahora se ve ese artículo en vez del texto original (que queda abajo, en chico, como «pidió: …»)."
+        },
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Las fotos (de un reporte, por ejemplo) se pueden ver en grande dentro de la misma pantalla, con flechas y contador si hay varias — en vez de abrirse en otra pestaña."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "En «Comentarios y Reportes», toda la fila abre el detalle con un solo clic (antes había que acertarle al botón «Ver»), y el detalle ahora sale como ventana centrada con el fondo desenfocado en vez de panel lateral."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "El módulo «Claude» ahora deja ver TODAS las llamadas con error (antes solo mostraba las últimas 20, casi nunca las que fallaban), con filtro de «solo con error», por herramienta y por persona."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "El conector de Claude Desktop gana 9 herramientas nuevas para administración y Tecnología (ver todos los reportes de soporte y cambiar su estado, crear y organizar notas) — siempre con los permisos reales de quien pregunta, nunca con una llave maestra."
+        }
+      ]
+    },
+    "1.199.0": {
+      "titulo": "Choferes privados ganan interruptor de transportista; Dev notes con la misma barra en pantalla completa; rendimiento por vehículo",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Nueva pantalla «Rendimiento por vehículo» (Flota › Combustible › Rendimiento): el sistema calcula el rendimiento de cada vehículo a partir de las echadas de combustible, por período, con un nivel de confianza (nunca se registra «tanque lleno», así que es una aproximación). Se puede exportar a PDF y a Excel, y hay un correo semanal automático a Dirección y Flota (apagado hasta que se encienda desde Envíos automáticos)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "En «Choferes privados» ahora hay un interruptor para darle a un chofer también el trabajo de transportista (conduces y rutas de empresa), con confirmación y quedando registrado. Si no tiene ningún vehículo autorizado, el mensaje al crear una ruta ahora lo dice claramente en vez de un error genérico."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nueva pantalla «Conduces huérfanos» para administradores: lista los conduces que quedaron atascados sin que nadie confirmara la entrega, con la opción de anular explicando el motivo."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Dev notes: la nota a pantalla completa ahora usa la misma barra lateral que la vista de lista — se puede sacar una nota de una carpeta (arrastrándola a «Sin grupo» o desde el menú «⋯»), renombrar carpetas, y elegir la carpeta de la nota desde la cabecera del editor."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Al leer la foto del recibo de combustible, el producto (diésel/gasolina) y el número de recibo ahora también se rellenan en el formulario — antes se leían pero se perdían."
+        }
+      ]
+    },
     "1.198.0": {
       "titulo": "Compa deja preparada una echada de combustible; Dev notes: crear grupos en línea y arrastrar notas",
       "cambios": [

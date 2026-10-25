@@ -37,10 +37,10 @@
         <div>{{ r.borradores_preparados }}</div>
         <span class="admin-claude__stat-sub">{{ r.borradores_confirmados }} {{ 'confirmados' | t }} · {{ r.borradores_preparados - r.borradores_confirmados }} {{ 'sin confirmar' | t }}</span>
       </div>
-      <div class="admin-claude__stat admin-claude__stat--warn">
+      <button type="button" class="admin-claude__stat admin-claude__stat--warn admin-claude__stat--link" (click)="verSoloErrores()">
         <span>{{ 'Con error (7 días)' | t }}</span>
         <div>{{ r.con_error_7d }}</div>
-      </div>
+      </button>
     </div>
   }
 
@@ -73,23 +73,56 @@
 
   <div class="admin-claude__tabla-box admin-claude__tabla-box--flex">
     <div class="admin-claude__tabla-header">{{ 'Lo que hizo Claude' | t }}</div>
+
+    <!-- CX1 — antes solo se veían las últimas 20 llamadas, sin forma de aislar
+         los errores (los "4 con error" de la semana quedaban invisibles). -->
+    <div class="admin-claude__filtros">
+      <label class="admin-claude__filtro-check">
+        <input type="checkbox" [checked]="soloError()" (change)="onSoloError($any($event.target).checked)" />
+        {{ 'Solo con error' | t }}
+      </label>
+      <select class="admin-claude__select" [value]="filtroHerramienta()" (change)="onFiltroHerramienta($any($event.target).value)">
+        <option value="">{{ 'Todas las herramientas' | t }}</option>
+        @for (h of filtros().herramientas; track h) {
+          <option [value]="h">{{ h }}</option>
+        }
+      </select>
+      <select class="admin-claude__select" [value]="filtroPersona()" (change)="onFiltroPersona($any($event.target).value)">
+        <option value="">{{ 'Todas las personas' | t }}</option>
+        @for (p of filtros().personas; track p.id) {
+          <option [value]="p.id">{{ p.nombre }}</option>
+        }
+      </select>
+    </div>
+
     <div class="admin-claude__fila admin-claude__fila--head admin-claude__fila--log">
       <span>{{ 'Hora' | t }}</span>
       <span>{{ 'Persona' | t }}</span>
       <span>{{ 'Herramienta' | t }}</span>
       <span>{{ 'Resultado' | t }}</span>
     </div>
-    @for (l of llamadas(); track l.hora + l.herramienta) {
-      <div class="admin-claude__fila admin-claude__fila--log">
-        <span>{{ l.hora | date: 'HH:mm' }}</span>
+    @for (l of llamadas(); track l.hora + l.herramienta + l.usuario_id) {
+      <div class="admin-claude__fila admin-claude__fila--log" [class.admin-claude__fila--con-error]="!l.ok">
+        <span>{{ l.hora | date: 'd MMM, HH:mm' }}</span>
         <span>{{ l.nombre }}</span>
         <span>{{ l.herramienta }}</span>
-        <b [class.admin-claude__ok]="l.ok" [class.admin-claude__err]="!l.ok">{{ l.ok ? 'OK' : ('Error' | t) }}</b>
+        <div>
+          <b [class.admin-claude__ok]="l.ok" [class.admin-claude__err]="!l.ok">{{ l.ok ? 'OK' : ('Error' | t) }}</b>
+          @if (!l.ok && l.error) {
+            <p class="admin-claude__error-texto">{{ l.error }}</p>
+          }
+        </div>
       </div>
     } @empty {
-      @if (!cargando()) {
+      @if (!cargandoLlamadas()) {
         <div class="admin-claude__vacio">{{ 'Sin actividad todavía.' | t }}</div>
       }
+    }
+
+    @if (hayMas()) {
+      <button type="button" class="admin-claude__ver-mas" [disabled]="cargandoLlamadas()" (click)="verMas()">
+        {{ cargandoLlamadas() ? ('Cargando…' | t) : ('Ver más' | t) }}
+      </button>
     }
   </div>
 </div>

@@ -335,7 +335,7 @@
           formControlName="unidad"
           [class.invalid]="f.unidad.invalid && f.unidad.touched"
         >
-          <option [value]="null">Seleccionar…</option>
+          <option [ngValue]="null">Seleccionar…</option>
           @for (u of unidades(); track u.codigo) {
             <option [value]="u.codigo">{{ u.nombre }}</option>
           }
@@ -377,7 +377,7 @@
         formControlName="categoria_id"
         [class.invalid]="f.categoria_id.invalid && f.categoria_id.touched"
       >
-        <option [value]="null">Seleccionar categoría…</option>
+        <option [ngValue]="null">Seleccionar categoría…</option>
         @for (cat of categories(); track cat.id) {
           <option [value]="cat.id">{{ cat.label }}</option>
         }
@@ -474,7 +474,7 @@
     <div class="sgc-field">
       <label for="unidad_paquete">Empaque (opcional)</label>
       <select id="unidad_paquete" formControlName="unidad_paquete">
-        <option [value]="null">Sin empaque (solo por unidad)</option>
+        <option [ngValue]="null">Sin empaque (solo por unidad)</option>
         @for (u of unidades(); track u.codigo) {
           <option [value]="u.codigo">{{ u.nombre }}</option>
         }

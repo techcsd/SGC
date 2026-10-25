@@ -15,6 +15,7 @@ import { ToastService } from '../../services/toast.service';
 import { SignaturePad } from '../../ui/signature-pad/signature-pad';
 import { Icon } from '../../ui/icon/icon';
 import { formatFechaDisplay } from '../../utils/fecha.util';
+import { cleanUuid } from '../../utils/uuid.util';
 import { ObraElemento, ObraVaciado } from '../../models/obra-ejecucion.model';
 import {
   ClPlantilla,
@@ -76,6 +77,10 @@ export class ClLiberacion {
 
   // ── Create form ────────────────────────────────────────────
   showForm = signal(false);
+  // CX3.3 — <select> nativo sin formControlName/ngModel: el (change) del template
+  // normaliza el sentinel "null"/"" del DOM antes de llegar a estos signals.
+  readonly cleanUuid = cleanUuid;
+
   fPlantillaId = signal<string | null>(null);
   fElementoId = signal<string | null>(null);
   fVaciadoId = signal<string | null>(null);

@@ -359,7 +359,7 @@
   <!-- CM7 7b — banda + resultado de práctica (misiones con pantalla real) -->
   <app-practica-banda />
   @if (lightbox.estado(); as lb) {
-    <app-lightbox [src]="lb.src" [alt]="lb.alt" [title]="lb.title" (closed)="lightbox.cerrar()" />
+    <app-lightbox [src]="lb.src" [alt]="lb.alt" [title]="lb.title" [images]="lb.images" [startIndex]="lb.startIndex" (closed)="lightbox.cerrar()" />
   }
 
   <!-- CI3 — aceptación de políticas (bloqueante hasta aceptar o cerrar sesión) -->

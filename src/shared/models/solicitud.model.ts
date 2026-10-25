@@ -28,6 +28,13 @@ export interface SolicitudMaterialItem {
   /** BM5 — unidad capturada (ej. 'atado') + su factor; cantidad en base. */
   unidad_capturada?: string | null;
   factor_aplicado?: number | null;
+  /** CJ7 — artículo del catálogo elegido al APROBAR/DESPACHAR un renglón LIBRE
+   *  (distinto de `articulo_id`, que es el que trae el renglón desde el origen). */
+  articulo_despacho_id?: string | null;
+  /** CX3.4 — nombre embebido de `articulo_id` (si el renglón ya traía catálogo). */
+  articulo?: { nombre: string } | null;
+  /** CX3.4 — nombre embebido de `articulo_despacho_id` (si se resolvió al aprobar). */
+  articulo_despacho?: { nombre: string } | null;
 }
 
 export interface SolicitudMaterial {

@@ -67,6 +67,39 @@
   transition: background 0.15s ease;
   &:hover { background: rgba(255, 255, 255, 0.3); }
 }
+// CX3.4/CX5 — galería: flechas + contador (solo cuando hay más de una imagen).
+.lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+  &:hover { background: rgba(255, 255, 255, 0.3); }
+  &--prev { left: 16px; }
+  &--next { right: 16px; }
+}
+.lightbox__contador {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  text-shadow: none;
+}
 @keyframes lightbox-in {
   from { opacity: 0; }
   to { opacity: 1; }

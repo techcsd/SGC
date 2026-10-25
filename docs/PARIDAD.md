@@ -50,6 +50,73 @@ Copiar al `CLAUDE.md` de `csd-app`:
 - **bg4 retiro dañado:** `solicitudes_movimiento.es_danado boolean` (nuevo). `apoyo_transporte_crear(...)` lo guarda; **`apoyo_transporte_agregar_foto(...)`** ahora, en la 1.ª foto de un apoyo `retiro_material + es_danado`, genera un **borrador de retiro bg4** (`crear_retiro_material`, estado `pendiente`, motivo `'otro'`, NO toca cuarentena) y lo enlaza en `solicitudes_movimiento.retiro_material_id`. Idempotente; mejor esfuerzo (si falla no bloquea la foto). La app no cambia su llamada; el borrador se crea solo.
 - **CK5 videos:** campos de video en `ayuda_contenido.contenido` (`video_path/poster_path/vtt_path/duracion_s/plataforma`), bucket privado `tutoriales` (lectura authenticated por URL firmada). La app (Soporte y ayuda) lee los mismos campos. **Solo videos de datos demo**: los gated (Inventario/Flota/Transporte) requieren demo-aislar las fuentes DEFINER antes de grabarse seguros.
 
+## 9. Ronda CW (PROMPT-114, 23-oct-2026) — lo que PROMPT-115 (app) necesita saber
+
+**Diagnóstico de fondo (FASE 0, prod solo lectura):** Carlos Encarnacion y Dallin
+Vido (ambos `chofer_privado`) tienen fila activa en `sgc.conductores`, pero
+**CERO vehículo en cualquier lado** (sin `conductores.vehiculo_id`, sin
+`vehiculo_autorizaciones`, sin rutas creadas jamás, **sin ningún conduce en el
+servidor — nunca, ni uno**, y sin registro de outbox atascado). Esto descarta la
+hipótesis inicial de "conduces de prueba sin filtrar" o "permiso de rol
+incoherente": el rol SÍ puede crear conduces/rutas (tiene fila `conductores`
+activa), lo que falta es el vehículo. Para PROMPT-115, esto implica:
+- Los conduces "fantasma" que Carlos ve en su teléfono **no existen en el
+  servidor** → viven solo en el almacenamiento local/outbox de la app, y nunca
+  llegaron a avisar que algo falló (si hubieran avisado, habría una fila en
+  `sgc.outbox_atascados`, y no la hay). Investigar el lado cliente: caché
+  local/IndexedDB con un conduce que el app considera "pendiente de sync" pero
+  el servidor no conoce en absoluto (no es un conflicto de servidor que
+  resolver — no hay nada del lado servidor que anular para este caso puntual).
+- Si la app le ofrece a un chofer_privado un botón de "crear conduce" (logística
+  de empresa), revisar que sea coherente con el diseño del rol: por diseño, un
+  chofer_privado **no debería** ver Conduces (solo Rutas de su propio vehículo),
+  salvo que Central le active el interruptor nuevo (ver abajo). Si la app
+  siempre muestra el botón sin chequear esto, es un hueco de paridad a cerrar
+  ahí (el servidor seguirá rechazando con un mensaje claro si de verdad no
+  corresponde).
+
+**Nuevo — interruptor "también conduces y rutas de empresa" (D5):**
+`sgc.chofer_privado_permitir_transporte(p_usuario uuid, p_permitir boolean, p_motivo text)`
+(gate `is_admin()/es_flota_elevado()`) da o quita el rol `chofer_transportista`
+a un chofer privado sin tocar su rol `chofer_privado` (acumulativo). Reversible,
+auditado en `sgc.audit_log` (`action='chofer_privado_permitir_transporte'`).
+`sgc.listar_choferes_privados()` ahora devuelve también **`tiene_transportista
+boolean`** (columna nueva al final) — si la app tiene su propia pantalla de
+choferes privados, puede mostrar el mismo estado.
+
+**Mensaje más claro al fallar por falta de vehículo:** `sgc.chofer_crear_ruta`
+ahora distingue "elige un vehículo" (tiene opciones, no eligió) de "no tienes
+ningún vehículo autorizado todavía — pide a Central" (cero opciones). Mismo
+`errcode`/firma, solo cambia el texto — la app no necesita cambiar nada para
+beneficiarse, pero si tiene su propio texto fijo para este error, conviene
+alinearlo.
+
+**CW4 — rendimiento por vehículo (si la app quiere mostrarlo):**
+`sgc.reporte_rendimiento_vehiculos(p_desde date, p_hasta date, p_vehiculo_id uuid)`
+(gate `is_admin()/tiene_modulo('flota')`, o `auth.uid() is null` para llamadas
+server-to-server) devuelve rendimiento Σkm÷Σgal por vehículo con nivel de
+`confianza` — mismo método en los dos lados si la app alguna vez lo necesita.
+No hay equivalente hoy en la app; no es prioritario.
+
+**CW5 — paridad del formulario de combustible:** la web ahora manda
+`p_numero_recibo` al crear la echada (antes se leía del recibo y se
+descartaba). Si la app YA manda `p_numero_recibo` en su `registrar_combustible_app`,
+no cambia nada. Si no lo manda, considerar agregarlo (mismo campo, mismo RPC,
+ya soportado desde CO15) para que "lo que lee la foto" también se guarde al
+crear, no solo al editar después. Campo `producto` en la lectura del recibo
+puede venir como texto libre ("gasolina premium", "GLP") — la web ahora lo
+normaliza a `diesel|gasolina` (+`subtipo` si aplica) y, si no reconoce el
+texto, lo deja como sugerencia en vez de forzar un valor inválido; si la app
+tiene un selector de producto cerrado igual, aplicar la misma cautela.
+
+**CW1 — "Conduces huérfanos" (nueva pantalla, solo web/admin):**
+`sgc.conduces_huerfanos(p_dias_min int)` (solo lectura, gate
+`is_admin()/es_flota_elevado()`) lista conduces atascados en "despachado" sin
+confirmación hace N días. Es una herramienta de Central en la web
+(`/admin/conduces-huerfanos`); no hay necesidad de nada análogo en la app.
+
+---
+
 ## 8. CS (PROMPT-106, 19-oct-2026) — lo que el hijo puede reusar
 
 Esta tanda fue **100% web** (Dev notes/grupos/imágenes son del repo padre; csd-app
@@ -64,3 +131,38 @@ Lo que SÍ es reusable por la app si hace falta:
 - **El conector de Claude (CS5) y "Mi calendario de Google" (CS10) son
   exclusivos de la web** — no aplican a la app (MCP es un servidor remoto, no
   algo que la app consuma; Fireflies/Calendar siguen siendo del lado servidor).
+
+---
+
+## 9. CX (PROMPT-116, 24-oct-2026) — lo que el hijo puede reusar / debe saber
+
+Ronda 100% web/servidor; la contraparte de app es **PROMPT-117** (CX3.5 —
+vista rápida de una requisición por despachar, sin iniciar el despacho). Lo
+que SÍ cruza o es reusable:
+
+- **CX3.4 — `articulo_despacho_id` en `solicitud_material_items`**: ya existía
+  desde CJ7, pero la web no lo mostraba (el renglón libre se veía como texto
+  libre para siempre aunque el artículo ya se hubiera vinculado al aprobar).
+  El SELECT de `SolicitudesMaterialService` ahora embebe
+  `articulo:articulos!solicitud_material_items_articulo_id_fkey(nombre)` y
+  `articulo_despacho:articulos!solicitud_material_items_articulo_despacho_id_fkey(nombre)`
+  — si la app lee esta misma tabla/vista para mostrar renglones de
+  requisición, aplica el mismo embed (dos FKs a `articulos`, hay que
+  desambiguar con `!fkey` o PostgREST rechaza el embed).
+- **CX3.3 — `cleanUuid`/`sanitizeUuidFields`** (`shared/utils/uuid.util.ts`,
+  ya existía desde CK6, no es nuevo): si la app tiene selects nativos con un
+  sentinel "ninguno" que mande el string literal `"null"` a un parámetro
+  uuid del servidor, el mismo patrón aplica (normalizar antes de enviar).
+- **Lightbox con galería** (`shared/ui/lightbox`, antes de un solo `src`,
+  ahora acepta `images[]` + `startIndex` con flechas/contador): es
+  exclusivamente web (Angular); la app tiene su propio visor nativo, sin
+  cambio necesario de su lado.
+- **El conector de Claude (CX1/CX2) sigue siendo exclusivo de la web** — 9
+  herramientas nuevas, todas `canales: ['mcp']` (ni siquiera Compa esta
+  ronda). No hay nada que la app deba consumir aquí.
+- **CX3.5 (web, confirmado)**: la bandeja de Requisiciones ya deja ver todos
+  los renglones (artículo, cantidad, notas) con solo abrir el detalle — no
+  hace falta "iniciar" ningún despacho para verlos. La app sí necesitaba esto
+  (PROMPT-117): la pantalla de Despachos solo mostraba
+  «REQ-… · obra · N renglón(es)» y exigía tocar "Despachar" para ver el
+  contenido.

@@ -47,6 +47,19 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
 
+/**
+ * CW5 — el recibo trae el producto como texto libre ("DIESEL", "gasolina premium",
+ * "GLP"…); el <select> del formulario solo acepta 'diesel' | 'gasolina'. Normaliza
+ * lo reconocible; si no coincide con nada (p. ej. GLP), devuelve producto=null para
+ * que quede como sugerencia en vez de forzar un valor inválido en el <select>.
+ */
+function normalizarProductoRecibo(raw: string): { producto: 'diesel' | 'gasolina' | null; subtipo: 'regular' | 'premium' | null } {
+  const s = raw.toLowerCase();
+  const producto = /di[eé]sel/.test(s) ? 'diesel' : /gasolina|gas\b/.test(s) ? 'gasolina' : null;
+  const subtipo = /premium|[oó]ptimo/.test(s) ? 'premium' : /regular/.test(s) ? 'regular' : null;
+  return { producto, subtipo };
+}
+
 /** CV1 — datos ya validados que llegaron por queryParams desde Compa (preparar_echada). */
 interface CompaPrefill {
   vehiculo_id: string;
@@ -149,6 +162,8 @@ export class Combustible implements OnInit {
     producto: new FormControl<string | null>(null),
     // AA20 — subtipo regular|premium (se pide tras elegir gasolina/diésel).
     subtipo: new FormControl<string | null>(null),
+    // CW5 — número de recibo/ticket (la foto ya lo lee; antes se perdía).
+    numero_recibo: new FormControl<string | null>(null),
     tarjeta: new FormControl<string | null>(null),
     titular: new FormControl<string | null>(null),
     titular_es_persona: new FormControl<boolean>(false, { nonNullable: true }),
@@ -695,7 +710,7 @@ export class Combustible implements OnInit {
       kilometraje: null, galones: null, monto: null,
       origen: 'estacion', proyecto_id: null,
       estacionSel: 'Total Energies', estacion: null, notas: null,
-      producto: null, subtipo: null, tarjeta: null, titular: null, titular_es_persona: false });
+      producto: null, subtipo: null, numero_recibo: null, tarjeta: null, titular: null, titular_es_persona: false });
     this.avisoCompa.set(false);
     this.prellenadoCompa.set(new Set());
     this.drawerOpen.set(true);
@@ -907,6 +922,24 @@ export class Combustible implements OnInit {
     set('estacion', 'Estación', (v) => { this.form.get('estacionSel')?.setValue('Otro'); this.form.get('estacion')?.setValue(v); });
     set('fecha', 'Fecha', (v) => this.form.get('fecha')?.setValue(v));
     set('tarjeta_ult4', 'Tarjeta', (v) => this.form.get('tarjeta')?.setValue(v));
+    // CW5 — brecha de paridad: el recibo también trae producto y número de
+    // recibo, pero antes se descartaban. "producto" solo se auto-rellena si el
+    // texto leído resuelve a un valor válido del <select> (diesel|gasolina);
+    // si no (p. ej. "GLP"), se deja como sugerencia aunque la confianza sea alta,
+    // porque forzar un valor inválido en el <select> lo dejaría en blanco.
+    const prodVal = l.producto;
+    if (prodVal) {
+      const { producto, subtipo } = normalizarProductoRecibo(prodVal);
+      const c = conf['producto'] ?? 0;
+      if (producto && c >= UMBRAL) {
+        this.form.get('producto')?.setValue(producto);
+        if (subtipo) this.form.get('subtipo')?.setValue(subtipo);
+        llenados.push('Producto');
+      } else {
+        sugerencias.push({ campo: 'producto', etiqueta: 'Producto', valor: prodVal, conf: c });
+      }
+    }
+    set('numero_recibo', 'Número de recibo', (v) => this.form.get('numero_recibo')?.setValue(v));
     this.leidoCampos.set(llenados);
     this.lecturaSugerencias.set(sugerencias);
   }
@@ -975,6 +1008,8 @@ export class Combustible implements OnInit {
       // Z23.4 — datos de conciliación (solo aplican a estación).
       producto: deposito ? null : raw.producto || null,
       subtipo: deposito ? null : raw.subtipo || null, // AA20
+      // CW5 — número de recibo/ticket; un depósito/garrafón en obra no trae ticket de estación.
+      numero_recibo: deposito ? null : raw.numero_recibo?.trim() || null,
       tarjeta: deposito ? null : raw.tarjeta?.trim() || null,
       titular: deposito ? null : (raw.titular_es_persona ? raw.titular?.trim() || null : null),
       titular_es_persona: deposito ? false : !!raw.titular_es_persona,

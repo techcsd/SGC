@@ -194,7 +194,7 @@
             formControlName="tipo_id"
             [class.invalid]="f.tipo_id.invalid && f.tipo_id.touched"
           >
-            <option [value]="null">Seleccionar tipo…</option>
+            <option [ngValue]="null">Seleccionar tipo…</option>
             @for (t of tipos(); track t.value) {
               <option [value]="t.value">{{ t.label }}</option>
             }
@@ -251,7 +251,7 @@
       <div class="sgc-field">
         <label for="empleado_id">Asignado a</label>
         <select id="empleado_id" formControlName="empleado_id">
-          <option [value]="null">Sin asignar</option>
+          <option [ngValue]="null">Sin asignar</option>
           @for (emp of empleados(); track emp.id) {
             <option [value]="emp.id">{{ emp.nombre }} {{ emp.apellido }}</option>
           }
@@ -267,7 +267,7 @@
       <div class="sgc-field">
         <label for="bodega_id">Ubicación (almacén)</label>
         <select id="bodega_id" formControlName="bodega_id">
-          <option [value]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">Seleccionar almacén…</option>
           @for (b of bodegas(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
@@ -307,7 +307,7 @@
       <div class="sgc-field">
         <label for="origen_solicitud_compra_id">Origen: compra tecnológica</label>
         <select id="origen_solicitud_compra_id" formControlName="origen_solicitud_compra_id">
-          <option [value]="null">Sin origen de compra</option>
+          <option [ngValue]="null">Sin origen de compra</option>
           @for (c of comprasOpciones(); track c.id) {
             <option [value]="c.id">{{ c.label }}</option>
           }
