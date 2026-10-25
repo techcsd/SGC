@@ -207,6 +207,7 @@ export class Shell implements OnInit {
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
         { label: 'Apertura de inventario', route: '/inventario/apertura', soloAdmin: true },
         { label: 'Reposición', route: '/inventario/reposicion', submodulo: 'inventario.articulos' },
+        { label: 'Stock en Odoo', route: '/inventario/stock-odoo', modulo: 'inventario' },
         { label: 'Almacenes', route: '/inventario/bodegas', submodulo: 'inventario.articulos' },
         { label: 'Reportes', route: '/inventario/reportes', submodulo: 'inventario.salidas' },
       ],

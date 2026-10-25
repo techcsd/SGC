@@ -1,0 +1,131 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Stock en Odoo' | t }}</h1>
+    <span class="page-count">{{ 'Solo lectura' | t }}</span>
+  </div>
+</div>
+
+<p class="so-lead">
+  {{ 'Existencias consultadas en vivo en Odoo (cantidad física y reservada por producto y ubicación). Cualquier cambio hecho en Odoo se ve en la siguiente consulta.' | t }}
+</p>
+
+<div class="filters-bar so-filtros">
+  <div class="sgc-field so-buscador">
+    <label for="so-producto">{{ 'Producto' | t }}</label>
+    <div class="so-buscador__caja">
+      <app-icon name="search" [size]="16" />
+      <input
+        id="so-producto"
+        type="search"
+        role="combobox"
+        autocomplete="off"
+        aria-autocomplete="list"
+        aria-controls="so-listbox"
+        [attr.aria-expanded]="sugerencias().length > 0"
+        [attr.aria-activedescendant]="activo() >= 0 ? 'so-op-' + activo() : null"
+        [value]="termino()"
+        (input)="onTexto($any($event.target).value)"
+        (keydown)="onTeclas($event)"
+        [placeholder]="'Buscar por nombre o código…' | t"
+      />
+      @if (producto()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarProducto()" [attr.aria-label]="'Quitar filtro de producto' | t">
+          <app-icon name="x" [size]="16" />
+        </button>
+      }
+    </div>
+    @if (sugerencias().length > 0) {
+      <ul id="so-listbox" class="so-sugerencias" role="listbox" [attr.aria-label]="'Productos encontrados' | t">
+        @for (p of sugerencias(); track p.id; let i = $index) {
+          <li
+            role="option"
+            [id]="'so-op-' + i"
+            [attr.aria-selected]="i === activo()"
+            [class.so-sugerencias__op--activa]="i === activo()"
+            (click)="elegirProducto(p)"
+            (keydown.enter)="elegirProducto(p)"
+            tabindex="-1"
+          >
+            <span>{{ p.nombre }}</span>
+            @if (p.unidad) { <span class="text-muted">{{ p.unidad }}</span> }
+          </li>
+        }
+      </ul>
+    }
+    <span class="text-muted so-estado" role="status" aria-live="polite">
+      @if (buscando()) { {{ 'Buscando…' | t }} }
+      @else if (errorBusqueda()) { {{ 'No se pudo buscar productos. Intenta de nuevo.' | t }} }
+    </span>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <label for="so-ubicacion">{{ 'Ubicación' | t }}</label>
+    <select id="so-ubicacion" [value]="ubicacionId() ?? ''" (change)="onUbicacion($any($event.target).value)">
+      <option value="">{{ 'Todas las ubicaciones' | t }}</option>
+      @for (u of ubicaciones(); track u.id) {
+        <option [value]="u.id">{{ u.nombre }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (ubicacionesTruncadas()) {
+  <p class="so-aviso" role="status">{{ 'Hay más ubicaciones de las que se muestran. Filtra por producto para acotar.' | t }}</p>
+}
+
+@if (error()) {
+  <app-error-state [error]="error()" [pantalla]="pantallaError()" (retry)="ngOnInit()" />
+} @else if (loading() && !resultado()) {
+  <app-skeleton variant="table" [rows]="8" />
+} @else if (resultado(); as r) {
+  <div class="table-wrapper sgc-card" [attr.aria-busy]="loading()">
+    @if (r.data.filas.length === 0) {
+      <div class="table-empty">
+        <p>{{ 'No hay existencias para este filtro.' | t }}</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" [attr.aria-label]="'Stock en Odoo' | t">
+          <thead>
+            <tr>
+              <th>{{ 'Producto' | t }}</th>
+              <th>{{ 'Ubicación' | t }}</th>
+              <th class="text-right">{{ 'Cantidad física' | t }}</th>
+              <th class="text-right">{{ 'Reservada' | t }}</th>
+              <th class="text-right">{{ 'Disponible' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of r.data.filas; track f.producto?.id + '-' + f.ubicacion?.id) {
+              <tr>
+                <td>{{ f.producto?.nombre }}</td>
+                <td class="text-muted">{{ f.ubicacion?.nombre }}</td>
+                <td class="text-right">
+                  @if (f.cantidad_fisica < 0) { <span class="sgc-badge sgc-badge--danger" [attr.title]="'Existencia negativa en Odoo' | t">{{ f.cantidad_fisica }}</span> } @else { {{ f.cantidad_fisica }} }
+                </td>
+                <td class="text-right">{{ f.cantidad_reservada }}</td>
+                <td class="text-right">{{ f.cantidad_disponible }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <div class="so-paginacion">
+      <span class="text-muted so-consultado" role="status">
+        {{ 'Consultado a las' | t }} {{ consultadoEn() }}
+        @if (desdeCache()) { · {{ 'desde caché' | t }} }
+      </span>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="loading()" (click)="actualizar()">
+        <app-icon name="refresh" [size]="16" /> {{ 'Actualizar' | t }}
+      </button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="r.data.pagina <= 1 || loading()" (click)="irA(r.data.pagina - 1)">
+        <app-icon name="chevron-left" [size]="16" /> {{ 'Anterior' | t }}
+      </button>
+      <span class="text-muted">{{ 'Página' | t }} {{ r.data.pagina }}</span>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="!r.data.hay_mas || loading()" (click)="irA(r.data.pagina + 1)">
+        {{ 'Siguiente' | t }} <app-icon name="chevron-right" [size]="16" />
+      </button>
+    </div>
+  </div>
+}
