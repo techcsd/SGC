@@ -167,12 +167,93 @@ revierta a propósito si hace falta, no por accidente.
 - `que_puedo_consultar` se actualizó con la fila nueva `soporte_admin` y los 4
   tools nuevos de notas en la fila `notas` ya existente (`sql/2026-10-24-cx2-*`).
 
-**Siguientes pasos de la nota (fases 3-5, NO empezadas esta ronda — solo listadas):**
-3. Visibilidad admin: `conexiones_claude`, `estado_envios_automaticos`,
-   `reglas_de_alertas`, `historial_importaciones`, `sesiones_de_usuario`, y las
-   extensiones marcadas "verify" (sync de Reuniones, Compras tecnológicas, etc.).
-4. Más borradores (`proponer_*`) por frecuencia de uso: tareas, reuniones,
-   requisiciones (decisión), compras, inventario, flota, bitácora, legal, mensajes,
-   admin (activar/desactivar usuario — nunca contraseñas/PIN).
-5. Dev/ops: errores recientes, avisos de seguridad (Supabase Advisor), y una
-   tool de SQL de solo lectura sobre vistas `v_*` si todavía hace falta.
+## CY (25-oct-2026) — fases 3-4-5 del plan de Xaviel (continúa CX2)
+
+18 herramientas nuevas, todas `canales: ['mcp']` (mismo criterio de CX2 — ver
+arriba "Por qué solo MCP"). Las 3 "verify" de la nota (sync de Reuniones,
+Compras tecnológicas, bitácora/combustible item-by-item) resultaron SÍ hacer
+falta construcción (no estaban ya cubiertas) — se hizo en esta ronda.
+
+**Fase 3 — visibilidad admin (8 tools):**
+
+| Tool | RPC | Mecanismo | Quién |
+|---|---|---|---|
+| `conexiones_claude` | `claude_conexiones_listado` (EXTENDIDA: +`borradores_pendientes`) | chequeo `is_admin()` interno | admin |
+| `estado_envios_automaticos` | `envios_automaticos_listar` (ya existía, CT10) | `security definer`, sin chequeo propio — confía en el filtro de `toolsParaUsuario` | admin/Tecnología |
+| `reglas_de_alertas` | `reglas_de_alertas` (nueva) | chequeo `is_admin() or es_tecnologia()` interno; junta `notif_regla` + `notif_pref_usuario` (solo filas con `definida_por` — exclusiones puestas por un admin) | admin/Tecnología |
+| `historial_importaciones` | `historial_importaciones` (nueva) | `security invoker`, la RLS de `sgc.importaciones` ya filtra | admin/Tecnología/Inventario |
+| `detalle_compra_tecnologica` | `detalle_compra_tecnologica` (nueva) | `security invoker` | tecnología/compras |
+| `listar_documentos_generados` | `listar_documentos_generados` (nueva) | `security invoker`, RLS por proyecto ya existente | documentos |
+| `bitacora_detalle` | `bitacora_detalle` (nueva) | chequeo `puede_ver_bitacora(id)` (misma función que ya usa la pantalla) | bitácora/proyectos |
+| `echada_detalle` | `echada_detalle` (ya existía, BZ1 — nunca se había registrado como tool) | chequeo interno (flota-elevado/admin/dueño) | flota |
+| `errores_recientes` | `app_error_reports_grupos` (ya existía, Y6/BI4 — nunca registrada) | chequeo `es_tecnologia()` interno | admin/Tecnología |
+
+**Extensión aditiva** (regla 19, mismo cuerpo + columnas nuevas al final):
+`reunion_resumen_compa` ganó `calendar_sync_estado`/`calendar_sync_error`/`calendar_sync_at`
+(ya en `sgc.reuniones` desde CT1, nunca expuestas aquí).
+
+**Fase 4 — borradores nuevos (9 tools, modo D, todas reusan el RPC real de la
+pantalla donde existe; donde no, una función nueva que REPRODUCE el mismo
+update/insert con la MISMA RLS, sin lógica de negocio nueva):**
+
+| Tool | RPC | Reusa pantalla existente |
+|---|---|---|
+| `proponer_cambio_tarea` | `actualizar_tarea_campos` (nueva, invoker — misma RLS "tareas: update") | no, Angular hacía `.update()` directo |
+| `proponer_reunion` | `reunion_crear` (ya existía) | sí |
+| `proponer_cancelar_reunion` | `reunion_cancelar` (ya existía, CT1) | sí |
+| `proponer_cerrar_acuerdo` | `reunion_acuerdo_cerrar` (nueva) — un acuerdo se "cierra" completando su `tarea_id` vinculada (el esquema no tiene un flag propio) | parcial |
+| `proponer_decision_requisicion` | `decidir_requisicion` (nueva, delega a `rechazar_solicitud_material` ya existente, o a `aprobar_requisicion_simple` nueva) | sí (rechazar); aprobar usa SOLO el artículo ya vinculado de cada renglón, sin fuzzy-matching nuevo — renglones LIBRE sin vincular se resuelven en la app primero |
+| `proponer_orden_de_compra` | `crear_orden_compra` (ya existía) | sí |
+| `proponer_entrada_inventario` | `registrar_entrada_inventario` (ya existía) | sí |
+| `proponer_solicitud_movimiento` | `crear_solicitud_movimiento_v2` (ya existía) | sí |
+| `proponer_correccion_conduce` | `conduce_cambiar_despachante` (ya existía, CT8) | sí |
+| `proponer_mantenimiento` | `crear_mantenimiento_app` (ya existía) | sí (km es obligatorio, sin default) |
+| `proponer_bitacora` | `crear_bitacora_app` (ya existía) | sí, solo los primeros 5 parámetros (el resto tiene default) |
+| `proponer_decision_legal` | `resolver_aprobacion_legal` (nueva, invoker — misma RLS "aprobaciones_legales: update", que ya exige `revisado_por = auth.uid()`) | no, Angular hacía `.update()` directo |
+| `proponer_actualizacion_expediente` | `actualizar_expediente_legal` (nueva, invoker — misma RLS "expedientes_legales: update") | no, Angular hacía `.update()` directo |
+| `proponer_mensaje` | `enviar_mensaje_directo` (nueva, invoker — usa `crear_conversacion_directa` ya existente + insert con la RLS normal de `mensajes`) | no, Angular hacía `.insert()` directo |
+| `proponer_cambio_envio_automatico` | `envio_automatico_set` (ya existía, CT10) | sí |
+| `proponer_probar_envio` | `envio_automatico_probar` (ya existía, CU3) | sí |
+| `proponer_nota_de_version` | `registrar_version` (ya existía) — ya es idempotente ("solo rellena lo vacío") | sí |
+
+**✅ DECIDIDO — NO se construyen (confirmado por Xaviel, 25-oct-2026, las 4
+preguntas directas sobre estos puntos — no quedan pendientes, es una decisión
+cerrada, no un "todavía no"):**
+- **`sesiones_de_usuario`** (ver sesiones de OTRO usuario) y
+  **`proponer_cambio_usuario`** (activar/desactivar, roles): `mis_sesiones()`/
+  `cerrar_mi_sesion()`/`assign_roles()` YA llaman `sgc.rechazar_si_cliente_oauth()`
+  — el propio proyecto ya había decidido que esta familia no se expone a un
+  cliente OAuth (Claude Desktop lo es); Xaviel confirmó mantener ese bloqueo tal
+  cual. Además, activar/desactivar pasa por una edge function (banea en Auth,
+  no solo un flag), sin RPC equivalente.
+- **`reintentar_sync_calendario`**, **`proponer_revocar_conexion_claude`**: la
+  acción real en ambos casos es invocar OTRA edge function
+  (`reuniones-calendar`, `claude-conexiones`), no un RPC — el mecanismo de
+  confirmar un borrador (`claude-borrador`) solo ejecuta `supabase.rpc(...)`,
+  nunca invoca otra edge. Xaviel confirmó NO extender ese mecanismo compartido
+  (afectaría los otros 17 borradores) por el uso bajo esperado de estas 2.
+- **`proponer_echada_combustible`** (ejecutar, no solo preparar):
+  `registrar_combustible_app` exige fotos de evidencia que un borrador de chat
+  no tiene — por eso ya existe `preparar_echada` (CV1, "abrir formulario"), que
+  se queda como está.
+- **`cambios_pendientes_de_publicar` / `version_por_usuario`**: no existe
+  ninguna tabla que trackee qué versión usa cada usuario ahora mismo. Xaviel
+  confirmó que no vale la pena la infraestructura nueva (reportar versión activa
+  por sesión en app y web) para una necesidad que no ha aparecido todavía.
+- **`avisos_de_seguridad`**: el Security Advisor de Supabase solo se audita
+  on-demand vía Management API (`scripts/audit-public-schema-cu2.mjs`). Xaviel
+  confirmó dejarlo manual — automatizarlo le daría a un tercero (Claude)
+  visibilidad sobre vulnerabilidades del sistema, más sensible que el resto del
+  conector.
+- **SQL de solo lectura sobre vistas `v_*`**: la propia nota de Xaviel lo marca
+  "Not now" en su tabla de decisiones (sin cambio).
+
+**Con esto, el "SGC Connector – Full Access Improvement Plan" de Xaviel (23-oct-2026)
+queda completo** — las 5 fases de la nota están construidas o decididas
+explícitamente en su contra, ninguna sigue "pendiente de decisión".
+
+**Hallazgo lateral (no relacionado con el conector):** el smoke de esta ronda
+encontró `sgc.solicitudes_material_folio_seq` desincronizada en dev
+(`max(folio)=9001` por el seed demo de CK, secuencia en 11) — corregido con
+`scripts/data-fixes/2026-10-25-cy-resync-folio-seq-dev.mjs` (dev-only, `setval`
+idempotente; prod no tiene esa fila demo, no aplica).

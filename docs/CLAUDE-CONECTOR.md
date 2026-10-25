@@ -374,3 +374,35 @@ permisos reales de quien llama — reservado a lo que la nota de Xaviel marcó
 bajo riesgo (notas propias, estado de un reporte de soporte). Fases 3-5 de la
 nota (visibilidad admin, más `proponer_*`, dev/ops) **no se empezaron** —
 quedan listadas en `PERMISOS-TOOLS.md`.
+
+## §13. CY (25-oct-2026) — fases 3-4-5 del plan de acceso completo de Xaviel
+
+18 herramientas más, completando las fases 3-5 de la nota (tabla completa en
+`supabase/functions/assistant/PERMISOS-TOOLS.md` sección "CY"): 9 de
+visibilidad admin (`conexiones_claude`, `estado_envios_automaticos`,
+`reglas_de_alertas`, `historial_importaciones`, `detalle_compra_tecnologica`,
+`listar_documentos_generados`, `bitacora_detalle`, `echada_detalle`,
+`errores_recientes`) y 9 borradores nuevos (`proponer_cambio_tarea`,
+`proponer_reunion`, `proponer_cancelar_reunion`, `proponer_cerrar_acuerdo`,
+`proponer_decision_requisicion`, `proponer_orden_de_compra`,
+`proponer_entrada_inventario`, `proponer_solicitud_movimiento`,
+`proponer_correccion_conduce`, `proponer_mantenimiento`, `proponer_bitacora`,
+`proponer_decision_legal`, `proponer_actualizacion_expediente`,
+`proponer_mensaje`, `proponer_cambio_envio_automatico`, `proponer_probar_envio`,
+`proponer_nota_de_version`). Migración `sql/2026-10-25-cy-conector-fases-3-4-5.sql`.
+Todas `canales: ['mcp']`.
+
+**✅ 4 ítems quedan fuera por decisión final de Xaviel (25-oct-2026, preguntado
+directo — no es una omisión ni algo pendiente de decidir)**: `sesiones_de_usuario`
+y `proponer_cambio_usuario` — las RPCs equivalentes (`mis_sesiones`,
+`assign_roles`) YA llaman `sgc.rechazar_si_cliente_oauth()`, es decir, el
+proyecto ya había decidido que esa familia no se expone a un cliente OAuth como
+Claude Desktop, y Xaviel confirmó mantenerlo así; `reintentar_sync_calendario` y
+`proponer_revocar_conexion_claude` necesitarían que el mecanismo de confirmar un
+borrador invoque OTRA edge function (hoy solo ejecuta RPCs) — Xaviel confirmó no
+extenderlo por estos 2 casos de uso bajo; `cambios_pendientes_de_publicar`/
+`version_por_usuario` y `avisos_de_seguridad` necesitan infraestructura nueva que
+Xaviel confirmó que no vale la pena todavía — detalle completo en
+`PERMISOS-TOOLS.md`. **Con esto, el "SGC Connector – Full Access Improvement
+Plan" de Xaviel queda completo: las 5 fases están construidas o decididas
+explícitamente en su contra — nada sigue abierto.**

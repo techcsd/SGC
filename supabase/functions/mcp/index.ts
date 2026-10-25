@@ -85,6 +85,23 @@ function resumenBorrador(cfg: ToolDef, input: Any): string {
   if (cfg.write!.tipo === "requisicion") return `Requisición: ${(input.items ?? []).length} artículo(s)`;
   if (cfg.write!.tipo === "conduce") return `Conduce: ${(input.items ?? []).length} artículo(s)`;
   if (cfg.write!.tipo === "ruta") return "Ruta de transporte";
+  if (cfg.write!.tipo === "cambio_tarea") return "Cambio de tarea";
+  if (cfg.write!.tipo === "reunion") return `Reunión: ${String(input.titulo ?? "").slice(0, 80)}`;
+  if (cfg.write!.tipo === "cancelar_reunion") return "Cancelar reunión";
+  if (cfg.write!.tipo === "cerrar_acuerdo") return "Cerrar acuerdo de reunión";
+  if (cfg.write!.tipo === "decision_requisicion") return `Requisición: ${input.decision === "rechazar" ? "rechazar" : "aprobar"}`;
+  if (cfg.write!.tipo === "orden_compra") return `Orden de compra: ${(input.items ?? []).length} artículo(s)`;
+  if (cfg.write!.tipo === "entrada_inventario") return `Entrada de inventario: ${(input.items ?? []).length} artículo(s)`;
+  if (cfg.write!.tipo === "solicitud_movimiento") return "Solicitud de movimiento";
+  if (cfg.write!.tipo === "correccion_conduce") return "Corrección de conduce";
+  if (cfg.write!.tipo === "mantenimiento") return "Mantenimiento de vehículo";
+  if (cfg.write!.tipo === "bitacora") return "Entrada de bitácora";
+  if (cfg.write!.tipo === "decision_legal") return `Aprobación legal: ${input.estado ?? ""}`;
+  if (cfg.write!.tipo === "actualizacion_expediente") return "Actualización de expediente legal";
+  if (cfg.write!.tipo === "mensaje") return "Mensaje directo";
+  if (cfg.write!.tipo === "cambio_envio_automatico") return `Envío automático: ${input.activo ? "encender" : "apagar"} ${input.familia ?? ""}`;
+  if (cfg.write!.tipo === "probar_envio") return `Probar envío: ${input.familia ?? ""}`;
+  if (cfg.write!.tipo === "nota_de_version") return `Nota de versión ${input.version ?? ""}`;
   return cfg.write!.tipo;
 }
 

@@ -166,3 +166,12 @@ que SÍ cruza o es reusable:
   (PROMPT-117): la pantalla de Despachos solo mostraba
   «REQ-… · obra · N renglón(es)» y exigía tocar "Despachar" para ver el
   contenido.
+
+---
+
+## 10. CY (PROMPT — continúa PROMPT-116, 25-oct-2026)
+
+100% conector de Claude (fases 3-5 de la nota de Xaviel) — nada que la app
+consuma. Las 18 herramientas nuevas son exclusivamente `canales: ['mcp']`
+(servidor remoto que Claude Desktop usa, no algo que csd-app invoque). Detalle
+en `supabase/functions/assistant/PERMISOS-TOOLS.md` §"CY".
