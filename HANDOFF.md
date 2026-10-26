@@ -2,9 +2,20 @@
 
 ## TL;DR — PROMPT-118 — Integración SGC ↔ Odoo (épica #2, issues #3–#24 + PR #22) — 25/10/2026 — 🟡 EN DEV, nada a main/prod
 
-Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Esta sesión, siguiendo la prioridad explícita de Xaviel ("F0 → F1 → extractor → F4 → F5 → F7"), completó **F0, F1, F4, F5, F7**. Las olas 3-6 (F2-F3, F6, F8-F13 — issues #4, #6-#17, #19, #21, #23, #24) **no se empezaron** — quedan para la próxima sesión, en orden.
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Dos sesiones seguidas ("continue working") completaron **F0, F1, F4, F5, F7, F2 (los 6 puntos de CY21) y F3 (CY23)**. Quedan **F6, F8–F13** (issues #4, #6, #7, #8, #9–#17, #19, #24) — el piloto de OC (F10/CY24) es la pieza más grande que falta.
 
-### Hecho esta sesión (commits `c24692a1`, `a0133b86` en `dev`; nada en `main`)
+### Hecho — segunda sesión (commits `e3f73eae`..`0b1d6261` en `dev`; nada en `main`) — F2 (CY21) completa + F3 (CY23) completa
+
+- **F2.1 CORS por lista:** `_shared/cors.ts` reemplaza `"Access-Control-Allow-Origin": "*"` en las **44 edges** que lo tenían (migración mecánica hecha por 2 agentes en paralelo, verificada archivo por archivo con `deno check` — 39/44 limpias, 5 con errores de tipos **preexistentes sin relación**, confirmados idénticos contra el commit anterior). Desplegadas las 44 a dev y probadas con `curl OPTIONS` real: origen permitido se refleja, no permitido se omite, `headersExtra` (x-sync-secret) funciona.
+- **F2.2 `envRequerido()`:** mismo patrón, sustituye `Deno.env.get("SUPABASE_URL"/"SUPABASE_ANON_KEY")!` en las mismas 44 edges (sustitución de texto literal, sin tocar estructura). `SUPABASE_SERVICE_ROLE_KEY")!` queda fuera de alcance.
+- **F2.3 `capacidades_asistente()` dinámica:** ya NO es una lista fija de 14 módulos — deriva la unión de todo lo que aparece en `sgc.roles.modulos` (hoy 19, incluye los 5 que faltaban: `reuniones`, `ingenieria`, `obra`, `transporte`, `plataforma`). Migración `sql/2026-10-25-cy21-capacidades-modulos.sql` en dev. Probado con el conector MCP real (`que_puedo_consultar`) contra un usuario de prueba real.
+- **F2.4 build en worktree limpio:** confirmado que SÍ fallaba (`environment.ts` gitignored, esbuild "Could not resolve"). `scripts/ensure-environment.mjs` (nuevo, primer paso de `prebuild`/`prestart`) cae a `environment.dev.ts` si falta. Reproducido con un `git worktree` desechable real: fallaba antes, pasa después.
+- **F2.5 runner de tests Deno:** `npm run test:edge` descubre automáticamente todo `supabase/functions/**/*.test.ts` por directorio (no hay que listar archivos). Enganchado a `release-check.mjs` (gate CP5 dev→main) como check 7, SKIP si Deno no está instalado. `release-check.mjs --env dev --version 1.201.0` da 7/7 PASS.
+- **F3 (CY23) resiliencia del gateway:** `_shared/odoo-circuito.ts` (circuit breaker: abre tras N fallos de infra consecutivos, medio-abre con una sola prueba, cierra con éxito), `_shared/odoo-backoff.ts` (backoff exponencial + jitter SOLO en lecturas, nunca reintenta auth/config/negocio), `_shared/odoo-semaforo.ts` (límite global de concurrencia hacia Odoo, además del límite por usuario que ya existía). Encadenados en `handler.ts`; nuevos códigos `odoo_circuito_abierto` (503) / `odoo_saturado` (429), traducidos por rol. 20 tests Deno nuevos (incluye 2 de integración contra el handler real). Deploy a dev verificado: camino feliz sigue en 200. **SWR en el frontend** (`stock-odoo.ts`): caché propia con signals (decisión documentada en el código: TanStack Query vs signals, se fue por signals para no sumar dependencia) — un filtro ya visto se muestra al instante mientras se revalida en segundo plano (`revalidando()`). Un error SÍ limpia la tabla (stale-if-error, fuera de alcance explícito de la issue).
+
+Build + Vitest (110/110) + Deno (54/54) verdes en cada commit. Comentarios de estado dejados en issues #3, #18, #20, #21, #23 y PR #22.
+
+### Hecho — primera sesión (commits `c24692a1`, `a0133b86` en `dev`)
 
 - **F0 (verificación):** confirmado que no hay DDL de Odoo en dev/prod, que `docs/MAPA-ODOO-INVENTARIO.md`/`EVALUACION-ACCESO-DIRECTO-ODOO-2026-10-16.md` no existen, y re-verificados los conteos de CY21 (CORS `"*"` en 44 archivos, `SUPABASE_URL")!` en 49 usos, `SUPABASE_ANON_KEY")!` en 28 — un poco más que lo que decía la issue, nada grave) y los archivo:línea de CY24 (confirmados correctos).
 - **F1 (CY22 — PR #22, PoC Odoo solo lectura):** resuelto el conflicto en `public/i18n/en.json` (se conservaron claves de ambas ramas), integrado a `dev` (NO a main). Build, Vitest (110/110) y Deno (`npm run test:edge-odoo`, 30/30) verdes. **Deno no estaba instalado en esta máquina — se instaló** (`irm https://deno.land/install.ps1 | iex`, ahora en `C:\Users\xavie\.deno\bin`). PR #22 fue auto-cerrado por GitHub como MERGED al detectar que sus commits ya estaban en `dev` (su base era `dev`, no `main` — no es una fusión a main, es solo GitHub reconociendo la realidad del historial). Comentarios dejados en PR #22, issues #8 y #20.
@@ -14,14 +25,12 @@ Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO
 - **F7 (CY5 — adaptador servidor):** el cliente XML-RPC (`_shared/odoo-client.ts`) ya venía del PR #22, no se duplicó. Se aplicaron los secrets `ODOO_URL/ODOO_DB/ODOO_USER/ODOO_API_KEY/ODOO_COMPANY_ID` **solo en dev** (ver gotcha de permisos abajo) y se desplegó la edge `odoo-api` a dev (v13). **Lectura de prueba real contra el Odoo de producción de la empresa, sin crear nada:** `productos.buscar` (3 cementos reales), `ubicaciones.listar` (almacenes reales por proyecto), `stock.consultar` (cantidad física/reservada de un producto real) — los 3 con HTTP 200. Un intento de `execute_kw` (escritura) fue rechazado por la allowlist cerrada (HTTP 400 "Acción no permitida"). **Nota:** el adaptador de hoy solo tiene acciones de lectura de producto/stock/ubicación — no hay acciones de proveedor/OC todavía (eso es alcance de CY24 Fase A, no construido esta ronda).
 
 ### Pendiente — próxima sesión (en orden, issues sin empezar)
-1. **F2 (CY21):** CORS por lista (hoy 44 edges con `"*"`), helper de env sin `!` (49+28 usos), `capacidades_asistente()` dinámica, Deno en CI, `deno.lock` a `.gitignore` (**esto último ya se hizo** esta sesión).
-2. **F3 (CY23):** SWR en cliente, circuit breaker, backoff solo-lecturas, semáforo global hacia Odoo.
-3. **F6 (CY4):** vínculos de stock con FK reales (tabla(s) auxiliares, no genéricas).
-4. **F8 (CY19):** homologación de maestros (simulación + ejecución idempotente) — depende del contrato de CY18 aceptado.
-5. **F9 (CY6+CY7):** outbox a nivel BD/RPC + matriz de autoridad de maestros.
-6. **F10 (CY24+CY8):** piloto de OC con productos desde Odoo — el más grande, 3 fases (A/B/C).
-7. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos.
-8. **F13 (CY16+CY17):** estado de sincronización visible + documento de equipos/activos.
+1. **F6 (CY4):** vínculos de stock con FK reales (tabla(s) auxiliares, no genéricas) — espera el contrato de cardinalidades de CY18.
+2. **F8 (CY19):** homologación de maestros (simulación + ejecución idempotente) — depende del contrato de CY18 aceptado + F6/F7.
+3. **F9 (CY6+CY7):** outbox a nivel BD/RPC (la app escribe por RPC, no por los services Angular — el enganche va ahí) + matriz de autoridad de maestros.
+4. **F10 (CY24+CY8):** piloto de OC con productos desde Odoo — el más grande, 3 fases (A/B/C). Requiere F6/F9 hechas y la ampliación `20261016112525` aplicada en dev (para D3) — **todavía no se instaló** (D-04, espera el contrato de CY18).
+5. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos.
+6. **F13 (CY16+CY17):** estado de sincronización visible + documento de equipos/activos.
 
 ### Pendientes físicos de Xaviel
 1. **Aceptar la matriz de `docs/ODOO-DIAGNOSTICO-CONTRATO.md`** (criterio 7 de CY18) — en particular: ¿capturar RNC de los 1,565 proveedores candidatos o aceptar revisión manual?, ¿Odoo tiene módulo de proyectos/analítica activo?, mapeo real bodega→ubicación.
@@ -41,10 +50,11 @@ Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO
 ### Verify on resume
 ```bash
 cd "C:/Users/xavie/Desktop/X Dev/dev/SGC"
-git log --oneline -3 dev                        # debe mostrar a0133b86 (IDs nativos) y c24692a1 (PR #22) encima de c5d5027f
-cat docs/ODOO-DIAGNOSTICO-CONTRATO.md | head -5  # existe, tiene la matriz CY18
-grep -c "odoo_v1" <(node scripts/diagnosticos/2026-10-25-cy20-verify.mjs docs/odoo-schema/01_verify_identity.sql --env dev) # confirma que la migración sigue aplicada en dev
-export PATH="$PATH:/c/Users/xavie/.deno/bin"; deno --version  # confirma que Deno sigue instalado
+git log --oneline -3 dev                        # debe mostrar 0b1d6261 (CY23) encima de c5d5027f
+export PATH="$PATH:/c/Users/xavie/.deno/bin"; deno --version  # Deno instalado en esta máquina
+npm run test:edge                                # 54/54 (odoo-api + cors + env + circuito + backoff + semaforo)
+node scripts/release-check.mjs --env dev --version 1.201.0   # debe dar 7/7 PASS (o re-correr si CU2 da timeout transitorio)
+cat docs/ODOO-DIAGNOSTICO-CONTRATO.md | head -5  # existe, tiene la matriz CY18 (sigue pendiente de aceptación de Xaviel)
 ```
 
 ---
