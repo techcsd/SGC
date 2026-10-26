@@ -32,6 +32,8 @@ export class NotificacionesService {
     }
     if (this.userService.hasModulo('compras') || isAdmin) {
       checks.push(this.loadCount('solicitudes_compra', 'pendiente', 'compras'));
+      // CY24 Fase B — "Productos por dar de alta en Odoo" pendientes → badge en Compras.
+      checks.push(this.loadProductosPorDarDeAlta());
     }
     if (this.userService.hasModulo('bitacora') || isAdmin) {
       // RLS already scopes this to the caller's own project(s) for an
@@ -207,6 +209,12 @@ export class NotificacionesService {
   private async loadConducesPorImplementar(): Promise<void> {
     const { data } = await this.supabase.client.rpc('conduces_por_implementar_count');
     this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.conduces_por_implementar': (data as number) ?? 0 }));
+  }
+
+  /** CY24 Fase B — productos de una OC sin equivalente en Odoo → badge en Compras. */
+  private async loadProductosPorDarDeAlta(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('productos_por_dar_de_alta_count');
+    this._pendingBySubmodulo.update((m) => ({ ...m, 'compras.productos_pendientes': (data as number) ?? 0 }));
   }
 
   /** AS7 — requisiciones pendientes visibles (RLS) → badge en la bandeja global. */

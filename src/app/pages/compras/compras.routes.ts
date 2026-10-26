@@ -42,4 +42,12 @@ export const comprasRoutes: Routes = [
     loadComponent: () => import('./reportes/reportes').then((m) => m.ComprasReportes),
     title: 'Reportes — Compras',
   },
+  {
+    // CY24 Fase B (#24) — bandeja de productos sin equivalente en Odoo.
+    path: 'productos-por-dar-de-alta',
+    canActivate: [moduleGuard('compras')],
+    loadComponent: () =>
+      import('./productos-por-dar-de-alta/productos-por-dar-de-alta').then((m) => m.ProductosPorDarDeAlta),
+    title: 'Productos por dar de alta — Compras',
+  },
 ];
