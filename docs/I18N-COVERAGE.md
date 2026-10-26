@@ -59,7 +59,7 @@
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
 | flota/choferes-privados | - | 106 | 0 | 106 | 0% |
-| flota/combustible | - | 302 | 0 | 302 | 0% |
+| flota/combustible | - | 307 | 0 | 307 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |

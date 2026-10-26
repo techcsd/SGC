@@ -402,7 +402,7 @@
       </label>
       <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
       @if (odometroActual() !== null) {
-        <span class="field-hint">Odómetro actual: {{ odometroActual() | number:'1.0-0' }} km · el nuevo km no puede ser menor.</span>
+        <span class="field-hint">Odómetro actual: {{ odometroActual() | number:'1.0-0' }} km.</span>
       }
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) { <span class="field-error">El vehículo es obligatorio.</span> }
     </div>
@@ -455,6 +455,24 @@
         <span class="field-error">Falta: Compa no la inventa.</span>
       } @else if (f.kilometraje.invalid && f.kilometraje.touched) {
         <span class="field-error">La lectura es obligatoria.</span>
+      }
+      <!-- CZ1 — pista de la última lectura con fecha (recibos retroactivos pueden ir por debajo del odómetro vivo). -->
+      @if (kmValidacion()?.km_antes != null) {
+        <span class="field-hint">Última lectura: {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
+      }
+      <!-- CZ1 — error (bloquea Guardar): retroceso vs. lectura anterior o exceso retroactivo. -->
+      @if (kmValidacion()?.nivel === 'error') {
+        <span class="field-error">{{ kmValidacion()!.mensaje }}</span>
+      }
+      <!-- CZ1 — aviso ámbar (no bloquea; pide confirmar) por salto inverosímil. -->
+      @if (kmValidacion()?.nivel === 'aviso') {
+        <div class="cmb-km-aviso">
+          <span class="cmb-km-aviso__msg">{{ kmValidacion()!.mensaje }}</span>
+          <label class="cmb-km-check">
+            <input type="checkbox" [checked]="kmConfirmado()" (change)="kmConfirmado.set($any($event.target).checked)" />
+            Sí, es correcto
+          </label>
+        </div>
       }
     </div>
 
