@@ -125,11 +125,26 @@ Mismo patrón, columnas propias de cada tabla:
 | `crear_categoria_app` | `categorias_inventario` (INSERT) | ✅ sí |
 | `entregar_conduce` | `salidas_inventario`, `detalle_salidas` (UPDATE) | ⏳ no — siguiente migración, mismo patrón |
 | `confirmar_entrada_chofer` | `entradas_inventario`, `ordenes_compra` (UPDATE), `detalle_entradas` (INSERT) | ⏳ no |
-| `crear_retiro_material` | `retiros_material`, `retiro_material_items`, `retiro_material_fotos` (INSERT) | ⏳ no |
-| `aprobar_requisicion` | `solicitudes_compra`, `solicitud_compra_items` (INSERT), `salidas_inventario`, `solicitudes_material`, `solicitud_material_items` (UPDATE) | ⏳ no |
-| `crear_solicitud_compra_app` | `solicitudes_compra`, `solicitud_compra_items` (INSERT) | ⏳ no |
+| `crear_retiro_material` | `retiros_material`, `retiro_material_items`, `retiro_material_fotos` (INSERT) | ✅ sí (cabecera+renglones) |
+| `aprobar_requisicion` | `solicitudes_compra`, `solicitud_compra_items` (INSERT), `salidas_inventario`, `solicitudes_material`, `solicitud_material_items` (UPDATE) | ✅ parcial — `solicitud_compra`/`salida_inventario` sí; `solicitudes_material`/`solicitud_material_items` quedan fuera a propósito (ver abajo) |
+| `crear_solicitud_compra_app` | `solicitudes_compra`, `solicitud_compra_items` (INSERT) | ✅ sí (cabecera+renglones) |
 
-Se capturaron los **4 maestros** (`articulos`, `categorias_inventario`, `unidades`, `proveedores`) esta ronda; las **5 rutas de stock/compra** (entradas, salidas, retiros, requisiciones, solicitudes de compra) quedan para una migración siguiente con el mismo patrón de trigger — no se tocaron hoy para no arriesgar flujos de stock en producción real sin tiempo de probarlos uno a uno.
+Se capturaron los **4 maestros** (`articulos`, `categorias_inventario`, `unidades`, `proveedores`) esta ronda.
+
+### CY6 resto — documentos con cabecera+renglones (`sql/2026-10-26-cy6c-outbox-documentos.sql`, aplicada en dev)
+Decisión de diseño (pedida explícitamente por Xaviel): un evento útil necesita la cabecera **y todos sus renglones juntos**, no una fila a la vez. Verificado contra las RPC reales: `crear_retiro_material`/`aprobar_requisicion`/`crear_solicitud_compra_app` insertan renglones con **un solo `INSERT ... SELECT ... FROM jsonb_array_elements(...)`** (bulk), pero `confirmar_entrada_chofer` los inserta en un **loop** (una sentencia `INSERT` por renglón) — un trigger de renglón fallaría para ese caso (dispararía una vez por renglón, fragmentando el documento).
+
+**Solución:** el trigger va en la **cabecera**, no en los renglones, declarado `CREATE CONSTRAINT TRIGGER ... DEFERRABLE INITIALLY DEFERRED`. Postgres lo encola y lo ejecuta justo antes del `COMMIT` — momento en el que todos los renglones de esa transacción, sin importar en cuántas sentencias se insertaron, ya existen. El trigger relee la cabecera + sus renglones actuales en ese instante y arma un snapshot completo. Sigue siendo "en la misma transacción" (criterio 1 de CY6): si la transacción revierte, el trigger deferred nunca llega a ejecutarse.
+
+4 `agregado_tipo` nuevos, cada uno con su propia agregación de renglones:
+- `entrada_inventario` (`entradas_inventario` + `detalle_entradas`)
+- `salida_inventario` (`salidas_inventario` + `detalle_salidas`)
+- `retiro_material` (`retiros_material` + `retiro_material_items` + `retiro_material_fotos`)
+- `solicitud_compra` (`solicitudes_compra` + `solicitud_compra_items`) — esta tabla no tiene columna `es_prueba` en el esquema actual, se trata como `false` siempre.
+
+`ordenes_compra` (actualizada dentro de `confirmar_entrada_chofer`) y `solicitudes_material`/`solicitud_material_items` (actualizadas dentro de `aprobar_requisicion`) quedan **fuera a propósito**: la OC es terreno de F10/CY24 (gateado por D-08); la requisición es el documento de origen, no el movimiento de stock que resulta — ese ya lo captura `salida_inventario`.
+
+**Probado — lo que de verdad importa de este diseño:** un documento con renglones insertados en LOOP (replicando `confirmar_entrada_chofer` exacto) y otro con renglones en BULK INSERT (replicando `crear_retiro_material`) ambos terminan en **un evento completo con todos los renglones, no fragmentado**. Probado también **contra la RPC real** (`confirmar_entrada_chofer`, bajo rol `authenticated` con un usuario real de inventario) — no solo con una réplica sintética del patrón.
 
 **Mecánica (todo probado en dev, incluido contra la RPC real bajo rol `authenticated`, no solo con SQL directo):**
 - `sgc.odoo_eventos`: un evento por `(instancia, agregado_tipo, agregado_id, revision)` — único, reintento no duplica. `revision` se autoincrementa por agregado (criterio 5).
