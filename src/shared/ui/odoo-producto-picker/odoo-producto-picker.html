@@ -1,0 +1,66 @@
+@if (value(); as p) {
+  <div class="opp-chip">
+    <span class="sgc-badge sgc-badge--info">Odoo</span>
+    <span class="opp-chip__nombre">{{ p.nombre }}</span>
+    @if (p.codigo) { <span class="text-muted">({{ p.codigo }})</span> }
+    @if (!disabled()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiar()" [attr.aria-label]="'Quitar producto' | t">
+        <app-icon name="x" [size]="14" />
+      </button>
+    }
+  </div>
+} @else {
+  <div class="opp-buscador">
+    <div class="opp-buscador__caja">
+      <app-icon name="search" [size]="16" />
+      <input
+        type="search"
+        role="combobox"
+        autocomplete="off"
+        aria-autocomplete="list"
+        [attr.aria-expanded]="sugerencias().length > 0"
+        [value]="termino()"
+        [disabled]="disabled()"
+        (input)="onTexto($any($event.target).value)"
+        (keydown)="onTeclas($event)"
+        [placeholder]="'Buscar producto en Odoo…' | t"
+      />
+    </div>
+    @if (sugerencias().length > 0) {
+      <ul class="opp-sugerencias" role="listbox" [attr.aria-label]="'Productos encontrados en Odoo' | t">
+        @for (p of sugerencias(); track p.id; let i = $index) {
+          <li
+            role="option"
+            [attr.aria-selected]="i === activo()"
+            [class.opp-sugerencias__op--activa]="i === activo()"
+            (click)="elegir(p)"
+            (keydown.enter)="elegir(p)"
+            tabindex="-1"
+          >
+            <span>{{ p.nombre }}</span>
+            @if (p.codigo) { <span class="text-muted">{{ p.codigo }}</span> }
+            @if (p.unidad_compra) { <span class="text-muted">{{ p.unidad_compra }}</span> }
+          </li>
+        }
+      </ul>
+    }
+    <span class="text-muted opp-estado" role="status" aria-live="polite">
+      @if (buscando()) {
+        {{ 'Buscando en Odoo…' | t }}
+      } @else if (errorBusqueda()) {
+        {{ 'No se pudo buscar en Odoo. Intenta de nuevo.' | t }}
+      } @else if (sinResultados) {
+        <span class="opp-sin-resultados">
+          {{ 'No encontramos este producto en Odoo.' | t }}
+          <label class="opp-confirmar">
+            <input type="checkbox" [checked]="confirmoNoExiste()" (change)="confirmoNoExiste.set($any($event.target).checked)" />
+            {{ 'Ya busqué por nombre y código y no existe' | t }}
+          </label>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!confirmoNoExiste()" (click)="pedirAlta()">
+            {{ 'Solicitar alta de producto' | t }}
+          </button>
+        </span>
+      }
+    </span>
+  </div>
+}

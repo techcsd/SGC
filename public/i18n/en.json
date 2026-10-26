@@ -664,5 +664,12 @@
   "Motivo": "Reason",
   "Creado": "Created",
   "Vinculado": "Linked",
-  "Rechazado": "Rejected"
+  "Rechazado": "Rejected",
+  "Quitar producto": "Remove product",
+  "Buscar producto en Odoo…": "Search for a product in Odoo…",
+  "Productos encontrados en Odoo": "Products found in Odoo",
+  "Buscando en Odoo…": "Searching Odoo…",
+  "No se pudo buscar en Odoo. Intenta de nuevo.": "Couldn't search Odoo. Try again.",
+  "No encontramos este producto en Odoo.": "We couldn't find this product in Odoo.",
+  "Ya busqué por nombre y código y no existe": "I already searched by name and code and it doesn't exist"
 }

@@ -150,6 +150,9 @@ const productosBuscarCompra: Def<{ termino: string; limite: number }> = {
         codigo: f.default_code ? String(f.default_code) : null,
         unidad: m2o(f.uom_id)?.nombre ?? null,
         unidad_compra: m2o(f.uom_po_id)?.nombre ?? null,
+        // CY24 (#24, D1) -- el id numérico de la UoM de compra, para persistir
+        // orden_compra_items.odoo_uom_id (el nombre solo no basta, es display).
+        unidad_compra_id: m2o(f.uom_po_id)?.id ?? null,
         categoria: m2o(f.categ_id)?.nombre ?? null,
       })),
     };

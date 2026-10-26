@@ -356,6 +356,18 @@ Deno.test("productos.buscar_compra: filtra por purchase_ok, NO por type='product
   assert(!llamada?.includes("<string>product</string>"), "NO debe limitarse a type=product");
 });
 
+Deno.test("productos.buscar_compra: expone el id numérico de la UoM de compra (CY24 #24, D1)", async () => {
+  const xml = xmlStruct(`<value><struct>
+    <member><name>id</name><value><int>4821</int></value></member>
+    <member><name>display_name</name><value><string>Cemento gris 42.5kg</string></value></member>
+    <member><name>uom_po_id</name><value><array><data><value><int>55</int></value><value><string>Saco</string></value></data></array></value></member>
+    </struct></value>`);
+  const r = await manejar(req({ accion: "productos.buscar_compra", params: { termino: "cemento" } }), deps({ respuesta: xml }));
+  const producto = (await r.json()).data.productos[0];
+  assertEquals(producto.unidad_compra, "Saco");
+  assertEquals(producto.unidad_compra_id, 55);
+});
+
 Deno.test("productos.obtener: producto_id obligatorio y válido", async () => {
   const sinId = await manejar(req({ accion: "productos.obtener", params: {} }), deps());
   assertEquals(sinId.status, 400);

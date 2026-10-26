@@ -45,7 +45,7 @@
 | bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | bitacora/solicitudes-material | - | 126 | 0 | 126 | 0% |
-| compras/ordenes | - | 169 | 0 | 169 | 0% |
+| compras/ordenes | - | 171 | 0 | 171 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
 | dashboard | - | 143 | 0 | 143 | 0% |

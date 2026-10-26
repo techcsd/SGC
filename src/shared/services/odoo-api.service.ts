@@ -4,6 +4,7 @@ import { edgeErrorDetail } from '../utils/edge.util';
 import {
   OdooAccion,
   OdooProducto,
+  OdooProductoCompra,
   OdooRespuesta,
   OdooStockFiltro,
   OdooStockPagina,
@@ -23,6 +24,13 @@ export class OdooApiService {
 
   async buscarProductos(termino: string, limite = 20): Promise<OdooProducto[]> {
     const r = await this.invocar<{ productos: OdooProducto[] }>('productos.buscar', { termino, limite });
+    return r.data.productos;
+  }
+
+  /** CY24 (#24, D1) — selector de producto Odoo en "crear OC": filtra por
+   *  purchase_ok, no por type='product' (E2/E8 — un servicio también se compra). */
+  async buscarProductosCompra(termino: string, limite = 20): Promise<OdooProductoCompra[]> {
+    const r = await this.invocar<{ productos: OdooProductoCompra[] }>('productos.buscar_compra', { termino, limite });
     return r.data.productos;
   }
 

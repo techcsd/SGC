@@ -316,13 +316,22 @@
           <div class="item-row">
             <div class="item-row__desc sgc-field">
               <label [for]="'desc-' + $index" class="sr-only">Artículo</label>
-              <app-articulo-picker
-                [articulos]="articulosParaDestino()"
-                [categorias]="categorias()"
-                [value]="item.articulo_id"
-                [esOtro]="item.esOtro"
-                (selectionChange)="onArticuloSelect($index, $event)"
-              />
+              @if (odooPilotoHabilitado()) {
+                <!-- CY24 (#24, D1) — piloto encendido: el selector busca en Odoo, no en sgc.articulos. -->
+                <app-odoo-producto-picker
+                  [value]="item.odoo_product"
+                  (selectionChange)="onOdooProductoSelect($index, $event)"
+                  (solicitarAlta)="onOdooSolicitarAlta($index, $event)"
+                />
+              } @else {
+                <app-articulo-picker
+                  [articulos]="articulosParaDestino()"
+                  [categorias]="categorias()"
+                  [value]="item.articulo_id"
+                  [esOtro]="item.esOtro"
+                  (selectionChange)="onArticuloSelect($index, $event)"
+                />
+              }
               @if (item.esOtro) {
                 <input
                   class="item-row__desc-otro"

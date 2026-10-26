@@ -27,6 +27,9 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { OdooProductoPicker } from '../../../../shared/ui/odoo-producto-picker/odoo-producto-picker';
+import { OdooProductoCompra } from '../../../../shared/models/odoo.model';
+import { OdooProductoSolicitudesService } from '../../../../shared/services/odoo-producto-solicitudes.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
@@ -50,6 +53,8 @@ interface ItemRow {
   descripcion: string;
   cantidad: number;
   precio_unitario: number;
+  /** CY24 (#24, D1) — producto elegido en Odoo (solo con el piloto encendido). */
+  odoo_product: OdooProductoCompra | null;
 }
 
 const NUEVO_OC_ITEM: () => ItemRow = () => ({
@@ -58,6 +63,7 @@ const NUEVO_OC_ITEM: () => ItemRow = () => ({
   descripcion: '',
   cantidad: 1,
   precio_unitario: 0,
+  odoo_product: null,
 });
 
 type ReconciliacionEstado = 'completo' | 'parcial' | 'pendiente' | 'sin_articulo';
@@ -72,7 +78,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, Icon, RouterLink, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, OdooProductoPicker, Icon, RouterLink, StaggerDirective],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,6 +92,7 @@ export class Ordenes implements OnInit {
   private proyectosService = inject(ProyectosService);
   private solicitudesCompraService = inject(SolicitudesCompraService);
   private entradasService = inject(EntradasService);
+  private odooSolicitudesService = inject(OdooProductoSolicitudesService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
@@ -98,6 +105,10 @@ export class Ordenes implements OnInit {
   destino = signal<'proyecto' | 'oficina'>('proyecto');
   aplicaImpuesto = signal(true);
   esPruebaOrden = signal(false);
+
+  // CY24 (#24, D1/D6) — con el flag encendido, el selector de líneas busca en
+  // Odoo en vez del catálogo SGC. Apagado por defecto (criterio de aceptación 1).
+  odooPilotoHabilitado = signal(false);
 
   // Alta inline de proveedor
   showNuevoProveedor = signal(false);
@@ -363,17 +374,19 @@ export class Ordenes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [ordenes, proveedores, proyectos, solicitudes, articulos, categorias] = await Promise.all([
+      const [ordenes, proveedores, proyectos, solicitudes, articulos, categorias, odooPiloto] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
         this.proyectosService.getDirectorio('orden_compra'), // BF7 — scoped: ingeniero ve sus obras
         this.solicitudesCompraService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),
+        this.ordenesService.odooCompraPilotoHabilitado(),
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
       this.proyectos.set(proyectos);
+      this.odooPilotoHabilitado.set(odooPiloto);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
       const activos = articulos.filter((a) => a.activo);
       this.articulos.set(activos);
@@ -480,6 +493,7 @@ export class Ordenes implements OnInit {
       descripcion: i.proveedor_sugerido ? `${i.descripcion} (sugerido: ${i.proveedor_sugerido})` : i.descripcion,
       cantidad: i.cantidad,
       precio_unitario: 0,
+      odoo_product: null,
     }));
     this.formItems.set(items.length > 0 ? items : [NUEVO_OC_ITEM()]);
     this.createDrawerOpen.set(true);
@@ -533,6 +547,42 @@ export class Ordenes implements OnInit {
     );
   }
 
+  /** CY24 (#24, D1) — selección desde el picker de Odoo: la línea nace "Otro"
+   *  con la descripción del producto, pero guarda el producto completo (AT11)
+   *  para vincularlo al renglón real una vez creada la OC (ver onSave). */
+  onOdooProductoSelect(index: number, producto: OdooProductoCompra | null) {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        return {
+          ...item,
+          odoo_product: producto,
+          articulo_id: null,
+          esOtro: !producto,
+          descripcion: producto ? producto.nombre : '',
+        };
+      }),
+    );
+  }
+
+  /** E1/E5 — "Solicitar alta" desde el renglón: deja la solicitud en la bandeja
+   *  de Compras (standalone, la OC todavía no existe) y la línea sigue como
+   *  texto libre para no bloquear el borrador (E3). */
+  async onOdooSolicitarAlta(index: number, terminoBuscado: string) {
+    const item = this.formItems()[index];
+    const descripcion = item.descripcion.trim() || terminoBuscado;
+    try {
+      await this.odooSolicitudesService.crear(descripcion, terminoBuscado);
+      this.toast.success('Solicitud de alta enviada', 'Compras la resolverá en "Productos por dar de alta en Odoo". Mientras tanto, guarda esta línea como texto libre.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo enviar la solicitud de alta', e instanceof Error ? e.message : undefined);
+      return;
+    }
+    this.formItems.update((items) =>
+      items.map((it, i) => (i !== index ? it : { ...it, odoo_product: null, esOtro: true, descripcion })),
+    );
+  }
+
   removeItem(index: number) {
     this.formItems.update((items) => items.filter((_, i) => i !== index));
   }
@@ -545,6 +595,37 @@ export class Ordenes implements OnInit {
         return updated;
       }),
     );
+  }
+
+  /**
+   * CY24 (#24, D7) — crear_orden_compra NO guarda `odoo_product`/`odoo_uom`/
+   * `odoo_snapshot` (D7: su firma/INSERT no se tocan). Tras crear la OC, esta
+   * función vincula cada renglón que traía un producto Odoo elegido con el
+   * renglón real ya insertado. `orden_compra_items` no tiene una columna de
+   * orden ni un correlation-id del cliente, así que el emparejamiento es por
+   * (descripcion, cantidad, precio_unitario) — determinista para líneas únicas
+   * y, en el caso raro de dos líneas idénticas, el resultado es indistinguible
+   * de todas formas (misma descripción/cantidad/precio). Falla de vinculación
+   * = aviso, nunca revierte la OC ya creada (ya existe, ya es válida sin esto).
+   */
+  private async vincularProductosOdooTrasCrear(validItems: ItemRow[], created: OrdenCompra): Promise<void> {
+    const pendientes = validItems.filter((i) => i.odoo_product);
+    if (pendientes.length === 0) return;
+    const disponibles = [...(created.items ?? [])];
+    const matchKey = (i: { descripcion: string; cantidad: number; precio_unitario: number }) =>
+      `${i.descripcion}|${i.cantidad}|${i.precio_unitario}`;
+    const tareas: Promise<void>[] = [];
+    for (const item of pendientes) {
+      const idx = disponibles.findIndex((d) => matchKey(d) === matchKey(item));
+      if (idx === -1) continue;
+      const [destino] = disponibles.splice(idx, 1);
+      tareas.push(this.ordenesService.vincularProductoOdoo(destino.id!, item.odoo_product!));
+    }
+    const resultados = await Promise.allSettled(tareas);
+    const fallos = resultados.filter((r) => r.status === 'rejected').length;
+    if (fallos > 0) {
+      this.toast.error('Algunos renglones no quedaron vinculados a Odoo', 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
+    }
   }
 
   async onSave() {
@@ -631,6 +712,7 @@ export class Ordenes implements OnInit {
         };
         created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }
+      await this.vincularProductosOdooTrasCrear(validItems, created);
       this.ordenes.update((list) => [created, ...list]);
       this.motion.momento('documento');
 

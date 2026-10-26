@@ -18,6 +18,14 @@ export interface OdooProducto {
   categoria: string | null;
 }
 
+/** CY24 (#24, D1) — variante "compras" de OdooProducto: filtra por purchase_ok
+ *  en vez de type='product', y trae la UoM de compra (nombre + id numérico —
+ *  el id es lo que se persiste en orden_compra_items.odoo_uom_id). */
+export interface OdooProductoCompra extends OdooProducto {
+  unidad_compra: string | null;
+  unidad_compra_id: OdooId | null;
+}
+
 export interface OdooUbicacion {
   id: OdooId;
   nombre: string;
@@ -64,7 +72,7 @@ export interface OdooStockFiltro {
 }
 
 /** Acciones permitidas del gateway (espejo de la allowlist del servidor). */
-export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar';
+export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra';
 
 /** ¿Es un ID de Odoo válido? (entero positivo seguro). */
 export function esOdooId(v: unknown): v is OdooId {
