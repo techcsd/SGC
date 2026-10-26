@@ -107,6 +107,12 @@ Solo 5 OC en SGC prod, ninguna con referencia a Odoo (la columna `odoo_ref` no e
 
 **Explícitamente fuera de esta pieza** (criterios 2-3-7-8-9 de CY19 — altas y resolución de discrepancias): requieren **escribir en el Odoo real** (crear el proveedor/categoría/unidad que falte del lado Odoo), y la única cuenta técnica disponible hoy **no es de solo lectura confirmada en una base de pruebas** (D-08) — se construyen cuando exista esa base o una orden escrita de Xaviel para un caso concreto. Esta pieza tampoco ajusta saldos ni importa apertura (no los toca).
 
+### CY19 resto — articulos y bodegas (`sql/2026-10-26-cy19b-homologacion-vincular-articulo-bodega.sql`, aplicada en dev)
+Mismo patrón, columnas propias de cada tabla:
+- `sgc.odoo_homologacion_vincular_articulo(p_articulo_id, p_odoo_instancia_id, p_odoo_product_id, p_odoo_template_id, p_simular)` — variante (`product`) y plantilla (`template`) **juntas, obligatorias las dos** (una variante sin su plantilla no tiene sentido en Odoo). Conflicto si cualquiera de las dos ya está vinculada a un valor distinto.
+- `sgc.odoo_homologacion_vincular_bodega(p_bodega_id, p_odoo_instancia_id, p_odoo_location_id, p_odoo_warehouse_id, p_simular)` — **`odoo_location_id` obligatorio, `odoo_warehouse_id` opcional** (no se asume 1:1 bodega↔almacén, confirmado con datos reales en CY18: 0 coincidencias entre 27 bodegas y 24 almacenes). Completar el `warehouse_id` más tarde (location igual, warehouse pasa de `null` a un valor) cuenta como `vinculado`, no como conflicto — es terminar un dato parcial, no pisar uno confirmado.
+- Mismo log (`sgc.odoo_homologacion_log`, tablas `articulos`/`bodegas`), mismo permiso (`is_admin()` o `service_role`, con **grant a ambos roles en la misma migración** — lección de la ronda anterior). Smoke transaccional (ROLLBACK) cubre simulación/ejecución/idempotencia/conflicto/"completar sin romper" para ambas.
+
 ## CY6 — outbox transaccional (aplicada en dev)
 `sql/2026-10-26-cy6-outbox-odoo.sql` (+ `cy6b-grant-service-role.sql`, fix de permisos encontrado probando el procesador). Enganche **a nivel BD**, no a nivel service Angular (la app escribe por RPC sin pasar por esos services) y, dentro de "a nivel BD", se eligió **trigger de tabla** en vez de editar el cuerpo de las 9 RPC que cita la issue — un trigger `AFTER INSERT/UPDATE` corre en la MISMA transacción que la escribió, así que el criterio 1 ("si la transacción revierte, no hay evento") se cumple sin tocar ninguna de las 9 RPC (menor riesgo que editar rutas de escritura en producción real).
 
