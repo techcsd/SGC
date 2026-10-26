@@ -1,3 +1,5 @@
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+
 // AO2 — Búsqueda de lugares con Google Places API (New v1), server-side.
 // La GOOGLE_MAPS_API_KEY (key de SERVIDOR) vive como secreto de la edge function,
 // NUNCA en el navegador ni en el repo (lección AG1). Contrato ÚNICO consumido por
@@ -12,23 +14,17 @@
 // El sessionToken (opcional) agrupa autocomplete+details en una sesión de facturación
 // (lo genera el cliente y lo pasa igual en ambas llamadas). Ver checklist de Cloud.
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sgc-client',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
 const REGION = 'do';        // República Dominicana
 const LANG = 'es';
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
-
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200): Response {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {

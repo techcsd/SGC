@@ -207,6 +207,7 @@ export class Shell implements OnInit {
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
         { label: 'Apertura de inventario', route: '/inventario/apertura', soloAdmin: true },
         { label: 'Reposición', route: '/inventario/reposicion', submodulo: 'inventario.articulos' },
+        { label: 'Stock en Odoo', route: '/inventario/stock-odoo', modulo: 'inventario' },
         { label: 'Almacenes', route: '/inventario/bodegas', submodulo: 'inventario.articulos' },
         { label: 'Reportes', route: '/inventario/reportes', submodulo: 'inventario.salidas' },
       ],
@@ -222,6 +223,8 @@ export class Shell implements OnInit {
         { label: 'Órdenes de Compra', route: '/compras/ordenes', submodulo: 'compras.ordenes', badgeKey: 'compras.ordenes' },
         // BH8 — "Solicitar Compra" donde vive quien la necesita (Raykler). Misma pantalla que en Ingeniería.
         { label: 'Solicitar Compra', route: '/compras/solicitar', submodulo: 'compras.solicitudes' },
+        // CY24 Fase B (#24) — productos de una OC sin equivalente en Odoo.
+        { label: 'Productos por dar de alta', route: '/compras/productos-por-dar-de-alta', modulo: 'compras', badgeKey: 'compras.productos_pendientes' },
         { label: 'Reportes', route: '/compras/reportes', modulo: 'compras' },
       ],
     },
@@ -429,6 +432,8 @@ export class Shell implements OnInit {
         { label: 'Consultas de Compa', route: '/tecnologia/consultas-compa', soloTecnologia: true },
         { label: 'Conversaciones de Compa', route: '/admin/compa-conversaciones', soloAdmin: true },
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
+        // CY16 (#16) — sincronización con Odoo (outbox distinto del de arriba).
+        { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
         { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
         { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
       ],

@@ -29,6 +29,14 @@ export const inventarioRoutes: Routes = [
     title: 'Importar artículos — Inventario',
   },
   {
+    // PoC Odoo — existencias en vivo desde Odoo (solo lectura). Gate: módulo `inventario`
+    // (el gateway `odoo-api` lo vuelve a exigir en el servidor).
+    path: 'stock-odoo',
+    canActivate: [moduleGuard('inventario')],
+    loadComponent: () => import('./stock-odoo/stock-odoo').then((m) => m.StockOdoo),
+    title: 'Stock en Odoo — Inventario',
+  },
+  {
     path: 'activos',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./activos/activos').then((m) => m.Activos),

@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // AA20 — Precios oficiales de combustibles RD (MICM).
 // Descarga el CSV oficial del MICM (dataset "Precios de combustibles, 2010–2026"),
@@ -15,15 +17,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CSV_URL =
   "https://micm.gob.do/transparencias/datos-abiertos/precios-de-combustibles/precios-de-combustibles-2010-2026.csv";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 
 const MESES: Record<string, number> = {
   enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
@@ -47,6 +40,10 @@ function toDateISO(y: number, m: number, d: number): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
   const expected = Deno.env.get("FUEL_PRICES_SECRET") ?? Deno.env.get("INFRA_SYNC_SECRET");
@@ -105,7 +102,7 @@ Deno.serve(async (req: Request) => {
     ].filter((p) => p.precio > 0);
 
     const admin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      envRequerido("SUPABASE_URL"),
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" } },
     );

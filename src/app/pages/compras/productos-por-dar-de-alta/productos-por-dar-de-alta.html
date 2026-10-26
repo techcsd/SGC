@@ -1,0 +1,245 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Productos por dar de alta en Odoo' | t }}</h1>
+    <span class="page-count">{{ pendientes().length }} {{ 'pendiente' | t }}{{ pendientes().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
+    {{ 'Solicitar alta' | t }}
+  </button>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar">
+  <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'pendientes'" (click)="setTab('pendientes')">
+    {{ 'Pendientes' | t }} ({{ pendientes().length }})
+  </button>
+  <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todas'" (click)="setTab('todas')">
+    {{ 'Todas' | t }}
+  </button>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (visible().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (tab() === 'pendientes') {
+          {{ 'No hay productos pendientes de dar de alta.' | t }}
+        } @else {
+          {{ 'No hay solicitudes registradas todavía.' | t }}
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Productos por dar de alta en Odoo">
+        <thead>
+          <tr>
+            <th>{{ 'Material' | t }}</th>
+            <th>{{ 'Búsqueda previa' | t }}</th>
+            <th>{{ 'Solicitado por' | t }}</th>
+            <th>{{ 'Orden' | t }}</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Acción' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of paginated(); track s.id) {
+            <tr>
+              <td>
+                <span class="pda-desc">{{ s.descripcion_libre }}</span>
+                @if (s.estado !== 'pendiente' && s.articulo_resultante) {
+                  <span class="pda-sub">→ {{ s.articulo_resultante.nombre }} ({{ s.articulo_resultante.codigo }})</span>
+                }
+              </td>
+              <td class="text-muted">{{ s.busqueda_previa || '—' }}</td>
+              <td>{{ s.solicitado_por_nombre ?? '—' }}</td>
+              <td class="text-muted">{{ s.orden?.numero ?? '—' }}</td>
+              <td>{{ s.solicitado_en | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) | t }}</span></td>
+              <td class="text-center">
+                @if (s.estado === 'pendiente' && puedeResolver()) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDrawer(s)">
+                    {{ 'Resolver' | t }}
+                  </button>
+                } @else {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDrawer(s)">
+                    {{ 'Ver' | t }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-paginator [total]="visible().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
+  }
+</div>
+
+<!-- ── Solicitar alta ── -->
+<app-form-drawer [title]="'Solicitar alta de producto' | t" [open]="crearOpen()" (closed)="cerrarCrear()">
+  <div class="detail-body">
+    <p class="text-muted">
+      {{ 'Úsalo cuando necesites un material que no encuentras en Odoo ni en el catálogo de SGC. Compras revisará tu pedido.' | t }}
+    </p>
+    <div class="sgc-field">
+      <label for="crear-desc">{{ 'Descripción del material' | t }}</label>
+      <textarea id="crear-desc" rows="2" [value]="crearDescripcion()" (input)="crearDescripcion.set($any($event.target).value)" placeholder="Ej. Tornillo hexagonal M10 galvanizado"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label for="crear-busq">{{ '¿Qué buscaste y no encontraste?' | t }}</label>
+      <input id="crear-busq" type="text" [value]="crearBusqueda()" (input)="crearBusqueda.set($any($event.target).value)" placeholder="Ej. busqué &quot;tornillo m10&quot; y &quot;m10 galvanizado&quot;" />
+    </div>
+    @if (crearError()) {
+      <div class="save-error" role="alert">{{ crearError() }}</div>
+    }
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="creando()" (click)="cerrarCrear()">{{ 'Cancelar' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creando()" (click)="confirmarCrear()">
+        {{ (creando() ? 'Enviando…' : 'Enviar solicitud') | t }}
+      </button>
+    </div>
+  </div>
+</app-form-drawer>
+
+<!-- ── Resolver / Ver ── -->
+<app-form-drawer [title]="(drawerSolicitud()?.estado === 'pendiente' ? 'Resolver solicitud' : 'Detalle de la solicitud') | t" [open]="drawerOpen()" (closed)="cerrarDrawer()" [wide]="modo() === 'vincular'">
+  @if (drawerSolicitud(); as s) {
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-field detail-field--full">
+          <span class="detail-field__label">{{ 'Material solicitado' | t }}</span>
+          <span>{{ s.descripcion_libre }}</span>
+        </div>
+        <div class="detail-field detail-field--full">
+          <span class="detail-field__label">{{ 'Búsqueda previa' | t }}</span>
+          <span>{{ s.busqueda_previa || '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">{{ 'Solicitado por' | t }}</span>
+          <span>{{ s.solicitado_por_nombre ?? '—' }}</span>
+        </div>
+        @if (s.orden?.numero) {
+          <div class="detail-field">
+            <span class="detail-field__label">{{ 'Orden de compra' | t }}</span>
+            <span>{{ s.orden?.numero }}</span>
+          </div>
+        }
+      </div>
+
+      @if (s.estado === 'pendiente') {
+        @if (!modo()) {
+          <!-- Elegir qué hacer -->
+          <div class="pda-opciones">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="elegirModo('vincular')">
+              {{ 'Vincular a un artículo existente' | t }}
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="elegirModo('crear')">
+              {{ 'Crear artículo nuevo' | t }}
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--danger" (click)="elegirModo('rechazar')">
+              {{ 'Rechazar solicitud' | t }}
+            </button>
+          </div>
+        } @else {
+          @if (modo() === 'vincular') {
+            <app-articulo-picker
+              [articulos]="catalogo()"
+              [categorias]="categorias()"
+              [allowOtro]="false"
+              [value]="vincularArticuloId()"
+              (selectionChange)="onVincularSel($event)"
+            />
+          } @else if (modo() === 'crear') {
+            <div class="sgc-field">
+              <label for="nombre">{{ 'Nombre del artículo' | t }}</label>
+              <input id="nombre" type="text" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+            </div>
+            <div class="sgc-field">
+              <label for="cat">{{ 'Categoría' | t }}</label>
+              <select id="cat" [value]="nuevaCategoria()" (change)="nuevaCategoria.set(+$any($event.target).value)">
+                @for (c of categorias(); track c.id) {
+                  <option [value]="c.id">{{ c.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div class="sgc-field">
+              <label for="uni">{{ 'Unidad' | t }}</label>
+              <select id="uni" [value]="nuevaUnidad()" (change)="nuevaUnidad.set($any($event.target).value)">
+                @for (u of unidades; track u.value) {
+                  <option [value]="u.value">{{ u.label }}</option>
+                }
+              </select>
+            </div>
+            <p class="pda-note">{{ 'Se creará con código automático y quedará marcado como puente a Odoo.' | t }}</p>
+          } @else {
+            <div class="sgc-field">
+              <label for="rm">{{ 'Motivo del rechazo' | t }}</label>
+              <textarea id="rm" rows="2" [value]="rechazarMotivo()" (input)="rechazarMotivo.set($any($event.target).value)" placeholder="Ej. ya existe un artículo equivalente, o no aplica"></textarea>
+            </div>
+          }
+
+          @if (resolverError()) {
+            <div class="save-error" role="alert">{{ resolverError() }}</div>
+          }
+
+          <div class="drawer-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="resolviendo()" (click)="elegirModo(null)">{{ 'Atrás' | t }}</button>
+            @if (modo() === 'vincular') {
+              <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolviendo() || !vincularArticuloId()" (click)="confirmarVincular()">
+                {{ (resolviendo() ? 'Vinculando…' : 'Vincular') | t }}
+              </button>
+            } @else if (modo() === 'crear') {
+              <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolviendo()" (click)="confirmarCrearYResolver()">
+                {{ (resolviendo() ? 'Creando…' : 'Crear y resolver') | t }}
+              </button>
+            } @else {
+              <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolviendo()" (click)="confirmarRechazar()">
+                {{ (resolviendo() ? 'Rechazando…' : 'Rechazar solicitud') | t }}
+              </button>
+            }
+          </div>
+        }
+      } @else {
+        <!-- Ya resuelta -->
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-field__label">{{ 'Estado' | t }}</span>
+            <span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) | t }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">{{ 'Resuelto por' | t }}</span>
+            <span>{{ s.resuelto_por_nombre ?? '—' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">{{ 'Fecha de resolución' | t }}</span>
+            <span>{{ s.resuelto_en ? (s.resuelto_en | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+          </div>
+          @if (s.articulo_resultante) {
+            <div class="detail-field">
+              <span class="detail-field__label">{{ 'Artículo' | t }}</span>
+              <span>{{ s.articulo_resultante.nombre }} ({{ s.articulo_resultante.codigo }})</span>
+            </div>
+          }
+          @if (s.motivo_resolucion) {
+            <div class="detail-field detail-field--full">
+              <span class="detail-field__label">{{ 'Motivo' | t }}</span>
+              <span>{{ s.motivo_resolucion }}</span>
+            </div>
+          }
+        </div>
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()">{{ 'Cerrar' | t }}</button>
+        </div>
+      }
+    </div>
+  }
+</app-form-drawer>

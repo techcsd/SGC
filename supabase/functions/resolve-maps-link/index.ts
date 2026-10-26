@@ -1,3 +1,5 @@
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+
 // AM7 / AU16 / BK2 — Resuelve un link de Google Maps (incluidos los cortos
 // maps.app.goo.gl / goo.gl/maps) a coordenadas lat/lng. El navegador NO puede
 // seguir el redirect (CORS), por eso se hace aquí (servidor). Cadena completa:
@@ -13,19 +15,6 @@
 //      MC"), resolver ese nombre con Google Places (searchText) → coords + dir.
 // La GOOGLE_MAPS_API_KEY (key de SERVIDOR) es opcional: sin ella el paso 3 no
 // corre, pero 1 y 2 siguen funcionando.
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sgc-client',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
 
 // Extrae lat/lng de una URL de Google Maps o de un texto de coordenadas.
 function extractCoords(raw: string): { lat: number; lng: number } | null {
@@ -151,6 +140,13 @@ async function resolvePlaceByName(
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const { url, texto } = await req.json().catch(() => ({}));

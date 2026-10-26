@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../models/orden-compra.model';
+import { OdooProductoCompra } from '../models/odoo.model';
 
 export interface OrdenCompraPayload {
   proveedor_id: string;
@@ -96,6 +97,26 @@ export class OrdenesCompraService {
       .update({ articulo_id: articuloId })
       .eq('id', itemId);
 
+    if (error) throw new Error(error.message);
+  }
+
+  /** CY24 (#24, D6) — feature flag del selector de producto Odoo en "crear OC".
+   *  Apagado por defecto: con el flag apagado el flujo es idéntico al de hoy. */
+  async odooCompraPilotoHabilitado(): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('odoo_compras_piloto_habilitado');
+    if (error) return false;
+    return data === true;
+  }
+
+  /** CY24 (#24, D7) — escribe la identidad Odoo de un renglón YA creado (no se
+   *  toca crear_orden_compra, D7). Guarda el snapshot completo (AT11). */
+  async vincularProductoOdoo(itemId: string, producto: OdooProductoCompra): Promise<void> {
+    const { error } = await this.supabase.client.rpc('vincular_item_producto_odoo', {
+      p_item_id: itemId,
+      p_odoo_product_id: producto.id,
+      p_odoo_uom_id: producto.unidad_compra_id,
+      p_odoo_snapshot: producto,
+    });
     if (error) throw new Error(error.message);
   }
 }

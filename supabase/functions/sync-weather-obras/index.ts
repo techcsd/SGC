@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // Background weather sync + severe-weather alerting for the Intelligent Context System.
 //
@@ -17,19 +19,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 const OPEN_METEO_AIR = "https://air-quality-api.open-meteo.com/v1/air-quality";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function envNum(name: string, fallback: number): number {
   const v = Number(Deno.env.get(name));
@@ -161,6 +150,13 @@ function detectarSeveras(a: Actual, aqi: number | null): AlertaDetectada[] {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
@@ -172,7 +168,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
+    envRequerido("SUPABASE_URL"),
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { db: { schema: "sgc" } },
   );

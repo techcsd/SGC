@@ -2,6 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import * as XLSX from "npm:xlsx@0.18.5";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // CW4 — Rendimiento semanal por vehículo (pedido de Eduardo): correo con el
 // resumen en el cuerpo + Excel adjunto, a Eduardo + Flota. Server-to-server
@@ -11,14 +13,6 @@ import * as XLSX from "npm:xlsx@0.18.5";
 // Mismos números que la pantalla Flota › Rendimiento (misma RPC
 // reporte_rendimiento_vehiculos) — AU1: el correo no inventa datos nuevos.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 function esc(s: unknown): string {
   return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 }
@@ -68,9 +62,13 @@ function componerExcelBase64(filas: Any[]): string {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
+    envRequerido("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
   );
   let destinatarioPrueba: string | null = null;
   try {

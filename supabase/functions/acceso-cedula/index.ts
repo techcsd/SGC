@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // AX2 / BH4 / BI5-BI6 / CG5 — Genera/rota el acceso por CÉDULA + PIN para personal SIN
 // correo, de forma GENÉRICA por tipo de rol.
@@ -20,19 +22,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Blindaje: la función se auto-autentica (por eso verify_jwt=false en config.toml, como
 // conductor-crear-acceso → se elimina el rechazo del gateway sin CORS) y TODA salida es JSON
 // con CORS y un `error_code` estable para que el front muestre un mensaje humano (regla 16).
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-// CG5 — toda salida de error lleva un error_code estable (lo mapea el front a un mensaje humano).
-function fail(error: string, error_code: string, status: number, extra: Record<string, unknown> = {}) {
-  return json({ error, error_code, ...extra }, status);
-}
 
 // BI5 — un PIN de 6 dígitos es trivial si: todos iguales, secuencia asc/desc, o es
 // (parte de) la propia cédula. También un puñado de combos comunes.
@@ -101,13 +90,21 @@ function syntheticEmail(prefijo: string, cedula: string, dominio: string): strin
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  // CG5 — toda salida de error lleva un error_code estable (lo mapea el front a un mensaje humano).
+  function fail(error: string, error_code: string, status: number, extra: Record<string, unknown> = {}) {
+    return json({ error, error_code, ...extra }, status);
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return fail("No autenticado.", "no_auth", 401);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseUrl = envRequerido("SUPABASE_URL");
+    const anonKey = envRequerido("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const callerClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });

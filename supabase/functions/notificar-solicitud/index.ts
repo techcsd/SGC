@@ -2,6 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1?target=deno";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // Email notifications for the solicitudes workflow. Called directly by the
 // frontend right after a solicitud is created/approved/rejected — no DB
@@ -33,19 +35,6 @@ import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1?t
 // requisición lives under the bitácora module route.
 const WEB_BASE_URL = "https://sgcconstructorasd.com";
 const REQUISICION_WEB_PATH = "/bitacora/solicitudes-material";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 // solicitante/proyecto nombres are user-controlled text (a profile name, a
 // project name) interpolated into HTML sent to real inboxes — escape before
@@ -213,6 +202,13 @@ async function buildRequisicionPdf(params: {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
@@ -228,7 +224,7 @@ Deno.serve(async (req: Request) => {
     if (!authHeader) {
       return json({ error: "No autenticado." }, 401);
     }
-    const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const callerClient = createClient(envRequerido("SUPABASE_URL"), envRequerido("SUPABASE_ANON_KEY"), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
@@ -247,7 +243,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      envRequerido("SUPABASE_URL"),
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" } },
     );

@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.202.0": {
+      "titulo": "Primer piloto de integración con Odoo: bandeja de productos por dar de alta, selector de producto en órdenes de compra y panel de sincronización para Tecnología",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "Nueva bandeja 'Productos por dar de alta en Odoo': cuando un material de una orden de compra no tiene equivalente en Odoo, se solicita su alta (exige haber buscado antes para no duplicar) y Compras la resuelve vinculándola a un artículo existente, creando uno nuevo o rechazándola con motivo."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "Piloto apagado por defecto: al crear una orden de compra, el selector de productos puede buscar directamente en Odoo en vez del catálogo de SGC, con la solicitud de alta integrada cuando el producto no existe."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nueva pantalla 'Sincronización con Odoo': muestra el estado de cada evento pendiente de publicarse hacia Odoo (pendiente, sincronizado, con error) y permite reintentar los que fallaron."
+        }
+      ]
+    },
     "1.201.0": {
       "titulo": "El conector de Claude gana 18 herramientas más: ver conexiones y envíos automáticos, y proponer cambios en tareas, reuniones, compras, inventario, flota, bitácora, legal y mensajes",
       "cambios": [

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // Y17 — check-subscriptions (SGC-CSI-MOD-01). Recorre subscriptions, calcula
 // días restantes desde renewal_date y aplica los umbrales escalonados (notas §2).
@@ -56,7 +57,7 @@ Deno.serve(async (req: Request) => {
   if (!secret || secret !== Deno.env.get("INFRA_SYNC_SECRET")) return json({ error: "No autorizado." }, 401);
 
   const sb = createClient(
-    Deno.env.get("SUPABASE_URL")!,
+    envRequerido("SUPABASE_URL"),
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { db: { schema: "sgc" } },
   );

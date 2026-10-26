@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // CF4 — Lectura automática del recibo de combustible (y tablero/bomba) con visión.
@@ -23,22 +25,13 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // Haiku 4.5 soporta visión y es barato; configurable.
 const MODEL = Deno.env.get("LEER_RECIBO_MODEL") ?? Deno.env.get("ASSISTANT_MODEL") ?? "claude-haiku-4-5-20251001";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
+const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Precio aproximado (USD/1M tokens) para el costo estimado — Haiku 4.5.
 const PRECIO_IN = 1.0 / 1_000_000;
 const PRECIO_OUT = 5.0 / 1_000_000;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -73,6 +66,10 @@ async function leerParametro(svc: Any, clave: string, def: number): Promise<numb
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ ok: false, error: "Método no permitido" }, 405);
   if (!ANTHROPIC_API_KEY) return json({ ok: false, error: "Lectura de recibos no configurada (sin API key)." }, 503);

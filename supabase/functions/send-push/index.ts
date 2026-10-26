@@ -10,6 +10,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
 import { puedeEnviarPush } from "../_shared/entorno.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -136,7 +137,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
+    envRequerido("SUPABASE_URL"),
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { db: { schema: "sgc" } },
   );

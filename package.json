@@ -1,12 +1,12 @@
 {
   "name": "sgc",
-  "version": "1.201.0",
+  "version": "1.202.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
-    "prestart": "node scripts/gen-version.mjs",
+    "prestart": "node scripts/ensure-environment.mjs && node scripts/gen-version.mjs",
     "start": "ng serve",
-    "prebuild": "node scripts/verify-version-notes.mjs && node scripts/verify-regresiones.mjs && node scripts/check-ambiguous-embeds.mjs && node scripts/audit-notnull-sin-default.mjs && node scripts/verify-public-schema-rls.mjs && node scripts/audit-buckets-upsert-policy.mjs && node scripts/audit-rpc-grants.mjs && node scripts/audit-flags-exports-muertos.mjs && node scripts/verify-tokens.mjs && node scripts/verify-no-ai-tropes.mjs && node scripts/verify-contraste.mjs && node scripts/verify-dev-strings.mjs && node scripts/verify-modal-compartido.mjs && node scripts/verify-campos-sgc-field.mjs && node scripts/verify-sin-value-null.mjs && node scripts/verify-momento-paridad.mjs && node scripts/verify-i18n.mjs && node scripts/i18n-coverage.mjs && node scripts/evals-compa.mjs && node scripts/cobertura-conector.mjs && node scripts/verify-sin-ref-hardcodeado.mjs && node scripts/verify-envio-unico.mjs && node scripts/verify-returns-table-casts.mjs && node scripts/gen-version.mjs",
+    "prebuild": "node scripts/ensure-environment.mjs && node scripts/verify-version-notes.mjs && node scripts/verify-regresiones.mjs && node scripts/check-ambiguous-embeds.mjs && node scripts/audit-notnull-sin-default.mjs && node scripts/verify-public-schema-rls.mjs && node scripts/audit-buckets-upsert-policy.mjs && node scripts/audit-rpc-grants.mjs && node scripts/audit-flags-exports-muertos.mjs && node scripts/verify-tokens.mjs && node scripts/verify-no-ai-tropes.mjs && node scripts/verify-contraste.mjs && node scripts/verify-dev-strings.mjs && node scripts/verify-modal-compartido.mjs && node scripts/verify-campos-sgc-field.mjs && node scripts/verify-sin-value-null.mjs && node scripts/verify-momento-paridad.mjs && node scripts/verify-i18n.mjs && node scripts/i18n-coverage.mjs && node scripts/evals-compa.mjs && node scripts/cobertura-conector.mjs && node scripts/verify-sin-ref-hardcodeado.mjs && node scripts/verify-envio-unico.mjs && node scripts/verify-returns-table-casts.mjs && node scripts/gen-version.mjs",
     "evals:compa": "node scripts/evals-compa.mjs",
     "verify:entornos": "node scripts/diff-esquema.mjs && node scripts/verify-sin-ref-hardcodeado.mjs",
     "build": "ng build",
@@ -18,6 +18,8 @@
     "postbuild": "node scripts/registrar-version-web.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:edge-odoo": "deno test --no-check --node-modules-dir=none supabase/functions/odoo-api/odoo-api.test.ts",
+    "test:edge": "deno test --no-check --allow-env --node-modules-dir=none supabase/functions",
     "test:unit": "ng test --no-watch",
     "test:e2e": "playwright test",
     "test:mcp": "node evals/mcp/run.mjs"

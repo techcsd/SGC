@@ -8,6 +8,8 @@ import * as XLSX from "npm:xlsx@0.18.5";
 import {
   type Cap, type ToolDef, TOOLS, toolsParaUsuario, claveIdem, idemUuid, ejecutarHerramientaLectura,
 } from "../_shared/herramientas.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // AW4 — Asistente de IA "Compa".
@@ -30,8 +32,8 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // se puede volver a fijar por secreto si algún día hay una tarea interna barata
 // que lo use, pero YA NO es el default de este asistente de cara al usuario.
 const MODEL = Deno.env.get("ASSISTANT_MODEL") ?? "claude-sonnet-5";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
+const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // BJ2 — secreto compartido con el puente n8n (WhatsApp). Si no está seteado, el
 // modo WhatsApp queda apagado y la edge solo responde con sesión de usuario.
@@ -39,19 +41,6 @@ const WHATSAPP_ASSISTANT_SECRET = Deno.env.get("WHATSAPP_ASSISTANT_SECRET");
 
 const MAX_MSGS_HORA = 60;
 const MAX_TOOL_LOOPS = 8;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  // CR1 (FASE 4) — hallazgo real: x-sgc-client (CQ3, SupabaseService) faltaba
-  // aquí, así que el preflight del navegador bloqueaba el POST real (reproducido
-  // con un OPTIONS directo contra esta edge en dev). Se encontró construyendo
-  // claude-borrador (mismo patrón de cabeceras) y se corrige aquí también.
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -582,6 +571,10 @@ function componerExcel(titulo: string, cols: string[], rows: string[][]): Uint8A
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req);
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 

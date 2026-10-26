@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // AG14 — Notifica por EMAIL a admin/tecnología cuando entra un reporte/ticket de
 // soporte nuevo. Llamada SERVER-TO-SERVER desde un trigger de BD vía pg_net con
@@ -15,19 +17,6 @@ import { ajustarCorreoResend } from "../_shared/entorno.ts";
 // 'soporte', 'email') — respeta silencios de usuario y reglas de admin; los
 // excluidos se registran en notif_entregas para trazabilidad. Se conserva la
 // casilla de Tecnología como red de seguridad forzada (siempre incluida).
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-secret, x-sgc-client",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
 
 function escapeHtml(value: string): string {
   return value
@@ -45,6 +34,13 @@ const TIPO_LABEL: Record<string, string> = {
 };
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
+  function json(body: unknown, status = 200) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
@@ -61,7 +57,7 @@ Deno.serve(async (req: Request) => {
     if (!reporte_id) return json({ error: "Falta reporte_id." }, 400);
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      envRequerido("SUPABASE_URL"),
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" } },
     );

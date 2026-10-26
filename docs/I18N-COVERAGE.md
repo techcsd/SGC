@@ -45,7 +45,7 @@
 | bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | bitacora/solicitudes-material | - | 126 | 0 | 126 | 0% |
-| compras/ordenes | - | 169 | 0 | 169 | 0% |
+| compras/ordenes | - | 171 | 0 | 171 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
 | dashboard | - | 143 | 0 | 143 | 0% |
@@ -145,6 +145,7 @@
 | tecnologia/inventario | - | 125 | 0 | 125 | 0% |
 | tecnologia/matriz | - | 39 | 0 | 39 | 0% |
 | tecnologia/monitoreo | - | 97 | 0 | 97 | 0% |
+| tecnologia/odoo-sync | - | 51 | 0 | 51 | 0% |
 | tecnologia/outbox-atascados | - | 90 | 0 | 90 | 0% |
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
@@ -167,7 +168,9 @@
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
+| compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
 | tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
+| inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
