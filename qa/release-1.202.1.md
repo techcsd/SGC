@@ -1,0 +1,13 @@
+# Release 1.202.1
+
+- Equipo/tester: Claude Code (sesión autónoma, hotfix CZ1 — combustible rechazaba una echada retroactiva legítima, reportado por Xaviel a partir de un bloqueo real de Raykler en prod).
+- Qué se verificó (DB transaccional + build + tests; sin prueba humana en navegador):
+  - **CZ1** (`sql/2026-10-26-cz1-fix-combustible-km-retroactivo.sql`): `sgc.registrar_combustible_app` ya no compara el kilometraje contra el odómetro VIVO del vehículo (sin fecha) — usa `sgc.validar_km_vehiculo(vehiculo, km, fecha)` (misma función que CH1 ya usa para mantenimientos), que compara contra la lectura con fecha más cercana. Se amplió el gate de `validar_km_vehiculo` para que un conductor sin módulo flota (la vía más común para registrar su propia echada) también pueda llamarla.
+  - Smoke SQL transaccional contra dev real (ROLLBACK), 3 casos: (1) conductor sin módulo flota puede invocar `validar_km_vehiculo` (gate ampliado), (2) una echada retroactiva con km por debajo del odómetro vivo pero por encima de la lectura anterior a esa fecha se ACEPTA (antes se rechazaba siempre — el bug de Raykler), (3) un retroceso real contra la lectura anterior se sigue RECHAZANDO (22023).
+  - Frontend (`combustible.ts`/`.html`/`.scss`, `combustible.service.ts`): reemplaza el bloqueo duro contra el odómetro vivo por la misma validación reactiva (debounce) que mantenimientos — hint de última lectura, error que bloquea, aviso ámbar con checkbox de confirmación para saltos inverosímiles.
+  - `npm run build` (29+ guards del prebuild) y `npm run test:unit` verdes. `npm run test:edge` verde. 13/13 evals de Compa (no se tocó `assistant/index.ts`, pero se refrescó el snapshot por el gate de frescura). 1 migración nueva en el ledger de dev (`cz1-fix-combustible-km-retroactivo`), verificada con smoke.
+  - **No se montó un navegador real.** Lo verificado es: build, tests Vitest, tests Deno, guards del prebuild, 1 smoke SQL transaccional (ROLLBACK, contra dev real) que ejercita exactamente el flujo de Raykler.
+- Versión de origen: 1.202.0.
+- Contexto: Xaviel mostró el error en vivo ("La lectura (70147 km) no puede ser menor a la lectura actual del vehículo (71480 km)") bloqueando a Raykler en prod, y pidió el hotfix. Tras verificar en dev (ledger + smoke + build), se le preguntó explícitamente si aplicar la migración a prod y mergear dev→main ya mismo, sin esperar prueba manual en `dev.sgcconstructorasd.com` ni las 24h de "dev tuvo tiempo de respirar". Eligió hacerlo ahora.
+OK: 2026-10-26 — Xaviel autorizó explícitamente aplicar la migración CZ1 a prod y mergear dev→main ahora, sin esperar prueba manual ni las 24h, para desbloquear a Raykler de inmediato.
+- Fecha: 2026-10-26
