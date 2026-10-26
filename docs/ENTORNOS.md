@@ -77,6 +77,9 @@ Los refs, URLs y keys de ambos viven en `.env.local` (gitignored): `SUPABASE_{PR
 
 El **ledger** (`sgc.migraciones_aplicadas`, `sgc.edges_desplegadas`, `sgc.secrets_aplicados`) vive en **ambos** proyectos. `apply-migration/deploy-edge/aplicar-secret --env prod` consultan el ledger de **dev** y **rechazan** lo que no haya pasado por ahí (salvo `--force-prod`).
 
+### `environment.ts` en un checkout/worktree limpio (CY21)
+`src/environments/environment.ts` está gitignored (BU1 F6) — en un clon o `git worktree` nuevo no existe todavía. `npm run build`/`npm start` lo necesitan para resolver `import { environment } from '.../environment'`. Para no romper un build limpio con un error de esbuild ("Could not resolve"), el `prebuild`/`prestart` corren primero `scripts/ensure-environment.mjs`: si falta el archivo, lo genera a partir de `environment.dev.ts` (su anon key es pública, segura de usar así) — **nunca cae a prod por defecto**. Si quieres apuntar a otro entorno explícitamente, corre `npm run env:dev`/`npm run env:prod` antes de buildear (sobreescribe lo que haya generado el fallback).
+
 ## Secrets (por nombre; los valores NUNCA en repo)
 
 Edge (Deno.env): `SUPABASE_URL/ANON_KEY/SERVICE_ROLE_KEY` (auto), `ENTORNO` (`dev`/`prod`), `INFRA/WEATHER/CRONOGRAMA/WHATSAPP_ASSISTANT_SYNC_SECRET`, `NOTIFICATIONS_FROM_EMAIL`, `NOTIF_REDIRECT_TO` (dev), `INFRA_ALERT_EMAILS`, `APP_URL`, `WEB_URL`, `PUSH_ALLOWLIST` (dev vacío), `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`, `ASSISTANT_MODEL`, `FCM_SERVICE_ACCOUNT_JSON`.
