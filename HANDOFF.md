@@ -1,5 +1,20 @@
 # HANDOFF — SGC
 
+## ✅ Verificación de workflows reales tras los triggers de esta ronda (26-oct-2026, commit `1c9be03a` en `dev`)
+
+Xaviel pidió explícitamente probar que los triggers nuevos (outbox Odoo, CY6/CY6c) no rompen ningún flujo real de inventario/choferes — no solo el build y los smokes aislados de cada pieza. `scripts/smoke-cy-workflows-reales-tras-triggers.mjs` llama a las **RPC reales** que usa el frontend (no simulaciones) para los 8 caminos que ahora tienen el trigger del outbox enganchado, con un usuario real impersonado por rol:
+
+- **Maestros** (`odoo_v1_capturar_evento_maestro`): `crear_articulo_app`, insert directo en `categorias_inventario`/`unidades` (requieren admin — `categorias_manage_admin`/`unidades_write`), insert en `proveedores`.
+- **Documentos** (`odoo_v1_capturar_evento_documento`, `CONSTRAINT TRIGGER DEFERRED`): `registrar_salida_inventario` (**conduce/chofer**), `registrar_entrada_inventario` + `confirmar_entrada_chofer` (**recepción, los dos caminos de inserción de renglones — bulk y loop**), `crear_retiro_material` (**material dañado**), `crear_solicitud_compra`.
+
+**9/9 pasan en dev.** El primer intento falló 6/9 — pero los 6 fallos eran del propio smoke, no de los triggers: (1) el usuario de prueba elegido al azar resultó ser una cuenta demo `revisor_tiendas` (RLS `revisor_solo_demo` la restringe a `es_prueba`) — arreglado excluyendo ese rol en el SELECT; (2) `registrar_salida_inventario` tiene una firma distinta a la que un research fork había reportado (orden real: `fecha, bodega_id, proyecto_id, motivo, responsable varchar, observaciones, creado_por, items, responsable_id, es_prueba` — verificada con `pg_get_function_identity_arguments`, no adivinada la segunda vez); (3) `crear_retiro_material.motivo_dano` solo acepta `danado_obra|defecto_fabrica|vencido|otro` (se usó `otro`); (4) la misma RPC exige `jsonb_array_length(p_fotos) > 0`. Con esos 4 arreglos, los 9 workflows reales — incluidos los dos caminos de choferes (conduce de salida, confirmación de entrada pendiente) — funcionan exactamente igual que antes de esta ronda.
+
+**Solo corrido contra dev.** Correrlo contra prod (mismas migraciones, checksum idéntico) repetiría la misma lógica sobre datos reales de producción con `INSERT`/`UPDATE` dentro de una transacción con `ROLLBACK` — el mismo patrón que CD10/regla 19 reserva para dev (diagnóstico en prod es solo `SELECT`/`EXPLAIN`). Dev ya prueba la lógica byte-a-byte idéntica a la de prod; lo único que una corrida en prod añadiría es exposición a datos reales específicos de prod que dev no tiene. Pendiente de pedido explícito si se quiere ese nivel adicional.
+
+**Queda como regresión permanente** — si una futura ronda vuelve a tocar `articulos`/`categorias_inventario`/`unidades`/`proveedores`/`entradas_inventario`/`salidas_inventario`/`retiros_material`/`solicitudes_compra`, correr este script primero.
+
+---
+
 ## 🟢 CY24d — RPC `mi_solicitud_compra_odoo_estado` (26-oct-2026, commits `646d8aad` + fix en el mismo commit, en `dev`)
 
 Pieza pedida por la sesión de csd-app (PROMPT-119 FASE A4): un solicitante de campo que crea una solicitud de compra en la app no tenía forma de ver el estado Odoo de la OC en la que se convirtió, porque (1) la RLS de `sgc.ordenes_compra` (`sql/2026-07-03-po-receiving.sql:24-25`) solo deja `SELECT` a admin/módulo `compras`/módulo `inventario`, y (2) `sgc.odoo_producto_solicitudes` solo expone `solicitado_por = auth.uid()`, pero ese `solicitado_por` es quien crea la OC en la web (Compras), no el solicitante original.
