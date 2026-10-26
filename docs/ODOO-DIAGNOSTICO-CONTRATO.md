@@ -96,6 +96,17 @@ Solo 5 OC en SGC prod, ninguna con referencia a Odoo (la columna `odoo_ref` no e
 - **No toca stock, no publica**: la tabla no tiene ningún trigger que lea/escriba `stock_por_bodega` ni tablas de saldo — es solo el vínculo. RLS activo, sin acceso `anon`/`authenticated` (solo `service_role`/RPC `SECURITY DEFINER`, a construir en F9/F10).
 - Probado en dev con smoke transaccional (`scripts/smoke-cy4-vinculos-stock.mjs`, ROLLBACK): recepción dividida, salida+entrada del mismo traslado, reintento exacto rechazado, borrado del origen conserva el vínculo, 0 y 2 FKs de origen rechazados.
 
+## CY19 — mecanismo de vinculación (parcial: criterio 1, aplicada en dev)
+`sql/2026-10-26-cy19-homologacion-vincular.sql`. RPC `sgc.odoo_homologacion_vincular(p_vinculos jsonb, p_simular boolean default true)` — dada una equivalencia ya **confirmada** (fuera de esta RPC: la decide la matriz de CY18 o una revisión humana, nunca nombre/ID numérico solos), escribe el `odoo_id` en las columnas de identidad de F5. Solo `proveedores`, `categorias_inventario`, `unidades` (comparten exactamente las mismas 3 columnas); `articulos` (`odoo_product_id`/`odoo_template_id`) y `bodegas` (`odoo_location_id`/`odoo_warehouse_id`) quedan para una migración siguiente con el mismo patrón — su forma de columnas es distinta.
+
+- **Simulación real**: `p_simular=true` (default) previsualiza sin escribir — probado que de verdad no escribe.
+- **Idempotente**: vincular al mismo `odoo_id` ya vinculado → `ya_vinculado` (no-op); a un `odoo_id` **distinto** → `conflicto_existente`, bloqueado, nunca se sobrescribe en silencio.
+- **Registro por fila**: `sgc.odoo_homologacion_log`, una fila por intento (simulado o real), incluye los rechazos (tabla no soportada, `odoo_id` inválido, instancia no habilitada, `sgc_id` inexistente) para auditoría.
+- **Permiso**: solo `is_admin()` o `service_role` — un usuario sin admin es rechazado (`42501`), probado.
+- Smoke transaccional (ROLLBACK) cubre los 6 escenarios de arriba.
+
+**Explícitamente fuera de esta pieza** (criterios 2-3-7-8-9 de CY19 — altas y resolución de discrepancias): requieren **escribir en el Odoo real** (crear el proveedor/categoría/unidad que falte del lado Odoo), y la única cuenta técnica disponible hoy **no es de solo lectura confirmada en una base de pruebas** (D-08) — se construyen cuando exista esa base o una orden escrita de Xaviel para un caso concreto. Esta pieza tampoco ajusta saldos ni importa apertura (no los toca).
+
 ## Qué NO se hizo (a propósito, por alcance)
 - No se creó ni modificó ningún registro en SGC ni en Odoo.
 - No se exportó el módulo de proyectos/analítica de Odoo (abierto arriba).
