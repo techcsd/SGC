@@ -3,17 +3,31 @@
 // odoo-api (PR #22): Vary: Origin + Access-Control-Max-Age + headers/métodos
 // explícitos, origen reflejado SOLO si está en la lista.
 //
-// Nota: esto solo importa para llamadas desde un NAVEGADOR (la web y la app
-// PWA). Llamadas servidor-a-servidor (pg_cron, otra edge, webhooks de
-// terceros) no envían `Origin` y no aplican CORS — restringir la lista no les
-// afecta en nada.
-
+// Nota: esto solo importa para llamadas desde un NAVEGADOR o un WebView
+// (la web, la PWA, y la app nativa csd-app vía Capacitor). Llamadas
+// servidor-a-servidor (pg_cron, otra edge, webhooks de terceros) no envían
+// `Origin` y no aplican CORS — restringir la lista no les afecta en nada.
+//
+// FIX (26-oct-2026, hallazgo de la sesión PROMPT-119 de csd-app, verificado
+// en vivo contra dev): la lista original asumía "solo navegador/PWA" y
+// olvidó el WebView de Capacitor (csd-app, hijo de este repo). Capacitor NO
+// usa el dominio real de la app como Origin -- sirve el bundle desde un
+// esquema propio: `https://localhost` en Android (confirmado real, csd-app
+// no override `server.androidScheme`) y `capacitor://localhost` en iOS (el
+// default de Capacitor cuando no hay `server.iosScheme` -- csd-app hoy es
+// Android-only pero `ios-templates/` ya anticipa un futuro puerto, así que
+// se agrega preventivamente). Sin esto, TODA llamada desde el APK nativo a
+// cualquier edge que use `corsHeaders()` queda sin `Access-Control-Allow-
+// Origin` -- el navegador/WebView bloquea la respuesta aunque el servidor
+// sí la procesó.
 export const ORIGENES_SGC = [
   "https://sgcconstructorasd.com",
   "https://dev.sgcconstructorasd.com",
   "https://app.sgcconstructorasd.com",
   "https://app-dev.sgcconstructorasd.com",
   "http://localhost:4200",
+  "https://localhost", // Capacitor Android (csd-app, server.androidScheme default)
+  "capacitor://localhost", // Capacitor iOS (csd-app, server.iosScheme default -- aún no construido, preventivo)
 ];
 
 const BASE_HEADERS: Record<string, string> = {

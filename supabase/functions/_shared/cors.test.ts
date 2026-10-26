@@ -11,6 +11,13 @@ Deno.test("origen permitido se refleja", () => {
   }
 });
 
+// 26-oct-2026 -- hallazgo real de la sesión PROMPT-119 de csd-app: Capacitor
+// sirve el WebView nativo desde su propio esquema, no desde un dominio real.
+Deno.test("Capacitor (csd-app nativa) se reconoce en ambas plataformas", () => {
+  assertEquals(corsHeaders(req("https://localhost"))["Access-Control-Allow-Origin"], "https://localhost");
+  assertEquals(corsHeaders(req("capacitor://localhost"))["Access-Control-Allow-Origin"], "capacitor://localhost");
+});
+
 Deno.test("origen no permitido no se refleja", () => {
   const h = corsHeaders(req("https://evil.example"));
   assertEquals(h["Access-Control-Allow-Origin"], undefined);
