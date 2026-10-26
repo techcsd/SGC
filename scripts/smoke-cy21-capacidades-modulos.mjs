@@ -18,12 +18,21 @@ declare
   v_antes jsonb;
   v_despues jsonb;
 begin
+  -- El usuario puede tener VARIOS roles (prod real: Raykler Peña tiene 4) -- no
+  -- basta con que EL ROL ELEGIDO no traiga 'reuniones', hace falta que NINGUNO
+  -- de sus roles la traiga, o capacidades_asistente() (que agrega TODOS los
+  -- roles) ya la verá "antes del cambio" por otro rol y el FALLO_SETUP de abajo
+  -- dispara en falso (hallazgo real en prod, 26-oct-2026).
   select ur.usuario_id into v_usuario_id
     from sgc.usuarios_roles ur join sgc.roles r on r.id = ur.rol_id
-   where 'inventario' = any(r.modulos) and not ('reuniones' = any(r.modulos))
+   where 'inventario' = any(r.modulos)
+     and not exists (
+       select 1 from sgc.usuarios_roles ur2 join sgc.roles r2 on r2.id = ur2.rol_id
+        where ur2.usuario_id = ur.usuario_id and 'reuniones' = any(r2.modulos)
+     )
    limit 1;
   if v_usuario_id is null then
-    raise exception 'FALLO_SETUP: no hay usuario de prueba con inventario y sin reuniones';
+    raise exception 'FALLO_SETUP: no hay usuario de prueba con inventario y sin reuniones (en NINGUNO de sus roles)';
   end if;
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_usuario_id::text, 'role','authenticated')::text, true);
