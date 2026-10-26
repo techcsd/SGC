@@ -1,5 +1,15 @@
 # HANDOFF — SGC
 
+## 🔴 FIX urgente — CORS bloqueaba el APK nativo de csd-app (26-oct-2026, commit `356b8486` en `dev`, NO en `main` todavía)
+
+**Hallazgo cross-repo:** la sesión PROMPT-119 de csd-app (el hijo) probó en vivo contra la edge `assistant` de **dev** y confirmó que `ORIGENES_SGC` (`supabase/functions/_shared/cors.ts`, de CY21) nunca contempló el WebView de Capacitor — sirve el bundle desde `https://localhost` (Android) / `capacitor://localhost` (iOS), no desde el dominio real de la app. Sin esto, **toda llamada del APK nativo a cualquiera de las ~45 edges que usan `corsHeaders()`** (Compa/`assistant`, `leer-recibo`, `acceso-cedula`, `admin-*`, `snap-to-roads`…) queda sin `Access-Control-Allow-Origin` — el WebView bloquea la respuesta aunque el servidor la procesó bien.
+
+**Por qué no rompió prod (todavía):** CY21 (el cambio que introdujo esta allowlist) solo se desplegó a **dev**. Prod sigue sirviendo el código viejo (`ACAO: *`) en esas ~44 edges — confirmado en vivo por la sesión del hijo. El único riesgo real es: si alguien despliega el resto de CY21 a prod **sin este fix incluido**, rompe el APK nativo de producción en el acto.
+
+**Arreglado:** `ORIGENES_SGC` ahora incluye `https://localhost` y `capacitor://localhost`. Verificado con un test Deno nuevo + un preflight OPTIONS real contra `assistant` en dev (antes: sin `ACAO`; después: `ACAO: https://localhost`). Las 51 edges de dev redesplegadas con el fix. **El fix vive en `dev`, commit `356b8486` — todavía NO está en `main`/prod** (nadie lo pidió fusionar todavía). Antes de que una futura sesión despliegue el resto de las edges de CY21 (`cors.ts`/`envRequerido()`) a prod, **este commit tiene que ir incluido** — si no, repite el mismo bug mencionado arriba pero en producción real.
+
+---
+
 ## TL;DR — PROMPT-118 — Integración SGC ↔ Odoo (épica #2, issues #3–#24 + PR #22) — 26/10/2026 — ✅ **EN PROD** (web **1.202.0**, PR #25 `dev→main` mergeado `0554b67b`)
 
 Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Siete sesiones seguidas ("continue working" ×7) completaron **F0–F9, F10 Fase A y Fase B enteras (incluido el selector de producto Odoo en "crear OC"), y F13 completa (#16 visibilidad + #17 contrato de equipos/activos)**. De las 22 issues de la épica, **solo quedan las bloqueadas por D-08**: F10 Fase C y F11–F12 (issues #9–#15) — todas, sin excepción, necesitan escribir de verdad en Odoo.
