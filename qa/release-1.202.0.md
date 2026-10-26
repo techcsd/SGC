@@ -11,5 +11,5 @@
 - Versión de origen: 1.201.0.
 - **No se montó un navegador real esta ronda.** Lo verificado es: build, 110/110 tests Vitest, 64/64 tests Deno, guards del prebuild, 3 smokes SQL transaccionales (ROLLBACK, contra dev real) y 2 confirmaciones REST/RPC directas contra dev real (no solo guards estáticos) — no una sesión de navegador en `dev.sgcconstructorasd.com`.
 - Tras abrir el PR #25, se le presentó explícitamente a Xaviel la disyuntiva: mergear ahora sin prueba humana en `dev.sgcconstructorasd.com`, probar primero, o seguir con otra cosa. Xaviel eligió mergear ahora.
-OK: 2026-10-26 — Xaviel eligió explícitamente la opción "1. Merge PR #25" tras ver el resumen de qué sí y qué no se había verificado (build/tests/smokes sí, navegador real no) — decisión informada, no asumida.
+OK: 2026-10-26 — Xaviel autorizó explícitamente mergear el PR #25 a main, eligiendo esa alternativa directamente entre las opciones presentadas tras el resumen de verificación.
 - Fecha: 2026-10-26
