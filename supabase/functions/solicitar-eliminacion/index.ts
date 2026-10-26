@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // CI4 — Edge PÚBLICA (verify_jwt=false) para solicitar la eliminación de cuenta
 // desde la página /politicas/eliminar-cuenta (para quien ya no tiene acceso a la app).
@@ -29,7 +30,7 @@ Deno.serve(async (req: Request) => {
   if (!identificador) return json(OK); // nada que hacer; respuesta neutra
 
   const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
+    envRequerido("SUPABASE_URL"),
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { db: { schema: "sgc" } },
   );

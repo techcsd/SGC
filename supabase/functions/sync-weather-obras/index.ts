@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // Background weather sync + severe-weather alerting for the Intelligent Context System.
 //
@@ -167,7 +168,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
+    envRequerido("SUPABASE_URL"),
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { db: { schema: "sgc" } },
   );

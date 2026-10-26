@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // CF4 — Lectura automática del recibo de combustible (y tablero/bomba) con visión.
@@ -24,8 +25,8 @@ import { corsHeaders as construirCors } from "../_shared/cors.ts";
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // Haiku 4.5 soporta visión y es barato; configurable.
 const MODEL = Deno.env.get("LEER_RECIBO_MODEL") ?? Deno.env.get("ASSISTANT_MODEL") ?? "claude-haiku-4-5-20251001";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
+const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Precio aproximado (USD/1M tokens) para el costo estimado — Haiku 4.5.

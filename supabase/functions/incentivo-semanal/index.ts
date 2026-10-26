@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // AT2 — Informe semanal del INCENTIVO por chofer: envía por email (Resend, PDF
 // adjunto + tabla legible en el cuerpo) a los roles con el módulo `incentivos`
@@ -137,7 +138,7 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
+    envRequerido("SUPABASE_URL"),
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { db: { schema: "sgc" } },
   );

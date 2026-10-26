@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // CP8 — Recibe el webhook de Fireflies ("Transcription completed") cuando
@@ -24,7 +25,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // (pendiente, FASE siguiente) que lista transcripciones recientes de la API.
 // ============================================================================
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FIREFLIES_WEBHOOK_SECRET = Deno.env.get("FIREFLIES_WEBHOOK_SECRET");
 const FIREFLIES_API_KEY = Deno.env.get("FIREFLIES_API_KEY");

@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // BE1 — Resumen semanal de OPERACIONES: envía por email (Resend, HTML + PDF
 // detallado) a los roles administrables (destinatarios_resumen_operaciones) el
@@ -99,7 +100,7 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
+    envRequerido("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
   );
   let anio = 0, semana = 0;
   // CU3 — "Enviar prueba ahora (solo a mí)": override de destinatario, nunca

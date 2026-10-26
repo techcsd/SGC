@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // P5 — Genera o rota el acceso (cédula + PIN) de un conductor. service_role.
 // Dado un conductor_id + PIN (6 dígitos): crea un usuario auth con email
@@ -32,8 +33,8 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "No autenticado." }, 401);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseUrl = envRequerido("SUPABASE_URL");
+    const anonKey = envRequerido("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     // Re-verifica al llamador con su propio token (mismo patrón que admin-create-user).

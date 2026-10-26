@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // CR1 (FASE 5) — desconectar/revocar el conector de Claude Desktop.
@@ -16,8 +17,8 @@ import { corsHeaders as construirCors } from "../_shared/cors.ts";
 //   self-service con ESE token, solo dentro de esta edge.
 // ============================================================================
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
+const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 async function revocarGrantsDe(accessToken: string) {

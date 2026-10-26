@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // AG16 · FASE 5 — Genera el PDF del informe semanal de obra y lo envía por email
 // a Gerencia (Resend, con el PDF adjunto). Llamada SERVER-TO-SERVER desde el RPC
@@ -127,7 +128,7 @@ Deno.serve(async (req: Request) => {
     if (!informe_id) return json({ error: "Falta informe_id." }, 400);
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      envRequerido("SUPABASE_URL"),
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" } },
     );

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { TOOLS, type Cap, type Any } from "../_shared/herramientas.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // CR1 (FASE 4) — confirma/descarta un borrador que Claude Desktop preparó por
@@ -15,8 +16,8 @@ import { corsHeaders as construirCors } from "../_shared/cors.ts";
 // nunca el token de Claude.
 // ============================================================================
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
+const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 
 function mensajeExito(tipo: string): string {
   return tipo === "conduce" ? "Conduce creado. Queda pendiente de firma por el flujo normal."

@@ -9,6 +9,7 @@ import {
   type Cap, type ToolDef, TOOLS, toolsParaUsuario, claveIdem, idemUuid, ejecutarHerramientaLectura,
 } from "../_shared/herramientas.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
 // AW4 — Asistente de IA "Compa".
@@ -31,8 +32,8 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // se puede volver a fijar por secreto si algún día hay una tarea interna barata
 // que lo use, pero YA NO es el default de este asistente de cara al usuario.
 const MODEL = Deno.env.get("ASSISTANT_MODEL") ?? "claude-sonnet-5";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = envRequerido("SUPABASE_URL");
+const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // BJ2 — secreto compartido con el puente n8n (WhatsApp). Si no está seteado, el
 // modo WhatsApp queda apagado y la edge solo responde con sesión de usuario.

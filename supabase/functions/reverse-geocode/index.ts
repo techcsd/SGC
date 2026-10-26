@@ -4,6 +4,7 @@
 // resultado en sgc.geocode_cache para no gastar cuota en cada visita.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 Deno.serve(async (req: Request) => {
   const corsHeaders = construirCors(req);
@@ -28,7 +29,7 @@ Deno.serve(async (req: Request) => {
     const lngKey = Math.round(nlng * 1e4) / 1e4;
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      envRequerido("SUPABASE_URL"),
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" }, auth: { persistSession: false } },
     );

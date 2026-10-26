@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // V4 — Email a TODOS los usuarios activos cuando se publica una nueva versión
 // de la app móvil. Se llama desde la web justo después de publicar (el aviso
@@ -34,8 +35,8 @@ Deno.serve(async (req: Request) => {
     if (!authHeader) return json({ error: "No autenticado." }, 401);
 
     const callerClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
+      envRequerido("SUPABASE_URL"),
+      envRequerido("SUPABASE_ANON_KEY"),
       { db: { schema: "sgc" }, global: { headers: { Authorization: authHeader } } },
     );
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
@@ -49,7 +50,7 @@ Deno.serve(async (req: Request) => {
     if (!version) return json({ error: "Falta la versión." }, 400);
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      envRequerido("SUPABASE_URL"),
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" } },
     );

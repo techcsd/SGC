@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import * as XLSX from "npm:xlsx@0.18.5";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // CW4 — Rendimiento semanal por vehículo (pedido de Eduardo): correo con el
 // resumen en el cuerpo + Excel adjunto, a Eduardo + Flota. Server-to-server
@@ -67,7 +68,7 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
+    envRequerido("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { db: { schema: "sgc" } },
   );
   let destinatarioPrueba: string | null = null;
   try {

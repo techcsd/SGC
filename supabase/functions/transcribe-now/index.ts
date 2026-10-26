@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // AZ5 — Transcripción SÍNCRONA de una nota de voz (para Compa en la app móvil).
 //
@@ -59,7 +60,7 @@ Deno.serve(async (req: Request) => {
   // CI10 — consentimiento de IA explícito (Groq/OpenAI). Verificado en servidor.
   const authHeader = req.headers.get("Authorization") ?? "";
   if (authHeader) {
-    const uc = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const uc = createClient(envRequerido("SUPABASE_URL"), envRequerido("SUPABASE_ANON_KEY"), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: u } = await uc.auth.getUser();

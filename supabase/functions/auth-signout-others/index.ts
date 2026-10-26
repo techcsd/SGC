@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { envRequerido } from "../_shared/env.ts";
 
 // BS3 — "Cerrar sesión en otros dispositivos" (Configuración › Sesión). Revoca
 // TODAS las demás sesiones del usuario que llama, dejando VIVA la actual. Se hace
@@ -21,8 +22,8 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "No autenticado." }, 401);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseUrl = envRequerido("SUPABASE_URL");
+    const anonKey = envRequerido("SUPABASE_ANON_KEY");
 
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
