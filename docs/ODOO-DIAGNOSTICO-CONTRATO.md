@@ -107,6 +107,48 @@ Solo 5 OC en SGC prod, ninguna con referencia a Odoo (la columna `odoo_ref` no e
 
 **Explícitamente fuera de esta pieza** (criterios 2-3-7-8-9 de CY19 — altas y resolución de discrepancias): requieren **escribir en el Odoo real** (crear el proveedor/categoría/unidad que falte del lado Odoo), y la única cuenta técnica disponible hoy **no es de solo lectura confirmada en una base de pruebas** (D-08) — se construyen cuando exista esa base o una orden escrita de Xaviel para un caso concreto. Esta pieza tampoco ajusta saldos ni importa apertura (no los toca).
 
+## CY6 — outbox transaccional (aplicada en dev)
+`sql/2026-10-26-cy6-outbox-odoo.sql` (+ `cy6b-grant-service-role.sql`, fix de permisos encontrado probando el procesador). Enganche **a nivel BD**, no a nivel service Angular (la app escribe por RPC sin pasar por esos services) y, dentro de "a nivel BD", se eligió **trigger de tabla** en vez de editar el cuerpo de las 9 RPC que cita la issue — un trigger `AFTER INSERT/UPDATE` corre en la MISMA transacción que la escribió, así que el criterio 1 ("si la transacción revierte, no hay evento") se cumple sin tocar ninguna de las 9 RPC (menor riesgo que editar rutas de escritura en producción real).
+
+**Inventario de las 9 rutas de escritura citadas en la issue** (tabla destino real, confirmado contra dev):
+| RPC | Tabla(s) | ¿Tiene trigger de captura hoy? |
+|---|---|---|
+| `crear_articulo_app` | `articulos` (INSERT) | ✅ sí |
+| `articulo_actualizar_app` | `articulos` (UPDATE) | ✅ sí |
+| `crear_unidad_app` | `unidades` (INSERT) | ✅ sí |
+| `crear_categoria_app` | `categorias_inventario` (INSERT) | ✅ sí |
+| `entregar_conduce` | `salidas_inventario`, `detalle_salidas` (UPDATE) | ⏳ no — siguiente migración, mismo patrón |
+| `confirmar_entrada_chofer` | `entradas_inventario`, `ordenes_compra` (UPDATE), `detalle_entradas` (INSERT) | ⏳ no |
+| `crear_retiro_material` | `retiros_material`, `retiro_material_items`, `retiro_material_fotos` (INSERT) | ⏳ no |
+| `aprobar_requisicion` | `solicitudes_compra`, `solicitud_compra_items` (INSERT), `salidas_inventario`, `solicitudes_material`, `solicitud_material_items` (UPDATE) | ⏳ no |
+| `crear_solicitud_compra_app` | `solicitudes_compra`, `solicitud_compra_items` (INSERT) | ⏳ no |
+
+Se capturaron los **4 maestros** (`articulos`, `categorias_inventario`, `unidades`, `proveedores`) esta ronda; las **5 rutas de stock/compra** (entradas, salidas, retiros, requisiciones, solicitudes de compra) quedan para una migración siguiente con el mismo patrón de trigger — no se tocaron hoy para no arriesgar flujos de stock en producción real sin tiempo de probarlos uno a uno.
+
+**Mecánica (todo probado en dev, incluido contra la RPC real bajo rol `authenticated`, no solo con SQL directo):**
+- `sgc.odoo_eventos`: un evento por `(instancia, agregado_tipo, agregado_id, revision)` — único, reintento no duplica. `revision` se autoincrementa por agregado (criterio 5).
+- `sgc.odoo_v1_reclamar_eventos()`: `FOR UPDATE SKIP LOCKED` (un solo efecto entre consumidores concurrentes, probado), filtra por política habilitada + `es_prueba=false` (D-16) + **no adelanta una revisión si la anterior del mismo agregado no está `completado`** (dependencia de etapas, criterio 5).
+- `sgc.odoo_v1_finalizar_evento()`: exige el `lease_token` vigente (si no, devuelve `false` sin tocar nada — mismo patrón defensivo de CY23).
+- **Publicación apagada por defecto**: `sgc.odoo_publicacion_politica` empieza vacía — sin una fila `habilitada=true` para un `agregado_tipo`, `reclamar_eventos` nunca devuelve nada para él. Probado.
+- **Guard anti-bucle (CY7 criterio 4)**: `set_config('sgc.odoo_importando', 'true', true)` antes de escribir hace que el trigger de captura se omita — listo para cuando exista un importador real "desde Odoo", que hoy no existe.
+- `supabase/functions/odoo-sync/` (procesador, desplegado a dev): reclama con `service_role`, intenta publicar vía `_shared/odoo-inventario.ts::publicarMock` — **MOCK explícito, no toca Odoo** (D-15) — y finaliza. **Probado de punta a punta en dev real**: instancia+política+categoría reales → `curl` al edge → evento pasó de `pendiente` a `completado` con el resultado simulado, verificado en `sgc.odoo_eventos`/`sgc.odoo_intentos`, datos de prueba borrados después.
+- **3 gotchas propios** detectados y corregidos en esta misma ronda: (1) `categorias_inventario_id_seq`/`unidades_id_seq` estaban desincronizadas en dev — hallazgo lateral preexistente (mismo patrón que `solicitudes_material_folio_seq` de otra ronda), corregido con `scripts/data-fixes/2026-10-26-cy6-resync-categorias-unidades-seq-dev.mjs`, dev-only; (2) `max(uuid)` no existe en Postgres — error real en la primera versión del trigger; (3) faltaba `grant execute ... to service_role` en 3 funciones (`odoo_homologacion_vincular` de CY19 incluida) — `grant ... to authenticated` NO cubre a `service_role`, son roles de Postgres distintos; encontrado recién al probar el procesador real contra PostgREST con la service role key.
+
+## CY7 — matriz de autoridad por campo (propuesta, pendiente de aprobación de Xaviel)
+Como pide la issue: **propuesta documentada**, no código — la matriz real la fija Xaviel.
+
+| Campo/dato | Dueño propuesto | Por qué |
+|---|---|---|
+| Alias/nombre visible en SGC, imágenes, categorías internas de uso diario | **SGC** | Son decisiones operativas de la constructora, no del catálogo fiscal/contable de Odoo. |
+| Código de producto, identidad fiscal (RNC/cédula), UoM — **una vez homologados** | **Odoo** | Son los campos "oficiales" que Contabilidad/Compras ya gestionan en Odoo; SGC los refleja, no los redefine. |
+| Todo lo demás (ubicación física, stock, fotos de evidencia, firmas, bitácora) | **SGC**, siempre | Nunca estuvo en Odoo y la épica prohíbe dos maestros editables de stock. |
+
+**Regla dura (ya aplicada en el código, no solo en la matriz):** nunca dos escritores sin regla — mientras la matriz no esté aprobada, `odoo_homologacion_vincular` (F8) solo **vincula** (nunca sobrescribe un campo ya distinto sin resolver el conflicto primero) y el outbox (F9) solo **publica si hay política explícita**. Nada en el código de hoy decide unilateralmente "quién gana" un conflicto de dato — eso es exactamente lo que esta matriz, una vez aprobada, va a resolver.
+
+**Pendiente de construir cuando la matriz esté aprobada:** la lógica de "qué campo no se deja editar desde SGC una vez que Odoo es su dueño" (hoy no hay ninguna restricción de ese tipo — todos los campos siguen editables como siempre, intencionalmente, hasta que haya una matriz aprobada que lo justifique).
+
+**Variante/conversión (criterio 2) y 1:1 bodega↔warehouse (criterio 5):** sin cambios de código esta ronda — ya documentado en la sección CY18 arriba (bodegas↔almacenes confirmado que NO es 1:1; variante de Odoo vs. SGC sin concepto de variante hoy) y queda para cuando se construya la homologación de `articulos`/`bodegas` (siguiente pieza de F8).
+
 ## Qué NO se hizo (a propósito, por alcance)
 - No se creó ni modificó ningún registro en SGC ni en Odoo.
 - No se exportó el módulo de proyectos/analítica de Odoo (abierto arriba).
