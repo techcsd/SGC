@@ -1,12 +1,26 @@
 # HANDOFF — SGC
 
-## 🔴 FIX urgente — CORS bloqueaba el APK nativo de csd-app (26-oct-2026, commit `356b8486` en `dev`, NO en `main` todavía)
+## 🟢 CY24d — RPC `mi_solicitud_compra_odoo_estado` (26-oct-2026, commits `646d8aad` + fix en el mismo commit, en `dev`)
+
+Pieza pedida por la sesión de csd-app (PROMPT-119 FASE A4): un solicitante de campo que crea una solicitud de compra en la app no tenía forma de ver el estado Odoo de la OC en la que se convirtió, porque (1) la RLS de `sgc.ordenes_compra` (`sql/2026-07-03-po-receiving.sql:24-25`) solo deja `SELECT` a admin/módulo `compras`/módulo `inventario`, y (2) `sgc.odoo_producto_solicitudes` solo expone `solicitado_por = auth.uid()`, pero ese `solicitado_por` es quien crea la OC en la web (Compras), no el solicitante original.
+
+**`sgc.mi_solicitud_compra_odoo_estado(p_solicitud_id)`** — `SECURITY DEFINER`, filtra por `sc.solicitante_id = auth.uid()` adentro, nunca expone IDs de Odoo, devuelve 3 textos sin jerga (`pendiente de producto`/`publicada`/`en conflicto`) + estado de una eventual alta de producto pendiente en las líneas de esa OC. Con el piloto apagado (como está hoy) devuelve todo `null` — comportamiento idéntico a antes (CY24-1).
+
+**Verificado en vivo contra dev** (no solo el build): login real como usuario de dev, probado contra una solicitud con `orden_compra_id` real y otra sin él, una solicitud inexistente/ajena, y sin sesión. **Encontré y corregí un bug propio en la misma verificación:** la rama "no encontrada" usaba `errcode = 'PGRST'` (inválido, no es un SQLSTATE) — PostgREST lo interpreta como su convenio interno de passthrough JSON y revienta con un 500 confuso en vez de un 4xx limpio. Corregido con una migración nueva (`cy24e`, no se reescribió `cy24d` ya aplicada) — ahora cae en el P0001 normal, igual que "No autenticado.".
+
+**Aplicado solo en dev.** Promoción a prod sigue las mismas reglas que el resto de CY24 (piloto apagado por defecto, D-08 para todo lo que escriba en Odoo de verdad — esto es de solo lectura, así que no choca con D-08, pero de todas formas espera el mismo ciclo dev→OK de Xaviel→main que toda esta ronda).
+
+**Siguiente paso (del lado app, no de aquí):** con esta RPC ya en dev, csd-app puede construir la pantalla de solo lectura de FASE A4 y probarla contra datos reales.
+
+---
+
+## ✅ FIX urgente — CORS bloqueaba el APK nativo de csd-app (26-oct-2026, commit `356b8486`) — **YA EN `main`/prod** (PR #26 mergeado después de escribir esta nota; corrección de la sesión csd-app que lo re-verificó en vivo contra prod)
 
 **Hallazgo cross-repo:** la sesión PROMPT-119 de csd-app (el hijo) probó en vivo contra la edge `assistant` de **dev** y confirmó que `ORIGENES_SGC` (`supabase/functions/_shared/cors.ts`, de CY21) nunca contempló el WebView de Capacitor — sirve el bundle desde `https://localhost` (Android) / `capacitor://localhost` (iOS), no desde el dominio real de la app. Sin esto, **toda llamada del APK nativo a cualquiera de las ~45 edges que usan `corsHeaders()`** (Compa/`assistant`, `leer-recibo`, `acceso-cedula`, `admin-*`, `snap-to-roads`…) queda sin `Access-Control-Allow-Origin` — el WebView bloquea la respuesta aunque el servidor la procesó bien.
 
 **Por qué no rompió prod (todavía):** CY21 (el cambio que introdujo esta allowlist) solo se desplegó a **dev**. Prod sigue sirviendo el código viejo (`ACAO: *`) en esas ~44 edges — confirmado en vivo por la sesión del hijo. El único riesgo real es: si alguien despliega el resto de CY21 a prod **sin este fix incluido**, rompe el APK nativo de producción en el acto.
 
-**Arreglado:** `ORIGENES_SGC` ahora incluye `https://localhost` y `capacitor://localhost`. Verificado con un test Deno nuevo + un preflight OPTIONS real contra `assistant` en dev (antes: sin `ACAO`; después: `ACAO: https://localhost`). Las 51 edges de dev redesplegadas con el fix. **El fix vive en `dev`, commit `356b8486` — todavía NO está en `main`/prod** (nadie lo pidió fusionar todavía). Antes de que una futura sesión despliegue el resto de las edges de CY21 (`cors.ts`/`envRequerido()`) a prod, **este commit tiene que ir incluido** — si no, repite el mismo bug mencionado arriba pero en producción real.
+**Arreglado:** `ORIGENES_SGC` ahora incluye `https://localhost` y `capacitor://localhost`. Verificado con un test Deno nuevo + un preflight OPTIONS real contra `assistant` en dev (antes: sin `ACAO`; después: `ACAO: https://localhost`). Las 51 edges de dev redesplegadas con el fix. **Actualización:** el commit `356b8486` se fusionó a `main` vía PR #26 poco después de escribirse esta nota (quedó desactualizada). La sesión de csd-app volvió a verificar, de forma independiente y solo lectura (preflight + una llamada POST real), las **16 edges que la app nativa invoca en prod**: las 16 reflejan `Access-Control-Allow-Origin` correcto para ambos orígenes de Capacitor, la PWA sigue funcionando, y un origen no autorizado sigue bloqueado — **la app nativa de producción no está rota por este cambio.**
 
 ---
 
