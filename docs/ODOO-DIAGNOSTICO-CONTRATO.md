@@ -218,6 +218,62 @@ Verificado: build, 110/110 Vitest, 64/64 Deno, smoke SQL transaccional (`scripts
 
 Verificado: build, 110/110 Vitest, guards (`audit-rpc-grants`/`audit-flags-exports-muertos`), smoke SQL transaccional (gate `es_tecnologia()`, listar con filtros, detalle sin `lease_token`, rechazo de reintentar un `completado`, reintento real con traza de auditoría).
 
+## CY17 [HU-INV-15] — contrato de equipos y activos inventariables (F13 resto, historia de descubrimiento)
+
+Historia de **descubrimiento con resultado verificable** (como CY18): el entregable es este contrato documentado, no código de sincronización — construir un vínculo real antes de tener el contrato sería exactamente el error que la issue pide evitar ("no afirmar que disponer de Accounting o Maintenance cubre custodia/matriz puesto-herramienta").
+
+### Los 4 conceptos de SGC — NO son equivalentes (criterio 1)
+
+| Concepto | Tabla | Es… | Columnas clave | Custodia/ubicación | Historial dedicado |
+|---|---|---|---|---|---|
+| Existencia de materiales | `sgc.articulos` | Stock consumible (cemento, tornillos…) | `categoria_id`, `unidad`, `origen` (CY24: `sgc`\|`odoo`) | No aplica (es inventario rotativo) | `sgc.v_movimientos_inventario` (vista, genérico, no por artículo) |
+| Equipo bajo custodia | `sgc.tec_equipos` | Activo NO contable, prestado a una persona (laptop, teléfono, cámara…) | `tipo`, `marca`, `modelo`, `serie`, `estado` (`activo`\|`en_reparacion`\|`en_stock`\|`dado_de_baja`) | **Sí** — `empleado_id` + `asignado_en` + `ubicacion` | **Sí** — `sgc.tec_equipo_historial` (tipo_cambio: asignacion\|estado\|ubicacion\|baja\|nota) |
+| Activo contable | `sgc.activos_fijos` | Bien con depreciación (maquinaria, mobiliario, equipo pesado) | `valor_adquisicion`, `fecha_adquisicion`, `vida_util_anios`, `categoria_id` | Sí — `responsable_id` + `ubicacion` + `asignado_tipo`/`asignado_id` (polimórfico: proyecto\|empleado\|ingeniero\|almacen\|vehiculo, Y8) | **No** — sin tabla de historial; los cambios se pisan (`update` directo desde `activos.service.ts`) |
+| Vehículo | `sgc.vehiculos` | Módulo propio (Flota), ya tiene su ciclo de vida completo | — (módulo aparte, no se tocó aquí) | Sí (módulo Flota) | Sí (módulo Flota) |
+
+**Hallazgo del criterio 1:** `tec_equipos` y `activos_fijos` son conceptos **hermanos pero distintos** — un activo fijo (ej. una excavadora) NO pasa por `tec_equipos`, y un equipo tecnológico (ej. una laptop) normalmente NO es un activo fijo depreciable en los libros de SGC hoy (no hay FK entre las dos tablas, y `activos_fijos.asignado_tipo` no incluye `'equipo_tecnologico'` como opción — ver Y8). Tratarlos como lo mismo sería el error que la issue advierte.
+
+**`tec_matriz` NO es custodia — es software, no hardware (aclaración explícita que pide la issue):** `sgc.tec_matriz` (puesto × `tec_herramientas`) es una matriz de **herramientas de software** por puesto (`categoria`: nube\|ia\|notas\|reuniones\|comunicación\|diseño\|gestión\|desarrollo — ver `sql/2026-07-12-tecnologia-module.sql`), no de equipo físico. No tiene relación de datos con `tec_equipos` más allá de vivir en el mismo módulo. Un "circuito de equipos" de Odoo (sea cual sea) **no sustituye** la matriz puesto-herramienta — son dos cosas sin ningún punto de contacto hoy.
+
+### Contraste contra el Odoo real de la empresa (criterio 2) — evidencia, no suposición
+
+Usando el inventario de 197 módulos instalados ya extraído en CY18 (`odoo-export/RESUMEN.json`, `modulos_instalados`, 25-oct-2026, Odoo 17.0 Enterprise):
+
+| Módulo Odoo candidato | Modelo relevante | ¿Instalado en la empresa? |
+|---|---|---|
+| `account_asset` (Activos fijos de Accounting) | `account.asset` (nombre exacto del modelo sin confirmar contra metadata real — ver pendiente abajo) | **SÍ** (y también `project_account_asset`, que ligaría un activo a un proyecto/analítica — encaja con `activos_fijos.asignado_tipo='proyecto'`) |
+| `maintenance` (Mantenimiento — `maintenance.equipment`, el candidato obvio para "equipo bajo custodia") | `maintenance.equipment` | **NO instalado** |
+| `fleet` (Flota — `fleet.vehicle`) | `fleet.vehicle` | **NO instalado** |
+| Serialización nativa de `stock` (trackear un producto por número de serie, alternativa a Maintenance para custodia) | `stock.lot` sobre un `product.product` con `tracking='serial'` | El módulo base `stock` SÍ está (ya se usa en F5-F9), pero no se confirmó si hay productos con tracking por serie configurados |
+
+**Consecuencia directa (por qué esto es un hallazgo y no una suposición):** `sgc.vehiculos` ya recibió columnas `odoo_id`/`odoo_instancia_id` en F5 (`20261016112524`) anticipando un futuro vínculo — pero **el módulo Fleet no existe en el Odoo real de la empresa hoy**. Ese vínculo no tiene ningún modelo Odoo al otro lado todavía; no es un bug de F5 (las columnas son nullable, sin backfill, no rompen nada), pero activarlo exigiría instalar/configurar Fleet en Odoo primero, o decidir mapear vehículos a otro modelo (ej. `account.asset`, ya que SÍ existe). Mismo problema, más agudo, para `tec_equipos`: no hay NINGÚN módulo de custodia de equipos instalado — `account.asset` cubre la pata contable (si un equipo también fuera activo fijo), pero no la pata de "a quién se le prestó esto hoy".
+
+### Decisión de esta pieza (criterio 4): sin correspondencia estándar demostrada → fuera de alcance, explícitamente
+
+**`tec_equipos` (custodia) queda SIN mapeo a Odoo en esta ronda — decisión explícita, no vacío por omisión.** No hay módulo instalado que lo cubra (Maintenance/Fleet ausentes) y forzarlo sobre `account.asset` mezclaría dos autoridades que SGC mantiene separadas a propósito (custodia operativa vs. depreciación contable). Si en el futuro se quiere sincronizar, las opciones reales son (a) pedir a Xaviel que instale Maintenance en Odoo, o (b) usar `stock.lot` con productos serializados — ninguna de las dos se implementa aquí.
+
+**`activos_fijos` SÍ tiene un candidato real (`account_asset`/`account.asset`) pero tampoco se vincula en esta pieza** — falta confirmar los campos exactos del modelo contra la metadata real de Odoo (no se hizo `fields_get` sobre `account.asset` esta ronda) y, sobre todo, falta decidir con Xaviel si SGC quiere que Odoo sea la autoridad de depreciación (lo cual tendría implicaciones contables reales, fuera del alcance de un piloto de inventario).
+
+### Caso de prueba de dev (criterio 3)
+
+`scripts/smoke-cy17-equipos-activos.mjs` — transaccional (ROLLBACK), demuestra que la arquitectura ya construida en F5 (columnas `odoo_instancia_id`/`odoo_compania_id`/`odoo_id`/`odoo_modelo`/`odoo_ultima_sync`/`odoo_version` + el trigger `odoo_v1_proteger_campos`, ya vigentes en `tec_equipos` y `activos_fijos` desde `20261016112524`) soporta un futuro vínculo sin romper nada:
+- Fijar `odoo_id`/`odoo_modelo` en un `tec_equipo` (bajo `service_role`, como exige el trigger) **no toca** `empleado_id`, `ubicacion`, `estado` ni genera una fila en `tec_equipo_historial` por sí solo (el vínculo de identidad es ortogonal a la custodia — correcto: vincular con Odoo no debe disparar un cambio de custodia).
+- La misma operación **no cambia** el total de `sgc.v_movimientos_inventario` ni ninguna cantidad de `sgc.articulos` (criterio 3: "no crea un movimiento de materiales por defecto") — un equipo bajo custodia nunca es un movimiento de stock.
+- Un `authenticated` normal (no `service_role`/`postgres`) sigue sin poder escribir las columnas `odoo_*` directamente (el trigger de F5 ya lo bloquea — se reconfirma, no se reconstruye).
+
+### Resumen del contrato (criterio 5)
+
+| | Archivos | Cardinalidad del vínculo (si se construyera) | Autoridad por campo | Pruebas |
+|---|---|---|---|---|
+| Existencia (`articulos`) | ya cubierto por CY4/CY6/CY19 | N:N (ya resuelto, F6/F8) | SGC dueño de alias/categorías; Odoo dueño de identidad una vez homologado (CY7) | smokes de CY4/CY6/CY19 |
+| Equipo bajo custodia (`tec_equipos`) | `tecnologia.service.ts`, `tecnologia/inventario/inventario.ts` | **Sin mapeo** (ningún módulo Odoo instalado lo cubre — ver arriba) | N/A — no hay vínculo | `scripts/smoke-cy17-equipos-activos.mjs` (solo prueba que la columna de identidad no interfiere con custodia) |
+| Activo contable (`activos_fijos`) | `activos.service.ts`, `inventario/activos/activos.ts` | 1:1 si se construye (`account.asset`, candidato confirmado por módulo instalado, campos SIN confirmar) | **No decidido** — requiere que Xaviel confirme si Odoo manda en depreciación | Ninguna (no se construyó vínculo) |
+| Vehículo (`vehiculos`) | módulo Flota (fuera de esta issue) | **Sin mapeo** (Fleet no instalado) | N/A | — |
+
+**Explícito, como exige el criterio 5:** esta pieza **no habilita depreciación ni asientos contables automáticos** — ni los construye ni los simula. Ninguna de las 4 tablas quedó con un vínculo Odoo real al terminar esta ronda; el valor entregado es el contrato (qué SÍ y qué NO corresponde, con evidencia real de módulos instalados) para que una ronda futura no tenga que re-descubrir esto.
+
+Verificado: smoke SQL transaccional (`scripts/smoke-cy17-equipos-activos.mjs`), lectura directa de `modulos_instalados` del extracto real de CY18 (sin volver a consultar Odoo — ya estaba exportado).
+
 ## Qué NO se hizo (a propósito, por alcance)
 - No se creó ni modificó ningún registro en SGC ni en Odoo.
 - No se exportó el módulo de proyectos/analítica de Odoo (abierto arriba).
