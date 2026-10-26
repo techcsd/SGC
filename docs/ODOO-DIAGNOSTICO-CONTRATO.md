@@ -203,6 +203,21 @@ Como pide la issue: **propuesta documentada**, no código — la matriz real la 
 
 Verificado: build, 110/110 Vitest, 64/64 Deno, smoke SQL transaccional (`scripts/smoke-cy24c-selector-odoo-oc.mjs`) y confirmación REST directa contra dev del flag real + el edge desplegado (v16).
 
+## CY16 [HU-INV-14] — visibilidad de sincronización con Odoo (F13, aplicada en dev)
+`sql/2026-10-26-cy16-odoo-sync-estado.sql`. Solo lectura + reintento autorizado sobre el outbox real de CY6/F9 (`sgc.odoo_eventos`) — nota técnica de la issue: "no crear monitores recurrentes ni cambiar la autoridad de stock como efecto secundario".
+
+**Por qué F13 y no F11-F12 (#9-#15) primero:** se leyó el texto completo de las 7 issues (#9-#15, "segundo circuito") antes de decidir — **las 7 dependen de publicar de verdad en Odoo** (ej. #9: "se reutiliza la recepción generada por la OC Odoo", lo cual exige que la OC ya exista en Odoo — Fase C). Construir esas 7 ahora sería escribir mapeos Odoo especulativos sin ninguna base de pruebas real contra la cual verificarlos (D-08) — justo el riesgo que esta ronda evitó en todas sus piezas anteriores. #16 (F13), en cambio, no depende de que nada se publique de verdad: ya hay datos reales fluyendo por el outbox (aunque hoy vacío en dev, ver abajo) y la pantalla es información, no una acción de negocio.
+
+- **4 RPCs nuevas**, todas gateadas por `sgc.es_tecnologia()` (mismo público que "Outbox atascado", que es un outbox DISTINTO — el de la app móvil, BG2 — no confundir con `sgc.odoo_eventos`):
+  - `odoo_eventos_listar(p_agregado_tipo, p_estado, p_limite)` — bandeja filtrable.
+  - `odoo_eventos_resumen()` — conteos por tipo/estado. Es la "conciliación" de esta pieza (criterio 5), **acotada a propósito**: comparar línea-por-línea contra un documento Odoo real necesita que algo se haya publicado de verdad, y hoy nada lo hace (Fase C bloqueada, D-08).
+  - `odoo_evento_detalle(p_evento_id)` — payload + resultado + historial de `odoo_intentos`, sin exponer `lease_token` (detalle interno del procesador, no de negocio).
+  - `odoo_evento_reintentar(p_evento_id)` — re-encola un evento `error`/`incierto`/`bloqueado` a `pendiente` para que lo recoja el MISMO procesador (`odoo-sync`, CY6) en su próxima pasada; rechaza reintentar uno `completado` (no se reabre lo ya resuelto) y deja traza en `odoo_intentos` (`procesador='reintento-manual'`).
+- **Pantalla `/tecnologia/odoo-sync`:** resumen por estado, tabla filtrable por tipo/estado, drawer de detalle con botón "Reintentar" cuando aplica.
+- **Dato real sobre dev hoy:** `sgc.odoo_eventos` está **vacía** — `sgc.odoo_instancias` tiene 0 filas habilitadas, así que los triggers de captura de F9 siempre toman el camino de salida temprana (`v_instancias_habilitadas <> 1`) y nunca insertan un evento. El smoke test (`scripts/smoke-cy16-odoo-sync-estado.mjs`) inserta una instancia + un evento + un intento sintéticos dentro de una transacción con `ROLLBACK`, para probar la lógica real sin dejar rastro en dev. Si una sesión futura necesita ver datos reales en la pantalla, hace falta: (a) crear una fila real en `odoo_instancias` con `habilitada=true`, y (b) tocar un articulo/categoria/unidad/proveedor para que el trigger de F9 dispare.
+
+Verificado: build, 110/110 Vitest, guards (`audit-rpc-grants`/`audit-flags-exports-muertos`), smoke SQL transaccional (gate `es_tecnologia()`, listar con filtros, detalle sin `lease_token`, rechazo de reintentar un `completado`, reintento real con traza de auditoría).
+
 ## Qué NO se hizo (a propósito, por alcance)
 - No se creó ni modificó ningún registro en SGC ni en Odoo.
 - No se exportó el módulo de proyectos/analítica de Odoo (abierto arriba).

@@ -2,7 +2,16 @@
 
 ## TL;DR — PROMPT-118 — Integración SGC ↔ Odoo (épica #2, issues #3–#24 + PR #22) — 26/10/2026 — 🟡 EN DEV, nada a main/prod
 
-Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Siete sesiones seguidas ("continue working" ×7) completaron **F0–F9 completas + F10 Fase A y Fase B enteras, incluido el selector de producto Odoo en "crear OC"**. Queda **F10 Fase C (bloqueada por D-08), F11–F13** (issues #9–#17).
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Siete sesiones seguidas ("continue working" ×7) completaron **F0–F9 completas + F10 Fase A y Fase B enteras (incluido el selector de producto Odoo en "crear OC") + F13 (#16, visibilidad de sincronización)**. Queda **F10 Fase C (bloqueada por D-08), F11–F12** (issues #9–#15, dependen de Fase C) **y F13 resto** (#17, discovery de equipos/activos — P2, independiente).
+
+### Hecho — séptima sesión, 3ª parte (commit `7fb6b423` en `dev`; nada en `main`) — F13 (#16) visibilidad de sincronización con Odoo
+
+Antes de construir F11-F12 (#9-#15, "segundo circuito") se leyeron las 7 issues completas: **las 7 dependen de publicar de verdad en Odoo** (ej. #9 exige "reutilizar la recepción generada por la OC Odoo", que no existe sin Fase C). Construirlas ahora sería mapear acciones de Odoo sin ninguna base real para verificarlas — el mismo riesgo que esta ronda evitó en todo lo demás. Se priorizó **#16 (F13)** en su lugar: no depende de que nada se publique de verdad.
+
+- 4 RPCs gateadas por `es_tecnologia()` sobre el outbox real de CY6/F9 (`sgc.odoo_eventos`): `odoo_eventos_listar`, `odoo_eventos_resumen` (la "conciliación" de esta pieza, acotada a conteos — comparar contra Odoo real necesita Fase C), `odoo_evento_detalle` (sin exponer `lease_token`), `odoo_evento_reintentar` (re-encola a `pendiente` para el MISMO procesador, nunca edita resultados a mano; rechaza reintentar un `completado`).
+- Pantalla `/tecnologia/odoo-sync` (mismo gate que "Outbox atascado", que es un outbox DISTINTO de la app móvil — no confundir).
+- **Dato real:** `sgc.odoo_eventos` está vacía en dev hoy — `odoo_instancias` tiene 0 filas habilitadas, los triggers de F9 nunca disparan. El smoke test prueba la lógica con datos sintéticos en una transacción con ROLLBACK.
+- Build + 110/110 Vitest + guards verdes. Detalle completo en `docs/ODOO-DIAGNOSTICO-CONTRATO.md` sección "CY16".
 
 ### Hecho — séptima sesión, 2ª parte (commit `1a30e2e0` en `dev`; nada en `main`) — selector de producto Odoo en "crear OC" (resto de F10 Fase A)
 
@@ -75,8 +84,9 @@ Build + Vitest (110/110) + Deno (54/54) verdes en cada commit. Comentarios de es
 
 ### Pendiente — próxima sesión (en orden, issues sin empezar o incompletas)
 1. **F10 Fase C (CY24):** escribir la OC de verdad en Odoo (`compras.crear/confirmar/cancelar`) — bloqueada por D-08 (sin base de pruebas confirmada). Mientras tanto se puede construir con mock Deno (igual que el procesador de F9). Candidatos a resolver primero: E2 (distinguir "existe pero no comprable" de "no existe" en el picker — necesita una segunda consulta sin `purchase_ok`), el artículo-sombra de D2 (`origen='odoo'`, al publicar).
-2. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos — el patrón de trigger deferred cabecera+renglones de F9 ya existe y se puede reusar directamente para lo que falte aquí.
-3. **F13 (CY16+CY17):** estado de sincronización visible — **ya hay eventos reales de los 8 tipos** (4 maestros + 4 documentos) para construir sobre — `odoo-sync.service.ts` en el frontend, lee `sgc.odoo_eventos`/`odoo_vinculos_stock`/`odoo_homologacion_log`, ya todos construidos. Documento de equipos/activos (CY17) es independiente.
+2. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos — **las 7 issues dependen de que algo se publique de verdad en Odoo** (ver análisis en `docs/ODOO-DIAGNOSTICO-CONTRATO.md` sección CY16) — bloqueadas por D-08 igual que Fase C. El patrón de trigger deferred cabecera+renglones de F9 ya existe y se puede reusar directamente cuando se desbloqueen.
+3. **F13 resto (CY17):** descubrimiento/contrato de equipos y activos inventariables (`activos.service.ts`, `tecnologia/inventario`) — P2, independiente del primer circuito de materiales, no necesita Fase C. Es una historia de investigación (como CY18): producir un contrato documentado, no necesariamente código.
+4. **Inline de estado Odoo en las pantallas operativas** (parte de #16 que SÍ puede esperar): la pantalla `/tecnologia/odoo-sync` es un panel centralizado; el texto de la issue también pedía badges de estado inline en `ordenes.ts`/`entradas.ts`/`conduce.ts`/`almacen-inventario.ts` — tiene más sentido una vez que Fase C haga que esos estados sean reales (hoy, sin publicación, serían badges casi siempre vacíos).
 
 ### Pendientes físicos de Xaviel
 1. **Aceptar la matriz de `docs/ODOO-DIAGNOSTICO-CONTRATO.md`** (criterio 7 de CY18) — en particular: ¿capturar RNC de los 1,565 proveedores candidatos o aceptar revisión manual?, ¿Odoo tiene módulo de proyectos/analítica activo?, mapeo real bodega→ubicación.
