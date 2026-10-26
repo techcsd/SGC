@@ -2,7 +2,17 @@
 
 ## TL;DR — PROMPT-118 — Integración SGC ↔ Odoo (épica #2, issues #3–#24 + PR #22) — 25/10/2026 — 🟡 EN DEV, nada a main/prod
 
-Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Cinco sesiones seguidas ("continue working" ×5) completaron **F0–F9 completas** (F8 = criterio 1 "vincular" para las 5 tablas de identidad; F9 = outbox completo, 4 maestros + 4 documentos cabecera+renglones). Queda **F10–F13** (issues #8, #9–#17, #24) — el piloto de OC (F10/CY24) es la pieza más grande que falta, requiere escritura real en Odoo (bloqueada por D-08).
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Seis sesiones seguidas ("continue working" ×6) completaron **F0–F9 completas + F10 Fase A**. Queda **F10 Fase B (solo falta la pantalla — el backend ya está listo) + Fase C (bloqueada por D-08), F11–F13** (issues #8, #9–#17).
+
+### Hecho — sexta sesión (commits `c9b918d9`..`3ca76160` en `dev`; nada en `main`) — F10 Fase A (CY24)
+
+- **Base de datos**: columnas de sync en `ordenes_compra` (`odoo_sync_estado`/`odoo_state`/`odoo_nombre`/`odoo_total`/`odoo_sync_error` — el semáforo de SGC sobre el ciclo de publicación, distinto de la identidad `odoo_id` que ya trajo F5) y `orden_compra_items` (`odoo_product_id`/`odoo_uom_id`/`odoo_snapshot`). `articulos.origen` (`sgc`/`odoo`) para un futuro artículo-sombra (D-10).
+- **`sgc.odoo_producto_solicitudes`** (bandeja "Productos por dar de alta" — Fase B): RLS (cada quien ve lo suyo + admin/Compras todo), sin UPDATE directa a la tabla.
+- **2 RPCs, sin tocar la firma de `crear_orden_compra` (D7)**: `registrar_publicacion_oc` (no publica, solo registra un resultado ya ocurrido — eso es Fase C) y `resolver_solicitud_producto` (crea/vincula artículo + re-vincula la línea de OC). **El solicitante nunca resuelve lo suyo (D-9)** — probado que la autoresolución se rechaza.
+- **4 acciones de lectura nuevas en el gateway**, probadas **contra el Odoo real de la empresa**: `productos.buscar_compra` (filtra por `purchase_ok`, no por `type='product'` — criterio E2/E8), `productos.obtener`, `proveedores.obtener`, `compras.obtener`. Allowlist sigue cerrada.
+- **F10 Fase B/C no se construyeron esta ronda**: Fase B necesita una pantalla (ruta, notificaciones, badge en dashboard) — el backend ya está listo para eso, es trabajo de frontend puro. Fase C necesita escribir en Odoo de verdad, bloqueada por D-08.
+
+Build + Vitest + Deno (63/63) verdes. `release-check.mjs` 7/7 PASS. Comentario de estado en issue #24.
 
 ### Decisión de diseño F9 resto (cabecera+renglones) — ya resuelta y construida
 Pedida explícitamente por Xaviel. Los 4 maestros son 1 fila = 1 evento (trivial). Las 5 rutas de stock/compra son documentos con cabecera+renglones — verificado contra las RPC reales que **no todas insertan renglones igual**: 3 de 4 usan un solo `INSERT...SELECT` (bulk), pero `confirmar_entrada_chofer` los inserta en un **loop** (una sentencia por renglón). Solución: `CREATE CONSTRAINT TRIGGER ... DEFERRABLE INITIALLY DEFERRED` en la **cabecera** (no en los renglones) — Postgres lo ejecuta justo antes del `COMMIT`, cuando todos los renglones ya existen sin importar en cuántas sentencias se insertaron. Detalle completo en `docs/ODOO-DIAGNOSTICO-CONTRATO.md` sección "CY6 resto". Probado con ambos patrones de inserción Y contra la RPC real (`confirmar_entrada_chofer`).
@@ -49,9 +59,10 @@ Build + Vitest (110/110) + Deno (54/54) verdes en cada commit. Comentarios de es
 - **F7 (CY5 — adaptador servidor):** el cliente XML-RPC (`_shared/odoo-client.ts`) ya venía del PR #22, no se duplicó. Se aplicaron los secrets `ODOO_URL/ODOO_DB/ODOO_USER/ODOO_API_KEY/ODOO_COMPANY_ID` **solo en dev** (ver gotcha de permisos abajo) y se desplegó la edge `odoo-api` a dev (v13). **Lectura de prueba real contra el Odoo de producción de la empresa, sin crear nada:** `productos.buscar` (3 cementos reales), `ubicaciones.listar` (almacenes reales por proyecto), `stock.consultar` (cantidad física/reservada de un producto real) — los 3 con HTTP 200. Un intento de `execute_kw` (escritura) fue rechazado por la allowlist cerrada (HTTP 400 "Acción no permitida"). **Nota:** el adaptador de hoy solo tiene acciones de lectura de producto/stock/ubicación — no hay acciones de proveedor/OC todavía (eso es alcance de CY24 Fase A, no construido esta ronda).
 
 ### Pendiente — próxima sesión (en orden, issues sin empezar o incompletas)
-1. **F10 (CY24+CY8):** piloto de OC con productos desde Odoo — el más grande, 3 fases (A/B/C). Requiere la ampliación `20261016112525` aplicada en dev (para D3) — **todavía no se instaló** (D-04, espera el contrato de CY18). El outbox (F9) y el procesador mock ya existen — F10 necesitaría extender `_shared/odoo-inventario.ts`/`odoo-api/acciones.ts` con una acción de ESCRITURA real (hoy todo es lectura), gateado por D-08 (sin base de pruebas confirmada).
-2. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos — el patrón de trigger deferred cabecera+renglones de F9 ya existe y se puede reusar directamente para lo que falte aquí.
-3. **F13 (CY16+CY17):** estado de sincronización visible — **ya hay eventos reales de los 8 tipos** (4 maestros + 4 documentos) para construir sobre — `odoo-sync.service.ts` en el frontend, lee `sgc.odoo_eventos`/`odoo_vinculos_stock`/`odoo_homologacion_log`, ya todos construidos. Documento de equipos/activos (CY17) es independiente.
+1. **F10 Fase B (CY24):** pantalla "Productos por dar de alta en Odoo" — ruta con guard de módulo, entrada en `shell.ts`, i18n, SVG, notificaciones, badge/KPI en dashboard (regla 1). El backend (`sgc.odoo_producto_solicitudes` + `resolver_solicitud_producto`) ya está listo — es trabajo de frontend puro. También falta el selector de productos Odoo en la pantalla de crear OC (consume `productos.buscar_compra`, ya construido y probado).
+2. **F10 Fase C (CY24):** escribir la OC de verdad en Odoo — bloqueada por D-08 (sin base de pruebas confirmada). Mientras tanto se puede construir con mock Deno (igual que el procesador de F9).
+3. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos — el patrón de trigger deferred cabecera+renglones de F9 ya existe y se puede reusar directamente para lo que falte aquí.
+4. **F13 (CY16+CY17):** estado de sincronización visible — **ya hay eventos reales de los 8 tipos** (4 maestros + 4 documentos) para construir sobre — `odoo-sync.service.ts` en el frontend, lee `sgc.odoo_eventos`/`odoo_vinculos_stock`/`odoo_homologacion_log`, ya todos construidos. Documento de equipos/activos (CY17) es independiente.
 
 ### Pendientes físicos de Xaviel
 1. **Aceptar la matriz de `docs/ODOO-DIAGNOSTICO-CONTRATO.md`** (criterio 7 de CY18) — en particular: ¿capturar RNC de los 1,565 proveedores candidatos o aceptar revisión manual?, ¿Odoo tiene módulo de proyectos/analítica activo?, mapeo real bodega→ubicación.
@@ -71,15 +82,16 @@ Build + Vitest (110/110) + Deno (54/54) verdes en cada commit. Comentarios de es
 ### Verify on resume
 ```bash
 cd "C:/Users/xavie/Desktop/X Dev/dev/SGC"
-git log --oneline -3 dev                        # debe mostrar c9b918d9 (CY6 documentos) encima de c5d5027f
+git log --oneline -3 dev                        # debe mostrar 3ca76160 (CY24 Fase A) encima de c5d5027f
 export PATH="$PATH:/c/Users/xavie/.deno/bin"; deno --version  # Deno instalado en esta máquina
-npm run test:edge                                # 58/58 (odoo-api + cors + env + circuito + backoff + semaforo + odoo-inventario mock)
+npm run test:edge                                # 63/63 (odoo-api + cors + env + circuito + backoff + semaforo + odoo-inventario mock)
 node scripts/release-check.mjs --env dev --version 1.201.0   # debe dar 7/7 PASS (o re-correr si CU2 da timeout transitorio)
 node scripts/smoke-cy4-vinculos-stock.mjs --env dev             # vinculos de stock (F6)
 node scripts/smoke-cy19-homologacion-vincular.mjs --env dev     # vinculacion de identidad: proveedores/categorias/unidades (F8)
 node scripts/smoke-cy19b-vincular-articulo-bodega.mjs --env dev # vinculacion de identidad: articulos/bodegas (F8)
 node scripts/smoke-cy6-outbox.mjs --env dev                     # outbox: maestros -- captura, politica, dependencia, permisos (F9)
 node scripts/smoke-cy6c-outbox-documentos.mjs --env dev         # outbox: documentos cabecera+renglones, loop vs bulk insert (F9)
+node scripts/smoke-cy24-oc-odoo-a.mjs --env dev                 # OC Fase A: registrar_publicacion_oc + resolver_solicitud_producto (D-9)
 cat docs/ODOO-DIAGNOSTICO-CONTRATO.md | head -5  # existe, tiene la matriz CY18 (sigue pendiente de aceptación de Xaviel)
 ```
 
