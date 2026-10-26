@@ -346,3 +346,53 @@ Deno.test("acciones: los comodines de LIKE del usuario se escapan", async () => 
   await manejar(req({ accion: "productos.buscar", params: { termino: "a_%b" } }), deps({ calls }));
   assert(calls.some((c) => c.includes("a\\_\\%b")), "el término viaja escapado");
 });
+
+// ── CY24 Fase A — acciones de lectura para el piloto de OC ──────────────────
+Deno.test("productos.buscar_compra: filtra por purchase_ok, NO por type='product' (criterio E2/E8)", async () => {
+  const calls: string[] = [];
+  await manejar(req({ accion: "productos.buscar_compra", params: { termino: "cemento" } }), deps({ calls }));
+  const llamada = calls.find((c) => c.includes("search_read"));
+  assert(llamada?.includes("purchase_ok"), "debe filtrar por purchase_ok");
+  assert(!llamada?.includes("<string>product</string>"), "NO debe limitarse a type=product");
+});
+
+Deno.test("productos.obtener: producto_id obligatorio y válido", async () => {
+  const sinId = await manejar(req({ accion: "productos.obtener", params: {} }), deps());
+  assertEquals(sinId.status, 400);
+  const r = await manejar(req({ accion: "productos.obtener", params: { producto_id: 42 } }),
+    deps({ respuesta: xmlStruct(`<value><struct>
+      <member><name>id</name><value><int>42</int></value></member>
+      <member><name>display_name</name><value><string>CEMENTO GRIS</string></value></member>
+      <member><name>active</name><value><boolean>1</boolean></value></member>
+      <member><name>purchase_ok</name><value><boolean>1</boolean></value></member>
+      </struct></value>`) }));
+  const data = (await r.json()).data;
+  assertEquals(data.producto.id, 42);
+  assertEquals(data.producto.comprable, true);
+});
+
+Deno.test("proveedores.obtener: devuelve null si Odoo no encuentra el partner", async () => {
+  const r = await manejar(req({ accion: "proveedores.obtener", params: { proveedor_id: 999 } }), deps({ respuesta: xmlStruct("") }));
+  assertEquals((await r.json()).data.proveedor, null);
+});
+
+Deno.test("compras.obtener: mapea estado/total/proveedor de una purchase.order", async () => {
+  const r = await manejar(req({ accion: "compras.obtener", params: { orden_id: 7 } }),
+    deps({ respuesta: xmlStruct(`<value><struct>
+      <member><name>id</name><value><int>7</int></value></member>
+      <member><name>name</name><value><string>P00007</string></value></member>
+      <member><name>state</name><value><string>purchase</string></value></member>
+      <member><name>amount_total</name><value><double>1500.5</double></value></member>
+      <member><name>partner_id</name><value><array><data><value><int>3</int></value><value><string>Proveedor X</string></value></data></array></value></member>
+      </struct></value>`) }));
+  const orden = (await r.json()).data.orden;
+  assertEquals(orden.nombre, "P00007");
+  assertEquals(orden.estado, "purchase");
+  assertEquals(orden.total, 1500.5);
+  assertEquals(orden.proveedor, { id: 3, nombre: "Proveedor X" });
+});
+
+Deno.test("CY24 acciones: allowlist sigue cerrada -- una variante de escritura no declarada es rechazada", async () => {
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: 1 } }), deps());
+  assertEquals(r.status, 400);
+});

@@ -170,6 +170,27 @@ Como pide la issue: **propuesta documentada**, no código — la matriz real la 
 
 **Variante/conversión (criterio 2) y 1:1 bodega↔warehouse (criterio 5):** sin cambios de código esta ronda — ya documentado en la sección CY18 arriba (bodegas↔almacenes confirmado que NO es 1:1; variante de Odoo vs. SGC sin concepto de variante hoy) y queda para cuando se construya la homologación de `articulos`/`bodegas` (siguiente pieza de F8).
 
+## CY24 Fase A — base + lectura para el piloto de OC (aplicada en dev)
+`sql/2026-10-26-cy24-oc-odoo-a.sql`. Primera pieza del piloto de órdenes de compra con productos desde Odoo (#24) — **solo lectura, nada se publica todavía**.
+
+**Columnas de sync (distintas de las de identidad que ya trajo F5):**
+- `ordenes_compra.odoo_sync_estado` (`pendiente`/`publicada`/`confirmada`/`cancelada`/`error`/`conflicto`) — el semáforo de SGC sobre el ciclo de publicación, no la identidad del documento (eso ya lo tiene `odoo_id` de F5). `odoo_state` (texto libre, lo que diga Odoo tal cual), `odoo_nombre`/`odoo_total` (snapshot para no releer solo para mostrar), `odoo_sync_error` (mensaje sin jerga, BS2).
+- `orden_compra_items.odoo_product_id`/`odoo_uom_id`/`odoo_snapshot` — identidad + copia de lo que devolvió `productos.obtener` al elegir el producto (AT11: todo lo enviado debe poder verse).
+- `articulos.origen` (`'sgc'` default / `'odoo'`) — distingue los artículos de siempre de un futuro **artículo-sombra** (D-10, puente transitorio para un producto que existe en Odoo pero no en SGC).
+
+**`sgc.odoo_producto_solicitudes`** (Fase B, bandeja "Productos por dar de alta en Odoo"): registra que una línea de OC no tiene producto en Odoo, con la búsqueda previa que hizo el solicitante (criterio 7: exige búsqueda, no basta "no lo encontré"). RLS: cada quien ve lo suyo + admin/Compras ven todo; **ninguna UPDATE directa a la tabla** — solo vía RPC.
+
+**2 RPCs, sin cambiar la firma de `crear_orden_compra` (D7):**
+- `sgc.registrar_publicacion_oc` — **no publica nada en Odoo**, solo registra el resultado de una publicación ya hecha (esa parte es Fase C). Conserva el snapshot previo si un campo no se informa.
+- `sgc.resolver_solicitud_producto` — resuelve una solicitud de alta: crea/vincula un artículo y **re-vincula automáticamente la línea de OC de origen**. **El solicitante nunca resuelve lo suyo** (D-9) — probado que un intento de autoresolución se rechaza con un error claro, y que un resolutor distinto sí puede.
+
+**4 acciones de lectura nuevas en el gateway** (`odoo-api/acciones.ts`), todas de solo lectura, probadas contra el Odoo real de la empresa:
+- `productos.buscar_compra` — variante de `productos.buscar` que filtra por `purchase_ok` en vez de `type='product'` (criterio E2/E8: un servicio también puede comprarse).
+- `productos.obtener`, `proveedores.obtener`, `compras.obtener` — detalle por ID, devuelven `null` si Odoo no tiene esa fila (nunca un error).
+- La allowlist sigue cerrada: un intento de `compras.crear` (acción de escritura, no declarada) se sigue rechazando con 400.
+
+**Explícitamente fuera de esta pieza:** Fase C (escribir la OC en Odoo de verdad) — necesita una base de pruebas confirmada o una orden escrita de Xaviel (D-08), ninguna de las dos existe todavía. El selector de Odoo en la pantalla de crear OC (frontend) tampoco se construyó esta ronda — la base de datos y el gateway ya están listos para que ese trabajo sea solo de UI.
+
 ## Qué NO se hizo (a propósito, por alcance)
 - No se creó ni modificó ningún registro en SGC ni en Odoo.
 - No se exportó el módulo de proyectos/analítica de Odoo (abierto arriba).

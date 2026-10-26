@@ -51,6 +51,11 @@ export const TTL_MS = {
   "productos.buscar": 60_000,
   "ubicaciones.listar": 600_000,
   "stock.consultar": 15_000,
+  // CY24 Fase A
+  "productos.buscar_compra": 60_000,
+  "productos.obtener": 60_000,
+  "proveedores.obtener": 60_000,
+  "compras.obtener": 15_000, // el estado de una OC cambia -- TTL corto, igual que el stock
 } as const;
 
 /** Sobrescribible por entorno: ODOO_CACHE_TTL_S_<ACCION con . → _> (0 = sin caché). */
