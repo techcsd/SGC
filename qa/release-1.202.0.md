@@ -10,5 +10,6 @@
   - **Nada de esto requiere Odoo real para funcionar hoy**: los flags de publicación (`odoo_publicacion_politica`) y de piloto (`odoo_compras_piloto_habilitado`) están apagados; Fase C (escribir en Odoo de verdad) sigue bloqueada por D-08 (sin base de pruebas Odoo confirmada) y no se construyó.
 - Versión de origen: 1.201.0.
 - **No se montó un navegador real esta ronda.** Lo verificado es: build, 110/110 tests Vitest, 64/64 tests Deno, guards del prebuild, 3 smokes SQL transaccionales (ROLLBACK, contra dev real) y 2 confirmaciones REST/RPC directas contra dev real (no solo guards estáticos) — no una sesión de navegador en `dev.sgcconstructorasd.com`.
-- **Pendiente: OK explícito de Xaviel para promover a prod.** Xaviel pidió abrir el PR `dev → main` ("continue working", sesión autónoma) pero no ha probado esto en `dev.sgcconstructorasd.com` ni dado una confirmación específica de que acepta mergear sin esa prueba — ese es un paso distinto de "abrir el PR" y no se asume aquí. El PR queda abierto para su revisión; el merge (que dispara el deploy real a prod) espera su decisión informada.
+- Tras abrir el PR #25, se le presentó explícitamente a Xaviel la disyuntiva: mergear ahora sin prueba humana en `dev.sgcconstructorasd.com`, probar primero, o seguir con otra cosa. Xaviel eligió mergear ahora.
+OK: 2026-10-26 — Xaviel eligió explícitamente la opción "1. Merge PR #25" tras ver el resumen de qué sí y qué no se había verificado (build/tests/smokes sí, navegador real no) — decisión informada, no asumida.
 - Fecha: 2026-10-26
