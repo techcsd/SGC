@@ -146,6 +146,14 @@ export const tecnologiaRoutes: Routes = [
     title: 'Outbox atascado — Tecnología',
   },
   {
+    // CY16 (#16) — outbox de sincronización con Odoo (distinto del outbox de
+    // arriba, que es el de la app móvil). Gate: es_tecnologia.
+    path: 'odoo-sync',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./odoo-sync/odoo-sync').then((m) => m.TecOdooSync),
+    title: 'Sincronización con Odoo — Tecnología',
+  },
+  {
     // BD3 — Galería de componentes / design system (tokens + componentes base en
     // ambos temas). Interna: es_tecnologia. Contrato visual del rollout.
     path: 'design-system',

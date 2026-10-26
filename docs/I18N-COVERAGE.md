@@ -145,6 +145,7 @@
 | tecnologia/inventario | - | 125 | 0 | 125 | 0% |
 | tecnologia/matriz | - | 39 | 0 | 39 | 0% |
 | tecnologia/monitoreo | - | 97 | 0 | 97 | 0% |
+| tecnologia/odoo-sync | - | 51 | 0 | 51 | 0% |
 | tecnologia/outbox-atascados | - | 90 | 0 | 90 | 0% |
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
