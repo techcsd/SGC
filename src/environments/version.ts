@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.202.0';
-export const APP_VERSION_TITULO: string | null = "Primer piloto de integración con Odoo: bandeja de productos por dar de alta, selector de producto en órdenes de compra y panel de sincronización para Tecnología";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Compras","d":"Nueva bandeja 'Productos por dar de alta en Odoo': cuando un material de una orden de compra no tiene equivalente en Odoo, se solicita su alta (exige haber buscado antes para no duplicar) y Compras la resuelve vinculándola a un artículo existente, creando uno nuevo o rechazándola con motivo."},{"t":"nuevo","m":"Compras","d":"Piloto apagado por defecto: al crear una orden de compra, el selector de productos puede buscar directamente en Odoo en vez del catálogo de SGC, con la solicitud de alta integrada cuando el producto no existe."},{"t":"nuevo","m":"Tecnología","d":"Nueva pantalla 'Sincronización con Odoo': muestra el estado de cada evento pendiente de publicarse hacia Odoo (pendiente, sincronizado, con error) y permite reintentar los que fallaron."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/4a7bdbb";
+export const APP_VERSION = '1.202.1';
+export const APP_VERSION_TITULO: string | null = "Combustible: corregido el rechazo de recibos retroactivos";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Flota","d":"Registrar una echada de combustible con fecha pasada podía rechazarse por error (\"la lectura no puede ser menor a la lectura actual del vehículo\") aunque el kilometraje fuera correcto para esa fecha. Ahora se valida contra el kilometraje que tenía el vehículo en esa fecha, no contra el actual."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/e126ae5";

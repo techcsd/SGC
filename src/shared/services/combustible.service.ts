@@ -10,6 +10,7 @@ import {
 } from '../models/combustible.model';
 import { cleanUuid } from '../utils/uuid.util';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
+import { ValidacionKm } from './mantenimientos.service';
 
 const BUCKET = 'vehiculos';
 
@@ -225,6 +226,23 @@ export class CombustibleService {
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as LogCombustibleRow[];
+  }
+
+  /**
+   * CZ1 — valida el km de la echada contra TODAS las lecturas con fecha del
+   * vehículo (echadas, inspecciones, entregas, mantenimientos), igual que
+   * mantenimientos (CH1). Reemplaza la comparación contra el odómetro VIVO
+   * (sin fecha), que rechazaba cualquier echada retroactiva con km menor al
+   * actual aunque fuera correcta para su fecha.
+   */
+  async validarKm(vehiculoId: string, km: number, fecha: string): Promise<ValidacionKm | null> {
+    const { data, error } = await this.supabase.client.rpc('validar_km_vehiculo', {
+      p_vehiculo: vehiculoId,
+      p_km: km,
+      p_fecha: fecha,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? null) as ValidacionKm | null;
   }
 
   /**

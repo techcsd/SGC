@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.202.1": {
+      "titulo": "Combustible: corregido el rechazo de recibos retroactivos",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Registrar una echada de combustible con fecha pasada podía rechazarse por error (\"la lectura no puede ser menor a la lectura actual del vehículo\") aunque el kilometraje fuera correcto para esa fecha. Ahora se valida contra el kilometraje que tenía el vehículo en esa fecha, no contra el actual."
+        }
+      ]
+    },
     "1.202.0": {
       "titulo": "Primer piloto de integración con Odoo: bandeja de productos por dar de alta, selector de producto en órdenes de compra y panel de sincronización para Tecnología",
       "cambios": [

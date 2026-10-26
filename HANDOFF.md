@@ -1,12 +1,43 @@
 # HANDOFF — SGC
 
-## 🔴 FIX urgente — CORS bloqueaba el APK nativo de csd-app (26-oct-2026, commit `356b8486` en `dev`, NO en `main` todavía)
+## ✅ Verificación de workflows reales tras los triggers de esta ronda (26-oct-2026, commit `1c9be03a` en `dev`)
+
+Xaviel pidió explícitamente probar que los triggers nuevos (outbox Odoo, CY6/CY6c) no rompen ningún flujo real de inventario/choferes — no solo el build y los smokes aislados de cada pieza. `scripts/smoke-cy-workflows-reales-tras-triggers.mjs` llama a las **RPC reales** que usa el frontend (no simulaciones) para los 8 caminos que ahora tienen el trigger del outbox enganchado, con un usuario real impersonado por rol:
+
+- **Maestros** (`odoo_v1_capturar_evento_maestro`): `crear_articulo_app`, insert directo en `categorias_inventario`/`unidades` (requieren admin — `categorias_manage_admin`/`unidades_write`), insert en `proveedores`.
+- **Documentos** (`odoo_v1_capturar_evento_documento`, `CONSTRAINT TRIGGER DEFERRED`): `registrar_salida_inventario` (**conduce/chofer**), `registrar_entrada_inventario` + `confirmar_entrada_chofer` (**recepción, los dos caminos de inserción de renglones — bulk y loop**), `crear_retiro_material` (**material dañado**), `crear_solicitud_compra`.
+
+**9/9 pasan en dev.** El primer intento falló 6/9 — pero los 6 fallos eran del propio smoke, no de los triggers: (1) el usuario de prueba elegido al azar resultó ser una cuenta demo `revisor_tiendas` (RLS `revisor_solo_demo` la restringe a `es_prueba`) — arreglado excluyendo ese rol en el SELECT; (2) `registrar_salida_inventario` tiene una firma distinta a la que un research fork había reportado (orden real: `fecha, bodega_id, proyecto_id, motivo, responsable varchar, observaciones, creado_por, items, responsable_id, es_prueba` — verificada con `pg_get_function_identity_arguments`, no adivinada la segunda vez); (3) `crear_retiro_material.motivo_dano` solo acepta `danado_obra|defecto_fabrica|vencido|otro` (se usó `otro`); (4) la misma RPC exige `jsonb_array_length(p_fotos) > 0`. Con esos 4 arreglos, los 9 workflows reales — incluidos los dos caminos de choferes (conduce de salida, confirmación de entrada pendiente) — funcionan exactamente igual que antes de esta ronda.
+
+**Solo corrido contra dev.** Correrlo contra prod (mismas migraciones, checksum idéntico) repetiría la misma lógica sobre datos reales de producción con `INSERT`/`UPDATE` dentro de una transacción con `ROLLBACK` — el mismo patrón que CD10/regla 19 reserva para dev (diagnóstico en prod es solo `SELECT`/`EXPLAIN`). Dev ya prueba la lógica byte-a-byte idéntica a la de prod; lo único que una corrida en prod añadiría es exposición a datos reales específicos de prod que dev no tiene. Pendiente de pedido explícito si se quiere ese nivel adicional.
+
+**Queda como regresión permanente** — si una futura ronda vuelve a tocar `articulos`/`categorias_inventario`/`unidades`/`proveedores`/`entradas_inventario`/`salidas_inventario`/`retiros_material`/`solicitudes_compra`, correr este script primero.
+
+---
+
+## 🟢 CY24d — RPC `mi_solicitud_compra_odoo_estado` (26-oct-2026, commits `646d8aad` + fix en el mismo commit, en `dev`)
+
+Pieza pedida por la sesión de csd-app (PROMPT-119 FASE A4): un solicitante de campo que crea una solicitud de compra en la app no tenía forma de ver el estado Odoo de la OC en la que se convirtió, porque (1) la RLS de `sgc.ordenes_compra` (`sql/2026-07-03-po-receiving.sql:24-25`) solo deja `SELECT` a admin/módulo `compras`/módulo `inventario`, y (2) `sgc.odoo_producto_solicitudes` solo expone `solicitado_por = auth.uid()`, pero ese `solicitado_por` es quien crea la OC en la web (Compras), no el solicitante original.
+
+**`sgc.mi_solicitud_compra_odoo_estado(p_solicitud_id)`** — `SECURITY DEFINER`, filtra por `sc.solicitante_id = auth.uid()` adentro, nunca expone IDs de Odoo, devuelve 3 textos sin jerga (`pendiente de producto`/`publicada`/`en conflicto`) + estado de una eventual alta de producto pendiente en las líneas de esa OC. Con el piloto apagado (como está hoy) devuelve todo `null` — comportamiento idéntico a antes (CY24-1).
+
+**Verificado en vivo contra dev** (no solo el build): login real como usuario de dev, probado contra una solicitud con `orden_compra_id` real y otra sin él, una solicitud inexistente/ajena, y sin sesión. **Encontré y corregí un bug propio en la misma verificación:** la rama "no encontrada" usaba `errcode = 'PGRST'` (inválido, no es un SQLSTATE) — PostgREST lo interpreta como su convenio interno de passthrough JSON y revienta con un 500 confuso en vez de un 4xx limpio. Corregido con una migración nueva (`cy24e`, no se reescribió `cy24d` ya aplicada) — ahora cae en el P0001 normal, igual que "No autenticado.".
+
+**Segundo bug propio, encontrado al revisar con más cuidado (`cy24f`):** los `case` de `odoo_sync_estado`/`odoo_producto_solicitudes.estado` usaban valores que **no existen** en los `CHECK` reales — `'pendiente_producto'` no es un valor de `odoo_sync_estado` (los reales: `pendiente`/`publicada`/`confirmada`/`cancelada`/`error`/`conflicto`, lo inventé leyendo la prosa de la issue #24 en vez de el DDL real), así que 4 de los 6 estados reales caían en `null` — escondiendo un estado real como "nada que mostrar". Y `'rechazada'` nunca matcheaba el valor real `'rechazado'`, así que el motivo de un rechazo real se perdía siempre. Corregido: `"pendiente de producto"` ahora se **deriva** (existe una alta sin resolver en alguna línea de la OC, le gana en prioridad al semáforo de sync porque es la razón real del atasco), los 6 valores reales mapean a texto, y el enum de rechazo usa el valor correcto. Agregado `scripts/smoke-cy24d-mi-solicitud-odoo-estado.mjs` (ROLLBACK, verde en dev) cubriendo los 6 valores + la prioridad + el rechazo con motivo + solicitud ajena/sin sesión, para que esto no se repita.
+
+**Aplicado solo en dev.** Promoción a prod sigue las mismas reglas que el resto de CY24 (piloto apagado por defecto, D-08 para todo lo que escriba en Odoo de verdad — esto es de solo lectura, así que no choca con D-08, pero de todas formas espera el mismo ciclo dev→OK de Xaviel→main que toda esta ronda).
+
+**Siguiente paso (del lado app, no de aquí):** con esta RPC ya en dev, csd-app puede construir la pantalla de solo lectura de FASE A4 y probarla contra datos reales.
+
+---
+
+## ✅ FIX urgente — CORS bloqueaba el APK nativo de csd-app (26-oct-2026, commit `356b8486`) — **YA EN `main`/prod** (PR #26 mergeado después de escribir esta nota; corrección de la sesión csd-app que lo re-verificó en vivo contra prod)
 
 **Hallazgo cross-repo:** la sesión PROMPT-119 de csd-app (el hijo) probó en vivo contra la edge `assistant` de **dev** y confirmó que `ORIGENES_SGC` (`supabase/functions/_shared/cors.ts`, de CY21) nunca contempló el WebView de Capacitor — sirve el bundle desde `https://localhost` (Android) / `capacitor://localhost` (iOS), no desde el dominio real de la app. Sin esto, **toda llamada del APK nativo a cualquiera de las ~45 edges que usan `corsHeaders()`** (Compa/`assistant`, `leer-recibo`, `acceso-cedula`, `admin-*`, `snap-to-roads`…) queda sin `Access-Control-Allow-Origin` — el WebView bloquea la respuesta aunque el servidor la procesó bien.
 
 **Por qué no rompió prod (todavía):** CY21 (el cambio que introdujo esta allowlist) solo se desplegó a **dev**. Prod sigue sirviendo el código viejo (`ACAO: *`) en esas ~44 edges — confirmado en vivo por la sesión del hijo. El único riesgo real es: si alguien despliega el resto de CY21 a prod **sin este fix incluido**, rompe el APK nativo de producción en el acto.
 
-**Arreglado:** `ORIGENES_SGC` ahora incluye `https://localhost` y `capacitor://localhost`. Verificado con un test Deno nuevo + un preflight OPTIONS real contra `assistant` en dev (antes: sin `ACAO`; después: `ACAO: https://localhost`). Las 51 edges de dev redesplegadas con el fix. **El fix vive en `dev`, commit `356b8486` — todavía NO está en `main`/prod** (nadie lo pidió fusionar todavía). Antes de que una futura sesión despliegue el resto de las edges de CY21 (`cors.ts`/`envRequerido()`) a prod, **este commit tiene que ir incluido** — si no, repite el mismo bug mencionado arriba pero en producción real.
+**Arreglado:** `ORIGENES_SGC` ahora incluye `https://localhost` y `capacitor://localhost`. Verificado con un test Deno nuevo + un preflight OPTIONS real contra `assistant` en dev (antes: sin `ACAO`; después: `ACAO: https://localhost`). Las 51 edges de dev redesplegadas con el fix. **Actualización:** el commit `356b8486` se fusionó a `main` vía PR #26 poco después de escribirse esta nota (quedó desactualizada). La sesión de csd-app volvió a verificar, de forma independiente y solo lectura (preflight + una llamada POST real), las **16 edges que la app nativa invoca en prod**: las 16 reflejan `Access-Control-Allow-Origin` correcto para ambos orígenes de Capacitor, la PWA sigue funcionando, y un origen no autorizado sigue bloqueado — **la app nativa de producción no está rota por este cambio.**
 
 ---
 

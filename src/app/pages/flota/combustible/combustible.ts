@@ -11,11 +11,12 @@ import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest, of, from, startWith, debounceTime, switchMap, catchError } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { CombustibleService, LecturaRecibo } from '../../../../shared/services/combustible.service';
+import { ValidacionKm } from '../../../../shared/services/mantenimientos.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -227,6 +228,13 @@ export class Combustible implements OnInit {
       proyecto.setValidators(deposito ? [Validators.required] : []);
       monto.updateValueAndValidity({ emitEvent: false });
       proyecto.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // CZ1 — cada vez que cambia el veredicto del km, se exige volver a confirmar
+    // un salto inverosímil (ámbar).
+    effect(() => {
+      this.kmValidacion();
+      this.kmConfirmado.set(false);
     });
   }
 
@@ -491,14 +499,39 @@ export class Combustible implements OnInit {
   private vehiculoVal = toSignal(this.form.controls.vehiculo_id.valueChanges, { initialValue: '' });
 
   /**
-   * Y5 — Odómetro actual del vehículo (vehiculos.kilometraje): la ÚNICA fuente de
-   * verdad, la misma cifra que valida el servidor y que ve el usuario.
+   * Y5 — Odómetro actual del vehículo (vehiculos.kilometraje): pista de referencia
+   * en pantalla. CZ1: el odómetro VIVO ya no bloquea el guardado (no tiene fecha,
+   * así que rechazaba cualquier echada retroactiva aunque fuera correcta para su
+   * fecha) — el bloqueo real lo da `kmValidacion` más abajo.
    */
   odometroActual = computed<number | null>(() => {
     const vId = this.vehiculoVal();
     if (!vId) return null;
     return this.vehiculos().find((v) => v.id === vId)?.kilometraje ?? null;
   });
+
+  /**
+   * CZ1 — validación del km contra TODAS las lecturas con fecha del vehículo
+   * (echadas, inspecciones, entregas, mantenimientos), con debounce. Misma regla
+   * que CH1 en mantenimientos: reemplaza el falso positivo "km < odómetro vivo"
+   * (un recibo retroactivo con menos km que el odómetro actual es NORMAL).
+   */
+  private kmValidacion$ = combineLatest([
+    this.form.controls.vehiculo_id.valueChanges.pipe(startWith(this.form.controls.vehiculo_id.value)),
+    this.form.controls.fecha.valueChanges.pipe(startWith(this.form.controls.fecha.value)),
+    this.form.controls.kilometraje.valueChanges.pipe(startWith(this.form.controls.kilometraje.value)),
+  ]).pipe(
+    debounceTime(350),
+    switchMap(([veh, fecha, km]) => {
+      if (!veh || !fecha || km == null || Number.isNaN(Number(km))) return of<ValidacionKm | null>(null);
+      return from(this.combustibleService.validarKm(veh, Number(km), fecha)).pipe(
+        catchError(() => of<ValidacionKm | null>(null)),
+      );
+    }),
+  );
+  kmValidacion = toSignal(this.kmValidacion$, { initialValue: null as ValidacionKm | null });
+  /** Confirmación del usuario ante un salto inverosímil (aviso ámbar). */
+  kmConfirmado = signal(false);
 
   // AA18.3 — unidad del vehículo seleccionado (km | horas) para labels/mensajes.
   medidaSel = computed<'km' | 'horas'>(() => {
@@ -956,13 +989,18 @@ export class Combustible implements OnInit {
     }
 
     const raw = this.form.getRawValue();
-    // Y5 — el odómetro no retrocede: km >= odómetro actual (misma regla y cifra que el servidor).
-    const odo = this.odometroActual();
-    if (odo != null && (raw.kilometraje ?? 0) < odo) {
-      const u = this.unidadSel();
-      this.saveError.set(
-        `La lectura (${raw.kilometraje ?? 0} ${u}) no puede ser menor a la lectura actual del vehículo (${odo} ${u}).`,
-      );
+    // CZ1 — bloquea retroceso/exceso contra las lecturas CON FECHA del vehículo
+    // (echadas, inspecciones, entregas, mantenimientos); exige confirmar un salto
+    // inverosímil (ámbar). Ya NO compara contra el odómetro vivo (sin fecha), que
+    // rechazaba cualquier echada retroactiva con km menor al actual aunque fuera
+    // correcta para su fecha (mismo bug que CH1 ya resolvió para mantenimientos).
+    const km = this.kmValidacion();
+    if (km?.nivel === 'error') {
+      this.saveError.set(km.mensaje ?? 'El kilometraje no es coherente con las lecturas del vehículo.');
+      return;
+    }
+    if (km?.nivel === 'aviso' && !this.kmConfirmado()) {
+      this.saveError.set('Marca "Sí, es correcto" para confirmar el kilometraje, o corrígelo.');
       return;
     }
 
