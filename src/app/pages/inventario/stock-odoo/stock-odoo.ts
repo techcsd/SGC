@@ -10,10 +10,24 @@ import { I18nService } from '../../../../shared/i18n/i18n.service';
 const TAMANO_PAGINA = 25;
 const MIN_BUSQUEDA = 2;
 const DEBOUNCE_MS = 300;
+const SWR_MAX_ENTRADAS = 30; // tope simple: evita crecer sin límite en una sesión larga
 
 /**
  * PoC — "Stock en Odoo": lectura directa de existencias (stock.quant agrupado)
  * vía el gateway `odoo-api`. Solo lectura, sin tablas espejo ni fallback local.
+ *
+ * CY23 — SWR en el cliente: @tanstack/angular-query-experimental vs caché propia
+ * con signals (decisión, tabla corta):
+ *   | Opción            | Peso                          | Mantenimiento                       |
+ *   |--------------------|-------------------------------|--------------------------------------|
+ *   | TanStack Query      | dependencia nueva (~13kB min) | API/convenciones propias que aprender |
+ *   | Caché propia signals| 0 (ya usamos signals en todo) | ~20 líneas, mismo patrón del resto    |
+ *   Default de la casa cuando TanStack agrega una dependencia grande para un caso
+ *   puntual: caché propia con signals. Un `Map` en memoria del componente, clave
+ *   por filtro (producto/ubicación/página): al repetir un filtro ya visto se
+ *   muestra ESE resultado al instante (0ms, sin loading) mientras se revalida en
+ *   segundo plano. Vive y muere con el componente (no persiste entre sesiones) —
+ *   stale-if-error queda fuera de alcance (CY23): un error SÍ limpia la tabla.
  */
 @Component({
   selector: 'app-inventario-stock-odoo',
@@ -43,12 +57,16 @@ export class StockOdoo implements OnInit, OnDestroy {
   pagina = signal(1);
   resultado = signal<OdooRespuesta<OdooStockPagina> | null>(null);
   loading = signal(false);
+  /** CY23 — true mientras se revalida en segundo plano un filtro que YA tenía caché local (no es la carga inicial). */
+  revalidando = signal(false);
   error = signal<unknown>(null);
 
   // Contadores de secuencia: una respuesta vieja nunca pisa a una más reciente.
   private seqStock = 0;
   private seqBusqueda = 0;
   private temporizador: ReturnType<typeof setTimeout> | null = null;
+  /** CY23 — SWR: último resultado visto por filtro, servido al instante mientras se revalida. */
+  private swrCache = new Map<string, OdooRespuesta<OdooStockPagina>>();
 
   /** Hora local del dato (el real de Odoo, no el de la petición). */
   consultadoEn = computed(() => {
@@ -168,10 +186,24 @@ export class StockOdoo implements OnInit, OnDestroy {
     await this.consultar(true);
   }
 
+  private claveSwr(): string {
+    return JSON.stringify({ p: this.producto()?.id ?? null, u: this.ubicacionId(), pag: this.pagina() });
+  }
+
   async consultar(refrescar = false) {
     const id = ++this.seqStock;
-    this.loading.set(true);
+    const clave = this.claveSwr();
+    const enCache = this.swrCache.get(clave);
     this.error.set(null);
+    if (enCache && !refrescar) {
+      // SWR: filtro ya visto -> se muestra al instante (0ms) y se revalida abajo.
+      this.resultado.set(enCache);
+      this.revalidando.set(true);
+      this.loading.set(false);
+    } else {
+      this.revalidando.set(false);
+      this.loading.set(true);
+    }
     try {
       const r = await this.odoo.consultarStock({
         producto_id: this.producto()?.id ?? null,
@@ -182,12 +214,17 @@ export class StockOdoo implements OnInit, OnDestroy {
       });
       if (id !== this.seqStock) return; // llegó otra consulta más reciente
       this.resultado.set(r);
+      this.swrCache.set(clave, r);
+      if (this.swrCache.size > SWR_MAX_ENTRADAS) {
+        this.swrCache.delete(this.swrCache.keys().next().value as string); // descarta la entrada más vieja (Map conserva orden de inserción)
+      }
     } catch (e) {
       if (id !== this.seqStock) return;
       this.resultado.set(null);
+      this.swrCache.delete(clave); // un error no debe dejar una entrada obsoleta que parezca vigente
       this.error.set(e);
     } finally {
-      if (id === this.seqStock) this.loading.set(false);
+      if (id === this.seqStock) { this.loading.set(false); this.revalidando.set(false); }
     }
   }
 }

@@ -615,6 +615,7 @@
   "Disponible": "Available",
   "Consultado a las": "Queried at",
   "desde caché": "from cache",
+  "actualizando…": "updating…",
   "No se pudo buscar productos. Intenta de nuevo.": "Couldn't search products. Try again.",
   "Hay más ubicaciones de las que se muestran. Filtra por producto para acotar.": "There are more locations than shown. Filter by product to narrow down.",
   "Existencia negativa en Odoo": "Negative stock in Odoo",

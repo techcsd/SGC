@@ -14918,10 +14918,10 @@
     },
     {
       "pantalla": "inventario/stock-odoo",
-      "total": 41,
-      "cubiertos": 26,
+      "total": 42,
+      "cubiertos": 27,
       "sin": 15,
-      "pct": 63,
+      "pct": 64,
       "enScope": false,
       "enforce": false,
       "faltantes": [
@@ -14939,7 +14939,7 @@
         "@for (f of r.data.filas; track f.producto?.id + '-' + f.ubicacion?.id) {",
         "@if (f.cantidad_fisica",
         "} @else { }",
-        "@if (desdeCache()) { · }"
+        "@if (desdeCache()) { · } @if (revalidando()) { · }"
       ]
     },
     {

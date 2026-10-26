@@ -5,6 +5,9 @@
 import { OdooClient, OdooError } from "../_shared/odoo-client.ts";
 import type { CacheOdoo } from "../_shared/odoo-cache.ts";
 import type { LimitePorUsuario } from "../_shared/odoo-limite.ts";
+import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
+import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
+import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
 import { ACCIONES, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
 
 export const MODULO_REQUERIDO = "inventario";
@@ -18,8 +21,33 @@ export interface Deps {
   odoo(): OdooClient;
   caches: Record<Accion, CacheOdoo>;
   limite: LimitePorUsuario;
+  /** CY23 — circuit breaker + semáforo global, compartidos entre todas las acciones. */
+  circuito: CircuitoOdoo;
+  semaforo: SemaforoOdoo;
   /** Orígenes web permitidos (CORS). Vacío = solo sin cabecera Origin. */
   origenes: string[];
+}
+
+const CODIGOS_FALLO_INFRA = new Set(["odoo_timeout", "odoo_no_disponible"]);
+
+/** CY23 — envuelve una lectura a Odoo con circuito + semáforo + backoff. */
+async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>): Promise<T> {
+  if (!deps.circuito.puedeIntentar()) {
+    throw new OdooError("odoo_circuito_abierto", "Circuito abierto: demasiados fallos recientes hacia Odoo.");
+  }
+  if (!deps.semaforo.intentar()) {
+    throw new OdooError("odoo_saturado", "Demasiadas consultas simultáneas a Odoo.");
+  }
+  try {
+    const resultado = await conReintentoLectura(fn);
+    deps.circuito.registrarExito();
+    return resultado;
+  } catch (e) {
+    if (e instanceof OdooError && CODIGOS_FALLO_INFRA.has(e.codigo)) deps.circuito.registrarFallo();
+    throw e;
+  } finally {
+    deps.semaforo.liberar();
+  }
 }
 
 const baseHeaders = { "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sgc-client", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400", Vary: "Origin" };
@@ -36,9 +64,12 @@ const MENSAJE_ODOO: Record<string, string> = {
   odoo_auth: "El servicio de Odoo no está disponible por ahora.",
   odoo_config: "El servicio de Odoo no está disponible por ahora.",
   odoo_error: "El servicio de Odoo no está disponible por ahora.",
+  odoo_circuito_abierto: "Odoo está fallando seguido ahora mismo — espera un momento y vuelve a intentar.",
+  odoo_saturado: "Hay demasiadas consultas a Odoo en este momento. Intenta de nuevo en unos segundos.",
 };
 const STATUS_ODOO: Record<string, number> = {
   odoo_timeout: 504, odoo_no_disponible: 502, odoo_auth: 502, odoo_config: 500, odoo_error: 502,
+  odoo_circuito_abierto: 503, odoo_saturado: 429,
 };
 
 export async function manejar(req: Request, deps: Deps): Promise<Response> {
@@ -88,7 +119,7 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
     const norm = def.normalizar(params); // valida ANTES de tocar caché u Odoo
     const clave = `${accion}|${JSON.stringify(norm)}`;
     const { entrada, origen } = await deps.caches[accion as Accion].obtener(
-      clave, () => def.ejecutar(deps.odoo(), norm), refrescar === true,
+      clave, () => conResiliencia(deps, () => def.ejecutar(deps.odoo(), norm)), refrescar === true,
     );
     return json({ data: entrada.data, consultado_en: entrada.consultado_en, cache: origen });
   } catch (e) {

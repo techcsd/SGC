@@ -78,7 +78,7 @@
 } @else if (loading() && !resultado()) {
   <app-skeleton variant="table" [rows]="8" />
 } @else if (resultado(); as r) {
-  <div class="table-wrapper sgc-card" [attr.aria-busy]="loading()">
+  <div class="table-wrapper sgc-card" [attr.aria-busy]="loading() || revalidando()">
     @if (r.data.filas.length === 0) {
       <div class="table-empty">
         <p>{{ 'No hay existencias para este filtro.' | t }}</p>
@@ -115,6 +115,7 @@
       <span class="text-muted so-consultado" role="status">
         {{ 'Consultado a las' | t }} {{ consultadoEn() }}
         @if (desdeCache()) { · {{ 'desde caché' | t }} }
+        @if (revalidando()) { · {{ 'actualizando…' | t }} }
       </span>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="loading()" (click)="actualizar()">
         <app-icon name="refresh" [size]="16" /> {{ 'Actualizar' | t }}

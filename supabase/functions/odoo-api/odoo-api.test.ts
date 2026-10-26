@@ -6,6 +6,8 @@ import { type Deps, manejar } from "./handler.ts";
 import { ACCIONES, type Accion, escapaLike } from "./acciones.ts";
 import { CacheOdoo } from "../_shared/odoo-cache.ts";
 import { LimitePorUsuario } from "../_shared/odoo-limite.ts";
+import { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
+import { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { validarUrl } from "../_shared/odoo-client.ts";
 
 const xmlInt = (n: number) => `<?xml version='1.0'?><methodResponse><params><param><value><int>${n}</int></value></param></params></methodResponse>`;
@@ -89,6 +91,8 @@ function deps(over: Partial<Deps> & { calls?: string[]; respuesta?: string } = {
     odoo: over.odoo ?? (() => new OdooClient(cfg(f))),
     caches: over.caches ?? cachesNuevos(0),
     limite: over.limite ?? new LimitePorUsuario(),
+    circuito: over.circuito ?? new CircuitoOdoo(100, 30_000), // umbral alto: no interfiere con tests que no prueban el breaker
+    semaforo: over.semaforo ?? new SemaforoOdoo(100),
     origenes: over.origenes ?? ["https://app.test"],
   };
 }
@@ -155,6 +159,51 @@ Deno.test("gateway: timeout de Odoo → 504 sin fallback; Odoo caído → 502", 
   const caido = (() => Promise.reject(new TypeError("down"))) as typeof fetch;
   const r2 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ odoo: () => new OdooClient(cfg(caido)) }));
   assertEquals(r2.status, 502);
+});
+
+Deno.test("gateway: CY23 circuito — tras el umbral de fallos, falla rápido SIN volver a llamar a Odoo", async () => {
+  const circuito = new CircuitoOdoo(2, 60_000); // umbral bajo para no esperar de más
+  const caido = (() => Promise.reject(new TypeError("down"))) as typeof fetch;
+  let llamadasOdoo = 0;
+  const odooQueCuenta = () => {
+    llamadasOdoo++;
+    return new OdooClient(cfg(caido));
+  };
+  // 2 fallos reales consecutivos (cada uno con su cache fresca para no pegarle al single-flight).
+  const r1 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ circuito, odoo: odooQueCuenta, caches: cachesNuevos(0) }));
+  assertEquals(r1.status, 502);
+  const r2 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ circuito, odoo: odooQueCuenta, caches: cachesNuevos(0) }));
+  assertEquals(r2.status, 502);
+  const llamadasTrasAbrir = llamadasOdoo;
+
+  // Tercera petición: el circuito ya debe estar abierto -> NO debe tocar Odoo de nuevo.
+  const r3 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ circuito, odoo: odooQueCuenta, caches: cachesNuevos(0) }));
+  assertEquals(r3.status, 503);
+  assertEquals((await r3.json()).error_code, "odoo_circuito_abierto");
+  assertEquals(llamadasOdoo, llamadasTrasAbrir, "no debió volver a invocar deps.odoo() con el circuito abierto");
+});
+
+Deno.test("gateway: CY23 semáforo — concurrencia simultánea por encima del máximo da 429 odoo_saturado", async () => {
+  const semaforo = new SemaforoOdoo(1);
+  let resolverPrimera!: () => void;
+  const primeraEnCurso = new Promise<void>((res) => { resolverPrimera = res; });
+  const lentoControlado = ((_url: unknown, init?: RequestInit) => {
+    const body = String(init?.body);
+    if (body.includes("authenticate")) return Promise.resolve(new Response(xmlInt(2), { status: 200 }));
+    return new Promise<Response>((res) => {
+      primeraEnCurso.then(() => res(new Response(xmlStruct(""), { status: 200 })));
+    });
+  }) as unknown as typeof fetch;
+
+  const p1 = manejar(req({ accion: "ubicaciones.listar" }), deps({ semaforo, odoo: () => new OdooClient(cfg(lentoControlado)), caches: cachesNuevos(0) }));
+  await new Promise((r) => setTimeout(r, 10)); // deja que p1 reserve el único cupo del semáforo
+  const r2 = await manejar(req({ accion: "ubicaciones.listar" }), deps({ semaforo, odoo: () => new OdooClient(cfg(fakeFetch(() => xmlStruct("")))), caches: cachesNuevos(0) }));
+  assertEquals(r2.status, 429);
+  assertEquals((await r2.json()).error_code, "odoo_saturado");
+
+  resolverPrimera();
+  const r1 = await p1;
+  assertEquals(r1.status, 200); // la primera sí tenía cupo y termina bien
 });
 
 Deno.test("gateway: falta configuración de Odoo → 500 odoo_config", async () => {

@@ -3,7 +3,14 @@
 // de secrets del servidor (ODOO_URL, ODOO_DB, ODOO_USER, ODOO_API_KEY); nunca
 // viajan al navegador. Errores traducidos a OdooError con un código estable.
 
-export type OdooCodigo = "odoo_config" | "odoo_timeout" | "odoo_no_disponible" | "odoo_auth" | "odoo_error";
+export type OdooCodigo =
+  | "odoo_config"
+  | "odoo_timeout"
+  | "odoo_no_disponible"
+  | "odoo_auth"
+  | "odoo_error"
+  | "odoo_circuito_abierto" // CY23: demasiados fallos recientes, se deja de intentar un rato
+  | "odoo_saturado"; // CY23: demasiadas consultas simultáneas (semáforo global lleno)
 
 export class OdooError extends Error {
   constructor(public codigo: OdooCodigo, message: string) {
