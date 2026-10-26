@@ -189,7 +189,19 @@ Como pide la issue: **propuesta documentada**, no código — la matriz real la 
 - `productos.obtener`, `proveedores.obtener`, `compras.obtener` — detalle por ID, devuelven `null` si Odoo no tiene esa fila (nunca un error).
 - La allowlist sigue cerrada: un intento de `compras.crear` (acción de escritura, no declarada) se sigue rechazando con 400.
 
-**Explícitamente fuera de esta pieza:** Fase C (escribir la OC en Odoo de verdad) — necesita una base de pruebas confirmada o una orden escrita de Xaviel (D-08), ninguna de las dos existe todavía. El selector de Odoo en la pantalla de crear OC (frontend) tampoco se construyó esta ronda — la base de datos y el gateway ya están listos para que ese trabajo sea solo de UI.
+**Explícitamente fuera de esta pieza:** Fase C (escribir la OC en Odoo de verdad) — necesita una base de pruebas confirmada o una orden escrita de Xaviel (D-08), ninguna de las dos existe todavía.
+
+## CY24 Fase A (resto) — selector de producto Odoo en "crear OC" (aplicada en dev)
+`sql/2026-10-26-cy24c-selector-odoo-oc.sql`. Construye el selector que la pieza anterior dejó pendiente — sigue siendo solo lectura, nada se publica.
+
+- **D6 (flag en servidor):** `odoo_compras_piloto_habilitado` en `sgc.parametros`, **apagado por defecto** — con el flag apagado el flujo de OC es idéntico al de hoy (criterio de aceptación 1). El alcance "por proyecto/destino" que pide D6 queda **abierto** (pregunta #1 de la issue, sin responder por Xaviel); esta pieza entrega el interruptor global más simple, no el scoping por proyecto.
+- **D7 (no tocar `crear_orden_compra`):** nueva RPC `vincular_item_producto_odoo(p_item_id, p_odoo_product_id, p_odoo_uom_id, p_odoo_snapshot)` escribe la identidad Odoo de un renglón **ya creado** — la firma y el INSERT de `crear_orden_compra` no cambiaron. El frontend crea la OC igual que siempre y, justo después, vincula cada renglón que traía un producto Odoo elegido.
+- **Emparejamiento renglón↔producto tras crear:** `orden_compra_items` no tiene columna de orden ni un correlation-id de cliente, así que `ordenes.ts::vincularProductosOdooTrasCrear()` empareja por `(descripcion, cantidad, precio_unitario)` — determinista para líneas únicas; dos líneas idénticas son indistinguibles de todas formas (mismo resultado visual aunque se intercambien). Si un vínculo falla, la OC ya creada no se revierte — solo se avisa.
+- **Edge `productos.buscar_compra`:** ahora expone `unidad_compra_id` (el id numérico de la UoM de compra, no solo el nombre) — lo necesita `odoo_uom_id`. Cubierto con un test Deno nuevo (fixture XML-RPC many2one realista).
+- **Componente `app-odoo-producto-picker`:** típeahead debounced + descarte de respuestas viejas por secuencia (mismo patrón que el PoC "Stock en Odoo"). E1/E5: sin resultados exige confirmar "ya busqué por nombre y código y no existe" antes de habilitar "Solicitar alta" (anti-duplicado) — la solicitud nace standalone (la OC aún no existe en ese punto) en la bandeja de Fase B, y la línea queda como texto libre mientras tanto (E3) para no bloquear el borrador.
+- **Explícitamente fuera de esta pieza:** E2 (distinguir "existe pero no es comprable" de "no existe" — necesitaría una segunda consulta sin el filtro `purchase_ok`, no construida), el artículo-sombra de D2 (eso ocurre al publicar, Fase C), y todo lo de Fase C (E7, E9, E10, confirmar/cancelar en Odoo).
+
+Verificado: build, 110/110 Vitest, 64/64 Deno, smoke SQL transaccional (`scripts/smoke-cy24c-selector-odoo-oc.mjs`) y confirmación REST directa contra dev del flag real + el edge desplegado (v16).
 
 ## Qué NO se hizo (a propósito, por alcance)
 - No se creó ni modificó ningún registro en SGC ni en Odoo.
