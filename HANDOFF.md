@@ -2,9 +2,16 @@
 
 ## TL;DR — PROMPT-118 — Integración SGC ↔ Odoo (épica #2, issues #3–#24 + PR #22) — 25/10/2026 — 🟡 EN DEV, nada a main/prod
 
-Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Dos sesiones seguidas ("continue working") completaron **F0, F1, F4, F5, F7, F2 (los 6 puntos de CY21) y F3 (CY23)**. Quedan **F6, F8–F13** (issues #4, #6, #7, #8, #9–#17, #19, #24) — el piloto de OC (F10/CY24) es la pieza más grande que falta.
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 25102026\CONTEXTO-ACTUALIZACION-58.md` + `ISSUES-LITERAL.md` + `PROMPT-118-SGC.md`. **Nota de nombres: esta ronda usa el prefijo `CY` + número de issue (CY3, CY18, CY22…) por el propio prompt — es un ronda distinta de la "Ronda CY" del conector de Claude (fases 3-5, ya en prod 1.201.0) documentada arriba; no confundir.** Prompt es de **22 issues + 1 PR**, organizado en 6 olas (F0–F13). Tres sesiones seguidas ("continue working" ×2) completaron **F0, F1, F2 (CY21 completa), F3 (CY23), F4, F5, F6 (CY4), F7, y F8 parcial (CY19, solo criterio 1)**. Quedan **F9–F13** (issues #6, #7, #8, #9–#17, #24) — el piloto de OC (F10/CY24) es la pieza más grande que falta, y F8 necesita una segunda pasada (articulos/bodegas + las altas, bloqueadas por falta de escritura real en Odoo).
 
-### Hecho — segunda sesión (commits `e3f73eae`..`0b1d6261` en `dev`; nada en `main`) — F2 (CY21) completa + F3 (CY23) completa
+### Hecho — tercera sesión (commits `0b1d6261`..`ad10cc41` en `dev`; nada en `main`) — F6 (CY4) completa + F8 parcial (CY19, criterio 1)
+
+- **F6 (CY4 — vínculos de stock):** `sgc.odoo_vinculos_stock` + `odoo_vinculos_stock_lineas` — FKs reales a `entradas_inventario`/`salidas_inventario`/`conduces_externos`/`retiros_material`/`conteos_inventario` (exactamente 1 por fila) y a `detalle_entradas`/`detalle_salidas` por renglón. Cardinalidad N:N por diseño (recepción dividida: mismo `odoo_id`, entradas SGC distintas; traslado interno: mismo `odoo_id`, salida+entrada con etapas distintas). Índice único evita duplicar el mismo vínculo en un reintento. `ON DELETE SET NULL` conserva el vínculo (histórico) en vez de borrarlo. **Gotcha propio detectado y corregido en la misma ronda:** el primer intento del check "exactamente 1 FK de origen" no contemplaba el estado final de ese `ON DELETE SET NULL` (0 FKs) — se relajó a "0 FKs solo si `origen_borrado_en` ya está sellado". Smoke transaccional (ROLLBACK) cubre los 4 criterios de aceptación + los 2 checks. Detalle en `docs/ODOO-DIAGNOSTICO-CONTRATO.md`.
+- **F8 parcial (CY19 — solo criterio 1, "vincular"):** `sgc.odoo_homologacion_vincular(p_vinculos, p_simular)` — dada una equivalencia YA confirmada, escribe `odoo_id` en las columnas de F5 para `proveedores`/`categorias_inventario`/`unidades` (mismas 3 columnas; `articulos`/`bodegas` quedan para una migración siguiente, tienen columnas con otra forma — `odoo_product_id`/`odoo_template_id` y `odoo_location_id`/`odoo_warehouse_id`). Simulación real (no escribe), idempotente (mismo id=no-op, id distinto=conflicto bloqueado), log por fila con rechazos incluidos, solo admin/service_role. **2 gotchas propios** detectados y corregidos en la misma ronda: el log de auditoría tenía un CHECK que impedía registrar el rechazo de una tabla no soportada, y una FK dura que impedía registrar el rechazo de una instancia inexistente — ambos relajados (un log de auditoría no debe tener las mismas restricciones de integridad que la tabla que audita). Smoke transaccional cubre 6 escenarios. **Las altas (criterios 2-3-7-8-9) siguen sin construir** — necesitan escribir en el Odoo real, y la única cuenta técnica disponible no es de solo lectura en una base de pruebas confirmada (D-08).
+
+Build + Vitest (110/110) verdes. Comentarios de estado dejados en issues #4 y #19.
+
+### Hecho — segunda sesión (commits `e3f73eae`..`0b1d6261` en `dev`) — F2 (CY21) completa + F3 (CY23) completa
 
 - **F2.1 CORS por lista:** `_shared/cors.ts` reemplaza `"Access-Control-Allow-Origin": "*"` en las **44 edges** que lo tenían (migración mecánica hecha por 2 agentes en paralelo, verificada archivo por archivo con `deno check` — 39/44 limpias, 5 con errores de tipos **preexistentes sin relación**, confirmados idénticos contra el commit anterior). Desplegadas las 44 a dev y probadas con `curl OPTIONS` real: origen permitido se refleja, no permitido se omite, `headersExtra` (x-sync-secret) funciona.
 - **F2.2 `envRequerido()`:** mismo patrón, sustituye `Deno.env.get("SUPABASE_URL"/"SUPABASE_ANON_KEY")!` en las mismas 44 edges (sustitución de texto literal, sin tocar estructura). `SUPABASE_SERVICE_ROLE_KEY")!` queda fuera de alcance.
@@ -24,13 +31,12 @@ Build + Vitest (110/110) + Deno (54/54) verdes en cada commit. Comentarios de es
 - **F5 (CY3 + CY20 — IDs nativos):** evaluada y **aplicada solo en dev** la migración `sql/20261016112524_odoo_identity_fields.sql` (de la rama externa `feature/odoo-schema-handoff`, Alejandro Miranda — checksums verificados contra `SHA256SUMS`). Preflight limpio (tipos de `id` coinciden en las 20 tablas, sin colisiones), aplicada vía `apply-migration.mjs --env dev`, los 44 constraints `NOT VALID` validados, verificado por objeto (RLS, grants, nullability — todo OK), PostgREST sigue sirviendo las tablas (401 esperado, no 500/PGRST). Detalle en `docs/ODOO-MIGRACION-EVALUACION.md`. **NO promovida a prod** (D-04: espera el contrato de CY18 aceptado + OK explícito de Xaviel). La ampliación `20261016112525` (outbox) tampoco se instaló.
 - **F7 (CY5 — adaptador servidor):** el cliente XML-RPC (`_shared/odoo-client.ts`) ya venía del PR #22, no se duplicó. Se aplicaron los secrets `ODOO_URL/ODOO_DB/ODOO_USER/ODOO_API_KEY/ODOO_COMPANY_ID` **solo en dev** (ver gotcha de permisos abajo) y se desplegó la edge `odoo-api` a dev (v13). **Lectura de prueba real contra el Odoo de producción de la empresa, sin crear nada:** `productos.buscar` (3 cementos reales), `ubicaciones.listar` (almacenes reales por proyecto), `stock.consultar` (cantidad física/reservada de un producto real) — los 3 con HTTP 200. Un intento de `execute_kw` (escritura) fue rechazado por la allowlist cerrada (HTTP 400 "Acción no permitida"). **Nota:** el adaptador de hoy solo tiene acciones de lectura de producto/stock/ubicación — no hay acciones de proveedor/OC todavía (eso es alcance de CY24 Fase A, no construido esta ronda).
 
-### Pendiente — próxima sesión (en orden, issues sin empezar)
-1. **F6 (CY4):** vínculos de stock con FK reales (tabla(s) auxiliares, no genéricas) — espera el contrato de cardinalidades de CY18.
-2. **F8 (CY19):** homologación de maestros (simulación + ejecución idempotente) — depende del contrato de CY18 aceptado + F6/F7.
-3. **F9 (CY6+CY7):** outbox a nivel BD/RPC (la app escribe por RPC, no por los services Angular — el enganche va ahí) + matriz de autoridad de maestros.
-4. **F10 (CY24+CY8):** piloto de OC con productos desde Odoo — el más grande, 3 fases (A/B/C). Requiere F6/F9 hechas y la ampliación `20261016112525` aplicada en dev (para D3) — **todavía no se instaló** (D-04, espera el contrato de CY18).
-5. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos.
-6. **F13 (CY16+CY17):** estado de sincronización visible + documento de equipos/activos.
+### Pendiente — próxima sesión (en orden, issues sin empezar o incompletas)
+1. **F8 resto (CY19):** mismo patrón de `odoo_homologacion_vincular` para `articulos` (columnas `odoo_product_id`/`odoo_template_id`) y `bodegas` (`odoo_location_id`/`odoo_warehouse_id`) — columnas de otra forma, necesitan su propia rama de lógica, no entran en el RPC genérico actual. Las altas (criterios 2-3-7-8-9) siguen bloqueadas por falta de escritura real en Odoo (D-08).
+2. **F9 (CY6+CY7):** outbox a nivel BD/RPC (la app escribe por RPC, no por los services Angular — el enganche va ahí) + matriz de autoridad de maestros.
+3. **F10 (CY24+CY8):** piloto de OC con productos desde Odoo — el más grande, 3 fases (A/B/C). Requiere F9 hecha y la ampliación `20261016112525` aplicada en dev (para D3) — **todavía no se instaló** (D-04, espera el contrato de CY18).
+4. **F11-F12 (CY9-CY15):** recepciones, requisición→despacho→recepción, conduces externos, devoluciones, material libre, retiros, conteos.
+5. **F13 (CY16+CY17):** estado de sincronización visible + documento de equipos/activos.
 
 ### Pendientes físicos de Xaviel
 1. **Aceptar la matriz de `docs/ODOO-DIAGNOSTICO-CONTRATO.md`** (criterio 7 de CY18) — en particular: ¿capturar RNC de los 1,565 proveedores candidatos o aceptar revisión manual?, ¿Odoo tiene módulo de proyectos/analítica activo?, mapeo real bodega→ubicación.
@@ -50,10 +56,12 @@ Build + Vitest (110/110) + Deno (54/54) verdes en cada commit. Comentarios de es
 ### Verify on resume
 ```bash
 cd "C:/Users/xavie/Desktop/X Dev/dev/SGC"
-git log --oneline -3 dev                        # debe mostrar 0b1d6261 (CY23) encima de c5d5027f
+git log --oneline -3 dev                        # debe mostrar ad10cc41 (CY19 vincular) encima de c5d5027f
 export PATH="$PATH:/c/Users/xavie/.deno/bin"; deno --version  # Deno instalado en esta máquina
 npm run test:edge                                # 54/54 (odoo-api + cors + env + circuito + backoff + semaforo)
 node scripts/release-check.mjs --env dev --version 1.201.0   # debe dar 7/7 PASS (o re-correr si CU2 da timeout transitorio)
+node scripts/smoke-cy4-vinculos-stock.mjs --env dev             # vinculos de stock (F6)
+node scripts/smoke-cy19-homologacion-vincular.mjs --env dev     # vinculacion de identidad (F8 parcial)
 cat docs/ODOO-DIAGNOSTICO-CONTRATO.md | head -5  # existe, tiene la matriz CY18 (sigue pendiente de aceptación de Xaviel)
 ```
 
