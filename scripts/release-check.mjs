@@ -265,6 +265,25 @@ function check6() {
   return reportar('build', 'Build + tests', 'PASS', ['`npm run build` OK.', `\`${testCmd}\` OK.`]);
 }
 
+// CY21 punto 5 — runner comun de tests Deno (supabase/functions/**/*.test.ts).
+// Si Deno no esta instalado en esta maquina, se omite (SKIP, no FAIL) — no es
+// razonable bloquear el release por una herramienta local ausente; en CI debe
+// estar instalada.
+function check7() {
+  if (SKIP_BUILD) return reportar('edge-tests', 'Tests Deno (edge functions)', 'SKIP', ['--skip-build.']);
+  try {
+    execSync('deno --version', { stdio: 'pipe' });
+  } catch {
+    return reportar('edge-tests', 'Tests Deno (edge functions)', 'SKIP', ['`deno` no está instalado en esta máquina — instálalo para que este check corra de verdad.']);
+  }
+  console.log('   ⏳ npm run test:edge (deno test sobre supabase/functions)…');
+  const r = correr('npm run test:edge');
+  if (!r.ok) {
+    return reportar('edge-tests', 'Tests Deno (edge functions)', 'FAIL', ['`npm run test:edge` falló:', ...r.out.split('\n').slice(-40)]);
+  }
+  return reportar('edge-tests', 'Tests Deno (edge functions)', 'PASS', ['`npm run test:edge` OK.']);
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 console.log(`▶ release-check — versión ${VERSION}, entorno auditado: ${env.entorno} (${env.ref})\n`);
 console.log('docs/STAGING.md explica la disciplina detrás de este gate.');
@@ -275,6 +294,7 @@ check3();
 check4();
 check5Seguridad();
 check6();
+check7();
 
 console.log('\n── Resumen ──');
 for (const r of resultados) {

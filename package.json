@@ -19,6 +19,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:edge-odoo": "deno test --no-check --node-modules-dir=none supabase/functions/odoo-api/odoo-api.test.ts",
+    "test:edge": "deno test --no-check --allow-env --node-modules-dir=none supabase/functions",
     "test:unit": "ng test --no-watch",
     "test:e2e": "playwright test",
     "test:mcp": "node evals/mcp/run.mjs"
