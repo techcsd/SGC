@@ -2,7 +2,9 @@
 
 ## 🧪 Ronda CZ (PROMPT-120, 26-27/10/2026) — F0-F5 COMPLETAS en `feature/cz-ronda` (worktree `SGC-cz`), **NO en `dev` ni `main`**
 
-Contexto completo: `C:\developer\improvements\octubre 2026\imp 26102026\CONTEXTO-ACTUALIZACION-59.md`. Sesión autónoma de principio a fin (sin preguntas, defaults DZ-01…DZ-27 aplicados y reportados abajo). **Rama propia `feature/cz-ronda`, worktree propio `C:\Users\xavie\Desktop\X Dev\dev\SGC-cz`** (regla CQ6 — no se tocó el worktree principal). 4 commits: `424e8977` (CZ5), `ad39a3b3` (CZ1/CZ2), `0a6590dd` (CZ4), `f3f55f6e` (CZ3/CZ9). **4 migraciones + 1 edge function aplicadas/desplegadas SOLO en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`) — nada en prod. Build + 127/127 Vitest + 74/74 Deno (incl. 9 nuevos de cripto del Vault) verdes.
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 26102026\CONTEXTO-ACTUALIZACION-59.md`. Sesión autónoma de principio a fin (sin preguntas, defaults DZ-01…DZ-27 aplicados y reportados abajo). **Rama propia `feature/cz-ronda`, worktree propio `C:\Users\xavie\Desktop\X Dev\dev\SGC-cz`** (regla CQ6 — no se tocó el worktree principal). 5 commits: `424e8977` (CZ5), `ad39a3b3` (CZ1/CZ2), `0a6590dd` (CZ4), `f3f55f6e` (CZ3/CZ9), `b354cb99` (fix FK append-only, ver abajo). **4 migraciones + 1 edge function aplicadas/desplegadas SOLO en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`) — nada en prod. Build + 127/127 Vitest + 74/74 Deno (incl. 9 de cripto del Vault) verdes.
+
+**Addendum (mismo día, a pedido de Xaviel "haz las pruebas tu"):** se corrió una prueba end-to-end COMPLETA del Vault con un usuario admin desechable (contraseña propia del script, nunca de Xaviel ni de `qa_admin`) — camino feliz real de punta a punta: abrir sesión con contraseña real → crear/revelar/editar/eliminar para cuenta, 2FA y nota → el código 2FA verificado contra un cálculo RFC 6238 INDEPENDIENTE (no reusa el código de la edge) → auditoría exacta. **Encontró un 4º bug real:** `boveda_accesos.entrada_id` tenía una FK `on delete set null` hacia `boveda_entradas` — borrar una entrada disparaba un UPDATE en cascada sobre su propia fila de auditoría, que el trigger append-only bloqueaba (**eliminar una entrada del Vault era imposible, 500 en todos los casos**). Corregido quitando la FK (el campo es informativo; un log histórico no necesita integridad referencial — debe seguir diciendo "se reveló la entrada X" aunque X ya no exista). Promovido a smoke permanente: `scripts/smoke-cz4-boveda-e2e-completo.mjs`. **Llave maestra de dev regenerada** (la anterior nunca se guardó en ningún archivo, por diseño — era irrecuperable) y guardada, a pedido explícito de Xaviel, en `C:\developer\BOVEDA-MASTER-KEY-DEV.txt` para que él la resguarde (se le avisó que mueva esa copia a custodia real y borre el archivo). Confirmado antes de regenerar: `boveda_entradas` tenía 0 filas reales en dev, nada quedó huérfano.
 
 ### F0 — Verificación previa
 `es_tecnologia()` (SQL) es por **lista de roles** (`admin,tecnologia,gerencia,direccion,desarrollador`), NO por módulo — pero `UserService.esTecnologia()` (cliente) SÍ hace OR con `hasModulo('tecnologia')`, una asimetría preexistente (afecta hoy a `encargado_tecnologia`, que ve rutas de plataforma que el servidor luego niega — sin fuga de datos, solo UX rota; documentado, no corregido, fuera del alcance de esta nota). `is_admin()` confirmado estricto (`codigo='admin'`, una sola definición). `/admin/*` confirmado gateado por `moduleGuard('admin')` (módulo, no rol) — por eso el Vault (F4) usa un guard de rol aparte.
@@ -37,7 +39,7 @@ Verificado con 3 smokes: SQL transaccional ROLLBACK (`smoke-cz-permisos-negativo
 `C:\developer\improvements\octubre 2026\imp 26102026\REPORTE-IA-SGC.md`. Con los datos de `sgc-dev` (`uso_ia`=1 fila, `assistant_conversaciones`=208/422 mensajes/7 usuarios, `assistant_consultas_no_atendidas`=2 sin resolver, `reportes_usuario`=14 filas), **no hay evidencia fuerte de demanda no cubierta** — el backlog de gaps de Compa está casi vacío. Top 10 propuestas priorizadas (1 "necesaria": cerrar el gap real "historial de precios/almacenes" en Compa; el resto "muy útil"/"opcional"/"no recomendada"). 2 módulos completos (Mensajería/Notas, Conduces) sin ninguna propuesta — se dice explícitamente que ahí la IA no ayuda. **Pendiente físico:** repetir la medición de demanda contra PROD antes de decidir qué construir en la ronda DA (los números de dev son muy chicos para priorizar con confianza).
 
 ### PENDIENTE XAVIEL (físico, §6 del contexto)
-1. **Custodia de la llave maestra del Vault** — ya generada en dev (nunca impresa); decidir cuándo generar la de prod y cómo se resguarda (sobre sellado / segundo propietario del proyecto Supabase) — sin esto, si Xaviel no está, el Vault no se abre jamás.
+1. **Custodia de la llave maestra del Vault** — guardada en `C:\developer\BOVEDA-MASTER-KEY-DEV.txt` a pedido de Xaviel; **moverla a custodia real (gestor de contraseñas/caja fuerte/sobre sellado) y borrar ese archivo** — `C:\developer` no es almacenamiento seguro a largo plazo. Decidir cuándo generar la de PROD (distinta, `node scripts/boveda-generar-clave.mjs --env prod`) y cómo se resguarda (sobre sellado / segundo propietario del proyecto Supabase) — sin esto, si Xaviel no está, el Vault no se abre jamás.
 2. **Probar en `dev.sgcconstructorasd.com`**: Cotizaciones (subir, vincular equipo/compra), Vault (abrir con tu contraseña real, revelar, copiar, 2FA, generar, archivo, registro de accesos), arrastre de notas en Dev notes.
 3. **Crear un usuario de prueba con rol Subadministrador** (Administración › Usuarios de prueba) y confirmar que no ve Vault ni lo técnico, sí Cotizaciones.
 4. **Leer `REPORTE-IA-SGC.md`** y decidir qué se construye en la ronda DA.
@@ -48,12 +50,13 @@ Verificado con 3 smokes: SQL transaccional ROLLBACK (`smoke-cz-permisos-negativo
 ### Verify on resume
 ```bash
 cd "C:/Users/xavie/Desktop/X Dev/dev/SGC-cz"   # worktree de esta ronda, NO el principal
-git log --oneline -4                            # f3f55f6e..424e8977
+git log --oneline -5                            # b354cb99..424e8977
 npm run build && npm test                       # verde
 node scripts/smoke-cz1-cotizaciones.mjs --env dev
 node scripts/smoke-cz3-subadmin.mjs --env dev
 node scripts/smoke-cz-permisos-negativos.mjs --env dev
-node scripts/smoke-cz4-boveda-edge-vivo.mjs --env dev
+node scripts/smoke-cz4-boveda-edge-vivo.mjs --env dev       # rutas de fallo (sin contraseña real)
+node scripts/smoke-cz4-boveda-e2e-completo.mjs              # camino feliz COMPLETO (usuario desechable propio)
 deno test --no-check --allow-env --node-modules-dir=none supabase/functions/boveda
 ```
 
