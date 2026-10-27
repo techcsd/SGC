@@ -24,28 +24,31 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./matriz/matriz').then((m) => m.TecMatriz),
     title: 'Matriz puesto × herramienta — Tecnología',
   },
+  // CZ4 — "Tecnología de contenido": módulo tecnologia completo O el permiso
+  // granular suelto (DZ-20 — el Subadministrador tiene el permiso sin el módulo,
+  // que le abriría además Odoo-sync/monitoreo/APIs/QA/Issues/Dev notes).
   {
     path: 'inventario',
-    canActivate: [moduleGuard('tecnologia')],
+    canActivate: [submoduloGuard('tecnologia.inventario')],
     loadComponent: () => import('./inventario/inventario').then((m) => m.TecInventario),
     title: 'Inventario tecnológico — Tecnología',
   },
   {
     path: 'compras',
-    canActivate: [moduleGuard('tecnologia')],
+    canActivate: [submoduloGuard('tecnologia.compras')],
     loadComponent: () => import('./compras/compras').then((m) => m.TecCompras),
     title: 'Compras tecnológicas — Tecnología',
   },
   // CQ1 — alta/edición a página completa (reemplaza el drawer de creación).
   {
     path: 'compras/nueva',
-    canActivate: [moduleGuard('tecnologia')],
+    canActivate: [submoduloGuard('tecnologia.compras')],
     loadComponent: () => import('./compras/compras-nueva/compras-nueva').then((m) => m.ComprasNueva),
     title: 'Nueva compra tecnológica — Tecnología',
   },
   {
     path: 'compras/:id/editar',
-    canActivate: [moduleGuard('tecnologia')],
+    canActivate: [submoduloGuard('tecnologia.compras')],
     loadComponent: () => import('./compras/compras-nueva/compras-nueva').then((m) => m.ComprasNueva),
     title: 'Editar compra tecnológica — Tecnología',
   },
