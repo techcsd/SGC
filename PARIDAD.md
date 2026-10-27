@@ -1063,3 +1063,34 @@ app**, pero de solo **lectura y vínculo** (DZ-25: requiere conexión, sin cola 
 alcance sugerido: lista + detalle + abrir archivo + ver vínculos; **crear/editar/descartar
 sigue siendo solo web** (como las compras tecnológicas ya son solo-web hoy). Mismo gate
 granular `tecnologia.cotizaciones` del lado servidor.
+
+### CZ4 — Rol Subadministrador (contrato para la app)
+Rol nuevo `subadmin` (`sgc.es_subadmin()`). La app hoy no tiene un concepto de rol
+"Subadministrador" en su UI (gating por módulo/rol como ya existe). **PROMPT-121 (A0,
+verificar)** solo necesita confirmar que un usuario con este rol ve en la app EXACTAMENTE
+los módulos de su lista (inventario/compras/proyectos/flota/bitacora/documentos/plantillas/
+tareas) y nada de Tecnología de plataforma — sin construir pantallas nuevas (el modelo de
+permisos de la app ya deriva de `roles.modulos`/`capacidades_asistente()`, igual que la web).
+
+### CZ3/CZ9 — Vault (contrato para la app, PROMPT-121 A2)
+Backend (edge `boveda`, tablas `sgc.boveda_*`) construido 100% en esta ronda (F4), **sin
+ninguna pieza nueva del lado app todavía**. Respuesta de Xaviel sobre si va en la app: **sí**
+("me sería útil tener fácil acceso a esos datos cuando los necesite si estoy lejos de mi
+laptop"), pero **segmentado al rol Administrador** igual que en la web, y con alcance MÁS
+ESTRECHO que la web (DZ-19):
+- **La app puede:** buscar, ver metadata, **revelar** un valor (reautenticación con
+  contraseña real, sesión de **2 min** en vez de 5), **copiar**, ver el **código 2FA actual**,
+  y usar el **generador** de claves (100% en el dispositivo, mismo algoritmo que
+  `src/shared/utils/boveda-generador.util.ts` — hay que portarlo, sin dependencias nuevas).
+- **La app NO puede:** crear, editar, eliminar, importar ni exportar entradas — eso
+  sigue siendo **solo web** (symmetric con "compras tecnológicas solo-web" de otra ronda).
+- **Nada se guarda en el dispositivo:** sin `localStorage`/caché local del valor revelado;
+  la ruta de la edge `boveda` debe quedar **excluida de cualquier cola offline/service worker**
+  de la app (igual que la web no lo cachea).
+- **Pantalla protegida (Android):** `FLAG_SECURE` (o el plugin de pantalla de privacidad que
+  el hijo ya tenga) en la pantalla del Vault — evita capturas de pantalla / vista en
+  "recientes" mientras un secreto está visible.
+- Reusa la MISMA edge `boveda` (header `x-sgc-client: app` para que la sesión dure 2 min en
+  vez de 5 — ya implementado en el servidor, `SESION_MINUTOS` en `supabase/functions/boveda/
+  index.ts`), el mismo `pinGuard` ya activo, y la misma reautenticación server-side.
+- **Nunca entra a Compa/MCP** (DZ-15) — ni en la app tampoco.

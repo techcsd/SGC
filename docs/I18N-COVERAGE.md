@@ -170,6 +170,7 @@
 | borrador-claude | - | 22 | 12 | 10 | 55% |
 | tecnologia/cotizaciones | - | 97 | 54 | 43 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
+| admin/vault | - | 103 | 62 | 41 | 60% |
 | tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
