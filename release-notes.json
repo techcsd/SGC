@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.203.0": {
+      "titulo": "Cotizaciones de Tecnología, rol Subadministrador y Vault de Administración",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nuevo submódulo Cotizaciones: sube y guarda cualquier cotización de tecnología (con o sin compra), con lectura automática por IA, y ligala a la compra tecnológica y a los equipos de inventario que compró."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nuevo rol Subadministrador: gestiona la operación diaria (inventario, compras, proyectos, flota, bitácora, documentos, plantillas, tareas) sin acceso a lo sensible (Vault, Administración, Legal, RRHH, Dirección ni la plataforma técnica de Tecnología)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nuevo Vault: guarda credenciales de cuentas web, llaves API/tokens, códigos 2FA y notas/archivos seguros de la empresa, cifrados y accesibles solo para el Administrador, con generador de claves integrado."
+        },
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "En Dev notes, arrastrar una nota hasta otra nota del mismo grupo ahora la mueve a ese grupo (antes solo funcionaba si se soltaba exactamente sobre el encabezado)."
+        },
+        {
+          "t": "seguridad",
+          "m": "Tecnología",
+          "d": "Corregido un permiso granular que en ciertos casos no negaba correctamente el acceso cuando debía (afectaba la validación de submódulos con permisos a la medida)."
+        }
+      ]
+    },
     "1.202.1": {
       "titulo": "Combustible: corregido el rechazo de recibos retroactivos",
       "cambios": [
