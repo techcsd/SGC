@@ -135,14 +135,14 @@
 | tareas/historial | - | 33 | 0 | 33 | 0% |
 | tareas/mis-tareas | - | 17 | 0 | 17 | 0% |
 | tecnologia/apis-consumo | - | 48 | 0 | 48 | 0% |
-| tecnologia/compras | - | 134 | 0 | 134 | 0% |
+| tecnologia/compras | - | 136 | 0 | 136 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
 | tecnologia/dev-notes | - | 120 | 0 | 120 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
-| tecnologia/inventario | - | 125 | 0 | 125 | 0% |
+| tecnologia/inventario | - | 127 | 0 | 127 | 0% |
 | tecnologia/matriz | - | 39 | 0 | 39 | 0% |
 | tecnologia/monitoreo | - | 97 | 0 | 97 | 0% |
 | tecnologia/odoo-sync | - | 51 | 0 | 51 | 0% |
@@ -168,6 +168,7 @@
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 22 | 12 | 10 | 55% |
+| tecnologia/cotizaciones | - | 97 | 54 | 43 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
 | tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |

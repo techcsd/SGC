@@ -400,12 +400,14 @@ export class Shell implements OnInit {
       label: 'Tecnología',
       icon: 'tecnologia',
       modulo: 'tecnologia',
+      submodulos: ['tecnologia.cotizaciones'], // CZ1 — visible con el permiso granular (Subadministrador)
       children: [
         { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
         { label: 'Guía de herramientas', route: '/tecnologia/guia', modulo: 'tecnologia' },
         { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
+        { label: 'Cotizaciones', route: '/tecnologia/cotizaciones', submodulo: 'tecnologia.cotizaciones' },
         // AW9 — Monitoreo de infraestructura pasa a Tecnología (antes vivía en
         // "Sistema"). Gateado por el módulo tecnologia, alineado con su RLS
         // (es_tecnologia = admin OR módulo tecnologia).

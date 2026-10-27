@@ -1035,3 +1035,31 @@ La app (`core/services/notas.service.ts:73-75`) solo **lee** los grupos de Dev n
 en paridad) — no crea, renombra, mueve ni elimina grupos, y no tiene arrastre. PROMPT-113 F2
 solo necesita **verificar** que un grupo creado/renombrado/movido desde la web se refleje bien
 en la ruta "Carpeta / Sub" que ya pinta la app — sin construir nada nuevo.
+
+## Ronda CZ (PROMPT-120 web → PROMPT-121 app) — contrato para la app
+
+### CZ5 — Dev notes: soltar sobre cualquier tarjeta del grupo (100% web, sin acción para la app)
+Dev notes en la app es **solo lectura** (ver CV2/CV3 arriba) — sin arrastre, así que este fix
+(`zonaDestinoDeFila()`, `src/shared/utils/nota-grupos.util.ts`) no tiene contrapartida en la app.
+
+### CZ1/CZ2 — Biblioteca de Cotizaciones de Tecnología (contrato para la app)
+Tablas nuevas `sgc.tec_cotizaciones` (id, titulo, proveedor, fecha, moneda, subtotal, itbis,
+total, estado `vigente|usada|descartada`, archivo_path/nombre, lectura/lectura_costo_usd,
+adjunto_id, notas, creado_por, es_prueba) + M:N opcionales `tec_cotizacion_compras`
+(cotizacion_id, solicitud_compra_id) y `tec_cotizacion_equipos` (cotizacion_id, equipo_id,
+linea_idx). RPCs: `cotizacion_crear/actualizar/descartar/restaurar/setear_archivo`,
+`cotizacion_vincular_compra/desvincular_compra/vincular_equipo/desvincular_equipo`,
+`cotizacion_de_equipo(p_equipo_id)` (resuelve la cotización de origen: directa o, si no hay,
+la `usada` de `tec_equipos.origen_solicitud_compra_id`). Gate: `sgc.puede_ver_submodulo` /
+`puede_operar_submodulo('tecnologia.cotizaciones')` — admite módulo `tecnologia` (completo) o
+el permiso granular suelto (el caso del Subadministrador, CZ4). El archivo reusa el bucket
+`compras-cotizaciones` (CO8), bajo `biblioteca/<cotizacion_id>/…` cuando no nace de una compra.
+`compra_tec_adjuntar_cotizacion`/`compra_tec_elegir_cotizacion` (CO8/CQ1) ahora también
+escriben/reflejan en la biblioteca — **sin cambiar su firma**, la pantalla de Compras de la
+app sigue igual si alguna vez las llama directo.
+**PROMPT-121 (app, CZ6):** según la respuesta de Xaviel ("de todas formas está segmentado...
+me sería útil tener fácil acceso... si estoy lejos de mi laptop"), Cotizaciones **sí va en la
+app**, pero de solo **lectura y vínculo** (DZ-25: requiere conexión, sin cola offline) —
+alcance sugerido: lista + detalle + abrir archivo + ver vínculos; **crear/editar/descartar
+sigue siendo solo web** (como las compras tecnológicas ya son solo-web hoy). Mismo gate
+granular `tecnologia.cotizaciones` del lado servidor.

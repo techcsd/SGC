@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
 import { EmpleadosService, EmpleadoDirectorio } from '../../../../shared/services/empleados.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -30,7 +31,7 @@ interface FotoItem {
 
 @Component({
   selector: 'app-tec-inventario',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Lightbox, Icon],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Lightbox, Icon],
   templateUrl: './inventario.html',
   styleUrl: './inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -71,6 +72,9 @@ export class TecInventario implements OnInit {
   // ── Detail/history drawer ─────────────────────────────────
   detailOpen = signal(false);
   detailEquipo = signal<TecEquipo | null>(null);
+  // DZ-06 — cotización de origen: directa (tec_cotizacion_equipos) o, si no
+  // hay, la elegida de su origen_solicitud_compra_id.
+  cotizacionDeEquipo = signal<{ cotizacion_id: string; titulo: string; directa: boolean } | null>(null);
   historial = signal<TecEquipoHistorial[]>([]);
   historialLoading = signal(false);
   detalleFotos = signal<FotoItem[]>([]); // AL1 — galería del detalle (portada primero)
@@ -463,6 +467,8 @@ export class TecInventario implements OnInit {
     this.detailEquipo.set(e);
     this.detailOpen.set(true);
     this.detalleFotos.set([]);
+    this.cotizacionDeEquipo.set(null);
+    void this.tecnologia.getCotizacionDeEquipo(e.id).then((c) => this.cotizacionDeEquipo.set(c));
     this.cargarFotosExistentes(e).then((items) => {
       // portada primero
       const portada = e.foto_portada;

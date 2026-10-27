@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { moduleGuard } from '../../core/guards/module.guard';
+import { submoduloGuard } from '../../core/guards/submodulo.guard';
 import { tecnologiaGuard, desarrolladorGuard } from '../../core/guards/tecnologia.guard';
 
 export const tecnologiaRoutes: Routes = [
@@ -47,6 +48,15 @@ export const tecnologiaRoutes: Routes = [
     canActivate: [moduleGuard('tecnologia')],
     loadComponent: () => import('./compras/compras-nueva/compras-nueva').then((m) => m.ComprasNueva),
     title: 'Editar compra tecnológica — Tecnología',
+  },
+  // CZ1/CZ2 — biblioteca de Cotizaciones. Gate: módulo tecnologia O el permiso
+  // granular 'tecnologia.cotizaciones' (DZ-05 — así puede entrar el Subadministrador
+  // sin darle el módulo entero, que abriría Odoo-sync/monitoreo/APIs).
+  {
+    path: 'cotizaciones',
+    canActivate: [submoduloGuard('tecnologia.cotizaciones')],
+    loadComponent: () => import('./cotizaciones/cotizaciones').then((m) => m.TecCotizaciones),
+    title: 'Cotizaciones — Tecnología',
   },
 
   // ── Y11 — Plataforma / sistema: reservado a admin | rol tecnologia ──────────
