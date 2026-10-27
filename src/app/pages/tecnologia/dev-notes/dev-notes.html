@@ -112,8 +112,14 @@
 
               @if (!g.esGrupo || !gruposPlegados().has(g.grupo!.id)) {
                 @for (n of g.notas; track n.id) {
+                  <!-- CZ5 — la tarjeta hereda el destino del grupo que la contiene (no solo
+                       el encabezado): soltar sobre cualquier nota de un grupo real la mueve
+                       a ESE grupo. Seudogrupos (HOY/ANTES/mes, g.esGrupo=false) siguen sin destino. -->
                   <div class="note-card-wrap" [style.padding-left.px]="g.esGrupo ? ((g.profundidad ?? 0) * 14 + 14) : 0"
-                    [attr.draggable]="tab() === 'mias'" (dragstart)="onNotaDragStart(n, $event)" (dragend)="onDragEnd()">
+                    [class.note-card-wrap--hover]="!!destinoDeFila(g) && destinoHover() === destinoDeFila(g)"
+                    [attr.draggable]="tab() === 'mias'" (dragstart)="onNotaDragStart(n, $event)" (dragend)="onDragEnd()"
+                    (dragover)="destinoDeFila(g) && onZoneDragOver($event)" (dragenter)="destinoDeFila(g) && onZoneDragEnter(destinoDeFila(g)!, $event)"
+                    (dragleave)="destinoDeFila(g) && onZoneDragLeave(destinoDeFila(g)!)" (drop)="destinoDeFila(g) && onZoneDrop(destinoDeFila(g)!, $event)">
                     <button type="button" class="note-card" [class.active]="activa()?.id === n.id" (click)="abrir(n)">
                       @if (tab() === 'mias') {
                         <span class="note-card__handle" aria-hidden="true">

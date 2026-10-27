@@ -1,0 +1,279 @@
+@if (!desbloqueado()) {
+  <div class="vault-candado">
+    <div class="vault-candado__card sgc-card">
+      <app-icon name="lock" [size]="28" />
+      <h1 class="page-title">{{ 'Vault' | t }}</h1>
+      <p class="text-muted">{{ 'Credenciales y accesos de la empresa. Vuelve a entrar tu contraseña para abrirlo.' | t }}</p>
+      <form (ngSubmit)="desbloquear()" [formGroup]="passwordForm">
+        <div class="sgc-field">
+          <label for="vault-password">{{ 'Tu contraseña' | t }}</label>
+          <input id="vault-password" type="password" formControlName="password" autocomplete="current-password" />
+        </div>
+        @if (errorDesbloqueo()) {
+          <div class="save-error" role="alert">{{ errorDesbloqueo() }}</div>
+        }
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="desbloqueando()">
+          @if (desbloqueando()) {
+            <span class="spinner" aria-hidden="true"></span> {{ 'Verificando…' | t }}
+          } @else {
+            {{ 'Entrar' | t }}
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+} @else {
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">{{ 'Vault' | t }}</h1>
+      <span class="page-count">
+        {{ entradas().length }} {{ (entradas().length === 1 ? 'entrada' : 'entradas') | t }}
+        @if (sesionExpiraEn(); as s) {
+          · <span class="vault-sesion-cuenta" [class.vault-sesion-cuenta--poco]="s < 60">{{ 'sesión' | t }} {{ s }}s</span>
+        }
+      </span>
+    </div>
+    <div class="page-header__actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="abrirAccesos()">
+        <app-icon name="clock" [size]="16" /> {{ 'Registro de accesos' | t }}
+      </button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
+        <app-icon name="plus" [size]="16" /> {{ 'Nueva entrada' | t }}
+      </button>
+    </div>
+  </div>
+
+  <div class="vault-toolbar">
+    <div class="vault-search">
+      <app-icon name="search" [size]="15" />
+      <input type="text" [placeholder]="'Buscar…' | t" [value]="query()" (input)="query.set($any($event.target).value)" />
+    </div>
+    <div class="filtros-estado" role="tablist">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'all'" (click)="filtroTipo.set('all')">
+        {{ 'Todas' | t }} <span class="filtro-chip__count">{{ conteo('all') }}</span>
+      </button>
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'cuenta'" (click)="filtroTipo.set('cuenta')">
+        {{ 'Cuentas' | t }} <span class="filtro-chip__count">{{ conteo('cuenta') }}</span>
+      </button>
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'api'" (click)="filtroTipo.set('api')">
+        {{ 'Llaves API' | t }} <span class="filtro-chip__count">{{ conteo('api') }}</span>
+      </button>
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === '2fa'" (click)="filtroTipo.set('2fa')">
+        2FA <span class="filtro-chip__count">{{ conteo('2fa') }}</span>
+      </button>
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'nota'" (click)="filtroTipo.set('nota')">
+        {{ 'Notas' | t }} <span class="filtro-chip__count">{{ conteo('nota') }}</span>
+      </button>
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'archivo'" (click)="filtroTipo.set('archivo')">
+        {{ 'Archivos' | t }} <span class="filtro-chip__count">{{ conteo('archivo') }}</span>
+      </button>
+      <button type="button" class="filtro-chip" [class.active]="soloPorRotar()" (click)="soloPorRotar.set(!soloPorRotar())">
+        {{ 'Por rotar' | t }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="text-muted">{{ 'Cargando…' | t }}</p>
+  } @else if (entradasFiltradas().length === 0) {
+    <div class="table-empty sgc-card"><p>{{ 'No hay entradas en este filtro.' | t }}</p></div>
+  } @else {
+    <div class="vault-grid">
+      @for (e of entradasFiltradas(); track e.id) {
+        <button type="button" class="vault-card" (click)="abrirDetalle(e)">
+          <div class="vault-card__thumb"><app-icon [name]="e.tipo === 'archivo' ? 'file' : e.tipo === '2fa' ? 'shield' : 'key'" [size]="24" /></div>
+          <div class="vault-card__body">
+            <span class="vault-card__nombre">{{ e.nombre }}</span>
+            <span class="vault-card__meta text-muted">{{ TIPO_LABEL[e.tipo] | t }}@if (e.usuario_texto) { · {{ e.usuario_texto }} }</span>
+            @if (e.rotar_cada_dias) {
+              <span class="status-pill"
+                [class.status-pill--success]="estadoRotacion(e) === 'al_dia'"
+                [class.status-pill--warning]="estadoRotacion(e) === 'por_rotar'"
+                [class.status-pill--danger]="estadoRotacion(e) === 'vencida'">
+                @switch (estadoRotacion(e)) {
+                  @case ('al_dia') { {{ 'Al día' | t }} }
+                  @case ('por_rotar') { {{ 'Por rotar' | t }} }
+                  @case ('vencida') { {{ 'Vencida' | t }} }
+                }
+              </span>
+            }
+          </div>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- ── Drawer: crear/editar ── -->
+  <app-form-drawer [title]="(editandoId() ? 'Editar entrada' : 'Nueva entrada') | t" [open]="drawerOpen()" (closed)="cerrarDrawer()">
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="sgc-field">
+        <label for="v-tipo">{{ 'Tipo' | t }}</label>
+        <select id="v-tipo" formControlName="tipo" [disabled]="!!editandoId()">
+          <option value="cuenta">{{ 'Cuenta web y acceso' | t }}</option>
+          <option value="api">{{ 'Llave API / token' | t }}</option>
+          <option value="2fa">{{ 'Código 2FA / recuperación' | t }}</option>
+          <option value="nota">{{ 'Nota segura' | t }}</option>
+          <option value="archivo">{{ 'Archivo' | t }}</option>
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="v-nombre">{{ 'Nombre' | t }} *</label>
+        <input id="v-nombre" type="text" formControlName="nombre" />
+      </div>
+      @if (form.getRawValue().tipo !== 'archivo' && form.getRawValue().tipo !== 'nota') {
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="v-sitio">{{ 'Sitio / URL' | t }}</label>
+            <input id="v-sitio" type="text" formControlName="sitio_url" />
+          </div>
+          <div class="sgc-field">
+            <label for="v-usuario">{{ 'Usuario' | t }}</label>
+            <input id="v-usuario" type="text" formControlName="usuario_texto" />
+          </div>
+        </div>
+      }
+      @if (form.getRawValue().tipo === 'archivo') {
+        @if (!editandoId()) {
+          <div class="sgc-field">
+            <label>{{ 'Archivo (máx. 1 MB)' | t }}</label>
+            <app-file-upload [max]="1" (add)="onArchivoAdd($event)" />
+          </div>
+        }
+      } @else {
+        <div class="sgc-field">
+          <label for="v-valor">
+            {{ form.getRawValue().tipo === '2fa' ? ('Semilla 2FA (base32)' | t) : form.getRawValue().tipo === 'nota' ? ('Contenido' | t) : ('Contraseña / valor' | t) }}
+            @if (editandoId()) { <span class="field-hint">({{ 'vacío = no cambiar' | t }})</span> }
+          </label>
+          <div class="vault-valor-row">
+            @if (form.getRawValue().tipo === 'nota') {
+              <textarea id="v-valor" formControlName="valor" rows="4"></textarea>
+            } @else {
+              <input id="v-valor" type="text" formControlName="valor" />
+            }
+            @if (form.getRawValue().tipo !== 'nota') {
+              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirGenerador()">{{ 'Generar' | t }}</button>
+            }
+          </div>
+        </div>
+      }
+      <div class="sgc-field">
+        <label for="v-etiquetas">{{ 'Etiquetas (separadas por coma)' | t }}</label>
+        <input id="v-etiquetas" type="text" formControlName="etiquetasTexto" />
+      </div>
+      @if (form.getRawValue().tipo !== 'nota' && form.getRawValue().tipo !== 'archivo') {
+        <div class="sgc-field">
+          <label for="v-rotar">{{ 'Rotar cada (días, opcional)' | t }}</label>
+          <input id="v-rotar" type="number" min="1" formControlName="rotar_cada_dias" />
+        </div>
+      }
+      <div class="sgc-field">
+        <label for="v-notas">{{ 'Notas' | t }}</label>
+        <textarea id="v-notas" formControlName="notas" rows="2"></textarea>
+      </div>
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }}
+          } @else {
+            {{ 'Guardar' | t }}
+          }
+        </button>
+      </div>
+    </form>
+  </app-form-drawer>
+
+  <!-- ── Drawer: generador (CZ9) ── -->
+  <app-form-drawer [title]="'Generar clave' | t" [open]="generadorAbierto()" (closed)="cerrarGenerador()">
+    <div class="filtros-estado">
+      <button type="button" class="filtro-chip" [class.active]="generadorModo() === 'password'" (click)="generadorModo.set('password'); regenerar()">{{ 'Contraseña' | t }}</button>
+      <button type="button" class="filtro-chip" [class.active]="generadorModo() === 'passphrase'" (click)="generadorModo.set('passphrase'); regenerar()">{{ 'Frase' | t }}</button>
+      <button type="button" class="filtro-chip" [class.active]="generadorModo() === 'api'" (click)="generadorModo.set('api'); regenerar()">{{ 'Llave API' | t }}</button>
+      <button type="button" class="filtro-chip" [class.active]="generadorModo() === '2fa'" (click)="generadorModo.set('2fa'); regenerar()">{{ 'Semilla 2FA' | t }}</button>
+    </div>
+    @if (generadorModo() === 'password') {
+      <div class="sgc-field">
+        <label for="g-largo">{{ 'Largo' | t }}: {{ generadorLargo() }}</label>
+        <input id="g-largo" type="range" min="8" max="64" [value]="generadorLargo()" (input)="generadorLargo.set(+$any($event.target).value); regenerar()" />
+      </div>
+    }
+    @if (generadorResultado(); as r) {
+      <div class="vault-generado">
+        <code>{{ r.valor }}</code>
+        <span class="text-muted">{{ r.bitsEntropia }} bits — {{ etiquetaFortaleza(r.bitsEntropia) | t }}</span>
+      </div>
+    }
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="regenerar()">{{ 'Otra' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="usarGenerado()">{{ 'Usar esta' | t }}</button>
+    </div>
+  </app-form-drawer>
+
+  <!-- ── Drawer: detalle ── -->
+  <app-form-drawer [title]="detalle()?.nombre ?? ('Entrada' | t)" [open]="detailOpen()" (closed)="cerrarDetalle()">
+    @if (detalle(); as e) {
+      <div class="detail">
+        <dl class="detail__grid">
+          <div><dt>{{ 'Tipo' | t }}</dt><dd>{{ TIPO_LABEL[e.tipo] | t }}</dd></div>
+          @if (e.sitio_url) { <div><dt>{{ 'Sitio' | t }}</dt><dd>{{ e.sitio_url }}</dd></div> }
+          @if (e.usuario_texto) { <div><dt>{{ 'Usuario' | t }}</dt><dd>{{ e.usuario_texto }}</dd></div> }
+        </dl>
+
+        @if (e.tipo === 'archivo') {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="descargarArchivo()">
+            <app-icon name="download" [size]="16" /> {{ 'Descargar' | t }}
+          </button>
+        } @else if (e.tipo === '2fa') {
+          @if (codigo2fa()) {
+            <div class="vault-generado">
+              <code>{{ codigo2fa() }}</code>
+              <span class="text-muted">{{ segundos2fa() }}s</span>
+            </div>
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="copiar(codigo2fa()!)">{{ 'Copiar código' | t }}</button>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="pedirCodigo2fa()">{{ 'Ver código actual' | t }}</button>
+          }
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarSemilla()">{{ 'Mostrar semilla' | t }}</button>
+        } @else if (valorRevelado()) {
+          <div class="vault-generado">
+            <code>{{ valorRevelado() }}</code>
+            <span class="text-muted">{{ segundosVisible() }}s</span>
+          </div>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="copiar(valorRevelado()!)">{{ 'Copiar' | t }}</button>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="revelar()">
+            <app-icon name="eye" [size]="16" /> {{ 'Revelar' | t }}
+          </button>
+        }
+
+        @if (e.notas) { <p class="text-muted">{{ e.notas }}</p> }
+        @if ((e.etiquetas ?? []).length) {
+          <div class="vault-etiquetas">
+            @for (t of e.etiquetas; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }
+          </div>
+        }
+
+        <div class="detail__estado-actions">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(e); detailOpen.set(false)">{{ 'Editar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar(e)">{{ 'Eliminar' | t }}</button>
+        </div>
+      </div>
+    }
+  </app-form-drawer>
+
+  <!-- ── Drawer: registro de accesos (DZ-11) ── -->
+  <app-form-drawer [title]="'Registro de accesos' | t" [open]="accesosOpen()" (closed)="cerrarAccesos()" [wide]="true">
+    @if (accesos().length === 0) {
+      <p class="text-muted">{{ 'Sin actividad todavía.' | t }}</p>
+    } @else {
+      <ul class="vinculos-list">
+        @for (a of accesos(); track a.id) {
+          <li>
+            <span>{{ a.accion }} — {{ formatTimestamp(a.created_at) }}@if (a.detalle) { · {{ a.detalle }} }</span>
+          </li>
+        }
+      </ul>
+    }
+  </app-form-drawer>
+}

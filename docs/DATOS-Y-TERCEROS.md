@@ -37,8 +37,11 @@
 | Consentimiento de IA / ubicación en 2.º plano | `sgc.consentimientos` (CI10) | Prueba de permiso explícito (tiendas) | Sí |
 | Aceptación de políticas (versión, fecha) | `sgc.aceptaciones_politicas` (CI3) | Prueba de aceptación de privacidad/términos | Sí |
 | Solicitudes de eliminación de cuenta | `sgc.solicitudes_eliminacion_cuenta` (CI4) | Derecho de cancelación (Ley 172-13) | Sí |
+| **Credenciales, llaves API y tokens, semillas 2FA, notas/archivos de la empresa (Vault, CZ3)** | `sgc.boveda_entradas` (cifradas AES-256-GCM en servidor; columnas en claro **sin SELECT para `authenticated`**), `sgc.boveda_accesos` (auditoría, solo-insertar) | Custodia de credenciales de administrador/desarrollo de la empresa (no son datos personales de empleados) para continuidad del negocio | No es dato de un empleado — son credenciales de **sistemas/servicios** de la empresa, administradas por el rol Administrador |
 
 **No se recoge:** datos de publicidad, rastreo entre apps/sitios (sin App Tracking Transparency), ni datos de menores (app de empleados).
+
+**Vault (CZ3) — sin tercero nuevo:** el cifrado es propio (AES-256-GCM en la edge `boveda`, llave `BOVEDA_MASTER_KEY` en los secrets de Supabase, distinta por entorno) — no se envía ningún secreto a un servicio externo; sigue viviendo en la misma base de datos de Supabase ya declarada en §0/§2. No aplica actualización de la Política de Privacidad ni de los formularios de tienda (el Vault no es alcanzable desde la app móvil en esta ronda — ver `PARIDAD.md` CZ7 — y no trata datos personales de empleados, solo credenciales de sistemas).
 
 ## 2. Terceros (procesadores) — verificado por `grep` de las edges (`supabase/functions/*`)
 

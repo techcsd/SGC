@@ -141,6 +141,12 @@
               @if (cotizacionUrl(a.id); as url) {
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="url" target="_blank" rel="noopener">Abrir</a>
               }
+              <!-- DZ-02 (CZ1) — enlace a la biblioteca de Cotizaciones, si quedó registrada -->
+              @if (cotizacionBibliotecaId(a.id); as cotId) {
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/tecnologia/cotizaciones']" [queryParams]="{ id: cotId }">
+                  Ver en biblioteca
+                </a>
+              }
               @if (c.estado === 'borrador') {
                 @if (a.elegida) {
                   <span class="sgc-badge sgc-badge--success">Elegida</span>

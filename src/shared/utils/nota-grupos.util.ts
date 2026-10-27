@@ -78,3 +78,19 @@ export function puedeMoverGrupo(grupoId: string, destinoId: string | null, grupo
 export function puedeCrearSubgrupo(parentId: string, grupos: NotaGrupoLike[]): boolean {
   return profundidadDeGrupo(parentId, grupos) < MAX_NIVELES;
 }
+
+/** Fila de `agrupada()`: un grupo real o un seudogrupo (HOY/ANTES/mes). */
+export interface FilaAgrupadaLike {
+  esGrupo?: boolean;
+  grupo?: { id: string } | null;
+}
+
+/** CZ5 — zona de destino de una fila agrupada al soltar una nota sobre ella (el
+ *  encabezado, una tarjeta de nota dentro, o la zona vacía): un grupo real
+ *  reporta su propio id (destino válido); un seudogrupo (HOY/ANTES/mes de
+ *  `agruparPorMes`) no es destino — devuelve null y el handler de soltar no se
+ *  dispara. Antes de esto solo el encabezado y la zona vacía resolvían un
+ *  destino; soltar sobre una tarjeta de nota del mismo grupo no hacía nada. */
+export function zonaDestinoDeFila(g: FilaAgrupadaLike): string | null {
+  return g.esGrupo && g.grupo ? g.grupo.id : null;
+}

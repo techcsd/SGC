@@ -400,12 +400,19 @@ export class Shell implements OnInit {
       label: 'Tecnología',
       icon: 'tecnologia',
       modulo: 'tecnologia',
+      // CZ4 — "Tecnología de contenido" visible también con el permiso granular
+      // suelto (Subadministrador), sin el módulo completo (que abriría plataforma).
+      submodulos: ['tecnologia.cotizaciones', 'tecnologia.inventario', 'tecnologia.compras'],
       children: [
-        { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
-        { label: 'Guía de herramientas', route: '/tecnologia/guia', modulo: 'tecnologia' },
+        { label: 'Inventario tecnológico', route: '/tecnologia/inventario', submodulo: 'tecnologia.inventario' },
+        // CZ4 — la ruta ya es pública (sin gate); el ítem del menú no debe
+        // restringirla con el módulo (hallazgo F3: estaba oculta para quien no
+        // tuviera `tecnologia`, aunque cualquiera podía navegarla a mano).
+        { label: 'Guía de herramientas', route: '/tecnologia/guia' },
         { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
-        { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
+        { label: 'Compras tecnológicas', route: '/tecnologia/compras', submodulo: 'tecnologia.compras' },
+        { label: 'Cotizaciones', route: '/tecnologia/cotizaciones', submodulo: 'tecnologia.cotizaciones' },
         // AW9 — Monitoreo de infraestructura pasa a Tecnología (antes vivía en
         // "Sistema"). Gateado por el módulo tecnologia, alineado con su RLS
         // (es_tecnologia = admin OR módulo tecnologia).
@@ -498,6 +505,9 @@ export class Shell implements OnInit {
       { label: 'Usuarios duplicados', route: '/admin/usuarios-duplicados' },
       { label: 'Solicitudes de eliminación', route: '/admin/solicitudes-eliminacion' },
       { label: 'Auditoría', route: '/admin/auditoria' },
+      // CZ3/DZ-08 — Vault: ROL estricto (no el módulo admin del contenedor),
+      // oculto del menú a quien no sea admin aunque alguna vez tuviera el módulo.
+      { label: 'Vault', route: '/admin/vault', soloAdmin: true },
       { label: 'Claude', route: '/admin/claude' },
       { label: 'Animaciones', route: '/admin/animaciones' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },

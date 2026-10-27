@@ -1,6 +1,6 @@
 # ROLES.md — Auditoría de roles y permisos (SGC)
 
-> Documento vivo. Última actualización: **2026-09-14** (PROMPT-48 · Ronda IDs BP · BP3 logistica→proyectos, regla 13).
+> Documento vivo. Última actualización: **2026-10-26** (PROMPT-120 · Ronda CZ · CZ4 rol Subadministrador).
 > Fuente: esquema `sgc` en producción (`jeeqhgccqefbqilntcpu`) + código Angular.
 
 ## 1. Modelo de permisos — ya es multi-rol
@@ -46,8 +46,11 @@ El módulo `tecnologia` gatea el **contenido** de Tecnología (guía, matriz, in
 | **21** | **`tecnologia`** | **Tecnología** | **tecnologia + plataforma (Y11)** |
 | 34 | `encargado_patio` | Encargado de Patio y Bodega Central | inventario **+ granulares** `proyectos.personal:operar`, `rrhh.asistencia:operar` (BQ4, 2026-09-14; `es_operativo=true`) |
 | 35 | **`desarrollador`** | **Developer** | **tecnologia (completo)** + **lectura granular** `inventario/flota/compras/proyectos.*:ver`, `bitacora.ver_todas:ver` (BX1, 2026-09-23; `es_operativo=false`) |
+| — | **`subadmin`** | **Subadministrador** | inventario, compras, proyectos, flota, bitacora, documentos, plantillas, tareas **+ granulares** `tecnologia.inventario:operar`, `tecnologia.compras:operar`, `tecnologia.cotizaciones:operar` (CZ4, 2026-10-26; `es_operativo=false`) |
 
 **Rol `desarrollador` (Developer, id 35, BX1):** desarrollador de software. Tiene el módulo `tecnologia` completo (dev notes, errores de app, versiones + marcar versión/mínima, Importar datos, Matriz de notificaciones) y **lectura** (`:ver` granular) de inventario, flota, compras y proyectos para reproducir y depurar. **`es_desarrollador()` lo incluye** (ve 🩺 Código / detalle técnico de errores, dev notes, la cinta DEV) y **`es_tecnologia()` también** (por módulo). **NO** entra en `is_admin()`. **Qué NO puede:** escribir datos de obra (los RPC operativos gatean la escritura por módulo/`operar`, que este rol no tiene), crear/borrar usuarios ni cambiar roles (eso es `admin`; solo LEE Admin › Usuarios). Predicado unificado en `es_rol_desarrollador(uuid)` (una sola fuente para `es_desarrollador`, `directorio_desarrolladores`, `compartir_nota`).
+
+**Rol `subadmin` (Subadministrador, CZ4, 2026-10-26):** "por debajo de Administrador, mejor que los demás usuarios" (Xaviel) — para delegar la operación diaria sin exponer lo sensible. Módulos de partida: inventario, compras, proyectos, flota, bitacora, documentos, plantillas, tareas. **Tecnología de contenido** (inventario TI, compras tecnológicas, Cotizaciones) por **permiso granular** (`tecnologia.inventario/compras/cotizaciones:operar`, AG12) — **no** se le da el módulo `tecnologia` completo, porque `es_tecnologia()` (SQL) es por **lista de roles** (`admin,tecnologia,gerencia,direccion,desarrollador`) y el módulo solo controla el cliente/RLS de contenido, pero el módulo igual habría abierto client-side la consola de plataforma (Odoo-sync, monitoreo, APIs, QA, Issues, Dev notes) vía `tecnologiaGuard`/`esTecnologia()` del front, que SÍ mira `hasModulo('tecnologia')` además de la lista de roles (asimetría documentada en `docs/SUBMODULOS-SENSIBLES.md` §3). **NO** entra en `is_admin()` ni `es_tecnologia()`. **No ve:** `/admin/*` (Usuarios, Roles, Auditoría, Parámetros, Compa conversaciones, Claude), Vault, Legal, RRHH, Dirección, ni la plataforma de Tecnología. Predicado: `sgc.es_subadmin()`. Matriz completa de gates en `docs/SUBMODULOS-SENSIBLES.md`.
 
 Roles "elevados" de flota (ven vehículos desactivados, gestionan todo): `admin, direccion, gerencia, jefe_flota` (`es_flota_elevado()`).
 Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.

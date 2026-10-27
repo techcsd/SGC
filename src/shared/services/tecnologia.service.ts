@@ -11,6 +11,8 @@ import {
   TecCategoria,
   TEC_CATEGORIAS,
   TEC_EQUIPO_ESTADOS,
+  TecCotizacion,
+  TecCotizacionFormData,
 } from '../models/tecnologia.model';
 import { pickColumns } from '../utils/pick-columns.util';
 
@@ -546,6 +548,151 @@ export class TecnologiaService {
       p_items: payload.items,
     });
     if (error) throw new Error(error.message);
+  }
+
+  // ── CZ1/CZ2 — biblioteca de Cotizaciones de Tecnología ─────────────────────
+  private readonly COTIZACION_SELECT =
+    '*, compras:tec_cotizacion_compras(solicitud_compra_id), equipos:tec_cotizacion_equipos(equipo_id, linea_idx)';
+
+  async getCotizaciones(): Promise<TecCotizacion[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_cotizaciones')
+      .select(this.COTIZACION_SELECT)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as TecCotizacion[];
+  }
+
+  async getCotizacionById(id: string): Promise<TecCotizacion | null> {
+    const { data, error } = await this.supabase.client
+      .from('tec_cotizaciones')
+      .select(this.COTIZACION_SELECT)
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data ?? null) as unknown as TecCotizacion | null;
+  }
+
+  /** CZ1 — crea el registro de biblioteca; si viene `file`, lo sube primero al
+   *  bucket ya existente `compras-cotizaciones` bajo `biblioteca/<id>/…`
+   *  (reusa el bucket de CO8, no crea uno nuevo — DZ-02). */
+  async crearCotizacion(payload: TecCotizacionFormData, archivo?: { file: File; lectura?: LecturaCotizacion | null; lecturaCostoUsd?: number | null }): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('cotizacion_crear', {
+      p_titulo: payload.titulo,
+      p_proveedor: payload.proveedor,
+      p_fecha: payload.fecha,
+      p_moneda: payload.moneda,
+      p_subtotal: payload.subtotal,
+      p_itbis: payload.itbis,
+      p_total: payload.total,
+      p_archivo_path: null,
+      p_archivo_nombre: null,
+      p_lectura: archivo?.lectura ?? null,
+      p_lectura_costo_usd: archivo?.lecturaCostoUsd ?? null,
+      p_notas: payload.notas,
+    });
+    if (error) throw new Error(error.message);
+    const id = data as string;
+    if (archivo?.file) {
+      const path = `biblioteca/${id}/${crypto.randomUUID()}-${archivo.file.name}`;
+      const { error: upErr } = await this.supabase.client.storage.from('compras-cotizaciones').upload(path, archivo.file);
+      if (upErr) throw new Error(upErr.message);
+      await this.cotizacionActualizarArchivo(id, path, archivo.file.name);
+    }
+    return id;
+  }
+
+  private async cotizacionActualizarArchivo(id: string, path: string, nombre: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_setear_archivo', {
+      p_id: id, p_archivo_path: path, p_archivo_nombre: nombre,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async actualizarCotizacion(id: string, payload: TecCotizacionFormData): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_actualizar', {
+      p_id: id,
+      p_titulo: payload.titulo,
+      p_proveedor: payload.proveedor,
+      p_fecha: payload.fecha,
+      p_moneda: payload.moneda,
+      p_subtotal: payload.subtotal,
+      p_itbis: payload.itbis,
+      p_total: payload.total,
+      p_notas: payload.notas,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async descartarCotizacion(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_descartar', { p_id: id });
+    if (error) throw new Error(error.message);
+  }
+  async restaurarCotizacion(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_restaurar', { p_id: id });
+    if (error) throw new Error(error.message);
+  }
+
+  async vincularCotizacionCompra(cotizacionId: string, solicitudCompraId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_vincular_compra', {
+      p_cotizacion_id: cotizacionId,
+      p_solicitud_compra_id: solicitudCompraId,
+    });
+    if (error) throw new Error(error.message);
+  }
+  async desvincularCotizacionCompra(cotizacionId: string, solicitudCompraId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_desvincular_compra', {
+      p_cotizacion_id: cotizacionId,
+      p_solicitud_compra_id: solicitudCompraId,
+    });
+    if (error) throw new Error(error.message);
+  }
+  async vincularCotizacionEquipo(cotizacionId: string, equipoId: string, lineaIdx: number | null = null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_vincular_equipo', {
+      p_cotizacion_id: cotizacionId,
+      p_equipo_id: equipoId,
+      p_linea_idx: lineaIdx,
+    });
+    if (error) throw new Error(error.message);
+  }
+  async desvincularCotizacionEquipo(cotizacionId: string, equipoId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_desvincular_equipo', {
+      p_cotizacion_id: cotizacionId,
+      p_equipo_id: equipoId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** DZ-06 — ficha del equipo: cotización de origen (directa, o si no hay, la
+   *  elegida/usada de su `origen_solicitud_compra_id`). Best-effort. */
+  async getCotizacionDeEquipo(equipoId: string): Promise<{ cotizacion_id: string; titulo: string; directa: boolean } | null> {
+    try {
+      const { data, error } = await this.supabase.client.rpc('cotizacion_de_equipo', { p_equipo_id: equipoId });
+      if (error || !data || !(data as unknown[]).length) return null;
+      return (data as { cotizacion_id: string; titulo: string; directa: boolean }[])[0];
+    } catch {
+      return null;
+    }
+  }
+
+  /** DZ-02 (ficha de la compra): link a la biblioteca para cada adjunto que
+   *  tenga una entrada registrada. Best-effort: {} si falla. */
+  async getCotizacionIdsPorAdjuntos(adjuntoIds: string[]): Promise<Record<string, string>> {
+    if (!adjuntoIds.length) return {};
+    try {
+      const { data, error } = await this.supabase.client
+        .from('tec_cotizaciones')
+        .select('id, adjunto_id')
+        .in('adjunto_id', adjuntoIds);
+      if (error) return {};
+      const out: Record<string, string> = {};
+      for (const row of (data ?? []) as { id: string; adjunto_id: string | null }[]) {
+        if (row.adjunto_id) out[row.adjunto_id] = row.id;
+      }
+      return out;
+    } catch {
+      return {};
+    }
   }
 
 }
