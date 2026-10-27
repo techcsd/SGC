@@ -320,6 +320,9 @@
   cursor: grab;
   &:active { cursor: grabbing; }
   .note-card { width: 100%; }
+
+  // CZ5 — resaltado al arrastrar una nota sobre otra nota del mismo grupo.
+  &--hover { background: var(--brand-soft, #eef3f9); border-radius: 8px; }
 }
 .note-card__menu-btn {
   position: absolute;
