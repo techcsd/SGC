@@ -11,7 +11,7 @@ import { FullscreenModeService } from '../../../../shared/services/fullscreen-mo
 import { Nota, NotaCompartido, NotaPermiso, NotaGrupo } from '../../../../shared/models/nota.model';
 import { markdownAPlano } from '../../../../shared/utils/markdown-a-plano.util';
 import { copiarImagenAlPortapapeles, descargarDesdeUrl } from '../../../../shared/utils/clipboard-imagen.util';
-import { validarNombreGrupo, puedeMoverGrupo, puedeCrearSubgrupo } from '../../../../shared/utils/nota-grupos.util';
+import { validarNombreGrupo, puedeMoverGrupo, puedeCrearSubgrupo, zonaDestinoDeFila, FilaAgrupadaLike } from '../../../../shared/utils/nota-grupos.util';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 type Tab = 'mias' | 'compartidas';
@@ -157,6 +157,11 @@ export class DevNotes implements OnInit, OnDestroy {
     if (!d || !hover || hover === 'sin-grupo' || hover === 'nuevo-grupo' || d.tipo !== 'grupo') return true;
     return puedeMoverGrupo(d.id, hover, this.grupos());
   });
+
+  /** CZ5 — zona de destino de una fila de `agrupada()` (grupo real o seudogrupo). */
+  destinoDeFila(g: FilaAgrupadaLike): string | null {
+    return zonaDestinoDeFila(g);
+  }
 
   loading = signal(true);
   query = signal('');

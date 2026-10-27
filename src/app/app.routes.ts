@@ -5,7 +5,6 @@ import { moduleGuard } from './core/guards/module.guard';
 import { moduloOSubmoduloGuard } from './core/guards/modulo-o-submodulo.guard';
 import { noChoferGuard } from './core/guards/no-chofer.guard';
 import { rolesGuard } from './core/guards/roles.guard';
-import { tecnologiaContenedorGuard } from './core/guards/tecnologia.guard';
 
 export const routes: Routes = [
   {
@@ -222,10 +221,14 @@ export const routes: Routes = [
       {
         // AL1 — El contenedor exige módulo `tecnologia` O es_tecnologia (corrige la
         // fuga por la que todo usuario no-chofer veía "Tecnología"). Cada hijo
-        // re-valida: activos de TI con moduleGuard('tecnologia'); consola "Sistema"
+        // re-valida: activos de TI con submoduloGuard('tecnologia.*'); consola "Sistema"
         // (versiones/QA/monitoreo/errores) con tecnologiaGuard.
+        // CZ4 — + cualquier permiso granular 'tecnologia.*' (Subadministrador), que
+        // antes se quedaba sin poder entrar al contenedor aunque sus hijas (Cotizaciones,
+        // Inventario, Compras) ya lo dejaran pasar — hallazgo F3, el contenedor era
+        // MÁS estricto que sus propias hijas.
         path: 'tecnologia',
-        canActivate: [tecnologiaContenedorGuard],
+        canActivate: [moduloOSubmoduloGuard('tecnologia', (u) => u.esTecnologia())],
         loadChildren: () =>
           import('./pages/tecnologia/tecnologia.routes').then((m) => m.tecnologiaRoutes),
       },

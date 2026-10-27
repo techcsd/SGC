@@ -415,6 +415,17 @@
             </dd>
           </div>
         }
+        <!-- DZ-06 (CZ2) — cotización de origen: directa, o si no hay, la usada de la compra -->
+        @if (cotizacionDeEquipo(); as cot) {
+          <div>
+            <dt>Cotización de origen</dt>
+            <dd>
+              <a class="sgc-badge sgc-badge--neutral" [routerLink]="['/tecnologia/cotizaciones']" [queryParams]="{ id: cot.cotizacion_id }" [title]="cot.titulo">
+                {{ cot.directa ? 'Ver cotización' : 'Ver cotización (de la compra)' }}
+              </a>
+            </dd>
+          </div>
+        }
       </dl>
       @if (eq.notas) {
         <p class="detail__notas">{{ eq.notas }}</p>

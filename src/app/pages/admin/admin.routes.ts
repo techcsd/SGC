@@ -1,6 +1,15 @@
 import { Routes } from '@angular/router';
+import { rolAdminGuard } from '../../core/guards/rol-admin.guard';
 
 export const adminRoutes: Routes = [
+  {
+    // CZ3/DZ-08 — Vault: guard de ROL estricto, no el moduleGuard('admin') que
+    // gatea el resto de /admin/* (ver docs/SUBMODULOS-SENSIBLES.md).
+    path: 'vault',
+    canActivate: [rolAdminGuard],
+    loadComponent: () => import('./vault/vault').then((m) => m.AdminVault),
+    title: 'Vault — Administración',
+  },
   {
     path: '',
     redirectTo: 'usuarios',

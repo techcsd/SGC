@@ -60,6 +60,8 @@ export class TecCompras implements OnInit {
   detail = signal<SolicitudCompra | null>(null);
   private fotoUrls = signal<Record<string, string>>({});
   cotizacionUrls = signal<Record<string, string>>({});
+  // DZ-02 (CZ1) — adjunto_id -> id de la biblioteca de Cotizaciones (si quedó registrada).
+  private cotizacionBibliotecaIds = signal<Record<string, string>>({});
   previewSafeUrl = signal<SafeResourceUrl | null>(null);
   subiendoCotizacion = signal(false);
   decidiendo = signal(false);
@@ -133,6 +135,7 @@ export class TecCompras implements OnInit {
     this.detail.set(c);
     this.fotoUrls.set({});
     this.cotizacionUrls.set({});
+    this.cotizacionBibliotecaIds.set({});
     this.previewSafeUrl.set(null);
     this.mostrandoRechazo.set(false);
     this.rechazoMotivo.set('');
@@ -156,6 +159,13 @@ export class TecCompras implements OnInit {
     this.cotizacionUrls.set(cots);
     const elegida = (c.adjuntos ?? []).find((a) => a.elegida);
     if (elegida && cots[elegida.id]) this.previewSafeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(cots[elegida.id]));
+
+    this.cotizacionBibliotecaIds.set(
+      await this.tecnologia.getCotizacionIdsPorAdjuntos((c.adjuntos ?? []).map((a) => a.id)),
+    );
+  }
+  cotizacionBibliotecaId(adjuntoId: string): string | null {
+    return this.cotizacionBibliotecaIds()[adjuntoId] ?? null;
   }
   closeDetail() {
     this.detailOpen.set(false);

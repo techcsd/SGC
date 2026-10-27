@@ -183,6 +183,17 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'plataforma.layout_app', label: 'Personalizar layout de la app', enforced: true,
       descripcion: 'Cambiar el orden y el tamaño de los módulos del launcher de la app.' },
   ],
+  // CZ4 — "Tecnología de contenido" sin el módulo `tecnologia` completo (que
+  // abre además la plataforma: Odoo-sync, monitoreo, APIs, QA, Issues, Dev
+  // notes — ver sql/2026-07-28-bx1b/z26). Pensado para el rol Subadministrador.
+  tecnologia: [
+    { key: 'tecnologia.inventario', label: 'Inventario tecnológico', enforced: true,
+      descripcion: 'Equipos de TI: alta, edición, historial y asignación a empleados.' },
+    { key: 'tecnologia.compras', label: 'Compras tecnológicas', enforced: true,
+      descripcion: 'Solicitar y aprobar compras de equipos, software o servicios de TI.' },
+    { key: 'tecnologia.cotizaciones', label: 'Cotizaciones', enforced: true,
+      descripcion: 'Biblioteca de cotizaciones: subir, vincular a compras y a equipos.' },
+  ],
 };
 
 /**

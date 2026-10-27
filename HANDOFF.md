@@ -1,5 +1,67 @@
 # HANDOFF — SGC
 
+## 🧪 Ronda CZ (PROMPT-120, 26-27/10/2026) — F0-F5 COMPLETAS en `feature/cz-ronda` (worktree `SGC-cz`), **NO en `dev` ni `main`**
+
+Contexto completo: `C:\developer\improvements\octubre 2026\imp 26102026\CONTEXTO-ACTUALIZACION-59.md`. Sesión autónoma de principio a fin (sin preguntas, defaults DZ-01…DZ-27 aplicados y reportados abajo). **Rama propia `feature/cz-ronda`, worktree propio `C:\Users\xavie\Desktop\X Dev\dev\SGC-cz`** (regla CQ6 — no se tocó el worktree principal). 5 commits: `424e8977` (CZ5), `ad39a3b3` (CZ1/CZ2), `0a6590dd` (CZ4), `f3f55f6e` (CZ3/CZ9), `b354cb99` (fix FK append-only, ver abajo). **4 migraciones + 1 edge function aplicadas/desplegadas SOLO en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`) — nada en prod. Build + 127/127 Vitest + 74/74 Deno (incl. 9 de cripto del Vault) verdes.
+
+**Addendum (mismo día, a pedido de Xaviel "haz las pruebas tu"):** se corrió una prueba end-to-end COMPLETA del Vault con un usuario admin desechable (contraseña propia del script, nunca de Xaviel ni de `qa_admin`) — camino feliz real de punta a punta: abrir sesión con contraseña real → crear/revelar/editar/eliminar para cuenta, 2FA y nota → el código 2FA verificado contra un cálculo RFC 6238 INDEPENDIENTE (no reusa el código de la edge) → auditoría exacta. **Encontró un 4º bug real:** `boveda_accesos.entrada_id` tenía una FK `on delete set null` hacia `boveda_entradas` — borrar una entrada disparaba un UPDATE en cascada sobre su propia fila de auditoría, que el trigger append-only bloqueaba (**eliminar una entrada del Vault era imposible, 500 en todos los casos**). Corregido quitando la FK (el campo es informativo; un log histórico no necesita integridad referencial — debe seguir diciendo "se reveló la entrada X" aunque X ya no exista). Promovido a smoke permanente: `scripts/smoke-cz4-boveda-e2e-completo.mjs`. **Llave maestra de dev regenerada** (la anterior nunca se guardó en ningún archivo, por diseño — era irrecuperable) y guardada, a pedido explícito de Xaviel, en `C:\developer\BOVEDA-MASTER-KEY-DEV.txt` para que él la resguarde (se le avisó que mueva esa copia a custodia real y borre el archivo). Confirmado antes de regenerar: `boveda_entradas` tenía 0 filas reales en dev, nada quedó huérfano.
+
+### F0 — Verificación previa
+`es_tecnologia()` (SQL) es por **lista de roles** (`admin,tecnologia,gerencia,direccion,desarrollador`), NO por módulo — pero `UserService.esTecnologia()` (cliente) SÍ hace OR con `hasModulo('tecnologia')`, una asimetría preexistente (afecta hoy a `encargado_tecnologia`, que ve rutas de plataforma que el servidor luego niega — sin fuga de datos, solo UX rota; documentado, no corregido, fuera del alcance de esta nota). `is_admin()` confirmado estricto (`codigo='admin'`, una sola definición). `/admin/*` confirmado gateado por `moduleGuard('admin')` (módulo, no rol) — por eso el Vault (F4) usa un guard de rol aparte.
+
+### F1 (CZ5) — Dev notes: soltar sobre cualquier tarjeta del grupo
+Antes, soltar una nota sobre OTRA nota del mismo grupo no hacía nada (solo el encabezado y la zona vacía tenían las 4 zonas de drop). `zonaDestinoDeFila()` (`shared/utils/nota-grupos.util.ts`, con 5 tests nuevos) resuelve el mismo destino para encabezado/tarjeta/zona-vacía; seudogrupos (HOY/ANTES/mes) siguen sin destino. Sin cambio en la app (Dev notes ahí es solo lectura).
+
+### F2 (CZ1/CZ2) — Biblioteca de Cotizaciones de Tecnología
+Submódulo nuevo `/tecnologia/cotizaciones`. `sgc.tec_cotizaciones` + M:N opcionales a compras (`solicitudes_compra` categoria='tecnologia' — **es la misma tabla** que "compra tecnológica", DZ-04) y a equipos de inventario. Backfill idempotente desde `solicitud_compra_adjuntos` (2 filas migradas en dev). Reusa el bucket `compras-cotizaciones` y la edge `leer-cotizacion` sin tocarlos. Ficha del equipo muestra "Cotización de origen"; ficha de la compra enlaza "Ver en biblioteca".
+
+**🔴 Hallazgo de seguridad colateral, corregido en la misma migración:** `sgc.puede_ver_submodulo()`/`puede_operar_submodulo()` (AG12, de una ronda anterior) devolvían **NULL en vez de FALSE** cuando nadie otorgaba el submódulo. Inofensivo en una política RLS (`using(...)`: NULL se trata como FALSE), pero en el patrón `if not puede_operar_submodulo(...) then raise ... end if;` de PL/pgSQL, `IF NOT NULL` es `IF NULL` — **nunca entra al bloque, el gate queda sin efecto para CUALQUIER RPC que use ese patrón**. Encontrado con el smoke negativo de Cotizaciones (un usuario sin permiso SÍ pudo crear una cotización). Corregido con `coalesce(..., false)` en ambas funciones (aditivo, mismo comportamiento en RLS). **2 migraciones de otras rondas (`ag16b`, `bh6`) usan el mismo patrón de guardia** — hoy inofensivo ahí (sus llamadores reales siempre tienen alguna base que da ver/operar), pero queda para que alguien lo revise.
+
+### F3 (CZ4) — Rol Subadministrador + auditoría de submódulos sensibles
+Rol `subadmin`: módulos inventario/compras/proyectos/flota/bitacora/documentos/plantillas/tareas + permisos granulares `operar` en `tecnologia.inventario/compras/cotizaciones` (NO el módulo `tecnologia` completo — abriría Odoo-sync/monitoreo/APIs/QA/Issues/Dev notes vía la asimetría de F0). `sgc.es_subadmin()`. No entra en `is_admin()` ni `es_tecnologia()`.
+
+**🔴 Hallazgo + fix en la misma fase:** el contenedor de ruta `/tecnologia` (`tecnologiaContenedorGuard`) exigía módulo O `es_tecnologia()`, **sin aceptar un permiso granular suelto** — bloqueaba al Subadministrador antes de llegar a Cotizaciones/Inventario/Compras aunque esas rutas ya lo permitieran. Corregido con `moduloOSubmoduloGuard('tecnologia', ...)` (mismo patrón que Inventario/Flota/Proyectos); el guard viejo (sin llamadores) se eliminó. Inventario tecnológico y Compras tecnológicas ahora aceptan también el permiso granular (RLS + `crear_solicitud_compra_tec` ampliados, aditivo). "Guía de herramientas" se destraba en el menú (la ruta ya era pública, el ítem de menú la escondía sin necesidad).
+
+`docs/SUBMODULOS-SENSIBLES.md` (nuevo, DZ-21): matriz ruta/menú/RLS de `/admin/*`, Vault, plataforma de Tecnología, Legal/RRHH/Dirección. Hallazgo arquitectónico documentado (no corregido, fuera de alcance): las ~17 hijas de `/admin` dependen ENTERAMENTE del módulo `admin` del padre sin re-validar cada una — seguro hoy porque solo el rol `admin` tiene ese módulo, pero fragile si cambia.
+
+### F4 (CZ3/CZ9) — Vault de Administración
+`/admin/vault`: cuentas web, llaves API/tokens, 2FA/recuperación, notas seguras, archivos (≤1 MB). Cifrado AES-256-GCM en la edge `boveda` (única que toca secretos), llave `BOVEDA_MASTER_KEY` (generada y aplicada **solo en dev**, nunca impresa — `scripts/boveda-generar-clave.mjs`). Gate de **rol estricto** (`rolAdminGuard` + `sgc.puede_ver_vault()=is_admin()`), deliberadamente NO el módulo `admin`. Reautenticación con contraseña real (`signInWithPassword`) abre una sesión de Vault (5 min web/2 min app) sin la cual TODO (salvo abrirla) se niega; 3 fallos bloquean 15 min; `boveda_accesos` es auditoría append-only (trigger bloquea UPDATE/DELETE para cualquier rol). 2FA: TOTP RFC 6238 calculado en el servidor (la semilla solo sale con "Mostrar semilla" + auditoría). Generador de claves 100% cliente (`crypto.getRandomValues`, sin dependencias nuevas): contraseña/frase/llave API/semilla 2FA. `scripts/verify-boveda-fuera-de-ia.mjs` en prebuild (DZ-15) — Compa/MCP/el conector nunca referencian el Vault; además la propia edge rechaza tokens OAuth del conector.
+
+**🔴 2 bugs reales encontrados y corregidos con los smokes de esta pieza** (no solo "el correcto pasa" — también "el incorrecto es rechazado", DZ-22):
+1. `GRANT SELECT` de tabla completa + `REVOKE SELECT (columna)` **no restringe nada** en Postgres (el grant de tabla sigue cubriendo todas las columnas — un admin podía leer `valor_cifrado` directo, saltándose la edge por completo). Corregido dando `SELECT` solo por lista explícita de columnas no-secretas, nunca un grant de tabla completa.
+2. `boveda_sesiones`/`boveda_intentos` sin `GRANT` a `service_role` — "bypassa RLS" no exime del sistema de privilegios de tabla/columna; sin el grant, la edge fallaba en silencio (`permission denied`) y el flujo de abrir sesión/contar fallos nunca escribía nada. Corregido con `grant ... to service_role` explícito.
+
+Verificado con 3 smokes: SQL transaccional ROLLBACK (`smoke-cz-permisos-negativos.mjs`, DZ-22), 9 tests Deno sin red de cripto/TOTP (`supabase/functions/boveda/cripto.test.ts` — incluye el vector oficial de RFC 6238 Appendix B), y un smoke HTTP **en vivo contra la edge ya desplegada en dev** (`smoke-cz4-boveda-edge-vivo.mjs`, sesión minteada sin tocar ninguna contraseña real, usa la cuenta `qa_admin@constructorasd.com` para no arriesgar el bloqueo de la cuenta real de Xaviel).
+
+**Deferido a propósito (reportado, no construido):** exportar respaldo (DZ-18 — crearía un archivo con todos los secretos, decisión explícita de no construirlo) e importar NordPass (DZ-17 — por tiempo, se entrega sin esta pieza). Archivo subir/descargar (Storage) **no se probó end-to-end en vivo** (solo el flujo de auth/sesión/contraseña) — recomendado probarlo manualmente en el navegador.
+
+### F5 (CZ8) — Auditoría de IA — SOLO REPORTE, nada construido
+`C:\developer\improvements\octubre 2026\imp 26102026\REPORTE-IA-SGC.md`. Con los datos de `sgc-dev` (`uso_ia`=1 fila, `assistant_conversaciones`=208/422 mensajes/7 usuarios, `assistant_consultas_no_atendidas`=2 sin resolver, `reportes_usuario`=14 filas), **no hay evidencia fuerte de demanda no cubierta** — el backlog de gaps de Compa está casi vacío. Top 10 propuestas priorizadas (1 "necesaria": cerrar el gap real "historial de precios/almacenes" en Compa; el resto "muy útil"/"opcional"/"no recomendada"). 2 módulos completos (Mensajería/Notas, Conduces) sin ninguna propuesta — se dice explícitamente que ahí la IA no ayuda. **Pendiente físico:** repetir la medición de demanda contra PROD antes de decidir qué construir en la ronda DA (los números de dev son muy chicos para priorizar con confianza).
+
+### PENDIENTE XAVIEL (físico, §6 del contexto)
+1. **Custodia de la llave maestra del Vault** — guardada en `C:\developer\BOVEDA-MASTER-KEY-DEV.txt` a pedido de Xaviel; **moverla a custodia real (gestor de contraseñas/caja fuerte/sobre sellado) y borrar ese archivo** — `C:\developer` no es almacenamiento seguro a largo plazo. Decidir cuándo generar la de PROD (distinta, `node scripts/boveda-generar-clave.mjs --env prod`) y cómo se resguarda (sobre sellado / segundo propietario del proyecto Supabase) — sin esto, si Xaviel no está, el Vault no se abre jamás.
+2. **Probar en `dev.sgcconstructorasd.com`**: Cotizaciones (subir, vincular equipo/compra), Vault (abrir con tu contraseña real, revelar, copiar, 2FA, generar, archivo, registro de accesos), arrastre de notas en Dev notes.
+3. **Crear un usuario de prueba con rol Subadministrador** (Administración › Usuarios de prueba) y confirmar que no ve Vault ni lo técnico, sí Cotizaciones.
+4. **Leer `REPORTE-IA-SGC.md`** y decidir qué se construye en la ronda DA.
+5. Revisar `docs/SUBMODULOS-SENSIBLES.md` y decir qué mover.
+6. **OK por escrito** antes de: abrir PR `feature/cz-ronda → dev`, aplicar las 4 migraciones + la edge `boveda` a prod, o generar `BOVEDA_MASTER_KEY` de prod.
+7. Decidir si vale la pena importar NordPass (DZ-17, no construido) o si se documenta como "opción de continuidad" (DZ-18, exportar — decidido NO construir).
+
+### Verify on resume
+```bash
+cd "C:/Users/xavie/Desktop/X Dev/dev/SGC-cz"   # worktree de esta ronda, NO el principal
+git log --oneline -5                            # b354cb99..424e8977
+npm run build && npm test                       # verde
+node scripts/smoke-cz1-cotizaciones.mjs --env dev
+node scripts/smoke-cz3-subadmin.mjs --env dev
+node scripts/smoke-cz-permisos-negativos.mjs --env dev
+node scripts/smoke-cz4-boveda-edge-vivo.mjs --env dev       # rutas de fallo (sin contraseña real)
+node scripts/smoke-cz4-boveda-e2e-completo.mjs              # camino feliz COMPLETO (usuario desechable propio)
+deno test --no-check --allow-env --node-modules-dir=none supabase/functions/boveda
+```
+
+---
+
 ## ✅ Verificación de workflows reales tras los triggers de esta ronda (26-oct-2026, commit `1c9be03a` en `dev`)
 
 Xaviel pidió explícitamente probar que los triggers nuevos (outbox Odoo, CY6/CY6c) no rompen ningún flujo real de inventario/choferes — no solo el build y los smokes aislados de cada pieza. `scripts/smoke-cy-workflows-reales-tras-triggers.mjs` llama a las **RPC reales** que usa el frontend (no simulaciones) para los 8 caminos que ahora tienen el trigger del outbox enganchado, con un usuario real impersonado por rol:

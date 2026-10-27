@@ -1,6 +1,6 @@
 // CV2/CV3 — validaciones puras de grupos de Dev notes.
 import { describe, it, expect } from 'vitest';
-import { validarNombreGrupo, profundidadDeGrupo, puedeMoverGrupo, puedeCrearSubgrupo, NotaGrupoLike } from './nota-grupos.util';
+import { validarNombreGrupo, profundidadDeGrupo, puedeMoverGrupo, puedeCrearSubgrupo, zonaDestinoDeFila, NotaGrupoLike } from './nota-grupos.util';
 
 describe('validarNombreGrupo', () => {
   it('nombre vacío no es error (botón apagado, no mensaje)', () => {
@@ -68,5 +68,26 @@ describe('puedeCrearSubgrupo', () => {
   });
   it('bloquea un subgrupo que quedaría en el nivel 5', () => {
     expect(puedeCrearSubgrupo('D', ARBOL)).toBe(false);
+  });
+});
+
+// CZ5 — soltar una nota sobre el encabezado, una tarjeta dentro del grupo, o la
+// zona vacía debe resolver todas al MISMO destino (el grupo); un seudogrupo
+// (HOY/ANTES/mes) nunca es destino.
+describe('zonaDestinoDeFila', () => {
+  it('encabezado de un grupo real: destino = el propio grupo', () => {
+    expect(zonaDestinoDeFila({ esGrupo: true, grupo: { id: 'A' } })).toBe('A');
+  });
+  it('tarjeta de nota dentro de ese mismo grupo: mismo destino (antes del fix no soltaba nada)', () => {
+    expect(zonaDestinoDeFila({ esGrupo: true, grupo: { id: 'A' } })).toBe('A');
+  });
+  it('zona vacía de un grupo sin notas: mismo destino', () => {
+    expect(zonaDestinoDeFila({ esGrupo: true, grupo: { id: 'E' } })).toBe('E');
+  });
+  it('seudogrupo (HOY/ANTES/mes, esGrupo=false): sin destino', () => {
+    expect(zonaDestinoDeFila({ esGrupo: false })).toBeNull();
+  });
+  it('esGrupo=true sin grupo resuelto (defensivo): sin destino', () => {
+    expect(zonaDestinoDeFila({ esGrupo: true, grupo: null })).toBeNull();
   });
 });

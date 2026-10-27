@@ -1,0 +1,308 @@
+<!-- Section header -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Cotizaciones' | t }}</h1>
+    <span class="page-count">{{ cotizaciones().length }} {{ (cotizaciones().length === 1 ? 'cotización' : 'cotizaciones') | t }}</span>
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
+    <app-icon name="plus" [size]="16" />
+    {{ 'Nueva cotización' | t }}
+  </button>
+</div>
+
+<div class="cotizaciones-intro sgc-card">
+  <p>{{ 'Guarda aquí todas las cotizaciones de tecnología, subidas o no a una compra. Puedes ligarlas con el equipo del inventario que terminó comprándose y con la compra/solicitud tecnológica correspondiente.' | t }}</p>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">
+    <app-icon name="info" [size]="16" />
+    {{ error() }}
+  </div>
+}
+
+<div class="cotizaciones-toolbar">
+  <div class="cotizaciones-search">
+    <app-icon name="search" [size]="15" />
+    <input type="text" [placeholder]="'Buscar por título o proveedor…' | t" [value]="query()" (input)="query.set($any($event.target).value)" />
+  </div>
+  <div class="filtros-estado" role="tablist" [attr.aria-label]="'Filtrar cotizaciones' | t">
+    <button type="button" class="filtro-chip" [class.active]="filtro() === 'all'" (click)="filtro.set('all')">
+      {{ 'Todas' | t }} <span class="filtro-chip__count">{{ conteo('all') }}</span>
+    </button>
+    <button type="button" class="filtro-chip" [class.active]="filtro() === 'sin_vincular'" (click)="filtro.set('sin_vincular')">
+      {{ 'Sin vincular' | t }} <span class="filtro-chip__count">{{ conteo('sin_vincular') }}</span>
+    </button>
+    <button type="button" class="filtro-chip" [class.active]="filtro() === 'con_compra'" (click)="filtro.set('con_compra')">
+      {{ 'Con compra' | t }} <span class="filtro-chip__count">{{ conteo('con_compra') }}</span>
+    </button>
+    <button type="button" class="filtro-chip" [class.active]="filtro() === 'con_equipo'" (click)="filtro.set('con_equipo')">
+      {{ 'Con equipo' | t }} <span class="filtro-chip__count">{{ conteo('con_equipo') }}</span>
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="cotizaciones-grid">
+    <app-skeleton variant="cards" [rows]="3" />
+  </div>
+} @else if (cotizacionesFiltradas().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>{{ 'No hay cotizaciones en este filtro.' | t }}</p>
+  </div>
+} @else {
+  <div class="cotizaciones-grid">
+    @for (c of cotizacionesFiltradas(); track c.id) {
+      <button type="button" class="cot-card" (click)="abrirDetalle(c)">
+        <div class="cot-card__thumb">
+          <app-icon name="file" [size]="26" />
+        </div>
+        <div class="cot-card__body">
+          <span class="cot-card__titulo">{{ c.titulo }}</span>
+          <span class="cot-card__meta text-muted">
+            {{ c.proveedor || ('Sin proveedor' | t) }}
+            @if (c.fecha) { · {{ formatTimestamp(c.fecha) }} }
+          </span>
+          <div class="cot-card__footer">
+            @if (c.total) {
+              <span class="cot-card__total">{{ c.moneda === 'USD' ? 'US$' : 'RD$' }} {{ c.total | number:'1.2-2' }}</span>
+            }
+            <span class="status-pill" [class]="'status-pill--' + tonoEstado(c.estado)">
+              {{ labelEstado(c.estado) | t }}
+            </span>
+          </div>
+          @if ((c.compras ?? []).length || (c.equipos ?? []).length) {
+            <span class="cot-card__vinculos text-muted">
+              @if ((c.compras ?? []).length) { <app-icon name="link" [size]="12" /> {{ (c.compras ?? []).length }} {{ 'compra(s)' | t }} }
+              @if ((c.equipos ?? []).length) { · <app-icon name="package" [size]="12" /> {{ (c.equipos ?? []).length }} {{ 'equipo(s)' | t }} }
+            </span>
+          }
+        </div>
+      </button>
+    }
+  </div>
+}
+
+<!-- ── Drawer: nueva cotización (CZ1) ── -->
+<app-form-drawer [title]="'Nueva cotización' | t" [open]="createOpen()" (closed)="cerrarCrear()">
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="sgc-field">
+      <label>{{ 'Archivo (PDF o foto, opcional)' | t }}</label>
+      @if (archivoPendiente(); as f) {
+        <div class="archivo-pendiente">
+          <app-icon name="file" [size]="18" />
+          <span>{{ f.name }}</span>
+          @if (leyendoArchivo()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarArchivo()">{{ 'Quitar' | t }}</button>
+        </div>
+        @if (lecturaIA(); as l) {
+          @if (!l.ok) {
+            <span class="field-hint">{{ 'No se pudo leer automáticamente — llena los campos a mano.' | t }}</span>
+          } @else {
+            <span class="field-hint">{{ 'Leído con IA — revisa los campos antes de guardar.' | t }}</span>
+          }
+        }
+      } @else {
+        <app-file-upload accept="application/pdf,image/*" [max]="1" [label]="'Arrastra o toca para subir la cotización' | t" (add)="onArchivoAdd($event)" />
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="cot-titulo">{{ 'Título' | t }} *</label>
+      <input id="cot-titulo" type="text" formControlName="titulo" [placeholder]="'Ej. Dell Latitude 5440 x3' | t" />
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="cot-proveedor">{{ 'Proveedor' | t }}</label>
+        <input id="cot-proveedor" type="text" formControlName="proveedor" />
+      </div>
+      <div class="sgc-field">
+        <label for="cot-fecha">{{ 'Fecha' | t }}</label>
+        <input id="cot-fecha" type="date" formControlName="fecha" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="cot-moneda">{{ 'Moneda' | t }}</label>
+        <select id="cot-moneda" formControlName="moneda">
+          <option value="DOP">RD$ (DOP)</option>
+          <option value="USD">US$ (USD)</option>
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="cot-subtotal">{{ 'Subtotal' | t }}</label>
+        <input id="cot-subtotal" type="number" min="0" step="0.01" formControlName="subtotal" />
+      </div>
+      <div class="sgc-field">
+        <label for="cot-itbis">ITBIS</label>
+        <input id="cot-itbis" type="number" min="0" step="0.01" formControlName="itbis" />
+      </div>
+      <div class="sgc-field">
+        <label for="cot-total">{{ 'Total' | t }}</label>
+        <input id="cot-total" type="number" min="0" step="0.01" formControlName="total" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="cot-notas">{{ 'Notas' | t }}</label>
+      <textarea id="cot-notas" formControlName="notas" rows="2"></textarea>
+    </div>
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarCrear()">{{ 'Cancelar' | t }}</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
+        @if (guardando()) {
+          <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }}
+        } @else {
+          {{ 'Guardar cotización' | t }}
+        }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Drawer: detalle (CZ1b) ── -->
+<app-form-drawer [title]="detail()?.titulo ?? ('Cotización' | t)" [open]="detailOpen()" (closed)="cerrarDetalle()">
+  @if (detail(); as c) {
+    <div class="detail">
+      <div class="detail__estado-row">
+        <span class="status-pill" [class]="'status-pill--' + tonoEstado(c.estado)">
+          {{ labelEstado(c.estado) | t }}
+        </span>
+        <div class="detail__estado-actions">
+          @if (!editando()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEdicion(c)">{{ 'Editar' | t }}</button>
+          }
+          @if (c.estado !== 'descartada') {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartar(c)">{{ 'Descartar' | t }}</button>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="restaurar(c)">{{ 'Restaurar' | t }}</button>
+          }
+        </div>
+      </div>
+
+      @if (archivoUrl(); as url) {
+        <a class="sgc-btn sgc-btn--secondary" [href]="url" target="_blank" rel="noopener">
+          <app-icon name="file" [size]="16" /> {{ 'Abrir archivo' | t }}
+        </a>
+      }
+
+      @if (editando()) {
+        <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()">
+          <div class="sgc-field">
+            <label for="ecot-titulo">{{ 'Título' | t }} *</label>
+            <input id="ecot-titulo" type="text" formControlName="titulo" />
+          </div>
+          <div class="form-row">
+            <div class="sgc-field">
+              <label for="ecot-proveedor">{{ 'Proveedor' | t }}</label>
+              <input id="ecot-proveedor" type="text" formControlName="proveedor" />
+            </div>
+            <div class="sgc-field">
+              <label for="ecot-fecha">{{ 'Fecha' | t }}</label>
+              <input id="ecot-fecha" type="date" formControlName="fecha" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="sgc-field">
+              <label for="ecot-moneda">{{ 'Moneda' | t }}</label>
+              <select id="ecot-moneda" formControlName="moneda">
+                <option value="DOP">RD$ (DOP)</option>
+                <option value="USD">US$ (USD)</option>
+              </select>
+            </div>
+            <div class="sgc-field">
+              <label for="ecot-subtotal">{{ 'Subtotal' | t }}</label>
+              <input id="ecot-subtotal" type="number" min="0" step="0.01" formControlName="subtotal" />
+            </div>
+            <div class="sgc-field">
+              <label for="ecot-itbis">ITBIS</label>
+              <input id="ecot-itbis" type="number" min="0" step="0.01" formControlName="itbis" />
+            </div>
+            <div class="sgc-field">
+              <label for="ecot-total">{{ 'Total' | t }}</label>
+              <input id="ecot-total" type="number" min="0" step="0.01" formControlName="total" />
+            </div>
+          </div>
+          <div class="sgc-field">
+            <label for="ecot-notas">{{ 'Notas' | t }}</label>
+            <textarea id="ecot-notas" formControlName="notas" rows="2"></textarea>
+          </div>
+          <div class="drawer-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarEdicion()">{{ 'Cancelar' | t }}</button>
+            <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardandoDetalle()">
+              @if (guardandoDetalle()) {
+                <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }}
+              } @else {
+                {{ 'Guardar cambios' | t }}
+              }
+            </button>
+          </div>
+        </form>
+      } @else {
+        <dl class="detail__grid">
+          <div><dt>{{ 'Proveedor' | t }}</dt><dd>{{ c.proveedor ?? '—' }}</dd></div>
+          <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ c.fecha ? formatTimestamp(c.fecha) : '—' }}</dd></div>
+          <div><dt>{{ 'Total' | t }}</dt><dd>{{ c.total ? (c.moneda === 'USD' ? 'US$' : 'RD$') + ' ' + (c.total | number:'1.2-2') : '—' }}</dd></div>
+        </dl>
+        @if (c.notas) {
+          <p class="text-muted">{{ c.notas }}</p>
+        }
+      }
+
+      <!-- CZ2 — vínculo con compra/solicitud tecnológica -->
+      <h3 class="section-title">{{ 'Compra / solicitud tecnológica' | t }}</h3>
+      @if ((c.compras ?? []).length === 0) {
+        <p class="text-muted">{{ 'Sin vincular.' | t }}</p>
+      } @else {
+        <ul class="vinculos-list">
+          @for (v of c.compras; track v.solicitud_compra_id) {
+            <li>
+              <span>{{ nombreCompra(v.solicitud_compra_id) }}</span>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="desvincularCompra(v.solicitud_compra_id)">{{ 'Quitar' | t }}</button>
+            </li>
+          }
+        </ul>
+      }
+      @if (comprasDisponibles().length) {
+        <div class="vincular-row">
+          <select class="sgc-input" [value]="compraSeleccionada()" (change)="compraSeleccionada.set($any($event.target).value)">
+            <option value="">{{ 'Elegir compra tecnológica…' | t }}</option>
+            @for (op of comprasDisponibles(); track op.id) {
+              <option [value]="op.id">{{ op.label }}</option>
+            }
+          </select>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!compraSeleccionada()" (click)="vincularCompra()">{{ 'Vincular' | t }}</button>
+        </div>
+      }
+
+      <!-- CZ2 — vínculo con equipo(s) de inventario -->
+      <h3 class="section-title">{{ 'Equipos del inventario' | t }}</h3>
+      @if ((c.equipos ?? []).length === 0) {
+        <p class="text-muted">{{ 'Sin vincular.' | t }}</p>
+      } @else {
+        <ul class="vinculos-list">
+          @for (v of c.equipos; track v.equipo_id) {
+            <li>
+              <span>{{ nombreEquipo(v.equipo_id) }}</span>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="desvincularEquipo(v.equipo_id)">{{ 'Quitar' | t }}</button>
+            </li>
+          }
+        </ul>
+      }
+      <div class="vincular-row">
+        <input type="text" class="sgc-input" [placeholder]="'Buscar equipo por nombre o código…' | t"
+          [value]="equipoBusqueda()" (input)="equipoBusqueda.set($any($event.target).value)" />
+      </div>
+      @if (equipoBusqueda()) {
+        <select class="sgc-input" size="5" [value]="equipoSeleccionado()" (change)="equipoSeleccionado.set($any($event.target).value)">
+          @for (e of equiposFiltrados(); track e.id) {
+            <option [value]="e.id">{{ e.codigo ? e.codigo + ' — ' : '' }}{{ e.nombre }}</option>
+          }
+        </select>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!equipoSeleccionado()" (click)="vincularEquipo()">{{ 'Vincular equipo' | t }}</button>
+      }
+    </div>
+  }
+</app-form-drawer>

@@ -64,6 +64,44 @@ export interface TecEquipo {
   created_at?: string;
 }
 
+// CZ1/CZ2 — biblioteca de Cotizaciones de Tecnología (independiente de una
+// compra puntual; se puede ligar a 0..N compras tecnológicas y 0..N equipos).
+export type TecCotizacionEstado = 'vigente' | 'usada' | 'descartada';
+
+export interface TecCotizacion {
+  id: string;
+  titulo: string;
+  proveedor: string | null;
+  fecha: string | null;
+  moneda: 'DOP' | 'USD';
+  subtotal: number | null;
+  itbis: number | null;
+  total: number | null;
+  estado: TecCotizacionEstado;
+  archivo_path: string | null;
+  archivo_nombre: string | null;
+  lectura: Record<string, unknown> | null;
+  lectura_costo_usd: number | null;
+  adjunto_id: string | null;
+  notas: string | null;
+  creado_por: string | null;
+  created_at: string;
+  updated_at: string;
+  compras?: { solicitud_compra_id: string }[];
+  equipos?: { equipo_id: string; linea_idx: number | null }[];
+}
+
+export interface TecCotizacionFormData {
+  titulo: string;
+  proveedor: string | null;
+  fecha: string | null;
+  moneda: 'DOP' | 'USD';
+  subtotal: number | null;
+  itbis: number | null;
+  total: number | null;
+  notas: string | null;
+}
+
 /** AL1 — tipo administrable del inventario tecnológico (catálogo tec_equipo_tipos). */
 export interface TecEquipoTipo {
   id: string;
