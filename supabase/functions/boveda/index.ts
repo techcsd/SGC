@@ -282,7 +282,7 @@ Deno.serve(async (req: Request) => {
 
     return json({ ok: false, error: "Acción desconocida." }, 400);
   } catch (e) {
-    console.error("boveda edge error:", e instanceof Error ? e.message : e);
+    console.error("boveda edge error:", e instanceof Error ? e.message : JSON.stringify(e));
     return json({ ok: false, error: "No se pudo completar la operación." }, 500);
   }
 });

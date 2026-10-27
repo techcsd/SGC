@@ -127,10 +127,18 @@ alter table sgc.boveda_intentos enable row level security;
 grant select, insert, update, delete on sgc.boveda_intentos to service_role;
 
 -- ── (5) boveda_accesos — auditoría SOLO-INSERTAR (DZ-11) ───────────────────
+-- `entrada_id` es INFORMATIVO, SIN foreign key a boveda_entradas (a propósito,
+-- hallazgo real de esta pieza): una FK con `on delete set null` hace que borrar
+-- una entrada dispare un UPDATE en cascada sobre las filas de auditoría que la
+-- referencian — y ese UPDATE choca de frente con el trigger append-only de
+-- abajo (ni la propia FK puede "editar" un registro ya escrito). Un registro
+-- de auditoría histórico debe seguir diciendo "se reveló la entrada X" aunque
+-- X ya no exista — igual que el historial de un empleado que se da de baja no
+-- se reescribe.
 create table if not exists sgc.boveda_accesos (
   id          uuid primary key default gen_random_uuid(),
   usuario_id  uuid not null references sgc.usuarios(id),
-  entrada_id  uuid references sgc.boveda_entradas(id) on delete set null,
+  entrada_id  uuid,
   accion      text not null check (accion in (
                 'abrir_sesion', 'fallo_reautenticacion', 'bloqueo',
                 'revelar', 'copiar', 'crear', 'editar', 'eliminar',
@@ -143,6 +151,9 @@ create table if not exists sgc.boveda_accesos (
 );
 create index if not exists idx_boveda_accesos_entrada on sgc.boveda_accesos (entrada_id, created_at desc);
 create index if not exists idx_boveda_accesos_usuario on sgc.boveda_accesos (usuario_id, created_at desc);
+-- Reentrante: si una corrida anterior de esta migración ya creó la FK (antes
+-- de este fix), se quita — el nombre es el autogenerado por Postgres.
+alter table sgc.boveda_accesos drop constraint if exists boveda_accesos_entrada_id_fkey;
 
 alter table sgc.boveda_accesos enable row level security;
 drop policy if exists boveda_accesos_sel on sgc.boveda_accesos;
