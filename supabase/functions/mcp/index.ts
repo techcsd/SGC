@@ -102,6 +102,11 @@ function resumenBorrador(cfg: ToolDef, input: Any): string {
   if (cfg.write!.tipo === "cambio_envio_automatico") return `Envío automático: ${input.activo ? "encender" : "apagar"} ${input.familia ?? ""}`;
   if (cfg.write!.tipo === "probar_envio") return `Probar envío: ${input.familia ?? ""}`;
   if (cfg.write!.tipo === "nota_de_version") return `Nota de versión ${input.version ?? ""}`;
+  if (cfg.write!.tipo === "tipo_equipo") return `Tipo de equipo: ${String(input.label ?? "").slice(0, 60)}`;
+  if (cfg.write!.tipo === "equipo_tecnologico") return input.id ? `Editar equipo: ${String(input.nombre ?? input.id).slice(0, 60)}` : `Equipo nuevo: ${String(input.nombre ?? "").slice(0, 60)}`;
+  if (cfg.write!.tipo === "cambio_estado_equipo") return "Cambio de situación/condición de equipo";
+  if (cfg.write!.tipo === "asignacion_equipo") return "Reasignación de equipo";
+  if (cfg.write!.tipo === "equipos_lote") return `Lote de equipos tecnológicos: ${(input.equipos ?? []).length} equipo(s)`;
   return cfg.write!.tipo;
 }
 
@@ -192,6 +197,9 @@ Deno.serve(
       const capObj: Cap = {
         usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin,
         modulos: Array.isArray(cap.modulos) ? cap.modulos : [], roles: Array.isArray(cap.roles) ? cap.roles : [],
+        // DA-16 — permisos granulares (AG12), para que tools con `submodulos`
+        // se ofrezcan sin el módulo completo (ej. Subadministrador).
+        permisos: cap.permisos && typeof cap.permisos === "object" ? cap.permisos : {},
       };
 
       // ── Consentimiento de IA — mismo gate que Compa (CI10) ───────────────────

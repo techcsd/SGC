@@ -5,6 +5,138 @@
   align-items: center;
 }
 
+// DA-10 — sección de componentes del kit en el detalle
+.kit-section {
+  margin: 16px 0 24px;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+
+    h3 { margin: 0; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__start { margin: 8px 0 24px; }
+}
+
+.kit-row--falta { opacity: 0.65; }
+
+// DA-06 — bloque "Clave del equipo" en el detalle
+.clave-section {
+  margin: 16px 0 24px;
+
+  &__valor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--sgc-surface-hover);
+    border-radius: var(--sgc-radius-sm);
+    border: 1px solid var(--sgc-border);
+
+    code { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+  }
+
+  &__cuenta { font-size: 12px; color: var(--sgc-text-secondary); margin-left: auto; }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 320px;
+
+    input[type="text"] {
+      padding: 8px 10px;
+      border-radius: var(--sgc-radius-sm);
+      border: 1px solid var(--sgc-border);
+      background: var(--sgc-surface);
+      color: inherit;
+    }
+  }
+
+  &__aviso {
+    margin-top: 8px;
+  }
+}
+
+// DA2 — separador de bloque dentro del formulario (Identificación,
+// Especificaciones, Quién lo tiene, Compra y garantía).
+.drawer-section-title {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-secondary);
+  border-top: 1px solid var(--sgc-border);
+  padding-top: 14px;
+
+  &:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+}
+
+.field-hint-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.is-disabled { opacity: 0.6; pointer-events: none; }
+
+.sgc-field--check {
+  display: flex;
+  align-items: flex-end;
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 400;
+    cursor: pointer;
+  }
+}
+
+// DA2/DA7 — la barra de filtros no tenía layout propio en esta pantalla; se
+// agrega al ampliarla con los filtros nuevos (responsable externo, sin compra/garantía).
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+
+  &__search { flex: 1 1 260px; input { width: 100%; } }
+  &__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--sgc-text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+}
+
 .equipo-codigo {
   font-variant-numeric: tabular-nums;
   font-size: 13px;
@@ -102,6 +234,12 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  &__qr-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: -8px;
+  }
 
   &__grid {
     display: grid;

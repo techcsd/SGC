@@ -31,7 +31,10 @@ export interface TecMatrizEntry {
   created_at?: string;
 }
 
-export type TecEquipoEstado = 'activo' | 'en_reparacion' | 'en_stock' | 'dado_de_baja';
+// DA7/DA-04 — ya no es un union fijo: situación y condición son catálogos
+// administrables (sgc.tec_equipo_estados / sgc.tec_equipo_condiciones),
+// validados por trigger en el servidor, no por un CHECK ni un tipo cerrado.
+export type TecEquipoEstado = string;
 
 export interface TecEquipo {
   id: string;
@@ -42,6 +45,8 @@ export interface TecEquipo {
   modelo: string | null;
   serie: string | null;
   estado: TecEquipoEstado;
+  // DA7/DA-04 — condición física, independiente de la situación (estado).
+  condicion: string;
   empleado_id: string | null;
   empleado?: { nombre: string; apellido: string; cargo: string | null };
   asignado_en: string | null;
@@ -60,8 +65,81 @@ export interface TecEquipo {
   garantia_hasta: string | null;
   // QA-070 — trazabilidad compra tecnológica → equipo
   origen_solicitud_compra_id: string | null;
+  // DA2/DA-02 — identificación
+  service_tag: string | null;
+  codigo_servicio: string | null;
+  numero_parte: string | null;
+  modelo_regulatorio: string | null;
+  anio_fabricacion: number | null;
+  codigo_anterior: string | null;
+  imei: string | null;
+  etiqueta_taller: string | null;
+  // DA-11 — responsable sin usuario en el SGC
+  responsable_externo: string | null;
+  // DA-12 — costo/garantía
+  costo_origen: 'compra' | 'estimado' | 'donado';
+  fecha_compra_desconocida: boolean;
+  garantia_desconocida: boolean;
+  // DA-14 — fotos "especificaciones" (captura de Windows), separadas de la portada
+  fotos_specs: string[];
+  // DA-10 — kits: este equipo es componente de kit_padre_id (null si es suelto o es el padre)
+  kit_padre_id: string | null;
+  presente: boolean;
+  // DA-06 — solo existencia (no el valor); el valor sale únicamente de la edge equipos-clave.
+  tiene_clave: boolean;
+  // DA2 — specs 1:1 (join opcional; null si no se pidió o no existe fila aún)
+  specs?: TecEquipoSpecs | null;
   activo: boolean;
   created_at?: string;
+}
+
+/** DA2/DA-02 — especificaciones técnicas 1:1 (sgc.tec_equipo_specs). */
+export interface TecEquipoSpecs {
+  equipo_id: string;
+  procesador: string | null;
+  ram_gb: number | null;
+  ram_velocidad: string | null;
+  almacenamiento_tipo: 'SSD' | 'HDD' | 'NVMe' | null;
+  almacenamiento_gb: number | null;
+  gpu_integrada: string | null;
+  gpu_dedicada: string | null;
+  gpu_memoria_gb: number | null;
+  so: string | null;
+  so_version: string | null;
+  pantalla_pulgadas: number | null;
+  resolucion: string | null;
+  tactil: boolean | null;
+  nombre_windows: string | null;
+  usuario_windows: string | null;
+  cargador_voltaje: string | null;
+  cargador_amperaje: string | null;
+  frecuencia: string | null;
+  potencia_w: number | null;
+  tipo_radio: 'frecuencia' | 'celular_ptt' | null;
+  sello_telserdom_radio: string | null;
+  sello_telserdom_bateria: string | null;
+  bateria_modelo: string | null;
+  bateria_capacidad: number | null;
+  bateria_unidad: 'mAh' | 'Wh' | null;
+  bateria_voltaje: string | null;
+  bateria_sello: string | null;
+  accesorios: string[];
+  camara_specs: string | null;
+}
+
+export type TecEquipoSpecsFormData = Omit<TecEquipoSpecs, 'equipo_id'>;
+
+/** DA-03 — qué bloques de specs aplican según el tipo de equipo. */
+export type TecGrupoCampos = 'computadora' | 'radio' | 'bateria' | 'dron';
+
+/** DA7/DA-04 — catálogo administrable de situaciones/condiciones (mismo
+ *  patrón que TecEquipoTipo). */
+export interface TecEquipoEstadoCat {
+  id: string;
+  clave: string;
+  label: string;
+  orden: number;
+  activo: boolean;
 }
 
 // CZ1/CZ2 — biblioteca de Cotizaciones de Tecnología (independiente de una
@@ -109,6 +187,8 @@ export interface TecEquipoTipo {
   label: string;
   orden: number;
   activo: boolean;
+  // DA-03 — qué bloques de tec_equipo_specs mostrar para este tipo.
+  grupos_campos?: TecGrupoCampos[];
 }
 
 export interface TecEquipoFormData {
@@ -118,6 +198,7 @@ export interface TecEquipoFormData {
   modelo: string | null;
   serie: string | null;
   estado: TecEquipoEstado;
+  condicion?: string;
   empleado_id: string | null;
   asignado_en: string | null;
   ubicacion: string | null;
@@ -135,6 +216,46 @@ export interface TecEquipoFormData {
   garantia_hasta: string | null;
   // QA-070
   origen_solicitud_compra_id: string | null;
+  // DA2/DA-02 — identificación
+  service_tag?: string | null;
+  codigo_servicio?: string | null;
+  numero_parte?: string | null;
+  modelo_regulatorio?: string | null;
+  anio_fabricacion?: number | null;
+  codigo_anterior?: string | null;
+  imei?: string | null;
+  etiqueta_taller?: string | null;
+  // DA-11
+  responsable_externo?: string | null;
+  // DA-12
+  costo_origen?: 'compra' | 'estimado' | 'donado';
+  fecha_compra_desconocida?: boolean;
+  garantia_desconocida?: boolean;
+  // DA-14
+  fotos_specs?: string[];
+  // DA-10
+  kit_padre_id?: string | null;
+  presente?: boolean;
+}
+
+/** DA-06 — resultado de "ver" la clave cifrada del equipo (edge equipos-clave). */
+export interface TecEquipoClaveResultado {
+  ok: boolean;
+  valor?: string;
+  tipo_clave?: 'personal' | 'compartida';
+  visible_segundos?: number;
+  error?: string;
+}
+
+/** DA-10 — estado calculado de un kit (vista sgc.tec_kits_estado). */
+export interface TecKitEstado {
+  kit_id: string;
+  kit_codigo: string | null;
+  kit_nombre: string;
+  total_componentes: number;
+  presentes: number;
+  faltantes: number;
+  completo: boolean;
 }
 
 /** QA-070 — opción ligera para el selector "Origen: compra tecnológica". */
@@ -196,9 +317,21 @@ export const TEC_EQUIPO_TIPOS: { value: string; label: string }[] = [
   { value: 'otro', label: 'Otro' },
 ];
 
-export const TEC_EQUIPO_ESTADOS: { value: TecEquipoEstado; label: string; badge: string }[] = [
-  { value: 'activo', label: 'Asignado / en uso', badge: 'success' },
-  { value: 'en_stock', label: 'En stock', badge: 'info' },
-  { value: 'en_reparacion', label: 'En reparación', badge: 'warning' },
-  { value: 'dado_de_baja', label: 'Dado de baja', badge: 'danger' },
+/** DA7/DA-04 — fallback local si `tec_equipo_estados`/`tec_equipo_condiciones`
+ *  no responden (mismo criterio que TEC_CATEGORIAS/TEC_EQUIPO_TIPOS); el tono
+ *  visual (punto + color) ya NO sale de aquí, sale de `estado-tono.ts`
+ *  (fuente única del sistema de diseño para cualquier estado del SGC). */
+export const TEC_EQUIPO_ESTADOS: { value: string; label: string }[] = [
+  { value: 'activo', label: 'Asignado / en uso' },
+  { value: 'en_stock', label: 'En stock' },
+  { value: 'en_reparacion', label: 'En reparación' },
+  { value: 'en_prestamo', label: 'En préstamo' },
+  { value: 'extraviado', label: 'Extraviado' },
+  { value: 'dado_de_baja', label: 'Dado de baja' },
+];
+
+export const TEC_EQUIPO_CONDICIONES: { value: string; label: string }[] = [
+  { value: 'funciona', label: 'Funciona' },
+  { value: 'averiado', label: 'Averiado' },
+  { value: 'por_diagnosticar', label: 'Por diagnosticar' },
 ];

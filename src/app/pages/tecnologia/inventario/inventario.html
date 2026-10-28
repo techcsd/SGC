@@ -3,6 +3,11 @@
   <div class="page-header__left">
     <h1 class="page-title">Inventario tecnológico</h1>
     <span class="page-count">{{ filtered().length }} equipo{{ filtered().length !== 1 ? 's' : '' }}</span>
+    @if (garantiasPorVencerCount() > 0) {
+      <span class="status-pill status-pill--warning" title="Garantía por vencer o vencida">
+        {{ garantiasPorVencerCount() }} con garantía por vencer
+      </span>
+    }
   </div>
   <div class="page-header__actions">
     <button
@@ -41,12 +46,26 @@
       (change)="onEstadoChange($any($event.target).value)"
       aria-label="Filtrar por estado"
     >
-      <option value="">Todos los estados</option>
-      @for (e of ESTADOS; track e.value) {
+      <option value="">Todas las situaciones</option>
+      @for (e of estados(); track e.value) {
         <option [value]="e.value">{{ e.label }}</option>
       }
     </select>
   </div>
+
+  <!-- DA-11/DA-12/DA-14 (nota 7) — filtros de datos de dueño/costo/garantía -->
+  <label class="filters-bar__toggle">
+    <input type="checkbox" [checked]="soloResponsableExterno()" (change)="toggleResponsableExterno()" />
+    Responsable externo
+  </label>
+  <label class="filters-bar__toggle">
+    <input type="checkbox" [checked]="soloSinCompra()" (change)="toggleSinCompra()" />
+    Sin datos de compra
+  </label>
+  <label class="filters-bar__toggle">
+    <input type="checkbox" [checked]="soloSinGarantia()" (change)="toggleSinGarantia()" />
+    Sin garantía
+  </label>
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
@@ -88,7 +107,8 @@
             <th>Nombre</th>
             <th>Tipo</th>
             <th>Marca / Modelo</th>
-            <th>Estado</th>
+            <th>Situación</th>
+            <th>Condición</th>
             <th>Asignado a</th>
             <th>Costo</th>
             <th class="text-center">Acciones</th>
@@ -113,12 +133,22 @@
                 {{ e.marca || '—' }}@if (e.modelo) { / {{ e.modelo }} }
               </td>
               <td>
-                <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(e.estado)">
+                <span class="status-pill" [class]="'status-pill--' + getEstadoTono(e.estado)">
                   {{ getEstadoLabel(e.estado) }}
                 </span>
               </td>
-              <td class="text-muted">{{ getEmpleadoNombre(e) }}</td>
-              <td class="text-muted">{{ formatCosto(e.costo, e.moneda) }}</td>
+              <td>
+                <span class="status-pill" [class]="'status-pill--' + getCondicionTono(e.condicion ?? 'funciona')">
+                  {{ getCondicionLabel(e.condicion ?? 'funciona') }}
+                </span>
+              </td>
+              <td class="text-muted">{{ getQuienLoTiene(e) }}</td>
+              <td class="text-muted">
+                {{ formatCosto(e.costo, e.moneda) }}
+                @if (garantiaPorVencer(e)) {
+                  <span class="status-pill status-pill--warning" title="Garantía por vencer o vencida">Garantía</span>
+                }
+              </td>
               <td>
                 <div class="row-actions">
                   <button
@@ -171,6 +201,10 @@
 <app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
+    @if (kitPadreIdParaCrear() && !editingId()) {
+      <p class="field-hint">Este equipo nacerá como componente del kit — tendrá su propio subcódigo (ej. TEC-0016-01).</p>
+    }
+
     <div class="sgc-field">
       <label for="nombre">Nombre <span class="required">*</span></label>
       <input
@@ -193,6 +227,7 @@
             id="tipo_id"
             formControlName="tipo_id"
             [class.invalid]="f.tipo_id.invalid && f.tipo_id.touched"
+            (change)="onTipoIdChange($any($event.target).value)"
           >
             <option [ngValue]="null">Seleccionar tipo…</option>
             @for (t of tipos(); track t.value) {
@@ -218,16 +253,60 @@
       </div>
 
       <div class="sgc-field">
-        <label for="estado">Estado <span class="required">*</span></label>
-        <select
-          id="estado"
-          formControlName="estado"
-          [class.invalid]="f.estado.invalid && f.estado.touched"
-        >
-          @for (es of ESTADOS; track es.value) {
-            <option [value]="es.value">{{ es.label }}</option>
-          }
-        </select>
+        <label for="estado">Situación <span class="required">*</span></label>
+        @if (!addingEstado()) {
+          <select
+            id="estado"
+            formControlName="estado"
+            [class.invalid]="f.estado.invalid && f.estado.touched"
+          >
+            @for (es of estados(); track es.value) {
+              <option [value]="es.value">{{ es.label }}</option>
+            }
+          </select>
+          <button type="button" class="tec-addtipo-link" (click)="addingEstado.set(true)">+ Agregar situación</button>
+        } @else {
+          <div class="tec-addtipo">
+            <input
+              type="text"
+              placeholder="Nueva situación (ej: En préstamo)"
+              [value]="newEstadoLabel()"
+              (input)="newEstadoLabel.set($any($event.target).value)"
+            />
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarEstadoNuevo()">Guardar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingEstado.set(false); newEstadoLabel.set('')">Cancelar</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="condicion">Condición <span class="required">*</span></label>
+        @if (!addingCondicion()) {
+          <select
+            id="condicion"
+            formControlName="condicion"
+            [class.invalid]="f.condicion.invalid && f.condicion.touched"
+          >
+            @for (c of condiciones(); track c.value) {
+              <option [value]="c.value">{{ c.label }}</option>
+            }
+          </select>
+          <button type="button" class="tec-addtipo-link" (click)="addingCondicion.set(true)">+ Agregar condición</button>
+          <span class="field-hint">Independiente de la situación: un equipo puede estar "en stock" y "averiado" a la vez.</span>
+        } @else {
+          <div class="tec-addtipo">
+            <input
+              type="text"
+              placeholder="Nueva condición (ej: Por diagnosticar)"
+              [value]="newCondicionLabel()"
+              (input)="newCondicionLabel.set($any($event.target).value)"
+            />
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarCondicionNueva()">Guardar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingCondicion.set(false); newCondicionLabel.set('')">Cancelar</button>
+          </div>
+        }
       </div>
     </div>
 
@@ -247,9 +326,230 @@
       <input id="serie" type="text" formControlName="serie" placeholder="Ej: SN-123456" />
     </div>
 
+    <!-- DA2/DA-02 — Identificación -->
+    <h3 class="drawer-section-title">Identificación</h3>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="empleado_id">Asignado a</label>
+        <label for="service_tag">Service Tag / código de servicio</label>
+        <input id="service_tag" type="text" formControlName="service_tag" placeholder="Ej: ABC1234 (Dell), wmic bios get serialnumber" />
+      </div>
+      <div class="sgc-field">
+        <label for="codigo_servicio">Plan ID / Unit ID / Express Service Code</label>
+        <input id="codigo_servicio" type="text" formControlName="codigo_servicio" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="numero_parte">Número de parte (DP/N)</label>
+        <input id="numero_parte" type="text" formControlName="numero_parte" />
+      </div>
+      <div class="sgc-field">
+        <label for="modelo_regulatorio">Modelo regulatorio (Reg Model)</label>
+        <input id="modelo_regulatorio" type="text" formControlName="modelo_regulatorio" />
+      </div>
+      <div class="sgc-field">
+        <label for="anio_fabricacion">Año de fabricación</label>
+        <input id="anio_fabricacion" type="number" min="1990" max="2100" formControlName="anio_fabricacion" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="codigo_anterior">Código de activo anterior</label>
+        <input id="codigo_anterior" type="text" formControlName="codigo_anterior" placeholder="Ej: 001-1843267-3" />
+      </div>
+      <div class="sgc-field">
+        <label for="imei">IMEI</label>
+        <input id="imei" type="text" formControlName="imei" />
+      </div>
+      <div class="sgc-field">
+        <label for="etiqueta_taller">Etiqueta de taller/servicio</label>
+        <input id="etiqueta_taller" type="text" formControlName="etiqueta_taller" placeholder="Ej: orden 122052" />
+      </div>
+    </div>
+
+    <!-- DA2/DA-03 — Especificaciones (solo el bloque que aplica al tipo elegido) -->
+    @if (currentGruposCampos().length || specsForm.controls.accesoriosTexto.value) {
+      <h3 class="drawer-section-title">Especificaciones</h3>
+    }
+    <div [formGroup]="specsForm">
+      @if (currentGruposCampos().includes('computadora')) {
+        <div class="sgc-field">
+          <label class="sgc-btn sgc-btn--secondary sgc-btn--sm" [class.is-disabled]="leyendoCaptura()">
+            @if (leyendoCaptura()) { Leyendo… } @else { Leer captura de Windows }
+            <input type="file" accept="image/*" multiple hidden [disabled]="leyendoCaptura()" (change)="onCapturaWindowsPicked($event)" />
+          </label>
+          <span class="field-hint">
+            Sube hasta 3 fotos de "Información del sistema"/"Acerca de" (Windows). Precarga los campos para que los revises — nunca guarda sola.
+            En Dell/Lenovo el Service Tag/serie también se ve con <code>wmic bios get serialnumber</code>.
+          </span>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="procesador">Procesador</label>
+            <input id="procesador" type="text" formControlName="procesador" placeholder="Ej: Intel Core i7-1165G7" />
+          </div>
+          <div class="sgc-field">
+            <label for="so">Sistema operativo</label>
+            <input id="so" type="text" formControlName="so" placeholder="Ej: Windows 11 Pro" />
+          </div>
+          <div class="sgc-field">
+            <label for="so_version">Versión</label>
+            <input id="so_version" type="text" formControlName="so_version" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="ram_gb">RAM (GB)</label>
+            <input id="ram_gb" type="number" min="0" formControlName="ram_gb" />
+          </div>
+          <div class="sgc-field">
+            <label for="ram_velocidad">Velocidad de RAM</label>
+            <input id="ram_velocidad" type="text" formControlName="ram_velocidad" placeholder="Ej: 3200 MHz" />
+          </div>
+          <div class="sgc-field">
+            <label for="almacenamiento_tipo">Almacenamiento</label>
+            <select id="almacenamiento_tipo" formControlName="almacenamiento_tipo">
+              <option [ngValue]="null">—</option>
+              <option value="SSD">SSD</option>
+              <option value="HDD">HDD</option>
+              <option value="NVMe">NVMe</option>
+            </select>
+          </div>
+          <div class="sgc-field">
+            <label for="almacenamiento_gb">Capacidad (GB)</label>
+            <input id="almacenamiento_gb" type="number" min="0" formControlName="almacenamiento_gb" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="gpu_integrada">Tarjeta gráfica integrada</label>
+            <input id="gpu_integrada" type="text" formControlName="gpu_integrada" />
+          </div>
+          <div class="sgc-field">
+            <label for="gpu_dedicada">Tarjeta gráfica dedicada</label>
+            <input id="gpu_dedicada" type="text" formControlName="gpu_dedicada" />
+          </div>
+          <div class="sgc-field">
+            <label for="gpu_memoria_gb">Memoria de video (GB)</label>
+            <input id="gpu_memoria_gb" type="number" min="0" formControlName="gpu_memoria_gb" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="pantalla_pulgadas">Pantalla (pulgadas)</label>
+            <input id="pantalla_pulgadas" type="number" min="0" step="0.1" formControlName="pantalla_pulgadas" />
+          </div>
+          <div class="sgc-field">
+            <label for="resolucion">Resolución</label>
+            <input id="resolucion" type="text" formControlName="resolucion" placeholder="Ej: 1920x1080" />
+          </div>
+          <div class="sgc-field sgc-field--check">
+            <label>
+              <input type="checkbox" formControlName="tactil" />
+              Pantalla táctil
+            </label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="nombre_windows">Nombre del equipo en Windows</label>
+            <input id="nombre_windows" type="text" formControlName="nombre_windows" placeholder="Ej: CSD-CONT" />
+          </div>
+          <div class="sgc-field">
+            <label for="usuario_windows">Cuenta de Windows con sesión iniciada</label>
+            <input id="usuario_windows" type="text" formControlName="usuario_windows" placeholder="Puede ser distinta al empleado asignado" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="cargador_voltaje">Cargador — voltaje</label>
+            <input id="cargador_voltaje" type="text" formControlName="cargador_voltaje" placeholder="Ej: 19.5V" />
+          </div>
+          <div class="sgc-field">
+            <label for="cargador_amperaje">Cargador — amperaje</label>
+            <input id="cargador_amperaje" type="text" formControlName="cargador_amperaje" placeholder="Ej: 3.34A" />
+          </div>
+        </div>
+      }
+
+      @if (currentGruposCampos().includes('radio')) {
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="frecuencia">Frecuencia</label>
+            <input id="frecuencia" type="text" formControlName="frecuencia" placeholder="Ej: 400-470 MHz" />
+          </div>
+          <div class="sgc-field">
+            <label for="potencia_w">Potencia de salida (W)</label>
+            <input id="potencia_w" type="number" min="0" step="0.1" formControlName="potencia_w" />
+          </div>
+          <div class="sgc-field">
+            <label for="tipo_radio">Tipo de radio</label>
+            <select id="tipo_radio" formControlName="tipo_radio">
+              <option [ngValue]="null">—</option>
+              <option value="frecuencia">Radio de frecuencia</option>
+              <option value="celular_ptt">Radio por red celular (PTT)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="sello_telserdom_radio">Sello Telserdom — radio</label>
+            <input id="sello_telserdom_radio" type="text" formControlName="sello_telserdom_radio" />
+          </div>
+          <div class="sgc-field">
+            <label for="sello_telserdom_bateria">Sello Telserdom — batería</label>
+            <input id="sello_telserdom_bateria" type="text" formControlName="sello_telserdom_bateria" />
+          </div>
+        </div>
+      }
+
+      @if (currentGruposCampos().includes('dron')) {
+        <div class="sgc-field">
+          <label for="camara_specs">Cámara / especificaciones del dron</label>
+          <input id="camara_specs" type="text" formControlName="camara_specs" placeholder="Ej: 4K, sensor 1 pulgada" />
+        </div>
+      }
+
+      @if (currentGruposCampos().includes('bateria')) {
+        <div class="form-row">
+          <div class="sgc-field">
+            <label for="bateria_modelo">Batería — modelo</label>
+            <input id="bateria_modelo" type="text" formControlName="bateria_modelo" />
+          </div>
+          <div class="sgc-field">
+            <label for="bateria_capacidad">Capacidad</label>
+            <input id="bateria_capacidad" type="number" min="0" formControlName="bateria_capacidad" />
+          </div>
+          <div class="sgc-field">
+            <label for="bateria_unidad">Unidad</label>
+            <select id="bateria_unidad" formControlName="bateria_unidad">
+              <option [ngValue]="null">—</option>
+              <option value="mAh">mAh</option>
+              <option value="Wh">Wh</option>
+            </select>
+          </div>
+          <div class="sgc-field">
+            <label for="bateria_voltaje">Voltaje</label>
+            <input id="bateria_voltaje" type="text" formControlName="bateria_voltaje" />
+          </div>
+        </div>
+        <div class="sgc-field">
+          <label for="bateria_sello">Sello de la batería</label>
+          <input id="bateria_sello" type="text" formControlName="bateria_sello" />
+        </div>
+      }
+
+      <div class="sgc-field">
+        <label for="accesoriosTexto">Accesorios incluidos</label>
+        <input id="accesoriosTexto" type="text" formControlName="accesoriosTexto" placeholder="Ej: cargador, base, micrófono, clip, antena, estuche (separados por coma)" />
+      </div>
+    </div>
+
+    <!-- DA-07/DA-11 — Quién lo tiene -->
+    <h3 class="drawer-section-title">Quién lo tiene</h3>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="empleado_id">Empleado asignado</label>
         <select id="empleado_id" formControlName="empleado_id">
           <option [ngValue]="null">Sin asignar</option>
           @for (emp of empleados(); track emp.id) {
@@ -261,6 +561,11 @@
         <label for="asignado_en">Fecha de asignación</label>
         <input id="asignado_en" type="date" formControlName="asignado_en" />
       </div>
+    </div>
+    <div class="sgc-field">
+      <label for="responsable_externo">Responsable sin usuario en el SGC</label>
+      <input id="responsable_externo" type="text" formControlName="responsable_externo" placeholder="Ej: Cristofer (Contabilidad)" />
+      <span class="field-hint">Para quien usa el equipo pero no tiene usuario/empleado en el SGC. No reemplaza el empleado asignado.</span>
     </div>
 
     <div class="form-row">
@@ -279,7 +584,8 @@
       </div>
     </div>
 
-    <!-- QA-071 / AL1 — datos de compra / garantía + moneda -->
+    <!-- QA-071 / AL1 / DA-12 — datos de compra / garantía + moneda -->
+    <h3 class="drawer-section-title">Compra y garantía</h3>
     <div class="form-row">
       <div class="sgc-field">
         <label for="costo">Costo</label>
@@ -293,26 +599,43 @@
         </select>
       </div>
       <div class="sgc-field">
-        <label for="fecha_compra">Fecha de compra</label>
-        <input id="fecha_compra" type="date" formControlName="fecha_compra" />
+        <label for="costo_origen">El costo es</label>
+        <select id="costo_origen" formControlName="costo_origen">
+          <option value="compra">Precio real de compra</option>
+          <option value="estimado">Estimado (precio referencial)</option>
+          <option value="donado">Donado</option>
+        </select>
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="garantia_hasta">Garantía hasta</label>
-        <input id="garantia_hasta" type="date" formControlName="garantia_hasta" />
+        <label for="fecha_compra">Fecha de compra</label>
+        <input id="fecha_compra" type="date" formControlName="fecha_compra" [attr.disabled]="f.fecha_compra_desconocida.value ? true : null" />
+        <label class="field-hint-check">
+          <input type="checkbox" formControlName="fecha_compra_desconocida" />
+          Desconocida
+        </label>
       </div>
-      <!-- QA-070 — origen: compra tecnológica -->
       <div class="sgc-field">
-        <label for="origen_solicitud_compra_id">Origen: compra tecnológica</label>
-        <select id="origen_solicitud_compra_id" formControlName="origen_solicitud_compra_id">
-          <option [ngValue]="null">Sin origen de compra</option>
-          @for (c of comprasOpciones(); track c.id) {
-            <option [value]="c.id">{{ c.label }}</option>
-          }
-        </select>
+        <label for="garantia_hasta">Garantía hasta</label>
+        <input id="garantia_hasta" type="date" formControlName="garantia_hasta" [attr.disabled]="f.garantia_desconocida.value ? true : null" />
+        <label class="field-hint-check">
+          <input type="checkbox" formControlName="garantia_desconocida" />
+          Desconocida
+        </label>
       </div>
+    </div>
+
+    <!-- QA-070 — origen: compra tecnológica -->
+    <div class="sgc-field">
+      <label for="origen_solicitud_compra_id">Origen: compra tecnológica</label>
+      <select id="origen_solicitud_compra_id" formControlName="origen_solicitud_compra_id">
+        <option [ngValue]="null">Sin origen de compra</option>
+        @for (c of comprasOpciones(); track c.id) {
+          <option [value]="c.id">{{ c.label }}</option>
+        }
+      </select>
     </div>
 
     <div class="sgc-field">
@@ -383,27 +706,65 @@
           }
         </div>
       }
+      <div class="detail__qr-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimirEtiqueta(eq)">
+          <app-icon name="printer" [size]="15" /> Imprimir etiqueta
+        </button>
+      </div>
       <dl class="detail__grid">
         <div><dt>Código</dt><dd>{{ eq.codigo ?? '—' }}</dd></div>
         <div><dt>Nombre</dt><dd>{{ eq.nombre }}</dd></div>
         <div><dt>Tipo</dt><dd>{{ getTipoLabel(eq) }}</dd></div>
         <div>
-          <dt>Estado</dt>
+          <dt>Situación</dt>
           <dd>
-            <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(eq.estado)">
+            <span class="status-pill" [class]="'status-pill--' + getEstadoTono(eq.estado)">
               {{ getEstadoLabel(eq.estado) }}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt>Condición</dt>
+          <dd>
+            <span class="status-pill" [class]="'status-pill--' + getCondicionTono(eq.condicion ?? 'funciona')">
+              {{ getCondicionLabel(eq.condicion ?? 'funciona') }}
             </span>
           </dd>
         </div>
         <div><dt>Marca / Modelo</dt><dd>{{ eq.marca || '—' }}@if (eq.modelo) { / {{ eq.modelo }} }</dd></div>
         <div><dt>Serie</dt><dd>{{ eq.serie ?? '—' }}</dd></div>
-        <div><dt>Asignado a</dt><dd>{{ getEmpleadoNombre(eq) }}</dd></div>
+        <div><dt>Quién lo tiene</dt><dd>{{ getQuienLoTiene(eq) }}</dd></div>
         <div><dt>Fecha de asignación</dt><dd>{{ formatFecha(eq.asignado_en) }}</dd></div>
         <div><dt>Ubicación</dt><dd>{{ getUbicacionLabel(eq) }}@if (eq.ubicacion && eq.bodega_id) { · {{ eq.ubicacion }} }</dd></div>
-        <!-- QA-071 / AL1 -->
-        <div><dt>Costo</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}</dd></div>
-        <div><dt>Fecha de compra</dt><dd>{{ formatFecha(eq.fecha_compra) }}</dd></div>
-        <div><dt>Garantía hasta</dt><dd>{{ formatFecha(eq.garantia_hasta) }}</dd></div>
+        <!-- DA2/DA-02 — identificación -->
+        @if (eq.service_tag) { <div><dt>Service Tag</dt><dd>{{ eq.service_tag }}</dd></div> }
+        @if (eq.imei) { <div><dt>IMEI</dt><dd>{{ eq.imei }}</dd></div> }
+        @if (eq.codigo_anterior) { <div><dt>Código anterior</dt><dd>{{ eq.codigo_anterior }}</dd></div> }
+        @if (eq.etiqueta_taller) { <div><dt>Etiqueta de taller</dt><dd>{{ eq.etiqueta_taller }}</dd></div> }
+        <!-- DA2 — specs (solo si hay fila) -->
+        @if (eq.specs?.procesador || eq.specs?.so) {
+          <div><dt>Equipo</dt><dd>{{ eq.specs?.procesador || '—' }}@if (eq.specs?.ram_gb) { · {{ eq.specs?.ram_gb }} GB RAM }@if (eq.specs?.so) { · {{ eq.specs?.so }} }</dd></div>
+        }
+        @if (eq.specs?.nombre_windows || eq.specs?.usuario_windows) {
+          <div><dt>Windows</dt><dd>{{ eq.specs?.nombre_windows || '—' }}@if (eq.specs?.usuario_windows) { · sesión: {{ eq.specs?.usuario_windows }} }</dd></div>
+        }
+        @if (eq.specs?.frecuencia) { <div><dt>Frecuencia</dt><dd>{{ eq.specs?.frecuencia }}@if (eq.specs?.potencia_w) { · {{ eq.specs?.potencia_w }} W }</dd></div> }
+        @if (eq.specs?.bateria_modelo || eq.specs?.bateria_capacidad) {
+          <div><dt>Batería</dt><dd>{{ eq.specs?.bateria_modelo || '—' }}@if (eq.specs?.bateria_capacidad) { · {{ eq.specs?.bateria_capacidad }} {{ eq.specs?.bateria_unidad }} }</dd></div>
+        }
+        @if (eq.specs?.accesorios?.length) { <div><dt>Accesorios</dt><dd>{{ eq.specs?.accesorios?.join(', ') }}</dd></div> }
+        <!-- QA-071 / AL1 / DA-12 -->
+        <div><dt>Costo</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}@if (eq.costo_origen && eq.costo_origen !== 'compra') { · {{ eq.costo_origen === 'estimado' ? 'estimado' : 'donado' }} }</dd></div>
+        <div><dt>Fecha de compra</dt><dd>{{ eq.fecha_compra_desconocida ? 'Desconocida' : formatFecha(eq.fecha_compra) }}</dd></div>
+        <div>
+          <dt>Garantía hasta</dt>
+          <dd>
+            {{ eq.garantia_desconocida ? 'Desconocida' : formatFecha(eq.garantia_hasta) }}
+            @if (garantiaPorVencer(eq)) {
+              <span class="status-pill status-pill--warning">Por vencer / vencida</span>
+            }
+          </dd>
+        </div>
         <!-- QA-070 — trazabilidad compra → equipo -->
         @if (eq.origen_solicitud_compra_id) {
           <div>
@@ -429,6 +790,113 @@
       </dl>
       @if (eq.notas) {
         <p class="detail__notas">{{ eq.notas }}</p>
+      }
+
+      <!-- DA-10/DA3 — Kits: solo se muestra si este equipo tiene componentes -->
+      @if (!eq.kit_padre_id && kitComponentes().length > 0) {
+        <div class="kit-section">
+          <div class="kit-section__head">
+            <h3 class="detail__hist-title">Componentes del kit</h3>
+            @if (kitEstado(); as k) {
+              @if (k.completo) {
+                <span class="status-pill status-pill--success">Completo</span>
+              } @else {
+                <span class="status-pill status-pill--warning">Kit incompleto: falta {{ k.faltantes }}</span>
+              }
+            }
+          </div>
+          <div class="table-wrapper sgc-card">
+            <table class="data-table" aria-label="Componentes del kit">
+              <thead>
+                <tr><th>Código</th><th>Nombre</th><th>Situación</th><th>En el kit</th><th class="text-center">Acciones</th></tr>
+              </thead>
+              <tbody>
+                @for (c of kitComponentes(); track c.id) {
+                  <tr [class.kit-row--falta]="!c.presente">
+                    <td class="equipo-codigo">{{ c.codigo ?? '—' }}</td>
+                    <td>{{ c.nombre }}</td>
+                    <td>
+                      <span class="status-pill" [class]="'status-pill--' + getEstadoTono(c.estado)">{{ getEstadoLabel(c.estado) }}</span>
+                    </td>
+                    <td>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleComponentePresente(c)">
+                        {{ c.presente ? 'Presente' : 'Falta' }}
+                      </button>
+                    </td>
+                    <td class="text-center">
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openEdit(c)">Editar</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarComponenteDelKit(c)">Quitar del kit</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="kit-section__actions">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirAgregarComponente(eq)">+ Agregar componente</button>
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="aplicarAlKitCompleto(eq)">
+              Aplicar ubicación/responsable a todo el kit
+            </button>
+          </div>
+        </div>
+      } @else if (!eq.kit_padre_id) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm kit-section__start" (click)="abrirAgregarComponente(eq)">
+          + Agregar componente (convertir en kit)
+        </button>
+      }
+
+      <!-- DA-06 — Clave del equipo: solo quien tiene el permiso granular ve este bloque -->
+      @if (puedeVerClaves()) {
+        <div class="clave-section">
+          <h3 class="detail__hist-title">Clave del equipo</h3>
+          @if (!claveEditando()) {
+            @if (eq.tiene_clave) {
+              @if (claveValor()) {
+                <div class="clave-section__valor">
+                  <code>{{ claveValor() }}</code>
+                  <span class="clave-section__cuenta">se oculta en {{ claveSegundosRestantes() }} s</span>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ocultarClave()">Ocultar</button>
+                </div>
+              } @else {
+                <div class="clave-section__actions">
+                  <span class="field-hint">{{ claveTipo() === 'personal' ? 'Personal' : 'Compartida' }} — guardada cifrada.</span>
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="claveCargando()" (click)="mostrarClave(eq.id)">
+                    Mostrar 30 s
+                  </button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarClave()">Cambiar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarClave(eq.id)">Quitar</button>
+                </div>
+              }
+            } @else {
+              <div class="clave-section__actions">
+                <span class="field-hint">Sin clave guardada.</span>
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirEditarClave()">+ Guardar clave</button>
+              </div>
+            }
+          } @else {
+            <div class="clave-section__form">
+              <label class="field-hint-check">
+                <input type="radio" name="clave_tipo" [checked]="claveNuevoTipo() === 'compartida'" (change)="claveNuevoTipo.set('compartida')" />
+                Compartida
+              </label>
+              <label class="field-hint-check">
+                <input type="radio" name="clave_tipo" [checked]="claveNuevoTipo() === 'personal'" (change)="claveNuevoTipo.set('personal')" />
+                Personal
+              </label>
+              <input
+                type="text"
+                placeholder="Escribe la clave…"
+                [value]="claveNuevoValor()"
+                (input)="claveNuevoValor.set($any($event.target).value)"
+              />
+              <div class="clave-section__actions">
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="claveCargando()" (click)="guardarClave(eq.id)">Guardar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="claveEditando.set(false)">Cancelar</button>
+              </div>
+            </div>
+          }
+          <p class="field-hint clave-section__aviso">Se guarda cifrada. Cada vez que alguien la ve o la cambia queda en el historial (sin el valor).</p>
+        </div>
       }
 
       <h3 class="detail__hist-title">Historial</h3>

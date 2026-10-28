@@ -25,40 +25,102 @@
       <div class="borrador-claude__aviso borrador-claude__aviso--neutro">{{ 'Este borrador caducó (24 h) — pídele a Claude que lo prepare de nuevo.' | t }}</div>
     }
 
-    <div class="borrador-claude__cuerpo">
-      <div class="borrador-claude__ficha">
-        @if (b.resumen) {
-          <div class="borrador-claude__resumen">{{ b.resumen }}</div>
-        }
-        <div class="borrador-claude__tabla">
-          @for (linea of detalle(); track linea.etiqueta + linea.valor) {
-            <div class="borrador-claude__fila">
-              <span class="borrador-claude__etiqueta">{{ linea.etiqueta | t }}</span>
-              <span class="borrador-claude__valor">{{ linea.valor }}</span>
-            </div>
-          }
+    @if (esLote()) {
+      <!-- DA4 — pantalla de revisión del lote: casillas, aprobar todas o desmarcar las que no -->
+      <div class="borrador-claude__cuerpo borrador-claude__cuerpo--lote">
+        <div class="borrador-claude__tabla-lote-wrap">
+          <table class="borrador-claude__tabla-lote">
+            <thead>
+              <tr>
+                <th>
+                  <input type="checkbox" [checked]="todasSeleccionadas()" (change)="toggleTodas()" [disabled]="b.estado !== 'pendiente'" />
+                </th>
+                <th>{{ 'Nombre' | t }}</th>
+                <th>{{ 'Tipo' | t }}</th>
+                <th>{{ 'Marca / Modelo' | t }}</th>
+                <th>{{ 'Costo' | t }}</th>
+                <th>{{ 'Resultado' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of filasLote(); track $index) {
+                <tr [class.borrador-claude__fila-lote--descartada]="!seleccionadas().has($index) && b.estado === 'pendiente'">
+                  <td>
+                    <input type="checkbox" [checked]="seleccionadas().has($index)" (change)="toggleFila($index)" [disabled]="b.estado !== 'pendiente'" />
+                  </td>
+                  <td>{{ fila.nombre }}</td>
+                  <td>{{ fila.tipo_clave ?? '—' }}</td>
+                  <td>{{ fila.marca ?? '' }} {{ fila.modelo ?? '' }}</td>
+                  <td>{{ fila.costo ? (fila.costo + ' ' + (fila.moneda ?? 'DOP') + ' (' + (fila.costo_origen ?? 'estimado') + ')') : '—' }}</td>
+                  <td>
+                    @if (resultadoFila($index); as r) {
+                      @if (r.ok) {
+                        <span class="borrador-claude__ok">✓ {{ 'Cargado' | t }}</span>
+                      } @else {
+                        <span class="borrador-claude__err">{{ r.error }}</span>
+                      }
+                    } @else if (b.estado === 'pendiente' && !seleccionadas().has($index)) {
+                      <span class="borrador-claude__descartada-txt">{{ 'No se cargará' | t }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
-      </div>
 
-      @if (b.estado === 'pendiente') {
-        <div class="borrador-claude__panel">
-          <span class="borrador-claude__panel-titulo">{{ '¿Lo creamos?' | t }}</span>
-          <span class="borrador-claude__panel-sub">{{ 'Se crea con la misma validación de siempre. Si algo no cumple, te lo dice aquí.' | t }}</span>
-          <button appButton variant="accent" type="button" [disabled]="enviando()" (click)="confirmar()">
-            {{ enviando() ? ('Creando…' | t) : ('Confirmar y crear' | t) }}
-          </button>
-          <button appButton variant="secondary" type="button" [disabled]="enviando()" (click)="editarAntesDeCrear()">
-            {{ 'Editar antes de crear' | t }}
-          </button>
-          <button type="button" class="borrador-claude__descartar" [disabled]="enviando()" (click)="descartar()">
-            {{ 'Descartar borrador' | t }}
-          </button>
+        @if (b.estado === 'pendiente') {
+          <div class="borrador-claude__panel">
+            <span class="borrador-claude__panel-titulo">{{ seleccionadas().size }} {{ 'de' | t }} {{ filasLote().length }} {{ 'equipo(s) marcados' | t }}</span>
+            <button appButton variant="accent" type="button" [disabled]="enviando() || seleccionadas().size === 0" (click)="confirmarLote()">
+              {{ enviando() ? ('Cargando…' | t) : ('Cargar ' + seleccionadas().size + ' equipo(s)' | t) }}
+            </button>
+            <button type="button" class="borrador-claude__descartar" [disabled]="enviando()" (click)="descartar()">
+              {{ 'Descartar borrador' | t }}
+            </button>
+          </div>
+        } @else {
+          <div class="borrador-claude__panel">
+            <a appButton variant="accent" [routerLink]="rutaVolver()">{{ 'Ir al inventario tecnológico' | t }}</a>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="borrador-claude__cuerpo">
+        <div class="borrador-claude__ficha">
+          @if (b.resumen) {
+            <div class="borrador-claude__resumen">{{ b.resumen }}</div>
+          }
+          <div class="borrador-claude__tabla">
+            @for (linea of detalle(); track linea.etiqueta + linea.valor) {
+              <div class="borrador-claude__fila">
+                <span class="borrador-claude__etiqueta">{{ linea.etiqueta | t }}</span>
+                <span class="borrador-claude__valor">{{ linea.valor }}</span>
+              </div>
+            }
+          </div>
         </div>
-      } @else {
-        <div class="borrador-claude__panel">
-          <a appButton variant="accent" [routerLink]="rutaVolver()">{{ 'Ir al módulo' | t }}</a>
-        </div>
-      }
-    </div>
+
+        @if (b.estado === 'pendiente') {
+          <div class="borrador-claude__panel">
+            <span class="borrador-claude__panel-titulo">{{ '¿Lo creamos?' | t }}</span>
+            <span class="borrador-claude__panel-sub">{{ 'Se crea con la misma validación de siempre. Si algo no cumple, te lo dice aquí.' | t }}</span>
+            <button appButton variant="accent" type="button" [disabled]="enviando()" (click)="confirmar()">
+              {{ enviando() ? ('Creando…' | t) : ('Confirmar y crear' | t) }}
+            </button>
+            <button appButton variant="secondary" type="button" [disabled]="enviando()" (click)="editarAntesDeCrear()">
+              {{ 'Editar antes de crear' | t }}
+            </button>
+            <button type="button" class="borrador-claude__descartar" [disabled]="enviando()" (click)="descartar()">
+              {{ 'Descartar borrador' | t }}
+            </button>
+          </div>
+        } @else {
+          <div class="borrador-claude__panel">
+            <a appButton variant="accent" [routerLink]="rutaVolver()">{{ 'Ir al módulo' | t }}</a>
+          </div>
+        }
+      </div>
+    }
   }
 </div>

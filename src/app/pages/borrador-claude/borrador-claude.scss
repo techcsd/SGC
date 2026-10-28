@@ -146,4 +146,36 @@
     cursor: pointer;
     padding: var(--space-2) 0;
   }
+
+  // DA4 — pantalla de revisión del lote de equipos tecnológicos
+  &__cuerpo--lote {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  &__tabla-lote-wrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  &__tabla-lote {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+
+    th, td {
+      padding: var(--space-2) var(--space-3);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    th { color: var(--text-2); font-weight: var(--fw-semibold); }
+  }
+
+  &__fila-lote--descartada { opacity: 0.5; }
+  &__ok { color: var(--success); }
+  &__err { color: var(--danger); }
+  &__descartada-txt { color: var(--text-2); font-style: italic; }
 }

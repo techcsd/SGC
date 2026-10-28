@@ -1,5 +1,104 @@
 # HANDOFF — SGC
 
+## 🧪 Ronda DA (PROMPT-122, 27-oct-2026) — F0-F8 COMPLETAS en `feature/da-ronda` (worktree `SGC-da`), **NO en `dev` ni `main`**
+
+**TL;DR:** Inventario tecnológico ampliado de punta a punta (campos, estados/condición como catálogo, kits, clave cifrada del equipo, lector de capturas de Windows, conector de Claude, alerta de garantía, QR) + paginación de Versiones de la app. Contexto completo: `C:\developer\improvements\octubre 2026\imp 27102026\CONTEXTO-ACTUALIZACION-60.md`. Sesión autónoma de principio a fin (defaults DA-00…DA-23 aplicados y reportados abajo, Regla A — nunca se preguntó). **Rama propia `feature/da-ronda`** (worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-da`, regla CQ6). **5 migraciones + 2 edge functions nuevas (`equipos-clave`, `leer-especificaciones-equipo`) aplicadas/desplegadas en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`). Build + 127/127 Vitest + 3 smokes DA verdes. **✅ PR #30 MERGEADO a `dev`** (commit `c2353348`, con el OK de Xaviel — NO tocó `main` ni prod). **28-oct-2026 (addendum):** a pedido explícito de Xaviel, los 16 equipos reales + kit DJI quedaron cargados en dev — solo falta que Xaviel teclee la clave real del equipo 02 y revise las fichas en `dev.sgcconstructorasd.com`.
+
+### F0 — Verificación
+CZ (Vault, rol `subadmin`, `tec_cotizaciones`) ya estaba 100% en `dev` (y hasta en `main`, PR #29 ya mergeado) — DA se construyó directamente sobre eso, sin esperar nada. Confirmados los 3 hallazgos del diagnóstico: estado en CHECK fijo (`2026-07-12-tecnologia-module.sql:55`), historial solo escrito por el navegador (`tecnologia.service.ts:255,288` — ya reescrito), código `TEC-####` calculado en el navegador (`:238-242` — ya quitado).
+
+### F1 — Base: código TEC en BD, historial por trigger, catálogos de estado/condición
+`sgc.tec_equipo_seq` + trigger `BEFORE INSERT` asigna `TEC-####` (el navegador ya no lo calcula). Catálogos `tec_equipo_estados`/`tec_equipo_condiciones` (mismo patrón que `tec_equipo_tipos`, AL1) — **estado** (situación: dónde está/qué hace) y **condición** (cómo está físicamente) son conceptos separados a propósito (resuelve "en stock + averiado" a la vez, nota 5.2/7.3 del contexto). CHECK fijo de `tec_equipos.estado` eliminado, validado ahora por trigger contra el catálogo (`sgc.error_campo`, 22023). Historial (`tec_equipo_historial`) pasa a trigger `AFTER INSERT/UPDATE` — único escritor desde ahora; el método `addHistorial()` del navegador se **eliminó** (no quedó un export sin llamador, regla 6.5). `estado-tono.ts` (sistema de diseño CB2) ampliado con `averiado|extraviado|dado_de_baja→danger`, `en_prestamo→info`, `reparac→warning` — primera pantalla que adopta `.status-pill` en vez de `.sgc-badge` para estado/condición.
+- **F1b (DA17):** paginación en Admin › Versiones de la app, reutilizando `<app-paginator>` (mismo patrón que Usuarios), `PAGE_SIZE=10`.
+
+### F2 — Campos nuevos: specs, identificación, costo/garantía/responsable externo
+Columnas de identificación directas en `tec_equipos` (service_tag, numero_parte, imei, etiqueta_taller, etc.) + tabla 1:1 `tec_equipo_specs` (computadora/radio/batería/dron) + `tec_equipo_tipos.grupos_campos` decide qué bloque de specs mostrar según el tipo (sin tocar código al agregar un tipo). `responsable_externo` (persona sin usuario en el SGC, ej. Cristofer), `costo_origen` (compra|estimado|donado — infiere 'estimado' si hay costo sin origen explícito), `fecha_compra_desconocida`/`garantia_desconocida` (explícito, no confundir con vacío). `fotos_specs[]` separado de la galería de portada.
+
+### F3 — Kits
+`kit_padre_id`/`presente` en `tec_equipos` (un solo nivel, trigger lo fuerza; borrar el padre NO borra componentes — `ON DELETE SET NULL`, pasan a sueltos). Subcódigos `TEC-0016-01…` (mismo trigger de F1, extendido — **OJO de concurrencia documentado en el SQL**: el conteo de hermanos no es atómico, aceptable porque los componentes se crean uno a la vez desde la pantalla). Vista `tec_kits_estado` + RPCs `tec_kit_mover` (cascada SOLO a componentes presentes) / `tec_kit_mover_pieza` (soltar o mover una pieza). UI: detalle del equipo muestra la tabla de componentes con "Kit incompleto: falta N", "+ Agregar componente", "Aplicar ubicación/responsable a todo el kit". **No se cargaron** los 7 componentes del kit DJI (eso lo hace Xaviel con el lote del conector, F6).
+
+### F4 — Clave del equipo (cifrada)
+Tabla `tec_equipo_claves` **sin ninguna política/grant para `authenticated`** (ni metadata) — todo pasa por la edge `equipos-clave` (AES-256-GCM, reusa `BOVEDA_MASTER_KEY` del Vault vía un helper NUEVO `_shared/cripto-secretos.ts` — `boveda/cripto.ts` del Vault **no se tocó**, sigue como estaba). Gate **propio** `sgc.puede_ver_claves_equipos()` = `is_admin() OR` permiso granular directo `tecnologia.claves_equipos` — **a propósito NO usa el helper AG12** (`puede_ver/operar_submodulo`), porque ese tiene un atajo de compatibilidad que da `'operar'` a cualquiera con el módulo `tecnologia` completo; usarlo aquí habría regalado las claves a todo el que tenga el módulo, justo lo que Xaviel pidió evitar. **Nadie lo recibe por defecto, ni el Subadministrador.** Bandera no-secreta `tec_equipos.tiene_clave` (mantenida por trigger) para que la UI sepa "hay clave guardada" sin exponer el valor. Valor visible 30s, `Cache-Control: no-store`, cada ver/guardar/quitar queda en el historial **sin el valor**. `verify-boveda-fuera-de-ia.mjs` extendido para también vigilar `equipos-clave`/`tec_equipo_claves`. **La clave real del equipo 02 (1289) NUNCA se escribió en ningún archivo/test/commit** — Xaviel la teclea él mismo.
+
+### F5 — Lector de capturas de Windows
+Edge `leer-especificaciones-equipo` (mismo patrón que `leer-cotizacion`: consentimiento IA, rate limit, `uso_ia`). Botón "Leer captura de Windows" en el bloque de specs de computadora: sube hasta 3 fotos, **precarga los campos para revisar** (nunca guarda sola). Las mismas capturas se pueden guardar como foto "especificaciones" (`fotos_specs`, separada de la portada) al guardar el equipo.
+
+### F6 — Conector de Claude cubre Tecnología
+9 herramientas nuevas (`resumen_inventario_tecnologico`, `listar_equipos_tecnologicos`, `detalle_equipo_tecnologico`, `listar_tipos_equipo`, `proponer_tipo_equipo`, `proponer_equipo_tecnologico`, `proponer_cambio_estado_equipo`, `proponer_asignacion_equipo`, `proponer_equipos_tecnologicos_lote`) registradas en `_shared/herramientas.ts`, canal `mcp` únicamente. **Ninguna herramienta de clave** (verificado con el guard extendido). Cierra el `reportar_gap` "crear/cargar equipos del inventario tecnológico".
+
+**Pieza de arquitectura nueva (DA-16):** el registro compartido de herramientas solo filtraba por módulo completo (`cap.modulos.includes(m)`) — el Subadministrador (permiso granular `tecnologia.inventario`, sin el módulo) se habría quedado SIN estas tools pese a verlas en la web. Se extendió (aditivo, sin tocar ninguna tool existente): `Cap.permisos` + `ToolDef.submodulos` + `toolsParaUsuario()` ahora también acepta `'ver'/'operar'` en cualquier submódulo declarado. `capacidades_asistente()` se amplió (mismo cuerpo + campo `permisos`, regla 19) y los 3 edges que construyen `Cap` (`assistant`, `mcp`, `claude-borrador`) lo propagan.
+
+**El lote (opción a, recomendación de Xaviel):** una sola propuesta con hasta 50 equipos, pantalla de revisión propia en `/borrador/:id` (NO la genérica — `borrador-claude.ts/html` detecta `tool==='proponer_equipos_tecnologicos_lote'` y pinta una tabla con casillas, "Cargar N equipos", resultado por fila). `claude-borrador/index.ts` especial-casea este tipo ANTES del camino genérico de "un solo execRpc" — llama `sgc.tec_equipos_lote_confirmar(borrador_id, filas_seleccionadas)`, que valida/ejecuta **por fila** (una inválida no tumba las demás) y es idempotente (reconfirmar no reprocesa). Fotos: **no implementado por conector** (el contexto ya anticipaba este fallback — "si no cabe, sin fotos, se reporta"); se carga sin fotos y se documenta aquí.
+
+### F7 — Extras
+Alerta de garantía por vencer (parámetro `tec_garantia_alerta_dias`, default 30, ya consumido por el resumen del conector desde F6): chip `status-pill--warning` en lista/detalle + contador en el encabezado de la página. QR de impresión ("Imprimir etiqueta" en el detalle, librería `qrcode` YA era dependencia del proyecto — la usa el carnet de personal) que abre `/tecnologia/inventario?codigo=TEC-0002` y la ficha (ruta ya lee el query param). **Importador de carpeta de fichas .txt: NO se construyó** (decisión del contexto — lo cubre el lote del conector).
+
+### F8 — Smokes y documentos
+- `scripts/smoke-da-permisos-negativos.mjs` — 8 asserts transaccionales (ROLLBACK): claves sin SELECT, gate propio sin el atajo de módulo de AG12 (el check más importante — confirma que `tecnologia.claves_equipos` NO se filtra), admin positivo, historial solo-insert, código único, kit cascada solo-presentes, lote parcial, RLS de creación.
+- `scripts/smoke-da4-claves-equipo-edge-vivo.mjs` y `scripts/smoke-da6-lote-conector-edge-vivo.mjs` — HTTP real contra las edges ya desplegadas en dev (sesión minteada para `qa_admin@constructorasd.com`, nunca una contraseña real).
+- `PARIDAD.md` (contrato para la app, PROMPT-123), `ROLES.md` (permiso granular nuevo), `docs/SUBMODULOS-SENSIBLES.md` §2.1 (clave del equipo), `docs/DATOS-Y-TERCEROS.md` (Anthropic ahora también lee capturas de Windows — sin tercero nuevo).
+
+### 🔴 2 bugs reales encontrados y corregidos (no solo "el correcto pasa" — también "el incorrecto es rechazado")
+1. **Secuencia/catálogo nuevo sin `GRANT` a `service_role`:** `sgc.tec_equipo_seq` y `tec_equipo_estados`/`tec_equipo_condiciones` solo tenían grant a `authenticated` — la edge `equipos-clave` (service role) actualiza `tec_equipos.tiene_clave`, lo que dispara los triggers de validación/historial de F1, que SÍ leen esos catálogos → `permission denied for table/sequence`. Mismo gotcha recurrente del `CLAUDE.md` ("permission denied for sequence roles_id_seq"), esta vez con `service_role` en vez de `authenticated`. Corregido con `grant select ... to service_role` explícito en `da1-base-equipos.sql`.
+2. **Orden de reaplicación de migraciones en dev:** al reaplicar `da1` (para agregar un grant) DESPUÉS de que `da2`/`da3` ya habían redefinido `tg_tec_equipos_historial()`/`tg_tec_equipos_asignar_codigo()` con `create or replace`, la reaplicación de `da1` **clobbereó** las versiones más nuevas de esas funciones compartidas con las viejas de F1 (sin kit/sin responsable_externo) — detectado por el smoke de kits (subcódigo esperado `TEC-0004-01`, dio `TEC-0005`). Lección para cualquier sesión futura que reaplique una migración de esta ronda en dev: **reaplicar SIEMPRE en orden 1→2→3→4→5**, nunca solo la que se tocó.
+3. **`array_text[] || 'literal sin tipo'` es ambiguo en Postgres:** `v_cambios := v_cambios || 'Cambió de ubicación/bodega.'` (sin cast) falla con `malformed array literal` — Postgres intenta resolver `anyarray || anyarray` antes que `anyarray || anyelement` cuando el lado derecho es un literal "unknown". Con `format(...)` (que sí tiene tipo `text` declarado) no pasaba. Fix: `::text` explícito en cada append de literal plano/expresión `case` dentro del trigger de historial (las 3 migraciones, F1/F2/F3).
+
+### Addendum (28-oct-2026) — los 16 equipos YA están cargados en dev
+A pedido explícito de Xaviel ("hazlo tú"), se cargaron los 16 equipos + el kit DJI
+directo en `sgc-dev` (no por el conector — necesitaba subir fotos reales, que el
+conector no puede). Fuente: fichas reales en
+`C:\Users\xavie\Desktop\X Dev\Constructora SD\inventario tecnologico csd v1\Equipos organizados\`
+(creadas por Xaviel el 26-oct-2026, con 68 fotos). Script versionado:
+`scripts/data-fixes/2026-10-28-da-cargar-16-equipos.mjs` (DRY-RUN por defecto, `--apply` para repetir).
+
+- **TEC-0014…TEC-0029** (16 equipos) + **TEC-0029-01…06** (6 componentes del kit DJI,
+  uno de ellos — el dron — marcado `extraviado`/`por_diagnosticar`/`presente=false`,
+  ya que según la ficha "no está en el estuche, ubicación por confirmar").
+- Specs reales pobladas (procesador, RAM, GPU, SO, nombre/usuario de Windows,
+  cargador, Service Tag/Reg Model/DP-N, radios: frecuencia/batería/sello Telserdom,
+  dron: cámara) en 14 de los 16 (los 2 sin specs técnicas distintas — el radio
+  Blackbox y el estuche del kit — se dejaron sin fila en `tec_equipo_specs`).
+  68 fotos reales subidas al bucket `inventario`, verificado contenido (no solo
+  "subida sin error" — se confirmó un content-length igual al archivo local).
+- `costo_origen='estimado'` en los 16 (los costos de las fichas son precios
+  referenciales, nunca de compra real) + `fecha_compra_desconocida`/
+  `garantia_desconocida=true` + `ubicacion='Oficina Central'` + `bodega_id`
+  = Bodega Central (única con `es_central=true` en dev).
+- Responsables sin usuario en dev (Raykler, Ramón Cabrera, Sócrates, Eduardo Ng,
+  Cristofer): dev **no tiene estos empleados reales** registrados (solo datos de
+  prueba) — se usó `responsable_externo` (texto) en los 5, en vez de inventar un
+  `empleado_id`. **Si esos nombres SÍ tienen usuario/empleado real en prod, hay
+  que re-vincularlos a su `empleado_id` real al promover (no asumido aquí).**
+- **La clave compartida real del equipo 02 (TEC-0015) NUNCA se escribió** — ni en
+  el script, ni en la base, ni en este archivo. `tiene_clave=false` a propósito.
+
+### PENDIENTE XAVIEL (físico, §6 del prompt)
+1. **Teclear tú la clave compartida del equipo 02** (TEC-0015) en la ficha — nunca la escribas en un prompt/nota — y probar "Mostrar 30 s" + el historial.
+2. ~~Cargar los 16 equipos con el lote del conector~~ — **YA CARGADOS** (ver addendum arriba). Revisa las fichas TEC-0014…TEC-0029 en `dev.sgcconstructorasd.com` y corrige lo que haga falta (responsables reales, ubicación física exacta, confirmar cuál dron es el dañado).
+3. **Corregir 09, 10, 15 y 16** (ahora TEC-0022, TEC-0023, TEC-0028, TEC-0029) al revisar: situación + condición reales, y cuál de los 2 drones (TEC-0028 o el componente TEC-0029-06) es el dañado/perdido.
+4. **Decidir quién recibe `tecnologia.claves_equipos`** (Administración › Roles) — por defecto nadie más que tú.
+5. Probar en `dev.sgcconstructorasd.com` y en el teléfono (sin construir nada móvil todavía): ficha nueva, estados/condición, kit, clave, lector de capturas, QR.
+6. Imprimir una etiqueta QR de prueba y pegarla en un equipo real.
+7. ~~OK para abrir/mergear PR `feature/da-ronda → dev`~~ — **YA DADO Y HECHO** (28-oct, PR #30 mergeado, commit `c2353348`). Lo que SIGUE esperando tu OK por escrito: PR `dev → main` y aplicar las 5 migraciones + 2 edges a **prod**. Falta `qa/release-da.md` + `release-check.mjs` cuando llegue ese momento (no corrido esta ronda — ver abajo).
+8. PROMPT-123 (csd-app) queda pendiente de otra sesión — contrato completo en `PARIDAD.md` (sección "DA").
+
+### Lo que NO corrió (y por qué)
+- **`release-check.mjs`**: exige versión bumpeada + `qa/release-<version>.md` con un `OK:` de Xaviel — eso es al momento de abrir el PR `dev → main`, que esta ronda no hace sin su autorización explícita.
+- **App móvil (PROMPT-123):** no tocada — es la ronda hermana, after esta.
+- `git commit`/`push`/`deploy`: nada, por instrucción explícita del prompt.
+
+### Verify on resume
+```bash
+cd "C:/Users/xavie/Desktop/X Dev/dev/SGC-da"   # worktree de esta ronda, NO el principal
+cp "../SGC/.env.local" .env.local               # gitignored, no viaja con el worktree
+npm install && npm run env:dev                  # node_modules + environment.ts (gitignored) nuevos en cada worktree
+git log --oneline -3                            # sin commits aún — todo en working tree
+npm run build && npm test                       # verde (127/127 Vitest)
+node scripts/smoke-da-permisos-negativos.mjs --env dev
+node scripts/smoke-da4-claves-equipo-edge-vivo.mjs --env dev
+node scripts/smoke-da6-lote-conector-edge-vivo.mjs --env dev
+```
+
 ## 🧪 Ronda CZ (PROMPT-120, 26-27/10/2026) — F0-F5 COMPLETAS en `feature/cz-ronda` (worktree `SGC-cz`), **NO en `dev` ni `main`**
 
 Contexto completo: `C:\developer\improvements\octubre 2026\imp 26102026\CONTEXTO-ACTUALIZACION-59.md`. Sesión autónoma de principio a fin (sin preguntas, defaults DZ-01…DZ-27 aplicados y reportados abajo). **Rama propia `feature/cz-ronda`, worktree propio `C:\Users\xavie\Desktop\X Dev\dev\SGC-cz`** (regla CQ6 — no se tocó el worktree principal). 5 commits: `424e8977` (CZ5), `ad39a3b3` (CZ1/CZ2), `0a6590dd` (CZ4), `f3f55f6e` (CZ3/CZ9), `b354cb99` (fix FK append-only, ver abajo). **4 migraciones + 1 edge function aplicadas/desplegadas SOLO en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`) — nada en prod. Build + 127/127 Vitest + 74/74 Deno (incl. 9 de cripto del Vault) verdes.

@@ -94,6 +94,19 @@ export class UserService {
   }
 
   /**
+   * DA-06 — gate de las claves de equipos: a propósito SIN el atajo de
+   * "módulo padre = operar" que sí tiene `nivelSubmodulo` (un rol con el
+   * módulo `tecnologia` completo NO debe ver claves de equipos solo por eso —
+   * es un permiso granular aparte, que nadie recibe por defecto). Espejo de
+   * `sgc.puede_ver_claves_equipos()`.
+   */
+  puedeVerClavesEquipos = computed(() => {
+    if (this.hasRole('admin')) return true;
+    const nivel = this.permisosMerged()['tecnologia.claves_equipos'];
+    return nivel === 'ver' || nivel === 'operar';
+  });
+
+  /**
    * Y11 / AC2 — acceso a las secciones RESTRINGIDAS de "Tecnología" de plataforma
    * (versiones de la app, reportes de errores, monitoreo de infraestructura).
    * Reservado a `admin`, `tecnologia`, `gerencia` y `direccion`. Debe coincidir
