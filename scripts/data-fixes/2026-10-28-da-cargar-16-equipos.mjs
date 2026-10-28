@@ -3,27 +3,37 @@
 // fotos el 2026-10-26 (fichas en
 // "C:\Users\xavie\Desktop\X Dev\Constructora SD\inventario tecnologico csd v1\
 // Equipos organizados\") — incluye el kit DJI (equipo 16) con sus 6 componentes.
-// Ejecutado con el OK explícito de Xaviel (confirmado por pregunta directa).
+// Inventario REAL de la empresa (confirmado por Xaviel) → corre en dev y en
+// prod. Primero se corrió en dev con el OK explícito de Xaviel; esta misma
+// lista se corre después contra prod porque son los mismos activos físicos.
 //
 // Equivalente a lo que el conector de Claude haría con
 // `proponer_equipos_tecnologicos_lote` + revisión humana, pero ejecutado
 // directamente aquí porque también sube fotos (bytes) y arma specs/kit, que el
 // conector por diseño NO puede hacer (DA-15: "el conector no puede subir bytes
-// de fotos"). SOLO dev — nunca toca prod.
+// de fotos").
 //
 // Reglas respetadas (no negociables, de la ronda DA):
 //   - Costos SIEMPRE costo_origen='estimado' (son precios referenciales, no de
 //     compra real — así lo dice cada ficha).
 //   - fecha_compra y garantia_hasta quedan "desconocidas" (checkbox), no vacías.
 //   - La clave compartida del equipo 02 (nota adhesiva) NUNCA se escribe aquí
-//     — ni en este archivo, ni en la base. Xaviel la teclea él mismo desde la
-//     ficha (Clave del equipo → Guardar).
-//   - Dev no tiene registrados a Raykler/Ramón Cabrera/Sócrates/Eduardo Ng como
-//     empleados (verificado: sgc.empleados solo trae datos de prueba) → se usa
-//     responsable_externo (texto) en vez de inventar un empleado_id.
+//     — ni en este archivo, ni en la base, en NINGÚN entorno. Xaviel la teclea
+//     él mismo desde la ficha (Clave del equipo → Guardar).
+//   - Ni dev ni prod tienen registrados a Raykler/Ramón Cabrera/Sócrates/
+//     Eduardo Ng como empleados (verificado en ambos: sgc.empleados solo trae
+//     datos de prueba) → se usa responsable_externo (texto) en vez de
+//     inventar un empleado_id.
+//   - Anti-duplicado por serie: antes de crear cada ficha con `serie` no nula,
+//     se verifica que esa serie no exista YA en sgc.tec_equipos de ese
+//     entorno (prod ya traía 3 equipos reales cargados a mano por Xaviel
+//     antes de esta ronda). Si hay coincidencia se OMITE esa ficha y se
+//     reporta — nunca se inserta un duplicado ni se sobrescribe el existente.
 //
 //   node scripts/data-fixes/2026-10-28-da-cargar-16-equipos.mjs --env dev            (DRY-RUN)
 //   node scripts/data-fixes/2026-10-28-da-cargar-16-equipos.mjs --env dev --apply
+//   node scripts/data-fixes/2026-10-28-da-cargar-16-equipos.mjs --env prod --yes     (DRY-RUN contra prod)
+//   node scripts/data-fixes/2026-10-28-da-cargar-16-equipos.mjs --env prod --yes --apply
 import '../lib/load-env.mjs';
 import { resolverEnv, dbQuery } from '../lib/entorno.mjs';
 import { readFileSync, existsSync } from 'node:fs';
@@ -33,10 +43,6 @@ const env = await resolverEnv(process.argv.slice(2));
 const APPLY = process.argv.includes('--apply');
 if (!env.serviceKey) {
   console.error(`🔴 Falta SUPABASE_SERVICE_ROLE_KEY_${env.entorno.toUpperCase()} en .env.local`);
-  process.exit(1);
-}
-if (env.entorno !== 'dev') {
-  console.error('🔴 Este data-fix solo corre contra dev (regla 18) — nada de equipos reales va directo a prod.');
   process.exit(1);
 }
 
@@ -300,19 +306,32 @@ async function crearEquipo(e, kitPadreId = null) {
 
 async function main() {
   console.log(`\n═══ DA — cargar 16 equipos tecnológicos — ${env.entorno} — ${APPLY ? 'APLICAR' : 'DRY-RUN'} ═══\n`);
-  for (const e of EQUIPOS) {
+
+  const existentes = await dbQuery(env, `select serie from sgc.tec_equipos where serie is not null`);
+  const seriesExistentes = new Set(existentes.map((r) => String(r.serie).trim()));
+  if (seriesExistentes.size) {
+    console.log(`(${env.entorno}: ${seriesExistentes.size} serie(s) ya en sgc.tec_equipos — se omite cualquier ficha que coincida, para no duplicar.)\n`);
+  }
+
+  const aOmitir = EQUIPOS.filter((e) => e.serie && seriesExistentes.has(String(e.serie).trim()));
+  const aCrear = EQUIPOS.filter((e) => !(e.serie && seriesExistentes.has(String(e.serie).trim())));
+
+  for (const e of aOmitir) {
+    console.log(`⏭ OMITIDO (serie ${e.serie} ya existe en ${env.entorno}): ${e.nombre}`);
+  }
+  for (const e of aCrear) {
     const folder = join(BASE, e.folder);
     if (!existsSync(folder)) { console.log(`🔴 ${e.folder}: carpeta no encontrada, se omite.`); continue; }
     console.log(`• ${e.nombre}  (${e.fotos?.length ?? 0} foto(s)${e.kit ? `, kit con ${e.kit.length} componente(s)` : ''})`);
   }
   if (!APPLY) {
-    console.log(`\nTotal: ${EQUIPOS.length} equipos (incluye 1 kit con ${EQUIPOS.find((e) => e.kit)?.kit.length ?? 0} componentes).`);
-    console.log('(DRY-RUN — nada creado. Repite con --apply para cargarlos de verdad en dev.)');
+    console.log(`\nTotal a crear: ${aCrear.length} de ${EQUIPOS.length} equipos (${aOmitir.length} omitido(s) por duplicado de serie).`);
+    console.log(`(DRY-RUN — nada creado. Repite con --apply para cargarlos de verdad en ${env.entorno}.)`);
     return;
   }
 
   const creados = [];
-  for (const e of EQUIPOS) {
+  for (const e of aCrear) {
     const folder = join(BASE, e.folder);
     if (!existsSync(folder)) { console.log(`🔴 ${e.folder}: carpeta no encontrada, se omite.`); continue; }
     const { id, codigo } = await crearEquipo(e);
@@ -329,6 +348,7 @@ async function main() {
   }
 
   console.log(`\n${creados.length} fila(s) de tec_equipos creadas (equipos + componentes de kit).`);
+  if (aOmitir.length) console.log(`${aOmitir.length} ficha(s) omitida(s) por duplicado de serie: ${aOmitir.map((e) => e.nombre).join(', ')}.`);
   console.log('Pendiente de Xaviel: equipo 02 — teclear la clave compartida real desde la ficha (nunca quedó escrita aquí); confirmar responsables externos y ubicación real; decidir cuál dron está dañado/perdido (15 vs. el del kit DJI).');
 }
 
