@@ -2,7 +2,7 @@
 
 ## 🧪 Ronda DA (PROMPT-122, 27-oct-2026) — F0-F8 COMPLETAS en `feature/da-ronda` (worktree `SGC-da`), **NO en `dev` ni `main`**
 
-**TL;DR:** Inventario tecnológico ampliado de punta a punta (campos, estados/condición como catálogo, kits, clave cifrada del equipo, lector de capturas de Windows, conector de Claude, alerta de garantía, QR) + paginación de Versiones de la app. Contexto completo: `C:\developer\improvements\octubre 2026\imp 27102026\CONTEXTO-ACTUALIZACION-60.md`. Sesión autónoma de principio a fin (defaults DA-00…DA-23 aplicados y reportados abajo, Regla A — nunca se preguntó). **Rama propia `feature/da-ronda`, worktree propio `C:\Users\xavie\Desktop\X Dev\dev\SGC-da`** (regla CQ6). **5 migraciones + 2 edge functions nuevas (`equipos-clave`, `leer-especificaciones-equipo`) aplicadas/desplegadas SOLO en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`) — nada en prod, nada commiteado/pusheado. Build + 127/127 Vitest + 3 smokes DA (SQL transaccional + 2 edge-vivo HTTP) verdes.
+**TL;DR:** Inventario tecnológico ampliado de punta a punta (campos, estados/condición como catálogo, kits, clave cifrada del equipo, lector de capturas de Windows, conector de Claude, alerta de garantía, QR) + paginación de Versiones de la app. Contexto completo: `C:\developer\improvements\octubre 2026\imp 27102026\CONTEXTO-ACTUALIZACION-60.md`. Sesión autónoma de principio a fin (defaults DA-00…DA-23 aplicados y reportados abajo, Regla A — nunca se preguntó). **Rama propia `feature/da-ronda`, worktree propio `C:\Users\xavie\Desktop\X Dev\dev\SGC-da`** (regla CQ6). **5 migraciones + 2 edge functions nuevas (`equipos-clave`, `leer-especificaciones-equipo`) aplicadas/desplegadas SOLO en dev** (`sgc-dev`, `fzfrnrvndzrjwyvdpkgg`). Build + 127/127 Vitest + 3 smokes DA (SQL transaccional + 2 edge-vivo HTTP) verdes. **Commiteado y pusheado — PR #30 abierto `feature/da-ronda → dev`** (con el OK de Xaviel). **28-oct-2026 (addendum):** a pedido explícito de Xaviel, los 16 equipos reales + kit DJI YA quedaron cargados en dev (ver addendum más abajo) — solo falta que Xaviel teclee la clave real del equipo 02 y revise las fichas.
 
 ### F0 — Verificación
 CZ (Vault, rol `subadmin`, `tec_cotizaciones`) ya estaba 100% en `dev` (y hasta en `main`, PR #29 ya mergeado) — DA se construyó directamente sobre eso, sin esperar nada. Confirmados los 3 hallazgos del diagnóstico: estado en CHECK fijo (`2026-07-12-tecnologia-module.sql:55`), historial solo escrito por el navegador (`tecnologia.service.ts:255,288` — ya reescrito), código `TEC-####` calculado en el navegador (`:238-242` — ya quitado).
@@ -43,10 +43,39 @@ Alerta de garantía por vencer (parámetro `tec_garantia_alerta_dias`, default 3
 2. **Orden de reaplicación de migraciones en dev:** al reaplicar `da1` (para agregar un grant) DESPUÉS de que `da2`/`da3` ya habían redefinido `tg_tec_equipos_historial()`/`tg_tec_equipos_asignar_codigo()` con `create or replace`, la reaplicación de `da1` **clobbereó** las versiones más nuevas de esas funciones compartidas con las viejas de F1 (sin kit/sin responsable_externo) — detectado por el smoke de kits (subcódigo esperado `TEC-0004-01`, dio `TEC-0005`). Lección para cualquier sesión futura que reaplique una migración de esta ronda en dev: **reaplicar SIEMPRE en orden 1→2→3→4→5**, nunca solo la que se tocó.
 3. **`array_text[] || 'literal sin tipo'` es ambiguo en Postgres:** `v_cambios := v_cambios || 'Cambió de ubicación/bodega.'` (sin cast) falla con `malformed array literal` — Postgres intenta resolver `anyarray || anyarray` antes que `anyarray || anyelement` cuando el lado derecho es un literal "unknown". Con `format(...)` (que sí tiene tipo `text` declarado) no pasaba. Fix: `::text` explícito en cada append de literal plano/expresión `case` dentro del trigger de historial (las 3 migraciones, F1/F2/F3).
 
+### Addendum (28-oct-2026) — los 16 equipos YA están cargados en dev
+A pedido explícito de Xaviel ("hazlo tú"), se cargaron los 16 equipos + el kit DJI
+directo en `sgc-dev` (no por el conector — necesitaba subir fotos reales, que el
+conector no puede). Fuente: fichas reales en
+`C:\Users\xavie\Desktop\X Dev\Constructora SD\inventario tecnologico csd v1\Equipos organizados\`
+(creadas por Xaviel el 26-oct-2026, con 68 fotos). Script versionado:
+`scripts/data-fixes/2026-10-28-da-cargar-16-equipos.mjs` (DRY-RUN por defecto, `--apply` para repetir).
+
+- **TEC-0014…TEC-0029** (16 equipos) + **TEC-0029-01…06** (6 componentes del kit DJI,
+  uno de ellos — el dron — marcado `extraviado`/`por_diagnosticar`/`presente=false`,
+  ya que según la ficha "no está en el estuche, ubicación por confirmar").
+- Specs reales pobladas (procesador, RAM, GPU, SO, nombre/usuario de Windows,
+  cargador, Service Tag/Reg Model/DP-N, radios: frecuencia/batería/sello Telserdom,
+  dron: cámara) en 14 de los 16 (los 2 sin specs técnicas distintas — el radio
+  Blackbox y el estuche del kit — se dejaron sin fila en `tec_equipo_specs`).
+  68 fotos reales subidas al bucket `inventario`, verificado contenido (no solo
+  "subida sin error" — se confirmó un content-length igual al archivo local).
+- `costo_origen='estimado'` en los 16 (los costos de las fichas son precios
+  referenciales, nunca de compra real) + `fecha_compra_desconocida`/
+  `garantia_desconocida=true` + `ubicacion='Oficina Central'` + `bodega_id`
+  = Bodega Central (única con `es_central=true` en dev).
+- Responsables sin usuario en dev (Raykler, Ramón Cabrera, Sócrates, Eduardo Ng,
+  Cristofer): dev **no tiene estos empleados reales** registrados (solo datos de
+  prueba) — se usó `responsable_externo` (texto) en los 5, en vez de inventar un
+  `empleado_id`. **Si esos nombres SÍ tienen usuario/empleado real en prod, hay
+  que re-vincularlos a su `empleado_id` real al promover (no asumido aquí).**
+- **La clave compartida real del equipo 02 (TEC-0015) NUNCA se escribió** — ni en
+  el script, ni en la base, ni en este archivo. `tiene_clave=false` a propósito.
+
 ### PENDIENTE XAVIEL (físico, §6 del prompt)
-1. **Teclear tú la clave compartida del equipo 02** (1289) en la ficha — nunca la escribas en un prompt/nota — y probar "Mostrar 30 s" + el historial.
-2. **Cargar los 16 equipos con el lote del conector** cuando quieras: pídele a Claude Desktop que lea las fichas y prepare el lote (`proponer_equipos_tecnologicos_lote`), revisa la pantalla de aprobación en `/borrador/:id`, costos van como "estimado". Incluye los 7 componentes del kit DJI (ficha `16_Dron-DJI_kit-estuche-Lekufee`).
-3. **Corregir 09, 10, 15 y 16** al terminar de cargar: situación + condición reales.
+1. **Teclear tú la clave compartida del equipo 02** (TEC-0015) en la ficha — nunca la escribas en un prompt/nota — y probar "Mostrar 30 s" + el historial.
+2. ~~Cargar los 16 equipos con el lote del conector~~ — **YA CARGADOS** (ver addendum arriba). Revisa las fichas TEC-0014…TEC-0029 en `dev.sgcconstructorasd.com` y corrige lo que haga falta (responsables reales, ubicación física exacta, confirmar cuál dron es el dañado).
+3. **Corregir 09, 10, 15 y 16** (ahora TEC-0022, TEC-0023, TEC-0028, TEC-0029) al revisar: situación + condición reales, y cuál de los 2 drones (TEC-0028 o el componente TEC-0029-06) es el dañado/perdido.
 4. **Decidir quién recibe `tecnologia.claves_equipos`** (Administración › Roles) — por defecto nadie más que tú.
 5. Probar en `dev.sgcconstructorasd.com` y en el teléfono (sin construir nada móvil todavía): ficha nueva, estados/condición, kit, clave, lector de capturas, QR.
 6. Imprimir una etiqueta QR de prueba y pegarla en un equipo real.
