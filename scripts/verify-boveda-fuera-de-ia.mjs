@@ -1,7 +1,8 @@
-// verify-boveda-fuera-de-ia.mjs — DZ-15 (CZ3). El Vault NUNCA debe quedar
-// alcanzable desde Compa/el conector MCP/el asistente: falla el build si
-// `boveda`/`boveda_` aparece en los archivos que definen las herramientas de
-// IA, la edge del asistente o el conector MCP.
+// verify-boveda-fuera-de-ia.mjs — DZ-15 (CZ3) + DA-17 (ronda DA). El Vault y la
+// clave cifrada del equipo NUNCA deben quedar alcanzables desde Compa/el
+// conector MCP/el asistente: falla el build si `boveda`/`boveda_`, o
+// `equipos-clave`/`equipos_clave`/`tec_equipo_claves`, aparecen en los archivos
+// que definen las herramientas de IA, la edge del asistente o el conector MCP.
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -32,12 +33,13 @@ const archivos = [];
 for (const objetivo of OBJETIVOS) walkFiles(objetivo, archivos);
 
 const RE = /\bboveda(_\w+)?\b/i;
+const RE_CLAVES_EQUIPO = /\bequipos[-_]clave\b|\btec_equipo_claves\b/i;
 let hallazgos = 0;
 for (const f of archivos) {
   const txt = readFileSync(f, 'utf8');
   const lineas = txt.split('\n');
   lineas.forEach((linea, i) => {
-    if (RE.test(linea)) {
+    if (RE.test(linea) || RE_CLAVES_EQUIPO.test(linea)) {
       hallazgos++;
       console.error(`  ${f}:${i + 1}: ${linea.trim()}`);
     }
@@ -45,8 +47,8 @@ for (const f of archivos) {
 }
 
 if (hallazgos) {
-  fail(`${hallazgos} referencia(s) a 'boveda' en código de IA — el Vault NUNCA entra a Compa/MCP/assistant (DZ-15).`);
+  fail(`${hallazgos} referencia(s) a 'boveda'/clave-de-equipo en código de IA — el Vault y la clave del equipo NUNCA entran a Compa/MCP/assistant (DZ-15/DA-17).`);
 }
 
-console.log(`\x1b[32m✓ verify-boveda-fuera-de-ia:\x1b[0m sin referencias al Vault en ${archivos.length} archivo(s) de IA/conector.`);
+console.log(`\x1b[32m✓ verify-boveda-fuera-de-ia:\x1b[0m sin referencias al Vault ni a claves de equipo en ${archivos.length} archivo(s) de IA/conector.`);
 process.exit(0);

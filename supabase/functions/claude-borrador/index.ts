@@ -23,6 +23,10 @@ function mensajeExito(tipo: string): string {
   return tipo === "conduce" ? "Conduce creado. Queda pendiente de firma por el flujo normal."
     : tipo === "requisicion" ? "Requisición creada y enviada a aprobación."
     : tipo === "ruta" ? "Ruta asignada. Queda planificada para el chofer."
+    : tipo === "equipo_tecnologico" ? "Equipo guardado en el inventario tecnológico."
+    : tipo === "cambio_estado_equipo" ? "Situación/condición del equipo actualizada."
+    : tipo === "asignacion_equipo" ? "Equipo reasignado."
+    : tipo === "tipo_equipo" ? "Tipo de equipo agregado al catálogo."
     : "Tarea creada y asignada.";
 }
 
@@ -74,6 +78,27 @@ async function resolverDetalle(supabase: Any, tool: string, params: Any) {
       if (v) lineas.push({ etiqueta: "Vehículo", valor: `${v.placa ?? ""} ${v.marca ?? ""}`.trim() });
     }
     if (params.proyecto_id) lineas.push({ etiqueta: "Destino (obra)", valor: (await nombreObra(params.proyecto_id)) ?? "" });
+  } else if (tool === "proponer_equipo_tecnologico") {
+    lineas.push({ etiqueta: params.id ? "Editar equipo" : "Nombre", valor: params.nombre ?? params.id ?? "" });
+    if (params.tipo_clave) lineas.push({ etiqueta: "Tipo", valor: params.tipo_clave });
+    if (params.marca || params.modelo) lineas.push({ etiqueta: "Marca / Modelo", valor: `${params.marca ?? ""} ${params.modelo ?? ""}`.trim() });
+    if (params.estado) lineas.push({ etiqueta: "Situación", valor: params.estado });
+    if (params.empleado_id) lineas.push({ etiqueta: "Asignado a", valor: (await nombreUsuario(params.empleado_id)) ?? params.empleado_id });
+    if (params.responsable_externo) lineas.push({ etiqueta: "Responsable (sin usuario)", valor: params.responsable_externo });
+    if (params.costo) lineas.push({ etiqueta: "Costo", valor: `${params.costo} ${params.moneda ?? 'DOP'} (${params.costo_origen ?? 'estimado'})` });
+  } else if (tool === "proponer_cambio_estado_equipo") {
+    lineas.push({ etiqueta: "Equipo", valor: params.id ?? "" });
+    if (params.estado) lineas.push({ etiqueta: "Nueva situación", valor: params.estado });
+    if (params.condicion) lineas.push({ etiqueta: "Nueva condición", valor: params.condicion });
+  } else if (tool === "proponer_asignacion_equipo") {
+    lineas.push({ etiqueta: "Equipo", valor: params.id ?? "" });
+    if (params.empleado_id) lineas.push({ etiqueta: "Nuevo responsable", valor: (await nombreUsuario(params.empleado_id)) ?? params.empleado_id });
+    if (params.responsable_externo) lineas.push({ etiqueta: "Responsable (sin usuario)", valor: params.responsable_externo });
+    if (params.ubicacion) lineas.push({ etiqueta: "Ubicación", valor: params.ubicacion });
+  } else if (tool === "proponer_tipo_equipo") {
+    lineas.push({ etiqueta: "Nombre del tipo", valor: params.label ?? "" });
+  } else if (tool === "proponer_equipos_tecnologicos_lote") {
+    lineas.push({ etiqueta: "Equipos en el lote", valor: String((params.equipos ?? []).length) });
   }
   return lineas;
 }
@@ -105,6 +130,9 @@ Deno.serve(async (req: Request) => {
   const capObj: Cap = {
     usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin,
     modulos: Array.isArray(cap.modulos) ? cap.modulos : [], roles: Array.isArray(cap.roles) ? cap.roles : [],
+    // DA-16 — permisos granulares (AG12): el Subadministrador confirma estas
+    // propuestas sin el módulo completo, igual que las ve/propone.
+    permisos: cap.permisos && typeof cap.permisos === "object" ? cap.permisos : {},
   };
 
   const { data: borrador, error: bErr } = await supabase.rpc("claude_borrador_obtener", { p_id: id });
@@ -133,8 +161,27 @@ Deno.serve(async (req: Request) => {
 
     const cfg = TOOLS.find((t) => t.name === borrador.tool && t.write);
     if (!cfg) return json({ error: "Herramienta no reconocida." }, 400);
-    if (!(cfg.modulos === null || capObj.es_admin || cfg.modulos.some((m) => capObj.modulos.includes(m)))) {
+    const tienePermiso = cfg.modulos === null || capObj.es_admin || cfg.modulos.some((m) => capObj.modulos.includes(m)) ||
+      (cfg.submodulos?.some((s) => capObj.permisos?.[s] === "ver" || capObj.permisos?.[s] === "operar") ?? false);
+    if (!tienePermiso) {
       return json({ error: "No tienes permiso para esta acción." }, 403);
+    }
+
+    // DA-15 — el lote de equipos tecnológicos tiene su PROPIO camino de
+    // confirmación (por fila, con selección de cuáles cargar desde la pantalla
+    // de revisión DA4) — nunca pasa por el "un solo execRpc" genérico de abajo.
+    if (cfg.write!.tipo === "equipos_lote") {
+      const seleccionadas: number[] = Array.isArray(payload.seleccionadas)
+        ? payload.seleccionadas
+        : ((borrador.params as { equipos?: unknown[] })?.equipos ?? []).map((_: unknown, idx: number) => idx);
+      const { data, error } = await supabase.rpc("tec_equipos_lote_confirmar", {
+        p_borrador_id: id, p_filas_seleccionadas: seleccionadas,
+      });
+      if (error) return json({ ok: false, mensaje: `No se pudo completar: ${error.message}` });
+      await supabase.from("claude_borradores")
+        .update({ estado: "confirmado", resultado: { ok: true, mensaje: data?.mensaje ?? `${data?.cargados ?? 0} de ${data?.total ?? 0} equipos cargados.`, filas: data?.filas ?? [] } })
+        .eq("id", id).then(() => {}, () => {});
+      return json({ ok: true, mensaje: `${data?.cargados ?? 0} de ${data?.total ?? 0} equipos cargados.`, filas: data?.filas ?? [] });
     }
 
     const clave = borrador.idem;

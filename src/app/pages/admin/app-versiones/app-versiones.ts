@@ -9,10 +9,11 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaHumanaConDia } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-admin-app-versiones',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe, Icon, Paginator],
   templateUrl: './app-versiones.html',
   styleUrl: './app-versiones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +34,15 @@ export class AdminAppVersiones implements OnInit {
   loading = signal(true);
   saving = signal(false);
   error = signal('');
+
+  // DA17 — paginación (la lista crece y las notas son largas; sin esto el
+  // scroll hasta la última versión se hace interminable).
+  page = signal(1);
+  readonly PAGE_SIZE = 10;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.versiones().slice(start, start + this.PAGE_SIZE);
+  });
 
   /** Guía "¿cómo funciona?" — recuerda si el admin la ocultó. */
   guiaAbierta = signal<boolean>(this.leerPrefGuia());

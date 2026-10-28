@@ -1094,3 +1094,31 @@ ESTRECHO que la web (DZ-19):
   vez de 5 — ya implementado en el servidor, `SESION_MINUTOS` en `supabase/functions/boveda/
   index.ts`), el mismo `pinGuard` ya activo, y la misma reautenticación server-side.
 - **Nunca entra a Compa/MCP** (DZ-15) — ni en la app tampoco.
+
+### DA (ronda DA, PROMPT-122) — Inventario tecnológico (contrato para la app, PROMPT-123)
+Backend 100% construido en esta ronda (F1-F7), **ningún cambio del lado app todavía**.
+La app (`csd-app`) ya tiene `pages/tecnologia-inventario/{equipo-detalle,equipo-form}` y
+`core/services/tecnologia.service.ts` con catálogo en caché `tec_equipos` — necesita subir
+de versión para traer las columnas/tablas nuevas y mostrarlas (DA-19):
+- **Situación/condición** pasan de union fijo a catálogo (`tec_equipo_estados`/
+  `tec_equipo_condiciones`, select público). La app debe pintarlas como catálogo (igual
+  que ya hace con `tec_equipo_tipos`), no como enum cerrado — y mostrar AMBAS por
+  separado (antes solo había "estado").
+- **Specs por tipo** (`tec_equipo_specs`, 1:1) + `grupos_campos` del tipo deciden qué bloque
+  mostrar — mismo patrón que la web (F2).
+- **Kits** (`kit_padre_id`, `presente`, vista `tec_kits_estado`, RPCs `tec_kit_mover`/
+  `tec_kit_mover_pieza`): la ficha de un kit lista sus componentes con su estado
+  presente/falta; mover/asignar kit completo o una pieza suelta.
+- **Responsable externo, costo_origen, fecha/garantía "desconocida"**: campos nuevos,
+  mostrar y editar igual que en la web.
+- **Clave del equipo (DA4/DA6) — alcance MÁS ESTRECHO que la web (mismo patrón que el
+  Vault):** la app puede **ver** (edge `equipos-clave`, header normal, sin sesión de
+  reautenticación propia — esta pieza NO es el Vault, no reusa `boveda`) y **cambiar/quitar**
+  si el usuario tiene el permiso granular `tecnologia.claves_equipos`; **nada se guarda en el
+  dispositivo** (sin `localStorage`/caché del valor), mismas salvaguardas que el Vault móvil
+  de CZ (pantalla protegida Android, valor visible 30 s). Requiere conexión (no hay cola
+  offline para esto). **Nunca entra a Compa/MCP** (DA-17, mismo gate que el Vault).
+- **Lector de capturas de Windows, carga en lote, importador, QR de impresión: SOLO web**
+  (DA-19) — la app no construye nada de esto.
+- El catálogo en caché `tec_equipos` (`CATALOG_EQUIPOS`) sube de versión para traer las
+  columnas nuevas; invalidar en los mismos puntos que ya invalida hoy.

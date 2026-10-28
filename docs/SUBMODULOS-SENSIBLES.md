@@ -138,6 +138,37 @@ respectivos padres (`app.routes.ts:187-203`), sin hijas con guard propio adicion
 (heredan del padre, igual que Admin). **Verificado:** ninguno de los 3 módulos está
 en la lista de partida del Subadministrador (DZ-20) → bloqueado. ✅.
 
+## 2.1 Clave del equipo (DA4/DA6 — ronda DA, 27-oct-2026)
+Tabla nueva `sgc.tec_equipo_claves` (clave de acceso de un equipo del inventario
+TI — ej. laptop en stock con PIN compartido). Mismo patrón de fondo que el
+Vault (AES-256-GCM, `BOVEDA_MASTER_KEY`), pero **fuera** de él: gate y tabla
+propios.
+
+| Capa | Gate real |
+|---|---|
+| UI (botón "Mostrar"/bloque "Clave del equipo") | `userService.puedeVerClavesEquipos()` (`user.service.ts`) |
+| RLS | `tec_equipo_claves` **sin ninguna política para `authenticated`** (`revoke all ... from authenticated`) — ni metadata |
+| Edge `equipos-clave` | `sgc.puede_ver_claves_equipos()` = `is_admin() OR` permiso granular directo `tecnologia.claves_equipos` |
+
+**A propósito NO usa el helper AG12** (`puede_ver_submodulo`/`puede_operar_submodulo`,
+ni su espejo cliente `nivelSubmodulo`/`puedeVerSubmodulo`): ese helper da
+`'operar'` a cualquiera con el **módulo padre completo** (`tiene_modulo('tecnologia')`
+en el servidor, `hasModulo('tecnologia')` en el cliente) como regla de
+compatibilidad — si `tecnologia.claves_equipos` usara ese camino, **cualquier
+rol con el módulo Tecnología completo vería las claves sin que nadie se lo
+diera a propósito**, exactamente lo que Xaviel pidió evitar. El predicado
+(`sgc.puede_ver_claves_equipos()` / `UserService.puedeVerClavesEquipos()`) mira
+el permiso granular **directo**, sin el atajo de módulo.
+
+**Por defecto, nadie lo tiene** — ni el Subadministrador (su fila de permisos,
+`sql/2026-10-26-cz3-rol-subadmin.sql`, no incluye `tecnologia.claves_equipos`).
+Xaviel lo asigna a mano desde Administración › Roles a quien decida (paso
+físico, pendiente).
+
+**Fuera de Compa/MCP/el conector de Claude** (DA-17): `scripts/verify-boveda-
+fuera-de-ia.mjs` ahora también busca `equipos-clave`/`tec_equipo_claves` además
+de `boveda`.
+
 ## 5. Resumen — Subadministrador (verificado con `scripts/smoke-cz-permisos-negativos.mjs`, F4)
 | Sensible | ¿Lo ve? |
 |---|---|
@@ -147,3 +178,4 @@ en la lista de partida del Subadministrador (DZ-20) → bloqueado. ✅.
 | Inventario TI / Compras tecnológicas / Cotizaciones / Guía | ✅ Sí — permiso granular (DZ-20) |
 | Legal / RRHH / Dirección | ❌ No — módulos no otorgados |
 | Inventario, Compras, Proyectos, Flota, Bitácora, Documentos, Plantillas, Tareas | ✅ Sí — módulos de partida |
+| Clave del equipo (DA4) | ❌ No — permiso granular `tecnologia.claves_equipos` aparte, nadie lo recibe por defecto |

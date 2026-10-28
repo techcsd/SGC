@@ -23,10 +23,10 @@ function norm(estado: string | null | undefined): string {
 // danger gana a warning gana a success, etc. (un estado como "rechazado_pendiente"
 // se pinta como danger). El fallback es neutral.
 const REGLAS: ReadonlyArray<readonly [Tono, RegExp]> = [
-  ['danger', /(rechaz|anul|cancel|atasc|vencid|rebot|error|fallid|denegad|bloquead|inactiv|suspendid|expirad|no_conform|incident|accident|mora)/],
+  ['danger', /(rechaz|anul|cancel|atasc|vencid|rebot|error|fallid|denegad|bloquead|inactiv|suspendid|expirad|no_conform|incident|accident|mora|averiad|extraviad|dado_de_baja)/],
   ['success', /(aprobad|complet|entregad|firmad|recibid|confirmad|finaliz|cerrad|resuelt|pagad|conciliad|disponible|activ|al_dia|ok|exitos|liberad|atendid)/],
-  ['warning', /(pendiente|revision|espera|proceso|curso|borrador|cuarentena|parcial|por_|abierto|programad|reprogramad|retras|advertenci|preliminar|tramite)/],
-  ['info', /(en_ruta|en_uso|nuevo|creado|asignad|enviad|despachad|transito|iniciad|planificad|generad|importad|reprogram)/],
+  ['warning', /(pendiente|revision|espera|proceso|curso|borrador|cuarentena|parcial|por_|abierto|programad|reprogramad|retras|advertenci|preliminar|tramite|reparac)/],
+  ['info', /(en_ruta|en_uso|nuevo|creado|asignad|enviad|despachad|transito|iniciad|planificad|generad|importad|reprogram|en_prestamo)/],
   ['brand', /(cerrada_obra|principal|maestro)/],
 ];
 

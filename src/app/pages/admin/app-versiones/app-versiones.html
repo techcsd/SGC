@@ -141,7 +141,7 @@
           <tr><th>Versión</th><th>Notas</th><th>Estado</th><th>Creada</th><th></th></tr>
         </thead>
         <tbody>
-          @for (v of versiones(); track v.id) {
+          @for (v of paginated(); track v.id) {
             <tr>
               <td><strong>{{ v.version }}</strong></td>
               <td class="av-notas">{{ v.notas || '—' }}</td>
@@ -173,6 +173,7 @@
         </tbody>
       </table>
     </div>
+    <app-paginator [total]="versiones().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
   }
 </div>
 
