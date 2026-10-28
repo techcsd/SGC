@@ -630,7 +630,9 @@ Deno.serve(async (req: Request) => {
   if (capErr || !cap) return json({ error: "No pude leer tus permisos." }, 500);
   const modulos: string[] = Array.isArray(cap.modulos) ? cap.modulos : [];
   const roles: string[] = Array.isArray(cap.roles) ? cap.roles : [];
-  const capObj: Cap = { usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin, modulos, roles };
+  // DA-16 — permisos granulares (AG12), por si alguna tool de Compa los usa.
+  const permisos: Record<string, "ver" | "operar"> = cap.permisos && typeof cap.permisos === "object" ? cap.permisos : {};
+  const capObj: Cap = { usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin, modulos, roles, permisos };
 
   // ── CI10 — consentimiento de IA explícito (Anthropic). Verificado en servidor.
   // No aplica al puente WhatsApp (canal fuera de tiendas, sin hoja de consentimiento).

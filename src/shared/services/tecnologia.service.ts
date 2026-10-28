@@ -11,6 +11,13 @@ import {
   TecCategoria,
   TEC_CATEGORIAS,
   TEC_EQUIPO_ESTADOS,
+  TEC_EQUIPO_CONDICIONES,
+  TecEquipoEstadoCat,
+  TecEquipoSpecs,
+  TecEquipoSpecsFormData,
+  TecGrupoCampos,
+  TecKitEstado,
+  TecEquipoClaveResultado,
   TecCotizacion,
   TecCotizacionFormData,
 } from '../models/tecnologia.model';
@@ -21,10 +28,24 @@ const TEC_HERRAMIENTA_COLS = new Set<string>([
   'nombre', 'categoria', 'para_que', 'quien_usa', 'url', 'activo', 'orden', 'updated_at',
 ]);
 const TEC_EQUIPO_COLS = new Set<string>([
-  'codigo', 'nombre', 'tipo', 'marca', 'modelo', 'serie', 'estado', 'empleado_id',
+  'codigo', 'nombre', 'tipo', 'marca', 'modelo', 'serie', 'estado', 'condicion', 'empleado_id',
   'asignado_en', 'ubicacion', 'notas', 'activo', 'updated_at', 'foto_path', 'costo',
   'fecha_compra', 'garantia_hasta', 'origen_solicitud_compra_id', 'tipo_id', 'bodega_id',
   'moneda', 'fotos', 'foto_portada',
+  // DA2 — identificación + DA-11/DA-12/DA-14
+  'service_tag', 'codigo_servicio', 'numero_parte', 'modelo_regulatorio', 'anio_fabricacion',
+  'codigo_anterior', 'imei', 'etiqueta_taller', 'responsable_externo',
+  'costo_origen', 'fecha_compra_desconocida', 'garantia_desconocida', 'fotos_specs',
+  // DA-10 — kits
+  'kit_padre_id', 'presente',
+]);
+const TEC_EQUIPO_SPECS_COLS = new Set<string>([
+  'procesador', 'ram_gb', 'ram_velocidad', 'almacenamiento_tipo', 'almacenamiento_gb',
+  'gpu_integrada', 'gpu_dedicada', 'gpu_memoria_gb', 'so', 'so_version',
+  'pantalla_pulgadas', 'resolucion', 'tactil', 'nombre_windows', 'usuario_windows',
+  'cargador_voltaje', 'cargador_amperaje', 'frecuencia', 'potencia_w', 'tipo_radio',
+  'sello_telserdom_radio', 'sello_telserdom_bateria', 'bateria_modelo', 'bateria_capacidad',
+  'bateria_unidad', 'bateria_voltaje', 'bateria_sello', 'accesorios', 'camara_specs',
 ]);
 import { formatFechaMedia } from '../utils/fecha.util';
 import { SolicitudCompra, LecturaCotizacion } from '../models/solicitud.model';
@@ -95,34 +116,85 @@ export class TecnologiaService {
   }
 
   // ── AL1 — Catálogo administrable de TIPOS de equipo tecnológico ───────────
-  /** Tipos activos de `sgc.tec_equipo_tipos` (Walkie-talkie, Laptop, …). */
-  async getEquipoTipos(): Promise<{ value: string; label: string }[]> {
+  /** Tipos activos de `sgc.tec_equipo_tipos` (Walkie-talkie, Laptop, …). DA-03:
+   *  incluye `grupos_campos` para que el formulario sepa qué bloque de specs mostrar. */
+  async getEquipoTipos(): Promise<{ value: string; label: string; grupos_campos: TecGrupoCampos[] }[]> {
     const { data, error } = await this.supabase.client
       .from('tec_equipo_tipos')
-      .select('id, clave, label, orden, activo')
+      .select('id, clave, label, orden, activo, grupos_campos')
       .eq('activo', true)
       .order('orden', { ascending: true })
       .order('label', { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((t) => ({ value: (t as { id: string }).id, label: (t as { label: string }).label }));
+    return (data ?? []).map((t) => {
+      const row = t as { id: string; label: string; grupos_campos: TecGrupoCampos[] | null };
+      return { value: row.id, label: row.label, grupos_campos: row.grupos_campos ?? [] };
+    });
   }
 
   /** AL1 — alta de un tipo nuevo (admin/tecnología). Devuelve {value:id, label}. */
-  async addEquipoTipo(label: string): Promise<{ value: string; label: string }> {
-    const clave = label
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '')
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 40);
+  async addEquipoTipo(label: string): Promise<{ value: string; label: string; grupos_campos: TecGrupoCampos[] }> {
+    const clave = this.slugClave(label);
     const { data, error } = await this.supabase.client
       .from('tec_equipo_tipos')
       .insert({ clave, label: label.trim(), orden: 200 })
       .select('id, label')
       .single();
     if (error) throw new Error(error.message);
-    return { value: (data as { id: string }).id, label: (data as { label: string }).label };
+    return { value: (data as { id: string }).id, label: (data as { label: string }).label, grupos_campos: [] };
+  }
+
+  // ── DA7/DA-04 — Catálogos administrables de situación/condición ──────────
+  async getEquipoEstados(): Promise<{ value: string; label: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_equipo_estados')
+      .select('clave, label, orden, activo')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+    if (error || !data || data.length === 0) return TEC_EQUIPO_ESTADOS;
+    return (data as unknown as TecEquipoEstadoCat[]).map((e) => ({ value: e.clave, label: e.label }));
+  }
+
+  async addEquipoEstado(label: string): Promise<{ value: string; label: string }> {
+    const clave = this.slugClave(label);
+    const { data, error } = await this.supabase.client
+      .from('tec_equipo_estados')
+      .insert({ clave, label: label.trim(), orden: 200 })
+      .select('clave, label')
+      .single();
+    if (error) throw new Error(error.message);
+    return { value: (data as { clave: string }).clave, label: (data as { label: string }).label };
+  }
+
+  async getEquipoCondiciones(): Promise<{ value: string; label: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_equipo_condiciones')
+      .select('clave, label, orden, activo')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+    if (error || !data || data.length === 0) return TEC_EQUIPO_CONDICIONES;
+    return (data as unknown as TecEquipoEstadoCat[]).map((c) => ({ value: c.clave, label: c.label }));
+  }
+
+  async addEquipoCondicion(label: string): Promise<{ value: string; label: string }> {
+    const clave = this.slugClave(label);
+    const { data, error } = await this.supabase.client
+      .from('tec_equipo_condiciones')
+      .insert({ clave, label: label.trim(), orden: 200 })
+      .select('clave, label')
+      .single();
+    if (error) throw new Error(error.message);
+    return { value: (data as { clave: string }).clave, label: (data as { label: string }).label };
+  }
+
+  private slugClave(label: string): string {
+    return label
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40);
   }
 
   // ── Homologación de herramientas ──────────────────────────
@@ -215,10 +287,14 @@ export class TecnologiaService {
   async getEquipos(): Promise<TecEquipo[]> {
     const { data, error } = await this.supabase.client
       .from('tec_equipos')
-      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .select('*, empleado:empleados(nombre, apellido, cargo), specs:tec_equipo_specs(*)')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as TecEquipo[];
+    // PostgREST entrega el 1:1 como arreglo de 0/1 — se aplana a objeto|null.
+    return ((data ?? []) as unknown as (TecEquipo & { specs: TecEquipoSpecs[] | null })[]).map((e) => ({
+      ...e,
+      specs: Array.isArray(e.specs) ? (e.specs[0] ?? null) : e.specs,
+    }));
   }
 
   /** QA-072 — Equipos TI activos asignados a un empleado (solo lectura, para RRHH). */
@@ -233,72 +309,27 @@ export class TecnologiaService {
     return (data ?? []) as unknown as TecEquipo[];
   }
 
-  async generateEquipoCodigo(): Promise<string> {
-    const { data } = await this.supabase.client
-      .from('tec_equipos')
-      .select('codigo')
-      .like('codigo', 'TEC-%')
-      .order('codigo', { ascending: false })
-      .limit(1);
-    const last = (data?.[0] as { codigo?: string } | undefined)?.codigo;
-    const n = last ? parseInt(last.replace('TEC-', ''), 10) || 0 : 0;
-    return `TEC-${String(n + 1).padStart(4, '0')}`;
-  }
-
+  // DA9 — el código TEC-#### ya no lo calcula el navegador (condición de carrera
+  // real con altas simultáneas/lote/app): se omite `codigo` en el insert y lo
+  // asigna la secuencia+trigger del servidor (sql/2026-10-27-da1-base-equipos.sql).
   async createEquipo(payload: TecEquipoFormData): Promise<TecEquipo> {
-    const codigo = await this.generateEquipoCodigo();
     const { data, error } = await this.supabase.client
       .from('tec_equipos')
-      .insert(pickColumns({ ...payload, codigo }, TEC_EQUIPO_COLS))
+      .insert(pickColumns({ ...payload }, TEC_EQUIPO_COLS))
       .select('*, empleado:empleados(nombre, apellido, cargo)')
       .single();
     if (error) throw new Error(error.message);
-    const equipo = data as unknown as TecEquipo;
-    await this.addHistorial(equipo.id, 'asignacion', `Equipo registrado (estado: ${payload.estado}).`, payload.empleado_id);
-    return equipo;
+    return data as unknown as TecEquipo;
   }
 
+  // DA8 — el historial ya no lo escribe el navegador (solo web, ciego a la app y
+  // al conector): lo escribe un trigger del servidor en cada INSERT/UPDATE real.
   async updateEquipo(id: string, payload: Partial<TecEquipoFormData>): Promise<void> {
-    // QA-008 — capturamos el estado previo para registrar en el historial qué cambió
-    // (estado / asignación). Sin esto, el historial solo mostraba "Equipo registrado".
-    const { data: prevRow } = await this.supabase.client
-      .from('tec_equipos')
-      .select('estado, empleado_id')
-      .eq('id', id)
-      .single();
-
     const { error } = await this.supabase.client
       .from('tec_equipos')
       .update(pickColumns({ ...payload, updated_at: new Date().toISOString() }, TEC_EQUIPO_COLS))
       .eq('id', id);
     if (error) throw new Error(error.message);
-
-    // Registra solo cambios relevantes; ignora actualizaciones silenciosas (ej. foto_path).
-    if (prevRow) {
-      const prev = prevRow as { estado?: string; empleado_id?: string | null };
-      const cambios: string[] = [];
-      let tipoCambio = 'edicion';
-      if (payload.estado !== undefined && payload.estado !== prev.estado) {
-        cambios.push(`Estado: ${this.estadoLabel(prev.estado)} → ${this.estadoLabel(payload.estado)}.`);
-        tipoCambio = 'estado';
-      }
-      if (payload.empleado_id !== undefined && payload.empleado_id !== prev.empleado_id) {
-        cambios.push(payload.empleado_id ? 'Reasignado a un empleado.' : 'Desasignado (sin empleado).');
-        tipoCambio = 'asignacion';
-      }
-      if (cambios.length > 0) {
-        await this.addHistorial(
-          id,
-          tipoCambio,
-          cambios.join(' '),
-          payload.empleado_id !== undefined ? payload.empleado_id : (prev.empleado_id ?? null),
-        );
-      }
-    }
-  }
-
-  private estadoLabel(value: string | null | undefined): string {
-    return TEC_EQUIPO_ESTADOS.find((e) => e.value === value)?.label ?? (value ?? '—');
   }
 
   async removeEquipo(id: string): Promise<void> {
@@ -306,9 +337,146 @@ export class TecnologiaService {
     if (error) throw new Error(error.message);
   }
 
+  // ── DA2 — Especificaciones técnicas (1:1, sgc.tec_equipo_specs) ──────────
+  /** Upsert (crea o actualiza) la fila 1:1 de specs. Payload parcial: solo lo
+   *  que viene se guarda, el resto queda null/como estaba (whitelist de columnas). */
+  async guardarSpecs(equipoId: string, payload: Partial<TecEquipoSpecsFormData>): Promise<void> {
+    const row = pickColumns(payload, TEC_EQUIPO_SPECS_COLS);
+    const tieneAlgo = Object.values(row).some((v) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0));
+    if (!tieneAlgo) return; // nada que guardar — no crea una fila vacía
+    const { error } = await this.supabase.client
+      .from('tec_equipo_specs')
+      .upsert({ equipo_id: equipoId, ...row }, { onConflict: 'equipo_id' });
+    if (error) throw new Error(error.message);
+  }
+
+  // ── DA-18 — alerta de garantía por vencer ─────────────────────────────────
+  async getGarantiaAlertaDias(): Promise<number> {
+    try {
+      const { data } = await this.supabase.client.from('parametros').select('valor').eq('clave', 'tec_garantia_alerta_dias').maybeSingle();
+      const n = data ? Number((data as { valor?: string }).valor) : NaN;
+      return Number.isFinite(n) ? n : 30;
+    } catch {
+      return 30;
+    }
+  }
+
+  // ── DA9/DA-13 — Lector de capturas de "Información del sistema" de Windows ──
+  /** Lee hasta 3 capturas; SOLO precarga para revisar, nunca guarda sola. */
+  async leerEspecificacionesEquipo(files: File[]): Promise<{
+    ok: boolean; specs?: Partial<TecEquipoSpecsFormData>; error?: string; error_code?: string;
+  }> {
+    const archivos = await Promise.all(
+      files.slice(0, 3).map(async (file) => ({ data: await this.fileToBase64(file), mime: file.type || 'image/jpeg' })),
+    );
+    const { data, error } = await this.supabase.client.functions.invoke('leer-especificaciones-equipo', {
+      body: { archivos },
+    });
+    if (error) {
+      const ctx = (error as { context?: { body?: unknown } }).context;
+      if (ctx?.body) {
+        try {
+          const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+          if (parsed && typeof parsed === 'object') return { ok: false, ...parsed };
+        } catch { /* cae al mensaje genérico */ }
+      }
+      return { ok: false, error: 'No se pudo leer la captura.' };
+    }
+    return data as { ok: boolean; specs?: Partial<TecEquipoSpecsFormData>; error?: string };
+  }
+
+  // ── DA-10 — Kits ───────────────────────────────────────────────────────────
+  /** Componentes de un kit (equipos con kit_padre_id = kitId). */
+  async getComponentesDeKit(kitId: string): Promise<TecEquipo[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_equipos')
+      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .eq('kit_padre_id', kitId)
+      .order('codigo', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as TecEquipo[];
+  }
+
+  async getKitEstado(kitId: string): Promise<TecKitEstado | null> {
+    const { data, error } = await this.supabase.client
+      .from('tec_kits_estado')
+      .select('*')
+      .eq('kit_id', kitId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data ?? null) as unknown as TecKitEstado | null;
+  }
+
+  /** Mueve el kit completo: cascada a todos los componentes PRESENTES. */
+  async moverKit(kitId: string, empleadoId: string | null, bodegaId: string | null, ubicacion: string | null, motivo: string | null = null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('tec_kit_mover', {
+      p_kit_id: kitId, p_empleado_id: empleadoId, p_bodega_id: bodegaId, p_ubicacion: ubicacion, p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Mueve o suelta una pieza individual del kit. */
+  async moverPiezaDeKit(
+    componenteId: string,
+    quitarDelKit: boolean,
+    empleadoId: string | null = null,
+    bodegaId: string | null = null,
+    motivo: string | null = null,
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('tec_kit_mover_pieza', {
+      p_componente_id: componenteId, p_quitar_del_kit: quitarDelKit,
+      p_empleado_id: empleadoId, p_bodega_id: bodegaId, p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Marca presente/falta un componente (sin moverlo). */
+  async marcarPresenteComponente(componenteId: string, presente: boolean): Promise<void> {
+    const { error } = await this.supabase.client.from('tec_equipos').update({ presente }).eq('id', componenteId);
+    if (error) throw new Error(error.message);
+  }
+
+  // ── DA-06 — Clave del equipo (cifrada, solo vía edge equipos-clave) ───────
+  async verClaveEquipo(equipoId: string): Promise<TecEquipoClaveResultado> {
+    return this.invokeClave('ver', equipoId);
+  }
+  async guardarClaveEquipo(equipoId: string, tipoClave: 'personal' | 'compartida', valor: string): Promise<TecEquipoClaveResultado> {
+    return this.invokeClave('guardar', equipoId, { tipo_clave: tipoClave, valor });
+  }
+  async quitarClaveEquipo(equipoId: string): Promise<TecEquipoClaveResultado> {
+    return this.invokeClave('quitar', equipoId);
+  }
+  private async invokeClave(accion: string, equipoId: string, extra: Record<string, unknown> = {}): Promise<TecEquipoClaveResultado> {
+    const { data, error } = await this.supabase.client.functions.invoke('equipos-clave', {
+      body: { accion, equipo_id: equipoId, ...extra },
+    });
+    if (error) {
+      const ctx = (error as { context?: { body?: unknown } }).context;
+      if (ctx?.body) {
+        try {
+          const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+          if (parsed && typeof parsed === 'object') return { ok: false, ...parsed };
+        } catch { /* cae al mensaje genérico */ }
+      }
+      return { ok: false, error: 'No se pudo completar la operación.' };
+    }
+    return data as TecEquipoClaveResultado;
+  }
+
   // ── U17 — Foto del equipo (bucket privado `inventario`) ───────────────────
   async uploadEquipoFoto(equipoId: string, file: File): Promise<string> {
     const path = `tec-equipo/${equipoId}/${crypto.randomUUID()}.jpg`;
+    const { error } = await this.supabase.client.storage
+      .from('inventario')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  // DA-14 — foto "especificaciones" (captura de Windows), bucket/carpeta
+  // separada de la portada (AL1) para no competir con ella.
+  async uploadEquipoFotoSpecs(equipoId: string, file: File): Promise<string> {
+    const path = `tec-equipo/${equipoId}/specs/${crypto.randomUUID()}.jpg`;
     const { error } = await this.supabase.client.storage
       .from('inventario')
       .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
@@ -332,22 +500,6 @@ export class TecnologiaService {
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as TecEquipoHistorial[];
-  }
-
-  async addHistorial(
-    equipoId: string,
-    tipoCambio: string,
-    descripcion: string,
-    empleadoId: string | null,
-  ): Promise<void> {
-    const usuarioId = (await this.supabase.client.auth.getUser()).data.user?.id ?? null;
-    await this.supabase.client.from('tec_equipo_historial').insert({
-      equipo_id: equipoId,
-      tipo_cambio: tipoCambio,
-      descripcion,
-      empleado_id: empleadoId,
-      usuario_id: usuarioId,
-    });
   }
 
   // ── Compras tecnológicas (usa solicitudes_compra, categoria='tecnologia') ──

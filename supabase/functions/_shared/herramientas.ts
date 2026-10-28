@@ -18,12 +18,22 @@
 // deno-lint-ignore no-explicit-any
 export type Any = any;
 
-export interface Cap { usuario_id: string; nombre: string; es_admin: boolean; modulos: string[]; roles: string[] }
+// DA-16 — `permisos` es la fusión (AG12) de los permisos granulares de TODOS
+// los roles del usuario ('ver'|'operar' por clave "modulo.submodulo"), igual
+// que `capacidades_asistente()` se lo da al cliente web. Opcional porque
+// capObj se construye en 3 edges distintas — si algún caller viejo no lo
+// rellena, el fallback es "sin permisos granulares" (comportamiento anterior).
+export interface Cap { usuario_id: string; nombre: string; es_admin: boolean; modulos: string[]; roles: string[]; permisos?: Record<string, "ver" | "operar"> }
 
 export interface ToolDef {
   name: string;
   description: string;
   modulos: string[] | null;
+  // DA-16 — además de `modulos`, esta tool también se ofrece a quien tenga
+  // CUALQUIERA de estos submódulos en 'ver'/'operar' (AG12) SIN el módulo
+  // completo — ej. el Subadministrador con 'tecnologia.inventario'. Las tools
+  // existentes no declaran esto (undefined) y no cambian de comportamiento.
+  submodulos?: string[];
   input_schema: Record<string, unknown>;
   // Dónde se ofrece esta herramienta (CR1 §B1).
   canales: ("compa" | "mcp")[];
@@ -1080,6 +1090,139 @@ export const TOOLS: ToolDef[] = [
     write: { tipo: "nota_de_version", execRpc: "registrar_version",
       execMap: (p) => ({ p_plataforma: p.plataforma, p_version: p.version, p_notas: p.notas ?? null, p_titulo: p.titulo ?? null, p_cambios: p.cambios ?? null }) },
   },
+
+  // ── DA-15 (ronda DA, 27-oct-2026) — el conector cubre el inventario
+  // tecnológico (nota 6: Xaviel pidió cargar 16 equipos ya registrados y el
+  // conector no tenía ninguna tool para tec_equipos). `submodulos` deja entrar
+  // al Subadministrador (permiso granular 'tecnologia.inventario') sin el
+  // módulo completo (DA-16). Nunca hay herramientas de clave de equipo aquí
+  // (DA-17 — ver el guard de build que asegura que la IA nunca toque secretos).
+  {
+    name: "resumen_inventario_tecnologico",
+    description: "Conteos del inventario tecnológico por tipo, situación y condición, y cuántos equipos tienen la garantía por vencer pronto. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "tec_equipo_resumen_asistente", map: () => ({}),
+  },
+  {
+    name: "listar_equipos_tecnologicos",
+    description: "Lista equipos del inventario tecnológico con filtros (tipo, situación, empleado, almacén, texto libre). Usa 'listar_tipos_equipo' para resolver tipo_id. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      tipo_id: { type: "string" }, estado: { type: "string" }, empleado_id: { type: "string" },
+      bodega_id: { type: "string" }, buscar: { type: "string" }, limite: { type: "integer" },
+    }, additionalProperties: false },
+    rpc: "tec_equipos_listar_asistente",
+    map: (i) => ({
+      p_tipo_id: i.tipo_id ?? null, p_estado: i.estado ?? null, p_empleado_id: i.empleado_id ?? null,
+      p_bodega_id: i.bodega_id ?? null, p_buscar: i.buscar ?? null, p_limite: Math.min(Number(i.limite ?? 30), 100),
+    }),
+  },
+  {
+    name: "detalle_equipo_tecnologico",
+    description: "Un equipo completo: specs, historial de cambios, y sus componentes si es un kit. Resuelve el id con 'listar_equipos_tecnologicos'. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
+    rpc: "tec_equipo_detalle_asistente", map: (i) => ({ p_id: i.id }),
+  },
+  {
+    name: "listar_tipos_equipo",
+    description: "Catálogo de tipos de equipo tecnológico (Laptop, Walkie-talkie, Dron, …) con su id — necesario para 'proponer_equipo_tecnologico'/el lote. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "tec_equipo_tipos_listar_asistente", map: () => ({}),
+  },
+  {
+    name: "proponer_tipo_equipo",
+    description: "PREPARA (borrador, NO crea) un tipo de equipo tecnológico nuevo en el catálogo. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { label: { type: "string" } }, required: ["label"], additionalProperties: false },
+    write: { tipo: "tipo_equipo", execRpc: "tec_equipo_tipo_crear_asistente", execMap: (p) => ({ p_label: p.label }) },
+  },
+  {
+    name: "proponer_equipo_tecnologico",
+    description: "PREPARA (borrador, NO crea/edita) un equipo del inventario tecnológico. Para crear, usa tipo_clave (ej. 'laptop') o tipo_id (de 'listar_tipos_equipo'). Para editar uno existente, manda su id. Costos sin origen explícito se marcan 'estimado' (no inventes un precio de compra real). Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      id: { type: "string", description: "solo para EDITAR un equipo existente" },
+      nombre: { type: "string" }, tipo_id: { type: "string" }, tipo_clave: { type: "string" },
+      marca: { type: "string" }, modelo: { type: "string" }, serie: { type: "string" },
+      estado: { type: "string" }, condicion: { type: "string" },
+      empleado_id: { type: "string" }, responsable_externo: { type: "string" },
+      bodega_id: { type: "string" }, ubicacion: { type: "string" },
+      costo: { type: "number" }, moneda: { type: "string" }, costo_origen: { type: "string", description: "compra | estimado | donado" },
+      fecha_compra: { type: "string" }, garantia_hasta: { type: "string" },
+      service_tag: { type: "string" }, numero_parte: { type: "string" }, imei: { type: "string" },
+      notas: { type: "string" },
+    }, additionalProperties: false },
+    write: { tipo: "equipo_tecnologico", execRpc: "tec_equipo_crear_o_actualizar_asistente",
+      execMap: (p) => ({
+        p_id: p.id ?? null, p_nombre: p.nombre ?? null, p_tipo_id: p.tipo_id ?? null, p_tipo_clave: p.tipo_clave ?? null,
+        p_marca: p.marca ?? null, p_modelo: p.modelo ?? null, p_serie: p.serie ?? null,
+        p_estado: p.estado ?? null, p_condicion: p.condicion ?? null,
+        p_empleado_id: p.empleado_id ?? null, p_responsable_externo: p.responsable_externo ?? null,
+        p_bodega_id: p.bodega_id ?? null, p_ubicacion: p.ubicacion ?? null,
+        p_costo: p.costo ?? null, p_moneda: p.moneda ?? null, p_costo_origen: p.costo_origen ?? null,
+        p_fecha_compra: p.fecha_compra ?? null, p_garantia_hasta: p.garantia_hasta ?? null,
+        p_service_tag: p.service_tag ?? null, p_numero_parte: p.numero_parte ?? null, p_imei: p.imei ?? null,
+        p_notas: p.notas ?? null, p_origen: "claude",
+      }) },
+  },
+  {
+    name: "proponer_cambio_estado_equipo",
+    description: "PREPARA (borrador, NO aplica) un cambio de situación y/o condición de un equipo. Resuelve el id con 'listar_equipos_tecnologicos'. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      id: { type: "string" }, estado: { type: "string" }, condicion: { type: "string" },
+    }, required: ["id"], additionalProperties: false },
+    write: { tipo: "cambio_estado_equipo", execRpc: "tec_equipo_cambiar_estado_asistente",
+      execMap: (p) => ({ p_id: p.id, p_estado: p.estado ?? null, p_condicion: p.condicion ?? null }) },
+  },
+  {
+    name: "proponer_asignacion_equipo",
+    description: "PREPARA (borrador, NO aplica) reasignar un equipo (empleado, responsable sin usuario en el SGC, almacén/ubicación). Resuelve el id con 'listar_equipos_tecnologicos'. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      id: { type: "string" }, empleado_id: { type: "string" }, responsable_externo: { type: "string" },
+      bodega_id: { type: "string" }, ubicacion: { type: "string" },
+    }, required: ["id"], additionalProperties: false },
+    write: { tipo: "asignacion_equipo", execRpc: "tec_equipo_asignar_asistente",
+      execMap: (p) => ({
+        p_id: p.id, p_empleado_id: p.empleado_id ?? null, p_responsable_externo: p.responsable_externo ?? null,
+        p_bodega_id: p.bodega_id ?? null, p_ubicacion: p.ubicacion ?? null,
+      }) },
+  },
+  {
+    // DA-15 opción (a): UNA propuesta en lote con pantalla de revisión propia
+    // (DA4 — /borrador/:id detecta este tipo y pinta la tabla con casillas en
+    // vez del resumen genérico de una sola acción). Máximo 50 filas; cada fila
+    // se valida/ejecuta independiente al confirmar (claude-borrador especial,
+    // `tec_equipos_lote_confirmar`) — una fila inválida no tumba las demás.
+    name: "proponer_equipos_tecnologicos_lote",
+    description: "PREPARA (borrador, NO crea nada) una carga MASIVA de hasta 50 equipos del inventario tecnológico de una vez — para cuando el usuario pide cargar varios equipos ya registrados en otro lado (fichas, fotos, una lista). La persona revisa y aprueba fila por fila en una pantalla, nunca se crea nada solo. Usa 'listar_tipos_equipo' para los tipo_clave. Marca costo_origen='estimado' salvo que el usuario confirme que es el precio real de compra. Requiere módulo tecnología (o el permiso granular del Subadministrador).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.inventario"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      equipos: {
+        type: "array", maxItems: 50,
+        items: { type: "object", properties: {
+          nombre: { type: "string" }, tipo_clave: { type: "string" }, marca: { type: "string" }, modelo: { type: "string" },
+          serie: { type: "string" }, estado: { type: "string" }, condicion: { type: "string" },
+          costo: { type: "number" }, moneda: { type: "string" }, costo_origen: { type: "string" },
+          ubicacion: { type: "string" }, notas: { type: "string" },
+        }, required: ["nombre"] },
+      },
+    }, required: ["equipos"], additionalProperties: false },
+    write: {
+      tipo: "equipos_lote",
+      // No se invoca en la práctica: claude-borrador especial-casea
+      // tool==='proponer_equipos_tecnologicos_lote' ANTES de llegar al camino
+      // genérico de un-solo-execRpc (ver resolverDetalle/confirmar ahí) — queda
+      // declarado para que `cfg.write` siga marcando la tool como escritura
+      // (readOnlyHint:false) y para que claude_borrador_crear se dispare igual
+      // que cualquier otra propuesta.
+      execRpc: "tec_equipos_lote_confirmar", execMap: () => ({}),
+    },
+  },
 ];
 
 /** Herramientas visibles a este usuario (filtro por módulo/admin), opcionalmente
@@ -1088,7 +1231,9 @@ export const TOOLS: ToolDef[] = [
  * — así Compa no cambia de comportamiento al adoptar este registro. */
 export function toolsParaUsuario(cap: Cap, canal?: "compa" | "mcp"): ToolDef[] {
   return TOOLS.filter((t) =>
-    (t.modulos === null || cap.es_admin || t.modulos.some((m) => cap.modulos.includes(m))) &&
+    (t.modulos === null || cap.es_admin || t.modulos.some((m) => cap.modulos.includes(m)) ||
+      // DA-16 — permiso granular: el Subadministrador ve estas tools sin el módulo completo.
+      (t.submodulos?.some((s) => cap.permisos?.[s] === "ver" || cap.permisos?.[s] === "operar") ?? false)) &&
     (!canal || t.canales.includes(canal)),
   );
 }

@@ -193,6 +193,12 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
       descripcion: 'Solicitar y aprobar compras de equipos, software o servicios de TI.' },
     { key: 'tecnologia.cotizaciones', label: 'Cotizaciones', enforced: true,
       descripcion: 'Biblioteca de cotizaciones: subir, vincular a compras y a equipos.' },
+    // DA-06 — a propósito FUERA del helper AG12 (puede_ver/operar_submodulo):
+    // ese helper da 'operar' a quien tenga el módulo tecnologia completo
+    // (compat), y esto NUNCA debe heredarse así — ni el Subadministrador lo
+    // recibe por defecto. Server: sgc.puede_ver_claves_equipos() (gate propio).
+    { key: 'tecnologia.claves_equipos', label: 'Claves de equipos', enforced: true,
+      descripcion: 'Ver/guardar la clave de acceso cifrada de un equipo (ej. laptop en stock con clave compartida). Sensible: nadie lo recibe por defecto, ni con el módulo Tecnología completo — se otorga a propósito.' },
   ],
 };
 
