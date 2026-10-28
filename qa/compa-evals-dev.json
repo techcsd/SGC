@@ -1,5 +1,5 @@
 {
-  "corrido_en": "2026-10-26T21:36:46.931Z",
+  "corrido_en": "2026-10-28T15:08:16.693Z",
   "entorno": "dev",
   "resultados": [
     {
@@ -10,7 +10,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Aquí tienes la lista completa de almacenes, Flaco:\n\n**Centrales (sin obra asociada):**\n1. ALMACÉN las AMERICAS\n2. Bodega Central\n\n**Por obra:**\n3. ALMACEN - SOL"
+      "texto": "Aquí tienes los almacenes que puedes ver, Flaco:\n\n**Centrales:**\n1. ALMACÉN LAS AMERICAS\n2. Bodega Central\n\n**Por obra:**\n3. ALMACEN - SOLHE SIGNATURE CONDOS\n4."
     },
     {
       "id": "hector-pdf-prometido",
@@ -21,7 +21,7 @@
         "listar_almacenes",
         "generar_reporte_pdf"
       ],
-      "texto": "Listo, Flaco. Ahí abajo tienes el PDF \"Stock por almacén\" con el inventario de los 15 almacenes, cada uno en su propia sección."
+      "texto": "Listo, Flaco. Tu PDF de stock está listo para descargar abajo — cubre los almacenes con secciones por cada uno (el reporte armó 12 secciones de los almacenes qu"
     },
     {
       "id": "admin-vehiculos",
@@ -31,7 +31,7 @@
       "herramientas": [
         "resumen_flota"
       ],
-      "texto": "Según lo que acabo de consultar, la flota tiene **24 vehículos** en total:\n\n- **20** activos\n- **1** en mantenimiento\n- **2** de baja\n- **3** mantenimientos pen"
+      "texto": "Actualmente la flota tiene **24 vehículos** en total:\n\n- **20** activos\n- **1** en mantenimiento\n- **2** de baja\n- **3** mantenimientos pendientes por atender\n\n"
     },
     {
       "id": "admin-requisiciones-pdf",
@@ -42,7 +42,7 @@
         "listar_requisiciones",
         "generar_reporte_pdf"
       ],
-      "texto": "Listo, tu PDF está abajo para descargar. Ojo: solo hay 1 requisición este mes y es de la **obra demo** (Residencial Ejemplo, prueba de tutorial) — no es una req"
+      "texto": "Listo, tu PDF está preparado abajo para descargar: **\"Requisiciones de material.pdf\"**.\n\nOjo: este mes solo aparece 1 requisición registrada (1–28 de octubre) y"
     },
     {
       "id": "oficina-stock-multi",
@@ -52,7 +52,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Encontré **15 almacenes** en el sistema:\n\n**Centrales:**\n1. ALMACÉN las AMERICAS\n2. Bodega Central\n\n**Por obra:**\n3. ALMACEN - Solhe Signature Condos\n4. Almacén"
+      "texto": "Encontré **15 almacenes** en el sistema:\n\n**Centrales (2):**\n1. ALMACÉN las Américas\n2. Bodega Central\n\n**Por obra (13):**\n3. ALMACEN - Solhe Signature Condos\n4"
     },
     {
       "id": "oficina-requisiciones-obra",
@@ -62,7 +62,7 @@
       "herramientas": [
         "listar_requisiciones"
       ],
-      "texto": "Ing. Angel, consulté las requisiciones de octubre (1 al 26) y solo aparece **1**:\n\n- REQ de **OBRA DEMO — Residencial Ejemplo**, solicitada por \"Chofer Demo (re"
+      "texto": "Consulté las requisiciones de octubre (1 al 28) y solo aparece **1 requisición** registrada este mes:\n\n- **Pendiente**, 2 ítems, obra **OBRA DEMO — Residencial "
     },
     {
       "id": "campo-conduces-firmar",
@@ -72,7 +72,7 @@
       "herramientas": [
         "mis_conduces_por_firmar"
       ],
-      "texto": "Ing. Abraham, acabo de revisar y no tiene conduces pendientes de firmar en este momento."
+      "texto": "No, Ing. Abraham, ahora mismo no tiene conduces pendientes de firmar."
     },
     {
       "id": "campo-disponibilidad-articulo",
@@ -83,7 +83,7 @@
         "disponibilidad_de_articulo",
         "buscar_articulos"
       ],
-      "texto": "No encontré ningún artículo llamado \"cemento\" (ni por apodo) en el catálogo, Ing. Abraham — probé la búsqueda directa y tampoco hay coincidencias por nombre o c"
+      "texto": "No encontré ningún artículo que coincida con \"cemento\" en el catálogo, Ing. Abraham — ni por nombre ni por apodo. Puede que esté registrado con otro nombre (mar"
     },
     {
       "id": "logistica-rutas-hoy",
@@ -93,7 +93,7 @@
       "herramientas": [
         "rutas_del_dia"
       ],
-      "texto": "No hay rutas registradas hoy, Flaco — el sistema no tiene ninguna ruta programada o en curso para el 26 de octubre. ¿Quieres que revise otro día o que te arme l"
+      "texto": "No hay rutas registradas para hoy, 28 de octubre, en ningún estado. El panorama está en cero por el momento — si surge algo a lo largo del día, me avisas y lo r"
     },
     {
       "id": "logistica-requisiciones-atascadas",
@@ -101,9 +101,10 @@
       "fallos": [],
       "email": "u-8262b283@dev.constructorasd.local",
       "herramientas": [
-        "resumen_estatus_requisiciones"
+        "resumen_estatus_requisiciones",
+        "requisiciones_pendientes"
       ],
-      "texto": "Para la última semana cerrada (19–25 de octubre), no hubo movimiento: cero requisiciones creadas, pendientes, aprobadas ni despachadas, y la lista de atascadas "
+      "texto": "Flaco, mirando la bandeja en vivo hay **8 requisiciones pendientes**, algunas con bastante tiempo esperando. Las más urgentes:\n\n**🔴 Urgentes:**\n- **Torre Alpha"
     },
     {
       "id": "chofer-rutas-hoy",
@@ -113,7 +114,7 @@
       "herramientas": [
         "mis_rutas_hoy"
       ],
-      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge algo, te debería llegar notificación o puedo revisar de nuevo más tarde si quieres."
+      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge alguna, te debería aparecer aquí apenas la creen. ¿Quieres que revise algo más, como tu rendimiento semanal"
     },
     {
       "id": "cp8-mis-reuniones",
@@ -123,7 +124,7 @@
       "herramientas": [
         "mis_reuniones"
       ],
-      "texto": "No tienes ninguna reunión próxima registrada, QA. Si quieres, puedo ayudarte a agendar una."
+      "texto": "No tienes ninguna reunión próxima registrada, QA. Si quieres, te ayudo a agendar una — dime tema, fecha/hora y participantes."
     },
     {
       "id": "cv1-felix-registra-echada",
@@ -134,7 +135,7 @@
         "listar_vehiculos",
         "preparar_echada"
       ],
-      "texto": "Listo, dejé preparada la echada de la Suburban (G661182): 12 galones por RD$3,360 — se abrió el formulario de Combustible para que pongas ahí las fotos del reci"
+      "texto": "Listo: dejé preparada la echada de la Suburban (G661182) — 12 galones, RD$3,360 — en el formulario de Combustible; ahí solo te falta poner las fotos del recibo "
     }
   ]
 }
