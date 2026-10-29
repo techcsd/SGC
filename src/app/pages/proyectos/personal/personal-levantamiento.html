@@ -21,7 +21,7 @@
 <div class="sgc-card plev__filtros">
   <label class="sgc-field plev__obra">
     <span>{{ 'Obra' | t }}</span>
-    <select [ngModel]="obraId()" (ngModelChange)="obraId.set($event); cargar()">
+    <select class="sgc-select" [ngModel]="obraId()" (ngModelChange)="obraId.set($event); cargar()">
       <option value="" disabled>{{ 'Seleccionar obra…' | t }}</option>
       @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
     </select>
