@@ -155,6 +155,51 @@
       }
     </div>
 
+    <!-- DB6 — «Resumir para ronda»: la IA convierte el reporte en nota de ronda
+         (texto plano copiable) y, si parece hotfix, el prompt para Claude Code. -->
+    <div class="admin-reportes__ia">
+      <div class="admin-reportes__ia-head">
+        <h4 class="admin-reportes__ia-title">Para la ronda</h4>
+        @if (iaResumen()?.es_hotfix) {
+          <span class="admin-reportes__ia-chip"><span class="admin-reportes__ia-punto" aria-hidden="true"></span>Parece hotfix</span>
+        }
+        <div class="admin-reportes__ia-acciones">
+          @if (!iaResumen()) {
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="resumiendo()" (click)="resumir(false)">
+              {{ resumiendo() ? 'Leyendo…' : 'Resumir para ronda' }}
+            </button>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="resumiendo()" (click)="resumir(true)">
+              {{ resumiendo() ? 'Leyendo…' : 'Volver a leer' }}
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="guardandoNota()" (click)="guardarEnDevNotes()">
+              {{ guardandoNota() ? 'Guardando…' : 'Guardar en Dev notes › Ronda próxima' }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (iaError()) { <p class="admin-reportes__ia-msg" role="status">{{ iaError() }}</p> }
+      @if (iaResumen(); as ia) {
+        <div class="admin-reportes__ia-caja">
+          <div class="admin-reportes__ia-caja-head">
+            <span>Nota de ronda</span>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(ia.resumen_ronda, 'Resumen')">Copiar</button>
+          </div>
+          <pre class="admin-reportes__ia-texto">{{ ia.resumen_ronda }}</pre>
+          @if (ia.motivo) { <p class="admin-reportes__ia-motivo">{{ ia.motivo }}</p> }
+        </div>
+        @if (ia.prompt_hotfix) {
+          <div class="admin-reportes__ia-caja admin-reportes__ia-caja--hotfix">
+            <div class="admin-reportes__ia-caja-head">
+              <span>Prompt de hotfix (para Claude Code)</span>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(ia.prompt_hotfix, 'Prompt')">Copiar</button>
+            </div>
+            <pre class="admin-reportes__ia-texto">{{ ia.prompt_hotfix }}</pre>
+          </div>
+        }
+      }
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
       <div class="sgc-field">
         <label for="estado">Estado</label>

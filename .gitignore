@@ -89,6 +89,9 @@ qa/cw-diagnostico-prod.md
 qa/cw-diagnostico-dev.md
 # CX1 — PROMPT-116 F3: diagnóstico de prod con nombres/datos personales
 qa/cx1-diagnostico-prod.md
+# DB — PROMPT-124 F0: diagnóstico de prod/dev con nombres/datos personales
+qa/db-diagnostico-prod.md
+qa/db-diagnostico-dev.md
 tutoriales/.voz-cache/
 tutoriales/assets/musica/
 

@@ -351,6 +351,8 @@ export class Shell implements OnInit {
       showIfAnyChild: true,
       children: [
         { label: 'Apoyo de transporte', route: '/transporte/apoyo', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
+        // DB4 — pagos semanales con descargo firmado (ver también abogado/gerencia/dirección).
+        { label: 'Pagos de la semana', route: '/ingenieria/pagos', submodulo: 'ingenieria.pagos' },
         // Bitácora (módulo `bitacora`)
         { label: 'Nueva bitácora', route: '/bitacora/nueva', modulo: 'bitacora' },
         { label: 'Mis bitácoras', route: '/bitacora/historial', modulo: 'bitacora' },

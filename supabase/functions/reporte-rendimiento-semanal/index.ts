@@ -21,6 +21,12 @@ function fmtDate(s: string | null): string {
   const [y, m, d] = String(s).split("-");
   return d && m && y ? `${d}/${m}/${y}` : String(s);
 }
+/** Resta días a una fecha YYYY-MM-DD sin depender de la zona del worker. */
+function restarDias(iso: string, dias: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const t = Date.UTC(y, m - 1, d) - dias * 86400000;
+  return new Date(t).toISOString().slice(0, 10);
+}
 function nf(n: unknown, dec = 1): string {
   return Number(n ?? 0).toLocaleString("es-DO", { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
@@ -88,27 +94,79 @@ Deno.serve(async (req: Request) => {
     if (rpcError) throw new Error(rpcError.message);
     const r: Any[] = Array.isArray(filas) ? filas : [];
 
-    const rows = r.map((f) => [
-      String(f.alias || f.placa || "(sin placa)"),
-      f.rendimiento != null ? `${nf(f.rendimiento)} ${f.unidad}` : "sin datos",
-      CONFIANZA_LABEL[f.confianza] ?? f.confianza,
-      `${f.echadas_usadas} de ${f.echadas_total}`,
-    ]);
+    // DB10 (DB-06) — variación vs la semana ANTERIOR: misma RPC corrida 7 días
+    // atrás (mismos números que la pantalla, AU1 — el correo no inventa datos).
+    const prevDesde = restarDias(desde, 7), prevHasta = restarDias(hasta, 7);
+    const { data: filasPrev } = await supabase.rpc("reporte_rendimiento_vehiculos", {
+      p_desde: prevDesde, p_hasta: prevHasta, p_vehiculo_id: null,
+    });
+    const prevPorVeh = new Map<string, Any>(((filasPrev ?? []) as Any[]).map((f) => [f.vehiculo_id, f]));
+
+    // DB-06 — costo del combustible del período por vehículo (suma de las echadas
+    // válidas: sin invalidadas ni pruebas). La RPC no lo expone; es un agregado plano.
+    const { data: costos } = await supabase
+      .from("registros_combustible")
+      .select("vehiculo_id, monto, invalidada, es_prueba")
+      .gte("fecha", desde).lte("fecha", hasta);
+    const costoPorVeh = new Map<string, number>();
+    for (const c of (costos ?? []) as Any[]) {
+      if (c.invalidada || c.es_prueba) continue;
+      costoPorVeh.set(c.vehiculo_id, (costoPorVeh.get(c.vehiculo_id) ?? 0) + Number(c.monto ?? 0));
+    }
+
+    const variacion = (actual: number | null, base: number | null): string => {
+      if (actual == null || base == null || !Number.isFinite(base) || base === 0) return "—";
+      const pct = ((actual - base) / base) * 100;
+      const flecha = pct > 1 ? "▲" : pct < -1 ? "▼" : "=";
+      return `${flecha} ${pct > 0 ? "+" : ""}${nf(pct, 1)}%`;
+    };
+
+    const conDatos = r.filter((f) => f.rendimiento != null);
+    const sinDatos = r.filter((f) => f.rendimiento == null);
+
+    const rows = conDatos.map((f) => {
+      const prev = prevPorVeh.get(f.vehiculo_id);
+      const costo = costoPorVeh.get(f.vehiculo_id);
+      return [
+        String(f.alias || f.placa || "(sin placa)"),
+        `${nf(f.total_km, 0)} ${f.unidad === "km/gal" ? "km" : "h"}`,
+        nf(f.total_galones, 1),
+        `${nf(f.rendimiento)} ${f.unidad}`,
+        costo != null ? `RD$ ${nf(costo, 0)}` : "—",
+        variacion(f.rendimiento, prev?.rendimiento ?? null),
+        f.baseline != null ? `${nf(f.baseline)} (${variacion(f.rendimiento, f.baseline)})` : "—",
+        CONFIANZA_LABEL[f.confianza] ?? f.confianza,
+      ];
+    });
+
+    const appUrl = Deno.env.get("APP_URL") ?? "https://sgcconstructorasd.com";
+    const ASUNTO = "Rendimiento de combustible de la flota";
     const html =
-      `<div style="font-family:Arial,sans-serif;color:#222;max-width:820px;">` +
-      `<h2 style="color:#ff5f00;margin:0 0 4px;">Rendimiento semanal por vehículo</h2>` +
-      `<p style="color:#666;margin:0 0 8px;">Período: ${esc(fmtDate(desde))} – ${esc(fmtDate(hasta))}</p>` +
+      `<div style="font-family:Arial,sans-serif;color:#222;max-width:860px;">` +
+      `<h2 style="color:#ff5f00;margin:0 0 4px;">${ASUNTO}</h2>` +
+      `<p style="color:#666;margin:0 0 8px;">Semana del ${esc(fmtDate(desde))} al ${esc(fmtDate(hasta))}</p>` +
       `<p style="color:#8a5a00;font-size:12.5px;background:#fff7e6;padding:8px 12px;border-radius:8px;margin:0 0 14px;">` +
       `Aproximado: nunca se registra "tanque lleno", así que el rendimiento se calcula entre echadas (sin contar ` +
       `la primera del período) y no es exacto. El detalle completo va en el Excel adjunto.</p>` +
-      tabla(["Vehículo", "Rendimiento", "Confianza", "Echadas usadas"], rows) +
-      `<p style="color:#888;font-size:12px;">Puedes ver el reporte completo en Flota › Combustible › Rendimiento, ` +
-      `o preguntarle a Compa.</p></div>`;
+      tabla(["Vehículo", "Km/horas", "Galones", "Rendimiento", "Costo", "vs semana anterior", "Esperado", "Confianza"], rows) +
+      (sinDatos.length
+        ? `<p style="color:#888;font-size:12.5px;margin:0 0 6px;"><strong>Sin datos suficientes esta semana:</strong> ` +
+          `${esc(sinDatos.map((f) => String(f.alias || f.placa || "(sin placa)")).join(", "))}.</p>`
+        : "") +
+      `<p style="color:#888;font-size:12px;">Ver el detalle en ` +
+      `<a href="${appUrl}/flota/rendimiento-vehiculos" style="color:#ff5f00;">Flota › Rendimiento por vehículo</a>, ` +
+      `o pregúntale a Compa.</p></div>`;
 
     const texto = [
-      `Rendimiento semanal por vehículo — ${fmtDate(desde)} – ${fmtDate(hasta)}`,
+      `${ASUNTO} — ${fmtDate(desde)} – ${fmtDate(hasta)}`,
       ``,
-      ...r.map((f) => `- ${f.alias || f.placa || "(sin placa)"}: ${f.rendimiento != null ? `${nf(f.rendimiento)} ${f.unidad}` : "sin datos"} (${CONFIANZA_LABEL[f.confianza] ?? f.confianza})`),
+      ...conDatos.map((f) => {
+        const prev = prevPorVeh.get(f.vehiculo_id);
+        return `- ${f.alias || f.placa || "(sin placa)"}: ${nf(f.rendimiento)} ${f.unidad} · ${nf(f.total_km, 0)} km · ${nf(f.total_galones, 1)} gal · vs semana anterior ${variacion(f.rendimiento, prev?.rendimiento ?? null)} (${CONFIANZA_LABEL[f.confianza] ?? f.confianza})`;
+      }),
+      ...(sinDatos.length ? ["", `Sin datos: ${sinDatos.map((f) => f.alias || f.placa).join(", ")}`] : []),
+      ``,
+      `Detalle: ${appUrl}/flota/rendimiento-vehiculos`,
     ].join("\n");
 
     const excelBase64 = componerExcelBase64(r);
@@ -131,7 +189,7 @@ Deno.serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(ajustarCorreoResend({
           from: fromEmail, to,
-          subject: `${asuntoPrefijo}Rendimiento semanal por vehículo — ${fmtDate(desde)} – ${fmtDate(hasta)}`,
+          subject: `${asuntoPrefijo}Rendimiento de combustible de la flota — Semana del ${fmtDate(desde)} al ${fmtDate(hasta)}`,
           html, text: texto,
           attachments: [{ filename: `rendimiento-vehiculos-${desde}-${hasta}.xlsx`, content: excelBase64 }],
         })),

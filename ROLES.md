@@ -126,3 +126,26 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 - **Rol `gerente_produccion`** (Gerente de Producción de Obra) — módulos `obra`, `bitacora`, `proyectos`. Protagonista del workstream.
 - **Rol `capataz`** — SIN módulo padre; permisos granulares `obra.plan_dia`/`obra.no_conformidades`/`obra.checklists` = operar. Campo.
 - Ruta `/obra` sin `moduleGuard` en el parent; hijos con `submoduloGuard` (patrón Compras/AF32).
+
+## 11. Ronda DB (29/10/2026) — `ingenieria.pagos` y lector de documentos de flota
+
+**Submódulo `ingenieria.pagos` (DB4):** pagos semanales al personal de obra con
+descargo firmado. Sembrado en db15: `operar` → `ingeniero_campo`,
+`gerente_proyectos`, `jefe_ingenieros`; `ver` → `abogado`, `gerencia`, `direccion`;
+admin todo. El submódulo gatea la **pantalla** (`/ingenieria/pagos`, entrada en el
+grupo Ingeniería del shell). Los **datos** (montos = sensible) usan gates propios
+`puede_ver_pagos`/`puede_operar_pagos` — mismo criterio que las claves de equipo
+(§DA, arriba): el atajo de `nivel_submodulo` NO decide sobre montos, y «operar»
+exige además `puede_ver_proyecto` de ESA obra. Fuera de Compa/conector (guard
+`verify-boveda-fuera-de-ia.mjs`). Detalle: `docs/SUBMODULOS-SENSIBLES.md` §5.
+
+**Lector de documentos de flota (DB3):** la pantalla `Flota › Vehículos › Cargar
+documentos` pasa por `submoduloGuard('flota.vehiculos')` (ver); **aplicar** los
+cambios lo re-valida el RPC `flota_documentos_aplicar` = admin o rol
+`jefe_flota`/`logistica`. El lector de IA (`leer-documento-flota`) exige
+consentimiento CI10 y solo devuelve campos extraídos — nada se guarda sin la
+revisión por fila.
+
+**Levantamiento de personal (DB5):** mismas puertas de AR1
+(`puede_ver/puede_gestionar_personal_obra`); escrituras solo por RPC
+(`levantamiento_de_hoy/marcar/cerrar`, db9).

@@ -30,6 +30,11 @@
           <span class="sgc-badge" [class.sgc-badge--success]="e.activo" [class.sgc-badge--neutral]="!e.activo">
             {{ (e.activo ? 'Encendido' : 'Apagado') | t }}
           </span>
+          @if (tieneDestinatarios(e.familia)) {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleQuienRecibe(e)">
+              {{ (quienRecibeOpen() === e.familia ? 'Ocultar quién recibe' : 'Quién recibe') | t }}
+            </button>
+          }
           @if (FAMILIAS_CON_PRUEBA.has(e.familia)) {
             <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="probandoFamilia() === e.familia" (click)="probar(e)">
               {{ (probandoFamilia() === e.familia ? 'Mandando…' : 'Enviar prueba ahora (solo a mí)') | t }}
@@ -38,6 +43,46 @@
           <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="busyFamilia() === e.familia" (click)="toggle(e)">
             {{ (busyFamilia() === e.familia ? 'Cambiando…' : (e.activo ? 'Apagar' : 'Encender')) | t }}
           </button>
+        <!-- DB10/DB11 — «Quién recibe»: roles (chips que editan el parámetro) + personas extra -->
+        @if (quienRecibeOpen() === e.familia) {
+          <div class="ea__dest">
+            <div class="ea__dest-grupo">
+              <span class="ea__dest-label">{{ 'Roles que lo reciben' | t }}</span>
+              <div class="ea__dest-chips">
+                @for (r of roles(); track r.codigo) {
+                  <button type="button" class="ea__chip" [class.ea__chip--on]="rolesActivos(e.familia).has(r.codigo)"
+                          [disabled]="guardandoDest()" (click)="toggleRol(e.familia, r.codigo)">
+                    {{ r.nombre }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="ea__dest-grupo">
+              <span class="ea__dest-label">{{ 'Personas extra (correo directo, con o sin usuario)' | t }}</span>
+              <div class="ea__dest-chips">
+                @for (c of correosExtra(e.familia); track c) {
+                  <span class="ea__chip ea__chip--on">
+                    {{ c }}
+                    <button type="button" class="ea__chip-x" [attr.aria-label]="'Quitar' | t" [disabled]="guardandoDest()"
+                            (click)="quitarCorreo(e.familia, c)">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                  </span>
+                }
+                <input class="ea__dest-input" type="email" [value]="nuevoCorreo()"
+                       (input)="nuevoCorreo.set($any($event.target).value)"
+                       (keydown.enter)="agregarCorreo(e.familia)"
+                       [placeholder]="'correo@dominio.com' | t" />
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="guardandoDest() || !nuevoCorreo().trim()"
+                        (click)="agregarCorreo(e.familia)">{{ 'Agregar' | t }}</button>
+              </div>
+            </div>
+            <div class="ea__dest-grupo">
+              <span class="ea__dest-label">{{ 'Hoy le llegaría a {n} persona(s)' | t:{ n: preview().length } }}</span>
+              <span class="ea__dest-preview">{{ previewResumen() }}</span>
+            </div>
+          </div>
+        }
         </div>
       }
     </div>

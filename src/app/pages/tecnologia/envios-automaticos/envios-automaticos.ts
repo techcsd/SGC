@@ -1,9 +1,31 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { EnviosAutomaticosService, EnvioAutomatico } from '../../../../shared/services/envios-automaticos.service';
+import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+
+/** DB10/DB11 — config del bloque «Quién recibe» por familia de correo. El
+ *  parámetro de ROLES ya existía (param_csv con default); el de PERSONAS EXTRA
+ *  nace en db5 (correos sueltos, con o sin usuario — Sócrates, Eduardo, Yonairis). */
+interface DestinatariosCfg {
+  rolesParam: string;
+  rolesDefault: string;
+  extrasParam: string;
+}
+const DESTINATARIOS_CFG: Record<string, DestinatariosCfg> = {
+  resumen_operaciones: {
+    rolesParam: 'resumen_operaciones_roles',
+    rolesDefault: 'admin,direccion,gerencia,logistica,jefe_flota',
+    extrasParam: 'resumen_operaciones_correos_extra',
+  },
+  rendimiento_vehiculos: {
+    rolesParam: 'rendimiento_vehiculos_roles',
+    rolesDefault: 'direccion,jefe_flota,logistica',
+    extrasParam: 'rendimiento_vehiculos_correos_extra',
+  },
+};
 
 /**
  * CT10 — panel "Envíos automáticos": interruptor por familia de reporte/aviso
@@ -104,6 +126,100 @@ export class TecEnviosAutomaticos implements OnInit {
       this.toast.error('No se pudo mandar la prueba', err instanceof Error ? err.message : undefined);
     } finally {
       this.probandoFamilia.set(null);
+    }
+  }
+
+  // ── DB10/DB11 — «Quién recibe» por familia ──────────────────────────────────
+  private rolesService = inject(RolesService);
+
+  readonly CFG = DESTINATARIOS_CFG;
+  tieneDestinatarios(familia: string): boolean { return familia in DESTINATARIOS_CFG; }
+
+  quienRecibeOpen = signal<string | null>(null);
+  roles = signal<Rol[]>([]);
+  /** valores vivos de los parámetros (clave → CSV). */
+  private params = signal<Record<string, string>>({});
+  guardandoDest = signal(false);
+  nuevoCorreo = signal('');
+  preview = signal<{ email: string; nombre: string }[]>([]);
+
+  rolesActivos(familia: string): Set<string> {
+    const cfg = DESTINATARIOS_CFG[familia];
+    const csv = this.params()[cfg.rolesParam] ?? cfg.rolesDefault;
+    return new Set(csv.split(',').map((s) => s.trim()).filter(Boolean));
+  }
+  correosExtra(familia: string): string[] {
+    const cfg = DESTINATARIOS_CFG[familia];
+    return (this.params()[cfg.extrasParam] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  }
+
+  async toggleQuienRecibe(e: EnvioAutomatico) {
+    if (this.quienRecibeOpen() === e.familia) { this.quienRecibeOpen.set(null); return; }
+    this.quienRecibeOpen.set(e.familia);
+    this.nuevoCorreo.set('');
+    try {
+      const claves = Object.values(DESTINATARIOS_CFG).flatMap((c) => [c.rolesParam, c.extrasParam]);
+      const [params, roles] = await Promise.all([
+        this.service.getParametros(claves),
+        this.roles().length ? Promise.resolve(this.roles()) : this.rolesService.getAll(),
+      ]);
+      this.params.set(params);
+      this.roles.set(roles);
+      await this.cargarPreview(e.familia);
+    } catch (err: unknown) {
+      this.toast.error('No se pudo cargar «Quién recibe»', err instanceof Error ? err.message : undefined);
+    }
+  }
+
+  private async cargarPreview(familia: string) {
+    try {
+      this.preview.set(await this.service.destinatarios(familia as 'resumen_operaciones' | 'rendimiento_vehiculos'));
+    } catch { this.preview.set([]); }
+  }
+
+  previewResumen(): string {
+    return this.preview().map((p) => (p.nombre && p.nombre !== p.email ? p.nombre : p.email)).join(', ');
+  }
+
+  async toggleRol(familia: string, codigo: string) {
+    const cfg = DESTINATARIOS_CFG[familia];
+    const set = this.rolesActivos(familia);
+    if (set.has(codigo)) set.delete(codigo); else set.add(codigo);
+    await this.guardarParam(familia, cfg.rolesParam, [...set].join(','),
+      `Roles que reciben «${this.nombreDe(familia)}» (CSV)`);
+  }
+
+  async agregarCorreo(familia: string) {
+    const correo = this.nuevoCorreo().trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      this.toast.error('Correo no válido', 'Escribe un correo completo, p. ej. yonairis@constructorasd.com');
+      return;
+    }
+    const lista = this.correosExtra(familia);
+    if (lista.includes(correo)) { this.nuevoCorreo.set(''); return; }
+    const cfg = DESTINATARIOS_CFG[familia];
+    await this.guardarParam(familia, cfg.extrasParam, [...lista, correo].join(','),
+      `Personas extra (CSV de correos) que reciben «${this.nombreDe(familia)}»`);
+    this.nuevoCorreo.set('');
+  }
+
+  async quitarCorreo(familia: string, correo: string) {
+    const cfg = DESTINATARIOS_CFG[familia];
+    const lista = this.correosExtra(familia).filter((c) => c !== correo);
+    await this.guardarParam(familia, cfg.extrasParam, lista.join(','),
+      `Personas extra (CSV de correos) que reciben «${this.nombreDe(familia)}»`);
+  }
+
+  private async guardarParam(familia: string, clave: string, valor: string, descripcion: string) {
+    this.guardandoDest.set(true);
+    try {
+      await this.service.setParametro(clave, valor, descripcion);
+      this.params.set({ ...this.params(), [clave]: valor });
+      await this.cargarPreview(familia);
+    } catch (err: unknown) {
+      this.toast.error('No se pudo guardar', err instanceof Error ? err.message : undefined);
+    } finally {
+      this.guardandoDest.set(false);
     }
   }
 }

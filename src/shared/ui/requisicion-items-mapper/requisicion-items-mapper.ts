@@ -7,6 +7,7 @@ import { ArticuloPicker, ArticuloPickerSelection } from '../articulo-picker/arti
 import { QtyStepper } from '../qty-stepper/qty-stepper';
 import { Icon } from '../icon/icon';
 import { mejorCoincidenciaArticulo } from '../../utils/articulo-match.util';
+import { RequisicionAvanceItem } from '../../services/solicitudes-material.service';
 
 /** AT7 — un renglón de la requisición mapeado al catálogo durante la aprobación.
  *  `match_source`: 'origen' (venía del catálogo desde la app), 'sugerido' (fuzzy —
@@ -24,6 +25,11 @@ export interface ReqItemMap {
   // aprobar_requisicion guarde articulo_despacho_id y origen_item_id (renglones LIBRE).
   // null en renglones que agrega el aprobador (aún no existen en la requisición).
   item_id?: string | null;
+  // DB9 — desglose del renglón cuando parte ya se despachó o la cubrió material
+  // llegado a la obra (BV4/CD7): la cantidad sembrada es el PENDIENTE, no el pedido.
+  solicitado?: number;
+  despachado?: number;
+  cubierto?: number;
 }
 
 /** AT7 — mapea los renglones de una requisición al catálogo, con preselección del
@@ -48,6 +54,11 @@ export class RequisicionItemsMapper {
   categorias = input<Categoria[]>([]);
   /** Stock disponible por articulo_id en el almacén elegido (para decidir despacho vs compra). */
   stock = input<Record<string, number>>({});
+  /** DB9 — avance por renglón (solicitado/despachado/cubierto/pendiente). Cuando está,
+   *  la cantidad se siembra con el PENDIENTE real (el pedido menos lo despachado y lo
+   *  cubierto por material llegado a la obra), no con el solicitado — era la causa del
+   *  reporte #e665fd63: Raykler veía 200 cuando el pendiente real era 185. */
+  avance = input<RequisicionAvanceItem[]>([]);
 
   itemsChange = output<ReqItemMap[]>();
 
@@ -56,12 +67,14 @@ export class RequisicionItemsMapper {
 
   constructor() {
     // (Re)construye el mapeo cuando cambia la requisición o cuando el catálogo
-    // termina de cargar (la key incluye el nº de artículos para reseedear una vez
-    // que llegan). No re-siembra en cada tick, para no pisar las ediciones.
+    // termina de cargar (la key incluye el nº de artículos y de renglones de avance
+    // para reseedear una vez que llegan). No re-siembra en cada tick, para no pisar
+    // las ediciones.
     effect(() => {
       const s = this.solicitud();
       const arts = this.articulos();
-      const key = s ? `${s.id}:${arts.length}` : null;
+      const av = this.avance();
+      const key = s ? `${s.id}:${arts.length}:${av.length}` : null;
       if (key === this.seededKey) return;
       this.seededKey = key;
       const built = this.construir(s, arts);
@@ -74,8 +87,16 @@ export class RequisicionItemsMapper {
     if (!s) return [];
     const activos = arts.filter((a) => a.activo);
     const byId = new Map(activos.map((a) => [a.id, a] as const));
+    const avancePorItem = new Map(this.avance().filter((a) => a.item_id).map((a) => [a.item_id, a] as const));
     return (s.items ?? []).map((i) => {
-      const base = { descripcion: i.descripcion, unidad: i.unidad ?? null, cantidad: i.cantidad, talla: i.talla ?? null, item_id: i.id ?? null };
+      const av = i.id ? avancePorItem.get(i.id) : undefined;
+      // DB9 — con avance: a despachar = pendiente real; sin avance (aún cargando
+      // o RPC vacío), el solicitado de siempre.
+      const cantidad = av ? Math.max(0, av.pendiente) : i.cantidad;
+      const base = {
+        descripcion: i.descripcion, unidad: i.unidad ?? null, cantidad, talla: i.talla ?? null, item_id: i.id ?? null,
+        solicitado: av?.solicitado ?? i.cantidad, despachado: av?.despachado ?? 0, cubierto: av?.cubierto ?? 0,
+      };
       // 1) el renglón ya trae el artículo del catálogo desde el origen (lo eligió
       //    quien creó la requisición en la app): se preselecciona tal cual.
       if (i.articulo_id && byId.has(i.articulo_id)) {

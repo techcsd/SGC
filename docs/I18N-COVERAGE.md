@@ -26,7 +26,7 @@
 | admin/orden-modulos | - | 11 | 0 | 11 | 0% |
 | admin/otros-valores | - | 17 | 0 | 17 | 0% |
 | admin/parametros | - | 20 | 0 | 20 | 0% |
-| admin/reportes | - | 50 | 0 | 50 | 0% |
+| admin/reportes | - | 63 | 0 | 63 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
@@ -142,7 +142,7 @@
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
-| tecnologia/inventario | - | 127 | 0 | 127 | 0% |
+| tecnologia/inventario | - | 297 | 0 | 297 | 0% |
 | tecnologia/matriz | - | 39 | 0 | 39 | 0% |
 | tecnologia/monitoreo | - | 97 | 0 | 97 | 0% |
 | tecnologia/odoo-sync | - | 51 | 0 | 51 | 0% |
@@ -155,11 +155,11 @@
 | legal/expedientes | - | 140 | 3 | 137 | 2% |
 | soporte | - | 52 | 1 | 51 | 2% |
 | inventario/conduce-externo-ficha | - | 59 | 2 | 57 | 3% |
-| flota/vehiculos | - | 494 | 19 | 475 | 4% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |
-| proyectos/personal | - | 353 | 47 | 306 | 13% |
+| flota/vehiculos | - | 546 | 44 | 502 | 8% |
 | app-movil | - | 55 | 8 | 47 | 15% |
+| proyectos/personal | - | 415 | 74 | 341 | 18% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
 | reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
@@ -167,11 +167,12 @@
 | asistente | - | 61 | 30 | 31 | 49% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
-| borrador-claude | - | 22 | 12 | 10 | 55% |
+| borrador-claude | - | 41 | 23 | 18 | 56% |
 | tecnologia/cotizaciones | - | 97 | 54 | 43 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
+| ingenieria/pagos | - | 63 | 37 | 26 | 59% |
 | admin/vault | - | 103 | 62 | 41 | 60% |
-| tecnologia/envios-automaticos | - | 23 | 14 | 9 | 61% |
+| tecnologia/envios-automaticos | - | 33 | 20 | 13 | 61% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | admin/claude | - | 35 | 26 | 9 | 74% |

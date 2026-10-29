@@ -4,6 +4,10 @@
     <p class="page-subtitle">{{ totalVisibles() }} {{ 'personas en la vista' | t }} · {{ obrasDistintas() }} {{ 'obras' | t }}</p>
   </div>
   <div class="page-header__actions">
+    <!-- DB5 — levantamiento diario + export + registro rápido con IA -->
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/proyectos/personal/levantamiento">{{ 'Levantamiento de hoy' | t }}</a>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarExcel()">{{ 'Descargar Excel' | t }}</button>
+    <button type="button" class="sgc-btn sgc-btn--secondary" (click)="registrarRapido()">{{ 'Registro rápido (2 fotos)' | t }}</button>
     <a class="sgc-btn sgc-btn--secondary" routerLink="/proyectos/personal/importar">{{ 'Importar Excel' | t }}</a>
     <!-- CP — "⋯" agrupa Posibles duplicados / Papelera (antes 2 botones sueltos con el
          mismo peso visual que la acción principal). Se oculta si no aplica ninguno. -->

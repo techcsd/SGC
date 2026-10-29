@@ -1,5 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { invokeEdge } from '../utils/edge.util';
+import { APP_VERSION } from '../../environments/version';
 
 /** AW4 — un turno de conversación con Tato (rol + texto + herramientas usadas). */
 export interface AsistenteMensaje {
@@ -119,20 +121,38 @@ export class AsistenteService {
     return this.invocar({ ejecutar: propuesta, conversacion_id: conversacionId });
   }
 
+  // DB7 — antes esto lanzaba `error.message` tal cual, y un fallo de transporte
+  // (worker frío/timeout/red: la petición nunca recibe respuesta con CORS) le
+  // mostraba al usuario la jerga de supabase-js «Failed to send a request to the
+  // Edge Function» (regla 16). Ahora pasa por `invokeEdge` (CG5): reintenta UNA
+  // vez a los 1.5 s en fallo de transporte, traduce a mensaje humano por tipo, y
+  // registra la firma `compa_transporte` en sgc (panel Reportes de errores).
   private async invocar(body: Record<string, unknown>): Promise<AsistenteRespuesta> {
-    const { data, error } = await this.supabase.client.functions.invoke('assistant', { body });
-    if (error) {
-      let msg = error.message || 'No se pudo contactar al asistente.';
-      try {
-        const ctx = (error as unknown as { context?: Response }).context;
-        if (ctx && typeof ctx.json === 'function') {
-          const b = await ctx.json();
-          if (b?.error) msg = b.error;
-        }
-      } catch { /* deja el mensaje por defecto */ }
-      throw new Error(msg);
-    }
-    return data as AsistenteRespuesta;
+    return invokeEdge<AsistenteRespuesta>(this.supabase.client, 'assistant', body, {
+      retries: 1,
+      retryDelayMs: 1500,
+      onTransporte: (detalle) => void this.registrarFalloTransporte(detalle),
+    });
+  }
+
+  /** DB7 — deja el fallo de transporte de Compa visible en Tecnología › Errores
+   *  (AT11: si Compa falla y no queda rastro, el bug es invisible). Anti-loop:
+   *  mejor-esfuerzo, nunca lanza. */
+  private async registrarFalloTransporte(detalle: string): Promise<void> {
+    try {
+      await this.supabase.client.rpc('report_app_error', {
+        p_error_type: 'error',
+        p_message: `compa_transporte: ${detalle}`.slice(0, 500),
+        p_stack: null,
+        p_context: { url: location.pathname },
+        p_device_brand: null,
+        p_device_model: 'Navegador',
+        p_os_version: navigator.userAgent.slice(0, 60),
+        p_app_version: APP_VERSION,
+        p_platform: 'web',
+        p_source: 'web',
+      });
+    } catch { /* nunca romper Compa por el registro */ }
   }
 
   /** Conversaciones recientes del usuario (RLS: solo las suyas). */

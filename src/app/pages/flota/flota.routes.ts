@@ -20,6 +20,16 @@ export const flotaRoutes: Routes = [
     title: 'Vehículos — Flota',
   },
   {
+    // DB3 — lector de documentos de flota en lote (seguro/matrícula/marbete DGII).
+    // Ver = flota; APLICAR lo gatea el RPC (admin / jefe_flota / logistica).
+    // Antes de `vehiculos/:id` para que no lo capture la ruta con parámetro.
+    path: 'vehiculos/cargar-documentos',
+    canActivate: [submoduloGuard('flota.vehiculos')],
+    loadComponent: () =>
+      import('./vehiculos/cargar-documentos/cargar-documentos').then((m) => m.FlotaCargarDocumentos),
+    title: 'Cargar documentos — Flota',
+  },
+  {
     // CC4 (#87) — Importar vehículos desde Odoo (gate flota-elevado, como el RPC).
     // Antes de `vehiculos/:id` para que no lo capture la ruta con parámetro.
     path: 'vehiculos/importar',
