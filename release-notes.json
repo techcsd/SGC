@@ -1,5 +1,12 @@
 {
   "web": {
+    "1.205.1": {
+      "titulo": "Cargar documentos de flota: arreglo del arrastrar y soltar + lectura más rápida",
+      "cambios": [
+        { "t": "arreglo", "m": "Flota", "d": "Arrastrar y soltar el PDF en \"Cargar documentos\" ya funciona (antes solo servía hacer clic para elegir el archivo)." },
+        { "t": "arreglo", "m": "Flota", "d": "La lectura de un PDF con muchas páginas (como el de marbetes/seguros) ahora es varias veces más rápida y ya no se queda a medias por demora del servicio." }
+      ]
+    },
     "1.205.0": {
       "titulo": "Ronda DB: Compa, tablero en vivo, lectores con IA (flota y personal), pagos con descargo, reportes → ronda",
       "cambios": [
