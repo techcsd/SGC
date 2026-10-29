@@ -1,7 +1,8 @@
 // DB3 — tests del lector de documentos de flota (proveedor mockeado: se prueba
 // la lógica pura — construcción del mensaje y parseo de la respuesta).
 import { assertEquals, assertThrows } from "jsr:@std/assert@1";
-import { construirContenido, parsearPaginas, MAX_IMAGENES } from "./lector.ts";
+import { PDFDocument } from "npm:pdf-lib@1.17.1";
+import { construirContenido, parsearPaginas, dividirPdfEnTandas, MAX_IMAGENES, PAGINAS_POR_TANDA } from "./lector.ts";
 
 Deno.test("PDF: un solo bloque document + instrucción", () => {
   const c = construirContenido([{ data: "AAA", mime: "application/pdf" }]);
@@ -79,4 +80,62 @@ Deno.test("tipo desconocido cae a 'otro' y pagina ausente se numera", () => {
 
 Deno.test("respuesta sin JSON → null", () => {
   assertEquals(parsearPaginas("no pude leer nada"), null);
+});
+
+Deno.test("offset renumera 'pagina' de local (dentro de la tanda) a global", () => {
+  // tanda que arranca en la página global 7 (offset = 6): su página local 1 → global 7.
+  const p = parsearPaginas(RESPUESTA_MOCK, 6)!;
+  assertEquals(p[0].pagina, 7);
+  assertEquals(p[1].pagina, 8);
+  assertEquals(p[2].pagina, 9);
+});
+
+// ── DB3 hotfix — dividirPdfEnTandas (un PDF de 24 páginas en un solo tiro a
+// Anthropic tardaba ~40s con MARBETES.pdf real; se divide en tandas chicas
+// para leerlas en paralelo). Construye PDFs sintéticos con pdf-lib (sin
+// depender de ningún archivo externo). ──
+async function pdfDePaginas(n: number): Promise<string> {
+  const doc = await PDFDocument.create();
+  for (let i = 0; i < n; i++) doc.addPage([200, 200]);
+  const bytes = await doc.save();
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+Deno.test("PDF corto (≤ PAGINAS_POR_TANDA) no se divide", async () => {
+  const pdf = await pdfDePaginas(3);
+  const tandas = await dividirPdfEnTandas(pdf);
+  assertEquals(tandas.length, 1);
+  assertEquals(tandas[0].desde, 1);
+  assertEquals(tandas[0].paginas, 3);
+});
+
+Deno.test("PDF de 24 páginas se divide en tandas de PAGINAS_POR_TANDA, sin perder ninguna", async () => {
+  const pdf = await pdfDePaginas(24);
+  const tandas = await dividirPdfEnTandas(pdf);
+  const esperadas = Math.ceil(24 / PAGINAS_POR_TANDA);
+  assertEquals(tandas.length, esperadas);
+  // cubren 1..24 sin huecos ni solapes
+  let cubiertas = 0;
+  let siguiente = 1;
+  for (const t of tandas) {
+    assertEquals(t.desde, siguiente);
+    cubiertas += t.paginas;
+    siguiente += t.paginas;
+  }
+  assertEquals(cubiertas, 24);
+  // cada tanda es un PDF válido por sí solo (pdf-lib lo puede volver a abrir)
+  const bytes = Uint8Array.from(atob(tandas[1].data), (c) => c.charCodeAt(0));
+  const reabierto = await PDFDocument.load(bytes);
+  assertEquals(reabierto.getPageCount(), tandas[1].paginas);
+});
+
+Deno.test("última tanda puede ser más chica (24 no es múltiplo exacto de 6... si cambia PAGINAS_POR_TANDA)", async () => {
+  const pdf = await pdfDePaginas(20); // 20 / 6 = 3 tandas de 6 + 1 de 2
+  const tandas = await dividirPdfEnTandas(pdf);
+  const ultima = tandas[tandas.length - 1];
+  assertEquals(ultima.paginas <= PAGINAS_POR_TANDA, true);
+  const suma = tandas.reduce((s, t) => s + t.paginas, 0);
+  assertEquals(suma, 20);
 });

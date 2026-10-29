@@ -14,7 +14,8 @@
 
   <!-- Paso 1 — zona de soltar -->
   @if (paso() === 'inicio') {
-    <label class="cdoc__drop">
+    <label class="cdoc__drop" [class.cdoc__drop--sobre]="arrastrando()"
+           (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
       <input type="file" accept="application/pdf,image/*" multiple hidden
              (change)="onArchivos($any($event.target).files)" />
       <app-icon name="upload" [size]="28" />

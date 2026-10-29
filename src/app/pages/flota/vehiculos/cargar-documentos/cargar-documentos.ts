@@ -71,6 +71,19 @@ export class FlotaCargarDocumentos implements OnInit {
   }
 
   // ── Paso 1: elegir archivo(s) ────────────────────────────────────────────────
+  // DB3 — hotfix: la zona invitaba a "soltar" pero no tenía ningún listener de
+  // drag&drop (solo el <input type="file"> oculto funcionaba). `dragover` en
+  // estado activo para feedback visual; `drop` entrega los archivos al mismo
+  // flujo que el selector.
+  arrastrando = signal(false);
+  onDragOver(ev: DragEvent) { ev.preventDefault(); this.arrastrando.set(true); }
+  onDragLeave(ev: DragEvent) { ev.preventDefault(); this.arrastrando.set(false); }
+  onDrop(ev: DragEvent) {
+    ev.preventDefault();
+    this.arrastrando.set(false);
+    void this.onArchivos(ev.dataTransfer?.files ?? null);
+  }
+
   async onArchivos(files: FileList | null) {
     if (!files?.length) return;
     const lista = Array.from(files);
@@ -102,7 +115,10 @@ export class FlotaCargarDocumentos implements OnInit {
         archivosEdge = bufs.map((b, i) => ({ data: this.aBase64(b), mime: lista[i].type }));
         thumbs = await Promise.all(lista.map((f) => this.aDataUrl(f)));
       }
-      const paginas = await this.lector.leer(archivosEdge);
+      const { paginas, omitidas } = await this.lector.leer(archivosEdge);
+      if (omitidas > 0) {
+        this.toast.error('Algunas páginas no se pudieron leer', `${omitidas} página(s) no se leyeron — el servicio tardó demasiado o falló. Revisa el resto y vuelve a intentar con esas páginas si hace falta.`);
+      }
       const emparejadas = await this.lector.emparejar(paginas);
       this.filas.set(emparejadas.map((p) => {
         const auto = (p.match === 'exacta' || p.match === 'vin') ? (p.vehiculo_id ?? null) : null;

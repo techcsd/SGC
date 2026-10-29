@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
-import { construirContenido, parsearPaginas, SYSTEM, type Any } from "./lector.ts";
+import { construirContenido, parsearPaginas, dividirPdfEnTandas, SYSTEM, type Any } from "./lector.ts";
 
 // ============================================================================
 // DB3 (Ronda DB) — Lector de documentos de FLOTA en lote: un PDF multipágina
@@ -33,6 +33,31 @@ async function leerParametro(svc: Any, clave: string, def: number): Promise<numb
   const { data } = await svc.schema("sgc").from("parametros").select("valor").eq("clave", clave).maybeSingle();
   const n = data?.valor ? Number(data.valor) : NaN;
   return Number.isFinite(n) ? n : def;
+}
+
+type ResultadoAnthropic =
+  | { ok: true; texto: string; inTok: number; outTok: number }
+  | { ok: false; status: number; error: string };
+
+async function llamarAnthropic(content: Any[]): Promise<ResultadoAnthropic> {
+  let anthRes: Response;
+  try {
+    anthRes = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 4096, system: SYSTEM, messages: [{ role: "user", content }] }),
+    });
+  } catch (_e) {
+    return { ok: false, status: 502, error: "No se pudo leer el documento (red)." };
+  }
+  if (!anthRes.ok) {
+    const t = await anthRes.text();
+    console.error("anthropic error", anthRes.status, t.slice(0, 300));
+    return { ok: false, status: 502, error: "El lector de documentos no está disponible ahora." };
+  }
+  const anth = await anthRes.json();
+  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+  return { ok: true, texto, inTok: anth?.usage?.input_tokens ?? 0, outTok: anth?.usage?.output_tokens ?? 0 };
 }
 
 Deno.serve(async (req) => {
@@ -85,43 +110,70 @@ Deno.serve(async (req) => {
   if ((usoHora ?? 0) >= limHora) return json({ ok: false, error: "Alcanzaste el límite de lecturas por hora. Llena los campos a mano." }, 429);
   if ((usoDia ?? 0) >= limDia) return json({ ok: false, error: "Se alcanzó el límite diario de lecturas del sistema. Llena los campos a mano." }, 429);
 
-  let content: Any[];
-  try { content = construirContenido(archivos); } catch (e) {
-    return json({ ok: false, error: e instanceof Error ? e.message : "Archivos no válidos." }, 400);
+  // DB3 hotfix — un PDF se divide en tandas de pocas páginas y se leen EN
+  // PARALELO: una llamada de 24 páginas en un solo tiro tardaba ~40s (medido
+  // con MARBETES.pdf real) y arriesgaba un timeout de infraestructura antes de
+  // que la respuesta llegara al navegador. Las fotos sueltas (≤20) siguen en
+  // una sola llamada, como antes.
+  const esPdfUnico = archivos.length === 1 && archivos[0].mime === "application/pdf";
+  let paginasTotal: Any[] = [];
+  let inTokTotal = 0, outTokTotal = 0;
+  let paginasOmitidas = 0;
+  let errorSiVacio: { status: number; error: string } | null = null;
+
+  if (esPdfUnico) {
+    let tandas;
+    try { tandas = await dividirPdfEnTandas(archivos[0].data); } catch (_e) {
+      return json({ ok: false, error: "No se pudo leer el PDF (archivo dañado o no válido)." }, 400);
+    }
+    const resultados = await Promise.all(tandas.map(async (t) => {
+      const content = construirContenido([{ data: t.data, mime: "application/pdf" }]);
+      return { tanda: t, r: await llamarAnthropic(content) };
+    }));
+    for (const { tanda, r } of resultados) {
+      if (!r.ok) {
+        console.error("tanda fallida", tanda.desde, r.error);
+        errorSiVacio = { status: r.status, error: r.error };
+        paginasOmitidas += tanda.paginas;
+        continue;
+      }
+      inTokTotal += r.inTok; outTokTotal += r.outTok;
+      const paginas = parsearPaginas(r.texto, tanda.desde - 1);
+      if (paginas) paginasTotal.push(...paginas);
+      else paginasOmitidas += tanda.paginas;
+    }
+    paginasTotal.sort((a, b) => a.pagina - b.pagina);
+  } else {
+    let content: Any[];
+    try { content = construirContenido(archivos); } catch (e) {
+      return json({ ok: false, error: e instanceof Error ? e.message : "Archivos no válidos." }, 400);
+    }
+    const r = await llamarAnthropic(content);
+    if (!r.ok) {
+      errorSiVacio = { status: r.status, error: r.error };
+    } else {
+      inTokTotal = r.inTok; outTokTotal = r.outTok;
+      paginasTotal = parsearPaginas(r.texto) ?? [];
+    }
   }
 
-  let anthRes: Response;
-  try {
-    anthRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      // 24 páginas × ~10 campos → respuesta larga; 8k tokens dan margen.
-      body: JSON.stringify({ model: MODEL, max_tokens: 8192, system: SYSTEM, messages: [{ role: "user", content }] }),
-    });
-  } catch (_e) {
-    return json({ ok: false, error: "No se pudo leer el documento (red)." }, 502);
-  }
-  if (!anthRes.ok) {
-    const t = await anthRes.text();
-    console.error("anthropic error", anthRes.status, t.slice(0, 300));
-    return json({ ok: false, error: "El lector de documentos no está disponible ahora." }, 502);
-  }
-  const anth = await anthRes.json();
-  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
-  const inTok = anth?.usage?.input_tokens ?? 0;
-  const outTok = anth?.usage?.output_tokens ?? 0;
-  const costoUsd = inTok * PRECIO_IN + outTok * PRECIO_OUT;
-
+  const costoUsd = inTokTotal * PRECIO_IN + outTokTotal * PRECIO_OUT;
   try {
     await svc.schema("sgc").from("uso_ia").insert({
       usuario_id: userId, funcion: "leer_documento_flota", modelo: MODEL,
-      tokens_in: inTok, tokens_out: outTok, costo_estimado: costoUsd,
-      meta: { archivos: archivos.length, mime: archivos[0].mime },
+      tokens_in: inTokTotal, tokens_out: outTokTotal, costo_estimado: costoUsd,
+      meta: { archivos: archivos.length, mime: archivos[0].mime, paginas_omitidas: paginasOmitidas },
     });
   } catch (e) { console.error("uso_ia insert", e); }
 
-  const paginas = parsearPaginas(texto);
-  if (!paginas) return json({ ok: false, error: "No se pudo interpretar el documento. Llena los campos a mano." }, 200);
+  if (!paginasTotal.length) {
+    if (errorSiVacio) return json({ ok: false, error: errorSiVacio.error }, errorSiVacio.status);
+    return json({ ok: false, error: "No se pudo interpretar el documento. Llena los campos a mano." }, 200);
+  }
 
-  return json({ ok: true, paginas, modelo: MODEL, costo_usd: costoUsd });
+  // AT11 — si algo no se pudo leer, se dice (no se calla una omisión silenciosa).
+  return json({
+    ok: true, paginas: paginasTotal, modelo: MODEL, costo_usd: costoUsd,
+    ...(paginasOmitidas > 0 ? { omitidas: paginasOmitidas } : {}),
+  });
 });
