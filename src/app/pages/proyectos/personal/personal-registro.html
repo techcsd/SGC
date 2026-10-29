@@ -17,8 +17,47 @@
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
 
+<!-- DB5 — Paso 0 (Registro rápido): 2 fotos → la IA precarga los datos -->
+@if (paso() === 0) {
+  <div class="sgc-card pob-form pob-rapido">
+    <h2 class="pob-rapido__title">Registro rápido (2 fotos)</h2>
+    <p class="pob-rapido__hint">Toma la foto del documento y la de la persona sosteniéndolo junto a su cara. El sistema llena los campos; tú solo revisas y eliges el cargo.</p>
+    <div class="pob-rapido__fotos">
+      <label class="pob-rapido__slot" [class.pob-rapido__slot--ok]="fotoDocPreview()">
+        <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoRapida('documento', $event)" />
+        @if (fotoDocPreview()) { <img [src]="fotoDocPreview()" alt="Documento" /> } @else {
+          <app-icon name="upload" [size]="22" />
+        }
+        <span class="pob-rapido__slot-label">1 · Foto del documento</span>
+        <span class="pob-rapido__slot-ayuda">Cédula o pasaporte, legible</span>
+      </label>
+      <label class="pob-rapido__slot" [class.pob-rapido__slot--ok]="fotoPersonaPreview()">
+        <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoRapida('persona', $event)" />
+        @if (fotoPersonaPreview()) { <img [src]="fotoPersonaPreview()" alt="Persona con documento" /> } @else {
+          <app-icon name="upload" [size]="22" />
+        }
+        <span class="pob-rapido__slot-label">2 · Persona con el documento</span>
+        <span class="pob-rapido__slot-ayuda">Documento junto a la cara, rostro visible</span>
+      </label>
+    </div>
+    <div class="pob-form__foot">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarLectura()">Llenar a mano</button>
+      <button type="button" class="sgc-btn sgc-btn--primary"
+              [disabled]="!fotoDocFile() || !fotoPersonaFile() || leyendoIa()" (click)="leerConIa()">
+        {{ leyendoIa() ? 'Leyendo…' : 'Leer y precargar datos' }}
+      </button>
+    </div>
+  </div>
+}
+
 <!-- Paso 1: Datos -->
 @if (paso() === 1) {
+  @if (coincideRostro() === 'no' || coincideRostro() === 'dudoso') {
+    <div class="pob-form__dup" role="alert">
+      <strong>{{ coincideRostro() === 'no' ? 'La cara NO parece coincidir con la foto del documento.' : 'No se pudo confirmar que la cara coincida con el documento.' }}</strong>
+      <p class="text-muted">Verifícalo tú antes de guardar (la lectura automática no decide sola).</p>
+    </div>
+  }
   <form class="sgc-card pob-form" [formGroup]="form" (ngSubmit)="guardarDatos()">
     <div class="form-row">
       <div class="sgc-field">
@@ -98,6 +137,11 @@
         <strong>Ya existe un trabajador con este documento:</strong>
         <ul>@for (n of dupAviso(); track n) { <li>{{ n }}</li> }</ul>
         <p class="text-muted">Verifica que no sea la misma persona. Si estás seguro, puedes registrarlo igual.</p>
+        <!-- DB5 — si ya está registrado, lo útil hoy es marcarlo presente, no duplicarlo. -->
+        @for (d of dupRegistros(); track d.id) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="saving()"
+                  (click)="marcarPresenteHoy(d.id)">Ya está registrado: marcar presente hoy a {{ d.nombre }}</button>
+        }
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="registrarDeTodosModos()">Registrar de todos modos</button>
       </div>
     }

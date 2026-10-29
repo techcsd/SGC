@@ -51,6 +51,18 @@ export class PersonalRegistro implements OnInit {
   dupConfirmado = signal(false);
   readonly totalPasos = 5;
 
+  // ── DB5 — Registro rápido (2 fotos): paso 0 con documento + persona-con-documento.
+  rapido = signal(false);
+  fotoDocFile = signal<File | null>(null);
+  fotoPersonaFile = signal<File | null>(null);
+  fotoDocPreview = signal<string | null>(null);
+  fotoPersonaPreview = signal<string | null>(null);
+  leyendoIa = signal(false);
+  /** veredicto cara↔documento de la IA ('si'|'no'|'dudoso') — solo aviso, nunca bloquea. */
+  coincideRostro = signal<'si' | 'no' | 'dudoso' | null>(null);
+  // CE16+DB5 — duplicados con id, para ofrecer «marcar presente hoy» en vez de duplicar.
+  dupRegistros = signal<{ id: string; nombre: string; proyecto: string | null }[]>([]);
+
   obras = signal<ObraRef[]>([]);
   // BO6 (§E-5) — ids de obras de prueba, para avisar (no bloquear) al registrar
   // personal REAL en una obra de prueba: heredaría es_prueba por trigger y quedaría
@@ -133,6 +145,95 @@ export class PersonalRegistro implements OnInit {
     if (preObra) this.form.patchValue({ proyecto_id: preObra });
     const editId = this.route.snapshot.queryParamMap.get('id');
     if (editId) await this.cargarEdicion(editId);
+    // DB5 — modo «Registro rápido (2 fotos)»: paso 0 antes de los datos.
+    if (!editId && this.route.snapshot.queryParamMap.get('rapido')) {
+      this.rapido.set(true);
+      this.paso.set(0);
+    }
+  }
+
+  // ── DB5 — paso 0: dos fotos → la IA precarga los campos ─────────────────────
+  onFotoRapida(cual: 'documento' | 'persona', ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    if (cual === 'documento') { this.fotoDocFile.set(file); this.fotoDocPreview.set(url); }
+    else { this.fotoPersonaFile.set(file); this.fotoPersonaPreview.set(url); }
+    input.value = '';
+  }
+
+  async leerConIa() {
+    const doc = this.fotoDocFile();
+    const per = this.fotoPersonaFile();
+    if (!doc || !per || this.leyendoIa()) return;
+    this.leyendoIa.set(true);
+    this.error.set('');
+    try {
+      const [b1, b2] = await Promise.all([this.fileABase64(doc), this.fileABase64(per)]);
+      const lectura = await this.service.leerDocumento(
+        { data: b1, mime: doc.type || 'image/jpeg' },
+        { data: b2, mime: per.type || 'image/jpeg' },
+      );
+      // Precarga EDITABLE (nada se guarda solo). 'venezolano' no está en el
+      // catálogo de nacionalidades del alta → cae a 'otro' y queda en notas.
+      const nacionalidad = lectura.nacionalidad === 'venezolano' ? 'otro' : (lectura.nacionalidad ?? 'dominicano');
+      this.form.patchValue({
+        nombre: lectura.nombre ?? '',
+        apellido: lectura.apellido ?? '',
+        tipo_documento: lectura.tipo_documento ?? 'cedula',
+        documento_numero: lectura.documento_numero ?? '',
+        nacionalidad,
+        notas: lectura.nacionalidad === 'venezolano' ? 'Nacionalidad leída: venezolano' : this.form.controls.notas.value,
+      });
+      this.coincideRostro.set(lectura.coincide_rostro);
+      this.paso.set(1);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo leer el documento.');
+    } finally {
+      this.leyendoIa.set(false);
+    }
+  }
+
+  saltarLectura() { this.paso.set(1); }
+
+  /** DB5 — el duplicado detectado ya trabaja aquí: márcalo presente hoy y listo. */
+  async marcarPresenteHoy(personalId: string) {
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      await this.service.levantamientoMarcar(personalId, true);
+      this.router.navigate(['/proyectos/personal'], { queryParams: { presente: '1' } });
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo marcar presente.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  /** DB5 — tras crear en modo rápido, las 2 fotos se guardan como las tipadas de siempre. */
+  private async subirFotosRapidas(p: PersonalObra) {
+    const pares: [FotoTipo, File | null][] = [
+      ['documento', this.fotoDocFile()],
+      ['persona_carnet_cedula', this.fotoPersonaFile()],
+    ];
+    for (const [tipo, file] of pares) {
+      if (!file) continue;
+      try {
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        await this.service.subirFoto(p, tipo, file, ext);
+        this.fotoPreview.update((m) => ({ ...m, [tipo]: URL.createObjectURL(file) }));
+      } catch { /* la foto se puede resubir en el paso 2 */ }
+    }
+  }
+
+  private fileABase64(f: File): Promise<string> {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result).split(',')[1] ?? '');
+      r.onerror = () => rej(new Error('No se pudo leer la foto.'));
+      r.readAsDataURL(f);
+    });
   }
 
   private async cargarEdicion(id: string) {
@@ -176,6 +277,7 @@ export class PersonalRegistro implements OnInit {
         const existentes = await this.service.docExiste(payload.tipo_documento!, payload.documento_numero, undefined);
         if (existentes.length > 0) {
           this.dupAviso.set(existentes.map((e) => `${e.nombre} (${e.proyecto ?? 'sin obra'})`));
+          this.dupRegistros.set(existentes); // DB5 — para «marcar presente hoy»
           this.saving.set(false);
           return;
         }
@@ -183,7 +285,10 @@ export class PersonalRegistro implements OnInit {
       const saved = actual ? await this.service.actualizar(actual.id, payload) : await this.service.crear(payload);
       this.personal.set(saved);
       this.dupAviso.set([]);
+      this.dupRegistros.set([]);
       if (!actual) this.motion.momento('entrada');
+      // DB5 — en modo rápido, las 2 fotos del paso 0 se guardan como tipadas.
+      if (!actual && this.rapido()) await this.subirFotosRapidas(saved);
       this.paso.set(2);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudieron guardar los datos.');

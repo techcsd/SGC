@@ -31,6 +31,9 @@ export const DOC_SLOTS: Record<DocumentoEntidad, DocSlot[]> = {
   vehiculo: [
     { value: 'seguro', label: 'Seguro', destacado: true },
     { value: 'matricula', label: 'Matrícula', destacado: true },
+    // DB3 — el marbete DGII se renueva cada año para toda la flota (antes solo
+    // existía dentro del flujo de placa provisional AG8).
+    { value: 'marbete', label: 'Marbete DGII', destacado: true },
     { value: 'otro', label: 'Otros documentos', destacado: false },
   ],
 };

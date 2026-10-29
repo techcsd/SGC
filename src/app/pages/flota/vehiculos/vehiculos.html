@@ -8,6 +8,9 @@
     <app-export-excel filenameBase="vehiculos" [rows]="filtered()" [allRows]="vehiculos()"
       [columns]="exportCols" [sections]="exportSecciones" />
     @if (puedeGestionar()) {
+      <!-- DB3 — lector IA de documentos en lote (seguros/matrículas/marbetes renovados) -->
+      <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos/cargar-documentos"
+         title="Subir el PDF o las fotos de los documentos renovados: la IA los lee y los aplica a cada vehículo">Cargar documentos</a>
       <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos/importar"
          title="Importar vehículos desde una plantilla de Excel (o desde Odoo)">Importar</a>
       <!-- CE12 — carga masiva de especificación de combustible (placa, esperado, mín, máx, unidad) -->

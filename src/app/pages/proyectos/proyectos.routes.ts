@@ -54,6 +54,13 @@ export const proyectosRoutes: Routes = [
     title: 'Registrar personal',
   },
   {
+    // DB5 — levantamiento diario (quién está hoy / nuevos / faltan). Antes del ':id'.
+    path: 'personal/levantamiento',
+    canActivate: [submoduloGuard('proyectos.personal')],
+    loadComponent: () => import('./personal/personal-levantamiento').then((m) => m.PersonalLevantamiento),
+    title: 'Levantamiento de hoy',
+  },
+  {
     // AT5 — Import de personal desde Excel. Antes del ':id'.
     path: 'personal/importar',
     canActivate: [submoduloGuard('proyectos.personal')],

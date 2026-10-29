@@ -51,6 +51,10 @@ export const MOTION_IDS = {
   baseStagger: 'base-stagger',
   baseCountUp: 'base-count-up',
   baseEstadoPulse: 'base-estado-pulse',
+  // DB1 — «Hoy, en vivo» (Inicio): feed que entra deslizándose + flota que se
+  // desliza entre posiciones (tablero-vivo.scss; solo transform/opacity).
+  tableroVivoFeed: 'tablero-vivo-feed',
+  tableroVivoFlota: 'tablero-vivo-flota',
 } as const;
 
 export type MotionId = (typeof MOTION_IDS)[keyof typeof MOTION_IDS];
@@ -153,5 +157,18 @@ export const CATALOGO_MOVIMIENTO: MovimientoEntry[] = [
     donde: 'El chip late corto al cambiar de estado', pantallas: ['tablas, tarjetas, fichas'],
     duracionMs: 320, curva: 'var(--ease-out)', reducido: 'Cambia de color sin latido', desdeVersion: V,
     previewKey: 'base-estado-pulse', estado: 'en_uso',
+  },
+  // DB1 — «Hoy, en vivo» (tablero del Inicio, nivel mediano de la tabla CJ4).
+  {
+    id: MOTION_IDS.tableroVivoFeed, nombre: 'Evento del tablero en vivo', nivel: 'mediano', sistema: 'web',
+    donde: 'Cada evento nuevo del feed «Hoy, en vivo» entra deslizándose desde arriba', pantallas: ['dashboard'],
+    duracionMs: 500, curva: 'var(--ease-out)', reducido: 'El evento aparece sin deslizarse', desdeVersion: '1.205.0',
+    previewKey: 'tablero-vivo-feed', estado: 'en_uso',
+  },
+  {
+    id: MOTION_IDS.tableroVivoFlota, nombre: 'Flota que se desliza en el mapa', nivel: 'mediano', sistema: 'web',
+    donde: 'Los vehículos del mapa esquemático se deslizan a su nueva posición al llegar un reporte GPS', pantallas: ['dashboard'],
+    duracionMs: 1200, curva: 'var(--ease-out)', reducido: 'El punto salta a la posición nueva sin animar', desdeVersion: '1.205.0',
+    previewKey: 'tablero-vivo-flota', estado: 'en_uso',
   },
 ];

@@ -1,0 +1,146 @@
+// DB1 — «Hoy, en vivo» (nivel mediano, CJ4): el feed entra deslizándose y los
+// vehículos se deslizan entre posiciones (solo transform/opacity). Con
+// `prefers-reduced-motion` o `html.motion-reduced`, todo aparece sin animar.
+.tv {
+  padding: 16px 18px;
+  margin-bottom: 16px;
+
+  &__head { display: flex; align-items: center; gap: 12px; }
+  &__title { font-size: 16px; font-weight: 700; margin: 0; }
+  &__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--success, #1a7f37);
+    &--poll { color: var(--text-3); }
+  }
+  &__live-punto {
+    width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+    animation: tv-pulso 1.6s ease-in-out infinite;
+  }
+  &__error { font-size: 12.5px; color: var(--text-3); margin: 10px 0 0; }
+  &__vacio { font-size: 13px; color: var(--text-3); margin: 12px 0 2px; }
+
+  // ── KPIs ──
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  &__kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  &__kpi-num { font-size: 22px; font-weight: 800; color: var(--text-1); }
+  &__kpi-label { font-size: 11.5px; color: var(--text-3); }
+
+  // ── Grid flujo + flota ──
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  &__bloque { min-width: 0; }
+  &__sub { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 8px; }
+
+  // etapas del flujo
+  &__etapas {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0 0 10px;
+    padding: 0;
+  }
+  &__etapa {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-3);
+    &--viva { color: var(--text-1); .tv__etapa-num { border-color: var(--brand); color: var(--brand); } }
+  }
+  &__etapa-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 24px;
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12.5px;
+  }
+  &__etapa-flecha { color: var(--text-3); margin-left: 2px; }
+
+  // feed de eventos (entra deslizándose — base-tablero-feed)
+  &__feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  &__evento {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    padding: 4px 6px;
+    border-radius: 8px;
+    animation: tv-entrar 0.5s var(--ease-out, ease-out) backwards;
+    &--vacio { color: var(--text-3); animation: none; }
+  }
+  &__evento-icono { color: var(--brand); flex: none; }
+  &__evento-texto { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__evento-detalle { color: var(--text-3); }
+  &__evento-hora { font-size: 11px; color: var(--text-3); flex: none; }
+
+  // mapa esquemático (flota) — base-tablero-flota
+  &__mapa {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--brand) 3%, var(--surface));
+  }
+  &__mapa-linea { stroke: var(--border); stroke-width: 0.2; opacity: 0.6; }
+  &__veh {
+    // deslizarse entre posiciones cuando llega una nueva (solo transform)
+    transition: transform 1.2s var(--ease-out, ease-out);
+  }
+  &__veh-halo { fill: var(--brand); opacity: 0.18; animation: tv-pulso 2s ease-in-out infinite; }
+  &__veh-punto { fill: var(--brand); }
+  &__veh-label { font-size: 3px; fill: var(--text-2); font-weight: 600; }
+  &__mapa-nota { font-size: 11px; color: var(--text-3); margin: 6px 2px 0; }
+}
+
+@keyframes tv-entrar {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tv-pulso {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .tv__grid { grid-template-columns: 1fr; }
+}
+
+// CJ4 — reduced-motion (preferencia del SO o ajuste del usuario en Configuración).
+@media (prefers-reduced-motion: reduce) {
+  .tv__evento { animation: none; }
+  .tv__veh { transition: none; }
+  .tv__veh-halo, .tv__live-punto { animation: none; }
+}
+:host-context(html.motion-reduced) {
+  .tv__evento { animation: none; }
+  .tv__veh { transition: none; }
+  .tv__veh-halo, .tv__live-punto { animation: none; }
+}

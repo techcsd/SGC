@@ -24,6 +24,17 @@ export interface ReporteUsuario {
   updated_at: string;
   resuelto_en: string | null;
   fotos?: ReporteFoto[];
+  // DB6 — resumen con IA guardado con el reporte (nota de ronda / prompt de hotfix).
+  ia_resumen?: ReporteIaResumen | null;
+  ia_resumen_at?: string | null;
+}
+
+/** DB6 — salida de la edge `resumir-reporte`, persistida en `ia_resumen`. */
+export interface ReporteIaResumen {
+  resumen_ronda: string;
+  es_hotfix: boolean;
+  motivo: string;
+  prompt_hotfix: string | null;
 }
 
 export const REPORTE_TIPO_LABELS: Record<ReporteTipo, string> = {

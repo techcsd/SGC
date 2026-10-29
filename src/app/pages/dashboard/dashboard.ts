@@ -11,6 +11,7 @@ import { SalidasService } from '../../../shared/services/salidas.service';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { CountUpDirective } from '../../../shared/motion/count-up.directive';
+import { TableroVivoComponent } from '../../components/tablero-vivo/tablero-vivo';
 import { identificacionVehiculo } from '../../../shared/models/vehiculo.model';
 
 interface ModuleCard {
@@ -44,7 +45,7 @@ interface BarItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton, CountUpDirective],
+  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton, CountUpDirective, TableroVivoComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

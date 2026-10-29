@@ -1,0 +1,82 @@
+@if (puedeVer()) {
+  <section class="tv sgc-card" aria-label="Hoy, en vivo">
+    <header class="tv__head">
+      <h2 class="tv__title">{{ 'Hoy, en vivo' | t }}</h2>
+      @if (enVivo()) {
+        <span class="tv__live"><span class="tv__live-punto" aria-hidden="true"></span>{{ 'En vivo' | t }}</span>
+      } @else if (datos()) {
+        <span class="tv__live tv__live--poll"><span class="tv__live-punto" aria-hidden="true"></span>{{ 'Actualiza cada 30 s' | t }}</span>
+      }
+    </header>
+
+    @if (error() && !datos()) { <p class="tv__error">{{ error() }}</p> }
+
+    @if (datos(); as d) {
+      <!-- KPIs del día (count-up) -->
+      <div class="tv__kpis">
+        <div class="tv__kpi"><span class="tv__kpi-num" [appCountUp]="d.kpis.requisiciones_hoy"></span><span class="tv__kpi-label">{{ 'Requisiciones' | t }}</span></div>
+        <div class="tv__kpi"><span class="tv__kpi-num" [appCountUp]="d.kpis.conduces_hoy"></span><span class="tv__kpi-label">{{ 'Conduces' | t }}</span></div>
+        <div class="tv__kpi"><span class="tv__kpi-num" [appCountUp]="d.kpis.entregas_hoy"></span><span class="tv__kpi-label">{{ 'Entregas' | t }}</span></div>
+        <div class="tv__kpi"><span class="tv__kpi-num" [appCountUp]="d.kpis.echadas_hoy"></span><span class="tv__kpi-label">{{ 'Echadas' | t }}</span></div>
+        <div class="tv__kpi"><span class="tv__kpi-num" [appCountUp]="d.kpis.vehiculos_en_uso"></span><span class="tv__kpi-label">{{ 'Vehículos en uso' | t }}</span></div>
+      </div>
+
+      @if (!hayMovimiento()) {
+        <p class="tv__vacio">{{ 'Todavía no hay movimiento hoy.' | t }}</p>
+      } @else {
+        <div class="tv__grid">
+          <!-- Flujo de pedidos del día -->
+          <div class="tv__bloque">
+            <h3 class="tv__sub">{{ 'Flujo de pedidos (hoy)' | t }}</h3>
+            <ol class="tv__etapas">
+              @for (e of ETAPAS; track e.key; let last = $last) {
+                <li class="tv__etapa" [class.tv__etapa--viva]="d.flujo[e.key] > 0">
+                  <span class="tv__etapa-num">{{ d.flujo[e.key] | number:'1.0-0' }}</span>
+                  <span class="tv__etapa-label">{{ e.label | t }}</span>
+                  @if (!last) { <span class="tv__etapa-flecha" aria-hidden="true">›</span> }
+                </li>
+              }
+            </ol>
+            <ul class="tv__feed" aria-live="polite">
+              @for (ev of d.eventos; track ev.at + ev.tipo) {
+                <li class="tv__evento">
+                  <svg class="tv__evento-icono" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="iconoEvento(ev.tipo)"/></svg>
+                  <span class="tv__evento-texto">{{ ev.titulo }}@if (ev.detalle) { <span class="tv__evento-detalle"> · {{ ev.detalle }}</span> }</span>
+                  <span class="tv__evento-hora">{{ hora(ev.at) }}</span>
+                </li>
+              } @empty {
+                <li class="tv__evento tv__evento--vacio">{{ 'Sin eventos todavía.' | t }}</li>
+              }
+            </ul>
+          </div>
+
+          <!-- Flota en vivo (mapa esquemático SVG propio) -->
+          <div class="tv__bloque">
+            <h3 class="tv__sub">{{ 'Flota en vivo' | t }}</h3>
+            @if (flotaSvg().length) {
+              <svg class="tv__mapa" viewBox="0 0 100 70" role="img" [attr.aria-label]="'Posiciones de la flota' | t">
+                <!-- retícula esquemática (no es un mapa real: posiciones relativas) -->
+                @for (l of [14, 28, 42, 56]; track l) {
+                  <line x1="0" [attr.y1]="l" x2="100" [attr.y2]="l" class="tv__mapa-linea" />
+                }
+                @for (l of [20, 40, 60, 80]; track l) {
+                  <line [attr.x1]="l" y1="0" [attr.x2]="l" y2="70" class="tv__mapa-linea" />
+                }
+                @for (v of flotaSvg(); track v.vehiculo_id) {
+                  <g class="tv__veh" [style.transform]="'translate(' + v.x + 'px,' + v.y + 'px)'">
+                    <circle r="2.6" class="tv__veh-halo" />
+                    <circle r="1.6" class="tv__veh-punto" />
+                    <text x="3.4" y="1.1" class="tv__veh-label">{{ v.etiqueta }}</text>
+                  </g>
+                }
+              </svg>
+              <p class="tv__mapa-nota">{{ 'Posiciones relativas de hoy (las manda la app de los choferes).' | t }}</p>
+            } @else {
+              <p class="tv__vacio">{{ 'Ningún vehículo ha mandado su posición hoy.' | t }}</p>
+            }
+          </div>
+        </div>
+      }
+    }
+  </section>
+}

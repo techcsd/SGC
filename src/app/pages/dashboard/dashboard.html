@@ -76,6 +76,10 @@
 
   } @else {
 
+    <!-- DB1 — «Hoy, en vivo» (Realtime + mapa esquemático de flota). El propio
+         componente se oculta si el rol no tiene inventario/flota/proyectos/dirección. -->
+    <app-tablero-vivo />
+
     <!-- KPI cards — Q3: cada número abre su listado (drill-down filtrado) -->
     <div class="kpi-grid">
       @if (canSee('inventario')) {

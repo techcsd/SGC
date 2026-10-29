@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
-import { ReporteUsuario, ReporteEstado, ReporteTipo } from '../models/reporte-usuario.model';
+import { invokeEdge } from '../utils/edge.util';
+import { ReporteUsuario, ReporteEstado, ReporteTipo, ReporteIaResumen } from '../models/reporte-usuario.model';
 
 // usuarios is joined twice (usuario_id, asignado_a) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
@@ -11,6 +12,16 @@ const SELECT_QUERY =
 @Injectable({ providedIn: 'root' })
 export class ReportesUsuarioService {
   private supabase = inject(SupabaseService);
+
+  /** DB6 — resume el reporte con IA (nota de ronda + prompt de hotfix). El resultado
+   *  queda guardado con el reporte; `forzar` = «Volver a leer». Solo admin/Tecnología. */
+  async resumir(reporteId: string, forzar = false): Promise<{ resumen: ReporteIaResumen; cacheado: boolean }> {
+    const res = await invokeEdge<{ ok: boolean; resumen?: ReporteIaResumen; cacheado?: boolean; error?: string }>(
+      this.supabase.client, 'resumir-reporte', { reporte_id: reporteId, forzar },
+    );
+    if (!res.ok || !res.resumen) throw new Error(res.error || 'No se pudo resumir el reporte.');
+    return { resumen: res.resumen, cacheado: !!res.cacheado };
+  }
 
   /** RLS scopes this: regular users see only their own reports. */
   async getMisReportes(): Promise<ReporteUsuario[]> {

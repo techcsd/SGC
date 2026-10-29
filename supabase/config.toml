@@ -122,3 +122,17 @@ verify_jwt = true
 # PoC Odoo (lectura de stock) — exige JWT de usuario; el módulo `inventario` se valida en el servidor.
 [functions.odoo-api]
 verify_jwt = true
+
+# ── Ronda DB (29-oct-2026) — lectores con IA y pagos ──
+# DB3/DB5/DB6 — auto-autenticación (getUser + consentimiento CI10 dentro de la
+# función, patrón acceso-cedula): verify_jwt=false evita el rechazo del gateway
+# SIN cabeceras CORS («Failed to send a request…», el mismo síntoma de DB7).
+[functions.leer-documento-flota]
+verify_jwt = false
+[functions.leer-documento-personal]
+verify_jwt = false
+[functions.resumir-reporte]
+verify_jwt = false
+# DB4 — server-to-server (pg_net + x-sync-secret, patrón generar-informe-obra).
+[functions.pagos-descargo-enviar]
+verify_jwt = false

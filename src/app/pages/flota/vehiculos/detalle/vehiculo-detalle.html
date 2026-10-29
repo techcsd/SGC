@@ -357,6 +357,10 @@
 
     <!-- ── 3b. Documentos (X1) ── -->
     <div class="sgc-card vd-card">
+      <!-- DB3 — mismo lector IA del lote, pre-asignado a este vehículo -->
+      <a class="sgc-btn sgc-btn--ghost sgc-btn--sm vd-leer-doc" routerLink="/flota/vehiculos/cargar-documentos"
+         [queryParams]="{ vehiculo: v.id }"
+         title="Sube la foto del seguro/matrícula/marbete y la IA llena los campos de este vehículo">Leer documento</a>
       <app-documentos-flota entidad="vehiculo" [entidadId]="v.id" [autoAbrir]="docAuto" />
     </div>
 

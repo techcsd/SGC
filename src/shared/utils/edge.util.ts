@@ -86,7 +86,16 @@ export async function invokeEdge<T = unknown>(
   client: EdgeCapableClient,
   name: string,
   body: Record<string, unknown>,
-  opts: { retries?: number } = {},
+  opts: {
+    retries?: number;
+    /** DB7 — espera antes del reintento de transporte (p. ej. 1500 ms para dar
+     *  tiempo a que el worker frío arranque). Default 0 (comportamiento CG5). */
+    retryDelayMs?: number;
+    /** DB7 — callback cuando el fallo FINAL fue de transporte (sin respuesta),
+     *  para que el llamador lo registre en sgc (firma propia) sin perder el
+     *  mensaje humano que esta función lanza. */
+    onTransporte?: (detalleTecnico: string) => void;
+  } = {},
 ): Promise<T> {
   const maxRetries = opts.retries ?? 1;
   let lastError: unknown;
@@ -103,10 +112,15 @@ export async function invokeEdge<T = unknown>(
     lastError = error;
     // Solo reintenta ante fallo de TRANSPORTE (no ante un error de negocio con respuesta).
     if (esErrorTransporte(error) && attempt < maxRetries) {
+      if (opts.retryDelayMs) await new Promise((r) => setTimeout(r, opts.retryDelayMs));
       try { await client.auth.refreshSession(); } catch { /* seguimos: el reintento dirá */ }
       continue;
     }
     break;
+  }
+  if (esErrorTransporte(lastError) && opts.onTransporte) {
+    const tech = lastError instanceof Error ? lastError.message : String(lastError);
+    try { opts.onTransporte(tech); } catch { /* el registro nunca rompe el flujo */ }
   }
   throw new Error(await edgeErrorMessage(lastError));
 }

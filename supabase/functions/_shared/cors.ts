@@ -22,6 +22,11 @@
 // sí la procesó.
 export const ORIGENES_SGC = [
   "https://sgcconstructorasd.com",
+  // DB7 (29-oct-2026): www existe en Vercel (307 → apex). El redirect cubre la
+  // navegación, pero si algún día sirve la app directa (o un proxy conserva el
+  // host), el preflight no debe morir mudo. Verificado: el preflight real a
+  // `assistant` con Origin www devolvía 204 SIN Access-Control-Allow-Origin.
+  "https://www.sgcconstructorasd.com",
   "https://dev.sgcconstructorasd.com",
   "https://app.sgcconstructorasd.com",
   "https://app-dev.sgcconstructorasd.com",

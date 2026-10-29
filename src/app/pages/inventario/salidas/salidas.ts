@@ -19,7 +19,7 @@ import { ArticulosService } from '../../../../shared/services/articulos.service'
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
-import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
+import { SolicitudesMaterialService, RequisicionAvanceItem } from '../../../../shared/services/solicitudes-material.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { MotionService } from '../../../../shared/services/motion.service';
@@ -110,6 +110,8 @@ export class Salidas implements OnInit {
   // aprobación). Cuando está activo, onSave usa el flujo normal y confirmar() llama
   // despacho_marcar para propagar origen_requisicion_id.
   modoConducePlano = signal(false);
+  // DB9 — avance por renglón de la requisición en atención (siembra del mapeador).
+  avanceAtencion = signal<RequisicionAvanceItem[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -794,6 +796,13 @@ export class Salidas implements OnInit {
     this.step.set('form');
     this.solicitudEnAtencion.set(s);
     this.modoConducePlano.set(false); // BO7 — este es el flujo A2 (aprobar), no el conduce plano
+    // DB9 — el mapeador siembra con el PENDIENTE real (descuenta despachado y
+    // cubierto por material llegado, reporte #e665fd63), no con el solicitado.
+    this.avanceAtencion.set([]);
+    void this.solicitudesMaterialService
+      .avance(s.id)
+      .then((a) => this.avanceAtencion.set(a))
+      .catch(() => { /* sin avance, el mapeador siembra el solicitado como antes */ });
     this.form.reset({
       fecha: this.today,
       motivo: 'uso_proyecto',

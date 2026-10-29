@@ -1,0 +1,92 @@
+<div class="page-header">
+  <div>
+    <a routerLink="/proyectos/personal" class="pob-back">← {{ 'Personal de obra' | t }}</a>
+    <h1 class="page-title">{{ 'Levantamiento de hoy' | t }}</h1>
+    <p class="page-subtitle">{{ 'Quién está hoy en la obra. Registrar a alguien lo marca presente solo; aquí marcas al resto y cierras el día.' | t }}</p>
+  </div>
+  <div class="page-header__actions">
+    @if (lev()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarExcel()">{{ 'Descargar Excel' | t }}</button>
+      @if (!cerrado()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="cerrando() || !lev()?.id" (click)="cerrarDia()">
+          {{ (cerrando() ? 'Cerrando…' : 'Cerrar el día') | t }}
+        </button>
+      }
+    }
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<div class="sgc-card plev__filtros">
+  <label class="sgc-field plev__obra">
+    <span>{{ 'Obra' | t }}</span>
+    <select [ngModel]="obraId()" (ngModelChange)="obraId.set($event); cargar()">
+      <option value="" disabled>{{ 'Seleccionar obra…' | t }}</option>
+      @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+    </select>
+  </label>
+  @if (lev()) {
+    <div class="plev__chips">
+      <span class="plev__chip plev__chip--ok"><span class="plev__punto" aria-hidden="true"></span>{{ 'Presentes' | t }} {{ presentes().length }}</span>
+      <span class="plev__chip plev__chip--info"><span class="plev__punto" aria-hidden="true"></span>{{ 'Nuevos hoy' | t }} {{ nuevosHoy().length }}</span>
+      <span class="plev__chip plev__chip--warn"><span class="plev__punto" aria-hidden="true"></span>{{ 'Faltan' | t }} {{ faltan().length }}</span>
+      @if (cerrado()) { <span class="plev__chip plev__chip--muted"><span class="plev__punto" aria-hidden="true"></span>{{ 'Día cerrado' | t }}</span> }
+      @if (lev()?.ultimo_cerrado_fecha; as fechaRef) { <span class="plev__ref">{{ '«Faltan» compara contra el levantamiento del {fecha}' | t:{ fecha: fechaRef } }}</span> }
+    </div>
+  }
+</div>
+
+@if (loading()) { <p class="plev__cargando">{{ 'Cargando…' | t }}</p> }
+
+@if (lev() && !loading()) {
+  <div class="sgc-card plev__tabla-wrap">
+    <table class="plev__tabla">
+      <thead>
+        <tr>
+          <th>{{ 'Persona' | t }}</th>
+          <th>{{ 'Cargo' | t }}</th>
+          <th>{{ 'Documento' | t }}</th>
+          <th>{{ 'Hoy' | t }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of lev()!.personal; track p.personal_id) {
+          <tr>
+            <td>
+              <span class="plev__nombre">{{ p.nombre }} {{ p.apellido ?? '' }}</span>
+              @if (p.nuevo_hoy) { <span class="plev__tag plev__tag--nuevo">{{ 'Nuevo hoy' | t }}</span> }
+              @if (p.en_ultimo && p.presente !== true) { <span class="plev__tag plev__tag--falta">{{ 'Faltó (estaba el último día)' | t }}</span> }
+            </td>
+            <td class="plev__muted">{{ p.cargo ?? '—' }}</td>
+            <td class="plev__muted">{{ p.documento_numero ?? '—' }}</td>
+            <td>
+              @if (p.presente === true) {
+                <span class="plev__estado plev__estado--ok"><span class="plev__punto" aria-hidden="true"></span>{{ 'Presente' | t }}</span>
+              } @else if (p.presente === false) {
+                <span class="plev__estado plev__estado--err"><span class="plev__punto" aria-hidden="true"></span>{{ 'Faltó' | t }}</span>
+              } @else {
+                <span class="plev__estado plev__estado--muted"><span class="plev__punto" aria-hidden="true"></span>{{ 'Sin marcar' | t }}</span>
+              }
+            </td>
+            <td class="plev__acciones">
+              @if (!cerrado()) {
+                @if (p.presente !== true) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === p.personal_id"
+                          (click)="marcar(p, true)">{{ 'Presente' | t }}</button>
+                }
+                @if (p.presente !== false) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === p.personal_id"
+                          (click)="marcar(p, false)">{{ 'Faltó' | t }}</button>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="plev__vacio">{{ 'Esta obra no tiene personal registrado.' | t }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

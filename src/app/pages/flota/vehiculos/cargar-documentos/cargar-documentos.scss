@@ -1,0 +1,132 @@
+// DB3 — Cargar documentos de flota (lector IA en lote). Tokens v2; estados =
+// punto + palabra; una sola acción naranja («Aplicar a N vehículos»).
+.cdoc {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1080px;
+
+  &__breadcrumb {
+    font-size: 12.5px;
+    color: var(--text-3);
+    display: flex;
+    gap: 6px;
+    a { color: var(--text-3); text-decoration: none; &:hover { color: var(--brand); } }
+  }
+  &__title { font-size: 22px; font-weight: 700; margin: 2px 0 0; }
+  &__subtitle { margin: 4px 0 0; font-size: 13px; color: var(--text-3); max-width: 640px; }
+
+  // ── Paso 1: zona de soltar ──
+  &__drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 48px 24px;
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    &:hover { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 4%, var(--surface)); }
+  }
+  &__drop-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
+  &__drop-hint { font-size: 12.5px; color: var(--text-3); }
+
+  // ── Paso leyendo ──
+  &__leyendo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 28px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 13.5px;
+  }
+  &__spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: cdoc-girar 0.8s linear infinite;
+    @media (prefers-reduced-motion: reduce) { animation: none; }
+  }
+
+  // ── Tabla de revisión ──
+  &__tabla-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+  &__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--text-3);
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+  }
+  &__row--off { opacity: 0.55; }
+  &__th-sel, &__td-sel { width: 34px; }
+  &__td-doc { display: flex; align-items: center; gap: 10px; min-width: 220px; }
+  &__thumb {
+    width: 56px; height: 72px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    flex: none;
+  }
+  &__doc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  &__doc-tipo { font-weight: 600; color: var(--text-1); }
+  &__doc-placa { font-size: 12px; color: var(--text-3); }
+  &__veh-ok { font-weight: 600; }
+  &__match { display: block; font-size: 11.5px; color: var(--text-3); }
+  &__veh-na { color: var(--text-3); }
+  &__veh-select {
+    max-width: 230px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-1);
+    font-size: 12.5px;
+  }
+  &__td-cambios { color: var(--text-2); max-width: 260px; }
+
+  // Estados = punto + palabra (CB3).
+  &__estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    &--ok { color: var(--success, #1a7f37); .cdoc__punto { background: currentColor; } }
+    &--warn { color: var(--warning, #9a6700); .cdoc__punto { background: currentColor; } }
+    &--err { color: var(--danger, #cf222e); .cdoc__punto { background: currentColor; } }
+    &--muted { color: var(--text-3); .cdoc__punto { background: currentColor; } }
+  }
+  &__punto { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+  // ── Pie ──
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  &__resumen { font-size: 13px; color: var(--text-2); }
+  &__acciones { display: flex; align-items: center; gap: 10px; }
+  &__sin-permiso { font-size: 12.5px; color: var(--text-3); }
+}
+
+@keyframes cdoc-girar { to { transform: rotate(360deg); } }
