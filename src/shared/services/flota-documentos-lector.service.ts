@@ -63,12 +63,12 @@ export class FlotaDocumentosLectorService {
   private supabase = inject(SupabaseService);
 
   /** Lee un PDF (multipágina) o hasta 20 fotos con la edge de IA. */
-  async leer(archivos: { data: string; mime: string }[]): Promise<PaginaLeida[]> {
-    const res = await invokeEdge<{ ok: boolean; paginas?: PaginaLeida[]; error?: string }>(
+  async leer(archivos: { data: string; mime: string }[]): Promise<{ paginas: PaginaLeida[]; omitidas: number }> {
+    const res = await invokeEdge<{ ok: boolean; paginas?: PaginaLeida[]; omitidas?: number; error?: string }>(
       this.supabase.client, 'leer-documento-flota', { archivos },
     );
     if (!res.ok || !res.paginas) throw new Error(res.error || 'No se pudo leer el documento.');
-    return res.paginas;
+    return { paginas: res.paginas, omitidas: res.omitidas ?? 0 };
   }
 
   /** Empareja las páginas leídas con la flota (placa exacta → VIN → distancia 1). */
