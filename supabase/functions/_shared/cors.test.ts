@@ -18,6 +18,12 @@ Deno.test("Capacitor (csd-app nativa) se reconoce en ambas plataformas", () => {
   assertEquals(corsHeaders(req("capacitor://localhost"))["Access-Control-Allow-Origin"], "capacitor://localhost");
 });
 
+// DB7 (29-oct-2026) — el preflight de Compa desde www quedaba sin ACAO.
+Deno.test("www.sgcconstructorasd.com está en la lista (preflight de Compa)", () => {
+  const h = corsHeaders(req("https://www.sgcconstructorasd.com"));
+  assertEquals(h["Access-Control-Allow-Origin"], "https://www.sgcconstructorasd.com");
+});
+
 Deno.test("origen no permitido no se refleja", () => {
   const h = corsHeaders(req("https://evil.example"));
   assertEquals(h["Access-Control-Allow-Origin"], undefined);

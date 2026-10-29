@@ -186,15 +186,16 @@
 .re__host ::ng-deep .nota-img {
   position: relative;
   display: inline-block;
+  vertical-align: top;
   max-width: 100%;
-  margin: 4px 0;
+  margin: 4px 8px 4px 0;
 
-  // CT2 — miniatura acotada (antes sin límite de alto: una captura de teléfono
-  // ocupaba varias pantallas). object-fit:contain no recorta la imagen.
+  // DB2 — miniatura 220 px de ancho máx. (alto proporcional, tope 260). La barra
+  // de CT2 flotaba ENCIMA y tapaba media captura de teléfono (nota 10 de Xaviel).
   &__img {
     display: block;
-    max-width: 320px;
-    max-height: 240px;
+    max-width: 220px;
+    max-height: 260px;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -209,27 +210,49 @@
     border: 1px dashed var(--sgc-border, #e2e5ea);
     border-radius: var(--sgc-radius-md, 10px);
   }
-  // CT2 — siempre visible (antes opacity:0 hasta el hover; Xaviel no veía
-  // cómo quitar una imagen en pantalla táctil, donde no existe "hover").
-  &__toolbar {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+  // DB2 — barra DEBAJO de la imagen, siempre visible (táctil): nombre · tamaño +
+  // iconos con aria-label. Nada tapa la miniatura.
+  &__barra {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 4px;
+    max-width: 220px;
+    padding: 3px 2px;
+  }
+  &__meta {
+    flex: 1;
+    min-width: 0;
+    font-size: 10.5px;
+    color: var(--sgc-text-muted, #6b7280);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   &__btn {
-    border: 0;
-    border-radius: 8px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    background: color-mix(in srgb, #0f1f33 72%, transparent);
-    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--sgc-text-muted, #6b7280);
     cursor: pointer;
-    &:hover { background: #0f1f33; }
-    &--danger:hover { background: var(--sgc-danger, #b91c1c); }
+    flex: none;
+    &:hover { color: var(--sgc-text, #1f2937); border-color: currentColor; }
+    &--danger:hover { color: var(--sgc-danger, #b91c1c); border-color: currentColor; }
   }
+
+  // DB2 — imágenes CONSECUTIVAS se compactan como galería horizontal (150 px);
+  // una imagen suelta conserva los 220 px. Solo CSS: :has() mira al hermano.
+  &:has(+ .nota-img) .nota-img__img,
+  & + .nota-img .nota-img__img {
+    max-width: 150px;
+    max-height: 150px;
+  }
+  &:has(+ .nota-img) .nota-img__barra,
+  & + .nota-img .nota-img__barra { max-width: 150px; }
 }
 
 // CT2 — visor a pantalla completa (overlay fuera del árbol Angular — se agrega
@@ -271,5 +294,32 @@
     cursor: pointer;
     &:hover { background: rgba(255, 255, 255, 0.18); }
     &--danger:hover { background: var(--sgc-danger, #b91c1c); border-color: var(--sgc-danger, #b91c1c); }
+  }
+
+  // DB2 — contador y flechas del visor (galería: ←/→ también navegan).
+  &__contador {
+    align-self: center;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.75);
+    min-width: 48px;
+    text-align: center;
+  }
+  &__flecha {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, 0.18); }
+    &--prev { left: 18px; }
+    &--next { right: 18px; }
   }
 }

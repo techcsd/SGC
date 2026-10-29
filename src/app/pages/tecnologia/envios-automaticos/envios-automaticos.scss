@@ -47,12 +47,81 @@
   }
   &__row {
     display: flex;
+    flex-wrap: wrap; // DB10/DB11 — el bloque «Quién recibe» ocupa la fila completa
     align-items: center;
     gap: 14px;
     padding: 14px 16px;
     border-radius: 12px;
     background: var(--surface);
     border: 1px solid var(--border);
+  }
+
+  // ── DB10/DB11 — «Quién recibe» (roles + personas extra + vista previa) ──
+  &__dest {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0 2px;
+    border-top: 1px solid var(--border);
+  }
+  &__dest-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  &__dest-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+  }
+  &__dest-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  &__dest-input {
+    min-width: 220px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-1);
+    font-size: 12.5px;
+  }
+  &__dest-preview {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--on {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: color-mix(in srgb, var(--brand) 8%, transparent);
+    }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+  &__chip-x {
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
   }
   &__row-main {
     flex: 1;

@@ -281,6 +281,31 @@ export class PersonalObraLista implements OnInit {
     });
   }
 
+  /** DB5 — registro rápido: 2 fotos y la IA precarga los campos. */
+  registrarRapido() {
+    this.router.navigate(['/proyectos/personal/registrar'], {
+      queryParams: { rapido: '1', ...(this.filObra() ? { obra: this.filObra() } : {}) },
+    });
+  }
+
+  /** DB5 — exporta la vista actual (filtros aplicados) a Excel. */
+  async exportarExcel() {
+    const { exportarExcel } = await import('../../../../shared/utils/exportar-excel.util');
+    await exportarExcel('personal-de-obra', this.filtrados().map((p) => ({
+      Nombre: p.nombre,
+      Apellido: p.apellido ?? '',
+      Cargo: p.cargo?.nombre ?? '',
+      'Tipo de documento': p.tipo_documento,
+      Documento: p.documento_numero ?? '',
+      Nacionalidad: p.nacionalidad,
+      Obra: p.proyecto?.nombre ?? '',
+      'Carnet': p.carnet_numero ?? '',
+      Estado: p.estado,
+      Teléfono: p.telefono ?? '',
+      'Registrado el': (p.created_at ?? '').slice(0, 10),
+    })));
+  }
+
   abrir(p: PersonalObra) {
     this.router.navigate(['/proyectos/personal', p.id]);
   }

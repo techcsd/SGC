@@ -2,6 +2,41 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
+import { invokeEdge } from '../utils/edge.util';
+
+/** DB5 — lectura del documento de identidad (edge leer-documento-personal). */
+export interface LecturaDocumentoPersonal {
+  nombre: string | null;
+  apellido: string | null;
+  tipo_documento: 'cedula' | 'pasaporte' | 'carnet_electoral' | 'otro' | null;
+  documento_numero: string | null;
+  nacionalidad: 'dominicano' | 'haitiano' | 'venezolano' | 'otro' | null;
+  fecha_nacimiento: string | null;
+  sexo: 'M' | 'F' | null;
+  coincide_rostro: 'si' | 'no' | 'dudoso';
+  confianza: Record<string, number>;
+}
+
+/** DB5 — levantamiento diario (quién está hoy en la obra). */
+export interface LevantamientoLinea {
+  personal_id: string;
+  nombre: string;
+  apellido: string | null;
+  cargo: string | null;
+  documento_numero: string | null;
+  presente: boolean | null; // null = sin marcar hoy
+  origen: 'registro' | 'marcado' | null;
+  nuevo_hoy: boolean;
+  en_ultimo: boolean; // presente en el último levantamiento cerrado anterior
+}
+export interface LevantamientoHoy {
+  id: string | null;
+  proyecto_id: string;
+  fecha: string;
+  cerrado_at: string | null;
+  ultimo_cerrado_fecha: string | null;
+  personal: LevantamientoLinea[];
+}
 import {
   Cargo,
   DuplicadoGrupo,
@@ -94,6 +129,37 @@ export class PersonalObraService {
       .order('orden');
     if (error) throw new Error(error.message);
     return (data ?? []) as Cargo[];
+  }
+
+  // ── DB5 — Registro rápido (2 fotos) + levantamiento diario ──────────────────
+  /** Lee el documento + la persona con el documento (edge de IA) y devuelve los
+   *  campos para PRECARGAR el alta (nada se guarda solo). */
+  async leerDocumento(
+    fotoDocumento: { data: string; mime: string },
+    fotoPersona: { data: string; mime: string },
+  ): Promise<LecturaDocumentoPersonal> {
+    const res = await invokeEdge<{ ok: boolean; lectura?: LecturaDocumentoPersonal; error?: string }>(
+      this.client, 'leer-documento-personal', { foto_documento: fotoDocumento, foto_persona: fotoPersona },
+    );
+    if (!res.ok || !res.lectura) throw new Error(res.error || 'No se pudo leer el documento.');
+    return res.lectura;
+  }
+
+  /** Levantamiento de HOY de la obra (lo crea si hace falta, con gate de gestión). */
+  async levantamientoDeHoy(proyectoId: string): Promise<LevantamientoHoy> {
+    const { data, error } = await this.client.rpc('levantamiento_de_hoy', { p_proyecto_id: proyectoId });
+    if (error) throw new Error(error.message);
+    return data as unknown as LevantamientoHoy;
+  }
+
+  async levantamientoMarcar(personalId: string, presente: boolean): Promise<void> {
+    const { error } = await this.client.rpc('levantamiento_marcar', { p_personal_id: personalId, p_presente: presente });
+    if (error) throw new Error(error.message);
+  }
+
+  async levantamientoCerrar(id: string): Promise<void> {
+    const { error } = await this.client.rpc('levantamiento_cerrar', { p_id: id });
+    if (error) throw new Error(error.message);
   }
 
   // ── CG2 — Alias de cargo (resolución confiable + auto-aprendizaje) ──────────

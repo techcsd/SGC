@@ -42,6 +42,13 @@
     &--sug { color: var(--sgc-warning); }
     &--add { color: var(--sgc-info); }
     &--pend { color: var(--sgc-text-muted); font-style: italic; }
+    &--cubierto { color: var(--sgc-info); } // DB9 — parte del renglón ya la cubrió material llegado
+  }
+  // DB9 — desglose "Pedido N · cubierto M · a despachar P" bajo el renglón.
+  &__desglose {
+    flex-basis: 100%;
+    font-size: 10.5px;
+    color: var(--sgc-text-muted);
   }
 
   // BT8 — renglón en cero: atenuado, se despachará en otro momento.

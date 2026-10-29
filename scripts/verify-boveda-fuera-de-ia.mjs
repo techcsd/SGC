@@ -34,12 +34,14 @@ for (const objetivo of OBJETIVOS) walkFiles(objetivo, archivos);
 
 const RE = /\bboveda(_\w+)?\b/i;
 const RE_CLAVES_EQUIPO = /\bequipos[-_]clave\b|\btec_equipo_claves\b/i;
+// DB4 (ronda DB) — los PAGOS (montos del personal) tampoco entran a Compa/MCP.
+const RE_PAGOS = /\bpagos_obra(_\w+)?\b/i;
 let hallazgos = 0;
 for (const f of archivos) {
   const txt = readFileSync(f, 'utf8');
   const lineas = txt.split('\n');
   lineas.forEach((linea, i) => {
-    if (RE.test(linea) || RE_CLAVES_EQUIPO.test(linea)) {
+    if (RE.test(linea) || RE_CLAVES_EQUIPO.test(linea) || RE_PAGOS.test(linea)) {
       hallazgos++;
       console.error(`  ${f}:${i + 1}: ${linea.trim()}`);
     }
@@ -47,8 +49,8 @@ for (const f of archivos) {
 }
 
 if (hallazgos) {
-  fail(`${hallazgos} referencia(s) a 'boveda'/clave-de-equipo en código de IA — el Vault y la clave del equipo NUNCA entran a Compa/MCP/assistant (DZ-15/DA-17).`);
+  fail(`${hallazgos} referencia(s) a 'boveda'/clave-de-equipo/pagos_obra en código de IA — el Vault, la clave del equipo y los PAGOS nunca entran a Compa/MCP/assistant (DZ-15/DA-17/DB4).`);
 }
 
-console.log(`\x1b[32m✓ verify-boveda-fuera-de-ia:\x1b[0m sin referencias al Vault ni a claves de equipo en ${archivos.length} archivo(s) de IA/conector.`);
+console.log(`\x1b[32m✓ verify-boveda-fuera-de-ia:\x1b[0m sin referencias al Vault, claves de equipo ni pagos en ${archivos.length} archivo(s) de IA/conector.`);
 process.exit(0);

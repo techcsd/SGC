@@ -274,3 +274,48 @@
   justify-content: center;
   color: var(--sgc-text-muted);
 }
+
+// ── DB6 — «Resumir para ronda» (IA) ──
+.admin-reportes__ia {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+
+  &-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  &-title { margin: 0; font-size: 13px; font-weight: 700; }
+  &-acciones { margin-left: auto; display: flex; gap: 8px; }
+  &-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 700;
+    color: var(--danger, #cf222e);
+    border: 1px solid currentColor; border-radius: 999px; padding: 2px 9px;
+  }
+  &-punto { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  &-msg { margin: 8px 0 0; font-size: 12.5px; color: var(--text-3); }
+  &-caja {
+    margin-top: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    &--hotfix { border-color: color-mix(in srgb, var(--danger, #cf222e) 45%, var(--border)); }
+  }
+  &-caja-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px;
+    font-size: 11.5px; font-weight: 600; color: var(--text-3);
+    border-bottom: 1px solid var(--border);
+  }
+  &-texto {
+    margin: 0; padding: 10px;
+    font-size: 12.5px;
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text-1);
+    max-height: 220px;
+    overflow: auto;
+  }
+  &-motivo { margin: 0; padding: 6px 10px; font-size: 11.5px; color: var(--text-3); border-top: 1px dashed var(--border); }
+}

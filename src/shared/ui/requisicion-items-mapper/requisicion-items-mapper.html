@@ -13,6 +13,12 @@
         @case ('agregado') { <span class="req-map-row__tag req-map-row__tag--add">Agregado por ti</span> }
         @case (null) { <span class="req-map-row__tag">→ compra</span> }
       }
+      @if ((item.cubierto ?? 0) > 0) {
+        <!-- DB9 — material llegado a la obra ya cubre parte del renglón: la cantidad
+             sembrada es el pendiente real, no el pedido (reporte #e665fd63). -->
+        <span class="req-map-row__tag req-map-row__tag--cubierto">Cubierto {{ item.cubierto | number:'1.0-2' }}</span>
+        <span class="req-map-row__desglose">Pedido {{ item.solicitado | number:'1.0-2' }} · cubierto {{ item.cubierto | number:'1.0-2' }}@if ((item.despachado ?? 0) > 0) { · despachado {{ item.despachado | number:'1.0-2' }}} · a despachar {{ item.cantidad | number:'1.0-2' }}</span>
+      }
       @if (stockOf(item.articulo_id) !== null) {
         <span class="req-map-row__stock">Stock: {{ stockOf(item.articulo_id) | number:'1.0-2' }}{{ item.unidad ? ' ' + item.unidad : '' }}</span>
       }

@@ -123,6 +123,13 @@ export const PARAM_CATALOGO: Record<string, ParamMeta> = {
   mantenimiento_aviso_roles: { descripcion: 'Roles que reciben avisos de mantenimiento (CSV)', tipo: 'csv', grupo: 'Notificaciones', fuente: 'parametros' },
   incentivo_informe_roles: { descripcion: 'Roles que reciben el informe de incentivo (CSV)', tipo: 'csv', grupo: 'Notificaciones', fuente: 'parametros' },
   resumen_operaciones_roles: { descripcion: 'Roles que reciben el resumen semanal de operaciones (CSV)', tipo: 'csv', grupo: 'Notificaciones', fuente: 'parametros' },
+  // DB10/DB11 — «personas extra» por familia de correo (editables también desde
+  // Administración › Envíos automáticos › Quién recibe).
+  rendimiento_vehiculos_roles: { descripcion: 'Roles que reciben el rendimiento de combustible de la flota (CSV)', tipo: 'csv', grupo: 'Notificaciones', fuente: 'parametros' },
+  resumen_operaciones_correos_extra: { descripcion: 'Personas extra que reciben el resumen semanal de operaciones (CSV de correos)', tipo: 'csv', grupo: 'Notificaciones', fuente: 'parametros' },
+  rendimiento_vehiculos_correos_extra: { descripcion: 'Personas extra que reciben el rendimiento de combustible de la flota (CSV de correos)', tipo: 'csv', grupo: 'Notificaciones', fuente: 'parametros' },
+  // DB12 — tope de días de un uso abierto cuando el chofer tiene asignación activa.
+  uso_vehiculo_max_dias_asignado: { descripcion: 'Días que un uso abierto vive cuando el chofer tiene asignación activa del vehículo (el cron lo cierra después)', tipo: 'entero', grupo: 'Flota', fuente: 'parametros', min: 1, max: 60 },
 
   // ── Flags de funciones (parametros, booleanos) ────────────────────────────
   conduce_wizard_web_habilitado: { descripcion: 'Habilita el asistente de conduce en la web', tipo: 'bool', grupo: 'Flags de funciones', fuente: 'parametros' },

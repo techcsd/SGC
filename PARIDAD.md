@@ -1122,3 +1122,17 @@ de versión para traer las columnas/tablas nuevas y mostrarlas (DA-19):
   (DA-19) — la app no construye nada de esto.
 - El catálogo en caché `tec_equipos` (`CATALOG_EQUIPOS`) sube de versión para traer las
   columnas nuevas; invalidar en los mismos puntos que ya invalida hoy.
+
+## Decisiones (Ronda DB, 29/10/2026) — contrato para la app (PROMPT-125)
+
+| Capacidad | Web (padre) | App (hija) — qué le toca |
+|---|---|---|
+| **DB12 Mi unidad** | RPC `mi_unidad()` (uso abierto > asignación activa; `visible` honesto + `en_uso_por`); el cron ya no cierra a las 24 h un uso con asignación activa (tope `uso_vehiculo_max_dias_asignado`=7) | A2: tarjeta «Mi unidad» arriba en Transporte, «Tomar mi unidad (1 toque)», picker pone «Mi unidad» primero |
+| **DB13 Proyectos** | Causa real (F0): **PGRST201/HTTP 300** — 4 FKs `proyectos→usuarios` (AT19/AZ9) hacen ambiguo `responsable:usuarios(nombre)` | A1: `proyectos.service.ts` SELECT → `responsable:usuarios!proyectos_responsable_id_fkey(nombre)`; aplica a cualquier otro embed `usuarios(` sobre proyectos |
+| **DB14 chunk viejo** | Ya se auto-repara (CO7, `chunk-reload.util`) | A1: `ErrorHandler` detecta la familia MIME/chunk → `autoRepair('chunk_perdido')` (candado 60 s); `VERSION_INSTALLATION_FAILED` repara a la 1ª si es red/404 |
+| **DB7 Compa** | `invokeEdge` + retry 1.5 s + firma `compa_transporte`; `ORIGENES_SGC` + `www.` | A1: verificar que Compa app muestra mensaje humano en fallo de transporte (mismo helper si no) |
+| **DB9 requisición** | Mapper siembra `pendiente` + chip «Cubierto M»; `aprobar_requisicion` capa en servidor (db4) | A1: la vista de requisición muestra pedido/cubierto/pendiente por renglón (`requisicion_avance`) |
+| **DB5 personal 2 fotos** | Edge `leer-documento-personal` (2 fotos → campos + `coincide_rostro`); levantamiento diario (db9: `levantamiento_de_hoy/marcar/cerrar`); Excel | A3: mismo wizard reducido (2 fotos→precarga→cargo→firma), «Levantamiento de hoy», Excel con `xlsx` |
+| **DB4 pagos/descargo** | db15: `pagos_obra(_lineas)`, RPCs crear/guardar/enviar/complemento/reabrir; edge `pagos-descargo-enviar` (PDF+Resend); firma = pad al bucket `obra` `pagos/<pago>/firmas/<linea>.png` | A4: lista de semanas de MIS obras + firmar línea a línea (outbox offline; enviar requiere conexión) |
+| **DB3 lector flota** | Edge `leer-documento-flota` (PDF/20 fotos, por página) + `flota_documentos_emparejar/aplicar` (nunca pisa vigencia más nueva) | A5: «Leer documento» con UNA foto desde la ficha del vehículo (mismos RPCs) |
+| **DB1 tablero** | `tablero_vivo_resumen()` + Realtime (6 tablas, db14) + «Hoy, en vivo» en el Inicio | A6: feed «Hoy» del inicio (sin mapa), mismo RPC, momentos existentes |

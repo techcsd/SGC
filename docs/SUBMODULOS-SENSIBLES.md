@@ -179,3 +179,18 @@ de `boveda`.
 | Legal / RRHH / Dirección | ❌ No — módulos no otorgados |
 | Inventario, Compras, Proyectos, Flota, Bitácora, Documentos, Plantillas, Tareas | ✅ Sí — módulos de partida |
 | Clave del equipo (DA4) | ❌ No — permiso granular `tecnologia.claves_equipos` aparte, nadie lo recibe por defecto |
+
+## 5. Pagos de obra (DB4 — ronda DB, 29-oct-2026)
+
+`sgc.pagos_obra` / `pagos_obra_lineas` guardan **montos pagados al personal** — dato
+sensible. Reglas (db15):
+- **Pantalla**: submódulo `ingenieria.pagos` (sembrado: `operar` a ingeniero_campo /
+  gerente_proyectos / jefe_ingenieros; `ver` a abogado / gerencia / direccion).
+- **Datos**: gates PROPIOS `puede_ver_pagos` / `puede_operar_pagos` — a propósito NO
+  usan `nivel_submodulo` (su atajo regala 'operar' a todo el que tenga el módulo
+  `ingenieria` completo, lección DA F4). Operar exige además `puede_ver_proyecto`
+  de ESA obra. Escrituras solo por RPC SECURITY DEFINER.
+- **Fuera de IA**: `verify-boveda-fuera-de-ia.mjs` también falla el build si
+  `pagos_obra` aparece en Compa/MCP/assistant. El PDF va solo a
+  `pagos_descargo_correos(+_extra)` (Legal/Eduardo/Yonairis).
+- Enviado = cerrado; solo admin reabre (`pagos_obra_reabrir`, con rastro).

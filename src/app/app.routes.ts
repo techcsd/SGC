@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
 import { moduloOSubmoduloGuard } from './core/guards/modulo-o-submodulo.guard';
+import { submoduloGuard } from './core/guards/submodulo.guard';
 import { noChoferGuard } from './core/guards/no-chofer.guard';
 import { rolesGuard } from './core/guards/roles.guard';
 
@@ -272,6 +273,15 @@ export const routes: Routes = [
         path: 'solicitudes-movimiento',
         redirectTo: 'transporte/apoyo',
         pathMatch: 'full',
+      },
+      {
+        // DB4 — Pagos de la semana con descargo firmado (submódulo ingenieria.pagos:
+        // operar sembrado a ingenieros, ver a abogado/gerencia/dirección). Los RPCs
+        // re-validan con gates propios (montos = dato sensible, db15).
+        path: 'ingenieria/pagos',
+        title: 'Pagos de la semana',
+        canActivate: [submoduloGuard('ingenieria.pagos')],
+        loadComponent: () => import('./pages/ingenieria/pagos/pagos').then((m) => m.IngenieriaPagos),
       },
       {
         // CK15 — bandeja de trabajos de transporte (Misael/flota elevada). El RPC gatea por rol.

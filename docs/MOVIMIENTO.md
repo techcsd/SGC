@@ -116,3 +116,15 @@ en ningún lado de `src/app`. La tabla de abajo es el detalle humano; el guard e
 disparador equivalente en la web. Lo que la web no replica son pantallas **solo-campo** (su tipo ya
 suena en otra acción web), y añade un tipo propio (`mensaje`, al compartir notas). El guard prebuild
 garantiza que ningún tipo quede mudo en la web.
+
+## DB1 — «Hoy, en vivo» (1.205.0)
+
+Tablero del Inicio (mockup DB1): nivel **mediano** de la tabla CJ4.
+- `tablero-vivo-feed` — cada evento nuevo del feed entra deslizándose (0.5 s, `--ease-out`).
+- `tablero-vivo-flota` — los vehículos del mapa esquemático SVG se deslizan a su
+  nueva posición al llegar un reporte GPS (1.2 s, solo `transform`).
+- KPIs reutilizan `base-count-up`. Con `prefers-reduced-motion` / `html.motion-reduced`
+  todo aparece sin animar (incluye el pulso del punto «En vivo»).
+- Datos: `tablero_vivo_resumen()` re-pedido por Realtime (debounce 2 s) o polling 30 s;
+  la suscripción vive SOLO con la pestaña visible. Sin datos reales de hoy → estado
+  «Todavía no hay movimiento hoy» (no se inventa movimiento).

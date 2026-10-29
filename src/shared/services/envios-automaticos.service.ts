@@ -46,4 +46,33 @@ export class EnviosAutomaticosService {
     if (error) throw new Error(error.message);
     return data as string;
   }
+
+  // ── DB10/DB11 — bloque «Quién recibe» (roles + personas extra por familia) ──
+  /** Lee varios parámetros de una vez (clave → valor; ausente = sin fila). */
+  async getParametros(claves: string[]): Promise<Record<string, string>> {
+    const { data, error } = await this.supabase.client
+      .from('parametros')
+      .select('clave, valor')
+      .in('clave', claves);
+    if (error) throw new Error(error.message);
+    const map: Record<string, string> = {};
+    for (const r of (data ?? []) as { clave: string; valor: string }[]) map[r.clave] = r.valor;
+    return map;
+  }
+
+  /** Upsert de un parámetro (la fila de roles puede no existir aún: vive del default). */
+  async setParametro(clave: string, valor: string, descripcion: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('parametros')
+      .upsert({ clave, valor, descripcion, updated_at: new Date().toISOString() }, { onConflict: 'clave' });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Vista previa de a quién le llegaría HOY (misma función que usa el cron). */
+  async destinatarios(familia: 'resumen_operaciones' | 'rendimiento_vehiculos'): Promise<{ email: string; nombre: string }[]> {
+    const fn = familia === 'resumen_operaciones' ? 'destinatarios_resumen_operaciones' : 'destinatarios_rendimiento_vehiculos';
+    const { data, error } = await this.supabase.client.rpc(fn);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { email: string; nombre: string }[];
+  }
 }

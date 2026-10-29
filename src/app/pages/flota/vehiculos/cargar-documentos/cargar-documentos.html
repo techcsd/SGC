@@ -1,0 +1,132 @@
+<div class="cdoc">
+  <header class="cdoc__head">
+    <div>
+      <nav class="cdoc__breadcrumb">
+        <a routerLink="/flota/vehiculos">{{ 'Vehículos' | t }}</a> <span aria-hidden="true">›</span>
+        <span>{{ 'Cargar documentos' | t }}</span>
+      </nav>
+      <h1 class="cdoc__title">{{ 'Cargar documentos' | t }}</h1>
+      <p class="cdoc__subtitle">{{ 'Sube el PDF de los marbetes/seguros renovados (o fotos). El sistema lee cada página, la empareja con su vehículo y tú revisas antes de aplicar.' | t }}</p>
+    </div>
+  </header>
+
+  @if (error()) { <p class="page-error" role="alert">{{ error() }}</p> }
+
+  <!-- Paso 1 — zona de soltar -->
+  @if (paso() === 'inicio') {
+    <label class="cdoc__drop">
+      <input type="file" accept="application/pdf,image/*" multiple hidden
+             (change)="onArchivos($any($event.target).files)" />
+      <app-icon name="upload" [size]="28" />
+      <span class="cdoc__drop-title">{{ 'Suelta aquí el PDF o las fotos' | t }}</span>
+      <span class="cdoc__drop-hint">{{ 'Un PDF con todas las páginas, o hasta 20 fotos (seguro, matrícula, marbete DGII)' | t }}</span>
+    </label>
+  }
+
+  @if (paso() === 'leyendo') {
+    <div class="cdoc__leyendo">
+      <span class="cdoc__spinner" aria-hidden="true"></span>
+      <p>{{ 'Leyendo «{archivo}» con IA — una lectura por página…' | t:{ archivo: nombreArchivo() } }}</p>
+    </div>
+  }
+
+  <!-- Paso 2/3 — revisión + resultado -->
+  @if (paso() === 'revision' || paso() === 'aplicando' || paso() === 'resultado') {
+    <div class="cdoc__tabla-wrap">
+      <table class="cdoc__tabla">
+        <thead>
+          <tr>
+            <th class="cdoc__th-sel"></th>
+            <th>{{ 'Documento leído' | t }}</th>
+            <th>{{ 'Vehículo' | t }}</th>
+            <th>{{ 'Qué se actualiza' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.pagina; let i = $index) {
+            <tr [class.cdoc__row--off]="!esAplicable(f)">
+              <td class="cdoc__td-sel">
+                @if (esAplicable(f)) {
+                  <input type="checkbox" [checked]="f.sel" [disabled]="paso() !== 'revision' || !f.vehiculoElegido"
+                         (change)="toggleSel(i)" [attr.aria-label]="'Incluir página {n}' | t:{ n: f.pagina }" />
+                }
+              </td>
+              <td class="cdoc__td-doc">
+                @if (f.thumb) { <img class="cdoc__thumb" [src]="f.thumb" [alt]="'Página {n}' | t:{ n: f.pagina }" /> }
+                <div class="cdoc__doc-info">
+                  <span class="cdoc__doc-tipo">{{ tipoLabel(f.tipo) | t }} · {{ 'pág.' | t }} {{ f.pagina }}</span>
+                  @if (f.campos.placa) { <span class="cdoc__doc-placa">{{ 'Placa leída:' | t }} {{ f.campos.placa }}</span> }
+                </div>
+              </td>
+              <td class="cdoc__td-veh">
+                @if (f.match === 'exacta' || f.match === 'vin') {
+                  <span class="cdoc__veh-ok">{{ f.vehiculo_alias ? f.vehiculo_alias + ' · ' + f.vehiculo_placa : f.vehiculo_placa }}</span>
+                  <span class="cdoc__match">{{ (f.match === 'exacta' ? 'placa exacta' : 'por VIN') | t }}</span>
+                } @else if (esAplicable(f)) {
+                  <select class="cdoc__veh-select" [value]="f.vehiculoElegido ?? ''" [disabled]="paso() !== 'revision'"
+                          (change)="elegirVehiculo(i, $any($event.target).value)">
+                    <option value="">{{ (f.match === 'revisar' ? 'Revisar — elige el vehículo' : 'Sin vehículo — elige uno') | t }}</option>
+                    @if (f.match === 'revisar') {
+                      @for (c of f.candidatos ?? []; track c.vehiculo_id) {
+                        <option [value]="c.vehiculo_id">{{ c.alias ? c.alias + ' · ' + c.placa : c.placa }} ({{ 'parecida' | t }})</option>
+                      }
+                      <option disabled>──────────</option>
+                    }
+                    @for (v of vehiculos(); track v.id) {
+                      <option [value]="v.id">{{ displayVehiculo(v) }}</option>
+                    }
+                  </select>
+                } @else {
+                  <span class="cdoc__veh-na">—</span>
+                }
+              </td>
+              <td class="cdoc__td-cambios">{{ esAplicable(f) ? queActualiza(f) : ('No se aplica (página informativa)' | t) }}</td>
+              <td class="cdoc__td-estado">
+                @if (f.resultado) {
+                  @if (f.resultado.ok) {
+                    <span class="cdoc__estado cdoc__estado--ok"><span class="cdoc__punto" aria-hidden="true"></span>{{ 'Aplicado' | t }}</span>
+                  } @else if (f.resultado.omitido) {
+                    <span class="cdoc__estado cdoc__estado--warn" [title]="f.resultado.omitido"><span class="cdoc__punto" aria-hidden="true"></span>{{ 'Omitido' | t }}</span>
+                  } @else {
+                    <span class="cdoc__estado cdoc__estado--err" [title]="f.resultado.error ?? ''"><span class="cdoc__punto" aria-hidden="true"></span>{{ 'Error' | t }}</span>
+                  }
+                } @else {
+                  @switch (f.match) {
+                    @case ('exacta') { <span class="cdoc__estado cdoc__estado--ok"><span class="cdoc__punto" aria-hidden="true"></span>{{ 'Listo' | t }}</span> }
+                    @case ('vin') { <span class="cdoc__estado cdoc__estado--ok"><span class="cdoc__punto" aria-hidden="true"></span>{{ 'Listo' | t }}</span> }
+                    @case ('revisar') { <span class="cdoc__estado cdoc__estado--warn"><span class="cdoc__punto" aria-hidden="true"></span>{{ 'Revisar' | t }}</span> }
+                    @default { <span class="cdoc__estado cdoc__estado--muted"><span class="cdoc__punto" aria-hidden="true"></span>{{ (esAplicable(f) ? 'Sin vehículo' : 'Se ignora') | t }}</span> }
+                  }
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="cdoc__foot">
+      <span class="cdoc__resumen">
+        @if (paso() === 'resultado') {
+          {{ '{ok} de {n} fila(s) aplicada(s).' | t:{ ok: resumenOk(), n: resultados().length } }}
+        } @else {
+          {{ '{n} página(s) marcada(s) → {v} vehículo(s).' | t:{ n: seleccionadas().length, v: vehiculosDistintos() } }}
+        }
+      </span>
+      <div class="cdoc__acciones">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">{{ 'Leer otro documento' | t }}</button>
+        @if (paso() !== 'resultado') {
+          @if (puedeAplicar()) {
+            <button type="button" class="sgc-btn sgc-btn--primary"
+                    [disabled]="paso() === 'aplicando' || !seleccionadas().length" (click)="aplicar()">
+              {{ (paso() === 'aplicando' ? 'Aplicando…' : 'Aplicar a {n} vehículo(s)') | t:{ n: vehiculosDistintos() } }}
+            </button>
+          } @else {
+            <span class="cdoc__sin-permiso">{{ 'Solo Flota (jefe de flota / logística) o Administración puede aplicar.' | t }}</span>
+          }
+        }
+      </div>
+    </footer>
+  }
+</div>

@@ -9,9 +9,11 @@ import {
   ReporteFoto,
   ReporteEstado,
   ReporteTipo,
+  ReporteIaResumen,
   REPORTE_TIPO_LABELS,
   REPORTE_ESTADO_LABELS,
 } from '../../../../shared/models/reporte-usuario.model';
+import { NotasService } from '../../../../shared/services/notas.service';
 import { formatFechaMedia, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
@@ -149,8 +151,90 @@ export class AdminReportes implements OnInit {
     this.saveError.set('');
     this.form.reset({ estado: r.estado, respuesta_admin: r.respuesta_admin ?? '' });
     this.fotoUrls.set(new Map());
+    this.iaResumen.set(r.ia_resumen ?? null);
+    this.iaError.set('');
     this.drawerOpen.set(true);
     void this.resolveFotoUrls(r.fotos ?? []);
+  }
+
+  // ── DB6 — «Resumir para ronda» (IA) ──────────────────────────────────────────
+  iaResumen = signal<ReporteIaResumen | null>(null);
+  resumiendo = signal(false);
+  iaError = signal('');
+  guardandoNota = signal(false);
+  private notasSvc = inject(NotasService);
+
+  async resumir(forzar = false) {
+    const r = this.selected();
+    if (!r || this.resumiendo()) return;
+    this.resumiendo.set(true);
+    this.iaError.set('');
+    try {
+      const { resumen } = await this.reportesService.resumir(r.id, forzar);
+      this.iaResumen.set(resumen);
+      this.reportes.update((list) => list.map((x) => (x.id === r.id ? { ...x, ia_resumen: resumen } : x)));
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo resumir el reporte.');
+    } finally {
+      this.resumiendo.set(false);
+    }
+  }
+
+  async copiar(texto: string | null, que: string) {
+    if (!texto) return;
+    try {
+      await navigator.clipboard.writeText(texto);
+      this.saveError.set('');
+      this.iaError.set(`✓ ${que} copiado al portapapeles.`);
+      setTimeout(() => { if (this.iaError().startsWith('✓')) this.iaError.set(''); }, 2500);
+    } catch {
+      this.iaError.set('El navegador bloqueó el portapapeles.');
+    }
+  }
+
+  /** DB6 — agrega el resumen a la nota «Ronda próxima — <mes>» de Dev notes
+   *  (grupo «Ronda próxima»), con el link al reporte al final. */
+  async guardarEnDevNotes() {
+    const r = this.selected();
+    const resumen = this.iaResumen();
+    const miId = this.currentUserId();
+    if (!r || !resumen || !miId || this.guardandoNota()) return;
+    this.guardandoNota.set(true);
+    try {
+      const mes = new Date().toLocaleDateString('es-DO', { month: 'long', year: 'numeric' });
+      const titulo = `Ronda próxima — ${mes}`;
+      const notas = await this.notasSvc.getMisNotas(miId, false, 'dev');
+      const existente = notas.find((n) => (n.titulo ?? '').trim() === titulo);
+      const bloque = [
+        `## Reporte #${r.id.slice(0, 8)} — ${r.asunto}`,
+        resumen.resumen_ronda,
+        resumen.es_hotfix ? `**Parece hotfix:** ${resumen.motivo}` : '',
+        `[Abrir en Administración › Reportes](/admin/reportes)`,
+      ].filter(Boolean).join('\n\n');
+      const contenido = existente?.contenido ? `${existente.contenido}\n\n---\n\n${bloque}` : bloque;
+      const notaId = existente?.id ?? crypto.randomUUID();
+      await this.notasSvc.guardarNota({
+        id: notaId, titulo, contenido,
+        color: existente?.color ?? null,
+        pinned: existente?.pinned ?? false,
+        archivada: false,
+        ambito: 'dev',
+        formato: 'markdown',
+      });
+      // Grupo «Ronda próxima» (se crea una vez; mover es idempotente).
+      try {
+        const grupos = await this.notasSvc.getGrupos();
+        let grupo = grupos.find((g) => g.nombre === 'Ronda próxima');
+        if (!grupo) grupo = await this.notasSvc.crearGrupo('Ronda próxima', null, miId);
+        await this.notasSvc.moverNotaAGrupo(notaId, grupo.id);
+      } catch { /* la nota ya quedó guardada; el grupo es cosmético */ }
+      this.iaError.set(`✓ Guardado en Dev notes › «${titulo}».`);
+      setTimeout(() => { if (this.iaError().startsWith('✓')) this.iaError.set(''); }, 3500);
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo guardar en Dev notes.');
+    } finally {
+      this.guardandoNota.set(false);
+    }
   }
 
   private async resolveFotoUrls(fotos: ReporteFoto[]) {

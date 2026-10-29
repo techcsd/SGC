@@ -108,6 +108,12 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'bitacora.ver_todas', label: 'Ver todas las bitácoras (supervisión)', enforced: true,
       descripcion: 'Ver las bitácoras de todos los ingenieros, no solo las propias (supervisión).' },
   ],
+  // DB4 — Pagos semanales con descargo (montos = dato sensible; los RPC re-validan
+  // con gates propios por obra además de este submódulo de pantalla).
+  ingenieria: [
+    { key: 'ingenieria.pagos', label: 'Pagos de la semana (descargos)', enforced: true,
+      descripcion: 'Armar la semana de pagos del personal de obra, capturar firmas de descargo y enviar el reporte a Legal/Gerencia.' },
+  ],
   // AN2 — Inventario, Flota y Compras: submódulos gateados end-to-end
   // (menú + ruta + RLS). Ver = leer; Operar = crear/editar/eliminar.
   compras: [
