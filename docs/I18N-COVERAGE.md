@@ -166,6 +166,7 @@
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | asistente | - | 61 | 30 | 31 | 49% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
+| tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | tecnologia/cotizaciones | - | 97 | 54 | 43 | 56% |

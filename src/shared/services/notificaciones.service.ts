@@ -79,6 +79,11 @@ export class NotificacionesService {
     }
     // Z29 — reportes de soporte sin atender (RLS: admin ve todos; usuario, los suyos).
     checks.push(this.loadReportesSoporte());
+    // DC7 — mensajes de WhatsApp con error/fallido en las últimas 24h → badge en
+    // Tecnología › Compa en WhatsApp. Mismo gate que esa pantalla (tecnologiaGuard).
+    if (this.userService.esTecnologia()) {
+      checks.push(this.loadWhatsappErrores());
+    }
 
     await Promise.all(checks);
   }
@@ -224,6 +229,18 @@ export class NotificacionesService {
       .select('id', { count: 'exact', head: true })
       .eq('estado', 'pendiente');
     this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.requisiciones': count ?? 0 }));
+  }
+
+  /** DC7 — mensajes de WhatsApp con estado error/fallido en las últimas 24h →
+   *  badge en Tecnología › Compa en WhatsApp. */
+  private async loadWhatsappErrores(): Promise<void> {
+    const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const { count } = await this.supabase.client
+      .from('whatsapp_mensajes')
+      .select('id', { count: 'exact', head: true })
+      .in('estado', ['error', 'fallido'])
+      .gte('creado_en', desde);
+    this._pendingBySubmodulo.update((m) => ({ ...m, 'tecnologia.whatsapp': count ?? 0 }));
   }
 
   /** AY11 — solicitudes de movimiento pendientes → badge en el nav. */

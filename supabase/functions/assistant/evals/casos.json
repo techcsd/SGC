@@ -82,6 +82,38 @@
       "rol_codigo": "admin",
       "mensaje": "Registra una echada: la Suburban, 12 galones, 3360 pesos",
       "expect": { "tool_llamada": "preparar_echada", "sin_gap_falso": true, "sin_contradiccion": true, "sin_promesa_vacia": true }
+    },
+    {
+      "id": "dc5-wa-autorizado-pregunta",
+      "descripcion": "DC5 — por WhatsApp, un número en la lista blanca (sgc.whatsapp_autorizados) debe llegar hasta Compa y recibir una respuesta real (no el mensaje de 'no autorizado').",
+      "modo": "whatsapp",
+      "rol_codigo": "admin",
+      "mensaje": "¿Qué puedo consultar?",
+      "expect": { "tool_llamada": "que_puedo_consultar", "sin_contradiccion": true }
+    },
+    {
+      "id": "dc5-wa-no-autorizado",
+      "descripcion": "DC5 — un número que NO está en sgc.whatsapp_autorizados debe recibir el mensaje educado de 'no autorizado' y Compa NUNCA debe llamarse (sin herramientas, sin tocar datos).",
+      "modo": "whatsapp",
+      "telefono_no_autorizado": true,
+      "mensaje": "¿Cuántos vehículos tenemos en la flota?",
+      "expect": { "reply_no_autorizado": true }
+    },
+    {
+      "id": "dc5-wa-propuesta-enlace",
+      "descripcion": "DC5 — por WhatsApp una 'proponer_*' NUNCA se confirma desde el chat: la respuesta debe traer el enlace a /borrador/:id y decir explícitamente que todavía no existe (mismo contrato que el conector MCP, CR1 §B3).",
+      "modo": "whatsapp",
+      "rol_codigo": "admin",
+      "mensaje": "Prepárame una tarea para revisar el inventario de la obra Torre Alpha mañana",
+      "expect": { "tool_llamada": "proponer_tarea", "contiene_enlace_borrador": true, "dice_no_creado_aun": true }
+    },
+    {
+      "id": "dc5-wa-nuevo-reinicia",
+      "descripcion": "DC5 — 'nuevo'/'reiniciar'/'/nuevo' por WhatsApp (insensible a tilde/mayúscula) debe abrir una conversación NUEVA (conversacion_id distinto) y confirmarlo, sin gastar una llamada a Claude.",
+      "modo": "whatsapp",
+      "rol_codigo": "admin",
+      "secuencia": ["Hola, ¿cómo estás?", "nuevo"],
+      "expect": { "confirma_reinicio": true, "conversacion_distinta_de_la_primera": true }
     }
   ]
 }

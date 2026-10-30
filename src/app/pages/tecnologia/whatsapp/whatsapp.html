@@ -1,0 +1,249 @@
+<div class="wa">
+  <header class="wa__head">
+    <div>
+      <h1 class="page-title">{{ 'Compa en WhatsApp' | t }}</h1>
+      <p class="wa__subtitle">{{ 'Quién puede escribirle a Compa por WhatsApp, qué pasó en cada mensaje, y el estado del canal.' | t }}</p>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="wa__tabs" role="tablist">
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'autorizados'" [attr.aria-selected]="tab() === 'autorizados'" (click)="irA('autorizados')">
+      <app-icon name="user" [size]="16" />
+      {{ 'Autorizados' | t }}
+      @if (autorizados().length) { <span class="wa__tab-count">{{ autorizados().length }}</span> }
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'actividad'" [attr.aria-selected]="tab() === 'actividad'" (click)="irA('actividad')">
+      <app-icon name="message-circle" [size]="16" />
+      {{ 'Actividad' | t }}
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'estado'" [attr.aria-selected]="tab() === 'estado'" (click)="irA('estado')">
+      <app-icon name="activity" [size]="16" />
+      {{ 'Estado' | t }}
+    </button>
+  </nav>
+
+  <!-- ═══════════════ AUTORIZADOS ═══════════════ -->
+  @if (tab() === 'autorizados') {
+    <section class="wa__panel">
+      <div class="wa__panel-head">
+        <p class="wa__hint">{{ 'Solo los números en esta lista reciben respuesta de Compa; el resto recibe el aviso de "no autorizado" (máx. 1 cada 24h).' | t }}</p>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirAgregar()">
+          <app-icon name="plus" [size]="16" />
+          {{ 'Autorizar número' | t }}
+        </button>
+      </div>
+
+      @if (errorAutorizados()) {
+        <app-error-state [error]="errorAutorizados()" pantalla="los números autorizados" (retry)="cargarAutorizados()" />
+      } @else if (cargandoAutorizados()) {
+        <app-skeleton variant="list" [rows]="4" />
+      } @else if (!autorizados().length) {
+        <p class="wa__empty">{{ 'Todavía no hay números autorizados. Usa «Autorizar número» para dar acceso al primero.' | t }}</p>
+      } @else {
+        <div class="wa__list" appStagger>
+          @for (a of autorizados(); track a.telefono) {
+            <article class="wa__row" [class.wa__row--inactivo]="!a.activo">
+              <div class="wa__row-main">
+                <div class="wa__row-top">
+                  <span class="wa__row-nombre">{{ a.usuario_nombre }}</span>
+                  @if (!a.usuario_activo) {
+                    <span class="sgc-badge sgc-badge--warning">{{ 'Usuario inactivo' | t }}</span>
+                  }
+                  <span class="sgc-badge" [class.sgc-badge--success]="a.activo" [class.sgc-badge--neutral]="!a.activo">
+                    {{ (a.activo ? 'Activo' : 'Desactivado') | t }}
+                  </span>
+                </div>
+                <div class="wa__row-meta">
+                  <span class="wa__tel"><app-icon name="phone" [size]="13" /> {{ a.telefono }}</span>
+                  @if (a.usuario_email) { <span>{{ a.usuario_email }}</span> }
+                  <span>
+                    @if (a.ultimo_uso_en) { {{ 'Último uso: {fecha}' | t:{ fecha: fmtRelativa(a.ultimo_uso_en) } }} }
+                    @else { {{ 'Sin usos todavía' | t }} }
+                  </span>
+                </div>
+                @if (notaEditando() === a.telefono) {
+                  <div class="wa__nota-edit">
+                    <input class="sgc-input sgc-input--sm" type="text" [ngModel]="notaBorrador()" (ngModelChange)="notaBorrador.set($event)"
+                           [placeholder]="'Nota (opcional)' | t" />
+                    <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" (click)="guardarNota(a)">{{ 'Guardar' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--ghost" (click)="cancelarNota()">{{ 'Cancelar' | t }}</button>
+                  </div>
+                } @else if (a.nota) {
+                  <p class="wa__nota" (click)="editarNota(a)" [attr.title]="'Editar nota' | t">{{ a.nota }}</p>
+                }
+              </div>
+              <div class="wa__row-actions">
+                @if (notaEditando() !== a.telefono && !a.nota) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editarNota(a)">{{ 'Agregar nota' | t }}</button>
+                }
+                <label class="toggle-label wa__toggle">
+                  <input type="checkbox" class="toggle-input" [checked]="a.activo" (change)="toggleActivo(a)" />
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                </label>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm wa__btn-danger" [attr.aria-label]="'Quitar acceso' | t" (click)="pedirEliminar(a)">
+                  <app-icon name="trash" [size]="14" />
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ ACTIVIDAD ═══════════════ -->
+  @if (tab() === 'actividad') {
+    <section class="wa__panel">
+      <div class="wa__filtros">
+        <input class="sgc-input" type="search" [ngModel]="filtroTexto()" (ngModelChange)="filtroTexto.set($event)"
+               [placeholder]="'Buscar por teléfono o nombre…' | t" />
+        <app-filter-select [label]="'Estado' | t" [options]="estadoOptions" [value]="filtroEstado()" (valueChange)="setFiltroEstado($event)" />
+        <app-date-range-filter [desde]="filtroDesde()" [hasta]="filtroHasta()" (rangeChange)="setRangoFecha($event)" />
+      </div>
+
+      @if (errorMensajes()) {
+        <app-error-state [error]="errorMensajes()" pantalla="la actividad de WhatsApp" (retry)="cargarMensajes()" />
+      } @else if (cargandoMensajes()) {
+        <app-skeleton variant="table" [rows]="6" />
+      } @else if (!mensajesVisibles().length) {
+        <p class="wa__empty">{{ 'No hay mensajes que coincidan con el filtro.' | t }}</p>
+      } @else {
+        <div class="wa__msgs" appStagger>
+          @for (m of mensajesVisibles(); track m.id) {
+            <article class="wa__msg" [class.wa__msg--open]="expandido() === m.id">
+              <button type="button" class="wa__msg-row" (click)="toggleExpandir(m)">
+                <app-icon [name]="m.direccion === 'entrada' ? 'download' : 'upload'" [size]="15" [ariaLabel]="(m.direccion === 'entrada' ? 'Entrada' : 'Salida') | t" />
+                <span class="wa__msg-tel">{{ m.telefono }}</span>
+                <span class="wa__msg-usuario">{{ m.usuario_nombre || ('Sin usuario vinculado' | t) }}</span>
+                <span class="wa__msg-texto">{{ m.texto || '—' }}</span>
+                <span class="sgc-badge" [class.sgc-badge--success]="estadoTono[m.estado] === 'success'"
+                      [class.sgc-badge--info]="estadoTono[m.estado] === 'info'"
+                      [class.sgc-badge--warning]="estadoTono[m.estado] === 'warning'"
+                      [class.sgc-badge--danger]="estadoTono[m.estado] === 'danger'"
+                      [class.sgc-badge--neutral]="estadoTono[m.estado] === 'neutral'">
+                  {{ estadoLabel[m.estado] | t }}
+                </span>
+                <span class="wa__msg-fecha">{{ fmtFechaHora(m.creado_en) }}</span>
+              </button>
+
+              @if (m.error) {
+                @if (esDesarrollador()) {
+                  <p class="wa__msg-error">{{ m.error }}</p>
+                } @else {
+                  <p class="wa__msg-error wa__msg-error--amable">{{ estadoLabel[m.estado] | t }}</p>
+                }
+              }
+
+              @if (expandido() === m.id) {
+                <div class="wa__conversacion">
+                  @if (cargandoConversacion()) {
+                    <app-skeleton variant="list" [rows]="2" />
+                  } @else {
+                    @for (c of conversacion(); track c.id) {
+                      <div class="wa__conv-item" [class.wa__conv-item--salida]="c.direccion === 'salida'">
+                        <span class="wa__conv-dir">{{ (c.direccion === 'entrada' ? 'Entrada' : 'Salida') | t }}</span>
+                        <span class="wa__conv-texto">{{ c.texto || '—' }}</span>
+                        <span class="wa__conv-fecha">{{ fmtFechaHora(c.creado_en) }}</span>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ ESTADO ═══════════════ -->
+  @if (tab() === 'estado') {
+    <section class="wa__panel">
+      @if (errorEstado()) {
+        <app-error-state [error]="errorEstado()" pantalla="el estado del canal" (retry)="cargarEstado()" />
+      } @else if (cargandoEstado()) {
+        <app-skeleton variant="cards" [rows]="4" />
+      } @else {
+        <div class="wa__estado-grid">
+          <div class="wa__card">
+            <h3>{{ 'Secretos configurados' | t }}</h3>
+            <p class="wa__card-sub">{{ 'Entorno actual. Nunca se muestra el valor, solo si está configurado.' | t }}</p>
+            <div class="wa__secretos">
+              @for (s of secretosLista(); track s[0]) {
+                <span class="wa__secreto" [class.wa__secreto--ok]="s[1]" [class.wa__secreto--falta]="!s[1]">
+                  <app-icon [name]="s[1] ? 'check-circle' : 'x'" [size]="15" />
+                  {{ s[0] }}
+                </span>
+              }
+            </div>
+            @if (estadoEdge(); as ee) {
+              <p class="wa__card-sub">{{ 'Versión de la Graph API: {v}' | t:{ v: ee.graph_version } }}</p>
+            }
+          </div>
+
+          <div class="wa__card">
+            <h3>{{ 'Actividad reciente' | t }}</h3>
+            @if (estadoResumen(); as r) {
+              <ul class="wa__kpis">
+                <li><span class="wa__kpi-n">{{ r.count24h }}</span><span class="wa__kpi-l">{{ 'Mensajes en 24h' | t }}</span></li>
+                <li><span class="wa__kpi-n">{{ r.count7d }}</span><span class="wa__kpi-l">{{ 'Mensajes en 7 días' | t }}</span></li>
+              </ul>
+              <p class="wa__card-sub">
+                @if (r.ultimoEntradaEn) { {{ 'Último mensaje entrante: {fecha}' | t:{ fecha: fmtRelativa(r.ultimoEntradaEn) } }} }
+                @else { {{ 'Sin mensajes entrantes registrados.' | t }} }
+              </p>
+              <p class="wa__card-sub" [class.wa__card-sub--danger]="r.ultimoErrorEn">
+                @if (r.ultimoErrorEn) { {{ 'Último error: {fecha} ({telefono})' | t:{ fecha: fmtRelativa(r.ultimoErrorEn), telefono: r.ultimoErrorTelefono || '' } }} }
+                @else { {{ 'Sin errores registrados.' | t }} }
+              </p>
+            }
+          </div>
+
+          <div class="wa__card wa__card--wide">
+            <h3>{{ 'URL del webhook' | t }}</h3>
+            <p class="wa__card-sub">{{ 'Pégala en Meta › App Dashboard › WhatsApp › Configuration.' | t }}</p>
+            <div class="wa__webhook">
+              <code class="wa__webhook-url">{{ webhookUrl }}</code>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiarWebhookUrl()">
+                <app-icon name="copy" [size]="14" />
+                {{ (copiado() ? 'Copiado' : 'Copiar') | t }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>
+
+<!-- Drawer: autorizar número -->
+<app-form-drawer [open]="addOpen()" [title]="'Autorizar número' | t" [dirty]="!!addUsuario()" (closed)="addOpen.set(false)">
+  <div class="wa__form">
+    <p class="wa__hint">{{ 'Elige el usuario SGC dueño del número. El teléfono se prellena desde su ficha, pero puedes corregirlo.' | t }}</p>
+    <app-user-picker [value]="addUsuario()?.usuario_id ?? null" [placeholder]="'Busca por nombre o cédula' | t"
+                     (selected)="onUsuarioElegido($event)" />
+    <label class="sgc-field">
+      <span>{{ 'Teléfono' | t }}</span>
+      <input type="tel" [ngModel]="addTelefono()" (ngModelChange)="addTelefono.set($event)" placeholder="8299663040" />
+    </label>
+    <label class="sgc-field">
+      <span>{{ 'Nota (opcional)' | t }}</span>
+      <input type="text" [ngModel]="addNota()" (ngModelChange)="addNota.set($event)" [placeholder]="'Ej. teléfono personal de gerencia' | t" />
+    </label>
+    <div class="wa__form-actions">
+      <button type="button" class="sgc-btn" (click)="addOpen.set(false)">{{ 'Cancelar' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="addGuardando() || !addUsuario()?.usuario_id || !addTelefono().trim()"
+              (click)="guardarAutorizado()">
+        {{ (addGuardando() ? 'Guardando…' : 'Autorizar') | t }}
+      </button>
+    </div>
+  </div>
+</app-form-drawer>
+
+<!-- Confirmar eliminar -->
+<app-confirm-dialog [open]="confirmEliminarAbierto()"
+                     [title]="'¿Quitar acceso?' | t"
+                     [message]="(autorizadoAEliminar() ? ('{nombre} ya no podrá escribirle a Compa por WhatsApp.' | t:{ nombre: autorizadoAEliminar()!.usuario_nombre }) : '')"
+                     [confirmLabel]="'Quitar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
+                     (confirmed)="confirmarEliminar()" (cancelled)="confirmEliminarAbierto.set(false)" />

@@ -445,6 +445,8 @@ export class Shell implements OnInit {
         { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
         { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
         { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
+        // DC7 — Compa en WhatsApp: badge = mensajes con error/fallido en las últimas 24h.
+        { label: 'Compa en WhatsApp', route: '/tecnologia/whatsapp', soloTecnologia: true, badgeKey: 'tecnologia.whatsapp' },
       ],
     },
     {

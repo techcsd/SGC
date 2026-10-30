@@ -1136,3 +1136,17 @@ de versión para traer las columnas/tablas nuevas y mostrarlas (DA-19):
 | **DB4 pagos/descargo** | db15: `pagos_obra(_lineas)`, RPCs crear/guardar/enviar/complemento/reabrir; edge `pagos-descargo-enviar` (PDF+Resend); firma = pad al bucket `obra` `pagos/<pago>/firmas/<linea>.png` | A4: lista de semanas de MIS obras + firmar línea a línea (outbox offline; enviar requiere conexión) |
 | **DB3 lector flota** | Edge `leer-documento-flota` (PDF/20 fotos, por página) + `flota_documentos_emparejar/aplicar` (nunca pisa vigencia más nueva) | A5: «Leer documento» con UNA foto desde la ficha del vehículo (mismos RPCs) |
 | **DB1 tablero** | `tablero_vivo_resumen()` + Realtime (6 tablas, db14) + «Hoy, en vivo» en el Inicio | A6: feed «Hoy» del inicio (sin mapa), mismo RPC, momentos existentes |
+
+## Ronda DC (PROMPT-126/127 web, 29/10/2026) — sin contrato para la app (intencional)
+
+### DC7 — "Compa en WhatsApp" (Tecnología): SOLO web
+Pantalla nueva `Tecnología › Compa en WhatsApp` (`/tecnologia/whatsapp`) para gestionar el canal
+WhatsApp Cloud API construido esta ronda (edge `whatsapp-webhook` + tablas `whatsapp_autorizados`
+/`whatsapp_mensajes`/`whatsapp_conversaciones`, ver `sql/2026-10-29-dc2-whatsapp-cloud-api.sql` y
+`sql/2026-09-04-bj2-whatsapp-compa-whitelist.sql`): whitelist teléfono→usuario, bitácora de
+mensajes (entrada/salida, agrupados por conversación) y estado de los secretos del edge (pill
+configurado/no configurado, nunca el valor) + URL del webhook para pegar en Meta. **Es
+intencionalmente web-only**: el canal de WhatsApp lo opera y administra Tecnología desde un
+escritorio (gestión de accesos, auditoría de mensajes, configuración de Meta); no hay ni va a
+haber una pantalla equivalente en `csd-app` — los choferes/campo no gestionan este canal, solo lo
+usan (vía WhatsApp mismo, no vía la app). Sin contrato pendiente para la app en esta ronda.

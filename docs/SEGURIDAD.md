@@ -191,3 +191,33 @@ el RPC directo (vía REST, no por el formulario) y crear una echada sin evidenci
 - **Pendiente:** una ronda que (a) confirme si el flujo offline de verdad depende de crear el
   registro antes de subir las fotos, y (b) si no, agregue la validación `NOT NULL`/`CHECK` en el
   RPC (defensa en profundidad — la UI ya la tiene, falta el servidor).
+
+## Ronda DC (29-oct-2026) — webhook público de WhatsApp Cloud API
+
+`whatsapp-webhook` es la primera edge de este repo que recibe tráfico de un
+tercero (Meta) sin JWT de Supabase y sin un `x-sync-secret` fijo tipo cron — el
+modelo de autenticación es el que exige el propio protocolo de Meta:
+
+- **GET (verificación):** Meta manda `hub.mode`/`hub.verify_token`/`hub.challenge`;
+  el webhook solo responde el challenge si `hub.verify_token` coincide EXACTO con
+  el secret `WHATSAPP_VERIFY_TOKEN` de ese entorno. Sin eso, `403`.
+- **POST (mensajes):** cada request trae `X-Hub-Signature-256: sha256=<hex>`, un
+  HMAC-SHA256 del cuerpo crudo con el **App Secret** de la app de Meta
+  (`WHATSAPP_APP_SECRET`). El webhook recalcula el HMAC y compara en **tiempo
+  constante** (`_shared/whatsapp.ts:verificarFirmaMeta`, XOR byte a byte, no
+  `===`) para no filtrar el secret por timing attack. Firma inválida → `401`,
+  sin procesar nada (ni siquiera parsea el JSON).
+- **`verify_jwt = false`** en `supabase/config.toml` es correcto aquí — Meta no
+  sabe generar un JWT de Supabase; la firma HMAC ES la autenticación real. Mismo
+  patrón que `fireflies-webhook` (otro webhook de un tercero).
+- **Lista blanca aparte (BJ2):** aunque la firma sea válida (es decir, el
+  request sí vino de Meta), el NÚMERO del remitente todavía se resuelve contra
+  `sgc.whatsapp_autorizados` antes de tocar cualquier dato de negocio — la firma
+  autentica el transporte (que es Meta), no autoriza al remitente del mensaje.
+- **Secreto edge-a-edge sin cambios (BJ2):** `whatsapp-webhook` llama a
+  `assistant` con el mismo header `x-wa-secret` que ya existía para el puente
+  n8n — no se añadió superficie nueva ahí, solo cambió quién llama.
+- **`?modo=estado` (DC7):** el único GET autenticado de esta edge — exige una
+  sesión real de Supabase (`Authorization: Bearer <access_token>`) y revalida
+  `is_admin()/es_tecnologia()` en el servidor antes de responder. Devuelve
+  booleans de "¿está configurado?" por secret, **nunca el valor**.

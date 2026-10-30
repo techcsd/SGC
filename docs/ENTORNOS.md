@@ -82,9 +82,12 @@ El **ledger** (`sgc.migraciones_aplicadas`, `sgc.edges_desplegadas`, `sgc.secret
 
 ## Secrets (por nombre; los valores NUNCA en repo)
 
-Edge (Deno.env): `SUPABASE_URL/ANON_KEY/SERVICE_ROLE_KEY` (auto), `ENTORNO` (`dev`/`prod`), `INFRA/WEATHER/CRONOGRAMA/WHATSAPP_ASSISTANT_SYNC_SECRET`, `NOTIFICATIONS_FROM_EMAIL`, `NOTIF_REDIRECT_TO` (dev), `INFRA_ALERT_EMAILS`, `APP_URL`, `WEB_URL`, `PUSH_ALLOWLIST` (dev vacío), `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`, `ASSISTANT_MODEL`, `FCM_SERVICE_ACCOUNT_JSON`.
+Edge (Deno.env): `SUPABASE_URL/ANON_KEY/SERVICE_ROLE_KEY` (auto), `ENTORNO` (`dev`/`prod`), `INFRA/WEATHER/CRONOGRAMA_SYNC_SECRET`, `NOTIFICATIONS_FROM_EMAIL`, `NOTIF_REDIRECT_TO` (dev), `INFRA_ALERT_EMAILS`, `APP_URL`, `WEB_URL`, `PUSH_ALLOWLIST` (dev vacío), `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`, `ASSISTANT_MODEL`, `FCM_SERVICE_ACCOUNT_JSON`, `WHATSAPP_ASSISTANT_SECRET`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_GRAPH_VERSION` (opcional, default `v26.0` en código).
 Vault (dev): `infra_sync_secret`, `weather_sync_secret`, `cronograma_sync_secret`, `resend_api_key`.
 Los sync-secrets de dev son **distintos** a prod. En dev, `FCM_SERVICE_ACCOUNT_JSON` y `ASSISTANT_MODEL` no se setean (push apagado; assistant usa el fallback del código).
+**Ronda DC (29-oct-2026) — WhatsApp:** en dev, `WHATSAPP_ASSISTANT_SECRET`/`WHATSAPP_APP_SECRET`/`WHATSAPP_VERIFY_TOKEN` son valores de prueba generados por esta ronda (rotan el secret que usaba el puente n8n); `WHATSAPP_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID` son placeholders hasta que Xaviel conecte una app real de Meta. En prod, **ninguno de los 5 está seteado todavía** (el canal de WhatsApp sigue corriendo por n8n ahí). Detalle completo en [`docs/WHATSAPP-COMPA.md`](./WHATSAPP-COMPA.md).
+
+**DC1 (29-oct-2026) — corrección de nombre:** este documento listaba `WHATSAPP_ASSISTANT_SYNC_SECRET`, pero el código de `assistant/index.ts` SIEMPRE leyó `WHATSAPP_ASSISTANT_SECRET` (BJ2, 04-sep-2026) — nunca existió el otro nombre en ningún entorno. Se corrige aquí el documento, no el código. Ver `docs/WHATSAPP-COMPA.md` para la lista completa de secrets del canal de WhatsApp (`WHATSAPP_ASSISTANT_SECRET`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_GRAPH_VERSION`).
 
 ## Crons por entorno
 

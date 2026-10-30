@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
+import { resolverSttConfig, transcribirAudio } from "../_shared/stt.ts";
 
 // AA22 — Transcripción automática de notas de voz.
 // Barre los audios pendientes de sgc.audio_notas (bucket,path) y
@@ -12,11 +13,8 @@ import { envRequerido } from "../_shared/env.ts";
 //   STT_MODEL     = opcional (default por proveedor)
 // Invocada por pg_cron con x-sync-secret. Si no hay STT_API_KEY, no toca nada
 // (no gasta reintentos): cuando pongas la key, procesa todos los pendientes.
-
-const PROVIDERS: Record<string, { url: string; model: string }> = {
-  openai: { url: "https://api.openai.com/v1/audio/transcriptions", model: "gpt-4o-mini-transcribe" },
-  groq: { url: "https://api.groq.com/openai/v1/audio/transcriptions", model: "whisper-large-v3-turbo" },
-};
+// DC4 — la llamada al proveedor vive en _shared/stt.ts (compartida con
+// whatsapp-webhook, que transcribe notas de voz recibidas por WhatsApp).
 
 const MAX_INTENTOS = 3;
 const BATCH = 20;
@@ -33,10 +31,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: "No autorizado." }, 401);
   }
 
-  const providerKey = (Deno.env.get("STT_PROVIDER") ?? "openai").toLowerCase();
-  const provider = PROVIDERS[providerKey] ?? PROVIDERS.openai;
-  const apiKey = Deno.env.get("STT_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
-  const model = Deno.env.get("STT_MODEL") ?? provider.model;
+  const sttCfg = resolverSttConfig();
 
   const admin = createClient(
     envRequerido("SUPABASE_URL"),
@@ -45,30 +40,22 @@ Deno.serve(async (req: Request) => {
   );
 
   // Si no hay key configurada aún: no tocar nada (no gastar reintentos).
-  if (!apiKey) {
+  if (!sttCfg) {
     const { count: a } = await admin.from("audio_notas").select("id", { count: "exact", head: true })
       .in("transcripcion_estado", ["pendiente", "fallida"]);
     const { count: b } = await admin.from("bitacora_archivos").select("id", { count: "exact", head: true })
       .in("transcripcion_estado", ["pendiente", "fallida"]);
     return json({ ok: false, reason: "STT_API_KEY no configurado", pendientes: (a ?? 0) + (b ?? 0) });
   }
+  const cfg = sttCfg; // narrowing: TS no propaga el `if (!sttCfg) return` dentro del closure de abajo
+  const providerKey = cfg.provider;
+  const model = cfg.model;
 
   async function transcribir(bucket: string, path: string): Promise<string> {
     const { data: blob, error } = await admin.storage.from(bucket).download(path);
     if (error || !blob) throw new Error(`descarga: ${error?.message ?? "sin archivo"}`);
     const ext = (path.split(".").pop() || "webm").split("?")[0];
-    const form = new FormData();
-    form.append("file", blob, `audio.${ext}`);
-    form.append("model", model);
-    form.append("language", "es");
-    const res = await fetch(provider.url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}` },
-      body: form,
-    });
-    const txt = await res.text();
-    if (!res.ok) throw new Error(`STT ${res.status}: ${txt.slice(0, 300)}`);
-    try { return (JSON.parse(txt).text ?? "").trim(); } catch { return txt.trim(); }
+    return await transcribirAudio(blob, ext, cfg);
   }
 
   let ok = 0, fail = 0;
