@@ -130,10 +130,68 @@ async function correrCaso(caso) {
   return { id: caso.id, ok: fallos.length === 0, fallos, email, herramientas: herramientas.map((h) => h.tool), texto: texto.slice(0, 160) };
 }
 
+// ── DC5 — casos modo:"whatsapp" (x-wa-secret, igual que whatsapp-webhook) ───
+// Siembra un número de prueba en sgc.whatsapp_autorizados, llama `assistant`
+// con el MISMO contrato que usa el puente de WhatsApp, y limpia al salir.
+const WA_SECRET = process.env[`WHATSAPP_ASSISTANT_SECRET_${env.entorno.toUpperCase()}`];
+const WA_TELEFONO_OK = '8095551234';
+const WA_TELEFONO_NO_AUTORIZADO = '8091110000';
+
+async function llamarWhatsapp(telefono, mensaje, conversacionId) {
+  const res = await fetch(`${env.url}/functions/v1/assistant`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-wa-secret': WA_SECRET },
+    body: JSON.stringify({ telefono, mensaje, conversacion_id: conversacionId }),
+  });
+  return await res.json().catch(() => ({}));
+}
+
+async function correrCasoWhatsapp(caso) {
+  if (!WA_SECRET) return { id: caso.id, ok: false, motivo: `falta WHATSAPP_ASSISTANT_SECRET_${env.entorno.toUpperCase()} en .env.local` };
+
+  const telefono = caso.telefono_no_autorizado ? WA_TELEFONO_NO_AUTORIZADO : WA_TELEFONO_OK;
+  if (!caso.telefono_no_autorizado) {
+    const usuario = await usuarioParaRol(caso.rol_codigo);
+    if (!usuario?.id) return { id: caso.id, ok: false, motivo: `sin usuario dev para rol '${caso.rol_codigo}'` };
+    await dbq(`insert into sgc.whatsapp_autorizados (telefono, usuario_id, nota) values ('${telefono}', '${usuario.id}'::uuid, 'compa-evals DC5 — número de prueba')
+      on conflict (telefono) do update set activo = true, usuario_id = excluded.usuario_id`).catch(() => {});
+  }
+  await dbq(`delete from sgc.whatsapp_mensajes where telefono = '${telefono}'`).catch(() => {});
+  await dbq(`delete from sgc.whatsapp_conversaciones where telefono = '${telefono}'`).catch(() => {});
+
+  const exp = caso.expect ?? {};
+  const fallos = [];
+  let ultima = {}, convId = null, primeraConvId = null;
+  try {
+    for (const m of caso.secuencia ?? [caso.mensaje]) {
+      ultima = await llamarWhatsapp(telefono, m, convId);
+      convId = ultima?.conversacion_id ?? convId;
+      if (primeraConvId === null) primeraConvId = convId;
+      if (caso.secuencia) await new Promise((r) => setTimeout(r, 500)); // deja sellar aviso_primer_uso_en etc. entre turnos
+    }
+    const texto = String(ultima?.respuesta ?? ultima?.reply ?? '');
+    const herramientas = ultima?.herramientas ?? [];
+
+    if (exp.reply_no_autorizado && !/no est[aá] autorizado/i.test(texto)) fallos.push(`no llegó el mensaje de 'no autorizado': "${texto.slice(0, 160)}"`);
+    if (exp.tool_llamada && !herramientas.some((h) => h.tool === exp.tool_llamada && h.ok)) fallos.push(`no llamó '${exp.tool_llamada}' (llamó: ${herramientas.map((h) => h.tool).join(', ') || 'ninguna'})`);
+    if (exp.sin_contradiccion && CONTRADICCION.test(texto)) fallos.push(`texto contradice tener herramienta: "${texto.slice(0, 120)}"`);
+    if (exp.contiene_enlace_borrador && !/\/borrador\//.test(texto)) fallos.push(`no incluyó el enlace de borrador: "${texto.slice(0, 200)}"`);
+    if (exp.dice_no_creado_aun && !/todav[ií]a no|a[uú]n no|no (existe|est[aá] cread)/i.test(texto)) fallos.push(`no aclaró que falta confirmar: "${texto.slice(0, 200)}"`);
+    if (exp.confirma_reinicio && !/conversaci[oó]n nueva/i.test(texto)) fallos.push(`no confirmó el reinicio: "${texto.slice(0, 160)}"`);
+    if (exp.conversacion_distinta_de_la_primera && (!convId || convId === primeraConvId)) fallos.push(`la conversación no cambió tras "nuevo" (antes=${primeraConvId}, después=${convId})`);
+
+    return { id: caso.id, ok: fallos.length === 0, fallos, email: `wa:${telefono}`, herramientas: herramientas.map((h) => h.tool), texto: texto.slice(0, 160) };
+  } finally {
+    await dbq(`delete from sgc.whatsapp_mensajes where telefono = '${telefono}'`).catch(() => {});
+    await dbq(`delete from sgc.whatsapp_conversaciones where telefono = '${telefono}'`).catch(() => {});
+    if (!caso.telefono_no_autorizado) await dbq(`delete from sgc.whatsapp_autorizados where telefono = '${telefono}'`).catch(() => {});
+  }
+}
+
 console.log(`Corriendo ${casosACorrer.length} caso(s) de Compa contra ${env.entorno} (${env.ref})…\n`);
 const resultados = [];
 for (const caso of casosACorrer) {
-  const r = await correrCaso(caso);
+  const r = caso.modo === 'whatsapp' ? await correrCasoWhatsapp(caso) : await correrCaso(caso);
   resultados.push(r);
   const icono = r.ok ? '✅' : '🔴';
   console.log(`${icono} ${r.id}${r.email ? ` (${r.email})` : ''}`);

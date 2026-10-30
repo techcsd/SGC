@@ -35,9 +35,14 @@ const MODEL = Deno.env.get("ASSISTANT_MODEL") ?? "claude-sonnet-5";
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-// BJ2 — secreto compartido con el puente n8n (WhatsApp). Si no está seteado, el
-// modo WhatsApp queda apagado y la edge solo responde con sesión de usuario.
+// BJ2 — secreto compartido con el puente de WhatsApp (DC3: ahora whatsapp-webhook,
+// Meta Cloud API oficial; antes n8n). Si no está seteado, el modo WhatsApp queda
+// apagado y la edge solo responde con sesión de usuario.
 const WHATSAPP_ASSISTANT_SECRET = Deno.env.get("WHATSAPP_ASSISTANT_SECRET");
+// DC5 — mismo patrón que mcp/index.ts: enlace de borrador para que, por
+// WhatsApp, la persona confirme una acción desde su sesión real en SGC/la app
+// (nunca desde el chat — "nada se crea desde WhatsApp", igual que MCP).
+const WEB_URL = Deno.env.get("WEB_URL") ?? "";
 
 const MAX_MSGS_HORA = 60;
 const MAX_TOOL_LOOPS = 8;
@@ -79,6 +84,13 @@ function fixMojibake(s: string): string {
     const bytes = Uint8Array.from([...s].map((c) => c.charCodeAt(0)));
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch { return s; }
+}
+
+// DC5 — WhatsApp: "nuevo"/"reiniciar"/"/nuevo" (sin importar tilde/mayúscula)
+// reinicia la conversación. Insensible a acentos (normalize NFD + strip).
+const PIDE_REINICIO_WA = /^\s*\/?(nuevo|reiniciar)\s*$/i;
+function pideReinicioConversacion(msg: string): boolean {
+  return PIDE_REINICIO_WA.test(msg.normalize("NFD").replace(/[̀-ͯ]/g, ""));
 }
 
 // BB4 — El prompt se parte en DOS bloques:
@@ -164,6 +176,17 @@ function bloqueIdentidad(cap: Cap, ahoraRD: string, listaTools: string): string 
     "NUNCA anuncies una acción ('voy a generar…', 'procedo a…', 'en un momento te preparo…') que no vas a EJECUTAR con una herramienta en este MISMO turno — si lo dices, LLÁMALA ya; si no puedes, dilo directo sin anunciar nada primero.",
   ].join("\n");
 }
+
+// DC5 — pista de canal para WhatsApp: WhatsApp no pinta tablas/encabezados ni
+// tarjetas clicables, así que el estilo de respuesta cambia (no el permiso ni
+// el trato por rol, que sigue en tratamientoDeRoles).
+const PISTA_CANAL_WHATSAPP = [
+  "CANAL: WhatsApp (texto plano, sin tablas ni encabezados ni tarjetas).",
+  "- Respuestas CORTAS: ideal 2-4 líneas, máximo ~1 pantalla de celular salvo que te pidan más detalle.",
+  "- Nunca uses tablas Markdown ni encabezados (#, ##): si necesitas listar algo, usa líneas con viñeta (•) o guion.",
+  "- Los enlaces van en texto plano (https://…), nunca como [texto](url).",
+  "- Mantén el español dominicano y el trato por rol de siempre.",
+].join("\n");
 
 // Fecha/hora actual en zona RD (para el bloque de identidad).
 function ahoraRD(): string {
@@ -580,7 +603,7 @@ Deno.serve(async (req: Request) => {
 
   if (!ANTHROPIC_API_KEY) return json({ error: "El asistente no está configurado todavía (falta la API key). Avísale a Tecnología." }, 503);
 
-  let payload: { conversacion_id?: string; mensaje?: string; ejecutar?: Any; telefono?: string };
+  let payload: { conversacion_id?: string | null; mensaje?: string; ejecutar?: Any; telefono?: string };
   try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
 
   let authHeader = req.headers.get("Authorization");
@@ -615,8 +638,16 @@ Deno.serve(async (req: Request) => {
     if (!vj?.access_token) return json({ reply: "No pude abrir tu sesión de Compa. Reinténtalo." });
     authHeader = `Bearer ${vj.access_token}`;
     viaWhatsapp = true;
-    // Conversación efímera por mensaje (Q&A). El resto del flujo es idéntico.
-    payload = { mensaje: mensajeWa };
+    // DC5 — memoria de conversación: el puente (whatsapp-webhook) decide si
+    // reusa la conversación vigente del teléfono (<30 min) o manda null; aquí
+    // se respeta eso, salvo que el propio mensaje pida reiniciar explícito
+    // ("nuevo"/"reiniciar"/"/nuevo"). Más abajo (branch CHAT) se verifica por
+    // RLS que esa conversación de verdad pertenezca a ESTE usuario antes de
+    // reusarla — nunca se confía ciegamente en lo que mande el puente.
+    payload = {
+      mensaje: mensajeWa,
+      conversacion_id: pideReinicioConversacion(mensajeWa) ? null : (payload?.conversacion_id ?? null),
+    };
   }
 
   if (!authHeader) return json({ error: "No autorizado" }, 401);
@@ -648,6 +679,12 @@ Deno.serve(async (req: Request) => {
 
   // ── Branch CONFIRMAR: ejecuta la acción preparada (mismo RPC del flujo normal) ──
   if (payload.ejecutar) {
+    // DC5 — por WhatsApp nada se confirma desde el chat en v1 (igual que MCP,
+    // CR1 §B3): toda propuesta por este canal ya salió como enlace de borrador
+    // (/borrador/:id) o al formulario real; esta vía queda cerrada.
+    if (viaWhatsapp) {
+      return json({ error: "Por WhatsApp todavía no se puede confirmar una acción desde el chat — hazlo desde el enlace que te mandé, en SGC o la app." }, 403);
+    }
     const prop = payload.ejecutar;
     const convId = payload.conversacion_id ?? null;
     // CV1.4 — una propuesta `accion:'abrir'` (p. ej. preparar_echada) no tiene
@@ -730,10 +767,27 @@ Deno.serve(async (req: Request) => {
   }
 
   let convId = payload.conversacion_id ?? null;
+  // DC5 — WhatsApp: el teléfono trae su propio conversacion_id guardado por el
+  // puente; se verifica por RLS que de verdad pertenezca a ESTE usuario antes
+  // de reusarla (nunca se confía ciegamente en lo que mande el puente).
+  if (viaWhatsapp && convId) {
+    const { data: propia } = await supabase.from("assistant_conversaciones").select("id").eq("id", convId).maybeSingle();
+    if (!propia) convId = null;
+  }
   if (!convId) {
     const { data: nueva, error: convErr } = await supabase.from("assistant_conversaciones").insert({ titulo: mensaje.slice(0, 60) }).select("id").single();
     if (convErr) return json({ error: "No pude iniciar la conversación." }, 500);
     convId = nueva!.id as string;
+  }
+  // DC5 — "nuevo"/"reiniciar"/"/nuevo" por WhatsApp: confirma el reinicio sin
+  // gastar una llamada a Claude (la conversación nueva ya se abrió arriba).
+  if (viaWhatsapp && pideReinicioConversacion(mensaje)) {
+    const confirmacion = "Listo, empezamos una conversación nueva. ¿En qué te ayudo?";
+    await supabase.from("assistant_mensajes").insert([
+      { conversacion_id: convId, rol: "user", contenido: mensaje },
+      { conversacion_id: convId, rol: "assistant", contenido: confirmacion },
+    ]).then(() => {}, () => {});
+    return json({ conversacion_id: convId, respuesta: confirmacion });
   }
 
   const { data: previos } = await supabase.from("assistant_mensajes").select("rol, contenido").eq("conversacion_id", convId).order("created_at", { ascending: true }).limit(40);
@@ -783,7 +837,11 @@ Deno.serve(async (req: Request) => {
   // la identidad de un usuario con la de otro).
   const system = [
     { type: "text", text: INSTRUCCIONES_ESTATICAS, cache_control: { type: "ephemeral" } },
-    { type: "text", text: bloqueIdentidad(capObj, ahoraRD(), listaHerramientasCompacta(disponibles)) + memText },
+    {
+      type: "text",
+      text: bloqueIdentidad(capObj, ahoraRD(), listaHerramientasCompacta(disponibles)) + memText
+        + (viaWhatsapp ? "\n\n" + PISTA_CANAL_WHATSAPP : ""),
+    },
   ];
   const debeForzarTool = fuerzaHerramienta(mensaje);
 
@@ -970,6 +1028,23 @@ Deno.serve(async (req: Request) => {
               if (res.error) {
                 out = { error: res.error };
                 resumen = res.error.slice(0, 200);
+              } else if (viaWhatsapp) {
+                // DC5 — por WhatsApp no hay tarjeta clicable: se manda el enlace
+                // directo al formulario real (con los datos ya puestos) en vez
+                // de la propuesta `accion:'abrir'` (que es para un cliente web/app).
+                const query = new URLSearchParams(
+                  Object.entries(res.propuesta.destino.query).map(([k, v]) => [k, String(v)]),
+                ).toString();
+                const link = `${WEB_URL}/flota/combustible?${query}`;
+                out = {
+                  preparado: true,
+                  resumen: res.propuesta.lineas.join("\n"),
+                  faltan: res.propuesta.faltan,
+                  link,
+                  instruccion: `Dile al usuario EN UNA FRASE qué dejaste preparado, que TODAVÍA NO está registrada, y manda este enlace EXACTO para que lo complete con las fotos y confirme desde SGC o la app: ${link}`,
+                };
+                ok = true; resumen = `propuesta abrir ${cfg.abrir.tipo} (enlace WhatsApp)`;
+                huboAccionEjecutable = true;
               } else {
                 propuesta = res.propuesta;
                 out = {
@@ -988,17 +1063,42 @@ Deno.serve(async (req: Request) => {
           } else if (cfg.write) {
             // Acción de ESCRITURA: se PREPARA, no se ejecuta. Devuelve borrador.
             try {
-              propuesta = await construirPropuesta(supabase, cfg, block.input ?? {}, capObj);
-              out = {
-                preparado: true,
-                resumen: propuesta.lineas.join("\n"),
-                aviso_prueba: propuesta.aviso_prueba ?? undefined,
-                instruccion: propuesta.es_prueba
-                  ? "Dile en una frase qué preparaste, ADVIERTE que saldrá marcado de prueba (usa el texto de aviso_prueba) y pídele que confirme en la tarjeta. No digas que ya está hecho."
-                  : "Dile al usuario en una frase qué preparaste y que confirme en la tarjeta. No digas que ya está hecho.",
-              };
-              ok = true; resumen = `propuesta ${cfg.write.tipo}`;
-              huboAccionEjecutable = true;
+              if (viaWhatsapp) {
+                // DC5 — por WhatsApp no hay tarjeta Confirmar/Cancelar: se usa
+                // el MISMO mecanismo que el conector MCP (CR1 §B3) — un borrador
+                // real (claude_borrador_crear, idéntico idem que Compa web) con
+                // enlace a /borrador/:id, donde la persona confirma con su
+                // sesión real de SGC o la app. "Nada se crea desde WhatsApp".
+                const input = block.input ?? {};
+                const idem = claveIdem(capObj.usuario_id, cfg.write.tipo, input);
+                const { data: brd, error: brdErr } = await supabase.rpc("claude_borrador_crear", {
+                  p_tool: cfg.name, p_params: input, p_resumen: `${cfg.write.tipo} vía WhatsApp`, p_idem: idem,
+                });
+                if (brdErr) {
+                  out = { error: "No pude preparar la acción." };
+                  resumen = brdErr.message.slice(0, 200);
+                } else {
+                  const link = `${WEB_URL}/borrador/${brd.id}`;
+                  out = {
+                    preparado: true, link,
+                    instruccion: `Dile al usuario EN UNA FRASE qué dejaste preparado, que TODAVÍA NO existe en el SGC, y manda este enlace EXACTO para que lo confirme desde SGC o la app: ${link}`,
+                  };
+                  ok = true; resumen = `borrador ${cfg.write.tipo} (enlace WhatsApp)`;
+                  huboAccionEjecutable = true;
+                }
+              } else {
+                propuesta = await construirPropuesta(supabase, cfg, block.input ?? {}, capObj);
+                out = {
+                  preparado: true,
+                  resumen: propuesta.lineas.join("\n"),
+                  aviso_prueba: propuesta.aviso_prueba ?? undefined,
+                  instruccion: propuesta.es_prueba
+                    ? "Dile en una frase qué preparaste, ADVIERTE que saldrá marcado de prueba (usa el texto de aviso_prueba) y pídele que confirme en la tarjeta. No digas que ya está hecho."
+                    : "Dile al usuario en una frase qué preparaste y que confirme en la tarjeta. No digas que ya está hecho.",
+                };
+                ok = true; resumen = `propuesta ${cfg.write.tipo}`;
+                huboAccionEjecutable = true;
+              }
             } catch (e) {
               out = { error: "No pude preparar la acción." };
               resumen = (e instanceof Error ? e.message : "error").slice(0, 200);

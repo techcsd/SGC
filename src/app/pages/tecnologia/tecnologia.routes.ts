@@ -182,4 +182,12 @@ export const tecnologiaRoutes: Routes = [
       import('./envios-automaticos/envios-automaticos').then((m) => m.TecEnviosAutomaticos),
     title: 'Envíos automáticos — Tecnología',
   },
+  {
+    // DC7 — "Compa en WhatsApp": gestión del canal WhatsApp Cloud API (whitelist,
+    // bitácora de mensajes, estado de secretos del edge whatsapp-webhook).
+    path: 'whatsapp',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./whatsapp/whatsapp').then((m) => m.TecWhatsapp),
+    title: 'Compa en WhatsApp — Tecnología',
+  },
 ];

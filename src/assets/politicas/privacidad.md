@@ -1,7 +1,7 @@
 ---
 titulo: Política de Privacidad
-version: 2026-10-07
-vigencia: 7 de octubre de 2026
+version: 2026-10-30
+vigencia: 30 de octubre de 2026
 estado: borrador
 ---
 
@@ -27,6 +27,7 @@ Tratamos únicamente los datos necesarios para la operación de la Empresa:
 | Estado del conductor (disponible, en ruta, descanso, almuerzo, inactivo) | Controlar tu jornada y **encender o apagar** el registro de ubicación |
 | Fotos (cámara/galería), firmas y documentos | Evidencias de obra, inventario, flota y recursos humanos |
 | **Audio** (notas de voz) | Registrar incidentes y notas; se transcribe a texto (ver sección 3) |
+| **Número de teléfono y mensajes de WhatsApp** (solo si tu número fue autorizado por Tecnología) | Permitir que hables con el asistente "Compa" por WhatsApp, con los mismos permisos de tu cuenta |
 | Identificadores del dispositivo, token de notificaciones, plataforma y versión | Enviarte notificaciones y dar soporte |
 | Registros de error y diagnóstico | Resolver fallas técnicas |
 | Datos biométricos (huella/rostro) | **Solo para desbloquear la app en tu teléfono. Nunca salen del dispositivo** ni se envían a la Empresa |
@@ -44,6 +45,8 @@ Algunas funciones envían datos a proveedores de IA de terceros, **solo si tú l
 
 Estos proveedores procesan los datos para dar el resultado y **no los usan para publicidad**. Puedes **otorgar o revocar** este permiso en *Perfil › Privacidad*. Si no lo otorgas, el resto de la Aplicación funciona igual (por ejemplo, la nota de voz se guarda sin transcribir).
 
+**Compa por WhatsApp.** Si tu número de teléfono fue autorizado explícitamente por Tecnología (lista administrada caso por caso, nunca abierta al público), puedes hablarle al mismo asistente "Compa" por WhatsApp — responde con los mismos permisos de tu cuenta, usando el **canal oficial de WhatsApp Business Platform de Meta**. Por ese canal, lo que escribes (o la transcripción de tu nota de voz) se envía a **Meta** (para la entrega del mensaje) y a **Anthropic** (para generar la respuesta), igual que en la Aplicación. La primera vez que escribes recibes un aviso con esta información y el enlace a esta política. **La autorización aquí es administrativa** (Tecnología habilita tu número) en vez del interruptor de *Perfil › Privacidad* — porque WhatsApp es un canal externo a la Aplicación, no hay sesión donde mostrarte ese interruptor antes de que escribas. Puedes pedirle a Tecnología que te quite el acceso en cualquier momento; el efecto es inmediato.
+
 ## 4. Ubicación en segundo plano
 
 La ubicación de los conductores que comparten ubicación se registra **también con la app cerrada o en segundo plano**, pero **solo mientras tu estado sea de trabajo** (Disponible, En ruta, Descanso, Almuerzo u Otros). **Se apaga** cuando marcas **Inactivo** o cierras sesión. Antes de activarla te mostramos un aviso claro y te pedimos permiso; puedes negarte.
@@ -57,6 +60,7 @@ Para operar, la Empresa usa proveedores de servicios ("procesadores") que tratan
 - **Resend** (EE. UU.) — envío de correos (avisos e informes).
 - **Anthropic** (EE. UU.) — IA del asistente y lectura de recibos.
 - **Groq / OpenAI** (EE. UU.) — transcripción de notas de voz.
+- **Meta Platforms** (EE. UU./global) — canal oficial de **WhatsApp Business Platform** para hablar con "Compa" (solo números autorizados por Tecnología).
 - **Google** (EE. UU./global) — notificaciones push (Firebase Cloud Messaging) y mapas (Google Maps Platform).
 - **Open-Meteo** (UE) — clima de las obras (solo coordenadas, sin datos personales).
 - **OpenStreetMap / Nominatim** (UE) — búsqueda de direcciones.
@@ -65,7 +69,7 @@ No vendemos tus datos ni los compartimos con terceros para fines distintos a los
 
 ## 6. Cuánto tiempo conservamos los datos
 
-Conservamos los datos mientras exista tu relación con la Empresa y el tiempo necesario para las finalidades descritas. Los **registros operativos y contables** (conduces, inventario, combustible) se conservan por obligación legal y contable aun después de que elimines tu cuenta, pero con tu identidad **anonimizada** (ver sección 8).
+Conservamos los datos mientras exista tu relación con la Empresa y el tiempo necesario para las finalidades descritas. Los **registros operativos y contables** (conduces, inventario, combustible) se conservan por obligación legal y contable aun después de que elimines tu cuenta, pero con tu identidad **anonimizada** (ver sección 8). Los **mensajes de WhatsApp** (texto y transcripciones) se conservan **90 días** y luego se borran automáticamente.
 
 ## 7. Seguridad
 
@@ -97,5 +101,7 @@ Podemos actualizar esta política. Cuando el cambio sea relevante, subiremos el 
 **Constructora SD** operates the **CSD App**, an **internal work tool** for its employees, drivers and collaborators (accounts are created by the company; there is no open public sign-up). The app processes: account data (name, email, phone, **national ID (cédula)**, job, role); **precise location — including in the background — for drivers who share it, only while their work status is active** (it turns off when the driver sets status to "Inactive" or logs out, after an explicit in-app disclosure and permission prompt); photos, signatures, documents; **voice notes (audio)**, which are transcribed; device identifiers and push tokens; and diagnostic logs. **Biometrics never leave the device.**
 
 Certain features send data to **third-party AI** only **with the user's explicit consent** (revocable in *Profile › Privacy*): **Anthropic (Claude)** for the assistant and receipt reading, **Groq/OpenAI** for voice transcription. Other processors: **Supabase, Vercel, Resend, Google (FCM / Maps), Open-Meteo, OpenStreetMap** — several located in the USA (international transfer). We **do not** use data for advertising, **do not** track across apps/sites, and the app is **not directed to children**.
+
+**Compa on WhatsApp.** Employees whose phone number has been explicitly authorized by the Technology team (a case-by-case allowlist, never open to the public) can message the same "Compa" assistant over **Meta's official WhatsApp Business Platform**, with the same account permissions. Messages (or voice-note transcriptions) sent this way are shared with **Meta** (message delivery) and **Anthropic** (generating the reply). A first-use notice discloses this before any real reply. Authorization here is **administrative** (granted by Technology) rather than the in-app toggle, since WhatsApp is an external channel with no in-app session to show that toggle in; access can be revoked by Technology at any time, effective immediately. WhatsApp message logs are kept for **90 days** and then deleted automatically.
 
 Users can **request account deletion** in-app (*Profile › Privacy*) or at **/politicas/eliminar-cuenta**; requests are handled within **30 days**, anonymizing the user while retaining operational/accounting records as legally required. Rights of access, rectification and cancellation apply under **Dominican Republic Law 172-13**. Contact: **tecnologia@constructorasd.com**.
