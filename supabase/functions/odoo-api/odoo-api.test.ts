@@ -407,7 +407,7 @@ Deno.test("compras.obtener: mapea estado/total/proveedor de una purchase.order",
 });
 
 Deno.test("CY24 acciones: allowlist sigue cerrada -- una acción de escritura no declarada es rechazada", async () => {
-  const r = await manejar(req({ accion: "compras.confirmar", params: { orden_id: 1 } }), deps());
+  const r = await manejar(req({ accion: "compras.editar", params: { orden_id: 1 } }), deps());
   assertEquals(r.status, 400);
 });
 
@@ -477,7 +477,7 @@ Deno.test("compras.crear: comando ya completado -- idempotente, no vuelve a publ
       llamadas.push(nombre);
       if (nombre === "oc_para_publicar") return { data: PARA_PUBLICAR_OK };
       if (nombre === "oc_comando_registrar_inicio") {
-        return { data: { ya_completado: true, resultado: { modelo: "purchase.order", odoo_id_simulado: 1 }, comando_id: UUID } };
+        return { data: { ya_completado: true, resultado: { modelo: "purchase.order", odoo_id: 1 }, comando_id: UUID } };
       }
       return { data: true };
     }),
@@ -487,4 +487,52 @@ Deno.test("compras.crear: comando ya completado -- idempotente, no vuelve a publ
   const data = (await r.json()).data;
   assertEquals(data.repetido, true);
   assert(!llamadas.includes("oc_comando_finalizar")); // nunca vuelve a tocar Odoo ni cierra un comando nuevo
+});
+
+const PARA_COMANDO_OK = { odoo_instancia_id: UUID, orden_id: UUID, odoo_id: 999002, odoo_sync_estado_actual: "publicada" };
+
+Deno.test("compras.confirmar: oc_para_comando rechaza (ya confirmada) → 400 con el mensaje de la RPC", async () => {
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre) =>
+      nombre === "oc_para_comando" ? { data: null, error: { message: "Esta orden ya está confirmada en Odoo" } } : { data: null }),
+  });
+  const r = await manejar(req({ accion: "compras.confirmar", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 400);
+  assertEquals((await r.json()).error, "Esta orden ya está confirmada en Odoo");
+});
+
+Deno.test("compras.confirmar: camino feliz -- confirma (mock) y registra confirmada, sin tocar identidad", async () => {
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre, args) => {
+      llamadas.push({ nombre, args });
+      if (nombre === "oc_para_comando") return { data: PARA_COMANDO_OK };
+      if (nombre === "oc_comando_registrar_inicio") return { data: { ya_completado: false, comando_id: UUID } };
+      return { data: true };
+    }),
+  });
+  const r = await manejar(req({ accion: "compras.confirmar", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 200);
+  const data = (await r.json()).data;
+  assertEquals(data.estado_odoo, "purchase");
+  const registrar = llamadas.find((l) => l.nombre === "registrar_publicacion_oc")!.args;
+  assertEquals(registrar.p_odoo_sync_estado, "confirmada");
+  assertEquals(registrar.p_odoo_instancia_id, null); // confirmar no toca la identidad (ya se fijó al crear)
+  assertEquals(registrar.p_odoo_id, null);
+});
+
+Deno.test("compras.cancelar: camino feliz -- cancela (mock) y registra cancelada", async () => {
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre) => {
+      if (nombre === "oc_para_comando") return { data: PARA_COMANDO_OK };
+      if (nombre === "oc_comando_registrar_inicio") return { data: { ya_completado: false, comando_id: UUID } };
+      return { data: true };
+    }),
+  });
+  const r = await manejar(req({ accion: "compras.cancelar", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 200);
+  assertEquals((await r.json()).data.estado_odoo, "cancel");
 });
