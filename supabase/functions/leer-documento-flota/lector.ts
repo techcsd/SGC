@@ -94,6 +94,15 @@ export function parsearPaginas(texto: string, offset = 0): Any[] | null {
 // "No se pudo contactar el servicio"). Se divide el PDF en tandas de pocas
 // páginas y se leen EN PARALELO — el tiempo total queda limitado por la tanda
 // más lenta, no por la suma de todas.
+// Hotfix (30-oct-2026): el problema real NO era el tiempo de lectura en sí
+// (8-13s con MARBETES.pdf real, dividido en tandas) sino que el NAVEGADOR
+// sostenía una conexión directa esos segundos y rozaba el límite del relay de
+// Supabase (`x-relay-error` → supabase-js lo traduce al mismo "No se pudo
+// contactar el servicio"). El fix de fondo es estructural: el navegador ya NO
+// espera esta llamada (ver index.ts — ahora corre server-to-server disparada
+// por pg_net, con polling de una fila). 6 páginas/tanda es un buen punto
+// medio: pocas llamadas paralelas a Anthropic (menos contención) sin hacer
+// tandas demasiado lentas.
 export const PAGINAS_POR_TANDA = 6;
 
 export interface TandaPdf {
