@@ -1,5 +1,134 @@
 # HANDOFF — SGC
 
+## 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`, SIN COMMIT (espera OK de Xaviel)
+
+**Letra de ronda:** el prompt original pedía DA1–DA9, pero "DA" ya era la ronda
+de inventario tecnológico (PROMPT-122, en producción desde el 28-oct) y "DB"
+también ya estaba usada y mergeada (tablero vivo, ver más abajo) — se detectó el
+choque al hacer el pre-flight de CQ6 (`git worktree list` mostró `SGC-da` y
+`SGC-db` ya existentes) y se renombró la ronda a **DC** (DC1–DC9). Sin respuesta
+de Xaviel a tiempo, se aplicó el default razonable y se avisa aquí. De paso, el
+pendiente #7 de la ronda DB ("reels de IG → ronda DC") se corrigió a "ronda DD".
+
+**TL;DR:** reemplaza el puente WhatsApp no oficial (n8n + Evolution API,
+bloqueado por Meta) por el **webhook oficial de WhatsApp Cloud API**. El cerebro
+de Compa (BJ2: lista blanca, resolución de usuario, RLS, permisos) no cambió —
+solo el transporte. Build verde, 11/11 tests Deno nuevos (`_shared/whatsapp.ts`),
+17/17 evals de Compa (incluye 4 casos nuevos de WhatsApp), smoke
+`scripts/smoke-whatsapp-webhook.mjs` 9/9 contra dev. **Todo aplicado y probado
+SOLO en dev** (migración + 3 edges) — nada en `main`/prod. Falta la pantalla web
+(DC7, pendiente mientras se escribe este handoff) y el checklist físico de Meta
+para Xaviel (ver `docs/WHATSAPP-COMPA.md` §7).
+
+### Qué se construyó
+- **DC2** — `sql/2026-10-29-dc2-whatsapp-cloud-api.sql`: tablas `sgc.whatsapp_mensajes`
+  (bitácora, retención 90 días vía cron `sgc-purgar-whatsapp-mensajes`) y
+  `sgc.whatsapp_conversaciones` (memoria por teléfono); `sgc.whatsapp_autorizados`
+  (BJ2) gana `actualizado_en`/`ultimo_uso_en`. Aplicada y en el ledger de dev.
+- **DC3** — edge nueva `supabase/functions/whatsapp-webhook` (`verify_jwt=false`,
+  como `fireflies-webhook`): verifica el GET de Meta, valida firma HMAC
+  (`X-Hub-Signature-256`) en tiempo constante, responde 200 YA
+  (`EdgeRuntime.waitUntil`), deduplica por `wa_message_id`, resuelve contra la
+  lista blanca (BJ2, sin cambios) y llama a `assistant` igual que el viejo
+  puente n8n. `_shared/whatsapp.ts` (normalización de teléfono, firma, markdown
+  → texto de WhatsApp, chunking, cliente Graph API con backoff — mismo patrón
+  que `_shared/odoo-backoff.ts`) + 11 tests Deno.
+- **DC4** — notas de voz: `_shared/stt.ts` extrae la llamada al proveedor STT
+  (antes solo en `transcribe-audio`) para que ambas edges la compartan; el audio
+  NUNCA se guarda, solo la transcripción.
+- **DC5** — `assistant/index.ts`, SOLO el branch WhatsApp (el camino web/app
+  queda byte-idéntico): memoria de conversación por teléfono (reusa si el
+  último mensaje fue hace <30 min; "nuevo"/"reiniciar"/"/nuevo" reinicia,
+  insensible a tilde/mayúscula), pista de canal (respuestas cortas, sin tablas),
+  y el cambio más importante: **por WhatsApp nada se confirma desde el chat** —
+  toda `proponer_*` ahora crea un borrador real (`claude_borrador_crear`, MISMO
+  mecanismo que el conector MCP, CR1 §B3) con enlace a `/borrador/:id`; el
+  branch `ejecutar` rechaza con 403 si `viaWhatsapp`. `preparar_echada` (CV1)
+  manda el enlace directo a `/flota/combustible?...` en vez de la tarjeta.
+- **DC6** — aviso de primer uso (quién es Compa, qué procesa, link a la
+  política) antes de la primera respuesta real a cada número nuevo.
+- **DC1** — corregido `docs/ENTORNOS.md`: decía `WHATSAPP_ASSISTANT_SYNC_SECRET`
+  pero el código SIEMPRE leyó `WHATSAPP_ASSISTANT_SECRET` (BJ2) — error de
+  documentación, no de código.
+- **Secrets en dev:** `WHATSAPP_ASSISTANT_SECRET`/`WHATSAPP_APP_SECRET`/
+  `WHATSAPP_VERIFY_TOKEN` son valores de prueba generados por esta ronda
+  (rotan el secret de n8n — decisión aplicada sin preguntar porque n8n se
+  retira este mismo round); `WHATSAPP_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID` son
+  placeholders hasta que Xaviel conecte una app real de Meta. **Nada seteado
+  en prod todavía** (el canal de WhatsApp real sigue en n8n ahí hasta migrar).
+- **Documentación:** `docs/WHATSAPP-COMPA.md` (runbook completo, nuevo),
+  `docs/DATOS-Y-TERCEROS.md` (Meta como tercero nuevo, STT por WhatsApp,
+  retención 90 días — **CI13: falta revisar la Política de Privacidad y los
+  formularios de tienda** antes del próximo envío), `docs/SEGURIDAD.md` (HMAC,
+  `verify_jwt=false`), `assistant/PERMISOS-TOOLS.md` (tabla WhatsApp vs web/app).
+
+### Pendiente
+1. ~~DC7 (pantalla web)~~ — **HECHA** (ver abajo, addendum 30-oct).
+2. ~~Decidir el modelo de consentimiento del canal~~ — **DECIDIDO Y DOCUMENTADO**
+   (addendum 30-oct): es administrativo (whitelist + aviso), no una hoja CI10.
+3. **Xaviel: checklist físico de Meta** (`docs/WHATSAPP-COMPA.md` §7) — crear la
+   app de Meta, número de prueba, System User + token permanente, App Secret,
+   Verify Token, suscribir el webhook (`dev` primero), método de pago, revisión
+   del nombre para mostrar. **Nadie más puede hacer este paso** (requiere tu
+   cuenta de Meta Business).
+4. Tras conectar Meta en dev: `qa/release-<version>.md` con la prueba manual
+   real (pregunta real, nota de voz, enlace de borrador, "nuevo", número no
+   autorizado, apagar un número desde la pantalla). Checklist ya escrito en
+   `qa/release-1.205.0.md`, solo falta ejecutarlo y poner el `OK:`.
+5. Antes de pasar a prod: setear los 5 secrets de WhatsApp en prod (con
+   credenciales reales de Meta — **no puedo generarlas yo**), registrar el
+   webhook de prod en Meta, y correr `release-check.mjs` (va a pedir los evals
+   de Compa frescos — corre `node scripts/compa-evals.mjs --env dev` de nuevo
+   si pasaron >24h).
+6. Revisar si el stack n8n + Evolution API (skill `ws-ops`) puede apagarse —
+   no se tocó en esta ronda, queda disponible como respaldo hasta que
+   confirmes que el canal oficial funciona en prod.
+7. Revisar si la Política de Privacidad actualizada (addendum 30-oct) y el
+   inventario de `docs/DATOS-Y-TERCEROS.md` necesitan reflejarse también en
+   `csd-app` (el "hijo") — no se tocó ese repo en esta ronda (ver addendum).
+
+### Addendum (30-oct-2026) — "haz todo lo pendiente": política de privacidad, DC7, consentimiento
+Instrucción de Xaviel: completar todo lo que quedó pendiente del reporte anterior,
+con autonomía total ("tienes todas las herramientas y accesos"). Se hizo:
+
+- **DC7 construida y verificada** (ver más abajo — ya estaba en curso cuando se
+  escribió la primera versión de este handoff, se completó después). Pantalla
+  `/tecnologia/whatsapp` con 3 pestañas, badge de errores en el menú (reusa
+  `_pendingBySubmodulo`), `PARIDAD.md` documentado como web-only.
+- **`src/assets/politicas/privacidad.md` actualizada** (versión 2026-10-30,
+  sigue en estado `borrador` — pendiente de revisión legal, como ya estaba):
+  Meta/WhatsApp en la tabla de datos (§2), un párrafo nuevo explicando el
+  modelo de autorización administrativa del canal (§3), Meta en la lista de
+  proveedores (§5), retención de 90 días (§6), y el espejo en inglés.
+- **Decisión de consentimiento tomada y documentada** (no quedó como pregunta
+  abierta): la autorización del canal de WhatsApp es **administrativa**
+  (Tecnología habilita el número puntual, revocable al instante) en vez de
+  una hoja de consentimiento tipo CI10 — la razón es que WhatsApp es un canal
+  externo sin sesión donde mostrar el interruptor de *Perfil › Privacidad*
+  antes de que la persona escriba. Documentado en `docs/DATOS-Y-TERCEROS.md`
+  §1 (fila nueva) y en `privacidad.md` §3.
+- **NO se tocó `csd-app`** (el repo de la app móvil, "hijo"): es un repositorio
+  **separado**, con sus propias ramas/worktrees activos en este momento
+  (`csd-app-da`, `csd-app-db`, etc. — mismo patrón de colisión de letras que
+  en este repo). Como el canal de WhatsApp es intencionalmente **web-only**
+  (sin pantalla ni lógica nueva en la app — ver `PARIDAD.md`), su `TIENDAS-DATOS.md`
+  y su copia de la política de privacidad (si la tiene separada) no se vieron
+  forzados a cambiar por esta ronda — pero vale la pena que lo confirmes o se
+  revise en una sesión futura sobre ese repo, no desde aquí (regla CQ6: no
+  tocar el worktree/repo de otra sesión sin confirmar primero).
+- **Formularios de tienda (Google Play "Seguridad de datos" / Apple "Privacidad
+  de la app"):** son formularios que se llenan **en las consolas externas**
+  de Google Play / App Store — no hay archivo en ningún repo que los represente
+  directamente (más allá del `docs/TIENDAS-DATOS.md` del hijo, no tocado por lo
+  de arriba). Llenarlos requiere tu sesión en esas consolas — **no es algo que
+  pueda ejecutar yo**. Dejo anotado que WhatsApp es un procesador nuevo a
+  reflejar ahí cuando los actualices.
+- **No se hizo commit/push.** Dejé todo el trabajo (de esta ronda completa,
+  DC1-DC9 + este addendum) como cambios locales sin commitear en el worktree
+  `SGC-dc`, porque el propio prompt de esta ronda pidió explícitamente avisar
+  antes de commitear/pushear/abrir PR. Si quieres que lo commitee (sin pushear
+  aún), dímelo y lo hago en el siguiente turno.
+
 ## 🧪 Ronda DB (PROMPT-124, 29-oct-2026) — F0-F9 COMPLETAS en `feature/db-ronda` (worktree `SGC-db`), SIN COMMIT (espera OK de Xaviel)
 
 **TL;DR final:** las 10 fases hechas en una sesión autónoma. 7 migraciones nuevas en el ledger de **dev** (db4, db5, db7, db8, db9, db12, db15, db14), 4 edges NUEVAS en dev (`leer-documento-flota` v1, `leer-documento-personal` v1, `resumir-reporte` v1, `pagos-descargo-enviar` v1) + 3 redeployadas (`assistant` v46, `reporte-rendimiento-semanal` v16, `mcp`). Build verde · **129/129 vitest** (2 specs nuevos DB2) · **tests Deno PASS** (20 nuevos entre lector flota/personal/resumidor/PDF pagos/cors-www) · **smoke `scripts/smoke-db-ronda.mjs` 11/11** (ROLLBACK) · `release-check --env dev --version 1.205.0` = 6/7 (solo falta `qa/release-1.205.0.md`, el registro humano de Xaviel). Dos reportes de Raykler respondidos y cerrados EN PROD (autorizado en el prompt, data-fix versionado). **NADA en main/prod** más allá de eso. Ver F4-F9 abajo y el CIERRE en el chat de la sesión.
@@ -19,7 +148,7 @@
 4. Correo de Yonairis → parámetro `pagos_descargo_correos_extra`.
 5. Encender «Rendimiento de combustible de la flota» tras «Enviar prueba ahora».
 6. Checkout principal de `C:\…\dev\SGC` sigue en main con cambios ajenos (no se tocó); `.git/objects/maintenance.lock` existe pero no estorbó.
-7. Describir los reels de IG → ronda DC.
+7. Describir los reels de IG → ronda DD (DC ya se usó para WhatsApp Cloud API, ver abajo).
 
 ## (histórico de la sesión) Ronda DB — F0-F3
 

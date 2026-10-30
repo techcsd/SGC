@@ -136,3 +136,10 @@ verify_jwt = false
 # DB4 — server-to-server (pg_net + x-sync-secret, patrón generar-informe-obra).
 [functions.pagos-descargo-enviar]
 verify_jwt = false
+
+# ── Ronda DC (29-oct-2026) — WhatsApp Cloud API ──
+# DC3 — webhook de Meta (server-to-server): la autenticación real es la firma
+# HMAC (X-Hub-Signature-256), no un JWT de Supabase. Mismo patrón que
+# fireflies-webhook.
+[functions.whatsapp-webhook]
+verify_jwt = false

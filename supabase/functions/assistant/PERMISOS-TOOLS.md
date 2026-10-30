@@ -118,6 +118,26 @@ frente a Compa:
 No hay tool de SQL libre ni de lectura de archivos sin tool detrás — el
 servidor `mcp` solo ofrece lo que está en el registro, igual que Compa.
 
+## WhatsApp (DC5, 29-oct-2026) — el mismo Compa, por el canal de WhatsApp Cloud API
+
+El puente `whatsapp-webhook` (DC3) llama a esta MISMA edge con `x-wa-secret`
+(BJ2) — no hay un tercer registro de tools: el usuario resuelto por
+`whatsapp_autorizados` ve exactamente las mismas herramientas que vería
+logueado en la web/app (`toolsParaUsuario`, canal `'compa'`). Lo que cambia es
+el ESTILO de la respuesta y cómo se confirma una acción:
+
+| Qué | Compa (web/app) | Compa por WhatsApp |
+|---|---|---|
+| Estilo de respuesta | tablas, encabezados, tarjetas | texto corto, sin tablas/encabezados — ver `PISTA_CANAL_WHATSAPP` |
+| `proponer_*` (tarea/requisición/conduce/ruta) | tarjeta Confirmar/Cancelar en el chat | **borrador real** (`claude_borrador_crear`, igual que MCP) + enlace a `/borrador/:id` — nunca se confirma desde WhatsApp |
+| `preparar_echada` (CV1) | abre el formulario de Combustible en el mismo cliente | enlace directo a `/flota/combustible?...` con los datos ya puestos |
+| Branch `ejecutar` (confirmar) | ejecuta la RPC real | **rechazada con 403** — "confírmalo desde SGC o la app" |
+| Memoria de conversación | `conversacion_id` por sesión del navegador/app | `conversacion_id` por teléfono (`sgc.whatsapp_conversaciones`), reusada si el último mensaje fue hace <30 min; `nuevo`/`reiniciar`/`/nuevo` la reinicia |
+| Consentimiento de IA (CI10) | exigido (`mi_consentimiento`) | **no aplica** (canal fuera de tiendas) — el aviso de primer uso (DC6) cumple ese rol |
+
+Detalle completo del canal (arquitectura, secrets, runbook) en
+[`docs/WHATSAPP-COMPA.md`](../../../docs/WHATSAPP-COMPA.md).
+
 ## CX2 (24-oct-2026) — fase 1 del plan de Xaviel: soporte global, notas, escritura directa
 
 Nota completa: `NOTA-CX2-PLAN-CONECTOR.md` (carpeta `imp 24102026`). Solo canal

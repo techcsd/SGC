@@ -5720,5 +5720,16 @@
         }
       ]
     }
+,
+    "1.205.0": {
+      "titulo": "Compa en WhatsApp (Cloud API oficial)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Compa (el asistente de IA) ya responde por WhatsApp a través del canal oficial de Meta — antes era un puente no oficial que Meta bloqueó. Responde con los mismos permisos de siempre; para crear o aprobar algo, manda un enlace para confirmarlo en SGC o la app (por WhatsApp no se confirma nada todavía)."
+        }
+      ]
+    }
   }
 }
