@@ -74,6 +74,18 @@ export interface OdooStockFiltro {
 /** Acciones permitidas del gateway (espejo de la allowlist del servidor). */
 export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra';
 
+/** CY24 Fase C — acciones de ESCRITURA del gateway (módulo `compras`; el cliente solo manda `orden_id`, D5). */
+export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar';
+
+/** Resultado de una escritura de OC; `repetido` = el comando ya estaba completado (idempotencia, D3). */
+export interface OdooComandoOcResultado {
+  modelo: string;
+  odoo_id: OdooId;
+  nombre?: string;
+  estado_odoo: string;
+  repetido: boolean;
+}
+
 /** ¿Es un ID de Odoo válido? (entero positivo seguro). */
 export function esOdooId(v: unknown): v is OdooId {
   return typeof v === 'number' && Number.isSafeInteger(v) && v > 0;

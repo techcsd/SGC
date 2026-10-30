@@ -3,6 +3,8 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { edgeErrorDetail } from '../utils/edge.util';
 import {
   OdooAccion,
+  OdooAccionEscritura,
+  OdooComandoOcResultado,
   OdooProducto,
   OdooProductoCompra,
   OdooRespuesta,
@@ -42,7 +44,20 @@ export class OdooApiService {
     return this.invocar<OdooStockPagina>('stock.consultar', { ...filtro });
   }
 
-  private async invocar<T>(accion: OdooAccion, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {
+  /** CY24 Fase C (D3/D5) — publica la OC en Odoo. Sin reintento automático: ante timeout la OC queda `incierto`. */
+  async publicarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.crear', { orden_id: ordenId })).data;
+  }
+
+  async confirmarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.confirmar', { orden_id: ordenId })).data;
+  }
+
+  async cancelarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.cancelar', { orden_id: ordenId })).data;
+  }
+
+  private async invocar<T>(accion: OdooAccion | OdooAccionEscritura, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {
     const { data, error } = await this.supabase.client.functions.invoke('odoo-api', {
       body: { accion, params },
     });

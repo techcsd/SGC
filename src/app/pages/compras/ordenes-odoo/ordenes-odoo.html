@@ -1,0 +1,722 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Órdenes de Compra</h1>
+    <span class="page-count">{{ filtered().length }} orden{{ filtered().length !== 1 ? 'es' : '' }}</span>
+  </div>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelOrdenes()"
+            [disabled]="filtered().length === 0" title="Exportar las órdenes filtradas a Excel">
+      <app-icon name="download" [size]="16" /> Excel
+    </button>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nueva OC
+    </button>
+  </div>
+</div>
+
+<!-- ── Solicitudes de compra pendientes (from ingenieros de campo) ── -->
+@if (solicitudesPendientes().length > 0) {
+  <div class="solicitudes-panel sgc-card">
+    <h2 class="solicitudes-panel__title">
+      Solicitudes de compra pendientes ({{ solicitudesPendientes().length }})
+    </h2>
+    @for (s of solicitudesPendientes(); track s.id) {
+      <div class="solicitudes-panel__item">
+        <div class="solicitudes-panel__info">
+          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? 'Sin proyecto' }}</span>
+          <span class="solicitudes-panel__solicitante">{{ s.solicitante?.nombre }}</span>
+          @if (s.origen_requisicion_id) {
+            <!-- BH7 — la procedencia es navegable: abre la requisición (con su despacho y conduces) sin construir nada nuevo -->
+            <a class="sgc-badge sgc-badge--info solicitudes-panel__origen"
+               [routerLink]="['/inventario/requisiciones']" [queryParams]="{ req: s.origen_requisicion_id }"
+               title="Ver la requisición de procedencia: su despacho y sus conduces">
+              {{ reqCodigo(s) ?? 'Desde requisición' }} <app-icon name="external-link" [size]="12" />
+            </a>
+          } @else if (s.categoria === 'tecnologia') {
+            <span class="sgc-badge sgc-badge--neutral">Tecnología</span>
+          }
+        </div>
+        <p class="solicitudes-panel__items">
+          @for (item of s.items; track item.id) {
+            <span>{{ item.cantidad }} — {{ item.descripcion }}</span>
+          }
+        </p>
+        <div class="solicitudes-panel__actions">
+          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">Crear orden</button>
+          <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="rechazarSolicitud(s)">Rechazar</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por proveedor…"
+      [value]="searchProveedor()"
+      (input)="onSearchProveedor($any($event.target).value)"
+      aria-label="Buscar por proveedor"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedEstado()"
+      (change)="onEstadoChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (e of ESTADOS; track e) {
+        <option [value]="e">{{ estadoLabel(e) }}</option>
+      }
+    </select>
+  </div>
+
+  <app-date-range-filter [desde]="fechaDesde()" [hasta]="fechaHasta()" (rangeChange)="onRango($event)" />
+
+  @if (searchProveedor() || selectedEstado() || fechaDesde() || fechaHasta()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M9 17H5a2 2 0 0 0-2 2"/><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v14m0 0h10a2 2 0 0 0 2-2V9m-12 8 3-3-3-3"/>
+      </svg>
+      <p>
+        @if (searchProveedor() || selectedEstado() || fechaDesde() || fechaHasta()) {
+          No se encontraron órdenes con los filtros aplicados.
+        } @else {
+          No hay órdenes de compra registradas. Crea la primera.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de órdenes de compra">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Proveedor</th>
+            <th>Proyecto</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Entrega esperada</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody appStagger>
+          @for (orden of filtered(); track orden.id) {
+            <tr class="row--link" (click)="openDetail(orden)" role="button" tabindex="0"
+                (keydown.enter)="openDetail(orden)" aria-label="Ver detalle de la orden">
+              <td>
+                <button type="button" class="oc-numero-link" (click)="$event.stopPropagation(); openDetail(orden)" title="Ver detalle">
+                  <code class="code-tag">{{ orden.numero }}</code>
+                </button>
+                @if (orden.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+              </td>
+              <td>{{ orden.proveedor?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ orden.destino === 'oficina' ? 'Oficina' : (orden.proyecto?.nombre ?? '—') }}</td>
+              <td>
+                <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
+                <span [class]="syncBadgeClass(orden.odoo_sync_estado)">{{ syncLabel(orden.odoo_sync_estado) }}</span>
+              </td>
+              <td>{{ formatFecha(orden.fecha) }}</td>
+              <td>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</td>
+              <td class="text-right">
+                <span class="orden-total">RD$ {{ orden.total | number:'1.2-2' }}</span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <!-- Ver detalle (estado se cambia dentro del detalle) -->
+                  <button
+                    type="button"
+                    class="action-btn action-btn--view"
+                    (click)="$event.stopPropagation(); openDetail(orden)"
+                    [attr.aria-label]="'Ver orden ' + orden.numero"
+                    title="Ver detalle y cambiar estado"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Footer count ── -->
+    <div class="table-footer">
+      {{ filtered().length }} orden{{ filtered().length !== 1 ? 'es' : '' }} encontrada{{ filtered().length !== 1 ? 's' : '' }}
+    </div>
+  }
+</div>
+
+<!-- ── Create Drawer ── -->
+<app-form-drawer
+  title="Nueva orden de compra"
+  [open]="createDrawerOpen()"
+  [wide]="true"
+  (closed)="closeCreate()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="proveedor_id">
+        Proveedor <span class="required">*</span>
+        <button type="button" class="oc-inline-link" (click)="toggleNuevoProveedor()">
+          {{ showNuevoProveedor() ? 'Cancelar' : '+ Nuevo proveedor' }}
+        </button>
+      </label>
+      @if (!showNuevoProveedor()) {
+        <select
+          id="proveedor_id"
+          formControlName="proveedor_id"
+          [class.invalid]="f.proveedor_id.invalid && f.proveedor_id.touched"
+        >
+          <option [ngValue]="null">Seleccionar proveedor…</option>
+          @for (p of activeProveedores(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+        @if (f.proveedor_id.invalid && f.proveedor_id.touched) {
+          <span class="field-error">El proveedor es obligatorio.</span>
+        }
+      } @else {
+        <!-- Z6 — alta inline de proveedor -->
+        <div class="oc-nuevo-prov" [formGroup]="nuevoProveedorForm">
+          <input type="text" formControlName="nombre" placeholder="Nombre del proveedor *" />
+          <div class="form-row">
+            <input type="text" formControlName="rnc" placeholder="RNC / Cédula" />
+            <input type="text" formControlName="telefono" placeholder="Teléfono" />
+          </div>
+          <div class="form-row">
+            <input type="text" formControlName="contacto" placeholder="Contacto" />
+            <input type="email" formControlName="email" placeholder="Correo" />
+          </div>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                  [disabled]="guardandoProveedor()" (click)="crearProveedorInline()">
+            Guardar proveedor
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Z6 — destino: proyecto | oficina -->
+    <div class="sgc-field">
+      <label>Destino</label>
+      <div class="oc-destino">
+        <button type="button" class="oc-destino__opt" [class.active]="destino() === 'proyecto'"
+                (click)="destino.set('proyecto')">Proyecto / Obra</button>
+        <button type="button" class="oc-destino__opt" [class.active]="destino() === 'oficina'"
+                (click)="destino.set('oficina')">Oficina</button>
+      </div>
+    </div>
+
+    @if (destino() === 'proyecto') {
+      <div class="sgc-field">
+        <label for="proyecto_id">Proyecto <span class="required">*</span></label>
+        <select id="proyecto_id" formControlName="proyecto_id">
+          <option [ngValue]="null">Seleccionar proyecto…</option>
+          @for (proy of proyectos(); track proy.id) {
+            <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
+          }
+        </select>
+        @if (!proyectos().length) {
+          <p class="sgc-field__hint text-muted">No hay obras activas disponibles. Si esperabas ver alguna, pide que te asignen a la obra.</p>
+        }
+      </div>
+    }
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="fecha">Fecha <span class="required">*</span></label>
+        <input
+          id="fecha"
+          type="date"
+          formControlName="fecha"
+          [class.invalid]="f.fecha.invalid && f.fecha.touched"
+        />
+        @if (f.fecha.invalid && f.fecha.touched) {
+          <span class="field-error">La fecha es obligatoria.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="fecha_entrega_esperada">Fecha de entrega</label>
+        <input
+          id="fecha_entrega_esperada"
+          type="date"
+          formControlName="fecha_entrega_esperada"
+        />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">
+        Notas
+        @if (!solicitudEnAtencion()) { <span class="required" aria-hidden="true">*</span> }
+      </label>
+      <textarea
+        id="notas"
+        formControlName="notas"
+        rows="2"
+        [placeholder]="solicitudEnAtencion() ? 'Notas adicionales…' : 'Orden directa (sin solicitud): indica el motivo…'"
+      ></textarea>
+    </div>
+
+    <!-- Items section -->
+    <div class="items-section">
+      <div class="items-section__header">
+        <span class="items-section__title">Ítems</span>
+        <button type="button" class="sgc-btn sgc-btn--ghost items-section__add" (click)="addItem()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Agregar ítem
+        </button>
+      </div>
+
+      <datalist id="articulos-catalogo">
+        @for (nombre of articuloNombres(); track nombre) {
+          <option [value]="nombre"></option>
+        }
+      </datalist>
+
+      <div class="items-list">
+        @for (item of formItems(); track $index) {
+          <div class="item-row">
+            <div class="item-row__desc sgc-field">
+              <label [for]="'desc-' + $index" class="sr-only">Artículo</label>
+              <!-- CY24 (#24, D1) — la pantalla Odoo siempre busca en Odoo, no en sgc.articulos. -->
+              <app-odoo-producto-picker
+                [value]="item.odoo_product"
+                (selectionChange)="onOdooProductoSelect($index, $event)"
+                (solicitarAlta)="onOdooSolicitarAlta($index, $event)"
+              />
+              @if (item.esOtro) {
+                <input
+                  class="item-row__desc-otro"
+                  [id]="'desc-' + $index"
+                  type="text"
+                  list="articulos-catalogo"
+                  [value]="item.descripcion"
+                  (input)="updateItem($index, 'descripcion', $any($event.target).value)"
+                  placeholder="Describe el ítem (Otro)…"
+                />
+              }
+            </div>
+            <div class="item-row__qty sgc-field">
+              <label [for]="'qty-' + $index" class="sr-only">Cantidad</label>
+              <input
+                [id]="'qty-' + $index"
+                type="number"
+                [value]="item.cantidad"
+                (input)="updateItem($index, 'cantidad', $any($event.target).value)"
+                min="1"
+                step="1"
+                placeholder="Cant."
+              />
+            </div>
+            <div class="item-row__price sgc-field">
+              <label [for]="'price-' + $index" class="sr-only">Precio unitario</label>
+              <input
+                [id]="'price-' + $index"
+                type="number"
+                [value]="item.precio_unitario"
+                (input)="updateItem($index, 'precio_unitario', $any($event.target).value)"
+                min="0"
+                step="0.01"
+                placeholder="Precio"
+              />
+            </div>
+            <div class="item-row__total">
+              {{ itemTotal(item) | number:'1.2-2' }}
+            </div>
+            @if (formItems().length > 1) {
+              <button
+                type="button"
+                class="item-row__remove"
+                (click)="removeItem($index)"
+                [attr.aria-label]="'Eliminar ítem ' + ($index + 1)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Z6 — ITBIS opcional -->
+      <label class="oc-itbis">
+        <input type="checkbox" [checked]="aplicaImpuesto()"
+               (change)="aplicaImpuesto.set($any($event.target).checked)" />
+        <span>Aplicar ITBIS (18%)</span>
+      </label>
+
+      <!-- Totals -->
+      <div class="items-totals">
+        <div class="items-totals__row">
+          <span>Subtotal</span>
+          <span>RD$ {{ subtotal() | number:'1.2-2' }}</span>
+        </div>
+        @if (aplicaImpuesto()) {
+          <div class="items-totals__row">
+            <span>Impuesto (18%)</span>
+            <span>RD$ {{ impuesto() | number:'1.2-2' }}</span>
+          </div>
+        }
+        <div class="items-totals__row items-totals__row--total">
+          <span>Total</span>
+          <span>RD$ {{ total() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      @if (esAdmin()) {
+        <label class="oc-itbis">
+          <input type="checkbox" [checked]="esPruebaOrden()"
+                 (change)="esPruebaOrden.set($any($event.target).checked)" />
+          <span>Marcar como dato de prueba</span>
+        </label>
+      }
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeCreate()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          Crear orden
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>
+
+<!-- ── Detail Drawer ── -->
+<app-form-drawer
+  [title]="detailOrden() ? 'Orden ' + detailOrden()!.numero : 'Detalle'"
+  [open]="detailDrawerOpen()"
+  (closed)="closeDetail()"
+>
+  @if (detailOrden(); as orden) {
+    <div class="detail-body">
+
+      @if (detailLoading()) {
+        <app-skeleton variant="list" [rows]="5" />
+      }
+
+      <!-- Info grid -->
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">Número</span>
+          <code class="code-tag">{{ orden.numero }}</code>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Estado</span>
+          <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Odoo</span>
+          <span [class]="syncBadgeClass(orden.odoo_sync_estado)">{{ syncLabel(orden.odoo_sync_estado) }}</span>
+          @if (orden.odoo_nombre) {
+            <span class="detail-field__value">{{ orden.odoo_nombre }}@if (orden.odoo_state) { · {{ orden.odoo_state }} }</span>
+          }
+          @if (orden.odoo_total != null) {
+            <span class="detail-field__value">Total en Odoo: {{ orden.odoo_total | number: '1.2-2' }}</span>
+          }
+          @if (orden.odoo_sync_error) {
+            <span class="detail-field__value">{{ orden.odoo_sync_error }}</span>
+          }
+          @if (!orden.es_prueba && (!orden.odoo_sync_estado || orden.odoo_sync_estado === 'pendiente' || orden.odoo_sync_estado === 'error')) {
+            <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="publicando() === orden.id" (click)="publicarEnOdoo(orden)">
+              {{ publicando() === orden.id ? 'Publicando…' : 'Publicar en Odoo' }}
+            </button>
+          }
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Proveedor</span>
+          <span>{{ orden.proveedor?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Proyecto</span>
+          <span>{{ orden.proyecto?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Fecha</span>
+          <span>{{ formatFecha(orden.fecha) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Entrega esperada</span>
+          <span>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</span>
+        </div>
+        @if (orden.notas) {
+          <div class="detail-field detail-field--full">
+            <span class="detail-field__label">Notas</span>
+            <span>{{ orden.notas }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Estado actions -->
+      <div class="detail-estado">
+        <span class="detail-estado__label">Cambiar estado:</span>
+        @for (e of nextEstados(orden.estado); track e) {
+          <button
+            type="button"
+            class="sgc-btn sgc-btn--ghost detail-estado__btn"
+            (click)="cambiarEstado(orden, e)"
+          >
+            {{ estadoLabel(e) }}
+          </button>
+        }
+        @if (orden.estado === 'recibida' && reconciliacionIncompleta()) {
+          <button
+            type="button"
+            class="sgc-btn sgc-btn--ghost detail-estado__btn"
+            title="Esta orden se marcó recibida pero algunos renglones todavía no tienen una entrada real registrada — reabrirla la devuelve a Entradas."
+            (click)="reabrirRecepcion(orden)"
+          >
+            Reabrir recepción
+          </button>
+        }
+      </div>
+
+      @if (orden.estado === 'recibida' && reconciliacionIncompleta()) {
+        <div class="detail-estado__aviso">
+          <span>Figura recibida pero el inventario no recibió estos artículos.</span>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="irARegistrarEntrada(orden)">
+            Registrar entrada de esta orden
+          </button>
+        </div>
+      }
+
+      <!-- Items table -->
+      @if (orden.items && orden.items.length > 0) {
+        <div class="detail-items">
+          <h3 class="detail-items__title">Ítems</h3>
+          <div class="detail-items__scroll">
+            <table class="data-table" aria-label="Ítems de la orden">
+              <thead>
+                <tr>
+                  <th>Descripción</th>
+                  <th class="text-right">Cantidad</th>
+                  <th class="text-right">Precio unit.</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of orden.items; track item.id) {
+                  <tr>
+                    <td>{{ item.descripcion }}</td>
+                    <td class="text-right">{{ item.cantidad | number:'1.0-2' }}</td>
+                    <td class="text-right">{{ item.precio_unitario | number:'1.2-2' }}</td>
+                    <td class="text-right">{{ item.total | number:'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- Totals -->
+      <div class="items-totals items-totals--detail">
+        <div class="items-totals__row">
+          <span>Subtotal</span>
+          <span>RD$ {{ orden.subtotal | number:'1.2-2' }}</span>
+        </div>
+        <div class="items-totals__row">
+          <span>Impuesto (18%)</span>
+          <span>RD$ {{ orden.impuesto | number:'1.2-2' }}</span>
+        </div>
+        <div class="items-totals__row items-totals__row--total">
+          <span>Total</span>
+          <span>RD$ {{ orden.total | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- QA-076 — Reconciliación recibido vs ordenado por renglón -->
+      @if (reconciliacion().length > 0) {
+        <div class="detail-items">
+          <h3 class="detail-items__title">Reconciliación de recepción</h3>
+          <div class="detail-items__scroll">
+            <table class="data-table" aria-label="Reconciliación de recepción por renglón">
+              <thead>
+                <tr>
+                  <th>Descripción</th>
+                  <th class="text-right">Ordenado</th>
+                  <th class="text-right">Recibido</th>
+                  <th class="text-center">Estado</th>
+                  <th class="text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of reconciliacion(); track r.itemId) {
+                  <tr>
+                    <td>{{ r.descripcion }}</td>
+                    <td class="text-right">{{ r.ordenada | number:'1.0-2' }}</td>
+                    <td class="text-right">{{ r.recibida === null ? '—' : (r.recibida | number:'1.0-2') }}</td>
+                    <td class="text-center">
+                      <span [class]="reconEstadoClass(r.estado)">{{ reconEstadoLabel(r.estado) }}</span>
+                    </td>
+                    <td class="text-center">
+                      @if (r.estado === 'sin_articulo') {
+                        @if (vincularItemId() !== r.itemId) {
+                          <button type="button" class="oc-inline-link" (click)="abrirVincularArticulo(r)">Vincular artículo</button>
+                        } @else {
+                          <span class="text-muted">↓ abajo</span>
+                        }
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                  @if (vincularItemId() === r.itemId) {
+                    <tr class="recon-vincular-row">
+                      <td colspan="5">
+                        <div class="oc-nuevo-prov">
+                          <p class="text-muted" style="margin:0 0 .5rem">
+                            Vincular <b>{{ r.descripcion }}</b> a un artículo del catálogo (habilita recibirlo en Inventario › Entradas).
+                          </p>
+                          <div class="form-row">
+                            <button type="button" class="oc-destino__opt" [class.active]="vincularModo() === 'existente'"
+                                    (click)="vincularModo.set('existente')">Buscar existente</button>
+                            <button type="button" class="oc-destino__opt" [class.active]="vincularModo() === 'nuevo'"
+                                    (click)="vincularModo.set('nuevo')">Crear nuevo</button>
+                          </div>
+
+                          @if (vincularModo() === 'existente') {
+                            <p class="text-muted" style="margin:.5rem 0">Búscalo por nombre o código — evita crear un artículo duplicado si ya existe con otro nombre.</p>
+                            <app-articulo-picker
+                              [articulos]="articulos()"
+                              [categorias]="categorias()"
+                              [value]="vincularArticuloExistenteId()"
+                              [allowOtro]="false"
+                              placeholder="Buscar artículo del catálogo…"
+                              (selectionChange)="onVincularExistenteSelect($event)"
+                            />
+                            <div class="form-row">
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">Cancelar</button>
+                              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                                      [disabled]="vinculandoArticulo() || !vincularArticuloExistenteId()"
+                                      (click)="confirmarVincularExistente(r)">
+                                {{ vinculandoArticulo() ? 'Vinculando…' : 'Vincular' }}
+                              </button>
+                            </div>
+                          } @else {
+                            <div class="form-row">
+                              <select [ngModel]="vincularCategoriaId()" (ngModelChange)="vincularCategoriaId.set($event)">
+                                <option [ngValue]="null">Categoría…</option>
+                                @for (c of categorias(); track c.id) {
+                                  <option [ngValue]="c.id">{{ c.nombre }}</option>
+                                }
+                              </select>
+                              <select [ngModel]="vincularUnidad()" (ngModelChange)="vincularUnidad.set($event)">
+                                @for (u of unidadesArticulo; track u.value) {
+                                  <option [value]="u.value">{{ u.label }}</option>
+                                }
+                              </select>
+                            </div>
+                            <div class="form-row">
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">Cancelar</button>
+                              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                                      [disabled]="vinculandoArticulo() || !vincularCategoriaId()"
+                                      (click)="confirmarVincularArticulo(r)">
+                                {{ vinculandoArticulo() ? 'Creando…' : 'Crear y vincular' }}
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted recon-note">Los renglones sin artículo del catálogo se pueden recibir en Inventario › Entradas eligiendo el artículo equivalente, pero no se reconcilian automáticamente aquí hasta vincularlos a uno.</p>
+        </div>
+      }
+
+      <!-- Receiving history -->
+      <div class="detail-items">
+        <h3 class="detail-items__title">Entradas recibidas ({{ detailEntradas().length }})</h3>
+        @if (detailEntradas().length === 0) {
+          <p class="text-muted">Aún no se ha registrado ninguna entrada de inventario contra esta orden.</p>
+        } @else {
+          <div class="detail-items__scroll">
+            <table class="data-table" aria-label="Entradas recibidas de la orden">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Almacén</th>
+                  <th>Referencia</th>
+                  <th class="text-right">Artículos</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (entrada of detailEntradas(); track entrada.id) {
+                  <tr>
+                    <td>{{ formatFecha(entrada.fecha) }}</td>
+                    <td>{{ entrada.bodega?.nombre ?? '—' }}</td>
+                    <td class="text-muted">{{ entrada.referencia ?? '—' }}</td>
+                    <td class="text-right">{{ (entrada.detalle_entradas ?? []).length }}</td>
+                    <td class="text-right">{{ entradaTotal(entrada) | number:'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</app-form-drawer>

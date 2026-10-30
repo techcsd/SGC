@@ -7,14 +7,24 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { ParamError } from "./acciones.ts";
 import { cancelarOcMock, confirmarOcMock, type ResultadoPublicacionOc, publicarOcMock } from "../_shared/odoo-oc.ts";
+import { OdooError } from "../_shared/odoo-client.ts";
 
 export const ACCIONES_ESCRITURA = ["compras.crear", "compras.confirmar", "compras.cancelar"] as const;
 export type AccionEscritura = typeof ACCIONES_ESCRITURA[number];
 
+/** Adaptador hacia Odoo por acción. Hoy mocks (D-08); el swap por el cliente real es solo aquí. */
+export type AdaptadorOc = (paraComando: Record<string, unknown>) => Promise<ResultadoPublicacionOc>;
+export interface AdaptadoresOc { crear: AdaptadorOc; confirmar: AdaptadorOc; cancelar: AdaptadorOc }
+
 export interface CtxEscritura {
   admin: SupabaseClient;
   usuarioId: string;
+  /** Inyectable para tests / para el swap por el adaptador real. */
+  adaptador?: Partial<AdaptadoresOc>;
 }
+
+// Fallas de infraestructura: no se sabe si Odoo llegó a procesar el comando.
+const CODIGOS_INCIERTOS = new Set(["odoo_timeout", "odoo_no_disponible"]);
 
 interface DefEscritura<P> {
   normalizar(p: Record<string, unknown>): P;
@@ -64,7 +74,22 @@ async function ejecutarComando(
 
   // HOY: mock (D-08). Cuando exista base de pruebas confirmada u orden puntual de
   // Xaviel, este es el ÚNICO punto que cambia (swap del adaptador por uno real).
-  const r = await publicar(p);
+  let r: ResultadoPublicacionOc;
+  try {
+    r = await publicar(p);
+  } catch (e) {
+    // Timeout / Odoo caído: el resultado es INCIERTO (Odoo pudo haber creado la OC).
+    // Se deja constancia en el comando y en la OC, y se relanza SIN reintentar (D3 / #23).
+    if (e instanceof OdooError && CODIGOS_INCIERTOS.has(e.codigo)) {
+      const detalle = "Sin respuesta de Odoo: no se sabe si la acción se aplicó. Requiere conciliación.";
+      const { error: errInc } = await admin.rpc("oc_comando_finalizar", {
+        p_comando_id: ini.comando_id, p_estado: "incierto", p_resultado: null, p_error: detalle,
+      });
+      if (errInc) console.error("[odoo-api] oc_comando_finalizar(incierto):", errInc);
+      await admin.rpc("registrar_publicacion_oc", { p_orden_id: orden_id, p_odoo_sync_estado: "incierto", p_odoo_sync_error: detalle });
+    }
+    throw e;
+  }
 
   const { error: errFin } = await admin.rpc("oc_comando_finalizar", {
     p_comando_id: ini.comando_id, p_estado: r.estado, p_resultado: r.resultado ?? null, p_error: r.error ?? null,
@@ -89,19 +114,19 @@ async function ejecutarComando(
 const comprasCrear: DefEscritura<{ orden_id: string }> = {
   normalizar: normalizarOrdenId,
   ejecutar: (ctx, { orden_id }) =>
-    ejecutarComando(ctx, "crear", orden_id, (a, id) => a.rpc("oc_para_publicar", { p_orden_id: id }), publicarOcMock, "publicada"),
+    ejecutarComando(ctx, "crear", orden_id, (a, id) => a.rpc("oc_para_publicar", { p_orden_id: id }), ctx.adaptador?.crear ?? publicarOcMock, "publicada"),
 };
 
 const comprasConfirmar: DefEscritura<{ orden_id: string }> = {
   normalizar: normalizarOrdenId,
   ejecutar: (ctx, { orden_id }) =>
-    ejecutarComando(ctx, "confirmar", orden_id, (a, id) => a.rpc("oc_para_comando", { p_orden_id: id, p_accion: "confirmar" }), confirmarOcMock, "confirmada"),
+    ejecutarComando(ctx, "confirmar", orden_id, (a, id) => a.rpc("oc_para_comando", { p_orden_id: id, p_accion: "confirmar" }), ctx.adaptador?.confirmar ?? confirmarOcMock, "confirmada"),
 };
 
 const comprasCancelar: DefEscritura<{ orden_id: string }> = {
   normalizar: normalizarOrdenId,
   ejecutar: (ctx, { orden_id }) =>
-    ejecutarComando(ctx, "cancelar", orden_id, (a, id) => a.rpc("oc_para_comando", { p_orden_id: id, p_accion: "cancelar" }), cancelarOcMock, "cancelada"),
+    ejecutarComando(ctx, "cancelar", orden_id, (a, id) => a.rpc("oc_para_comando", { p_orden_id: id, p_accion: "cancelar" }), ctx.adaptador?.cancelar ?? cancelarOcMock, "cancelada"),
 };
 
 export const DEFINICIONES_ESCRITURA: { [A in AccionEscritura]: DefEscritura<never> } = {

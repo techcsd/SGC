@@ -27,6 +27,13 @@ export const comprasRoutes: Routes = [
     title: 'Órdenes de Compra — Compras',
   },
   {
+    // CY24 (#24) — camino Odoo: copia paralela de «ordenes» que publica/confirma/cancela en Odoo.
+    path: 'ordenes-odoo',
+    canActivate: [submoduloGuard('compras.ordenes')],
+    loadComponent: () => import('./ordenes-odoo/ordenes-odoo').then((m) => m.OrdenesOdoo),
+    title: 'Órdenes de Compra (Odoo) — Compras',
+  },
+  {
     // BH8 — MISMA pantalla que /bitacora/solicitudes-compra, ahora accesible desde
     // Compras (donde vive Raykler) con el gate granular compras.solicitudes. AU1:
     // una sola pantalla, dos entradas — no un segundo formulario.

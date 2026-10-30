@@ -10,7 +10,7 @@ import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
 import { ACCIONES, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
-import { ACCIONES_ESCRITURA, type AccionEscritura, DEFINICIONES_ESCRITURA } from "./acciones-escritura.ts";
+import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresOc, DEFINICIONES_ESCRITURA } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
 export const MODULO_REQUERIDO_ESCRITURA = "compras"; // CY24 Fase C
@@ -31,12 +31,14 @@ export interface Deps {
   origenes: string[];
   /** CY24 Fase C — cliente service role para acciones de ESCRITURA (D5: el edge relee todo, nunca confía en el cliente). */
   admin(): SupabaseClient;
+  /** Adaptador hacia Odoo para las escrituras de OC (mock hoy, D-08). Inyectable en tests. */
+  adaptadorOc?: Partial<AdaptadoresOc>;
 }
 
 const CODIGOS_FALLO_INFRA = new Set(["odoo_timeout", "odoo_no_disponible"]);
 
 /** CY23 — envuelve una lectura a Odoo con circuito + semáforo + backoff. */
-async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>): Promise<T> {
+async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>, opts: { reintentar: boolean } = { reintentar: true }): Promise<T> {
   if (!deps.circuito.puedeIntentar()) {
     throw new OdooError("odoo_circuito_abierto", "Circuito abierto: demasiados fallos recientes hacia Odoo.");
   }
@@ -44,7 +46,8 @@ async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>): Promise<T> {
     throw new OdooError("odoo_saturado", "Demasiadas consultas simultáneas a Odoo.");
   }
   try {
-    const resultado = await conReintentoLectura(fn);
+    // Las ESCRITURAS nunca se reintentan solas (D3 / #23): un timeout deja el estado incierto.
+    const resultado = opts.reintentar ? await conReintentoLectura(fn) : await fn();
     deps.circuito.registrarExito();
     return resultado;
   } catch (e) {
@@ -72,6 +75,8 @@ const MENSAJE_ODOO: Record<string, string> = {
   odoo_circuito_abierto: "Odoo está fallando seguido ahora mismo — espera un momento y vuelve a intentar.",
   odoo_saturado: "Hay demasiadas consultas a Odoo en este momento. Intenta de nuevo en unos segundos.",
 };
+// Escritura sin respuesta: puede haberse aplicado. El usuario NO debe reenviar a ciegas.
+const MENSAJE_INCIERTO = "Odoo no respondió y no sabemos si la acción se aplicó. No la reenvíes: Tecnología la conciliará con Odoo.";
 const STATUS_ODOO: Record<string, number> = {
   odoo_timeout: 504, odoo_no_disponible: 502, odoo_auth: 502, odoo_config: 500, odoo_error: 502,
   odoo_circuito_abierto: 503, odoo_saturado: 429,
@@ -124,16 +129,22 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
     try {
       const def = DEFINICIONES_ESCRITURA[accion as AccionEscritura] as unknown as {
         normalizar(p: Record<string, unknown>): unknown;
-        ejecutar(ctx: { admin: SupabaseClient; usuarioId: string }, p: unknown): Promise<unknown>;
+        ejecutar(ctx: { admin: SupabaseClient; usuarioId: string; adaptador?: Partial<AdaptadoresOc> }, p: unknown): Promise<unknown>;
       };
       const norm = def.normalizar(params);
-      const data = await conResiliencia(deps, () => def.ejecutar({ admin: deps.admin(), usuarioId: cap.usuario_id }, norm));
+      const data = await conResiliencia(
+        deps,
+        () => def.ejecutar({ admin: deps.admin(), usuarioId: cap.usuario_id, adaptador: deps.adaptadorOc }, norm),
+        { reintentar: false },
+      );
       return json({ data });
     } catch (e) {
       if (e instanceof ParamError) return json({ error: e.message }, 400);
       if (e instanceof OdooError) {
         console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
-        return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
+        const incierto = e.codigo === "odoo_timeout" || e.codigo === "odoo_no_disponible";
+        const mensaje = incierto ? MENSAJE_INCIERTO : (MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error);
+        return json({ error: mensaje, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
       }
       console.error(`[odoo-api] ${accion}:`, e);
       return json({ error: "Error interno del gateway.", error_code: "interno" }, 500);
