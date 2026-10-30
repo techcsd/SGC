@@ -94,6 +94,8 @@ function deps(over: Partial<Deps> & { calls?: string[]; respuesta?: string } = {
     circuito: over.circuito ?? new CircuitoOdoo(100, 30_000), // umbral alto: no interfiere con tests que no prueban el breaker
     semaforo: over.semaforo ?? new SemaforoOdoo(100),
     origenes: over.origenes ?? ["https://app.test"],
+    // deno-lint-ignore no-explicit-any
+    admin: over.admin ?? ((() => ({ rpc: () => Promise.resolve({ data: null, error: null }) })) as any),
   };
 }
 
@@ -404,7 +406,85 @@ Deno.test("compras.obtener: mapea estado/total/proveedor de una purchase.order",
   assertEquals(orden.proveedor, { id: 3, nombre: "Proveedor X" });
 });
 
-Deno.test("CY24 acciones: allowlist sigue cerrada -- una variante de escritura no declarada es rechazada", async () => {
-  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: 1 } }), deps());
+Deno.test("CY24 acciones: allowlist sigue cerrada -- una acción de escritura no declarada es rechazada", async () => {
+  const r = await manejar(req({ accion: "compras.confirmar", params: { orden_id: 1 } }), deps());
   assertEquals(r.status, 400);
+});
+
+// ── CY24 Fase C — compras.crear (escritura, mock) ───────────────────────────
+const UUID = "11111111-1111-1111-1111-111111111111";
+
+// deno-lint-ignore no-explicit-any
+function fakeAdmin(rpc: (nombre: string, args: Record<string, unknown>) => { data?: unknown; error?: { message: string } | null }): any {
+  return { rpc: (nombre: string, args: Record<string, unknown>) => Promise.resolve(rpc(nombre, args)) };
+}
+
+const PARA_PUBLICAR_OK = { odoo_instancia_id: UUID, orden_id: UUID, lineas: [{ item_id: UUID, odoo_product_id: 4821 }] };
+
+Deno.test("compras.crear: usuario sin módulo compras → 403, no llama a Odoo ni a RPCs", async () => {
+  let llamado = false;
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["inventario"] }),
+    admin: () => fakeAdmin(() => { llamado = true; return { data: null }; }),
+  });
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 403);
+  assertEquals(llamado, false);
+});
+
+Deno.test("compras.crear: orden_id inválido → 400", async () => {
+  const d = deps({ autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }) });
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: "no-es-uuid" } }), d);
+  assertEquals(r.status, 400);
+});
+
+Deno.test("compras.crear: oc_para_publicar rechaza (E9/E10/criterio 6) → 400 con el mensaje de la RPC", async () => {
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre) =>
+      nombre === "oc_para_publicar" ? { data: null, error: { message: "El proveedor de esta orden todavía no está vinculado a Odoo (X)" } } : { data: null }),
+  });
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 400);
+  assertEquals((await r.json()).error, "El proveedor de esta orden todavía no está vinculado a Odoo (X)");
+});
+
+Deno.test("compras.crear: camino feliz -- publica (mock) y registra el comando + la OC", async () => {
+  const llamadas: string[] = [];
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre) => {
+      llamadas.push(nombre);
+      if (nombre === "oc_para_publicar") return { data: PARA_PUBLICAR_OK };
+      if (nombre === "oc_comando_registrar_inicio") return { data: { ya_completado: false, comando_id: UUID } };
+      return { data: true };
+    }),
+  });
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 200);
+  const data = (await r.json()).data;
+  assertEquals(data.modelo, "purchase.order");
+  assertEquals(data.repetido, false);
+  assert(llamadas.includes("oc_comando_finalizar"));
+  assert(llamadas.includes("registrar_publicacion_oc"));
+});
+
+Deno.test("compras.crear: comando ya completado -- idempotente, no vuelve a publicar", async () => {
+  const llamadas: string[] = [];
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre) => {
+      llamadas.push(nombre);
+      if (nombre === "oc_para_publicar") return { data: PARA_PUBLICAR_OK };
+      if (nombre === "oc_comando_registrar_inicio") {
+        return { data: { ya_completado: true, resultado: { modelo: "purchase.order", odoo_id_simulado: 1 }, comando_id: UUID } };
+      }
+      return { data: true };
+    }),
+  });
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 200);
+  const data = (await r.json()).data;
+  assertEquals(data.repetido, true);
+  assert(!llamadas.includes("oc_comando_finalizar")); // nunca vuelve a tocar Odoo ni cierra un comando nuevo
 });

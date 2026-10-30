@@ -2,6 +2,7 @@
 // `inventario` EN EL SERVIDOR, limita por usuario y despacha solo acciones de la
 // allowlist, con caché por tipo de dato. Nunca devuelve al cliente el texto crudo de Odoo
 // (BS2): el detalle técnico queda en el log del servidor.
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { OdooClient, OdooError } from "../_shared/odoo-client.ts";
 import type { CacheOdoo } from "../_shared/odoo-cache.ts";
 import type { LimitePorUsuario } from "../_shared/odoo-limite.ts";
@@ -9,8 +10,10 @@ import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
 import { ACCIONES, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
+import { ACCIONES_ESCRITURA, type AccionEscritura, DEFINICIONES_ESCRITURA } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
+export const MODULO_REQUERIDO_ESCRITURA = "compras"; // CY24 Fase C
 
 export interface Capacidades { usuario_id: string; es_admin: boolean; modulos: string[] }
 
@@ -26,6 +29,8 @@ export interface Deps {
   semaforo: SemaforoOdoo;
   /** Orígenes web permitidos (CORS). Vacío = solo sin cabecera Origin. */
   origenes: string[];
+  /** CY24 Fase C — cliente service role para acciones de ESCRITURA (D5: el edge relee todo, nunca confía en el cliente). */
+  admin(): SupabaseClient;
 }
 
 const CODIGOS_FALLO_INFRA = new Set(["odoo_timeout", "odoo_no_disponible"]);
@@ -92,9 +97,6 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
     return json({ error: "No se pudo verificar tu sesión. Intenta de nuevo.", error_code: "auth_no_disponible" }, 503);
   }
   if (!cap) return json({ error: "Sesión inválida." }, 401);
-  if (!(cap.es_admin || cap.modulos.includes(MODULO_REQUERIDO))) {
-    return json({ error: "Tu rol no tiene acceso a esta información." }, 403);
-  }
 
   const espera = deps.limite.intentar(cap.usuario_id);
   if (espera > 0) {
@@ -105,11 +107,38 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
   try { body = await req.json(); } catch { return json({ error: "Body inválido." }, 400); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Body inválido." }, 400);
   const { accion, params: rawParams } = body as { accion?: unknown; params?: unknown };
-  if (typeof accion !== "string" || !(ACCIONES as readonly string[]).includes(accion)) {
+  const esEscritura = typeof accion === "string" && (ACCIONES_ESCRITURA as readonly string[]).includes(accion);
+  const esLectura = typeof accion === "string" && (ACCIONES as readonly string[]).includes(accion);
+  if (typeof accion !== "string" || !(esEscritura || esLectura)) {
     return json({ error: "Acción no permitida." }, 400);
+  }
+  if (!(cap.es_admin || cap.modulos.includes(esEscritura ? MODULO_REQUERIDO_ESCRITURA : MODULO_REQUERIDO))) {
+    return json({ error: "Tu rol no tiene acceso a esta información." }, 403);
   }
   const { refrescar, ...params } = rawParams && typeof rawParams === "object" && !Array.isArray(rawParams)
     ? rawParams as Record<string, unknown> : {} as Record<string, unknown>;
+
+  // CY24 Fase C — acciones de ESCRITURA: nunca pasan por caché (D3 ya las hace
+  // idempotentes vía sgc.odoo_comandos_oc), siempre con service role (D5).
+  if (esEscritura) {
+    try {
+      const def = DEFINICIONES_ESCRITURA[accion as AccionEscritura] as unknown as {
+        normalizar(p: Record<string, unknown>): unknown;
+        ejecutar(ctx: { admin: SupabaseClient; usuarioId: string }, p: unknown): Promise<unknown>;
+      };
+      const norm = def.normalizar(params);
+      const data = await conResiliencia(deps, () => def.ejecutar({ admin: deps.admin(), usuarioId: cap.usuario_id }, norm));
+      return json({ data });
+    } catch (e) {
+      if (e instanceof ParamError) return json({ error: e.message }, 400);
+      if (e instanceof OdooError) {
+        console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
+        return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
+      }
+      console.error(`[odoo-api] ${accion}:`, e);
+      return json({ error: "Error interno del gateway.", error_code: "interno" }, 500);
+    }
+  }
 
   try {
     const def = DEFINICIONES[accion as Accion] as unknown as {

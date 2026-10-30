@@ -17,6 +17,8 @@ import { type Capacidades, type Deps, manejar } from "./handler.ts";
 // ODOO_MAX_CONCURRENTE (CY23, semáforo global).
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
+// CY24 Fase C — compras.crear necesita service role (D5: el edge relee todo, nunca confía en el cliente).
+const SUPABASE_SERVICE_ROLE_KEY = envRequerido("SUPABASE_SERVICE_ROLE_KEY");
 
 const ORIGENES_POR_DEFECTO = [
   "https://sgcconstructorasd.com",
@@ -27,6 +29,7 @@ const ORIGENES_POR_DEFECTO = [
 ];
 
 let cliente: OdooClient | null = null; // reutiliza el uid autenticado entre requests del isolate
+let adminCliente: ReturnType<typeof createClient> | null = null; // CY24 Fase C — reutiliza el cliente service role entre requests del isolate
 
 const caches = Object.fromEntries(
   ACCIONES.map((a) => [a, new CacheOdoo(ttlDesdeEntorno(a))]),
@@ -46,6 +49,7 @@ const deps: Deps = {
     return { usuario_id: u.user.id, es_admin: !!cap.es_admin, modulos: Array.isArray(cap.modulos) ? cap.modulos : [] };
   },
   odoo: () => (cliente ??= new OdooClient(configDesdeEntorno())),
+  admin: () => (adminCliente ??= createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" } })),
   caches,
   limite: new LimitePorUsuario(),
   circuito: new CircuitoOdoo(
