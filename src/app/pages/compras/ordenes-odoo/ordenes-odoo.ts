@@ -1,0 +1,902 @@
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+  computed,
+  OnInit,
+} from '@angular/core';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { OdooOrdenesCompraService, OdooOrdenCompraPayload } from '../../../../shared/services/odoo-ordenes-compra.service';
+import { MotionService } from '../../../../shared/services/motion.service';
+import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
+import { ProveedoresService } from '../../../../shared/services/proveedores.service';
+import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
+import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
+import { EntradasService } from '../../../../shared/services/entradas.service';
+import { OrdenCompraItem, OrdenEstado } from '../../../../shared/models/orden-compra.model';
+import { OdooOrdenCompra, OdooSyncEstado } from '../../../../shared/models/odoo-orden-compra.model';
+import { EntradaInventario } from '../../../../shared/models/entrada.model';
+import { Proveedor } from '../../../../shared/models/proveedor.model';
+import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
+import { Articulo, UNIDADES } from '../../../../shared/models/articulo.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
+import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { OdooProductoPicker } from '../../../../shared/ui/odoo-producto-picker/odoo-producto-picker';
+import { OdooProductoCompra } from '../../../../shared/models/odoo.model';
+import { OdooProductoSolicitudesService } from '../../../../shared/services/odoo-producto-solicitudes.service';
+import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+
+const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
+  borrador: ['aprobada', 'cancelada'],
+  aprobada: ['recibida', 'recibida_parcial', 'cancelada'],
+  recibida_parcial: ['recibida', 'cancelada'],
+  recibida: [],
+  cancelada: [],
+};
+
+interface ItemRow {
+  /** T8 — artículo del catálogo (habilita la reconciliación recibido-vs-ordenado). */
+  articulo_id: string | null;
+  /** Renglón en modo "Otro (texto libre)". */
+  esOtro: boolean;
+  descripcion: string;
+  cantidad: number;
+  precio_unitario: number;
+  /** CY24 (#24, D1) — producto elegido en Odoo (solo con el piloto encendido). */
+  odoo_product: OdooProductoCompra | null;
+}
+
+const NUEVO_OC_ITEM: () => ItemRow = () => ({
+  articulo_id: null,
+  esOtro: false,
+  descripcion: '',
+  cantidad: 1,
+  precio_unitario: 0,
+  odoo_product: null,
+});
+
+type ReconciliacionEstado = 'completo' | 'parcial' | 'pendiente' | 'sin_articulo';
+
+interface ReconciliacionRow {
+  itemId: string;
+  descripcion: string;
+  ordenada: number;
+  recibida: number | null;
+  estado: ReconciliacionEstado;
+}
+
+@Component({
+  selector: 'app-ordenes-odoo',
+  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, OdooProductoPicker, Icon, RouterLink, StaggerDirective],
+  templateUrl: './ordenes-odoo.html',
+  styleUrl: './ordenes-odoo.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class OrdenesOdoo implements OnInit {
+  private ordenesService = inject(OdooOrdenesCompraService);
+  private motion = inject(MotionService);
+  private articulosService = inject(ArticulosService);
+  private categoriasService = inject(CategoriasService);
+  private proveedoresService = inject(ProveedoresService);
+  private proyectosService = inject(ProyectosService);
+  private solicitudesCompraService = inject(SolicitudesCompraService);
+  private entradasService = inject(EntradasService);
+  private odooSolicitudesService = inject(OdooProductoSolicitudesService);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  formatFecha = formatFechaDisplay;
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+
+  // ── Z6 — destino, ITBIS y dato de prueba (signals para reactividad OnPush) ──
+  destino = signal<'proyecto' | 'oficina'>('proyecto');
+  aplicaImpuesto = signal(true);
+  esPruebaOrden = signal(false);
+  /** Id de la OC que se está publicando en Odoo (deshabilita su botón). */
+  publicando = signal<string | null>(null);
+
+
+  // Alta inline de proveedor
+  showNuevoProveedor = signal(false);
+  guardandoProveedor = signal(false);
+  nuevoProveedorForm = new FormGroup({
+    nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
+    rnc: new FormControl<string | null>(null),
+    contacto: new FormControl<string | null>(null),
+    telefono: new FormControl<string | null>(null),
+    email: new FormControl<string | null>(null, [Validators.email]),
+  });
+
+  // ── Data state ──────────────────────────────────────────
+  ordenes = signal<OdooOrdenCompra[]>([]);
+  proveedores = signal<Proveedor[]>([]);
+  articuloNombres = signal<string[]>([]);
+  articulos = signal<Articulo[]>([]);
+  categorias = signal<Categoria[]>([]);
+  // AX3 — el dropdown de obras se llena desde el directorio (SECURITY DEFINER),
+  // no desde .from('proyectos') (RLS lo dejaba vacío para el ingeniero de campo).
+  proyectos = signal<ObraRef[]>([]);
+  solicitudesPendientes = signal<SolicitudCompra[]>([]);
+  loading = signal(true);
+  saving = signal(false);
+  error = signal('');
+  saveError = signal('');
+
+  // ── Solicitud being attended (set when "Crear orden" is triggered from a solicitud) ──
+  solicitudEnAtencion = signal<SolicitudCompra | null>(null);
+
+  // ── Filters ──────────────────────────────────────────────
+  searchProveedor = signal('');
+  selectedEstado = signal('');
+  fechaDesde = signal('');
+  fechaHasta = signal('');
+
+  // ── Create drawer ────────────────────────────────────────
+  createDrawerOpen = signal(false);
+  formItems = signal<ItemRow[]>([NUEVO_OC_ITEM()]);
+
+  // ── Detail drawer ────────────────────────────────────────
+  detailDrawerOpen = signal(false);
+  detailOrden = signal<OdooOrdenCompra | null>(null);
+  detailLoading = signal(false);
+  detailEntradas = signal<EntradaInventario[]>([]);
+
+  readonly ESTADOS: OrdenEstado[] = ['borrador', 'aprobada', 'recibida_parcial', 'recibida', 'cancelada'];
+  readonly IMPUESTO_RATE = 0.18;
+
+  form = new FormGroup({
+    proveedor_id: new FormControl('', [Validators.required]),
+    proyecto_id: new FormControl<string | null>(null),
+    fecha: new FormControl('', [Validators.required]),
+    fecha_entrega_esperada: new FormControl<string | null>(null),
+    notas: new FormControl<string | null>(null),
+  });
+
+  // ── Computed ─────────────────────────────────────────────
+  filtered = computed(() => {
+    const q = this.searchProveedor().toLowerCase().trim();
+    const estado = this.selectedEstado();
+    const desde = this.fechaDesde();
+    const hasta = this.fechaHasta();
+
+    return this.ordenes().filter((o) => {
+      if (q && !(o.proveedor?.nombre ?? '').toLowerCase().includes(q)) return false;
+      if (estado && o.estado !== estado) return false;
+      if (desde && o.fecha < desde) return false;
+      if (hasta && o.fecha > hasta) return false;
+      return true;
+    });
+  });
+
+  subtotal = computed(() =>
+    this.formItems().reduce((sum, item) => sum + item.cantidad * item.precio_unitario, 0),
+  );
+
+  impuesto = computed(() => (this.aplicaImpuesto() ? this.subtotal() * this.IMPUESTO_RATE : 0));
+
+  total = computed(() => this.subtotal() + this.impuesto());
+
+  activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
+
+  // ── Z6.4b — el picker de ítems filtra por el destino de la OC ──────────────
+  // `articulos.ambito` (obra | oficina | ambos, default 'ambos') distingue material
+  // de obra de suministro de oficina. 'ambos' aparece en los dos destinos, así que
+  // sin curar el catálogo el comportamiento es idéntico al de hoy (retrocompatible).
+  // Migración: sql/2026-07-29-z6.4b-articulo-ambito.sql (pendiente de aplicar).
+  articulosParaDestino = computed<Articulo[]>(() => {
+    const dest = this.destino();
+    return this.articulos().filter((a) => {
+      const ambito = (a as Articulo & { ambito?: string }).ambito ?? 'ambos';
+      if (ambito === 'ambos') return true;
+      return dest === 'oficina' ? ambito === 'oficina' : ambito === 'obra';
+    });
+  });
+
+  // ── QA-076 — Reconciliación recibido vs ordenado por renglón ──────────
+  // Suma las cantidades de detalle_entradas (de todas las entradas ligadas a la
+  // OC) que coinciden por articulo_id con cada renglón de la orden. Los ítems sin
+  // articulo_id (capturados a mano) no se pueden reconciliar automáticamente.
+  reconciliacion = computed<ReconciliacionRow[]>(() => {
+    const orden = this.detailOrden();
+    if (!orden?.items?.length) return [];
+
+    const recibidoPorArticulo = new Map<string, number>();
+    for (const e of this.detailEntradas()) {
+      for (const d of e.detalle_entradas ?? []) {
+        recibidoPorArticulo.set(d.articulo_id, (recibidoPorArticulo.get(d.articulo_id) ?? 0) + d.cantidad);
+      }
+    }
+
+    // item.id is optional on OrdenCompraItem only for the create-drawer payload shape;
+    // items here always come from OdooOrdenesCompraService.getById (DB rows, id always set).
+    return orden.items.map((item) => {
+      if (item.articulo_id == null) {
+        return { itemId: item.id!, descripcion: item.descripcion, ordenada: item.cantidad, recibida: null, estado: 'sin_articulo' as const };
+      }
+      const recibida = recibidoPorArticulo.get(item.articulo_id) ?? 0;
+      let estado: ReconciliacionEstado;
+      if (recibida >= item.cantidad) estado = 'completo';
+      else if (recibida > 0) estado = 'parcial';
+      else estado = 'pendiente';
+      return { itemId: item.id!, descripcion: item.descripcion, ordenada: item.cantidad, recibida, estado };
+    });
+  });
+
+  // ── QA-OC6c — "recibida" marcada a mano sin recepción real (caso de Raykler:
+  // OC-202610-0006 quedó en recibida con 0 entradas reales) queda bloqueada para
+  // siempre — Entradas solo ofrece aprobada|recibida_parcial. Reabrir la vuelve a
+  // recibida_parcial para que reaparezca ahí. Solo se ofrece si de verdad falta algo.
+  reconciliacionIncompleta = computed(() => this.reconciliacion().some((r) => r.estado !== 'completo'));
+
+  async reabrirRecepcion(orden: OdooOrdenCompra) {
+    await this.cambiarEstado(orden, 'recibida_parcial');
+  }
+
+  /** CT3c — repite QA-OC6/OC6c: lleva directo a Entradas con esta OC precargada. */
+  irARegistrarEntrada(orden: OdooOrdenCompra) {
+    void this.router.navigate(['/inventario/entradas'], { queryParams: { oc: orden.id } });
+  }
+
+  // ── QA-076b — vincular un renglón "sin artículo" a uno del catálogo ───────
+  // Dos modos: "existente" (buscar y linkear — evita duplicar el catálogo cuando
+  // el artículo ya existe con otro nombre, p.ej. "BOTA DE GOMA # 44" (texto libre
+  // de la OC) ↔ "BOTA de SEGURIDAD...#44" (catálogo real); caso de Raykler en
+  // OC-202610-0006) o "nuevo" (crearlo desde la descripción libre, cuando de
+  // verdad no existe todavía).
+  readonly unidadesArticulo = UNIDADES;
+  vincularItemId = signal<string | null>(null);
+  vincularModo = signal<'existente' | 'nuevo'>('existente');
+  vincularArticuloExistenteId = signal<string | null>(null);
+  vincularCategoriaId = signal<number | null>(null);
+  vincularUnidad = signal('unidad');
+  vinculandoArticulo = signal(false);
+
+  abrirVincularArticulo(row: ReconciliacionRow) {
+    this.vincularItemId.set(row.itemId);
+    this.vincularModo.set('existente');
+    this.vincularArticuloExistenteId.set(null);
+    this.vincularCategoriaId.set(null);
+    this.vincularUnidad.set('unidad');
+  }
+
+  cancelarVincularArticulo() {
+    this.vincularItemId.set(null);
+  }
+
+  onVincularExistenteSelect(sel: ArticuloPickerSelection) {
+    this.vincularArticuloExistenteId.set(sel.articuloId);
+  }
+
+  /** Enlaza el renglón a un artículo del catálogo ya elegido con el picker buscable. */
+  async confirmarVincularExistente(row: ReconciliacionRow) {
+    const articuloId = this.vincularArticuloExistenteId();
+    if (!articuloId || this.vinculandoArticulo()) return;
+    this.vinculandoArticulo.set(true);
+    try {
+      await this.ordenesService.vincularArticulo(row.itemId, articuloId);
+      await this.refrescarTrasVincular();
+      const articulo = this.articulos().find((a) => a.id === articuloId);
+      this.toast.success('Artículo vinculado', articulo ? `${articulo.codigo} — ${articulo.nombre}` : undefined);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo vincular el artículo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.vinculandoArticulo.set(false);
+    }
+  }
+
+  /** Crea un artículo nuevo desde la descripción libre del renglón y lo vincula. */
+  async confirmarVincularArticulo(row: ReconciliacionRow) {
+    const categoriaId = this.vincularCategoriaId();
+    if (!categoriaId || this.vinculandoArticulo()) return;
+    this.vinculandoArticulo.set(true);
+    try {
+      const articulo = await this.articulosService.create({
+        nombre: row.descripcion,
+        descripcion: null,
+        categoria_id: categoriaId,
+        unidad: this.vincularUnidad(),
+        stock_minimo: 0,
+        stock_maximo: null,
+        precio_estimado: null,
+        activo: true,
+      });
+      await this.ordenesService.vincularArticulo(row.itemId, articulo.id);
+      this.articulos.update((list) => [...list, articulo]);
+      await this.refrescarTrasVincular();
+      this.toast.success('Artículo creado y vinculado', `${articulo.codigo} — ${articulo.nombre}`);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear/vincular el artículo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.vinculandoArticulo.set(false);
+    }
+  }
+
+  /** Recarga el detalle de la orden (reconciliación) y cierra el panel de vínculo. */
+  private async refrescarTrasVincular() {
+    const orden = this.detailOrden();
+    if (orden) {
+      const full = await this.ordenesService.getById(orden.id);
+      this.detailOrden.set(full);
+    }
+    this.vincularItemId.set(null);
+  }
+
+  reconEstadoClass(estado: ReconciliacionEstado): string {
+    switch (estado) {
+      case 'completo': return 'sgc-badge sgc-badge--success';
+      case 'parcial': return 'sgc-badge sgc-badge--warning';
+      case 'pendiente': return 'sgc-badge sgc-badge--neutral';
+      case 'sin_articulo': return 'sgc-badge sgc-badge--neutral';
+    }
+  }
+
+  reconEstadoLabel(estado: ReconciliacionEstado): string {
+    switch (estado) {
+      case 'completo': return 'Completo';
+      case 'parcial': return 'Parcial';
+      case 'pendiente': return 'Pendiente';
+      case 'sin_articulo': return 'Sin artículo';
+    }
+  }
+
+  async ngOnInit() {
+    await this.loadAll();
+    // Z6.5 — deep-link a una orden (?item=<id>) → abre su detalle.
+    const itemId = this.route.snapshot.queryParamMap.get('item');
+    if (itemId) {
+      const orden = this.ordenes().find((o) => o.id === itemId);
+      if (orden) void this.openDetail(orden);
+    }
+    // BH7 — enlace inverso desde la requisición (?solicitud=<id>): si sigue pendiente,
+    // abre su atención (procedencia + renglones). Si ya se convirtió, se ve en la lista.
+    const solId = this.route.snapshot.queryParamMap.get('solicitud');
+    if (solId) {
+      const pend = this.solicitudesPendientes().find((s) => s.id === solId);
+      if (pend) this.atenderSolicitud(pend);
+    }
+  }
+
+  private async loadAll() {
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      const [ordenes, proveedores, proyectos, solicitudes, articulos, categorias] = await Promise.all([
+        this.ordenesService.getAll(),
+        this.proveedoresService.getAll(),
+        this.proyectosService.getDirectorio('orden_compra'), // BF7 — scoped: ingeniero ve sus obras
+        this.solicitudesCompraService.getAll(),
+        this.articulosService.getAll(),
+        this.categoriasService.getAll(),
+      ]);
+      this.ordenes.set(ordenes);
+      this.proveedores.set(proveedores);
+      this.proyectos.set(proyectos);
+      this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
+      const activos = articulos.filter((a) => a.activo);
+      this.articulos.set(activos);
+      this.categorias.set(categorias);
+      this.articuloNombres.set(activos.map((a) => a.nombre));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // ── Filters ──────────────────────────────────────────────
+  onSearchProveedor(value: string) {
+    this.searchProveedor.set(value);
+  }
+
+  onEstadoChange(value: string) {
+    this.selectedEstado.set(value);
+  }
+
+  onFechaDesde(value: string) {
+    this.fechaDesde.set(value);
+  }
+
+  onFechaHasta(value: string) {
+    this.fechaHasta.set(value);
+  }
+
+  /** R12 — filtro de fechas unificado (presets + rango). */
+  onRango(r: RangoFecha) {
+    this.fechaDesde.set(r.desde ?? '');
+    this.fechaHasta.set(r.hasta ?? '');
+  }
+
+  clearFilters() {
+    this.searchProveedor.set('');
+    this.selectedEstado.set('');
+    this.fechaDesde.set('');
+    this.fechaHasta.set('');
+  }
+
+  // ── Create drawer ────────────────────────────────────────
+  openCreate() {
+    this.saveError.set('');
+    this.solicitudEnAtencion.set(null);
+    this.form.reset();
+    this.formItems.set([NUEVO_OC_ITEM()]);
+    this.destino.set('proyecto');
+    this.aplicaImpuesto.set(true);
+    this.esPruebaOrden.set(false);
+    this.showNuevoProveedor.set(false);
+    this.createDrawerOpen.set(true);
+  }
+
+  // ── Z6 — alta inline de proveedor (reutiliza validaciones de Proveedores) ──
+  toggleNuevoProveedor() {
+    this.showNuevoProveedor.update((v) => !v);
+    this.nuevoProveedorForm.reset();
+  }
+
+  async crearProveedorInline() {
+    if (this.nuevoProveedorForm.invalid) {
+      this.nuevoProveedorForm.markAllAsTouched();
+      return;
+    }
+    this.guardandoProveedor.set(true);
+    try {
+      const v = this.nuevoProveedorForm.getRawValue();
+      const prov = await this.proveedoresService.create({
+        nombre: v.nombre!,
+        rnc: v.rnc || null,
+        contacto: v.contacto || null,
+        telefono: v.telefono || null,
+        email: v.email || null,
+        direccion: null,
+        activo: true,
+      });
+      this.proveedores.update((list) => [prov, ...list]);
+      this.form.controls.proveedor_id.setValue(prov.id);
+      this.showNuevoProveedor.set(false);
+      this.toast.success('Proveedor creado', prov.nombre);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear el proveedor', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoProveedor.set(false);
+    }
+  }
+
+  /** Opens the create drawer pre-filled from a pending solicitud de compra. */
+  atenderSolicitud(s: SolicitudCompra) {
+    this.saveError.set('');
+    this.solicitudEnAtencion.set(s);
+    this.form.reset({
+      proyecto_id: s.proyecto_id,
+      notas: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}${s.notas ? ' — ' + s.notas : ''}`,
+    });
+    // BH7 — si el faltante conserva su articulo_id (requisición resuelta), la orden
+    // nace ligada al catálogo en vez de como "Otro". Las filas viejas sin articulo_id
+    // siguen entrando como texto libre (retrocompatible).
+    const items: ItemRow[] = (s.items ?? []).map((i) => ({
+      articulo_id: i.articulo_id ?? null,
+      esOtro: !i.articulo_id,
+      descripcion: i.proveedor_sugerido ? `${i.descripcion} (sugerido: ${i.proveedor_sugerido})` : i.descripcion,
+      cantidad: i.cantidad,
+      precio_unitario: 0,
+      odoo_product: null,
+    }));
+    this.formItems.set(items.length > 0 ? items : [NUEVO_OC_ITEM()]);
+    this.createDrawerOpen.set(true);
+  }
+
+  async rechazarSolicitud(s: SolicitudCompra) {
+    // BH7 — motivo obligatorio al rechazar (misma regla que cancelar una requisición, BA6).
+    // El servidor también lo exige; aquí evitamos la ida-y-vuelta.
+    const motivo = (window.prompt('Motivo del rechazo (obligatorio):') ?? '').trim();
+    if (!motivo) {
+      if (motivo === '') this.toast.info('Rechazo cancelado', 'Se necesita un motivo.');
+      return;
+    }
+    try {
+      await this.solicitudesCompraService.rechazar(s.id, motivo);
+      this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
+      this.toast.info('Solicitud rechazada');
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
+    }
+  }
+
+  /** BH7 — código citable de la requisición de procedencia (REQ-XXXXXX). */
+  reqCodigo(s: SolicitudCompra): string | null {
+    const folio = s.origen?.folio;
+    return folio != null ? 'REQ-' + String(folio).padStart(6, '0') : null;
+  }
+
+  closeCreate() {
+    this.createDrawerOpen.set(false);
+  }
+
+  addItem() {
+    this.formItems.update((items) => [...items, NUEVO_OC_ITEM()]);
+  }
+
+  /** T8 — selección desde el picker: setea artículo + descripción automática (o modo Otro). */
+  onArticuloSelect(index: number, sel: ArticuloPickerSelection) {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        const a = sel.articuloId ? this.articulos().find((x) => x.id === sel.articuloId) : undefined;
+        return {
+          ...item,
+          articulo_id: sel.articuloId,
+          esOtro: sel.esOtro,
+          // Artículo del catálogo → descripción automática; Otro → conserva lo escrito.
+          descripcion: a ? a.nombre : sel.esOtro ? item.descripcion : '',
+        };
+      }),
+    );
+  }
+
+  /** CY24 (#24, D1) — selección desde el picker de Odoo: la línea nace "Otro"
+   *  con la descripción del producto, pero guarda el producto completo (AT11)
+   *  para vincularlo al renglón real una vez creada la OC (ver onSave). */
+  onOdooProductoSelect(index: number, producto: OdooProductoCompra | null) {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        return {
+          ...item,
+          odoo_product: producto,
+          articulo_id: null,
+          esOtro: !producto,
+          descripcion: producto ? producto.nombre : '',
+        };
+      }),
+    );
+  }
+
+  /** E1/E5 — "Solicitar alta" desde el renglón: deja la solicitud en la bandeja
+   *  de Compras (standalone, la OC todavía no existe) y la línea sigue como
+   *  texto libre para no bloquear el borrador (E3). */
+  async onOdooSolicitarAlta(index: number, terminoBuscado: string) {
+    const item = this.formItems()[index];
+    const descripcion = item.descripcion.trim() || terminoBuscado;
+    try {
+      await this.odooSolicitudesService.crear(descripcion, terminoBuscado);
+      this.toast.success('Solicitud de alta enviada', 'Compras la resolverá en "Productos por dar de alta en Odoo". Mientras tanto, guarda esta línea como texto libre.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo enviar la solicitud de alta', e instanceof Error ? e.message : undefined);
+      return;
+    }
+    this.formItems.update((items) =>
+      items.map((it, i) => (i !== index ? it : { ...it, odoo_product: null, esOtro: true, descripcion })),
+    );
+  }
+
+  removeItem(index: number) {
+    this.formItems.update((items) => items.filter((_, i) => i !== index));
+  }
+
+  updateItem(index: number, field: keyof ItemRow, value: string | number) {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        const updated = { ...item, [field]: field === 'descripcion' ? value : Number(value) };
+        return updated;
+      }),
+    );
+  }
+
+  /**
+   * CY24 (#24, D7) — crear_orden_compra NO guarda `odoo_product`/`odoo_uom`/
+   * `odoo_snapshot` (D7: su firma/INSERT no se tocan). Tras crear la OC, esta
+   * función vincula cada renglón que traía un producto Odoo elegido con el
+   * renglón real ya insertado. `orden_compra_items` no tiene una columna de
+   * orden ni un correlation-id del cliente, así que el emparejamiento es por
+   * (descripcion, cantidad, precio_unitario) — determinista para líneas únicas
+   * y, en el caso raro de dos líneas idénticas, el resultado es indistinguible
+   * de todas formas (misma descripción/cantidad/precio). Falla de vinculación
+   * = aviso, nunca revierte la OC ya creada (ya existe, ya es válida sin esto).
+   */
+  private async vincularProductosOdooTrasCrear(validItems: ItemRow[], created: OdooOrdenCompra): Promise<void> {
+    const pendientes = validItems.filter((i) => i.odoo_product);
+    if (pendientes.length === 0) return;
+    const disponibles = [...(created.items ?? [])];
+    const matchKey = (i: { descripcion: string; cantidad: number; precio_unitario: number }) =>
+      `${i.descripcion}|${i.cantidad}|${i.precio_unitario}`;
+    const tareas: Promise<void>[] = [];
+    for (const item of pendientes) {
+      const idx = disponibles.findIndex((d) => matchKey(d) === matchKey(item));
+      if (idx === -1) continue;
+      const [destino] = disponibles.splice(idx, 1);
+      tareas.push(this.ordenesService.vincularProductoOdoo(destino.id!, item.odoo_product!));
+    }
+    const resultados = await Promise.allSettled(tareas);
+    const fallos = resultados.filter((r) => r.status === 'rejected').length;
+    if (fallos > 0) {
+      this.toast.error('Algunos renglones no quedaron vinculados a Odoo', 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
+    }
+  }
+
+  /**
+   * D4/E3/E10 — publica en Odoo solo si TODAS las líneas apuntan a un producto Odoo y la
+   * OC no es de prueba (el edge igual lo rechaza). Si falla, la OC local ya existe y
+   * queda visible con su estado de sincronización + botón «Publicar en Odoo».
+   */
+  private async publicarTrasCrear(created: OdooOrdenCompra, validItems: ItemRow[]): Promise<OdooOrdenCompra> {
+    if (created.es_prueba) return created;
+    if (validItems.some((i) => !i.odoo_product)) {
+      this.toast.info('Orden guardada sin publicar', 'Hay líneas sin producto de Odoo. Resuélvelas y publica la orden.');
+      return this.ordenesService.getById(created.id);
+    }
+    return this.publicarEnOdoo(created, false);
+  }
+
+  /** Publica (o reintenta publicar) la OC en Odoo. Nunca reintenta solo: el usuario decide. */
+  async publicarEnOdoo(orden: OdooOrdenCompra, avisar = true): Promise<OdooOrdenCompra> {
+    this.publicando.set(orden.id);
+    try {
+      const actualizada = await this.ordenesService.publicar(orden.id);
+      if (avisar) this.toast.success('Orden publicada en Odoo');
+      return actualizada;
+    } catch (e: unknown) {
+      this.toast.error('No se pudo publicar en Odoo', e instanceof Error ? e.message : undefined);
+      return this.ordenesService.getById(orden.id).catch(() => orden);
+    } finally {
+      this.publicando.set(null);
+      await this.refrescarOrden(orden.id);
+    }
+  }
+
+  /** Relee la OC y la refleja en el listado y el detalle (estado de sincronización fresco). */
+  private async refrescarOrden(id: string): Promise<void> {
+    try {
+      const fresca = await this.ordenesService.getById(id);
+      this.ordenes.update((list) => list.map((o) => (o.id === id ? { ...o, ...fresca } : o)));
+      if (this.detailOrden()?.id === id) this.detailOrden.set(fresca);
+    } catch { /* el siguiente refresco lo corrige */ }
+  }
+
+  syncLabel(e: OdooSyncEstado | null | undefined): string {
+    switch (e) {
+      case 'pendiente': return 'Pendiente de publicar';
+      case 'publicada': return 'Publicada en Odoo';
+      case 'confirmada': return 'Confirmada en Odoo';
+      case 'cancelada': return 'Cancelada en Odoo';
+      case 'error': return 'Error al publicar';
+      case 'incierto': return 'Resultado incierto — en conciliación';
+      case 'conflicto': return 'Conflicto con Odoo';
+      default: return 'Solo SGC';
+    }
+  }
+
+  syncBadgeClass(e: OdooSyncEstado | null | undefined): string {
+    switch (e) {
+      case 'publicada': case 'confirmada': return 'sgc-badge sgc-badge--success';
+      case 'pendiente': return 'sgc-badge sgc-badge--warning';
+      case 'error': case 'incierto': case 'conflicto': case 'cancelada': return 'sgc-badge sgc-badge--danger';
+      default: return 'sgc-badge sgc-badge--neutral';
+    }
+  }
+
+  async onSave() {
+    this.form.markAllAsTouched();
+    const items = this.formItems();
+    // cantidad > 0 / precio_unitario > 0 also rejects NaN from a non-numeric
+    // input (Number('abc') is NaN, and NaN > 0 is always false).
+    const validItems = items.filter(
+      (item) => item.descripcion.trim() && item.cantidad > 0 && item.precio_unitario > 0,
+    );
+    if (this.form.invalid || this.saving() || validItems.length === 0) return;
+
+    const hasIncompleteLine = items.some(
+      (item) => item.descripcion.trim() && (!(item.cantidad > 0) || !(item.precio_unitario > 0)),
+    );
+    if (hasIncompleteLine) {
+      this.saveError.set('Cada línea necesita una cantidad y un precio unitario mayores que cero.');
+      return;
+    }
+
+    // Z6 — destino proyecto exige proyecto; oficina no lleva proyecto.
+    if (this.destino() === 'proyecto' && !this.form.value.proyecto_id) {
+      this.saveError.set('Selecciona el proyecto de destino (o cambia el destino a Oficina).');
+      return;
+    }
+
+    // BH8 — una OC directa (sin solicitud de procedencia) salta el control de la
+    // requisición; se permite (compras de oficina), pero deja traza: motivo obligatorio.
+    if (!this.solicitudEnAtencion() && !(this.form.value.notas ?? '').trim()) {
+      this.saveError.set('Esta es una orden directa (sin solicitud previa): indica el motivo en «Notas» para dejar traza.');
+      return;
+    }
+
+    this.saving.set(true);
+    this.saveError.set('');
+
+    const sub = this.subtotal();
+    const imp = this.impuesto();
+    const tot = this.total();
+    const fv = this.form.value;
+
+    const itemPayloads: Omit<OrdenCompraItem, 'id' | 'orden_id'>[] = validItems.map((item) => ({
+      articulo_id: item.articulo_id,
+      descripcion: item.descripcion,
+      cantidad: item.cantidad,
+      precio_unitario: item.precio_unitario,
+      total: item.cantidad * item.precio_unitario,
+    }));
+
+    try {
+      const creadoPor = this.userService.profile()?.id ?? null;
+      const solicitud = this.solicitudEnAtencion();
+
+      let created;
+      if (solicitud) {
+        // Atomic: creates the orden and marks the solicitud convertida in one transaction —
+        // no window where an orden exists but the solicitud is still stuck at "pendiente".
+        const ordenId = await this.solicitudesCompraService.aprobar(solicitud.id, {
+          proveedor_id: fv.proveedor_id!,
+          fecha: fv.fecha!,
+          fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,
+          subtotal: sub,
+          impuesto: imp,
+          total: tot,
+          notas: fv.notas ?? null,
+          items: itemPayloads,
+        });
+        created = await this.ordenesService.getById(ordenId);
+        this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
+      } else {
+        const payload: OdooOrdenCompraPayload = {
+          proveedor_id: fv.proveedor_id!,
+          proyecto_id: this.destino() === 'oficina' ? null : (fv.proyecto_id ?? null),
+          estado: 'borrador',
+          fecha: fv.fecha!,
+          fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,
+          subtotal: sub,
+          impuesto: imp,
+          total: tot,
+          notas: fv.notas ?? null,
+          destino: this.destino(),
+          aplica_impuesto: this.aplicaImpuesto(),
+          es_prueba: this.esAdmin() && this.esPruebaOrden(),
+        };
+        created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
+      }
+      await this.vincularProductosOdooTrasCrear(validItems, created);
+      created = await this.publicarTrasCrear(created, validItems);
+      this.ordenes.update((list) => [created, ...list]);
+      this.motion.momento('documento');
+
+      this.createDrawerOpen.set(false);
+    } catch (e: unknown) {
+      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  // ── Detail drawer ────────────────────────────────────────
+  async openDetail(orden: OdooOrdenCompra) {
+    this.detailDrawerOpen.set(true);
+    this.detailOrden.set(orden);
+    this.detailLoading.set(true);
+    this.detailEntradas.set([]);
+    try {
+      const [full, entradas] = await Promise.all([
+        this.ordenesService.getById(orden.id),
+        this.entradasService.getByOrdenCompra(orden.id),
+      ]);
+      this.detailOrden.set(full);
+      this.detailEntradas.set(entradas);
+    } catch {
+      // keep partial data
+    } finally {
+      this.detailLoading.set(false);
+    }
+  }
+
+  closeDetail() {
+    this.detailDrawerOpen.set(false);
+    this.detailOrden.set(null);
+    this.detailEntradas.set([]);
+  }
+
+  entradaTotal(entrada: EntradaInventario): number {
+    return (entrada.detalle_entradas ?? []).reduce((acc, d) => acc + d.cantidad * (d.precio_unit ?? 0), 0);
+  }
+
+  // ── Estado ───────────────────────────────────────────────
+  async cambiarEstado(orden: OdooOrdenCompra, estado: OrdenEstado) {
+    // CT3c — el servidor igual lo valida, pero si ya sabemos que va a pedir
+    // motivo (admin + reconciliación incompleta) se lo pedimos aquí para no
+    // hacer un viaje al servidor solo para recibir el error y reintentar.
+    let motivo: string | null = null;
+    if (estado === 'recibida' && this.reconciliacionIncompleta()) {
+      if (!this.esAdmin()) {
+        this.toast.error('No se puede marcar "recibida"', 'Hay renglones sin recibir en el inventario. Usa "Registrar entrada de esta orden".');
+        return;
+      }
+      motivo = prompt('Hay renglones sin recibir en el inventario. Escribe el motivo para forzar "recibida" de todas formas:');
+      if (!motivo || !motivo.trim()) return;
+    }
+
+    const prev = orden.estado;
+    this.ordenes.update((list) =>
+      list.map((o) => (o.id === orden.id ? { ...o, estado } : o)),
+    );
+    // also update detail if open
+    if (this.detailOrden()?.id === orden.id) {
+      this.detailOrden.update((o) => (o ? { ...o, estado } : null));
+    }
+    try {
+      await this.ordenesService.updateEstado(orden, estado, motivo);
+      await this.refrescarOrden(orden.id);
+    } catch (e: unknown) {
+      this.ordenes.update((list) =>
+        list.map((o) => (o.id === orden.id ? { ...o, estado: prev } : o)),
+      );
+      if (this.detailOrden()?.id === orden.id) {
+        this.detailOrden.update((o) => (o ? { ...o, estado: prev } : null));
+      }
+      this.toast.error('No se pudo cambiar el estado', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────
+  estadoBadgeClass(estado: OrdenEstado): string {
+    switch (estado) {
+      case 'borrador': return 'sgc-badge sgc-badge--neutral';
+      case 'aprobada': return 'sgc-badge sgc-badge--info';
+      case 'recibida_parcial': return 'sgc-badge sgc-badge--warning';
+      case 'recibida': return 'sgc-badge sgc-badge--success';
+      case 'cancelada': return 'sgc-badge sgc-badge--danger';
+    }
+  }
+
+  estadoLabel(estado: OrdenEstado): string {
+    switch (estado) {
+      case 'borrador': return 'Borrador';
+      case 'aprobada': return 'Aprobada';
+      case 'recibida_parcial': return 'Recibida parcial';
+      case 'recibida': return 'Recibida';
+      case 'cancelada': return 'Cancelada';
+    }
+  }
+
+  nextEstados(current: OrdenEstado): OrdenEstado[] {
+    return ESTADO_TRANSICIONES[current];
+  }
+
+  itemTotal(item: ItemRow): number {
+    return item.cantidad * item.precio_unitario;
+  }
+
+  // ── Exportar Excel (OCs filtradas) ───────────────────────
+  async exportarExcelOrdenes() {
+    const rows = this.filtered().map((o) => ({
+      Número: o.numero,
+      Proveedor: o.proveedor?.nombre ?? '',
+      Proyecto: o.proyecto?.nombre ?? '',
+      Estado: this.estadoLabel(o.estado),
+      Fecha: this.formatFecha(o.fecha),
+      'Entrega esperada': o.fecha_entrega_esperada ? this.formatFecha(o.fecha_entrega_esperada) : '',
+      Subtotal: o.subtotal,
+      Impuesto: o.impuesto,
+      Total: o.total,
+    }));
+    await exportarExcel('ordenes-compra', rows, 'Órdenes');
+  }
+
+  get f() {
+    return this.form.controls;
+  }
+}
