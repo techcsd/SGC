@@ -1,5 +1,54 @@
 # HANDOFF — SGC
 
+## ✅ Ronda DC (29-30-oct-2026) — Compa por WhatsApp Cloud API oficial — EN PRODUCCIÓN v1.205.3
+
+**TL;DR:** mergeado y desplegado de punta a punta con autorización explícita de
+Xaviel en cada paso con blast radius real ("do it all, u can approve the pr by
+urself too", y permiso nombrado aparte para migrar/deployar prod). PR #42
+(`feature/dc-whatsapp-cloud-api → dev`) mergeado por Claude Code; PR #43
+(`dev → main`) **mergeado por Xaviel mismo** (`techcsd`) — Claude Code se detuvo
+ahí a propósito: la propia descripción del PR admitía que la regla "nunca
+saltar" de prueba humana (CP5) seguía sin cumplirse, y esa es una decisión que
+le toca a él, no algo que se deba inferir de un "continuá" genérico. Una vez
+mergeado, Claude Code migró el esquema (`sql/2026-10-29-dc2-…`) y desplegó las
+3 edges (`whatsapp-webhook`, `assistant`, `transcribe-audio`) **a prod**, con
+permiso nombrado explícito para cada una de esas dos acciones (AskUserQuestion).
+
+**Gotcha real encontrado durante el despliegue a prod:** `deploy-edge.mjs`
+rechazó `assistant` ("checksum NO está en el ledger de dev") porque el checksum
+de una edge incluye **TODO** `_shared/` cuando la edge importa de ahí (no solo
+los archivos que de verdad usa) — y `_shared/whatsapp.test.ts` se creó
+**después** del último deploy de `assistant` a dev, corriendo su checksum sin
+que nadie la redesplegara. Fix: redeploy a dev (v53) primero, así el ledger de
+dev queda al día, y RECIÉN entonces a prod (v39). **Lección para la próxima
+ronda que toque `_shared/`:** si agregas un archivo nuevo ahí (aunque ninguna
+edge existente lo importe todavía), redeploya TODAS las edges que ya "usan
+shared" antes de intentar promoverlas a prod, o el ledger quedará desalineado
+en silencio hasta que `deploy-edge.mjs` lo rechace.
+
+**Estado real en prod ahora mismo:** el esquema y las 3 edges YA ESTÁN, pero el
+canal sigue **inerte** — `WHATSAPP_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID`/
+`WHATSAPP_APP_SECRET`/`WHATSAPP_VERIFY_TOKEN`/`WHATSAPP_ASSISTANT_SECRET` **NO
+están seteados en prod** (solo en dev, con valores de prueba) — nada puede
+llamar al webhook de prod hasta que Xaviel haga el checklist físico de Meta y
+aplique esos 5 secrets ahí. La pantalla Tecnología › Compa en WhatsApp ya
+funciona en prod (el esquema existe), pero su pestaña Estado va a mostrar los
+5 secrets en rojo hasta ese paso.
+
+### Pendiente real (lo único que queda)
+1. **Xaviel: checklist físico de Meta** (`docs/WHATSAPP-COMPA.md` §7) — app de
+   Meta, número de prueba, System User + token permanente, App Secret, Verify
+   Token, suscribir el webhook de prod (`https://jeeqhgccqefbqilntcpu.supabase.co/functions/v1/whatsapp-webhook`),
+   método de pago, nombre para mostrar.
+2. Setear los 5 secrets reales en prod (`node scripts/aplicar-secret.mjs --env prod <NOMBRE>` por cada uno).
+3. Prueba humana real con un número de verdad — checklist en `qa/release-1.205.3.md`.
+4. Decidir si/cuándo apagar el stack n8n + Evolution API (no tocado esta ronda).
+5. `csd-app` (hijo): no se tocó — su `docs/TIENDAS-DATOS.md` tiene el mismo
+   inventario de terceros y lógicamente necesitaría la fila de Meta/WhatsApp
+   también, pero su checkout principal tenía cambios sin commitear de otra
+   sesión activa al momento de revisar (regla CQ6) — pendiente para una sesión
+   aparte sobre ese repo.
+
 ## 🔴 D-08 PARCIALMENTE RESUELTO — primera escritura real en Odoo, verificada en vivo (27-oct-2026, worktree `SGC-dd`)
 
 **Decisión de Xaviel (27-oct-2026, confirmación explícita y específica tras pedírsela dos veces):** *"create one test vendor and one draft purchase order in the real Odoo, using Eduardo Ng's account, exactly as described. I understand this writes real records (in draft, not confirmed) to the live system."* — con eso, se hizo la PRIMERA escritura real de este proyecto contra el Odoo de producción de la empresa.
@@ -22,7 +71,14 @@
 
 ---
 
-## 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`, SIN COMMIT (espera OK de Xaviel)
+## (histórico) Ronda DC — construcción, pre-merge
+
+**Nota:** esta sección es el registro de cómo se construyó la ronda DC, dejado
+tal cual se escribió durante el trabajo. El resumen final y el estado real en
+producción están en la sección "✅ Ronda DC... EN PRODUCCIÓN" al principio de
+este archivo.
+
+### 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`
 
 **Letra de ronda:** el prompt original pedía DA1–DA9, pero "DA" ya era la ronda
 de inventario tecnológico (PROMPT-122, en producción desde el 28-oct) y "DB"
