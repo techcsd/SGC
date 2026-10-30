@@ -94,6 +94,7 @@ function deps(over: Partial<Deps> & { calls?: string[]; respuesta?: string } = {
     circuito: over.circuito ?? new CircuitoOdoo(100, 30_000), // umbral alto: no interfiere con tests que no prueban el breaker
     semaforo: over.semaforo ?? new SemaforoOdoo(100),
     origenes: over.origenes ?? ["https://app.test"],
+    adaptadorOc: over.adaptadorOc,
     // deno-lint-ignore no-explicit-any
     admin: over.admin ?? ((() => ({ rpc: () => Promise.resolve({ data: null, error: null }) })) as any),
   };
@@ -535,4 +536,72 @@ Deno.test("compras.cancelar: camino feliz -- cancela (mock) y registra cancelada
   const r = await manejar(req({ accion: "compras.cancelar", params: { orden_id: UUID } }), d);
   assertEquals(r.status, 200);
   assertEquals((await r.json()).data.estado_odoo, "cancel");
+});
+
+// ── CY24 Fase C — escrituras: SIN reintento automático (D3 / #23) ───────────
+function depsEscritura(adaptadorOc: Deps["adaptadorOc"], llamadas: { nombre: string; args: Record<string, unknown> }[]): Deps {
+  return deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    adaptadorOc,
+    admin: () => fakeAdmin((nombre, args) => {
+      llamadas.push({ nombre, args });
+      if (nombre === "oc_para_publicar") return { data: PARA_PUBLICAR_OK };
+      if (nombre === "oc_comando_registrar_inicio") return { data: { ya_completado: false, comando_id: UUID } };
+      return { data: true };
+    }),
+  });
+}
+
+Deno.test("compras.crear: timeout de Odoo NO se reintenta -- 1 sola llamada, comando y OC quedan 'incierto'", async () => {
+  let intentos = 0;
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  const d = depsEscritura({
+    crear: () => { intentos++; return Promise.reject(new OdooError("odoo_timeout", "timeout")); },
+  }, llamadas);
+
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+
+  assertEquals(intentos, 1); // la regla de la casa: nunca reintentar una escritura a ciegas
+  assertEquals(r.status, 504);
+  const cuerpo = await r.json();
+  assert(String(cuerpo.error).includes("No la reenvíes"), cuerpo.error);
+  assertEquals(llamadas.find((c) => c.nombre === "oc_comando_finalizar")?.args.p_estado, "incierto");
+  assertEquals(llamadas.find((c) => c.nombre === "registrar_publicacion_oc")?.args.p_odoo_sync_estado, "incierto");
+});
+
+Deno.test("compras.confirmar: Odoo caído tampoco se reintenta y deja el comando incierto", async () => {
+  let intentos = 0;
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  const d = depsEscritura({
+    confirmar: () => { intentos++; return Promise.reject(new OdooError("odoo_no_disponible", "caído")); },
+  }, llamadas);
+  // oc_para_comando devuelve lo mínimo que usa el flujo
+  const base = d.admin;
+  d.admin = () => {
+    const a = base();
+    const rpc = a.rpc.bind(a);
+    a.rpc = (nombre: string, args: Record<string, unknown>) =>
+      nombre === "oc_para_comando" ? Promise.resolve({ data: { ...PARA_PUBLICAR_OK, odoo_id: 77 }, error: null }) : rpc(nombre, args);
+    return a;
+  };
+
+  const r = await manejar(req({ accion: "compras.confirmar", params: { orden_id: UUID } }), d);
+
+  assertEquals(intentos, 1);
+  assertEquals(r.status, 502);
+  assertEquals(llamadas.find((c) => c.nombre === "oc_comando_finalizar")?.args.p_estado, "incierto");
+});
+
+Deno.test("compras.crear: un error de negocio de Odoo queda 'error' (no incierto) y tampoco se reintenta", async () => {
+  let intentos = 0;
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  const d = depsEscritura({
+    crear: () => { intentos++; return Promise.resolve({ estado: "error" as const, error: "Odoo rechazó la orden" }); },
+  }, llamadas);
+
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+
+  assertEquals(intentos, 1);
+  assertEquals(r.status, 400);
+  assertEquals(llamadas.find((c) => c.nombre === "oc_comando_finalizar")?.args.p_estado, "error");
 });
