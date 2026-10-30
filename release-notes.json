@@ -1,5 +1,11 @@
 {
   "web": {
+    "1.205.2": {
+      "titulo": "Cargar documentos de flota: la lectura ya no se corta por tardar",
+      "cambios": [
+        { "t": "arreglo", "m": "Flota", "d": "El error \"No se pudo contactar el servicio\" al leer un PDF con muchas páginas no volverá a salir: la lectura ahora corre en segundo plano, sin depender de que tu navegador aguante la espera." }
+      ]
+    },
     "1.205.1": {
       "titulo": "Cargar documentos de flota: arreglo del arrastrar y soltar + lectura más rápida",
       "cambios": [

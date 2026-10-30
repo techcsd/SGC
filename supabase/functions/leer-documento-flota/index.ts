@@ -1,43 +1,39 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
 import { construirContenido, parsearPaginas, dividirPdfEnTandas, SYSTEM, type Any } from "./lector.ts";
 
 // ============================================================================
-// DB3 (Ronda DB) — Lector de documentos de FLOTA en lote: un PDF multipágina
-// (p. ej. MARBETES.pdf con los 12 seguros SURA renovados) o hasta 20 fotos.
-// Devuelve una lectura POR PÁGINA (tipo + campos + confianza); el emparejado
-// con vehículos y la aplicación los hacen las RPC `flota_documentos_emparejar`
-// y `flota_documentos_aplicar` (db8) — NADA se guarda sin revisión por fila.
-// Calcado de `leer-cotizacion` (consentimiento CI10, rate limit, uso_ia).
+// DB3 — Hotfix (30-oct-2026, reporte real de Xaviel): esta edge dejó de ser
+// una llamada SÍNCRONA del navegador. Un PDF largo (MARBETES.pdf, 24 páginas)
+// tarda 8-13s en leerse incluso dividido en tandas paralelas — tiempo
+// suficiente para rozar el límite del relay de Supabase, que corta la
+// conexión del navegador con `x-relay-error` (supabase-js lo traduce a "No se
+// pudo contactar el servicio"), AUNQUE la edge sí termine bien.
 //
-//   Entrada (POST, JWT del usuario):
-//     { archivos: [{ data: '<base64>', mime: 'application/pdf'|'image/*' }] }
-//   Salida:
-//     { ok, paginas: [{ pagina, tipo, campos, confianza }], modelo, costo_usd }
+// Ahora: el navegador llama al RPC `flota_documento_lectura_crear` (rápido,
+// crea una fila en `flota_documentos_lecturas`), que dispara ESTA edge vía
+// pg_net (server-to-server, `x-sync-secret` — mismo patrón que
+// `pagos_obra_enviar` → `pagos-descargo-enviar`). El navegador hace polling de
+// la fila (select casi instantáneo) en vez de sostener una conexión larga.
 //
-//   Secrets: ANTHROPIC_API_KEY · LEER_DOCUMENTO_FLOTA_MODEL (opcional).
+//   Entrada (POST, server-to-server): { job_id, usuario_id, archivos: [{data, mime}] }
+//   Efecto: escribe estado='listo'|'error' + resultado en la fila del trabajo.
+//
+//   Secrets: ANTHROPIC_API_KEY · LEER_DOCUMENTO_FLOTA_MODEL (opcional) · INFRA_SYNC_SECRET.
 // ============================================================================
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = Deno.env.get("LEER_DOCUMENTO_FLOTA_MODEL") ?? Deno.env.get("ASSISTANT_MODEL") ?? "claude-haiku-4-5-20251001";
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
-const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const PRECIO_IN = 1.0 / 1_000_000;
 const PRECIO_OUT = 5.0 / 1_000_000;
 
-async function leerParametro(svc: Any, clave: string, def: number): Promise<number> {
-  const { data } = await svc.schema("sgc").from("parametros").select("valor").eq("clave", clave).maybeSingle();
-  const n = data?.valor ? Number(data.valor) : NaN;
-  return Number.isFinite(n) ? n : def;
-}
-
 type ResultadoAnthropic =
   | { ok: true; texto: string; inTok: number; outTok: number }
-  | { ok: false; status: number; error: string };
+  | { ok: false; error: string };
 
 async function llamarAnthropic(content: Any[]): Promise<ResultadoAnthropic> {
   let anthRes: Response;
@@ -48,12 +44,12 @@ async function llamarAnthropic(content: Any[]): Promise<ResultadoAnthropic> {
       body: JSON.stringify({ model: MODEL, max_tokens: 4096, system: SYSTEM, messages: [{ role: "user", content }] }),
     });
   } catch (_e) {
-    return { ok: false, status: 502, error: "No se pudo leer el documento (red)." };
+    return { ok: false, error: "No se pudo leer el documento (red)." };
   }
   if (!anthRes.ok) {
     const t = await anthRes.text();
     console.error("anthropic error", anthRes.status, t.slice(0, 300));
-    return { ok: false, status: 502, error: "El lector de documentos no está disponible ahora." };
+    return { ok: false, error: "El lector de documentos no está disponible ahora." };
   }
   const anth = await anthRes.json();
   const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
@@ -61,119 +57,97 @@ async function llamarAnthropic(content: Any[]): Promise<ResultadoAnthropic> {
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
-    return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
   }
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return json({ ok: false, error: "Método no permitido" }, 405);
-  if (!ANTHROPIC_API_KEY) return json({ ok: false, error: "Lectura de documentos no configurada (sin API key)." }, 503);
+  if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const token = authHeader.replace("Bearer ", "");
-  if (!token) return json({ ok: false, error: "No autenticado", error_code: "no_auth" }, 401);
+  const secret = req.headers.get("x-sync-secret");
+  const expected = Deno.env.get("INFRA_SYNC_SECRET");
+  if (!expected || secret !== expected) return json({ error: "No autorizado." }, 401);
 
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } });
-  const svc = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { data: userData } = await userClient.auth.getUser();
-  const userId = userData?.user?.id;
-  if (!userId) return json({ ok: false, error: "Sesión inválida", error_code: "sesion_invalida" }, 401);
-
-  // CI10 — consentimiento de IA verificado en servidor.
-  const { data: consentOk } = await userClient.schema("sgc").rpc("mi_consentimiento", { p_tipo: "ia" });
-  if (!consentOk) {
-    return json({
-      ok: false,
-      error: "Para leer documentos con inteligencia artificial, primero actívalo en Perfil › Privacidad.",
-      error_code: "sin_consentimiento_ia",
-    }, 403);
-  }
+  const svc = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" } });
 
   let payload: Any;
-  try { payload = await req.json(); } catch { return json({ ok: false, error: "Cuerpo inválido", error_code: "cuerpo_invalido" }, 400); }
+  try { payload = await req.json(); } catch { return json({ error: "Cuerpo inválido" }, 400); }
+  const jobId = String(payload?.job_id ?? "");
+  const usuarioId = String(payload?.usuario_id ?? "") || null;
   const archivos: { data: string; mime: string }[] = Array.isArray(payload?.archivos)
     ? payload.archivos.map((a: Any) => ({ data: String(a?.data ?? ""), mime: String(a?.mime ?? "") })).filter((a: Any) => a.data && a.mime)
     : [];
-  if (!archivos.length) return json({ ok: false, error: "Sin archivos para leer." }, 400);
+  if (!jobId) return json({ error: "Falta job_id." }, 400);
 
-  // Rate limit por usuario/hora y global/día (parámetros propios de esta función).
-  const limHora = await leerParametro(svc, "leer_documento_flota_limite_usuario_hora", 20);
-  const limDia = await leerParametro(svc, "leer_documento_flota_limite_diario_global", 200);
-  const haceUnaHora = new Date(Date.now() - 3600_000).toISOString();
-  const inicioDia = new Date(); inicioDia.setHours(0, 0, 0, 0);
-  const [{ count: usoHora }, { count: usoDia }] = await Promise.all([
-    svc.schema("sgc").from("uso_ia").select("id", { count: "exact", head: true })
-      .eq("funcion", "leer_documento_flota").eq("usuario_id", userId).gte("created_at", haceUnaHora),
-    svc.schema("sgc").from("uso_ia").select("id", { count: "exact", head: true })
-      .eq("funcion", "leer_documento_flota").gte("created_at", inicioDia.toISOString()),
-  ]);
-  if ((usoHora ?? 0) >= limHora) return json({ ok: false, error: "Alcanzaste el límite de lecturas por hora. Llena los campos a mano." }, 429);
-  if ((usoDia ?? 0) >= limDia) return json({ ok: false, error: "Se alcanzó el límite diario de lecturas del sistema. Llena los campos a mano." }, 429);
+  const marcarError = async (msg: string) => {
+    await svc.from("flota_documentos_lecturas").update({ estado: "error", resultado: { error: msg } }).eq("id", jobId);
+  };
 
-  // DB3 hotfix — un PDF se divide en tandas de pocas páginas y se leen EN
-  // PARALELO: una llamada de 24 páginas en un solo tiro tardaba ~40s (medido
-  // con MARBETES.pdf real) y arriesgaba un timeout de infraestructura antes de
-  // que la respuesta llegara al navegador. Las fotos sueltas (≤20) siguen en
-  // una sola llamada, como antes.
+  if (!ANTHROPIC_API_KEY) { await marcarError("Lectura de documentos no configurada (sin API key)."); return json({ ok: false }); }
+  if (!archivos.length) { await marcarError("Sin archivos para leer."); return json({ ok: false }); }
+
   const esPdfUnico = archivos.length === 1 && archivos[0].mime === "application/pdf";
   let paginasTotal: Any[] = [];
   let inTokTotal = 0, outTokTotal = 0;
   let paginasOmitidas = 0;
-  let errorSiVacio: { status: number; error: string } | null = null;
+  let errorSiVacio: string | null = null;
 
-  if (esPdfUnico) {
-    let tandas;
-    try { tandas = await dividirPdfEnTandas(archivos[0].data); } catch (_e) {
-      return json({ ok: false, error: "No se pudo leer el PDF (archivo dañado o no válido)." }, 400);
-    }
-    const resultados = await Promise.all(tandas.map(async (t) => {
-      const content = construirContenido([{ data: t.data, mime: "application/pdf" }]);
-      return { tanda: t, r: await llamarAnthropic(content) };
-    }));
-    for (const { tanda, r } of resultados) {
-      if (!r.ok) {
-        console.error("tanda fallida", tanda.desde, r.error);
-        errorSiVacio = { status: r.status, error: r.error };
-        paginasOmitidas += tanda.paginas;
-        continue;
+  try {
+    if (esPdfUnico) {
+      const tandas = await dividirPdfEnTandas(archivos[0].data);
+      const resultados = await Promise.all(tandas.map(async (t) => {
+        const content = construirContenido([{ data: t.data, mime: "application/pdf" }]);
+        return { tanda: t, r: await llamarAnthropic(content) };
+      }));
+      for (const { tanda, r } of resultados) {
+        if (!r.ok) {
+          console.error("tanda fallida", tanda.desde, r.error);
+          errorSiVacio = r.error;
+          paginasOmitidas += tanda.paginas;
+          continue;
+        }
+        inTokTotal += r.inTok; outTokTotal += r.outTok;
+        const paginas = parsearPaginas(r.texto, tanda.desde - 1);
+        if (paginas) paginasTotal.push(...paginas);
+        else paginasOmitidas += tanda.paginas;
       }
-      inTokTotal += r.inTok; outTokTotal += r.outTok;
-      const paginas = parsearPaginas(r.texto, tanda.desde - 1);
-      if (paginas) paginasTotal.push(...paginas);
-      else paginasOmitidas += tanda.paginas;
-    }
-    paginasTotal.sort((a, b) => a.pagina - b.pagina);
-  } else {
-    let content: Any[];
-    try { content = construirContenido(archivos); } catch (e) {
-      return json({ ok: false, error: e instanceof Error ? e.message : "Archivos no válidos." }, 400);
-    }
-    const r = await llamarAnthropic(content);
-    if (!r.ok) {
-      errorSiVacio = { status: r.status, error: r.error };
+      paginasTotal.sort((a, b) => a.pagina - b.pagina);
     } else {
-      inTokTotal = r.inTok; outTokTotal = r.outTok;
-      paginasTotal = parsearPaginas(r.texto) ?? [];
+      let content: Any[];
+      try { content = construirContenido(archivos); } catch (e) {
+        await marcarError(e instanceof Error ? e.message : "Archivos no válidos.");
+        return json({ ok: false });
+      }
+      const r = await llamarAnthropic(content);
+      if (!r.ok) errorSiVacio = r.error;
+      else { inTokTotal = r.inTok; outTokTotal = r.outTok; paginasTotal = parsearPaginas(r.texto) ?? []; }
     }
+  } catch (e) {
+    console.error("procesar lectura flota", e);
+    await marcarError(e instanceof Error ? e.message : "No se pudo leer el documento.");
+    return json({ ok: false });
   }
 
   const costoUsd = inTokTotal * PRECIO_IN + outTokTotal * PRECIO_OUT;
   try {
-    await svc.schema("sgc").from("uso_ia").insert({
-      usuario_id: userId, funcion: "leer_documento_flota", modelo: MODEL,
+    await svc.from("uso_ia").insert({
+      usuario_id: usuarioId, funcion: "leer_documento_flota", modelo: MODEL,
       tokens_in: inTokTotal, tokens_out: outTokTotal, costo_estimado: costoUsd,
       meta: { archivos: archivos.length, mime: archivos[0].mime, paginas_omitidas: paginasOmitidas },
     });
   } catch (e) { console.error("uso_ia insert", e); }
 
   if (!paginasTotal.length) {
-    if (errorSiVacio) return json({ ok: false, error: errorSiVacio.error }, errorSiVacio.status);
-    return json({ ok: false, error: "No se pudo interpretar el documento. Llena los campos a mano." }, 200);
+    await marcarError(errorSiVacio || "No se pudo interpretar el documento. Llena los campos a mano.");
+    return json({ ok: false });
   }
 
   // AT11 — si algo no se pudo leer, se dice (no se calla una omisión silenciosa).
-  return json({
-    ok: true, paginas: paginasTotal, modelo: MODEL, costo_usd: costoUsd,
-    ...(paginasOmitidas > 0 ? { omitidas: paginasOmitidas } : {}),
-  });
+  await svc.from("flota_documentos_lecturas").update({
+    estado: "listo",
+    resultado: {
+      paginas: paginasTotal, modelo: MODEL, costo_usd: costoUsd,
+      ...(paginasOmitidas > 0 ? { omitidas: paginasOmitidas } : {}),
+    },
+  }).eq("id", jobId);
+
+  return json({ ok: true });
 });
