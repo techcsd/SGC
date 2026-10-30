@@ -1,5 +1,27 @@
 # HANDOFF — SGC
 
+## 🔴 D-08 PARCIALMENTE RESUELTO — primera escritura real en Odoo, verificada en vivo (27-oct-2026, worktree `SGC-dd`)
+
+**Decisión de Xaviel (27-oct-2026, confirmación explícita y específica tras pedírsela dos veces):** *"create one test vendor and one draft purchase order in the real Odoo, using Eduardo Ng's account, exactly as described. I understand this writes real records (in draft, not confirmed) to the live system."* — con eso, se hizo la PRIMERA escritura real de este proyecto contra el Odoo de producción de la empresa.
+
+**Qué se hizo:** una edge function temporal de un solo uso (`odoo-write-test-temporal`, gateada por `role=service_role` del JWT, nunca expuesta al cliente/navegador) creó:
+- Un proveedor de prueba **`ZZ-PRUEBA-SGC-Proveedor-Test-2026-10-27`** (Odoo id `5432`).
+- Una orden de compra **`P00919`** (Odoo id `1641`) en estado **`draft`** usando el producto de prueba que ya existía del PoC de solo lectura (`ZZ-PRUEBA-SGC-PoC-NO-USAR-2026-10-25`, id `1439`) — **nunca se llamó `button_confirm`**, así que no generó `stock.picking` ni asiento contable real.
+- La edge se **borró inmediatamente después** (local + del proyecto dev vía Management API, confirmado con un GET que ya no aparece en la lista) — era de un solo uso, no queda como superficie permanente.
+
+**Lo que esto SÍ prueba:** la cuenta de Eduardo Ng puede escribir de verdad en `res.partner` y `purchase.order` vía XML-RPC desde una edge de Supabase, con el `OdooClient` ya existente (`_shared/odoo-client.ts`, que resultó ser genérico — no hace falta un cliente nuevo para escribir, el mismo `executeKw` sirve). La conexión, autenticación y el flujo create→search_read funcionan de punta a punta contra el Odoo real.
+
+**Lo que esto NO resuelve todavía (sigue pendiente, D-08 sigue sin una confirmación GENERAL):**
+- Esto fue UNA escritura puntual, autorizada explícitamente para EXACTAMENTE esa acción — no una luz verde general para seguir escribiendo en Odoo real sin pedir cada vez. Construir el resto de Fase C (confirmar/cancelar OC, conciliación, idempotencia real, F11-F12) sigue necesitando ir paso a paso, cada uno con su propia verificación.
+- `P00919` y el proveedor `5432` siguen vivos en el Odoo real, en `draft` — **decisión pendiente de Xaviel:** ¿se usan para probar el siguiente paso (`button_confirm`/`button_cancel`), o se archivan ahora?
+- Sigue sin existir un sandbox Odoo de verdad — cada escritura futura hacia el Odoo real necesita la misma clase de confirmación explícita y específica que esta, no una genérica.
+
+**Gotcha técnico:** el primer intento de la edge temporal devolvió 401 al comparar el `Authorization` header contra `Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")` por igualdad de string exacta — no coincidía (posible desfase entre el valor real del proyecto y el de `.env.local`, o el runtime no expone ese env var tal cual se esperaba). Arreglado decodificando el payload del JWT (`role` claim) en vez de comparar el string crudo — el gateway de Supabase (`verify_jwt=true`) ya verificó la firma antes de que la función corriera, así que decodificar sin re-verificar es seguro en este contexto.
+
+**Nota de proceso (CQ6):** este HANDOFF se escribió primero por error directo en `main` de la carpeta de trabajo principal (sin querer, después de un `git checkout main` de una sesión anterior) — nunca se empujó. Al corregirlo se encontró que `dev` ya estaba en uso por otro worktree activo (`SGC-cz`) y habían aparecido varios más (`SGC-da`, `SGC-db`, `SGC-dc`) — se creó este worktree propio (`SGC-dd`, rama `feature/dd-ronda`) seguiendo la convención ya establecida en vez de forzar nada sobre `dev` compartido.
+
+---
+
 ## 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`, SIN COMMIT (espera OK de Xaviel)
 
 **Letra de ronda:** el prompt original pedía DA1–DA9, pero "DA" ya era la ronda
