@@ -1,5 +1,5 @@
 {
-  "corrido_en": "2026-10-29T20:13:25.056Z",
+  "corrido_en": "2026-10-30T14:17:37.691Z",
   "entorno": "dev",
   "resultados": [
     {
@@ -10,132 +10,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Aquí está la lista completa de almacenes, Flaco:\n\n**Centrales (no ligados a una obra):**\n1. ALMACÉN las AMERICAS\n2. Bodega Central\n\n**Por obra:**\n3. ALMACEN - S"
-    },
-    {
-      "id": "hector-pdf-prometido",
-      "ok": true,
-      "fallos": [],
-      "email": "u-8262b283@dev.constructorasd.local",
-      "herramientas": [
-        "listar_almacenes",
-        "generar_reporte_pdf"
-      ],
-      "texto": "Listo, Flaco. Tu PDF de stock por almacén ya está generado y disponible para descargar abajo, con una sección por cada uno de los almacenes."
-    },
-    {
-      "id": "admin-vehiculos",
-      "ok": true,
-      "fallos": [],
-      "email": "qa_admin@constructorasd.com",
-      "herramientas": [
-        "resumen_flota"
-      ],
-      "texto": "Según el resumen de flota que acabo de consultar, hay **24 vehículos en total**:\n\n- **Activos:** 7\n- **En mantenimiento:** 0\n- **En uso ahora mismo:** 0\n- **De "
-    },
-    {
-      "id": "admin-requisiciones-pdf",
-      "ok": true,
-      "fallos": [],
-      "email": "qa_admin@constructorasd.com",
-      "herramientas": [
-        "listar_requisiciones",
-        "generar_reporte_pdf"
-      ],
-      "texto": "Tu PDF **\"Requisiciones de material.pdf\"** ya está listo para descargar en la tarjeta de abajo.\n\nOjo: solo trae 1 registro, y corresponde a la obra de prueba \"O"
-    },
-    {
-      "id": "oficina-stock-multi",
-      "ok": true,
-      "fallos": [],
-      "email": "u-ca9e85a5@dev.constructorasd.local",
-      "herramientas": [
-        "listar_almacenes"
-      ],
-      "texto": "Encontré **15 almacenes** visibles para usted:\n\n**Centrales:**\n1. ALMACÉN las Américas\n2. Bodega Central\n\n**Por obra:**\n3. Solhe Signature Condos\n4. Villa Calet"
-    },
-    {
-      "id": "oficina-requisiciones-obra",
-      "ok": true,
-      "fallos": [],
-      "email": "u-ca9e85a5@dev.constructorasd.local",
-      "herramientas": [
-        "listar_requisiciones"
-      ],
-      "texto": "Ing. Angel, consulté las requisiciones de octubre (del 1 al 29) y solo encontré **1 requisición** en ese rango:\n\n- **Pendiente**, urgencia normal, 2 ítems, crea"
-    },
-    {
-      "id": "campo-conduces-firmar",
-      "ok": true,
-      "fallos": [],
-      "email": "u-fe6e2b15@dev.constructorasd.local",
-      "herramientas": [
-        "mis_conduces_por_firmar"
-      ],
-      "texto": "Ing. Abraham, acabo de revisar y no tiene conduces pendientes de firmar en este momento. ¿Necesita algo más?"
-    },
-    {
-      "id": "campo-disponibilidad-articulo",
-      "ok": true,
-      "fallos": [],
-      "email": "u-fe6e2b15@dev.constructorasd.local",
-      "herramientas": [
-        "disponibilidad_de_articulo",
-        "buscar_articulos"
-      ],
-      "texto": "Ing. Abraham, hice la búsqueda del artículo \"cemento\" (tanto por disponibilidad como en el catálogo general) y no encontré ningún artículo con ese nombre ni com"
-    },
-    {
-      "id": "logistica-rutas-hoy",
-      "ok": true,
-      "fallos": [],
-      "email": "u-8262b283@dev.constructorasd.local",
-      "herramientas": [
-        "rutas_del_dia"
-      ],
-      "texto": "No hay rutas registradas para hoy, 29 de octubre — el sistema me muestra el panorama completo (tu rol de Logística/Transportación te da acceso a todas) y no apa"
-    },
-    {
-      "id": "logistica-requisiciones-atascadas",
-      "ok": true,
-      "fallos": [],
-      "email": "u-8262b283@dev.constructorasd.local",
-      "herramientas": [
-        "resumen_estatus_requisiciones",
-        "requisiciones_pendientes"
-      ],
-      "texto": "Aquí está la bandeja viva (ahora mismo, no por semana cerrada) — todas sin conduce ni compra generada todavía:\n\n**Urgentes (las más atrasadas):**\n- **Torre Alph"
-    },
-    {
-      "id": "chofer-rutas-hoy",
-      "ok": true,
-      "fallos": [],
-      "email": "u-700dab80@dev.constructorasd.local",
-      "herramientas": [
-        "mis_rutas_hoy"
-      ],
-      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge algo más, me avisas."
-    },
-    {
-      "id": "cp8-mis-reuniones",
-      "ok": true,
-      "fallos": [],
-      "email": "qa_admin@constructorasd.com",
-      "herramientas": [
-        "mis_reuniones"
-      ],
-      "texto": "No tienes ninguna reunión próxima registrada, según lo que acabo de consultar. Si quieres, puedo ayudarte a agendar una con `proponer_reunion`."
-    },
-    {
-      "id": "cv1-felix-registra-echada",
-      "ok": true,
-      "fallos": [],
-      "email": "qa_admin@constructorasd.com",
-      "herramientas": [
-        "listar_vehiculos",
-        "preparar_echada"
-      ],
-      "texto": "Dejé preparada la echada de la Suburban (G661182) con 12 galones y RD$3,360 — ábrela en el formulario de Combustible para poner las fotos del recibo y el tabler"
+      "texto": "Aquí tienes los almacenes que puedes ver, Flaco:\n\n**Almacenes centrales**\n1. ALMACÉN LAS AMERICAS\n2. Bodega Central\n\n**Almacenes por obra**\n3. ALMACEN - SOLHE S"
     },
     {
       "id": "dc5-wa-autorizado-pregunta",
@@ -145,26 +20,7 @@
       "herramientas": [
         "que_puedo_consultar"
       ],
-      "texto": "Como eres admin, tienes acceso a prácticamente todo el SGC. En resumen, puedo consultarte:\n\n• **Inventario**: stock, artículos bajo mínimo, disponibilidad, cuar"
-    },
-    {
-      "id": "dc5-wa-no-autorizado",
-      "ok": true,
-      "fallos": [],
-      "email": "wa:8091110000",
-      "herramientas": [],
-      "texto": "Hola 👋 Este número no está autorizado para consultar a Compa por aquí. Si crees que es un error, escríbele a Tecnología."
-    },
-    {
-      "id": "dc5-wa-propuesta-enlace",
-      "ok": true,
-      "fallos": [],
-      "email": "wa:8095551234",
-      "herramientas": [
-        "mis_proyectos",
-        "proponer_tarea"
-      ],
-      "texto": "Listo, dejé preparada la tarea \"Revisar inventario de la obra\" para Torre Alpha con fecha límite mañana (30 oct) — aún no existe, confírmala aquí:\nhttps://dev.s"
+      "texto": "Como admin tienes acceso a prácticamente todo el SGC. Lo principal:\n\n• Inventario: stock, bajo mínimo, disponibilidad de artículos, cuarentena, requisiciones, c"
     },
     {
       "id": "dc5-wa-nuevo-reinicia",
