@@ -1,5 +1,6 @@
 // leer-documento-flota/lector.ts — DB3 — lógica pura (testeable sin red):
 // construir el contenido del mensaje y parsear la respuesta del modelo.
+import { PDFDocument } from "npm:pdf-lib@1.17.1";
 
 // deno-lint-ignore no-explicit-any
 export type Any = any;
@@ -68,8 +69,10 @@ export function construirContenido(archivos: { data: string; mime: string }[]): 
   return content;
 }
 
-/** Parsea y normaliza la respuesta del modelo. Devuelve null si no es interpretable. */
-export function parsearPaginas(texto: string): Any[] | null {
+/** Parsea y normaliza la respuesta del modelo. Devuelve null si no es interpretable.
+ *  `offset` renumera "pagina" de local (1-based dentro de la tanda) a global —
+ *  NO se confía en que el modelo cuente bien, el emisor ya sabe la página real. */
+export function parsearPaginas(texto: string, offset = 0): Any[] | null {
   let obj: Any = null;
   try {
     const m = texto.match(/\{[\s\S]*\}/);
@@ -78,9 +81,54 @@ export function parsearPaginas(texto: string): Any[] | null {
   const paginas = obj?.paginas;
   if (!Array.isArray(paginas)) return null;
   return paginas.map((p: Any, i: number) => ({
-    pagina: Number.isFinite(Number(p?.pagina)) ? Number(p.pagina) : i + 1,
+    pagina: offset + (Number.isFinite(Number(p?.pagina)) ? Number(p.pagina) : i + 1),
     tipo: TIPOS_PAGINA.includes(p?.tipo) ? p.tipo : "otro",
     campos: typeof p?.campos === "object" && p.campos ? p.campos : {},
     confianza: typeof p?.confianza === "object" && p.confianza ? p.confianza : {},
   }));
+}
+
+// ── DB3 hotfix — un PDF de 24 páginas en UNA sola llamada a Anthropic tarda
+// ~40s (confirmado con MARBETES.pdf real) y arriesga un timeout de
+// infraestructura antes de que la respuesta llegue (lo vivió Xaviel en prod:
+// "No se pudo contactar el servicio"). Se divide el PDF en tandas de pocas
+// páginas y se leen EN PARALELO — el tiempo total queda limitado por la tanda
+// más lenta, no por la suma de todas.
+// Hotfix (30-oct-2026): el problema real NO era el tiempo de lectura en sí
+// (8-13s con MARBETES.pdf real, dividido en tandas) sino que el NAVEGADOR
+// sostenía una conexión directa esos segundos y rozaba el límite del relay de
+// Supabase (`x-relay-error` → supabase-js lo traduce al mismo "No se pudo
+// contactar el servicio"). El fix de fondo es estructural: el navegador ya NO
+// espera esta llamada (ver index.ts — ahora corre server-to-server disparada
+// por pg_net, con polling de una fila). 6 páginas/tanda es un buen punto
+// medio: pocas llamadas paralelas a Anthropic (menos contención) sin hacer
+// tandas demasiado lentas.
+export const PAGINAS_POR_TANDA = 6;
+
+export interface TandaPdf {
+  data: string; // base64 del PDF de esta tanda (subconjunto de páginas)
+  desde: number; // página GLOBAL (1-based) de la primera página de esta tanda
+  paginas: number; // cuántas páginas trae esta tanda
+}
+
+/** Divide un PDF en tandas de ≤`porTanda` páginas. Si ya es chico, una sola tanda
+ *  (sin partir nada — mismo comportamiento de antes para PDFs cortos). */
+export async function dividirPdfEnTandas(pdfBase64: string, porTanda = PAGINAS_POR_TANDA): Promise<TandaPdf[]> {
+  const bytes = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0));
+  const original = await PDFDocument.load(bytes);
+  const total = original.getPageCount();
+  if (total <= porTanda) return [{ data: pdfBase64, desde: 1, paginas: total }];
+
+  const tandas: TandaPdf[] = [];
+  for (let inicio = 0; inicio < total; inicio += porTanda) {
+    const indices = Array.from({ length: Math.min(porTanda, total - inicio) }, (_, i) => inicio + i);
+    const doc = await PDFDocument.create();
+    const copiadas = await doc.copyPages(original, indices);
+    copiadas.forEach((p) => doc.addPage(p));
+    const out = await doc.save();
+    let bin = "";
+    for (let i = 0; i < out.length; i += 0x8000) bin += String.fromCharCode(...out.subarray(i, i + 0x8000));
+    tandas.push({ data: btoa(bin), desde: inicio + 1, paginas: indices.length });
+  }
+  return tandas;
 }

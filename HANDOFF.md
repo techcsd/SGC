@@ -129,7 +129,22 @@ con autonomía total ("tienes todas las herramientas y accesos"). Se hizo:
   antes de commitear/pushear/abrir PR. Si quieres que lo commitee (sin pushear
   aún), dímelo y lo hago en el siguiente turno.
 
-## 🧪 Ronda DB (PROMPT-124, 29-oct-2026) — F0-F9 COMPLETAS en `feature/db-ronda` (worktree `SGC-db`), SIN COMMIT (espera OK de Xaviel)
+## ✅ Ronda DB (PROMPT-124, 29-oct-2026) — EN PRODUCCIÓN — v1.205.0
+
+**TL;DR:** Mergeado y desplegado de punta a punta con el OK explícito de Xaviel por cada paso (merge PR #33/#34 a dev, merge PR #35 dev→main — bloqueado y re-confirmado por el clasificador de permisos, correcto). **v1.205.0 registrada y sirviendo en `sgcconstructorasd.com`** (deployment `dpl_7MeN9ngV2dFgWo5pM6ezxp2xYtsi`, commit `b029cd78`). 8 migraciones + 7 edges ya en prod (ver detalle abajo), Realtime habilitado en prod (3 tablas nuevas + 19 existentes).
+
+**🔴 Bug real encontrado y corregido ANTES de que nadie lo viera:** a pedido explícito de Xaviel ("but u can do it by urself"), hice una verificación end-to-end real — Playwright headless contra un `ng serve` local apuntado a dev (Vercel Deployment Protection bloquea un navegador automatizado contra `dev.sgcconstructorasd.com`, aunque la sesión de Supabase sea válida — pendiente conocido) + llamadas HTTP directas a las edges ya desplegadas con datos reales (incluido el `MARBETES.pdf` real de 24 páginas). Encontré que **`leer-documento-personal` fallaba el 100% de las veces** (`ReferenceError: SYSTEM is not defined` — `index.ts` no importaba `SYSTEM` de `lector.ts`; los tests Deno no lo atraparon porque prueban `lector.ts` directamente). Ya lo había promovido a prod sin saberlo — corregido, verificado con una foto real (200 OK) en dev y prod, PR #34. `qa/release-1.205.0.md` documenta toda la corrida (honesto: es verificación de Claude Code, no el clic a clic humano de Xaviel — él puede/debe darle su propio vistazo cuando tenga tiempo).
+
+También corregidos 2 `<select>` sin clase del sistema (`verify-campos-sgc-field`, CO11) en `pagos.html`/`personal-levantamiento.html`, encontrados por `release-check` (7/7 PASS tras el fix).
+
+### Resumen de lo verificado end-to-end (ver `qa/release-1.205.0.md` para el detalle completo)
+- ✅ Tablero "Hoy, en vivo" renderiza con estado vacío honesto.
+- ✅ Compa responde con datos reales (vía HTTP directo — CORS de navegador bloqueó el puerto no-whitelisted del harness de prueba, comportamiento esperado y correcto).
+- ✅ `leer-documento-flota` leyó las 24 páginas reales de MARBETES.pdf, incluido el caso exacto L441680-vs-L441660 que F0 predijo.
+- ✅ Levantamiento de hoy, Pagos de la semana, Dev notes — renderizan y funcionan.
+- ✅ `resumir-reporte` probado contra el reporte real #03fcdf2a en prod.
+
+## (histórico) Ronda DB — F0-F9, pre-commit
 
 **TL;DR final:** las 10 fases hechas en una sesión autónoma. 7 migraciones nuevas en el ledger de **dev** (db4, db5, db7, db8, db9, db12, db15, db14), 4 edges NUEVAS en dev (`leer-documento-flota` v1, `leer-documento-personal` v1, `resumir-reporte` v1, `pagos-descargo-enviar` v1) + 3 redeployadas (`assistant` v46, `reporte-rendimiento-semanal` v16, `mcp`). Build verde · **129/129 vitest** (2 specs nuevos DB2) · **tests Deno PASS** (20 nuevos entre lector flota/personal/resumidor/PDF pagos/cors-www) · **smoke `scripts/smoke-db-ronda.mjs` 11/11** (ROLLBACK) · `release-check --env dev --version 1.205.0` = 6/7 (solo falta `qa/release-1.205.0.md`, el registro humano de Xaviel). Dos reportes de Raykler respondidos y cerrados EN PROD (autorizado en el prompt, data-fix versionado). **NADA en main/prod** más allá de eso. Ver F4-F9 abajo y el CIERRE en el chat de la sesión.
 

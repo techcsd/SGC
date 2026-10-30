@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
-import { construirContenido, parsearLectura, type Any } from "./lector.ts";
+import { construirContenido, parsearLectura, SYSTEM, type Any } from "./lector.ts";
 
 // ============================================================================
 // DB5 (Ronda DB) — Registro rápido de personal de obra con 2 fotos: el documento

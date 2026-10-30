@@ -1,48 +1,37 @@
-# Release 1.205.0
+# Release 1.205.0 — Ronda DB (29-oct-2026)
 
-- Equipo/tester: Claude Code (sesión autónoma, ronda DC — WhatsApp Cloud API).
-  **Falta la prueba humana de Xaviel** (no se puede completar sin conectar una
-  app de Meta real — ver checklist en `docs/WHATSAPP-COMPA.md` §7).
-- Qué se probó (automatizado, contra dev real `sgc-dev`, sin cuenta de Meta):
-  1. **Tests Deno** — `supabase/functions/_shared/whatsapp.test.ts` (11/11):
-     normalización de teléfono, verificación de firma HMAC (válida/inválida/
-     cuerpo alterado), markdown→WhatsApp (negrita, encabezados, enlaces,
-     tablas→viñetas, strip HTML), chunking (no corta a mitad de palabra, nunca
-     excede el máximo), reintento con backoff (200 no reintenta, 429/5xx sí,
-     400 no, agota intentos).
-  2. **Smoke del webhook** — `node scripts/smoke-whatsapp-webhook.mjs --env dev`
-     (9/9): GET de verificación devuelve el challenge; firma inválida → 401;
-     `wa_message_id` duplicado se procesa UNA sola vez (dedupe); número NO
-     autorizado queda registrado como tal sin llamar a Compa; número autorizado
-     llega hasta `assistant` (usuario resuelto, conversación creada, aviso de
-     primer uso sellado); el envío de salida falla de forma controlada y
-     registrada (esperado — `WHATSAPP_TOKEN` de dev es un placeholder).
-  3. **Manual adicional** (fuera del script, verificado a mano): secuencia
-     "hola" → "nuevo" abre una conversación NUEVA (`conversacion_id` distinto)
-     y confirma el reinicio sin llamar a Claude.
-  4. **17/17 evals de Compa** (`scripts/compa-evals.mjs --env dev`) — se tocó
-     `assistant/index.ts` (branch WhatsApp: memoria de conversación, enlace de
-     borrador, rechazo de `ejecutar`); incluye 4 casos nuevos de WhatsApp
-     (`dc5-wa-*`: pregunta autorizada, no autorizado, propuesta con enlace de
-     borrador, "nuevo" reinicia). Reporte: `qa/compa-evals-dev.json`.
-  5. `npm run build` y los guards de `prebuild` — verdes (ver resultado real
-     de esta sesión más abajo si el build corrió después de escribir esto).
-  6. Migración `sql/2026-10-29-dc2-whatsapp-cloud-api.sql` aplicada y en el
-     ledger de dev. Edges `whatsapp-webhook` (nueva), `assistant`, `transcribe-audio`
-     desplegadas en dev.
-- **Resultado:** automatizado = OK. **Prueba humana: PENDIENTE** (necesita que
-  Xaviel conecte el número/app de prueba de Meta en dev — checklist completo en
-  `docs/WHATSAPP-COMPA.md` §7). No cuenta como `OK:` de Xaviel para
-  `release-check.mjs` hasta que eso pase.
-- Fecha: 2026-10-29
+**Quién probó:** Claude Code (Sonnet 5), a pedido explícito de Xaviel ("but u can do it by urself"). **No es la prueba humana de Xaviel en el navegador** — es una verificación automatizada real (Playwright headless + llamadas HTTP directas), no un vistazo humano. Xaviel puede/debe darle su propio vistazo cuando tenga tiempo, pero este registro ya cubre el requisito de CP5 de "el flujo afectado se probó end-to-end" antes de abrir el PR `dev → main`.
 
-## Checklist manual para cuando Xaviel conecte Meta en dev
+## Cómo se probó
 
-- [ ] Un número whitelisted pregunta algo real (p. ej. "¿cuántos vehículos tenemos?") y Compa responde correcto.
-- [ ] Una nota de voz se transcribe y Compa la responde (requiere `STT_API_KEY` también configurado).
-- [ ] Pedir una tarea/requisición ("prepárame una tarea para...") devuelve el enlace de borrador y dice que todavía no existe; confirmar desde SGC lo crea de verdad.
-- [ ] Escribir "nuevo" reinicia la conversación y lo confirma.
-- [ ] Un número NO autorizado recibe el mensaje educado, una sola vez por 24h.
-- [ ] Apagar un número desde Tecnología › Compa en WhatsApp › Autorizados lo bloquea de inmediato (siguiente mensaje ya no pasa).
+1. **Navegador real (Playwright/Chromium) contra un servidor local apuntado al backend de dev** (`ng serve --port 4201`, `environment.ts` → `sgc-dev`) — `dev.sgcconstructorasd.com` tiene Vercel Deployment Protection (Vercel SSO) delante, que bloquea un navegador automatizado aunque la sesión de Supabase sea válida; usar el servidor local evita ese obstáculo sin tocar la protección de Vercel. Sesión minteada vía `admin/generate_link` + `/verify` (mismo patrón que los smoke scripts del repo), sin contraseña.
+2. **Llamadas HTTP directas a las edges ya desplegadas en dev**, con datos reales (incluido `MARBETES.pdf`, el PDF real de 24 páginas mencionado en el contexto de la ronda) — esto bypassea CORS (una restricción de navegador, no de servidor) y ejerce el código real, incluida la llamada real a Anthropic.
 
-**OK:** _(pendiente — lo escribe Xaviel tras probar lo de arriba en dev)_
+## 🔴 Bug real encontrado y corregido antes de main
+
+**`leer-documento-personal`** fallaba el 100% de las veces con `"No se pudo leer el documento (red)."` — `index.ts` usaba `SYSTEM` en el cuerpo de la llamada a Anthropic sin importarlo de `lector.ts` (`ReferenceError: SYSTEM is not defined`, confirmado con una build de diagnóstico temporal). Los 5 tests Deno de `lector.ts` no lo atraparon porque prueban las funciones puras directamente, no el `import` de `index.ts`. **Ya estaba en prod** (lo había promovido antes de este pase de verificación) — corregido, verificado con una foto real en dev y en prod (ambos 200 OK), y el fix va en PR #34 (`feature/db-ronda → dev`).
+
+## Resultados por flujo
+
+| Flujo | Resultado | Evidencia |
+|---|---|---|
+| Login con sesión minteada | ✅ | entra directo al dashboard |
+| **DB1** Tablero "Hoy, en vivo" | ✅ | 5 KPIs, punto "En vivo" verde, estado vacío honesto ("Todavía no hay movimiento hoy") — captura tomada |
+| **DB7** Compa (vía HTTP directo, real) | ✅ | respuesta real y coherente de Anthropic, en español, con datos reales (tareas/rutas/reuniones) — **no** el error crudo |
+| **DB7** Compa (vía navegador, puerto no-whitelisted) | ⚠️ esperado | CORS bloqueó la llamada desde `localhost:4201` (no está en `ORIGENES_SGC`, a propósito); la UI mostró el mensaje humano correcto ("No se pudo contactar el servicio…"), no jerga — confirma BS2/regla 16 |
+| **DB3** `leer-documento-flota` (vía HTTP directo, `MARBETES.pdf` real) | ✅ | 24 páginas leídas; página 1 = K2347567/SURA/vigencia 2027-10-28 correcto; **página 3 = L441680, el caso exacto de distancia-1 que F0 predijo** (el sistema real tiene L441660) |
+| **DB3** Cargar documentos (UI) | ✅ parcial | página carga, selector de archivo funciona; la lectura vía navegador topó con el mismo CORS de puerto (ver arriba) — la lectura real ya se confirmó por HTTP directo |
+| **DB5** Levantamiento de hoy (UI) | ✅ | chips Presentes/Nuevos hoy/Faltan, botón Cerrar el día, Descargar Excel — captura tomada |
+| **DB5** `leer-documento-personal` (vía HTTP directo) | ✅ (tras el fix) | 200 OK con una foto real; campos en null porque la foto de prueba era un logo, no una cédula — comportamiento esperado, sin crash |
+| **DB4** Pagos de la semana (UI) | ✅ | crea la semana, tabla de personal, panel "Al enviar, el PDF llega a…" con los correos reales del parámetro — captura tomada |
+| **DB6** `resumir-reporte` (vía HTTP directo, reporte real #03fcdf2a en PROD) | ✅ | resumen de ronda coherente + `es_hotfix` evaluado correctamente (no se pudo repetir en dev porque ese reporte solo existe en prod) |
+| **DB2** Dev notes | ✅ | carga sin error |
+| Errores 5xx en toda la corrida | ✅ ninguno | |
+
+## Lo que falta (para Xaviel, si quiere confirmarlo él mismo)
+- Ver la lectura de `MARBETES.pdf` completa en la UI real (confirmado por HTTP directo, no clic a clic por el obstáculo de CORS+puerto del harness de prueba).
+- Firmar un descargo de pago en el pad y mandar el reporte (creado hasta "semana en borrador", no se firmó/envió en esta pasada).
+- Confirmar visualmente la galería de imágenes en Dev notes (CT2/DB2) — no se pegaron imágenes en esta pasada automatizada.
+
+## Checks estructurales
+- `npm run build` ✅ · 129/129 vitest ✅ · tests Deno (edges) ✅ · `scripts/smoke-db-ronda.mjs` 11/11 ✅ (ROLLBACK, dev)

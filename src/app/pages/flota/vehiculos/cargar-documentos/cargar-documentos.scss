@@ -30,6 +30,8 @@
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease;
     &:hover { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 4%, var(--surface)); }
+    // DB3 — hotfix: feedback visual mientras el archivo está sobre la zona.
+    &--sobre { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, var(--surface)); }
   }
   &__drop-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
   &__drop-hint { font-size: 12.5px; color: var(--text-3); }
