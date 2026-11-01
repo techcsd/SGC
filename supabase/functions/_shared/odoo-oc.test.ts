@@ -213,7 +213,7 @@ Deno.test("escritura: AccessDenied no reenvía (sin segundo intento) y devuelve 
 Deno.test("política: modelo/método fuera de la allowlist se rechaza sin llamar a Odoo", async () => {
   const { cliente, llamadas } = odooSimulado(() => true);
   const casos: [() => Promise<unknown>, string][] = [
-    [() => cliente.call("res.partner", "create", [{}]), "modelo"],
+    [() => cliente.call("res.partner", "unlink", [[1]]), "partner: nunca se borra"],
     [() => cliente.call("account.move", "write", [[1], {}]), "modelo"],
     [() => cliente.call("purchase.order", "unlink", [[1]]), "método"],
     [() => cliente.call("purchase.order", "button_approve", [[1]]), "SGC no aprueba"],

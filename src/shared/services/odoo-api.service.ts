@@ -7,6 +7,9 @@ import {
   OdooComandoOcResultado,
   OdooOcVivo,
   OdooProducto,
+  OdooProveedor,
+  OdooProveedoresPagina,
+  OdooProveedorEscritura,
   OdooProductoCompra,
   OdooRespuesta,
   OdooStockFiltro,
@@ -62,6 +65,25 @@ export class OdooApiService {
   async obtenerOrdenes(odooIds: number[]): Promise<OdooOcVivo[]> {
     if (odooIds.length === 0) return [];
     return (await this.invocar<{ ordenes: OdooOcVivo[] }>('compras.obtener_varias', { orden_ids: odooIds })).data.ordenes;
+  }
+
+  /** Proveedores de Odoo (res.partner), búsqueda paginada en el servidor. */
+  async buscarProveedores(filtro: { termino?: string; estado?: 'activos' | 'inactivos' | 'todos'; pagina?: number; tamano?: number }): Promise<OdooProveedoresPagina> {
+    return (await this.invocar<OdooProveedoresPagina>('proveedores.buscar', { ...filtro })).data;
+  }
+
+  async obtenerProveedores(ids: number[]): Promise<OdooProveedor[]> {
+    if (ids.length === 0) return [];
+    return (await this.invocar<{ proveedores: OdooProveedor[] }>('proveedores.obtener_varios', { proveedor_ids: ids })).data.proveedores;
+  }
+
+  /** Crea el proveedor en Odoo (idempotente por RNC: si ya existe devuelve ese). */
+  async crearProveedor(datos: OdooProveedorEscritura & { nombre: string }): Promise<{ proveedor: OdooProveedor; ya_existia: boolean }> {
+    return (await this.invocar<{ proveedor: OdooProveedor; ya_existia: boolean }>('proveedores.crear', { ...datos })).data;
+  }
+
+  async actualizarProveedor(id: number, datos: OdooProveedorEscritura): Promise<OdooProveedor> {
+    return (await this.invocar<{ proveedor: OdooProveedor }>('proveedores.actualizar', { proveedor_id: id, ...datos })).data.proveedor;
   }
 
   private async invocar<T>(accion: OdooAccion | OdooAccionEscritura, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {

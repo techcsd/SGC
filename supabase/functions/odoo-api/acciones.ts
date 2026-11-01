@@ -3,6 +3,7 @@
 // y campos los fija este archivo. Cada acción separa `normalizar` (valida y deja los
 // parámetros en forma canónica → sirve de clave de caché) de `ejecutar` (la lectura).
 import type { OdooClient } from "../_shared/odoo-client.ts";
+import { CAMPOS_PROVEEDOR, dominioCompaniaPartner, leerProveedores, proveedorDesdeFila } from "../_shared/odoo-proveedores.ts";
 
 export class ParamError extends Error {}
 
@@ -12,18 +13,26 @@ export const ACCIONES = [
   "productos.buscar_compra", "productos.obtener", "proveedores.obtener", "compras.obtener",
   // Estado vivo de OCs (nada se espeja en SGC): lectura por lote, sin caché (ver ACCIONES_SIN_CACHE).
   "compras.obtener_varias",
+  // Proveedores directo en Odoo (res.partner): búsqueda paginada y lectura por lote, sin caché.
+  "proveedores.buscar", "proveedores.obtener_varios",
 ] as const;
 export type Accion = typeof ACCIONES[number];
 
 /** Estado vivo de la OC: se lee siempre de Odoo, nunca del caché SWR. */
-export const ACCIONES_SIN_CACHE: readonly Accion[] = ["compras.obtener", "compras.obtener_varias"];
+export const ACCIONES_SIN_CACHE: readonly Accion[] = [
+  "compras.obtener", "compras.obtener_varias",
+  // Proveedores: lo recién escrito (alta, edición, archivado) debe verse al instante.
+  "proveedores.buscar", "proveedores.obtener", "proveedores.obtener_varios",
+];
 
 export const MAX_TAMANO = 100;
 export const MAX_ORDENES_LOTE = 100;
 export const MAX_PAGINA = 200; // offset profundo = Odoo agrupa y descarta filas
 export const MAX_UBICACIONES = 500;
+export const MAX_PROVEEDORES_LOTE = 100;
+export const MAX_TERMINO_PROVEEDOR = 80;
 
-const idSeguro = (v: unknown, campo: string): number | null => {
+export const idSeguro = (v: unknown, campo: string): number | null => {
   if (v === undefined || v === null || v === "") return null;
   const n = typeof v === "string" && /^\d{1,15}$/.test(v) ? Number(v) : v;
   if (typeof n !== "number" || !Number.isSafeInteger(n) || n <= 0) throw new ParamError(`${campo} no es un ID de Odoo válido.`);
@@ -46,7 +55,7 @@ const dominioCompania = (cid: number) => ["|", ["company_id", "=", false], ["com
 const r6 = (n: number) => Math.round(n * 1e6) / 1e6;
 
 // deno-lint-ignore no-control-regex
-const CONTROL = /[\u0000-\u001F\u007F]/g;
+export const CONTROL = /[\u0000-\u001F\u007F]/g;
 
 interface Def<P> {
   normalizar(p: Record<string, unknown>): P;
@@ -200,23 +209,57 @@ const proveedoresObtener: Def<{ proveedor_id: number }> = {
     return { proveedor_id };
   },
   async ejecutar(odoo, { proveedor_id }) {
-    const filas = await odoo.call("res.partner", "search_read", [
-      [["id", "=", proveedor_id]],
-    ], { fields: ["id", "name", "vat", "email", "phone", "is_company", "active", "supplier_rank"], limit: 1 }) as Record<string, unknown>[];
-    const f = filas[0];
-    if (!f) return { proveedor: null };
-    return {
-      proveedor: {
-        id: f.id as number,
-        nombre: String(f.name ?? ""),
-        vat: f.vat ? String(f.vat) : null,
-        email: f.email ? String(f.email) : null,
-        telefono: f.phone ? String(f.phone) : null,
-        es_empresa: !!f.is_company,
-        activo: !!f.active,
-        es_proveedor: Number(f.supplier_rank ?? 0) > 0,
-      },
-    };
+    // Incluye archivados: devuelve activo:false en vez de null.
+    const [proveedor] = await leerProveedores(odoo, [proveedor_id]);
+    return { proveedor: proveedor ?? null };
+  },
+};
+
+const proveedoresObtenerVarios: Def<{ proveedor_ids: number[] }> = {
+  normalizar(p) {
+    if (!Array.isArray(p.proveedor_ids) || p.proveedor_ids.length < 1 || p.proveedor_ids.length > MAX_PROVEEDORES_LOTE) {
+      throw new ParamError(`proveedor_ids debe ser una lista de 1 a ${MAX_PROVEEDORES_LOTE} IDs.`);
+    }
+    const ids = p.proveedor_ids.map((v) => {
+      const id = idSeguro(v, "proveedor_ids");
+      if (!id) throw new ParamError("proveedor_ids no es un ID de Odoo válido.");
+      return id;
+    });
+    return { proveedor_ids: [...new Set(ids)].sort((a, b) => a - b) };
+  },
+  async ejecutar(odoo, { proveedor_ids }) {
+    return { proveedores: await leerProveedores(odoo, proveedor_ids) };
+  },
+};
+
+type EstadoProveedor = "activos" | "inactivos" | "todos";
+
+const proveedoresBuscar: Def<{ termino: string; estado: EstadoProveedor; pagina: number; tamano: number }> = {
+  normalizar(p) {
+    const termino = String(p.termino ?? "").replace(CONTROL, " ").replace(/\s+/g, " ").trim();
+    if (termino.length > MAX_TERMINO_PROVEEDOR) throw new ParamError(`El término de búsqueda no puede pasar de ${MAX_TERMINO_PROVEEDOR} caracteres.`);
+    const estado = p.estado ?? "activos";
+    if (estado !== "activos" && estado !== "inactivos" && estado !== "todos") throw new ParamError("estado debe ser activos, inactivos o todos.");
+    return { termino, estado, pagina: entero(p.pagina, "pagina", 1, 1, MAX_PAGINA), tamano: entero(p.tamano, "tamano", 50, 1, MAX_TAMANO) };
+  },
+  async ejecutar(odoo, { termino: crudo, estado, pagina, tamano }) {
+    const dominio: unknown[] = [["supplier_rank", ">", 0], ...dominioCompaniaPartner(odoo.companyId)];
+    if (estado === "activos") dominio.push(["active", "=", true]);
+    if (estado === "inactivos") dominio.push(["active", "=", false]);
+    if (crudo) {
+      const termino = escapaLike(crudo);
+      const condiciones: unknown[] = [["name", "ilike", termino], ["email", "ilike", termino], ["vat", "ilike", termino]];
+      // El RNC puede venir con guiones ("131-12345-6"): también se busca solo por sus dígitos.
+      const digitos = crudo.replace(/\D/g, "");
+      if (digitos && digitos !== crudo) condiciones.push(["vat", "ilike", digitos]);
+      dominio.push(...Array(condiciones.length - 1).fill("|"), ...condiciones);
+    }
+    // Sin active_test:false Odoo oculta los archivados aunque el dominio los pida.
+    const filas = await odoo.call("res.partner", "search_read", [dominio], {
+      fields: CAMPOS_PROVEEDOR, limit: tamano + 1, offset: (pagina - 1) * tamano, order: "name asc",
+      ...(estado === "activos" ? {} : { context: { active_test: false } }),
+    }) as Record<string, unknown>[];
+    return { proveedores: filas.slice(0, tamano).map(proveedorDesdeFila), pagina, tamano, hay_mas: filas.length > tamano };
   },
 };
 
@@ -293,4 +336,6 @@ export const DEFINICIONES: { [A in Accion]: Def<never> } = {
   "proveedores.obtener": proveedoresObtener,
   "compras.obtener": comprasObtener,
   "compras.obtener_varias": comprasObtenerVarias,
+  "proveedores.buscar": proveedoresBuscar,
+  "proveedores.obtener_varios": proveedoresObtenerVarios,
 } as unknown as { [A in Accion]: Def<never> };

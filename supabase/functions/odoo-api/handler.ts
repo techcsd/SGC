@@ -10,10 +10,12 @@ import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
 import { ACCIONES, ACCIONES_SIN_CACHE, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
-import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresOc, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
+import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresEscritura, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
 export const MODULO_REQUERIDO_ESCRITURA = "compras"; // CY24 Fase C
+
+const LECTURAS_CATALOGO_COMPRA: string[] = ["productos.buscar_compra", "productos.obtener"];
 
 export interface Capacidades { usuario_id: string; es_admin: boolean; modulos: string[] }
 
@@ -32,7 +34,7 @@ export interface Deps {
   /** CY24 Fase C — cliente service role para acciones de ESCRITURA (D5: el edge relee todo, nunca confía en el cliente). */
   admin(): SupabaseClient;
   /** Adaptador hacia Odoo para las escrituras de OC (mock hoy, D-08). Inyectable en tests. */
-  adaptadorOc?: Partial<AdaptadoresOc>;
+  adaptadorOc?: Partial<AdaptadoresEscritura>;
 }
 
 const CODIGOS_FALLO_INFRA = new Set(["odoo_timeout", "odoo_no_disponible"]);
@@ -119,8 +121,13 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
     return json({ error: "Acción no permitida." }, 400);
   }
   // Las lecturas de OC (`compras.*`) las ve también quien trabaja en Compras, no solo Inventario.
+  // Las lecturas de proveedores las ven también Flota e Inventario (igual que proveedoresGuard del cliente). El
+  // submódulo granular del cliente no llega al gateway: aquí solo existe la granularidad de módulo.
+  // Las ESCRITURAS (incluidas proveedores.*) exigen siempre `compras`.
+  // El catálogo de compra (productos.buscar_compra / productos.obtener) también lo usa Compras (solicitar-odoo).
   const modulosPermitidos = esEscritura ? [MODULO_REQUERIDO_ESCRITURA]
-    : accion.startsWith("compras.") ? [MODULO_REQUERIDO_ESCRITURA, MODULO_REQUERIDO] : [MODULO_REQUERIDO];
+    : accion.startsWith("compras.") || LECTURAS_CATALOGO_COMPRA.includes(accion) ? [MODULO_REQUERIDO_ESCRITURA, MODULO_REQUERIDO]
+    : accion.startsWith("proveedores.") ? [MODULO_REQUERIDO_ESCRITURA, MODULO_REQUERIDO, "flota"] : [MODULO_REQUERIDO];
   if (!(cap.es_admin || modulosPermitidos.some((m) => cap.modulos.includes(m)))) {
     return json({ error: "Tu rol no tiene acceso a esta información." }, 403);
   }
@@ -133,7 +140,7 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
     try {
       const def = DEFINICIONES_ESCRITURA[accion as AccionEscritura] as unknown as {
         normalizar(p: Record<string, unknown>): unknown;
-        ejecutar(ctx: { admin: SupabaseClient; usuarioId: string; adaptador?: Partial<AdaptadoresOc> }, p: unknown): Promise<unknown>;
+        ejecutar(ctx: { admin: SupabaseClient; usuarioId: string; adaptador?: Partial<AdaptadoresEscritura> }, p: unknown): Promise<unknown>;
       };
       const norm = def.normalizar(params);
       const data = await conResiliencia(

@@ -7,10 +7,10 @@
 // Falla !=0 si algún estado es rechazado por el constraint.
 //
 // Uso:  node scripts/smoke-requisicion-estados.mjs
-// Necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN. On-demand.
+// Necesita SUPABASE_ACCESS_TOKEN. On-demand.
 const PROJECT_REF = 'jeeqhgccqefbqilntcpu';
-const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
-if (!token) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
+const token = process.env.SUPABASE_ACCESS_TOKEN;
+if (!token) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
 
 async function q(sql) {
   const res = await fetch(

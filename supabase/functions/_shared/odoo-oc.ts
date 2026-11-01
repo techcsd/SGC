@@ -250,7 +250,7 @@ export function seleccionarAdaptadoresOc(habilitada: boolean, odoo: () => OdooCl
 }
 
 /** Determinista a partir de una semilla de texto -- nunca Math.random en este runtime. */
-function idDeterminista(semilla: string): number {
+export function idDeterminista(semilla: string): number {
   let hash = 0;
   for (let i = 0; i < semilla.length; i++) hash = (hash * 31 + semilla.charCodeAt(i)) >>> 0;
   return 900_000 + (hash % 100_000);

@@ -5,24 +5,34 @@
 // (D3). El edge SIEMPRE relee todo de la BD con service role antes de llamar
 // a Odoo (D5): el cliente solo manda `orden_id`, nunca precio/proveedor/líneas.
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import { ParamError } from "./acciones.ts";
+import { CONTROL, idSeguro, ParamError } from "./acciones.ts";
 import {
   type AdaptadorOc, type AdaptadoresOc, cancelarOcMock, confirmarOcMock, publicarOcMock,
   type ResultadoPublicacionOc,
 } from "../_shared/odoo-oc.ts";
 import { OdooError } from "../_shared/odoo-client.ts";
+import {
+  type AdaptadoresProveedores, type ProveedorCambios, ProveedorError, proveedorActualizarMock, proveedorCrearMock,
+  type ProveedorNuevo,
+} from "../_shared/odoo-proveedores.ts";
 
-export const ACCIONES_ESCRITURA = ["compras.crear", "compras.confirmar", "compras.cancelar"] as const;
+export const ACCIONES_ESCRITURA = [
+  "compras.crear", "compras.confirmar", "compras.cancelar",
+  // Proveedores directo en Odoo: no usan sgc.odoo_comandos_oc ni escriben nada en SGC.
+  "proveedores.crear", "proveedores.actualizar",
+] as const;
 export type AccionEscritura = typeof ACCIONES_ESCRITURA[number];
 
 /** Adaptador hacia Odoo por acción: mock o real, elegido en index.ts (seleccionarAdaptadoresOc). */
 export type { AdaptadorOc, AdaptadoresOc };
+/** Todos los adaptadores de escritura inyectables (OC + proveedores). */
+export type AdaptadoresEscritura = AdaptadoresOc & AdaptadoresProveedores;
 
 export interface CtxEscritura {
   admin: SupabaseClient;
   usuarioId: string;
   /** Inyectable para tests / para el swap por el adaptador real. */
-  adaptador?: Partial<AdaptadoresOc>;
+  adaptador?: Partial<AdaptadoresEscritura>;
 }
 
 /** Fallas de transporte: el usuario puede reintentar la misma acción (es idempotente). */
@@ -57,7 +67,7 @@ type RpcResult = { data: unknown; error: { message: string } | null };
  */
 async function ejecutarComando(
   { admin, usuarioId }: CtxEscritura,
-  accion: AccionEscritura extends `compras.${infer A}` ? A : never,
+  accion: Extract<AccionEscritura, `compras.${string}`> extends `compras.${infer A}` ? A : never,
   orden_id: string,
   paraComando: (admin: SupabaseClient, orden_id: string) => Promise<RpcResult>,
   publicar: (p: Record<string, unknown>) => Promise<ResultadoPublicacionOc>,
@@ -132,8 +142,91 @@ const comprasCancelar: DefEscritura<{ orden_id: string }> = {
     ejecutarComando(ctx, "cancelar", orden_id, (a, id) => a.rpc("oc_para_comando", { p_orden_id: id, p_accion: "cancelar" }), ctx.adaptador?.cancelar ?? cancelarOcMock),
 };
 
+// ── Proveedores (res.partner) ───────────────────────────────────────────────
+const MAX_NOMBRE = 200;
+const MAX_EMAIL = 200;
+const MAX_TELEFONO = 50;
+const MAX_DIRECCION = 250;
+const LARGOS_RNC = [9, 11]; // RNC de empresa / cédula de persona física
+const RX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** undefined = no vino; null = vino vacío (vaciar); string = texto limpio. */
+function textoOpcional(v: unknown, campo: string, max: number): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  if (typeof v !== "string") throw new ParamError(`${campo} debe ser texto.`);
+  const t = v.replace(CONTROL, " ").replace(/\s+/g, " ").trim();
+  if (t.length > max) throw new ParamError(`${campo} no puede pasar de ${max} caracteres.`);
+  return t === "" ? null : t;
+}
+
+function rncNormalizado(v: unknown): string | null | undefined {
+  const t = textoOpcional(v, "rnc", 30);
+  if (!t) return t;
+  const rnc = t.replace(/[-\s]/g, "");
+  if (!/^\d+$/.test(rnc) || !LARGOS_RNC.includes(rnc.length)) {
+    throw new ParamError("El RNC debe tener 9 dígitos (empresa) u 11 (cédula), solo números.");
+  }
+  return rnc;
+}
+
+function emailNormalizado(v: unknown): string | null | undefined {
+  const t = textoOpcional(v, "email", MAX_EMAIL);
+  if (t && !RX_EMAIL.test(t)) throw new ParamError("El email no es válido.");
+  return t;
+}
+
+const sinIndefinidos = <T extends object>(o: T): T =>
+  Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
+
+function camposProveedor(p: Record<string, unknown>) {
+  return {
+    nombre: textoOpcional(p.nombre, "nombre", MAX_NOMBRE),
+    rnc: rncNormalizado(p.rnc),
+    email: emailNormalizado(p.email),
+    telefono: textoOpcional(p.telefono, "telefono", MAX_TELEFONO),
+    direccion: textoOpcional(p.direccion, "direccion", MAX_DIRECCION),
+  };
+}
+
+/** Rechazo de negocio del adaptador (p. ej. proveedor inexistente, fault de Odoo) -> 400 con su mensaje. */
+async function conErrorDeNegocio<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    if (e instanceof ProveedorError) throw new ParamError(e.message);
+    throw e;
+  }
+}
+
+const proveedoresCrear: DefEscritura<ProveedorNuevo> = {
+  normalizar(p) {
+    const c = camposProveedor(p);
+    if (!c.nombre) throw new ParamError("El nombre del proveedor es obligatorio.");
+    // En el alta un campo vacío simplemente no se manda.
+    return sinIndefinidos({ ...c, nombre: c.nombre, rnc: c.rnc ?? undefined, email: c.email ?? undefined, telefono: c.telefono ?? undefined, direccion: c.direccion ?? undefined });
+  },
+  ejecutar: (ctx, p) => conErrorDeNegocio(() => (ctx.adaptador?.proveedorCrear ?? proveedorCrearMock)(p)),
+};
+
+const proveedoresActualizar: DefEscritura<ProveedorCambios> = {
+  normalizar(p) {
+    const proveedor_id = idSeguro(p.proveedor_id, "proveedor_id");
+    if (!proveedor_id) throw new ParamError("proveedor_id es obligatorio.");
+    if (p.activo !== undefined && typeof p.activo !== "boolean") throw new ParamError("activo debe ser verdadero o falso.");
+    const c = camposProveedor(p);
+    if (c.nombre === null) throw new ParamError("El nombre del proveedor no puede quedar vacío.");
+    const cambios = sinIndefinidos({ ...c, activo: p.activo as boolean | undefined });
+    if (Object.keys(cambios).length === 0) throw new ParamError("No hay ningún cambio que guardar.");
+    return { proveedor_id, ...cambios } as ProveedorCambios;
+  },
+  ejecutar: (ctx, p) => conErrorDeNegocio(() => (ctx.adaptador?.proveedorActualizar ?? proveedorActualizarMock)(p)),
+};
+
 export const DEFINICIONES_ESCRITURA: { [A in AccionEscritura]: DefEscritura<never> } = {
   "compras.crear": comprasCrear,
   "compras.confirmar": comprasConfirmar,
   "compras.cancelar": comprasCancelar,
+  "proveedores.crear": proveedoresCrear,
+  "proveedores.actualizar": proveedoresActualizar,
 } as unknown as { [A in AccionEscritura]: DefEscritura<never> };

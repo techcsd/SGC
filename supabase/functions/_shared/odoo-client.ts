@@ -209,6 +209,8 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
   },
   escritura: {
     "purchase.order": ["create", "button_confirm", "button_cancel"],
+    // Proveedores directos en Odoo: alta y edición/archivado. Sin unlink: nunca se borra un partner.
+    "res.partner": ["create", "write"],
   },
 };
 

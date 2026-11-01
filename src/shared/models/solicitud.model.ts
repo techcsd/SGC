@@ -131,6 +131,9 @@ export interface SolicitudCompraItem {
   origen_item_id?: string | null;
   /** CO8 — precio unitario (compras tecnológicas). */
   precio_unitario?: number | null;
+  /** Variante Odoo: producto de Odoo elegido en la solicitud. */
+  odoo_product_id?: number | null;
+  odoo_uom_id?: number | null;
 }
 
 /** CO8 — estados del flujo de Compras tecnológicas (categoria='tecnologia'). */
@@ -215,5 +218,13 @@ export interface SolicitudCompraFormData {
   proyecto_id: string;
   solicitante_id: string;
   notas: string | null;
-  items: { descripcion: string; cantidad: number; proveedor_sugerido: string | null }[];
+  items: {
+    descripcion: string;
+    cantidad: number;
+    proveedor_sugerido: string | null;
+    /** Variante Odoo: producto elegido de Odoo (los 3 van juntos o ninguno). */
+    odoo_product_id?: number | null;
+    odoo_uom_id?: number | null;
+    odoo_snapshot?: unknown;
+  }[];
 }
