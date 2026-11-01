@@ -10,10 +10,16 @@ export const ACCIONES = [
   "productos.buscar", "ubicaciones.listar", "stock.consultar",
   // CY24 Fase A — lectura para el piloto de OC (solo lectura; crear/confirmar es Fase C).
   "productos.buscar_compra", "productos.obtener", "proveedores.obtener", "compras.obtener",
+  // Estado vivo de OCs (nada se espeja en SGC): lectura por lote, sin caché (ver ACCIONES_SIN_CACHE).
+  "compras.obtener_varias",
 ] as const;
 export type Accion = typeof ACCIONES[number];
 
+/** Estado vivo de la OC: se lee siempre de Odoo, nunca del caché SWR. */
+export const ACCIONES_SIN_CACHE: readonly Accion[] = ["compras.obtener", "compras.obtener_varias"];
+
 export const MAX_TAMANO = 100;
+export const MAX_ORDENES_LOTE = 100;
 export const MAX_PAGINA = 200; // offset profundo = Odoo agrupa y descarta filas
 export const MAX_UBICACIONES = 500;
 
@@ -214,6 +220,40 @@ const proveedoresObtener: Def<{ proveedor_id: number }> = {
   },
 };
 
+const CAMPOS_COMPRA = ["id", "name", "state", "amount_total", "date_order", "partner_id", "currency_id", "picking_ids"];
+
+type FilaOdoo = Record<string, unknown>;
+
+/** Mapea purchase.order + sus recepciones (stock.picking) a la forma que ve el cliente. */
+const mapOrden = (f: FilaOdoo, recepciones: FilaOdoo[]) => ({
+  id: f.id as number,
+  nombre: String(f.name ?? ""),
+  estado: String(f.state ?? ""),
+  total: r6(Number(f.amount_total ?? 0)),
+  fecha: f.date_order ? String(f.date_order) : null,
+  proveedor: m2o(f.partner_id),
+  moneda: m2o(f.currency_id)?.nombre ?? null,
+  recibida_en_odoo: recepciones.some((k) => k.state === "done"),
+  recepciones_hechas: recepciones.filter((k) => k.state === "done").length,
+  recepciones_total: recepciones.length,
+});
+
+/** Lee las órdenes por ids (con filtro de compañía) y sus recepciones en UNA segunda consulta. */
+async function leerOrdenes(odoo: OdooClient, ids: number[]) {
+  const filas = await odoo.call("purchase.order", "search_read", [
+    [["id", "in", ids], ...dominioCompania(odoo.companyId)],
+  ], { fields: CAMPOS_COMPRA, limit: ids.length }) as FilaOdoo[];
+  const idsPick = [...new Set(filas.flatMap((f) => Array.isArray(f.picking_ids) ? f.picking_ids : []))]
+    .filter((v): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0);
+  const picks = idsPick.length
+    ? await odoo.call("stock.picking", "search_read", [[["id", "in", idsPick]]], { fields: ["id", "state"] }) as FilaOdoo[]
+    : [];
+  const estadoPick = new Map(picks.map((k) => [k.id, k]));
+  return filas.map((f) => mapOrden(
+    f, (Array.isArray(f.picking_ids) ? f.picking_ids : []).map((i) => estadoPick.get(i)).filter((k): k is FilaOdoo => !!k),
+  ));
+}
+
 const comprasObtener: Def<{ orden_id: number }> = {
   normalizar(p) {
     const orden_id = idSeguro(p.orden_id, "orden_id");
@@ -221,22 +261,26 @@ const comprasObtener: Def<{ orden_id: number }> = {
     return { orden_id };
   },
   async ejecutar(odoo, { orden_id }) {
-    const filas = await odoo.call("purchase.order", "search_read", [
-      [["id", "=", orden_id], ...dominioCompania(odoo.companyId)],
-    ], { fields: ["id", "name", "state", "amount_total", "date_order", "partner_id", "currency_id"], limit: 1 }) as Record<string, unknown>[];
-    const f = filas[0];
-    if (!f) return { orden: null };
-    return {
-      orden: {
-        id: f.id as number,
-        nombre: String(f.name ?? ""),
-        estado: String(f.state ?? ""),
-        total: r6(Number(f.amount_total ?? 0)),
-        fecha: f.date_order ? String(f.date_order) : null,
-        proveedor: m2o(f.partner_id),
-        moneda: m2o(f.currency_id)?.nombre ?? null,
-      },
-    };
+    const [orden] = await leerOrdenes(odoo, [orden_id]);
+    return { orden: orden ?? null };
+  },
+};
+
+const comprasObtenerVarias: Def<{ orden_ids: number[] }> = {
+  normalizar(p) {
+    if (!Array.isArray(p.orden_ids) || p.orden_ids.length < 1 || p.orden_ids.length > MAX_ORDENES_LOTE) {
+      throw new ParamError(`orden_ids debe ser una lista de 1 a ${MAX_ORDENES_LOTE} IDs.`);
+    }
+    // Sin duplicados y ordenados: queda en forma canónica.
+    const ids = p.orden_ids.map((v) => {
+      const id = idSeguro(v, "orden_ids");
+      if (!id) throw new ParamError("orden_ids no es un ID de Odoo válido.");
+      return id;
+    });
+    return { orden_ids: [...new Set(ids)].sort((a, b) => a - b) };
+  },
+  async ejecutar(odoo, { orden_ids }) {
+    return { ordenes: await leerOrdenes(odoo, orden_ids) };
   },
 };
 
@@ -248,4 +292,5 @@ export const DEFINICIONES: { [A in Accion]: Def<never> } = {
   "productos.obtener": productosObtener,
   "proveedores.obtener": proveedoresObtener,
   "compras.obtener": comprasObtener,
+  "compras.obtener_varias": comprasObtenerVarias,
 } as unknown as { [A in Accion]: Def<never> };

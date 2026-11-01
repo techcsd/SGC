@@ -5,6 +5,7 @@ import {
   OdooAccion,
   OdooAccionEscritura,
   OdooComandoOcResultado,
+  OdooOcVivo,
   OdooProducto,
   OdooProductoCompra,
   OdooRespuesta,
@@ -57,9 +58,10 @@ export class OdooApiService {
     return (await this.invocar<OdooComandoOcResultado>('compras.cancelar', { orden_id: ordenId })).data;
   }
 
-  /** Relee la OC en Odoo y actualiza su estado en SGC (p. ej. `por_aprobar` → `confirmada` cuando Odoo aprueba). */
-  async refrescarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
-    return (await this.invocar<OdooComandoOcResultado>('compras.refrescar', { orden_id: ordenId })).data;
+  /** Estado VIVO de varias OC en Odoo (una sola consulta, sin caché). SGC no lo guarda. */
+  async obtenerOrdenes(odooIds: number[]): Promise<OdooOcVivo[]> {
+    if (odooIds.length === 0) return [];
+    return (await this.invocar<{ ordenes: OdooOcVivo[] }>('compras.obtener_varias', { orden_ids: odooIds })).data.ordenes;
   }
 
   private async invocar<T>(accion: OdooAccion | OdooAccionEscritura, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {

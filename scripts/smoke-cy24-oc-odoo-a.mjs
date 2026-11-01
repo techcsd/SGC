@@ -1,4 +1,4 @@
-// CY24 Fase A -- smoke transaccional (ROLLBACK) de registrar_publicacion_oc y
+// CY24 Fase A -- smoke transaccional (ROLLBACK) de vincular_oc_odoo y
 // resolver_solicitud_producto.
 import './lib/load-env.mjs';
 import { resolverEnv, dbQuery } from './lib/entorno.mjs';
@@ -30,30 +30,16 @@ begin
     raise exception 'FALLO_SETUP: faltan datos de prueba (proveedor/proyecto/categoria/2 usuarios de compras distintos)';
   end if;
 
-  -- ===== registrar_publicacion_oc =====
+  -- ===== vincular_oc_odoo =====
   insert into sgc.ordenes_compra (numero, proveedor_id, estado, fecha, subtotal, impuesto, total, proyecto_id)
     values ('CY24-SMOKE-1', v_proveedor_id, 'pendiente', current_date, 100, 18, 118, v_proyecto_id)
     returning id into v_orden_id;
 
-  v_ok := sgc.registrar_publicacion_oc(v_orden_id, 'publicada', 'purchase', 'P00099', 118.0, null);
-  if not v_ok then raise exception 'FALLO: registrar_publicacion_oc devolvio false'; end if;
-  perform 1 from sgc.ordenes_compra where id = v_orden_id and odoo_sync_estado = 'publicada' and odoo_nombre = 'P00099' and odoo_total = 118.0;
-  if not found then raise exception 'FALLO: registrar_publicacion_oc no escribio los campos esperados'; end if;
-  raise notice 'OK: registrar_publicacion_oc escribe odoo_sync_estado/odoo_nombre/odoo_total';
-
-  -- Un error posterior SI debe poder pisar el estado (conflicto).
-  v_ok := sgc.registrar_publicacion_oc(v_orden_id, 'conflicto', null, null, null, 'el total no coincide');
-  perform 1 from sgc.ordenes_compra where id = v_orden_id and odoo_sync_estado = 'conflicto' and odoo_sync_error = 'el total no coincide' and odoo_nombre = 'P00099';
-  if not found then raise exception 'FALLO: el conflicto no actualizo estado/error, o perdio el nombre ya guardado'; end if;
-  raise notice 'OK: registrar_publicacion_oc conserva el snapshot previo y actualiza estado/error';
-
-  -- p_odoo_sync_estado invalido -> rechazado.
-  begin
-    perform sgc.registrar_publicacion_oc(v_orden_id, 'no_existe');
-    raise exception 'FALLO: acepto un odoo_sync_estado invalido';
-  exception when others then
-    if sqlerrm like '%invalido%' then raise notice 'OK: odoo_sync_estado invalido rechazado'; else raise; end if;
-  end;
+  v_ok := sgc.vincular_oc_odoo(v_orden_id, (select id from sgc.odoo_instancias limit 1), 999001);
+  if not v_ok then raise exception 'FALLO: vincular_oc_odoo devolvio false'; end if;
+  perform 1 from sgc.ordenes_compra where id = v_orden_id and odoo_id = 999001;
+  if not found then raise exception 'FALLO: vincular_oc_odoo no fijo odoo_id'; end if;
+  raise notice 'OK: vincular_oc_odoo fija el vinculo (el estado se lee de Odoo, no se guarda)';
 
   -- ===== resolver_solicitud_producto =====
   insert into sgc.orden_compra_items (orden_id, descripcion, cantidad, precio_unitario, total)
@@ -109,7 +95,7 @@ rollback;
 
 try {
   await dbQuery(env, sql);
-  console.log('✓ CY24 Fase A: registrar_publicacion_oc + resolver_solicitud_producto (D-9, re-vinculo, idempotencia de resolucion) verificados (ROLLBACK limpio)');
+  console.log('✓ CY24 Fase A/K: vincular_oc_odoo + resolver_solicitud_producto (D-9, re-vinculo, idempotencia de resolucion) verificados (ROLLBACK limpio)');
 } catch (e) {
   console.log('✗ CY24 Fase A smoke falló:', e.message.slice(0, 1500));
   process.exit(1);

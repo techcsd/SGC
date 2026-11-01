@@ -469,7 +469,42 @@ Deno.test("compras.crear: camino feliz -- publica (mock) y registra el comando +
   assertEquals(data.modelo, "purchase.order");
   assertEquals(data.repetido, false);
   assert(llamadas.includes("oc_comando_finalizar"));
-  assert(llamadas.includes("registrar_publicacion_oc"));
+  assert(!llamadas.includes("registrar_publicacion_oc")); // ya no se espeja estado en la OC
+});
+
+Deno.test("compras.crear: vincula la OC (instancia + odoo_id) y NO guarda estado/nombre/total", async () => {
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  const d = depsEscritura({
+    crear: () => Promise.resolve({ estado: "completado" as const, resultado: { modelo: "purchase.order", odoo_id: 555, nombre: "P00555", estado_odoo: "draft", total: 10, moneda: "DOP" } }),
+  }, llamadas);
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 200);
+  const data = (await r.json()).data;
+  assertEquals(data, { modelo: "purchase.order", odoo_id: 555, nombre: "P00555", estado_odoo: "draft", total: 10, moneda: "DOP", repetido: false });
+  const vin = llamadas.filter((c) => c.nombre === "vincular_oc_odoo");
+  assertEquals(vin.length, 1);
+  assertEquals(vin[0].args, { p_orden_id: UUID, p_odoo_instancia_id: UUID, p_odoo_id: 555 });
+  // el vínculo se fija antes de cerrar el comando
+  assert(llamadas.findIndex((c) => c.nombre === "vincular_oc_odoo") < llamadas.findIndex((c) => c.nombre === "oc_comando_finalizar"));
+});
+
+Deno.test("compras.crear: si falla el vínculo, el comando queda en 'error' y se devuelve el error", async () => {
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  const d = depsEscritura({
+    crear: () => Promise.resolve({ estado: "completado" as const, resultado: { odoo_id: 555 } }),
+  }, llamadas);
+  const base = d.admin;
+  d.admin = () => {
+    const a = base();
+    const rpc = a.rpc.bind(a);
+    a.rpc = (nombre: string, args: Record<string, unknown>) =>
+      nombre === "vincular_oc_odoo" ? (llamadas.push({ nombre, args }), Promise.resolve({ data: null, error: { message: "no se pudo vincular" } })) : rpc(nombre, args);
+    return a;
+  };
+  const r = await manejar(req({ accion: "compras.crear", params: { orden_id: UUID } }), d);
+  assertEquals(r.status, 400);
+  assertEquals((await r.json()).error, "no se pudo vincular");
+  assertEquals(llamadas.find((c) => c.nombre === "oc_comando_finalizar")?.args.p_estado, "error");
 });
 
 Deno.test("compras.crear: comando ya completado -- idempotente, no vuelve a publicar", async () => {
@@ -492,7 +527,7 @@ Deno.test("compras.crear: comando ya completado -- idempotente, no vuelve a publ
   assert(!llamadas.includes("oc_comando_finalizar")); // nunca vuelve a tocar Odoo ni cierra un comando nuevo
 });
 
-const PARA_COMANDO_OK = { odoo_instancia_id: UUID, orden_id: UUID, odoo_id: 999002, odoo_sync_estado_actual: "publicada" };
+const PARA_COMANDO_OK = { odoo_instancia_id: UUID, orden_id: UUID, odoo_id: 999002 };
 
 Deno.test("compras.confirmar: oc_para_comando rechaza (ya confirmada) → 400 con el mensaje de la RPC", async () => {
   const d = deps({
@@ -505,7 +540,7 @@ Deno.test("compras.confirmar: oc_para_comando rechaza (ya confirmada) → 400 co
   assertEquals((await r.json()).error, "Esta orden ya está confirmada en Odoo");
 });
 
-Deno.test("compras.confirmar: camino feliz -- confirma (mock) y registra confirmada, sin tocar identidad", async () => {
+Deno.test("compras.confirmar: camino feliz -- confirma (mock) y NO escribe nada en la OC (ni vínculo ni estado)", async () => {
   const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
   const d = deps({
     autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
@@ -520,16 +555,16 @@ Deno.test("compras.confirmar: camino feliz -- confirma (mock) y registra confirm
   assertEquals(r.status, 200);
   const data = (await r.json()).data;
   assertEquals(data.estado_odoo, "purchase");
-  const registrar = llamadas.find((l) => l.nombre === "registrar_publicacion_oc")!.args;
-  assertEquals(registrar.p_odoo_sync_estado, "confirmada");
-  assertEquals(registrar.p_odoo_instancia_id, null); // confirmar no toca la identidad (ya se fijó al crear)
-  assertEquals(registrar.p_odoo_id, null);
+  assert(!llamadas.some((l) => l.nombre === "registrar_publicacion_oc" || l.nombre === "vincular_oc_odoo"));
+  assert(llamadas.some((l) => l.nombre === "oc_comando_finalizar" && l.args.p_estado === "completado"));
 });
 
-Deno.test("compras.cancelar: camino feliz -- cancela (mock) y registra cancelada", async () => {
+Deno.test("compras.cancelar: camino feliz -- cancela (mock) sin escribir en la OC", async () => {
+  const llamadas: string[] = [];
   const d = deps({
     autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
     admin: () => fakeAdmin((nombre) => {
+      llamadas.push(nombre);
       if (nombre === "oc_para_comando") return { data: PARA_COMANDO_OK };
       if (nombre === "oc_comando_registrar_inicio") return { data: { ya_completado: false, comando_id: UUID } };
       return { data: true };
@@ -538,6 +573,7 @@ Deno.test("compras.cancelar: camino feliz -- cancela (mock) y registra cancelada
   const r = await manejar(req({ accion: "compras.cancelar", params: { orden_id: UUID } }), d);
   assertEquals(r.status, 200);
   assertEquals((await r.json()).data.estado_odoo, "cancel");
+  assert(!llamadas.includes("registrar_publicacion_oc") && !llamadas.includes("vincular_oc_odoo"));
 });
 
 // ── CY24 Fase C — escrituras: SIN reintento automático (D3 / #23) ───────────
@@ -554,7 +590,7 @@ function depsEscritura(adaptadorOc: Deps["adaptadorOc"], llamadas: { nombre: str
   });
 }
 
-Deno.test("compras.crear: timeout de Odoo NO se reintenta -- 1 sola llamada, comando y OC quedan en 'error' con odoo_reintentar", async () => {
+Deno.test("compras.crear: timeout de Odoo NO se reintenta -- 1 sola llamada, el comando queda en 'error' con odoo_reintentar y la OC no se toca", async () => {
   let intentos = 0;
   const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
   const d = depsEscritura({
@@ -571,9 +607,7 @@ Deno.test("compras.crear: timeout de Odoo NO se reintenta -- 1 sola llamada, com
   const fin = llamadas.find((c) => c.nombre === "oc_comando_finalizar")!.args;
   assertEquals(fin.p_estado, "error");
   assertEquals(fin.p_error, "Odoo no respondió; puedes reintentar.");
-  const reg = llamadas.find((c) => c.nombre === "registrar_publicacion_oc")!.args;
-  assertEquals(reg.p_odoo_sync_estado, "error");
-  assertEquals(reg.p_odoo_sync_error, "Odoo no respondió; puedes reintentar.");
+  assert(!llamadas.some((c) => c.nombre === "registrar_publicacion_oc" || c.nombre === "vincular_oc_odoo"));
 });
 
 Deno.test("compras.confirmar: Odoo caído tampoco se reintenta y deja el comando en error (odoo_reintentar)", async () => {
@@ -611,10 +645,12 @@ Deno.test("compras.crear: un error de negocio de Odoo queda 'error' (sin odoo_re
 
   assertEquals(intentos, 1);
   assertEquals(r.status, 400);
+  assertEquals((await r.json()).error, "Odoo rechazó la orden"); // el error vuelve al usuario, no se guarda en la OC
   assertEquals(llamadas.find((c) => c.nombre === "oc_comando_finalizar")?.args.p_estado, "error");
+  assert(!llamadas.some((c) => c.nombre === "vincular_oc_odoo"));
 });
 
-Deno.test("compras.confirmar: Odoo deja 'to approve' -> éxito parcial, sync 'por_aprobar' (SGC no aprueba)", async () => {
+Deno.test("compras.confirmar: Odoo deja 'to approve' -> éxito parcial: devuelve estado_odoo y no guarda estado local", async () => {
   const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
   const d = depsEscritura({
     confirmar: () => Promise.resolve({ estado: "completado" as const, resultado: { odoo_id: 77, nombre: "P00077", estado_odoo: "to approve", total: 118 } }),
@@ -630,48 +666,83 @@ Deno.test("compras.confirmar: Odoo deja 'to approve' -> éxito parcial, sync 'po
   const r = await manejar(req({ accion: "compras.confirmar", params: { orden_id: UUID } }), d);
   assertEquals(r.status, 200);
   assertEquals((await r.json()).data.estado_odoo, "to approve");
-  const reg = llamadas.find((c) => c.nombre === "registrar_publicacion_oc")!.args;
-  assertEquals(reg.p_odoo_sync_estado, "por_aprobar");
-  assertEquals(reg.p_odoo_state, "to approve");
-  assertEquals(reg.p_odoo_total, 118);
+  assert(!llamadas.some((c) => c.nombre === "registrar_publicacion_oc" || c.nombre === "vincular_oc_odoo"));
 });
 
-// ── compras.refrescar ──────────────────────────────────────────────────────
-function depsRefrescar(fila: Record<string, unknown> | null, adaptadorOc: Deps["adaptadorOc"], llamadas: { nombre: string; args: Record<string, unknown> }[]): Deps {
-  const d = depsEscritura(adaptadorOc, llamadas);
-  const base = d.admin();
-  d.admin = () => ({
-    rpc: base.rpc,
-    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: fila, error: null }) }) }) }),
-    // deno-lint-ignore no-explicit-any
-  }) as any;
-  return d;
+// ── compras.obtener_varias / compras.obtener (estado vivo, sin caché) ───────
+const xmlOrden = (id: number, estado: string, picks: number[]) => `<value><struct>
+  <member><name>id</name><value><int>${id}</int></value></member>
+  <member><name>name</name><value><string>P${id}</string></value></member>
+  <member><name>state</name><value><string>${estado}</string></value></member>
+  <member><name>amount_total</name><value><double>100.25</double></value></member>
+  <member><name>currency_id</name><value><array><data><value><int>2</int></value><value><string>DOP</string></value></data></array></value></member>
+  <member><name>picking_ids</name><value><array><data>${picks.map((k) => `<value><int>${k}</int></value>`).join("")}</data></array></value></member>
+  </struct></value>`;
+const xmlPick = (id: number, estado: string) => `<value><struct>
+  <member><name>id</name><value><int>${id}</int></value></member>
+  <member><name>state</name><value><string>${estado}</string></value></member></struct></value>`;
+
+function depsVarias(calls: string[]): Deps {
+  const f = fakeFetch((b) => {
+    if (b.includes("authenticate")) return xmlInt(2);
+    if (b.includes("purchase.order")) return xmlStruct(xmlOrden(7, "purchase", [11, 12]) + xmlOrden(8, "draft", []));
+    if (b.includes("stock.picking")) return xmlStruct(xmlPick(11, "done") + xmlPick(12, "assigned"));
+    return xmlStruct("");
+  }, calls);
+  return deps({ odoo: () => new OdooClient(cfg(f)), caches: cachesNuevos(60_000) });
 }
 
-Deno.test("compras.refrescar: to approve -> por_aprobar; purchase -> confirmada con recibida_en_odoo", async () => {
-  for (const [estado, esperado, recibida] of [["to approve", "por_aprobar", false], ["purchase", "confirmada", true], ["draft", "publicada", false], ["cancel", "cancelada", false]] as const) {
-    const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
-    const d = depsRefrescar({ odoo_id: 77, odoo_sync_estado: "por_aprobar" }, {
-      refrescar: (p) => {
-        assertEquals(p.odoo_id, 77);
-        return Promise.resolve({ estado: "completado" as const, resultado: { odoo_id: 77, nombre: "P00077", estado_odoo: estado, total: 50, moneda: "DOP", recibida_en_odoo: recibida } });
-      },
-    }, llamadas);
-    const r = await manejar(req({ accion: "compras.refrescar", params: { orden_id: UUID } }), d);
-    assertEquals(r.status, 200);
-    const data = (await r.json()).data;
-    assertEquals(data.recibida_en_odoo, recibida);
-    assertEquals(data.moneda, "DOP");
-    const reg = llamadas.find((c) => c.nombre === "registrar_publicacion_oc")!.args;
-    assertEquals(reg.p_odoo_sync_estado, esperado);
-    assertEquals(reg.p_odoo_total, 50);
-    assert(!llamadas.some((c) => c.nombre.startsWith("oc_comando"))); // sin registro de comando
-  }
+Deno.test("compras.obtener_varias: UN search_read de órdenes + UNO de recepciones; recibida_en_odoo", async () => {
+  const calls: string[] = [];
+  const r = await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: [8, 7, 7] } }), depsVarias(calls));
+  assertEquals(r.status, 200);
+  const { ordenes } = (await r.json()).data;
+  assertEquals(ordenes.length, 2);
+  assertEquals(ordenes[0], {
+    id: 7, nombre: "P7", estado: "purchase", total: 100.25, fecha: null, proveedor: null, moneda: "DOP",
+    recibida_en_odoo: true, recepciones_hechas: 1, recepciones_total: 2,
+  });
+  assertEquals(ordenes[1].recibida_en_odoo, false);
+  assertEquals(ordenes[1].recepciones_total, 0);
+  assertEquals(calls.filter((b) => b.includes("purchase.order")).length, 1);
+  assertEquals(calls.filter((b) => b.includes("stock.picking")).length, 1);
 });
 
-Deno.test("compras.refrescar: sin odoo_id -> 400; sin módulo compras -> 403", async () => {
-  const sin = depsRefrescar({ odoo_id: null, odoo_sync_estado: "pendiente" }, {}, []);
-  assertEquals((await manejar(req({ accion: "compras.refrescar", params: { orden_id: UUID } }), sin)).status, 400);
-  const d = deps({ autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["inventario"] }) });
-  assertEquals((await manejar(req({ accion: "compras.refrescar", params: { orden_id: UUID } }), d)).status, 403);
+Deno.test("compras.obtener_varias: valida orden_ids (vacío, >100, no enteros seguros) sin tocar Odoo", async () => {
+  const calls: string[] = [];
+  const d = depsVarias(calls);
+  for (const orden_ids of [[], Array.from({ length: 101 }, (_, i) => i + 1), [0], [-1], [1.5], ["x"], [Number.MAX_SAFE_INTEGER + 2], "7", undefined]) {
+    assertEquals((await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids } }), d)).status, 400);
+  }
+  assertEquals(calls.length, 0);
+  // 100 ids válidos y strings numéricos pasan
+  assertEquals((await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: Array.from({ length: 100 }, (_, i) => i + 1) } }), d)).status, 200);
+  assertEquals((await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: ["7"] } }), d)).status, 200);
+});
+
+Deno.test("compras.obtener_varias y compras.obtener: nunca usan caché (cada petición va a Odoo)", async () => {
+  const calls: string[] = [];
+  const d = depsVarias(calls); // caches con TTL 60 s: si cachearan, la 2.ª no llamaría
+  await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: [7] } }), d);
+  await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: [7] } }), d);
+  assertEquals(calls.filter((b) => b.includes("purchase.order")).length, 2);
+  await manejar(req({ accion: "compras.obtener", params: { orden_id: 7 } }), d);
+  const r = await manejar(req({ accion: "compras.obtener", params: { orden_id: 7 } }), d);
+  assertEquals(calls.filter((b) => b.includes("purchase.order")).length, 4);
+  const orden = (await r.json()).data.orden;
+  assertEquals(orden.recibida_en_odoo, true);
+  assertEquals(orden.recepciones_hechas, 1);
+  assertEquals(orden.recepciones_total, 2);
+});
+
+Deno.test("compras.obtener_varias: la ve Compras o Inventario; otro módulo → 403", async () => {
+  const sin = deps({ autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["rrhh"] }) });
+  assertEquals((await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: [7] } }), sin)).status, 403);
+  for (const modulo of ["compras", "inventario"]) {
+    const d = { ...depsVarias([]), autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: [modulo] }) };
+    assertEquals((await manejar(req({ accion: "compras.obtener_varias", params: { orden_ids: [7] } }), d)).status, 200);
+  }
+  // Las demás lecturas siguen siendo solo de Inventario.
+  const solo = { ...depsVarias([]), autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }) };
+  assertEquals((await manejar(req({ accion: "productos.buscar", params: { termino: "cemento" } }), solo)).status, 403);
 });

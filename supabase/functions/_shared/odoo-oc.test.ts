@@ -282,20 +282,6 @@ Deno.test("crear: timeout -> error; el reintento del usuario encuentra la OC por
   assertEquals(escrituras(llamadas).length, 1); // no hubo un segundo create
 });
 
-Deno.test("refrescar: devuelve estado, total, moneda y recibida_en_odoo (solo lectura)", async () => {
-  const { adaptadores, llamadas } = odooSimulado((c) =>
-    c.model === "stock.picking" ? [{ id: 1, name: "IN/1", state: "done" }] : oc("purchase", 118, [1])
-  );
-  const r = await adaptadores.refrescar({ odoo_id: 900 });
-  assertEquals(r.estado, "completado");
-  assertEquals(r.resultado, { modelo: "purchase.order", odoo_id: 900, nombre: "P00900", estado_odoo: "purchase", total: 118, moneda: "DOP", recibida_en_odoo: true });
-  assertEquals(escrituras(llamadas).length, 0);
-
-  const sin = odooSimulado(() => oc("to approve", 5));
-  assertEquals((await sin.adaptadores.refrescar({ odoo_id: 900 })).resultado?.recibida_en_odoo, false);
-  assertEquals((await sin.adaptadores.refrescar({})).estado, "error");
-});
-
 Deno.test("selección: mock salvo ODOO_ESCRITURA_HABILITADA=true", async () => {
   assertEquals(escrituraOdooHabilitada(() => undefined), false);
   assertEquals(escrituraOdooHabilitada(() => "1"), false);
