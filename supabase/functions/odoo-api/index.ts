@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
 import { escrituraOdooHabilitada, seleccionarAdaptadoresOc } from "../_shared/odoo-oc.ts";
+import { seleccionarAdaptadoresProveedores } from "../_shared/odoo-proveedores.ts";
 import { CacheOdoo, ttlDesdeEntorno } from "../_shared/odoo-cache.ts";
 import { LimitePorUsuario } from "../_shared/odoo-limite.ts";
 import { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
@@ -53,7 +54,10 @@ const deps: Deps = {
     return { usuario_id: u.user.id, es_admin: !!cap.es_admin, modulos: Array.isArray(cap.modulos) ? cap.modulos : [] };
   },
   odoo: obtenerOdoo,
-  adaptadorOc: seleccionarAdaptadoresOc(escrituraOdooHabilitada(), obtenerOdoo),
+  adaptadorOc: {
+    ...seleccionarAdaptadoresOc(escrituraOdooHabilitada(), obtenerOdoo),
+    ...seleccionarAdaptadoresProveedores(escrituraOdooHabilitada(), obtenerOdoo),
+  },
   admin: () => (adminCliente ??= createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" } })),
   caches,
   limite: new LimitePorUsuario(),

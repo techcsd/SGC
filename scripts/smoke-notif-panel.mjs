@@ -7,10 +7,10 @@
 //   (3) send_push registra el motivo en notif_entregas (silenciada/fuera_de_matriz)
 // y repite el caso a nivel ROL y GLOBAL. Limpia todo lo que crea.
 //
-// Necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN. On-demand (necesita DB); no corre en prebuild.
-const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
+// Necesita SUPABASE_ACCESS_TOKEN. On-demand (necesita DB); no corre en prebuild.
+const token = process.env.SUPABASE_ACCESS_TOKEN;
 const PROJECT_REF = 'jeeqhgccqefbqilntcpu';
-if (!token) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
+if (!token) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
 
 async function q(sql) {
   const res = await fetch(`https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`,

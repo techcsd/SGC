@@ -25,5 +25,7 @@ export interface Proveedor {
   lat?: number | null;
   lng?: number | null;
   es_prueba?: boolean;
+  /** Variante Odoo: id del res.partner (la fila local es solo la extensión operativa). */
+  odoo_id?: number | null;
   created_at: string;
 }

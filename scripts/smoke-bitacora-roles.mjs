@@ -5,14 +5,14 @@
 // y hace ROLLBACK — no deja datos. Falla con código !=0 si algún rol no puede guardar.
 //
 // Uso:  node scripts/smoke-bitacora-roles.mjs
-// Necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN. No corre en prebuild (necesita DB); es on-demand.
+// Necesita SUPABASE_ACCESS_TOKEN. No corre en prebuild (necesita DB); es on-demand.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const PROJECT_REF = 'jeeqhgccqefbqilntcpu';
-const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
-if (!token) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
+const token = process.env.SUPABASE_ACCESS_TOKEN;
+if (!token) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
 
 async function q(sql) {
   const res = await fetch(

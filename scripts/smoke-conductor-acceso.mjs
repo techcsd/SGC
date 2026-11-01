@@ -8,10 +8,10 @@
 // esté aplicada (si no, el trigger viejo duplica y el smoke FALLA — que es el punto).
 //
 // Uso:  node scripts/smoke-conductor-acceso.mjs
-// Env:  SUPABASE_CSD_CONSTRUCTORA_TOKEN
+// Env:  SUPABASE_ACCESS_TOKEN
 const REF = process.env.SUPABASE_PROJECT_REF || 'jeeqhgccqefbqilntcpu';
-const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
-if (!token) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
+const token = process.env.SUPABASE_ACCESS_TOKEN;
+if (!token) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
 
 const sql = `
 begin;
