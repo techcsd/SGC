@@ -287,6 +287,8 @@ export class Shell implements OnInit {
         { label: 'Accidentes', route: '/flota/accidentes', flotaElevado: true },
         { label: 'Vehículos en uso', route: '/flota/responsabilidad', flotaElevado: true },
         { label: 'Reportes', route: '/flota/reportes', flotaElevado: true },
+        // DE4 (Ronda DE, DE-12e) — transferencias "ofrecida" con antigüedad + Cancelar.
+        { label: 'Transferencias pendientes', route: '/flota/transferencias', flotaElevado: true },
         // AT1-AT3 (PROMPT-4) — Incentivos (gestión) movido DENTRO de Flota › Desempeño.
         // Gateado por el módulo `incentivos` (Logística y Transportación, Gerencia, Admin).
         { label: 'Desempeño de choferes', route: '/incentivos', modulo: 'incentivos' },

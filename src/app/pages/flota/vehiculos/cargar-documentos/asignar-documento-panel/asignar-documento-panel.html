@@ -1,0 +1,132 @@
+<app-form-drawer [open]="abierto()" [wide]="true" [title]="'Asignar documento' | t" (closed)="cerrar()">
+  @if (fila(); as f) {
+    <div class="adp">
+      <!-- Visor: imagen grande + controles + pestañas anverso/reverso -->
+      <section class="adp__visor">
+        <div class="adp__visor-img-wrap">
+          @if (imagenGrande()) {
+            <img class="adp__visor-img" [src]="imagenGrande()"
+                 [style.transform]="'scale(' + zoom() + ') rotate(' + rotacion() + 'deg)'"
+                 [alt]="'Página {n}' | t:{ n: f.pagina }" />
+          } @else {
+            <span class="adp__visor-vacio">{{ 'Sin imagen' | t }}</span>
+          }
+          @if (cargandoGrande()) { <span class="adp__visor-cargando">{{ 'Cargando…' | t }}</span> }
+        </div>
+        <div class="adp__visor-controles">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--icon" (click)="zoomOut()" [attr.aria-label]="'Alejar' | t">
+            <app-icon name="minus" [size]="16" />
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--icon" (click)="zoomIn()" [attr.aria-label]="'Acercar' | t">
+            <app-icon name="plus" [size]="16" />
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--icon" (click)="girar()" [attr.aria-label]="'Girar' | t">
+            <app-icon name="rotate-cw" [size]="16" />
+          </button>
+          <div class="adp__visor-lados">
+            <button type="button" class="adp__lado-btn" [class.adp__lado-btn--activo]="lado() === 'anverso'"
+                    (click)="abrirLado('anverso')">{{ 'Anverso' | t }}</button>
+            <button type="button" class="adp__lado-btn" [class.adp__lado-btn--activo]="lado() === 'reverso'"
+                    [disabled]="!reversoThumb()" (click)="abrirLado('reverso')">{{ 'Reverso' | t }}</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Leído por la IA -->
+      @if (campos().length) {
+        <section class="adp__leido">
+          <h3 class="adp__subtitulo">{{ 'Leído por la IA' | t }}</h3>
+          <dl class="adp__campos">
+            @for (c of campos(); track c.etiqueta) {
+              <div class="adp__campo">
+                <dt>{{ c.etiqueta | t }}</dt>
+                <dd>
+                  {{ c.valor }}
+                  @if (c.confianza !== null) {
+                    <span class="adp__confianza" [class.adp__confianza--baja]="c.confianza < 0.8">
+                      {{ (c.confianza * 100) | number:'1.0-0' }}%
+                    </span>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+          @if (f.placa_oculta) {
+            <p class="adp__aviso-placa"><app-icon name="alert-triangle" [size]="14" />{{ 'Placa tapada en el documento — no se compara, se sugiere por VIN/marca/modelo.' | t }}</p>
+          }
+        </section>
+      }
+
+      <!-- Buscador -->
+      <section class="adp__buscar">
+        <label class="adp__buscar-label">
+          <app-icon name="search" [size]="16" />
+          <input type="text" class="sgc-input" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)"
+                 [placeholder]="'Buscar por placa, alias, marca, modelo, chasis o responsable…' | t" />
+        </label>
+      </section>
+
+      <!-- Sugerencias -->
+      @if (candidatosMuyProbables().length || candidatosPosibles().length) {
+        <section class="adp__sugerencias">
+          @if (candidatosMuyProbables().length) {
+            <h4 class="adp__sugerencias-titulo">{{ 'Muy probable' | t }}</h4>
+            @for (c of candidatosMuyProbables(); track c.vehiculo_id) {
+              <div class="adp__candidato adp__candidato--alta">
+                <div class="adp__candidato-info">
+                  <span class="adp__candidato-nombre">{{ c.alias ? c.alias + ' · ' + c.placa : c.placa }}</span>
+                  <span class="adp__candidato-specs">{{ c.marca }} {{ c.modelo }} {{ c.anio }} @if (c.responsable) { · {{ c.responsable }} }</span>
+                  <span class="adp__candidato-razones">{{ c.razones.join(' · ') }}</span>
+                  @if (yaTieneDocEnLote(c.vehiculo_id)) {
+                    <span class="adp__aviso-duplicado"><app-icon name="alert-triangle" [size]="12" />{{ 'Ya tiene otro documento del mismo tipo en este lote' | t }}</span>
+                  }
+                </div>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="elegir(c.vehiculo_id)">{{ 'Asignar a este' | t }}</button>
+              </div>
+            }
+          }
+          @if (candidatosPosibles().length) {
+            <h4 class="adp__sugerencias-titulo">{{ 'Posible' | t }}</h4>
+            @for (c of candidatosPosibles(); track c.vehiculo_id) {
+              <div class="adp__candidato">
+                <div class="adp__candidato-info">
+                  <span class="adp__candidato-nombre">{{ c.alias ? c.alias + ' · ' + c.placa : c.placa }}</span>
+                  <span class="adp__candidato-specs">{{ c.marca }} {{ c.modelo }} {{ c.anio }} @if (c.responsable) { · {{ c.responsable }} }</span>
+                  <span class="adp__candidato-razones">{{ c.razones.join(' · ') }}</span>
+                  @if (yaTieneDocEnLote(c.vehiculo_id)) {
+                    <span class="adp__aviso-duplicado"><app-icon name="alert-triangle" [size]="12" />{{ 'Ya tiene otro documento del mismo tipo en este lote' | t }}</span>
+                  }
+                </div>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="elegir(c.vehiculo_id)">{{ 'Asignar a este' | t }}</button>
+              </div>
+            }
+          }
+          <hr class="adp__separador" />
+        </section>
+      }
+
+      <!-- Lista completa (filtrada) -->
+      <section class="adp__lista">
+        @for (v of vehiculosFiltrados(); track v.id) {
+          <div class="adp__candidato">
+            <div class="adp__candidato-info">
+              <span class="adp__candidato-nombre">{{ display(v) }}</span>
+              @if (yaTieneDocEnLote(v.id)) {
+                <span class="adp__aviso-duplicado"><app-icon name="alert-triangle" [size]="12" />{{ 'Ya tiene otro documento del mismo tipo en este lote' | t }}</span>
+              }
+            </div>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="elegir(v.id)">{{ 'Asignar a este' | t }}</button>
+          </div>
+        } @empty {
+          <p class="adp__sin-resultados">{{ 'Sin vehículos que coincidan con la búsqueda.' | t }}</p>
+        }
+      </section>
+
+      <footer class="adp__pie">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarNoEsDeLaFlota()">
+          {{ 'Este documento no es de la flota' | t }}
+        </button>
+      </footer>
+    </div>
+  }
+</app-form-drawer>

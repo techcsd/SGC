@@ -1,5 +1,14 @@
 {
   "web": {
+    "1.206.0": {
+      "titulo": "Documentos de flota con sugerencias e IA, badges honestos, transferencias con seguimiento",
+      "cambios": [
+        { "t": "nuevo", "m": "Flota", "d": "Al cargar documentos sin vehículo claro, ahora el sistema sugiere candidatos por placa parecida, VIN, marca/modelo o póliza — con un visor grande (zoom/girar) y buscador por placa, alias, marca, modelo, chasis o responsable. Si la placa está tapada, ya no se compara (evita falsos positivos) y se busca por el resto de los datos." },
+        { "t": "nuevo", "m": "Flota", "d": "El reverso del marbete/seguro ahora se guarda como segundo documento del vehículo, emparejado automáticamente con su anverso." },
+        { "t": "arreglo", "m": "Inventario", "d": "El número en el icono de Inventario ahora refleja tus pendientes reales (conduces por recibir + requisiciones por despachar), no un conteo de todo lo despachado en la empresa." },
+        { "t": "arreglo", "m": "Flota", "d": "Transferir un conduce a un chofer sin usuario en el sistema ahora se rechaza con un mensaje claro en vez de crear una oferta que el receptor nunca podía ver. Nueva pantalla \"Transferencias pendientes\" para cancelar las que se atascan." }
+      ]
+    },
     "1.205.2": {
       "titulo": "Cargar documentos de flota: la lectura ya no se corta por tardar",
       "cambios": [

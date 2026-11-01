@@ -1,0 +1,55 @@
+<div class="trf">
+  <header class="trf__head">
+    <div>
+      <nav class="trf__breadcrumb">
+        <a routerLink="/flota/vehiculos">{{ 'Flota' | t }}</a> <span aria-hidden="true">›</span>
+        <span>{{ 'Transferencias pendientes' | t }}</span>
+      </nav>
+      <h1 class="trf__title">{{ 'Transferencias pendientes' | t }}</h1>
+      <p class="trf__subtitle">{{ 'Conduces ofrecidos a otro chofer que todavía no se aceptaron ni rechazaron.' | t }}</p>
+    </div>
+  </header>
+
+  @if (error()) { <p class="page-error" role="alert">{{ error() }}</p> }
+
+  @if (loading()) {
+    <p class="trf__cargando">{{ 'Cargando…' | t }}</p>
+  } @else if (!filas().length) {
+    <p class="trf__vacio">{{ 'No hay transferencias pendientes ahora mismo.' | t }}</p>
+  } @else {
+    <div class="trf__tabla-wrap">
+      <table class="trf__tabla">
+        <thead>
+          <tr>
+            <th>{{ 'De' | t }}</th>
+            <th>{{ 'A' | t }}</th>
+            <th>{{ 'Obra / bodega' | t }}</th>
+            <th>{{ 'Antigüedad' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.id) {
+            <tr>
+              <td>{{ f.de_nombre ?? '—' }}</td>
+              <td>
+                {{ f.a_nombre ?? '—' }}
+                @if (!f.a_tiene_usuario) {
+                  <span class="trf__aviso"><app-icon name="alert-triangle" [size]="12" />{{ 'sin usuario' | t }}</span>
+                }
+              </td>
+              <td>{{ f.conduce_obra ?? f.conduce_bodega ?? '—' }}</td>
+              <td [class.trf__antiguedad--alta]="f.antiguedad_horas >= 12">{{ antiguedadLabel(f.antiguedad_horas) }}</td>
+              <td class="trf__td-acciones">
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                        [disabled]="cancelando() === f.id" (click)="cancelar(f)">
+                  {{ (cancelando() === f.id ? 'Cancelando…' : 'Cancelar') | t }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

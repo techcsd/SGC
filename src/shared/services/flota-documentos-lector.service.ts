@@ -25,6 +25,8 @@ export interface CamposDocumentoFlota {
   marca?: string | null;
   modelo?: string | null;
   anio?: number | null;
+  color?: string | null;
+  tipo_vehiculo?: string | null;
   numero_matricula?: string | null;
   marbete_numero?: string | null;
 }
@@ -34,23 +36,41 @@ export interface PaginaLeida {
   tipo: TipoDocumentoFlota;
   campos: CamposDocumentoFlota;
   confianza: Record<string, number>;
+  /** DE-04 — placa tapada/censurada en el documento (XXXXXXXX, asteriscos…). */
+  placa_oculta: boolean;
 }
 
 export type MatchDocumento = 'exacta' | 'vin' | 'revisar' | 'sin_vehiculo';
+
+export interface CandidatoSugerido {
+  vehiculo_id: string;
+  placa: string | null;
+  alias: string | null;
+  marca?: string;
+  modelo?: string;
+  anio?: number;
+  color?: string | null;
+  responsable?: string | null;
+  puntos: number;
+  nivel: 'muy_probable' | 'posible';
+  razones: string[];
+}
 
 export interface PaginaEmparejada extends PaginaLeida {
   match: MatchDocumento;
   vehiculo_id?: string | null;
   vehiculo_placa?: string | null;
   vehiculo_alias?: string | null;
-  candidatos?: { vehiculo_id: string; placa: string; alias: string | null }[];
+  candidatos?: CandidatoSugerido[];
 }
 
 export interface FilaAplicar {
   vehiculo_id: string;
-  tipo: 'seguro' | 'matricula' | 'marbete_dgii';
+  tipo: 'seguro' | 'matricula' | 'marbete_dgii' | 'reverso';
   campos: CamposDocumentoFlota;
   imagen_path?: string | null;
+  /** DE2/DE-05 — reverso emparejado por posición con este anverso (null si no hay). */
+  reverso_imagen_path?: string | null;
   pagina?: number;
 }
 

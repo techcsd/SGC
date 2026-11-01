@@ -37,6 +37,29 @@ export async function pdfAImagenes(archivo: ArrayBuffer, escala = 1.5): Promise<
   return out;
 }
 
+/** DE-03 — renderiza UNA página a demanda (visor ampliado). `archivo` debe ser
+ *  una copia fresca del buffer (pdfjs puede transferir/detach el original). */
+export async function renderPaginaPdf(archivo: ArrayBuffer, pagina: number, escala = 2): Promise<string> {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  configurarWorker(pdfjs as unknown as { GlobalWorkerOptions: { workerSrc: string } });
+  const doc = await pdfjs.getDocument({ data: archivo }).promise;
+  try {
+    const page = await doc.getPage(pagina);
+    const viewport = page.getViewport({ scale: escala });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('No se pudo crear el lienzo para renderizar el PDF.');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const dataUrl = canvas.toDataURL('image/png');
+    page.cleanup();
+    return dataUrl;
+  } finally {
+    await doc.destroy();
+  }
+}
+
 /** dataURL → Blob (para subir la página como imagen al bucket de documentos). */
 export function dataUrlABlob(dataUrl: string): Blob {
   const [head, b64] = dataUrl.split(',');
