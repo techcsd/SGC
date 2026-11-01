@@ -82,6 +82,51 @@ Deno.test("respuesta sin JSON → null", () => {
   assertEquals(parsearPaginas("no pude leer nada"), null);
 });
 
+// ── Ronda DE (DE1/DE2) — placa tapada (DE-04) y reverso con datos (DE-06) ──
+const RESPUESTA_MOCK_DE = `{
+  "paginas": [
+    { "pagina": 10, "tipo": "seguro", "placa_oculta": true,
+      "campos": { "poliza": "AUTO-202041-10", "aseguradora": "SURA", "vigencia_hasta": "2027-10-28",
+                  "placa": null, "chasis": "KNCSHY71CV7910856", "marca": "KIA", "modelo": "K2700",
+                  "anio": 2027, "color": null, "tipo_vehiculo": "CAMION" },
+      "confianza": { "poliza": 0.95 } },
+    { "pagina": 11, "tipo": "reverso", "placa_oculta": false,
+      "campos": {}, "confianza": {} },
+    { "pagina": 12, "tipo": "reverso", "placa_oculta": false,
+      "campos": { "placa": "L473027", "poliza": "AUTO-202041-2" },
+      "confianza": { "placa": 0.9 } }
+  ]
+}`;
+
+Deno.test("DE-04: placa tapada → placa null + placa_oculta true, no se inventa", () => {
+  const p = parsearPaginas(RESPUESTA_MOCK_DE)!;
+  assertEquals(p[0].campos.placa, null);
+  assertEquals(p[0].placa_oculta, true);
+});
+
+Deno.test("DE-04: página normal trae placa_oculta false", () => {
+  const p = parsearPaginas(RESPUESTA_MOCK_DE)!;
+  assertEquals(p[1].placa_oculta, false);
+});
+
+Deno.test("DE-06: reverso sin datos del vehículo → campos vacíos", () => {
+  const p = parsearPaginas(RESPUESTA_MOCK_DE)!;
+  assertEquals(p[1].tipo, "reverso");
+  assertEquals(Object.keys(p[1].campos).length, 0);
+});
+
+Deno.test("DE-06: reverso que SÍ trae placa/póliza impresos → se extraen como campos de apoyo", () => {
+  const p = parsearPaginas(RESPUESTA_MOCK_DE)!;
+  assertEquals(p[2].tipo, "reverso");
+  assertEquals(p[2].campos.placa, "L473027");
+  assertEquals(p[2].campos.poliza, "AUTO-202041-2");
+});
+
+Deno.test("placa_oculta ausente en la respuesta del modelo → false por defecto (no undefined)", () => {
+  const p = parsearPaginas(RESPUESTA_MOCK)!;
+  assertEquals(p[0].placa_oculta, false);
+});
+
 Deno.test("offset renumera 'pagina' de local (dentro de la tanda) a global", () => {
   // tanda que arranca en la página global 7 (offset = 6): su página local 1 → global 7.
   const p = parsearPaginas(RESPUESTA_MOCK, 6)!;

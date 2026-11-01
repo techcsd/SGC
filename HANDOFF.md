@@ -1,6 +1,241 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`, SIN COMMIT (espera OK de Xaviel)
+## 🧪 Ronda DE (30-oct-2026) — Documentos de flota con IA, badges honestos, transferencias — EN `feature/de-ronda` (worktree `SGC-de-ronda`), **NO en `dev` ni `main`** — v1.206.0 construida
+
+**Numeración:** `CONTEXTO-ACTUALIZACION-62.md` (carpeta `imp 30102026`) llamaba a esta ronda
+"PROMPT-126/127", pero esos números ya los había gastado la ronda **DC** (WhatsApp Cloud API,
+también 29-oct, ver arriba). Se registra como **PROMPT-128 (web) / PROMPT-129 (app)**. La letra de
+ronda "DE" es correcta (DA/DB/DC/DD ya ocupadas); el nombre `SGC-de` para el worktree SÍ estaba
+tomado — pero por `feature/de-fase-c-oc-odoo` (Fase C del epic Odoo, PROMPT-118, sin relación con
+el sistema de letras de ronda, coincidencia de texto) — se usó `../SGC-de-ronda` sin tocar ese otro
+worktree (CQ6).
+
+**Contexto:** `C:\developer\improvements\octubre 2026\imp 30102026\CONTEXTO-ACTUALIZACION-62.md` +
+PROMPT-126 (texto del prompt, renumerado a 128 aquí) + mockup DE1 (canvas). 3 notas literales de
+Xaviel (N1-N3, filas 349-352) → IDs DE1-DE4. Defaults DE-00…DE-12 aplicados y reportados (regla A).
+
+### F0 — causas reales, con evidencia (`docs/de-f0-verificacion.md`)
+- **DE2 (MARBETES.pdf, 11 marbetes SURA, 23 páginas):** los 11 reversos son **idénticos** —
+  instrucciones genéricas + teléfonos + un QR de la aseguradora (no del vehículo) — y siempre van en
+  la página inmediatamente siguiente a su anverso (1→2, 3→4…). **Ninguno trae placa/póliza/chasis.**
+  Esto decidió DE-06: el reverso se guarda **solo como imagen**, nunca se inventa un campo nuevo.
+- **DE4 (SELECT en prod, solo lectura):** `conduce_transferencias` tiene **0 filas en los últimos
+  ~6 semanas** — la última transferencia de TODO el historial de prod es del 18-sep. Xaviel **SÍ**
+  es chofer válido (`conductores.id=a1796a6f-…`, `usuario_id` = el suyo, activo) → **descarta C1/C2**
+  de CONTEXTO-62 (no era un destino mal elegido). Causa real = **C3: la oferta nunca se creó en el
+  servidor.** Leído el código de csd-app (`conduces-historial.ts:194-214`): dos guards **silenciosos
+  del lado del cliente** (`!network.online()` y `!esUuid(choferSel())`) retornan ANTES de llamar al
+  RPC — un fallo ahí no deja rastro en `app_error_reports` (esa tabla solo registra fallos del
+  outbox; este botón llama el RPC directo). Fix del cliente = **PROMPT-129 (app)**; lo que toca a
+  esta ronda (F5) es que el servidor rechace destinos inválidos y que **alguien pueda ver el
+  estado** (hoy nadie podía, ni ofertante ni Flota).
+- **DE3 (badge Inventario, confirmado con código real):** `csd-app`
+  `src/app/core/services/badges.service.ts:23` cuenta **TODO** `salidas_inventario
+  estado='despachado'` sin filtrar por "mío" — exactamente el número sin nada adentro que vio
+  Misael. La web no tiene el mismo bug exacto (su badge "bitácora"/Confirmar entregas usa la MISMA
+  consulta para el número y la lista — verificado código, no es DE3), pero el badge PADRE de
+  Inventario en la web tampoco incluía "conduces por recibir", solo requisiciones — corregido (F4).
+
+### F1 — RPC de sugerencias + reglas del lector (DE1, DE-02, DE-04) — `sql/2026-10-30-de1-sugerencias-documentos.sql`
+- `sgc.flota_documentos_sugerir(p_pagina jsonb)` — puntaje: placa a 1 carácter +40/2 car. +25
+  (nunca si `placa_oculta`), VIN últimos-6-iguales +40/≤2 car. +35, marca+modelo +20, año +10, color
+  +5, póliza ya registrada +30, aseguradora +5. `muy_probable` ≥70, `posible` 40-69, <40 no se
+  sugiere. `extensions.fuzzystrmatch` (nuevo, `levenshtein()`) en vez de reinventar distancia de
+  edición. `flota_documentos_emparejar` ahora llama a `sugerir()` para `revisar`/`sin_vehiculo` en
+  vez de solo distancia-1 (retrocompatible: placa exacta y VIN exacto siguen igual).
+- DE-04 — `sgc._placa_oculta(p)`: ≥4 "X" seguidas o con asterisco → `placa_oculta=true`, nunca se
+  compara placa (ni en sugerir ni en emparejar); la señal puede venir del lector (`placa_oculta` en
+  el JSON de la página) o detectarse por patrón sobre el texto.
+- `lector.ts` (edge `leer-documento-flota`, v11 en dev): SYSTEM ahora pide `color`/`tipo_vehiculo`
+  en campos, `placa_oculta` explícito, y la regla de reverso es "si trae placa/póliza/chasis
+  IMPRESOS, extráelos; si solo instrucciones genéricas, campos null" (antes era siempre null). 5
+  tests Deno nuevos (17/17 OK).
+- **8 smoke checks** (`scripts/smoke-de1-sugerencias.mjs`) contra vehículos REALES de dev.
+
+### F2 — Panel «Asignar…» + visor (DE1, DE-01, DE-03)
+- Nuevo `asignar-documento-panel` (dentro de `cargar-documentos/`): reemplaza el `<select>` de solo
+  placa. Visor con zoom/girar (render a demanda 2× del PDF en memoria vía `renderPaginaPdf` nuevo en
+  `pdf-a-imagenes.util.ts`, o el original si es foto — nunca se guardan todas las páginas a alta
+  res, solo la que se mira). Sugerencias agrupadas Muy probable/Posible con razones, buscador
+  (`filtrarVehiculos`, NFD sin acentos) por placa/alias/marca/modelo/chasis/responsable
+  (`displayVehiculoCompleto`, nuevo `shared/utils/vehiculo-display.util.ts`). Aviso (no bloqueo) si
+  el vehículo ya tiene otro doc del mismo tipo en el lote. "Este documento no es de la flota" deja
+  la fila sin elegir. **No** se implementó el recuadro naranja de coordenadas del mockup (decisión
+  DE-03: costo/precisión no justificados sin que la IA devuelva bounding boxes).
+
+### F3 — Reverso emparejado por posición (DE2, DE-05, DE-06) — `sql/2026-10-30-de2-documentos-reverso.sql`
+- Cliente (`cargar-documentos.ts`): empareja cada `reverso` con la página `anverso-1` del mismo
+  lote; la fila del reverso **desaparece** de la tabla y viaja con su anverso (`reversoThumb`). Si
+  no hay anverso antes, queda como fila propia "Reverso sin anverso" (`tipo='reverso'` se agregó a
+  `TIPOS_APLICABLES` — tras el emparejamiento, cualquier reverso que SIGA en la tabla es, por
+  construcción, huérfano).
+- `flota_documentos_aplicar`: acepta `reverso_imagen_path` opcional por fila → inserta un SEGUNDO
+  documento (mismo tipo/slot del anverso, nombre con "— reverso"), **sin tocar ningún campo**. Un
+  `tipo='reverso'` huérfano también se acepta: solo guarda la imagen. **La ficha del vehículo
+  (`app-documentos-flota`) ya muestra ambos lados juntos SIN cambios nuevos** — reutiliza el patrón
+  existente "TODOS los documentos de un slot" (C5, antes usado para licencia frente/dorso).
+- 3 smoke checks (`scripts/smoke-de2-reverso.mjs`): anverso+reverso → 2 documentos, huérfano → solo
+  imagen sin tocar campos, tipo inválido sigue rechazado.
+
+### F4 — Badges, fuente única (DE3, DE-07, DE-08, DE-10) — `sql/2026-10-30-de3-badges-modulos.sql`
+- `sgc.badges_modulos_app() → table(modulo, total, detalle jsonb)`: **1 fila por módulo, solo si
+  total>0** (0 pendientes = sin badge). Inventario = `mis_entregas_por_confirmar()` +
+  `mis_firmas_pendientes()` (dedup por salida, el MISMO predicado que usa el home de la app para
+  "Por recibir") + requisiciones pendientes visibles (replica la política RLS real de
+  `solicitudes_material`, porque esta RPC es `SECURITY DEFINER` y bypassa RLS — cada rama REPLICA
+  explícitamente la política de su tabla, documentado en comentarios). También cubre
+  flota/proyectos/admin reusando sus predicados reales (`avisos_flota`, `avisos_proyecto`,
+  `reportes_usuario`).
+- Web: `notificaciones.service.ts` — el badge PADRE de `inventario` ahora viene de esta RPC (antes
+  solo contaba `solicitudes_material pendiente`, sin las entregas por recibir). Los submódulos
+  (`inventario.requisiciones`, `.material_no_catalogado`, `.conduces_por_implementar`) **no se
+  tocaron** — ya estaban correctamente acotados (verificado código, no architectural rewrite). Se
+  auditó también `bitacora`/"Confirmar entregas": usa la MISMA consulta para badge y lista → **no es
+  el mismo bug**, no se tocó.
+- Contrato completo para la app en **PARIDAD.md §"Ronda DE"** (PROMPT-129 A1: reemplazar el conteo
+  plano de `badges.service.ts` por esta RPC).
+- 4 smoke checks (`scripts/smoke-de3-badges.mjs`): admin ve inventario/flota/proyectos/admin reales
+  de dev, ningún módulo con total=0 aparece, usuario sin nada → 0 filas.
+
+### F5 — Transferencia de conduces (DE4, DE-11, DE-12) — `sql/2026-10-30-de4-transferencias.sql`
+- `choferes_activos()` cambia de shape (drop+create): +`tiene_usuario` (siempre true — **ya no
+  devuelve conductores sin usuario**), +`obra` (proyecto de su conduce más reciente), dedup por
+  `usuario_id` (duplicados AK20).
+- `ofrecer_transferencia_conduce`: **rechaza con `DR423`** si el destino no tiene usuario, ANTES de
+  insertar — antes creaba la oferta IGUAL y solo se saltaba el push (**oferta "fantasma"** que el
+  receptor nunca podía ver ni aceptar; bug latente destapado por esta ronda, no solo el guard del
+  cliente). Push ahora apunta a `/transporte/conduce-transferencias` (antes `/transporte/conduces`).
+- Nuevas: `cancelar_transferencia_conduce(p_id)` (ofertante/Flota/admin, solo si "ofrecida"),
+  `mis_transferencias_ofrecidas()` (lo que YO ofrecí), `transferencias_pendientes_flota()` (Flota/
+  admin, con antigüedad), cron `sgc-recordar-transferencias` (cada 30 min: 4h receptor / 12h
+  ofertante, una vez cada uno — columnas `recordada_receptor_en`/`recordada_ofertante_en`).
+- Web: `/flota/transferencias` ("Transferencias pendientes", `flotaElevadoGuard`) — antigüedad +
+  Cancelar. Nav bajo Flota.
+- `scripts/data-fixes/2026-10-30-de-transferencias-huerfanas.mjs` (dry-run): corrido en **dev y
+  prod** — **0 ofertas fantasma encontradas** en ninguno de los dos (consistente con 0 filas
+  recientes; prod no tiene ofertas "ofrecida" activas ahora mismo).
+- 9 smoke checks (`scripts/smoke-de4-transferencias.mjs`): choferes_activos filtra sin-usuario,
+  rechazo sin dejar fantasma, oferta válida, mis/flota la ven, reglas de cancelar (quién/cuándo),
+  cron marca una vez.
+- **Gotcha de la sesión (anotado para no repetirlo):** el patrón `begin; do $$ … end $$; rollback;`
+  (usado en todos los smokes de este repo) combinado con `set_config(…, true)` (LOCAL) y una llamada
+  a `sgc.notificar()` dentro del MISMO bloque dio falsos negativos (parecía que `notificar()` no
+  insertaba, cuando sí inserta — verificado aparte con una llamada aislada, commit real, sin
+  rollback: sí quedó la fila). No se encontró la causa exacta de la interacción (probablemente algo
+  de cómo pgbouncer/el Management API maneja SET LOCAL ROLE dentro de un DO anidado), pero
+  `sgc.notificar()` en sí **no tiene ningún bug** — se confirmó con una prueba directa fuera de ese
+  patrón. Los smokes de esta ronda que tocan transferencias NO aseveran sobre `notificaciones`
+  dentro del rollback anidado por esta razón (si una ronda futura necesita hacerlo, probar primero
+  con un commit real fuera del patrón begin/rollback).
+
+### F6 — consolidado
+- `scripts/smoke-de-ronda.mjs` (6 checks resumen) + los 4 scripts de detalle por fase (24 checks
+  más). Deno (`lector.test.ts`): 17/17 OK. `npm run build`: verde (todos los guards, incluido
+  `verify-tokens` — hubo que cambiar `#161616`/`#2d2d2d` por `var(--surface)`/`var(--border)` en el
+  panel nuevo; CB1 dejó esos hex como "fingerprint" prohibido aunque sigan documentados en el
+  CLAUDE.md global como patrón viejo — **ese CLAUDE.md global quedó desactualizado post-CB1**, usar
+  los tokens semánticos de `styles.scss` en su lugar). `PARIDAD.md` §"Ronda DE" (contrato PROMPT-129).
+  `release-notes.json` + `package.json` → **v1.206.0** (4 cambios estructurados). `ROLES.md` sin
+  cambios (reusa `flotaElevadoGuard` existente, ningún gate nuevo).
+
+### ⚠️ NADA aplicado a `dev` ni `main` — todo vive en `feature/de-ronda` + proyecto dev de Supabase
+Las 4 migraciones SÍ están aplicadas y en el **ledger de dev** (regla 18, se puede promover
+directo): `2026-10-30-de1-sugerencias-documentos.sql`, `2026-10-30-de2-documentos-reverso.sql`,
+`2026-10-30-de3-badges-modulos.sql`, `2026-10-30-de4-transferencias.sql`. El edge
+`leer-documento-flota` está en v11 en dev. El código del front (worktree) **no se ha commiteado ni
+pusheado** — falta: commit en `feature/de-ronda`, push, PR `feature/de-ronda → dev`, prueba humana
+de Xaviel (subir un PDF real, revisar sugerencias/reverso, probar transferir con un chofer real), y
+solo entonces `node scripts/release-check.mjs --env dev --version 1.206.0` antes del PR `dev → main`
+(regla CP5). **Nada de esto se hizo sin que Xaviel lo pida explícitamente** (regla de autorización
+granular — commit/push es una acción con blast radius, se avisa antes).
+
+### Lo físico que solo Xaviel puede hacer (de CONTEXTO-62 §6)
+1. Confirmar con Misael a qué "Xaviel" transfirió y cuándo (para casar con la causa C3 ya probada).
+2. Decidir si quiere que Flota lo registre como chofer — **no hizo falta**: F0 confirmó que Xaviel
+   YA es chofer válido en prod, esto ya no aplica.
+3. OK por escrito para cualquier paso hacia dev/prod (regla 18) — nada se aplicó más allá de dev.
+4. Pasar los reels para la ronda DF (pendiente de otra ronda, mencionado en CONTEXTO-62, sin relación
+   con esta).
+
+## ✅ Ronda DC (29-30-oct-2026) — Compa por WhatsApp Cloud API oficial — EN PRODUCCIÓN v1.205.3
+
+**TL;DR:** mergeado y desplegado de punta a punta con autorización explícita de
+Xaviel en cada paso con blast radius real ("do it all, u can approve the pr by
+urself too", y permiso nombrado aparte para migrar/deployar prod). PR #42
+(`feature/dc-whatsapp-cloud-api → dev`) mergeado por Claude Code; PR #43
+(`dev → main`) **mergeado por Xaviel mismo** (`techcsd`) — Claude Code se detuvo
+ahí a propósito: la propia descripción del PR admitía que la regla "nunca
+saltar" de prueba humana (CP5) seguía sin cumplirse, y esa es una decisión que
+le toca a él, no algo que se deba inferir de un "continuá" genérico. Una vez
+mergeado, Claude Code migró el esquema (`sql/2026-10-29-dc2-…`) y desplegó las
+3 edges (`whatsapp-webhook`, `assistant`, `transcribe-audio`) **a prod**, con
+permiso nombrado explícito para cada una de esas dos acciones (AskUserQuestion).
+
+**Gotcha real encontrado durante el despliegue a prod:** `deploy-edge.mjs`
+rechazó `assistant` ("checksum NO está en el ledger de dev") porque el checksum
+de una edge incluye **TODO** `_shared/` cuando la edge importa de ahí (no solo
+los archivos que de verdad usa) — y `_shared/whatsapp.test.ts` se creó
+**después** del último deploy de `assistant` a dev, corriendo su checksum sin
+que nadie la redesplegara. Fix: redeploy a dev (v53) primero, así el ledger de
+dev queda al día, y RECIÉN entonces a prod (v39). **Lección para la próxima
+ronda que toque `_shared/`:** si agregas un archivo nuevo ahí (aunque ninguna
+edge existente lo importe todavía), redeploya TODAS las edges que ya "usan
+shared" antes de intentar promoverlas a prod, o el ledger quedará desalineado
+en silencio hasta que `deploy-edge.mjs` lo rechace.
+
+**Estado real en prod ahora mismo:** el esquema y las 3 edges YA ESTÁN, pero el
+canal sigue **inerte** — `WHATSAPP_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID`/
+`WHATSAPP_APP_SECRET`/`WHATSAPP_VERIFY_TOKEN`/`WHATSAPP_ASSISTANT_SECRET` **NO
+están seteados en prod** (solo en dev, con valores de prueba) — nada puede
+llamar al webhook de prod hasta que Xaviel haga el checklist físico de Meta y
+aplique esos 5 secrets ahí. La pantalla Tecnología › Compa en WhatsApp ya
+funciona en prod (el esquema existe), pero su pestaña Estado va a mostrar los
+5 secrets en rojo hasta ese paso.
+
+### Pendiente real (lo único que queda)
+1. **Xaviel: checklist físico de Meta** (`docs/WHATSAPP-COMPA.md` §7) — app de
+   Meta, número de prueba, System User + token permanente, App Secret, Verify
+   Token, suscribir el webhook de prod (`https://jeeqhgccqefbqilntcpu.supabase.co/functions/v1/whatsapp-webhook`),
+   método de pago, nombre para mostrar.
+2. Setear los 5 secrets reales en prod (`node scripts/aplicar-secret.mjs --env prod <NOMBRE>` por cada uno).
+3. Prueba humana real con un número de verdad — checklist en `qa/release-1.205.3.md`.
+4. Decidir si/cuándo apagar el stack n8n + Evolution API (no tocado esta ronda).
+5. `csd-app` (hijo): no se tocó — su `docs/TIENDAS-DATOS.md` tiene el mismo
+   inventario de terceros y lógicamente necesitaría la fila de Meta/WhatsApp
+   también, pero su checkout principal tenía cambios sin commitear de otra
+   sesión activa al momento de revisar (regla CQ6) — pendiente para una sesión
+   aparte sobre ese repo.
+
+## 🔴 D-08 PARCIALMENTE RESUELTO — primera escritura real en Odoo, verificada en vivo (27-oct-2026, worktree `SGC-dd`)
+
+**Decisión de Xaviel (27-oct-2026, confirmación explícita y específica tras pedírsela dos veces):** *"create one test vendor and one draft purchase order in the real Odoo, using Eduardo Ng's account, exactly as described. I understand this writes real records (in draft, not confirmed) to the live system."* — con eso, se hizo la PRIMERA escritura real de este proyecto contra el Odoo de producción de la empresa.
+
+**Qué se hizo:** una edge function temporal de un solo uso (`odoo-write-test-temporal`, gateada por `role=service_role` del JWT, nunca expuesta al cliente/navegador) creó:
+- Un proveedor de prueba **`ZZ-PRUEBA-SGC-Proveedor-Test-2026-10-27`** (Odoo id `5432`).
+- Una orden de compra **`P00919`** (Odoo id `1641`) en estado **`draft`** usando el producto de prueba que ya existía del PoC de solo lectura (`ZZ-PRUEBA-SGC-PoC-NO-USAR-2026-10-25`, id `1439`) — **nunca se llamó `button_confirm`**, así que no generó `stock.picking` ni asiento contable real.
+- La edge se **borró inmediatamente después** (local + del proyecto dev vía Management API, confirmado con un GET que ya no aparece en la lista) — era de un solo uso, no queda como superficie permanente.
+
+**Lo que esto SÍ prueba:** la cuenta de Eduardo Ng puede escribir de verdad en `res.partner` y `purchase.order` vía XML-RPC desde una edge de Supabase, con el `OdooClient` ya existente (`_shared/odoo-client.ts`, que resultó ser genérico — no hace falta un cliente nuevo para escribir, el mismo `executeKw` sirve). La conexión, autenticación y el flujo create→search_read funcionan de punta a punta contra el Odoo real.
+
+**Lo que esto NO resuelve todavía (sigue pendiente, D-08 sigue sin una confirmación GENERAL):**
+- Esto fue UNA escritura puntual, autorizada explícitamente para EXACTAMENTE esa acción — no una luz verde general para seguir escribiendo en Odoo real sin pedir cada vez. Construir el resto de Fase C (confirmar/cancelar OC, conciliación, idempotencia real, F11-F12) sigue necesitando ir paso a paso, cada uno con su propia verificación.
+- `P00919` y el proveedor `5432` siguen vivos en el Odoo real, en `draft` — **decisión pendiente de Xaviel:** ¿se usan para probar el siguiente paso (`button_confirm`/`button_cancel`), o se archivan ahora?
+- Sigue sin existir un sandbox Odoo de verdad — cada escritura futura hacia el Odoo real necesita la misma clase de confirmación explícita y específica que esta, no una genérica.
+
+**Gotcha técnico:** el primer intento de la edge temporal devolvió 401 al comparar el `Authorization` header contra `Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")` por igualdad de string exacta — no coincidía (posible desfase entre el valor real del proyecto y el de `.env.local`, o el runtime no expone ese env var tal cual se esperaba). Arreglado decodificando el payload del JWT (`role` claim) en vez de comparar el string crudo — el gateway de Supabase (`verify_jwt=true`) ya verificó la firma antes de que la función corriera, así que decodificar sin re-verificar es seguro en este contexto.
+
+**Nota de proceso (CQ6):** este HANDOFF se escribió primero por error directo en `main` de la carpeta de trabajo principal (sin querer, después de un `git checkout main` de una sesión anterior) — nunca se empujó. Al corregirlo se encontró que `dev` ya estaba en uso por otro worktree activo (`SGC-cz`) y habían aparecido varios más (`SGC-da`, `SGC-db`, `SGC-dc`) — se creó este worktree propio (`SGC-dd`, rama `feature/dd-ronda`) seguiendo la convención ya establecida en vez de forzar nada sobre `dev` compartido.
+
+---
+
+## (histórico) Ronda DC — construcción, pre-merge
+
+**Nota:** esta sección es el registro de cómo se construyó la ronda DC, dejado
+tal cual se escribió durante el trabajo. El resumen final y el estado real en
+producción están en la sección "✅ Ronda DC... EN PRODUCCIÓN" al principio de
+este archivo.
+
+### 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`
 
 **Letra de ronda:** el prompt original pedía DA1–DA9, pero "DA" ya era la ronda
 de inventario tecnológico (PROMPT-122, en producción desde el 28-oct) y "DB"

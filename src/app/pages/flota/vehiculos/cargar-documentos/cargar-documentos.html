@@ -56,8 +56,12 @@
               <td class="cdoc__td-doc">
                 @if (f.thumb) { <img class="cdoc__thumb" [src]="f.thumb" [alt]="'Página {n}' | t:{ n: f.pagina }" /> }
                 <div class="cdoc__doc-info">
-                  <span class="cdoc__doc-tipo">{{ tipoLabel(f.tipo) | t }} · {{ 'pág.' | t }} {{ f.pagina }}</span>
+                  <span class="cdoc__doc-tipo">
+                    {{ (f.tipo === 'reverso' ? 'Reverso sin anverso' : tipoLabel(f.tipo)) | t }} · {{ 'pág.' | t }} {{ f.pagina }}
+                    @if (f.reversoThumb) { <span class="cdoc__con-reverso">{{ 'con reverso' | t }}</span> }
+                  </span>
                   @if (f.campos.placa) { <span class="cdoc__doc-placa">{{ 'Placa leída:' | t }} {{ f.campos.placa }}</span> }
+                  @if (f.placa_oculta) { <span class="cdoc__doc-placa-oculta">{{ 'Placa tapada' | t }}</span> }
                 </div>
               </td>
               <td class="cdoc__td-veh">
@@ -65,19 +69,15 @@
                   <span class="cdoc__veh-ok">{{ f.vehiculo_alias ? f.vehiculo_alias + ' · ' + f.vehiculo_placa : f.vehiculo_placa }}</span>
                   <span class="cdoc__match">{{ (f.match === 'exacta' ? 'placa exacta' : 'por VIN') | t }}</span>
                 } @else if (esAplicable(f)) {
-                  <select class="cdoc__veh-select" [value]="f.vehiculoElegido ?? ''" [disabled]="paso() !== 'revision'"
-                          (change)="elegirVehiculo(i, $any($event.target).value)">
-                    <option value="">{{ (f.match === 'revisar' ? 'Revisar — elige el vehículo' : 'Sin vehículo — elige uno') | t }}</option>
-                    @if (f.match === 'revisar') {
-                      @for (c of f.candidatos ?? []; track c.vehiculo_id) {
-                        <option [value]="c.vehiculo_id">{{ c.alias ? c.alias + ' · ' + c.placa : c.placa }} ({{ 'parecida' | t }})</option>
-                      }
-                      <option disabled>──────────</option>
+                  <div class="cdoc__veh-asignar">
+                    @if (f.vehiculoElegido) {
+                      <span class="cdoc__veh-ok">{{ displayVehiculo(vehiculoPorId(f.vehiculoElegido)!) }}</span>
                     }
-                    @for (v of vehiculos(); track v.id) {
-                      <option [value]="v.id">{{ displayVehiculo(v) }}</option>
-                    }
-                  </select>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="paso() !== 'revision'"
+                            (click)="abrirPanel(i)">
+                      {{ (f.vehiculoElegido ? 'Cambiar…' : (f.match === 'revisar' ? 'Revisar…' : 'Asignar…')) | t }}
+                    </button>
+                  </div>
                 } @else {
                   <span class="cdoc__veh-na">—</span>
                 }
@@ -130,4 +130,15 @@
       </div>
     </footer>
   }
+
+  <app-asignar-documento-panel
+    [abierto]="panelAbiertoIndex() !== null"
+    [fila]="panelFila()"
+    [reversoThumb]="panelFila()?.reversoThumb ?? null"
+    [vehiculos]="vehiculos()"
+    [vehiculosConDocEnLote]="vehiculosConDocEnLotePanel()"
+    [renderGrande]="renderGrandeFn"
+    (cerrado)="cerrarPanel()"
+    (asignado)="asignarDesdePanel($event)"
+    (omitido)="omitirDesdePanel()" />
 </div>

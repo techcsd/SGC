@@ -200,4 +200,11 @@ export const flotaRoutes: Routes = [
     loadComponent: () => import('./reportes/reportes').then((m) => m.FlotaReportes),
     title: 'Reportes — Flota',
   },
+  {
+    // DE4 (Ronda DE, DE-12e) — transferencias de conduce "ofrecida" con antigüedad + Cancelar.
+    path: 'transferencias',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () => import('./transferencias/transferencias').then((m) => m.FlotaTransferencias),
+    title: 'Transferencias pendientes — Flota',
+  },
 ];

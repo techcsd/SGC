@@ -1150,3 +1150,86 @@ intencionalmente web-only**: el canal de WhatsApp lo opera y administra Tecnolog
 escritorio (gestión de accesos, auditoría de mensajes, configuración de Meta); no hay ni va a
 haber una pantalla equivalente en `csd-app` — los choferes/campo no gestionan este canal, solo lo
 usan (vía WhatsApp mismo, no vía la app). Sin contrato pendiente para la app en esta ronda.
+
+## Ronda DE (web, 30/10/2026) — contrato para la app (PROMPT-129)
+
+> **Nota de numeración:** `CONTEXTO-ACTUALIZACION-62.md` llamaba a esta ronda "PROMPT-126/127", pero
+> esos números ya los gastó la ronda DC (ver arriba, también 29-oct). Esta ronda se registra como
+> **PROMPT-128 (web, esta) / PROMPT-129 (app)** — mismo contenido/IDs DE1-DE4, solo cambia el número
+> de prompt. Dicho también en HANDOFF.md.
+
+### DE3/DE-07/DE-08 — `sgc.badges_modulos_app()`: fuente única de badges por módulo
+
+**Causa real (ver `docs/de-f0-verificacion.md`):** el badge de Inventario de la app
+(`src/app/core/services/badges.service.ts`) contaba **todo** `salidas_inventario
+estado='despachado'` visible por RLS, sin filtrar por "mío" — por eso Misael veía un número en el
+icono y nada adentro. La nueva RPC es la fuente única que REEMPLAZA ese conteo.
+
+```
+sgc.badges_modulos_app() → table(modulo text, total int, detalle jsonb)
+```
+
+- Devuelve **una fila por módulo, solo si `total > 0`** (0 pendientes = sin fila = sin badge — no
+  mandes un badge con "0").
+- Hoy cubre `inventario` (`detalle: {por_recibir, por_despachar}`), `flota`
+  (`detalle: {avisos_pendientes}`), `proyectos` (`detalle: {avisos_cronograma}`) y `admin`
+  (`detalle: {reportes_sin_resolver}`, solo si `is_admin()`) — compras no aparece hoy en dev
+  porque no hay pendientes, pero la rama ya está en la función.
+- **Regla permanente (va a cualquier módulo nuevo):** *todo número en un icono de módulo debe
+  poder abrirse y listar exactamente esos elementos.* Si agregas un badge, agrégalo por su
+  predicado REAL (el mismo que usa la pantalla de adentro), nunca un conteo "todo lo que hay en la
+  tabla".
+
+**PROMPT-129 (app, A1 — Inventario):**
+1. `BadgesService.load()` (`src/app/core/services/badges.service.ts`): reemplaza la línea
+   `this.count('salidas_inventario', 'estado', 'despachado', 'inventario')` por una llamada a
+   `this.supabase.client.rpc('badges_modulos_app')`, toma la fila `modulo === 'inventario'` y usa
+   `total` (no actualizar `_counts` si no hay fila → módulo sin badge).
+2. El hub de Inventario (home) debe mostrar el **mismo desglose** en sus botones de origen —
+   `detalle.por_recibir` en el tile/botón "Recibir" (la lista real la siguen dando
+   `mis_entregas_por_confirmar()` + `mis_firmas_pendientes()`, ya existentes — `badges_modulos_app`
+   solo centraliza el NÚMERO, no reemplaza esas pantallas) y `detalle.por_despachar` en
+   "Requisiciones"/"Por despachar". Los borradores locales del outbox siguen aparte ("Borradores
+   sin enviar"), nunca mezclados en este número (ya era así).
+3. Aplica la misma RPC a cualquier otro badge de módulo que la app calcule hoy con un conteo plano
+   (Flota/Proyectos/Admin) si tienes tiempo en esa ronda; si no, al menos Inventario (es el caso
+   reportado).
+4. Refresco (DE-09): recalcular al volver al home, tras cada acción de outbox y en
+   Realtime/foreground — mismo patrón que ya usa `BadgesService`/`AM2`.
+
+### DE4/DE-11/DE-12 — Transferencia de conduces
+
+**Causa real (ver `docs/de-f0-verificacion.md`):** la oferta de Misael **nunca llegó a crearse en
+el servidor** (0 filas en `conduce_transferencias` en los últimos ~6 semanas en prod). Xaviel SÍ es
+chofer válido con su propio `usuario_id` (se descartan las hipótesis C1/C2). La causa más probable
+es uno de los dos guards **silenciosos del lado del cliente** en
+`src/app/pages/transporte/conduces-historial/conduces-historial.ts:194-214` (csd-app):
+`if (!this.network.online())` y `if (!esUuid(this.choferSel()))` — ambos retornan ANTES de llamar
+al RPC, así que un fallo ahí no deja ningún rastro en el servidor ni en `app_error_reports` (esa
+tabla solo registra fallos del outbox; este botón llama el RPC directo, no por outbox).
+
+**PROMPT-129 (app, A2):**
+1. Que esos dos guards **avisen de forma que quede** — no alcanza con un toast que desaparece: si
+   el usuario está offline o no eligió chofer, considera dejarlo en un estado visible (p. ej. el
+   botón "Ofrecer" sigue deshabilitado con el motivo a la vista) en vez de solo un toast efímero.
+2. `choferesParaTransferir()` (o el selector que alimenta `choferSel`) debe usar
+   `choferes_activos()` ya actualizado por el servidor (F5 de esta ronda): trae `tiene_usuario`
+   — **filtra/oculta** los que no tienen usuario (si no, el picker sigue ofreciendo destinos que
+   nunca podrán recibir nada).
+3. Backend ya listo (server, aplicado en dev esta ronda): `ofrecer_transferencia_conduce` rechaza
+   con `DR423` + mensaje claro si el destino no tiene usuario o no es chofer; nuevo
+   `cancelar_transferencia_conduce(p_id)`; `mis_transferencias_ofrecidas()` (lo que YO ofrecí, con
+   estado); cron de recordatorio (4 h receptor / 12 h ofertante). Añade en la app una vista/sección
+   "Ofrecidas por mí" (aunque sea simple) usando `mis_transferencias_ofrecidas()`, con botón
+   Cancelar — hoy quien ofrece no tiene NINGUNA forma de saber si su oferta quedó pendiente,
+   aceptada o nunca se creó.
+4. El push de oferta ahora apunta a `/transporte/conduce-transferencias` (antes `/transporte/conduces`)
+   — ajusta el deep-link/ruta si la app tiene una ruta distinta para esa pantalla.
+
+### DE1/DE2 — Documentos de flota (sin contrato para la app esta ronda)
+`cargar-documentos` (sugerencias, visor, reverso) es una pantalla **web-only** (el lote de
+marbetes/seguros se carga desde el escritorio de Flota); la app ya tiene su propio flujo reducido
+de "Leer documento" (una foto, PROMPT-125 A5, `DB3 lector flota` en la tabla de arriba) que sigue
+usando `flota_documentos_emparejar`/`flota_documentos_aplicar` sin cambios de contrato — las
+mejoras de esta ronda (sugerencias con puntaje, placa tapada, reverso) benefician esa pantalla
+automáticamente porque son las MISMAS RPCs, sin que la app tenga que cambiar nada.
