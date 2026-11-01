@@ -19,7 +19,7 @@ const argv = process.argv.slice(2);
 
 async function mgmt(ref, path, opts) {
   const res = await fetch(`https://api.supabase.com/v1/projects/${ref}${path}`, {
-    headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}` },
+    headers: { Authorization: `Bearer ${process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN}` },
     ...opts,
   });
   return res;
@@ -27,7 +27,7 @@ async function mgmt(ref, path, opts) {
 async function sql(ref, query) {
   const res = await mgmt(ref, '/database/query', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
   });
   const text = await res.text();

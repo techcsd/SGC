@@ -35,6 +35,11 @@ begin
     values ('CY24-SMOKE-1', v_proveedor_id, 'pendiente', current_date, 100, 18, 118, v_proyecto_id)
     returning id into v_orden_id;
 
+  -- vincular_oc_odoo necesita una instancia; dev puede no tener ninguna (todo se revierte con el ROLLBACK).
+  reset role;
+  insert into sgc.odoo_instancias (nombre, base_url, base_datos, entorno, habilitada)
+    select 'smoke-vinculo', 'https://smoke.test', 'db_smoke', 'dev', true
+    where not exists (select 1 from sgc.odoo_instancias);
   v_ok := sgc.vincular_oc_odoo(v_orden_id, (select id from sgc.odoo_instancias limit 1), 999001);
   if not v_ok then raise exception 'FALLO: vincular_oc_odoo devolvio false'; end if;
   perform 1 from sgc.ordenes_compra where id = v_orden_id and odoo_id = 999001;

@@ -4,7 +4,7 @@
 // Son las candidatas a repetir el patrón AN5/AY6/BC7 ("permission denied for table…").
 //
 // Uso:  node scripts/audit-rls-tablas-nuevas.mjs --env dev|prod
-// Necesita SUPABASE_ACCESS_TOKEN. On-demand (no en prebuild: necesita DB).
+// Necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN. On-demand (no en prebuild: necesita DB).
 import { resolverEnv, dbQuery } from './lib/entorno.mjs';
 const env = await resolverEnv(process.argv.slice(2));
 const q = (sql) => dbQuery(env, sql);

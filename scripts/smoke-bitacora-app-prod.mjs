@@ -19,10 +19,10 @@
 // Todo en una transacción con ROLLBACK — no deja datos.
 //
 // Uso:  node scripts/smoke-bitacora-app-prod.mjs
-// Necesita SUPABASE_ACCESS_TOKEN. On-demand (necesita DB); no corre en prebuild.
+// Necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN. On-demand (necesita DB); no corre en prebuild.
 const PROJECT_REF = 'jeeqhgccqefbqilntcpu';
-const token = process.env.SUPABASE_ACCESS_TOKEN;
-if (!token) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
+const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
+if (!token) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
 
 async function q(sql) {
   const res = await fetch(

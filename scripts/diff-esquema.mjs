@@ -3,7 +3,7 @@
 // `npm run verify:entornos`. Read-only en ambos proyectos (solo SELECT a catálogos).
 //
 // Uso:   node scripts/diff-esquema.mjs [--json] [--only <categoria>]
-// Env:   SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF_DEV (prod = jeeqhgccqefbqilntcpu fijo aquí,
+// Env:   SUPABASE_CSD_CONSTRUCTORA_TOKEN, SUPABASE_PROJECT_REF_DEV (prod = jeeqhgccqefbqilntcpu fijo aquí,
 //        único lugar junto a environment.*/.env.local donde el ref de prod es literal a propósito).
 //
 // Categorías comparadas en el esquema de la app (`sgc`) + objetos relevantes de
@@ -17,10 +17,10 @@
 
 import './lib/load-env.mjs';
 
-const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+const TOKEN = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
 const PROD = 'jeeqhgccqefbqilntcpu';
 const DEV = process.env.SUPABASE_PROJECT_REF_DEV;
-if (!TOKEN) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
+if (!TOKEN) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
 if (!DEV) { console.error('NO SUPABASE_PROJECT_REF_DEV (.env.local)'); process.exit(1); }
 
 const argv = process.argv.slice(2);

@@ -109,7 +109,7 @@ Ningún cron ni función escribe el ref del proyecto. La URL base de las edges s
 
 - **Vercel (web):** proyecto `sgc` → Git: marcar `dev` como *Preview branch* · Domains → añadir `dev.sgcconstructorasd.com` y asignarlo a la rama `dev` · Environment Variables → *Preview*: `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` = **dev** (para `registrar-version-web`).
 - **DNS:** `CNAME dev → cname.vercel-dns.com` (y `app-dev` para el hijo).
-- **GitHub → Settings → Secrets and variables → Actions:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
+- **GitHub → Settings → Secrets and variables → Actions:** `SUPABASE_CSD_CONSTRUCTORA_TOKEN`, `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
 - **Google Cloud:** restringir el referrer de `GOOGLE_MAPS_API_KEY` a `dev.`/`app-dev.` (o cuota separada).
 - **App (hijo):** ver PROMPT-59 (flavor `.dev`, `app-dev.`).
 

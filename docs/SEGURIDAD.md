@@ -128,7 +128,7 @@ responsabilidad del SGC).
    realmente manda los correos, no una aproximación):
    ```
    curl -s "https://api.supabase.com/v1/projects/<ref>/advisors/security" \
-     -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" | jq '.lints[] | select(.level=="ERROR")'
+     -H "Authorization: Bearer $SUPABASE_CSD_CONSTRUCTORA_TOKEN" | jq '.lints[] | select(.level=="ERROR")'
    ```
    Revisa **todo el esquema que aparezca** (`sgc`, `public`, `web`…) — no asumas
    que "público" significa el esquema `public` (ver arriba, hallazgo 2).

@@ -1,5 +1,5 @@
 // scripts/diagnosticos/2026-10-23-cw-diagnostico.mjs — PROMPT-114 FASE 0 (regla 18/19)
-// Diagnóstico SOLO LECTURA (select) vía Management API con SUPABASE_ACCESS_TOKEN.
+// Diagnóstico SOLO LECTURA (select) vía Management API con SUPABASE_CSD_CONSTRUCTORA_TOKEN.
 // Cubre CW1/CW2 (Carlos: roles, conductores, conduces pendientes/duplicados,
 // outbox atascado), CW6/CW7 (Dallin: roles, fila conductores, módulos).
 //

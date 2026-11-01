@@ -12,7 +12,7 @@
 // — fuera de alcance de este repo, no se audita aquí (ver docs/SEGURIDAD.md).
 //
 //   node scripts/audit-public-schema-cu2.mjs --env dev|prod
-// Necesita SUPABASE_ACCESS_TOKEN. On-demand (no en prebuild: necesita DB) — se
+// Necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN. On-demand (no en prebuild: necesita DB) — se
 // ejecuta desde release-check.mjs antes de todo PR dev → main.
 import { resolverEnv, dbQuery } from './lib/entorno.mjs';
 

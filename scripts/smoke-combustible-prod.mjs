@@ -9,10 +9,10 @@
 //   #3  sigue rechazando (22023) galones/precio imposibles para el chofer
 //
 // La sesión se simula con request.jwt.claims dentro de la transacción (auth.uid()).
-// Uso:  node scripts/smoke-combustible-prod.mjs   (necesita SUPABASE_ACCESS_TOKEN)
+// Uso:  node scripts/smoke-combustible-prod.mjs   (necesita SUPABASE_CSD_CONSTRUCTORA_TOKEN)
 const REF = 'jeeqhgccqefbqilntcpu';
-const token = process.env.SUPABASE_ACCESS_TOKEN;
-if (!token) { console.error('NO SUPABASE_ACCESS_TOKEN'); process.exit(1); }
+const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
+if (!token) { console.error('NO SUPABASE_CSD_CONSTRUCTORA_TOKEN'); process.exit(1); }
 
 async function q(sql) {
   const res = await fetch(`https://api.supabase.com/v1/projects/${REF}/database/query`,

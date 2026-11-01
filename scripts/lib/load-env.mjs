@@ -1,5 +1,5 @@
 // scripts/lib/load-env.mjs — carga .env.local en process.env (sin dependencias).
-// Las variables ya presentes en el entorno real (p. ej. SUPABASE_ACCESS_TOKEN)
+// Las variables ya presentes en el entorno real (p. ej. SUPABASE_CSD_CONSTRUCTORA_TOKEN)
 // tienen prioridad y NO se sobrescriben. Importar con efecto: `import './lib/load-env.mjs'`.
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
