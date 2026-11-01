@@ -11,10 +11,12 @@ import {
 import { Vehiculo } from '../../../../../shared/models/vehiculo.model';
 import { UserService } from '../../../../core/services/user.service';
 import { ToastService } from '../../../../../shared/services/toast.service';
-import { pdfAImagenes, dataUrlABlob } from '../../../../../shared/utils/pdf-a-imagenes.util';
+import { pdfAImagenes, dataUrlABlob, renderPaginaPdf } from '../../../../../shared/utils/pdf-a-imagenes.util';
+import { displayVehiculoCompleto } from '../../../../../shared/utils/vehiculo-display.util';
 import { humanizeError } from '../../../../../shared/utils/friendly-error.util';
 import { Icon } from '../../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { AsignarDocumentoPanel, FilaParaAsignar } from './asignar-documento-panel/asignar-documento-panel';
 
 /** DB3 — una fila de la tabla de revisión (página leída + decisión humana). */
 interface FilaRevision extends PaginaEmparejada {
@@ -22,9 +24,15 @@ interface FilaRevision extends PaginaEmparejada {
   vehiculoElegido: string | null; // decisión final (puede venir del match o del selector)
   thumb: string | null; // PNG dataURL de la página
   resultado?: ResultadoAplicar | null;
+  /** DE2/DE-05 — reverso emparejado por posición (pagina = anverso+1); null si no tiene o es huérfano. */
+  reversoThumb?: string | null;
+  reversoPagina?: number | null;
 }
 
-const TIPOS_APLICABLES = new Set<TipoDocumentoFlota>(['seguro', 'matricula', 'marbete_dgii']);
+// DE2 — 'reverso' se vuelve aplicable: tras emparejar() por posición (ver
+// emparejarReversos()), cualquier fila 'reverso' que SIGA en la tabla es
+// huérfana (la emparejada desaparece de la lista) y solo guarda su imagen.
+const TIPOS_APLICABLES = new Set<TipoDocumentoFlota>(['seguro', 'matricula', 'marbete_dgii', 'reverso']);
 
 /**
  * DB3 (Ronda DB) — Flota › Vehículos › Cargar documentos: sube el PDF de los
@@ -37,7 +45,7 @@ const TIPOS_APLICABLES = new Set<TipoDocumentoFlota>(['seguro', 'matricula', 'ma
   templateUrl: './cargar-documentos.html',
   styleUrl: './cargar-documentos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Icon, TranslatePipe],
+  imports: [RouterLink, Icon, TranslatePipe, AsignarDocumentoPanel],
 })
 export class FlotaCargarDocumentos implements OnInit {
   private lector = inject(FlotaDocumentosLectorService);
@@ -54,6 +62,29 @@ export class FlotaCargarDocumentos implements OnInit {
   private vehiculoFijo: string | null = null;
   nombreArchivo = signal('');
   resultados = signal<ResultadoAplicar[]>([]);
+
+  // DE1 (Ronda DE) — panel «Asignar…»: índice de la fila abierta + buffer del PDF
+  // en memoria (para el visor a demanda, DE-03; null si el lote es de fotos).
+  panelAbiertoIndex = signal<number | null>(null);
+  private pdfBuffer: ArrayBuffer | null = null;
+  panelFila = computed<FilaParaAsignar | null>(() => {
+    const i = this.panelAbiertoIndex();
+    return i === null ? null : (this.filas()[i] ?? null);
+  });
+  /** F2§4 — avisa (no bloquea) si el vehículo ya tiene otro doc del MISMO tipo en este lote. */
+  vehiculosConDocEnLotePanel = computed<Set<string>>(() => {
+    const actual = this.panelFila();
+    if (!actual) return new Set();
+    return new Set(
+      this.filas()
+        .filter((f) => f.tipo === actual.tipo && f.vehiculoElegido && f !== actual)
+        .map((f) => f.vehiculoElegido as string),
+    );
+  });
+  renderGrandeFn = (pagina: number): Promise<string> => {
+    if (!this.pdfBuffer) return Promise.resolve(this.filas().find((f) => f.pagina === pagina)?.thumb ?? '');
+    return renderPaginaPdf(this.pdfBuffer.slice(0), pagina, 2);
+  };
 
   /** Aplicar = admin o flota elevada (jefe_flota/logistica); el RPC lo re-valida. */
   puedeAplicar = computed(() =>
@@ -108,9 +139,11 @@ export class FlotaCargarDocumentos implements OnInit {
       let thumbs: string[];
       if (esPdf) {
         const buf = await lista[0].arrayBuffer();
+        this.pdfBuffer = buf;
         archivosEdge = [{ data: this.aBase64(buf), mime: 'application/pdf' }];
         thumbs = (await pdfAImagenes(buf.slice(0))).map((p) => p.dataUrl);
       } else {
+        this.pdfBuffer = null;
         const bufs = await Promise.all(lista.map((f) => f.arrayBuffer()));
         archivosEdge = bufs.map((b, i) => ({ data: this.aBase64(b), mime: lista[i].type }));
         thumbs = await Promise.all(lista.map((f) => this.aDataUrl(f)));
@@ -120,16 +153,36 @@ export class FlotaCargarDocumentos implements OnInit {
         this.toast.error('Algunas páginas no se pudieron leer', `${omitidas} página(s) no se leyeron — el servicio tardó demasiado o falló. Revisa el resto y vuelve a intentar con esas páginas si hace falta.`);
       }
       const emparejadas = await this.lector.emparejar(paginas);
-      this.filas.set(emparejadas.map((p) => {
-        const auto = (p.match === 'exacta' || p.match === 'vin') ? (p.vehiculo_id ?? null) : null;
-        const elegido = auto ?? (this.vehiculoFijo && p.match === 'sin_vehiculo' && TIPOS_APLICABLES.has(p.tipo) ? this.vehiculoFijo : null);
-        return {
-          ...p,
-          sel: TIPOS_APLICABLES.has(p.tipo) && !!elegido,
-          vehiculoElegido: elegido,
-          thumb: thumbs[p.pagina - 1] ?? null,
-        };
-      }));
+
+      // DE2/DE-05 — el reverso va SIEMPRE en la página inmediatamente después de
+      // su anverso en el mismo archivo. Se empareja aquí (el cliente ve el orden
+      // real del lote) y desaparece de la tabla; viaja con su anverso.
+      const porPagina = new Map(emparejadas.map((p) => [p.pagina, p] as const));
+      const reversoPorAnverso = new Map<number, PaginaEmparejada>();
+      for (const p of emparejadas) {
+        if (p.tipo !== 'reverso') continue;
+        const anv = porPagina.get(p.pagina - 1);
+        if (anv && anv.tipo !== 'reverso' && anv.tipo !== 'otro') reversoPorAnverso.set(anv.pagina, p);
+      }
+      const paginasReversoEmparejado = new Set([...reversoPorAnverso.values()].map((r) => r.pagina));
+
+      this.filas.set(
+        emparejadas
+          .filter((p) => !paginasReversoEmparejado.has(p.pagina))
+          .map((p) => {
+            const auto = (p.match === 'exacta' || p.match === 'vin') ? (p.vehiculo_id ?? null) : null;
+            const elegido = auto ?? (this.vehiculoFijo && p.match === 'sin_vehiculo' && TIPOS_APLICABLES.has(p.tipo) ? this.vehiculoFijo : null);
+            const reverso = reversoPorAnverso.get(p.pagina);
+            return {
+              ...p,
+              sel: TIPOS_APLICABLES.has(p.tipo) && !!elegido,
+              vehiculoElegido: elegido,
+              thumb: thumbs[p.pagina - 1] ?? null,
+              reversoThumb: reverso ? (thumbs[reverso.pagina - 1] ?? null) : null,
+              reversoPagina: reverso?.pagina ?? null,
+            };
+          }),
+      );
       this.paso.set('revision');
     } catch (e) {
       this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudo leer el documento.');
@@ -147,6 +200,28 @@ export class FlotaCargarDocumentos implements OnInit {
   }
 
   esAplicable(f: FilaRevision): boolean { return TIPOS_APLICABLES.has(f.tipo); }
+
+  // ── DE1 (Ronda DE) — panel «Asignar…» ──────────────────────────────────────
+  abrirPanel(i: number) {
+    if (this.paso() !== 'revision') return;
+    this.panelAbiertoIndex.set(i);
+  }
+  cerrarPanel() {
+    this.panelAbiertoIndex.set(null);
+  }
+  asignarDesdePanel(vehiculoId: string) {
+    const i = this.panelAbiertoIndex();
+    if (i === null) return;
+    this.elegirVehiculo(i, vehiculoId);
+    this.cerrarPanel();
+  }
+  /** «Este documento no es de la flota»: deja la fila sin elegir y marcada para omitirse. */
+  omitirDesdePanel() {
+    const i = this.panelAbiertoIndex();
+    if (i === null) return;
+    this.filas.update((fs) => fs.map((f, k) => (k === i ? { ...f, vehiculoElegido: null, sel: false } : f)));
+    this.cerrarPanel();
+  }
 
   tipoLabel(t: TipoDocumentoFlota): string {
     return { seguro: 'Seguro', matricula: 'Matrícula', marbete_dgii: 'Marbete DGII', licencia: 'Licencia', otro: 'Otro', reverso: 'Reverso' }[t];
@@ -176,7 +251,11 @@ export class FlotaCargarDocumentos implements OnInit {
   }
 
   displayVehiculo(v: Vehiculo): string {
-    return v.alias ? `${v.alias} · ${v.placa ?? 'sin placa'}` : (v.placa ?? 'sin placa');
+    return displayVehiculoCompleto(v);
+  }
+
+  vehiculoPorId(id: string): Vehiculo | undefined {
+    return this.vehiculos().find((v) => v.id === id);
   }
 
   // ── Paso 3: aplicar ─────────────────────────────────────────────────────────
@@ -194,11 +273,20 @@ export class FlotaCargarDocumentos implements OnInit {
             imagenPath = await this.lector.subirImagenPagina(f.vehiculoElegido as string, f.tipo, dataUrlABlob(f.thumb));
           } catch { /* sin imagen igual se aplican los campos */ }
         }
+        // DE2/DE-05 — el reverso emparejado sube aparte y se referencia en la
+        // misma fila del anverso (el RPC lo guarda como segundo documento).
+        let reversoPath: string | null = null;
+        if (f.reversoThumb) {
+          try {
+            reversoPath = await this.lector.subirImagenPagina(f.vehiculoElegido as string, 'reverso', dataUrlABlob(f.reversoThumb));
+          } catch { /* sin reverso igual se aplica el anverso */ }
+        }
         filas.push({
           vehiculo_id: f.vehiculoElegido as string,
           tipo: f.tipo as FilaAplicar['tipo'],
           campos: f.campos,
           imagen_path: imagenPath,
+          reverso_imagen_path: reversoPath,
           pagina: f.pagina,
         });
       }
@@ -220,6 +308,8 @@ export class FlotaCargarDocumentos implements OnInit {
     this.filas.set([]);
     this.resultados.set([]);
     this.error.set('');
+    this.pdfBuffer = null;
+    this.panelAbiertoIndex.set(null);
   }
 
   private aBase64(buf: ArrayBuffer): string {

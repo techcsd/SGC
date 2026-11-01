@@ -19,6 +19,7 @@ sin markdown. Formato EXACTO:
     {
       "pagina": number,            // 1-based, en el orden recibido
       "tipo": "seguro"|"matricula"|"marbete_dgii"|"licencia"|"otro"|"reverso",
+      "placa_oculta": boolean,     // true si la placa está tapada/censurada (ver regla abajo)
       "campos": {
         "poliza": string|null,            // número de póliza (seguro)
         "aseguradora": string|null,       // p. ej. "SURA"
@@ -29,6 +30,8 @@ sin markdown. Formato EXACTO:
         "marca": string|null,
         "modelo": string|null,
         "anio": number|null,
+        "color": string|null,             // color del vehículo si se ve en el documento
+        "tipo_vehiculo": string|null,     // p. ej. "CAMION", "JEEP/JEEPETA" tal como aparece
         "numero_matricula": string|null,  // solo matrícula
         "marbete_numero": string|null     // solo marbete DGII
       },
@@ -38,10 +41,14 @@ sin markdown. Formato EXACTO:
 }
 Reglas:
 - Una página que solo trae instrucciones ("en caso de accidente…", teléfonos, pasos) es el
-  REVERSO de un documento: tipo "reverso", campos en null.
+  REVERSO de un documento: tipo "reverso". Si ADEMÁS trae placa/póliza/chasis IMPRESOS y
+  legibles de ese vehículo específico, inclúyelos en "campos" (el resto null); si solo trae
+  instrucciones genéricas o un QR de la aseguradora (no del vehículo), todos los campos null.
 - En los certificados de seguro dominicanos, "Registro" es la PLACA del vehículo.
 - Copia la placa EXACTAMENTE como se lee, carácter por carácter — NO la "corrijas" ni la
   completes aunque parezca un error; el sistema la valida contra la flota real.
+- Placa tapada/censurada (se ve como "XXXXXXXX", asteriscos, o parcialmente oculta a propósito):
+  "placa_oculta": true y "placa": null — NO inventes ni completes los caracteres tapados.
 - Fechas con hora ("28/10/2026 03:10 PM") → solo la fecha, formato YYYY-MM-DD.
 - Si un campo no se ve o no aplica, null y sin entrada en confianza.
 - NO inventes datos. Si una página es ilegible, tipo "otro" con campos null.`;
@@ -85,6 +92,7 @@ export function parsearPaginas(texto: string, offset = 0): Any[] | null {
     tipo: TIPOS_PAGINA.includes(p?.tipo) ? p.tipo : "otro",
     campos: typeof p?.campos === "object" && p.campos ? p.campos : {},
     confianza: typeof p?.confianza === "object" && p.confianza ? p.confianza : {},
+    placa_oculta: p?.placa_oculta === true,
   }));
 }
 

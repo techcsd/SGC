@@ -157,7 +157,7 @@
 | inventario/conduce-externo-ficha | - | 59 | 2 | 57 | 3% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |
-| flota/vehiculos | - | 546 | 44 | 502 | 8% |
+| flota/vehiculos | - | 589 | 66 | 523 | 11% |
 | app-movil | - | 55 | 8 | 47 | 15% |
 | proyectos/personal | - | 415 | 74 | 341 | 18% |
 | auth | - | 71 | 15 | 56 | 21% |
@@ -174,6 +174,7 @@
 | ingenieria/pagos | - | 63 | 37 | 26 | 59% |
 | admin/vault | - | 103 | 62 | 41 | 60% |
 | tecnologia/envios-automaticos | - | 33 | 20 | 13 | 61% |
+| flota/transferencias | - | 16 | 10 | 6 | 63% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | admin/claude | - | 35 | 26 | 9 | 74% |

@@ -24,7 +24,11 @@ export class NotificacionesService {
     const checks: Promise<void>[] = [];
 
     if (this.userService.hasModulo('inventario') || isAdmin) {
-      checks.push(this.loadCount('solicitudes_material', 'pendiente', 'inventario'));
+      // DE3/DE-07 (Ronda DE) — el badge padre de Inventario viene de la MISMA
+      // fuente que usa la app (sgc.badges_modulos_app()): conduces por recibir
+      // míos + requisiciones que me toca despachar. Ya NO es un conteo plano
+      // de "despachado" sin filtrar (esa era la causa real de DE3).
+      checks.push(this.loadBadgeInventario());
       // AU4 — material no catalogado pendiente de crear/vincular.
       checks.push(this.loadMaterialNoCatalogado());
       // AY13 — conduces por implementar (≥1 item libre sin vincular).
@@ -220,6 +224,14 @@ export class NotificacionesService {
   private async loadProductosPorDarDeAlta(): Promise<void> {
     const { data } = await this.supabase.client.rpc('productos_por_dar_de_alta_count');
     this._pendingBySubmodulo.update((m) => ({ ...m, 'compras.productos_pendientes': (data as number) ?? 0 }));
+  }
+
+  /** DE3/DE-07 (Ronda DE) — fuente única del badge de Inventario (ver F4,
+   *  docs/de-f0-verificacion.md). 0 filas = sin pendientes = sin badge. */
+  private async loadBadgeInventario(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('badges_modulos_app');
+    const fila = ((data ?? []) as { modulo: string; total: number }[]).find((f) => f.modulo === 'inventario');
+    this._pendingByModulo.update((m) => ({ ...m, inventario: fila?.total ?? 0 }));
   }
 
   /** AS7 — requisiciones pendientes visibles (RLS) → badge en la bandeja global. */
