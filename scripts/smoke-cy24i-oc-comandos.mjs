@@ -1,5 +1,5 @@
 // CY24 Fase C -- smoke transaccional (ROLLBACK) de sgc.oc_para_comando +
-// sgc.registrar_publicacion_oc (identidad odoo_id fijada UNA sola vez).
+// sgc.vincular_oc_odoo (identidad odoo_id fijada UNA sola vez).
 import './lib/load-env.mjs';
 import { resolverEnv, dbQuery } from './lib/entorno.mjs';
 
@@ -63,51 +63,26 @@ begin
     if sqlerrm like '%prueba%' then raise notice 'OK: una OC es_prueba nunca se toca en Odoo (D-16/E10)'; else raise; end if;
   end;
 
-  -- 3. Simula una publicación exitosa (lo que haría compras.crear vía registrar_publicacion_oc).
-  perform sgc.registrar_publicacion_oc(v_orden_id, 'publicada', 'draft', 'P99999-MOCK', null, null, v_instancia_id, 999002);
+  -- 3. Simula una publicación exitosa (lo que hace compras.crear vía vincular_oc_odoo).
+  perform sgc.vincular_oc_odoo(v_orden_id, v_instancia_id, 999002);
   if (select odoo_id from sgc.ordenes_compra where id = v_orden_id) <> 999002 then
-    raise exception 'FALLO: registrar_publicacion_oc no fijó odoo_id';
+    raise exception 'FALLO: vincular_oc_odoo no fijó odoo_id';
   end if;
 
-  -- 4. Identidad se fija UNA sola vez: un segundo registro con odoo_id distinto NO la pisa.
-  perform sgc.registrar_publicacion_oc(v_orden_id, 'publicada', null, null, null, null, v_instancia_id, 1);
+  -- 4. Identidad se fija UNA sola vez: un segundo vínculo con odoo_id distinto NO la pisa.
+  perform sgc.vincular_oc_odoo(v_orden_id, v_instancia_id, 1);
   if (select odoo_id from sgc.ordenes_compra where id = v_orden_id) <> 999002 then
-    raise exception 'FALLO: la identidad odoo_id se sobrescribió en un segundo registro';
+    raise exception 'FALLO: la identidad odoo_id se sobrescribió en un segundo vínculo';
   end if;
   raise notice 'OK: odoo_instancia_id/odoo_id se fijan una sola vez (identidad protegida)';
 
-  -- 5. Ya publicada -> oc_para_comando confirmar ensambla correctamente.
+  -- 5. Ya vinculada -> oc_para_comando confirmar/cancelar ensambla correctamente. El estado
+  --    (confirmada/cancelada/por aprobar/recibida) NO vive en SGC: lo valida el adaptador contra Odoo.
   v_resultado := sgc.oc_para_comando(v_orden_id, 'confirmar');
   if (v_resultado->>'odoo_id')::bigint <> 999002 then raise exception 'FALLO: oc_para_comando no devolvió el odoo_id correcto'; end if;
   raise notice 'OK: oc_para_comando(confirmar) ensambla correctamente tras publicar: %', v_resultado;
-
-  -- 6. Confirma (simulando el resultado del edge) y verifica que confirmar de nuevo se rechaza.
-  perform sgc.registrar_publicacion_oc(v_orden_id, 'confirmada', 'purchase');
-  begin
-    perform sgc.oc_para_comando(v_orden_id, 'confirmar');
-    raise exception 'FALLO: confirmó una OC ya confirmada';
-  exception when others then
-    if sqlerrm like '%ya está confirmada%' then raise notice 'OK: una OC ya confirmada no se vuelve a confirmar'; else raise; end if;
-  end;
-
-  -- 7. Cancelar una confirmada SÍ es válido (Odoo permite cancelar una purchase order confirmada).
   v_resultado := sgc.oc_para_comando(v_orden_id, 'cancelar');
-  raise notice 'OK: cancelar una OC confirmada se permite: %', v_resultado;
-
-  -- 8. Tras cancelar, ni confirmar ni cancelar de nuevo se permiten.
-  perform sgc.registrar_publicacion_oc(v_orden_id, 'cancelada', 'cancel');
-  begin
-    perform sgc.oc_para_comando(v_orden_id, 'cancelar');
-    raise exception 'FALLO: canceló una OC ya cancelada';
-  exception when others then
-    if sqlerrm like '%ya está cancelada%' then raise notice 'OK: una OC ya cancelada no se vuelve a cancelar'; else raise; end if;
-  end;
-  begin
-    perform sgc.oc_para_comando(v_orden_id, 'confirmar');
-    raise exception 'FALLO: confirmó una OC ya cancelada';
-  exception when others then
-    if sqlerrm like '%ya está cancelada%' then raise notice 'OK: una OC cancelada tampoco se puede confirmar'; else raise; end if;
-  end;
+  raise notice 'OK: oc_para_comando(cancelar) ensambla correctamente: %', v_resultado;
 
   reset role;
   raise exception 'ROLLBACK_SMOKE_OK';
@@ -119,7 +94,7 @@ rollback;
 
 try {
   await dbQuery(env, sql);
-  console.log('✓ CY24 Fase C: oc_para_comando + identidad odoo_id de registrar_publicacion_oc verificado (ROLLBACK limpio)');
+  console.log('✓ CY24 Fase C: oc_para_comando + identidad odoo_id de vincular_oc_odoo verificado (ROLLBACK limpio)');
 } catch (e) {
   console.log('✗ CY24i smoke falló:', e.message.slice(0, 1500));
   process.exit(1);

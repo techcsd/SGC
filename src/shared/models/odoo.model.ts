@@ -72,10 +72,10 @@ export interface OdooStockFiltro {
 }
 
 /** Acciones permitidas del gateway (espejo de la allowlist del servidor). */
-export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra';
+export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra' | 'compras.obtener_varias';
 
 /** CY24 Fase C — acciones de ESCRITURA del gateway (módulo `compras`; el cliente solo manda `orden_id`, D5). */
-export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar' | 'compras.refrescar';
+export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar';
 
 /** Resultado de una escritura de OC; `repetido` = el comando ya estaba completado (idempotencia, D3). */
 export interface OdooComandoOcResultado {
@@ -85,9 +85,20 @@ export interface OdooComandoOcResultado {
   estado_odoo: string;
   /** Total que armó Odoo (solo informativo: SGC no lo calcula ni lo compara). */
   total?: number | null;
-  /** compras.refrescar: Odoo ya tiene una recepción realizada de esta OC. */
-  recibida_en_odoo?: boolean;
   repetido: boolean;
+}
+
+/** Estado VIVO de una OC leído de Odoo (`compras.obtener_varias`). SGC no lo guarda: se pide cada vez. */
+export interface OdooOcVivo {
+  id: OdooId;
+  nombre: string;
+  /** state de purchase.order: draft | sent | to approve | purchase | done | cancel. */
+  estado: string;
+  total: number | null;
+  moneda: string | null;
+  recibida_en_odoo: boolean;
+  recepciones_hechas: number;
+  recepciones_total: number;
 }
 
 /** ¿Es un ID de Odoo válido? (entero positivo seguro). */

@@ -18,7 +18,7 @@ import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
 import { EntradasService } from '../../../../shared/services/entradas.service';
 import { OrdenCompraItem, OrdenEstado } from '../../../../shared/models/orden-compra.model';
-import { OdooOrdenCompra, OdooSyncEstado } from '../../../../shared/models/odoo-orden-compra.model';
+import { OdooOrdenCompra, estadoOdooLabel } from '../../../../shared/models/odoo-orden-compra.model';
 import { EntradaInventario } from '../../../../shared/models/entrada.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
@@ -108,6 +108,8 @@ export class OrdenesOdoo implements OnInit {
   esPruebaOrden = signal(false);
   /** Id de la OC que se está publicando en Odoo (deshabilita su botón). */
   publicando = signal<string | null>(null);
+  /** Último error al publicar, por OC (no se guarda en la BD: se muestra y se reintenta con el mismo botón). */
+  errorPublicacion = signal<Record<string, string>>({});
 
 
   // Alta inline de proveedor
@@ -645,10 +647,13 @@ export class OrdenesOdoo implements OnInit {
     this.publicando.set(orden.id);
     try {
       const actualizada = await this.ordenesService.publicar(orden.id);
+      this.errorPublicacion.update(({ [orden.id]: _, ...resto }) => resto);
       if (avisar) this.toast.success('Orden publicada en Odoo');
       return actualizada;
     } catch (e: unknown) {
-      this.toast.error('No se pudo publicar en Odoo', e instanceof Error ? e.message : undefined);
+      const msg = e instanceof Error ? e.message : 'No se pudo publicar en Odoo.';
+      this.errorPublicacion.update((m) => ({ ...m, [orden.id]: msg }));
+      this.toast.error('No se pudo publicar en Odoo', msg);
       return this.ordenesService.getById(orden.id).catch(() => orden);
     } finally {
       this.publicando.set(null);
@@ -665,24 +670,18 @@ export class OrdenesOdoo implements OnInit {
     } catch { /* el siguiente refresco lo corrige */ }
   }
 
-  syncLabel(e: OdooSyncEstado | null | undefined): string {
-    switch (e) {
-      case 'pendiente': return 'Pendiente de publicar';
-      case 'publicada': return 'Publicada en Odoo';
-      case 'confirmada': return 'Confirmada en Odoo';
-      case 'cancelada': return 'Cancelada en Odoo';
-      case 'por_aprobar': return 'Pendiente de aprobación en Odoo';
-      case 'error': return 'Error con Odoo — puedes reintentar';
-      case 'conflicto': return 'Conflicto con Odoo';
-      default: return 'Solo SGC';
-    }
+  /** Estado de la OC en Odoo, leído en vivo (no se guarda en SGC). */
+  odooLabel(o: OdooOrdenCompra): string {
+    return estadoOdooLabel(o);
   }
 
-  syncBadgeClass(e: OdooSyncEstado | null | undefined): string {
-    switch (e) {
-      case 'publicada': case 'confirmada': return 'sgc-badge sgc-badge--success';
-      case 'pendiente': case 'por_aprobar': return 'sgc-badge sgc-badge--warning';
-      case 'error': case 'conflicto': case 'cancelada': return 'sgc-badge sgc-badge--danger';
+  odooBadgeClass(o: OdooOrdenCompra): string {
+    if (!o.odoo_id) return 'sgc-badge sgc-badge--neutral';
+    if (o.odoo_consulta === 'error') return 'sgc-badge sgc-badge--danger';
+    switch (o.odoo_vivo?.estado) {
+      case 'purchase': case 'done': return 'sgc-badge sgc-badge--success';
+      case 'draft': case 'sent': case 'to approve': return 'sgc-badge sgc-badge--warning';
+      case 'cancel': return 'sgc-badge sgc-badge--danger';
       default: return 'sgc-badge sgc-badge--neutral';
     }
   }
@@ -856,19 +855,13 @@ export class OrdenesOdoo implements OnInit {
     if (this.detailOrden()?.id === id) this.detailOrden.update((o) => (o ? { ...o, estado: prev } : null));
   }
 
-  /** Relee el estado en Odoo (aprobación, recepción) y lo refleja en SGC. */
+  /** Vuelve a leer la OC de Odoo (aprobación, recepción, cancelación hechas allá). */
   async actualizarDesdeOdoo(orden: OdooOrdenCompra): Promise<void> {
     this.publicando.set(orden.id);
     try {
-      const fresca = await this.ordenesService.refrescarDesdeOdoo(orden.id);
-      if (fresca.odoo_sync_estado === 'confirmada' && fresca.estado === 'borrador') {
-        this.toast.success('Aprobada en Odoo', 'Ya puedes aprobarla en SGC.');
-      }
-    } catch (e: unknown) {
-      this.toast.error('No se pudo consultar Odoo', e instanceof Error ? e.message : undefined);
+      await this.refrescarOrden(orden.id);
     } finally {
       this.publicando.set(null);
-      await this.refrescarOrden(orden.id);
     }
   }
 

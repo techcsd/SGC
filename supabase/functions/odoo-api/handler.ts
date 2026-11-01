@@ -9,7 +9,7 @@ import type { LimitePorUsuario } from "../_shared/odoo-limite.ts";
 import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
-import { ACCIONES, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
+import { ACCIONES, ACCIONES_SIN_CACHE, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
 import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresOc, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
@@ -118,7 +118,10 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
   if (typeof accion !== "string" || !(esEscritura || esLectura)) {
     return json({ error: "Acción no permitida." }, 400);
   }
-  if (!(cap.es_admin || cap.modulos.includes(esEscritura ? MODULO_REQUERIDO_ESCRITURA : MODULO_REQUERIDO))) {
+  // Las lecturas de OC (`compras.*`) las ve también quien trabaja en Compras, no solo Inventario.
+  const modulosPermitidos = esEscritura ? [MODULO_REQUERIDO_ESCRITURA]
+    : accion.startsWith("compras.") ? [MODULO_REQUERIDO_ESCRITURA, MODULO_REQUERIDO] : [MODULO_REQUERIDO];
+  if (!(cap.es_admin || modulosPermitidos.some((m) => cap.modulos.includes(m)))) {
     return json({ error: "Tu rol no tiene acceso a esta información." }, 403);
   }
   const { refrescar, ...params } = rawParams && typeof rawParams === "object" && !Array.isArray(rawParams)
@@ -159,6 +162,11 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
       ejecutar(o: OdooClient, p: unknown): Promise<unknown>;
     };
     const norm = def.normalizar(params); // valida ANTES de tocar caché u Odoo
+    // Estado vivo (OCs): siempre a Odoo, sin caché SWR ni single-flight.
+    if (ACCIONES_SIN_CACHE.includes(accion as Accion)) {
+      const data = await conResiliencia(deps, () => def.ejecutar(deps.odoo(), norm));
+      return json({ data, consultado_en: new Date().toISOString(), cache: "miss" });
+    }
     const clave = `${accion}|${JSON.stringify(norm)}`;
     const { entrada, origen } = await deps.caches[accion as Accion].obtener(
       clave, () => conResiliencia(deps, () => def.ejecutar(deps.odoo(), norm)), refrescar === true,

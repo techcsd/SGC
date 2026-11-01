@@ -144,7 +144,7 @@
               <td class="text-muted">{{ orden.destino === 'oficina' ? 'Oficina' : (orden.proyecto?.nombre ?? '—') }}</td>
               <td>
                 <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
-                <span [class]="syncBadgeClass(orden.odoo_sync_estado)">{{ syncLabel(orden.odoo_sync_estado) }}</span>
+                <span [class]="odooBadgeClass(orden)">{{ odooLabel(orden) }}</span>
               </td>
               <td>{{ formatFecha(orden.fecha) }}</td>
               <td>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</td>
@@ -463,22 +463,25 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Odoo</span>
-          <span [class]="syncBadgeClass(orden.odoo_sync_estado)">{{ syncLabel(orden.odoo_sync_estado) }}</span>
-          @if (orden.odoo_nombre) {
-            <span class="detail-field__value">{{ orden.odoo_nombre }}@if (orden.odoo_state) { · {{ orden.odoo_state }} }</span>
+          <span [class]="odooBadgeClass(orden)">{{ odooLabel(orden) }}</span>
+          @if (orden.odoo_vivo; as v) {
+            <span class="detail-field__value">{{ v.nombre }}</span>
+            @if (v.total != null) {
+              <span class="detail-field__value">Total en Odoo: {{ v.total | number: '1.2-2' }} {{ v.moneda }}</span>
+            }
+            @if (v.recepciones_total > 0) {
+              <span class="detail-field__value">Recepciones en Odoo: {{ v.recepciones_hechas }}/{{ v.recepciones_total }}</span>
+            }
           }
-          @if (orden.odoo_total != null) {
-            <span class="detail-field__value">Total en Odoo: {{ orden.odoo_total | number: '1.2-2' }}</span>
+          @if (errorPublicacion()[orden.id]; as err) {
+            <span class="detail-field__value">{{ err }}</span>
           }
-          @if (orden.odoo_sync_error) {
-            <span class="detail-field__value">{{ orden.odoo_sync_error }}</span>
-          }
-          @if (!orden.es_prueba && (!orden.odoo_sync_estado || orden.odoo_sync_estado === 'pendiente' || orden.odoo_sync_estado === 'error')) {
+          @if (!orden.es_prueba && !orden.odoo_id) {
             <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="publicando() === orden.id" (click)="publicarEnOdoo(orden)">
-              {{ publicando() === orden.id ? 'Publicando…' : (orden.odoo_sync_estado === 'error' ? 'Reintentar' : 'Publicar en Odoo') }}
+              {{ publicando() === orden.id ? 'Publicando…' : (errorPublicacion()[orden.id] ? 'Reintentar' : 'Publicar en Odoo') }}
             </button>
           }
-          @if (!orden.es_prueba && orden.odoo_id && (orden.odoo_sync_estado === 'por_aprobar' || orden.odoo_sync_estado === 'publicada')) {
+          @if (orden.odoo_id) {
             <button class="sgc-btn sgc-btn--ghost" type="button" [disabled]="publicando() === orden.id" (click)="actualizarDesdeOdoo(orden)">
               {{ publicando() === orden.id ? 'Consultando…' : 'Actualizar desde Odoo' }}
             </button>

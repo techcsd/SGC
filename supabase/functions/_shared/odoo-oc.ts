@@ -5,7 +5,7 @@
 //    escrita de Xaviel no se escribe en el Odoo real).
 //  - REAL (`crearAdaptadoresOcReales`): purchase.order vía `OdooClient.call`
 //    (create/button_confirm/button_cancel; nunca reintenta, ver odoo-client.ts).
-// El total y los impuestos los arma Odoo; para SGC son solo informativos (lectura).
+// El total y los impuestos los arma Odoo; SGC no los guarda (solo el vínculo instancia+odoo_id): se leen en vivo.
 // `seleccionarAdaptadoresOc` elige uno: REAL solo si ODOO_ESCRITURA_HABILITADA=true
 // en los secrets del edge (junto con ODOO_URL/DB/USER/API_KEY). Apuntar primero
 // a la instancia de PRUEBAS (D-08); el flag es el interruptor de escritura.
@@ -21,7 +21,7 @@ export interface ResultadoPublicacionOc {
 
 /** Adaptador hacia Odoo por acción: recibe lo que devuelven oc_para_publicar / oc_para_comando. */
 export type AdaptadorOc = (paraComando: Record<string, unknown>) => Promise<ResultadoPublicacionOc>;
-export interface AdaptadoresOc { crear: AdaptadorOc; confirmar: AdaptadorOc; cancelar: AdaptadorOc; refrescar: AdaptadorOc }
+export interface AdaptadoresOc { crear: AdaptadorOc; confirmar: AdaptadorOc; cancelar: AdaptadorOc }
 
 /**
  * MOCK -- no toca Odoo. Simula un resultado determinista a partir de
@@ -61,16 +61,6 @@ export async function cancelarOcMock(paraComando: Record<string, unknown>): Prom
   return {
     estado: "completado",
     resultado: { modelo: "purchase.order", odoo_id: paraComando.odoo_id, estado_odoo: "cancel", nota: "MOCK -- no se llamó a Odoo real (D-08)" },
-  };
-}
-
-/** Refresco MOCK: devuelve el estado de Odoo equivalente al que SGC ya tiene (no inventa cambios). */
-export async function refrescarOcMock(paraComando: Record<string, unknown>): Promise<ResultadoPublicacionOc> {
-  const porSync: Record<string, string> = { por_aprobar: "to approve", confirmada: "purchase", cancelada: "cancel" };
-  const estado = porSync[String(paraComando.odoo_sync_estado_actual ?? "")] ?? "draft";
-  return {
-    estado: "completado",
-    resultado: { modelo: "purchase.order", odoo_id: paraComando.odoo_id, estado_odoo: estado, recibida_en_odoo: false, nota: "MOCK -- no se llamó a Odoo real (D-08)" },
   };
 }
 
@@ -243,20 +233,9 @@ function cambiarEstadoReal(odoo: () => OdooClient, accion: AccionBoton): Adaptad
   });
 }
 
-/** Refresco (solo lectura): estado actual de la OC en Odoo y si ya tiene una recepción realizada. */
-export function refrescarOcReal(odoo: () => OdooClient): AdaptadorOc {
-  return (p) => conRechazoComoError(async () => {
-    if (!esId(p.odoo_id)) return error("La orden todavía no tiene id de Odoo.");
-    const oc = await leerOc(odoo(), [["id", "=", p.odoo_id]]);
-    if (!oc) return error("La orden no existe en Odoo.", CODIGO_ESTADO_INVALIDO);
-    return resultadoOc(oc, { recibida_en_odoo: oc.recepciones.some((r) => r.estado === "done") });
-  });
-}
-
 export function crearAdaptadoresOcReales(odoo: () => OdooClient): AdaptadoresOc {
   return {
     crear: crearOcReal(odoo), confirmar: cambiarEstadoReal(odoo, "confirmar"), cancelar: cambiarEstadoReal(odoo, "cancelar"),
-    refrescar: refrescarOcReal(odoo),
   };
 }
 
@@ -267,7 +246,7 @@ export const escrituraOdooHabilitada = (get: (k: string) => string | undefined =
 export function seleccionarAdaptadoresOc(habilitada: boolean, odoo: () => OdooClient): AdaptadoresOc {
   return habilitada
     ? crearAdaptadoresOcReales(odoo)
-    : { crear: publicarOcMock, confirmar: confirmarOcMock, cancelar: cancelarOcMock, refrescar: refrescarOcMock };
+    : { crear: publicarOcMock, confirmar: confirmarOcMock, cancelar: cancelarOcMock };
 }
 
 /** Determinista a partir de una semilla de texto -- nunca Math.random en este runtime. */

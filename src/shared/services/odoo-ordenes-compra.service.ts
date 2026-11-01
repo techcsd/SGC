@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { OrdenCompraItem, OrdenEstado } from '../models/orden-compra.model';
 import { OdooOrdenCompra } from '../models/odoo-orden-compra.model';
-import { OdooProductoCompra } from '../models/odoo.model';
+import { OdooId, OdooProductoCompra } from '../models/odoo.model';
 import { OdooApiService } from './odoo-api.service';
 
 /** Camino Odoo (#24): espejo de OrdenesCompraService para OC publicadas en Odoo. */
@@ -22,6 +22,9 @@ export interface OdooOrdenCompraPayload {
   es_prueba?: boolean;
 }
 
+/** Máximo de ids por consulta a `compras.obtener_varias` (el gateway acepta 1..100). */
+const LOTE_CONSULTA_ODOO = 100;
+
 @Injectable({ providedIn: 'root' })
 export class OdooOrdenesCompraService {
   private supabase = inject(SupabaseService);
@@ -35,7 +38,29 @@ export class OdooOrdenesCompraService {
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as OdooOrdenCompra[];
+    return this.conEstadoOdoo((data ?? []) as unknown as OdooOrdenCompra[]);
+  }
+
+  /**
+   * El estado de la OC NO vive en SGC: se lee de Odoo en cada carga (una consulta por lote, sin caché).
+   * Si Odoo no responde, `odoo_consulta='error'` y sin datos: nunca un estado viejo disfrazado de fresco.
+   */
+  private async conEstadoOdoo(ordenes: OdooOrdenCompra[]): Promise<OdooOrdenCompra[]> {
+    const ids = [...new Set(ordenes.map((o) => o.odoo_id).filter((id): id is OdooId => !!id))];
+    if (ids.length === 0) return ordenes;
+    const vivas = new Map<OdooId, NonNullable<OdooOrdenCompra['odoo_vivo']>>();
+    try {
+      for (let i = 0; i < ids.length; i += LOTE_CONSULTA_ODOO) {
+        for (const v of await this.odoo.obtenerOrdenes(ids.slice(i, i + LOTE_CONSULTA_ODOO))) vivas.set(v.id, v);
+      }
+    } catch {
+      return ordenes.map((o) => (o.odoo_id ? { ...o, odoo_vivo: null, odoo_consulta: 'error' as const } : o));
+    }
+    return ordenes.map((o) => {
+      if (!o.odoo_id) return o;
+      const v = vivas.get(o.odoo_id);
+      return v ? { ...o, odoo_vivo: v, odoo_consulta: 'ok' as const } : { ...o, odoo_vivo: null, odoo_consulta: 'error' as const };
+    });
   }
 
   async getById(id: string): Promise<OdooOrdenCompra> {
@@ -47,7 +72,7 @@ export class OdooOrdenesCompraService {
       .single();
 
     if (error) throw new Error(error.message);
-    return data as unknown as OdooOrdenCompra;
+    return (await this.conEstadoOdoo([data as unknown as OdooOrdenCompra]))[0];
   }
 
   async create(
@@ -76,7 +101,7 @@ export class OdooOrdenesCompraService {
     return this.getById(ordenId as string);
   }
 
-  /** Publica la OC en Odoo (borrador + líneas). Idempotente en el servidor (D3); ante un fallo la OC queda en `error` y se reintenta con el mismo botón. */
+  /** Publica la OC en Odoo (borrador + líneas). Idempotente en el servidor (D3); un fallo se muestra al usuario y se reintenta con el mismo botón (idempotente). */
   async publicar(ordenId: string): Promise<OdooOrdenCompra> {
     await this.odoo.publicarOrden(ordenId);
     return this.getById(ordenId);
@@ -88,18 +113,18 @@ export class OdooOrdenesCompraService {
    * no se valida en Odoo durante el piloto). Transition validity is enforced server-side.
    * CT3c — pasar a "recibida" con reconciliación incompleta exige `motivo` (solo admin).
    */
-  async updateEstado(orden: Pick<OdooOrdenCompra, 'id' | 'odoo_sync_estado' | 'odoo_id'>, estado: OrdenEstado, motivo?: string | null): Promise<'aplicado' | 'por_aprobar'> {
-    // Con `error` y odoo_id la OC ya existe en Odoo (falló confirmar/cancelar): se permite reintentar la acción.
-    const enOdoo = ['publicada', 'por_aprobar', 'confirmada'].includes(orden.odoo_sync_estado ?? '')
-      || (orden.odoo_sync_estado === 'error' && !!orden.odoo_id);
+  async updateEstado(orden: Pick<OdooOrdenCompra, 'id' | 'odoo_id' | 'odoo_vivo'>, estado: OrdenEstado, motivo?: string | null): Promise<'aplicado' | 'por_aprobar'> {
+    const enOdoo = !!orden.odoo_id;
     if (estado === 'aprobada') {
       if (!enOdoo) throw new Error('Publica la orden en Odoo antes de aprobarla.');
-      if (orden.odoo_sync_estado !== 'confirmada') {
+      const actual = orden.odoo_vivo?.estado;
+      if (actual === 'to approve') return 'por_aprobar';
+      if (actual !== 'purchase' && actual !== 'done') {
         const r = await this.odoo.confirmarOrden(orden.id);
         // Odoo exige aprobación de un usuario autorizado: SGC espera, no avanza el estado local.
         if (r.estado_odoo === 'to approve') return 'por_aprobar';
       }
-    } else if (estado === 'cancelada' && enOdoo) {
+    } else if (estado === 'cancelada' && enOdoo && orden.odoo_vivo?.estado !== 'cancel') {
       await this.odoo.cancelarOrden(orden.id);
     }
     const { error } = await this.supabase.client
@@ -108,12 +133,6 @@ export class OdooOrdenesCompraService {
 
     if (error) throw new Error(error.message);
     return 'aplicado';
-  }
-
-  /** Relee el estado de la OC en Odoo (p. ej. para saber si ya aprobaron o recibieron). */
-  async refrescarDesdeOdoo(ordenId: string): Promise<OdooOrdenCompra> {
-    await this.odoo.refrescarOrden(ordenId);
-    return this.getById(ordenId);
   }
 
   /**
