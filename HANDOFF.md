@@ -1,6 +1,14 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DE (30-oct-2026) — Documentos de flota con IA, badges honestos, transferencias — EN `feature/de-ronda` (worktree `SGC-de-ronda`), **NO en `dev` ni `main`** — v1.206.0 construida
+## ✅ Ronda DE (30-oct a 01-nov-2026) — Documentos de flota con IA, badges honestos, transferencias — EN PRODUCCIÓN v1.206.0
+
+**Shipped:** PR #47 (`feature/de-ronda → dev`) + PR #48 (registro QA) mergeados; `release-check.mjs
+--env dev --version 1.206.0` en 7/7 PASS; PR #49 (`dev → main`) mergeado con OK explícito de Xaviel
+("merge #49 to prod") el 01-nov. Confirmado en prod: `sgc.app_versiones` registró 1.206.0 (vía el
+hook de postbuild) y Xaviel probó en `sgcconstructorasd.com` ("i tested it, it works good.") —
+`qa/release-1.206.0.md` tiene su OK real. Verificación propia (Claude Code) con el PDF real de
+MARBETES.pdf contra dev antes del merge: lectura por IA, reverso emparejado, placa tapada, VIN de
+respaldo, sugerencias, buscador y aviso de duplicado — todo funcionando (capturas en la sesión).
 
 **Numeración:** `CONTEXTO-ACTUALIZACION-62.md` (carpeta `imp 30102026`) llamaba a esta ronda
 "PROMPT-126/127", pero esos números ya los había gastado la ronda **DC** (WhatsApp Cloud API,
@@ -138,16 +146,15 @@ Xaviel (N1-N3, filas 349-352) → IDs DE1-DE4. Defaults DE-00…DE-12 aplicados 
   `release-notes.json` + `package.json` → **v1.206.0** (4 cambios estructurados). `ROLES.md` sin
   cambios (reusa `flotaElevadoGuard` existente, ningún gate nuevo).
 
-### ⚠️ NADA aplicado a `dev` ni `main` — todo vive en `feature/de-ronda` + proyecto dev de Supabase
-Las 4 migraciones SÍ están aplicadas y en el **ledger de dev** (regla 18, se puede promover
-directo): `2026-10-30-de1-sugerencias-documentos.sql`, `2026-10-30-de2-documentos-reverso.sql`,
-`2026-10-30-de3-badges-modulos.sql`, `2026-10-30-de4-transferencias.sql`. El edge
-`leer-documento-flota` está en v11 en dev. El código del front (worktree) **no se ha commiteado ni
-pusheado** — falta: commit en `feature/de-ronda`, push, PR `feature/de-ronda → dev`, prueba humana
-de Xaviel (subir un PDF real, revisar sugerencias/reverso, probar transferir con un chofer real), y
-solo entonces `node scripts/release-check.mjs --env dev --version 1.206.0` antes del PR `dev → main`
-(regla CP5). **Nada de esto se hizo sin que Xaviel lo pida explícitamente** (regla de autorización
-granular — commit/push es una acción con blast radius, se avisa antes).
+### Línea de tiempo del deploy (regla de autorización granular respetada paso a paso)
+Las 4 migraciones se aplicaron primero a dev (regla 18). El código del front se quedó sin
+commitear/pushear hasta que Xaviel dijo explícitamente "continue working do all the next steps and
+all the stuff": commit → push `feature/de-ronda` → PR #47 → merge a `dev` → PR #48 (registro QA) →
+`release-check.mjs` 7/7 PASS → PR #49 (`dev → main`) abierto **sin mergear** a la espera de un OK
+nombrado → Xaviel: *"merge #49 to prod"* → merge → confirmado en prod (`sgc.app_versiones` +
+`sgcconstructorasd.com` responde) → Xaviel probó en vivo y confirmó *"i tested it, it works good."*
+→ PR #50 cierra el registro QA con su OK real. Migraciones aplicadas y en el **ledger de dev y de
+prod** por objeto.
 
 ### Lo físico que solo Xaviel puede hacer (de CONTEXTO-62 §6)
 1. Confirmar con Misael a qué "Xaviel" transfirió y cuándo (para casar con la causa C3 ya probada).
