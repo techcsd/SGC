@@ -41,9 +41,13 @@ begin
   -- Se crea ANTES de los escenarios 1/2 para que su rechazo sea por "no publicada"/
   -- "es_prueba", no por "sin instancia habilitada" (chequeo previo en oc_para_comando).
   reset role;
-  insert into sgc.odoo_instancias (nombre, base_url, base_datos, entorno, habilitada)
-    values ('smoke-cy24i', 'https://smoke.test', 'db_smoke', 'dev', true)
-    returning id into v_instancia_id;
+  -- Las RPC exigen EXACTAMENTE una instancia habilitada: se reutiliza la de dev y solo se crea una si no hay.
+  select id into v_instancia_id from sgc.odoo_instancias where habilitada;
+  if v_instancia_id is null then
+    insert into sgc.odoo_instancias (nombre, base_url, base_datos, entorno, habilitada)
+      values ('smoke-cy24i', 'https://smoke.test', 'db_smoke', 'dev', true)
+      returning id into v_instancia_id;
+  end if;
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', v_compras_id::text, 'role','authenticated')::text, true);
 
