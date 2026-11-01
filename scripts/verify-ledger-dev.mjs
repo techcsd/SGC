@@ -4,16 +4,16 @@
 // nada llega a main (prod) sin haber vivido en dev.
 //
 //   node scripts/verify-ledger-dev.mjs --base origin/main
-// Env (secrets del repo): SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF_DEV
+// Env (secrets del repo): SUPABASE_CSD_CONSTRUCTORA_TOKEN, SUPABASE_PROJECT_REF_DEV
 import './lib/load-env.mjs';
 import { checksumEdge } from './lib/edge-files.mjs';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+const TOKEN = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
 const DEV = process.env.SUPABASE_PROJECT_REF_DEV;
-if (!TOKEN || !DEV) { console.error('faltan SUPABASE_ACCESS_TOKEN / SUPABASE_PROJECT_REF_DEV (secrets del repo).'); process.exit(1); }
+if (!TOKEN || !DEV) { console.error('faltan SUPABASE_CSD_CONSTRUCTORA_TOKEN / SUPABASE_PROJECT_REF_DEV (secrets del repo).'); process.exit(1); }
 const base = (() => { const i = process.argv.indexOf('--base'); return i !== -1 ? process.argv[i + 1] : 'origin/main'; })();
 
 async function devSql(query) {

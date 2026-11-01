@@ -7,7 +7,7 @@ Angular 21 (standalone + signals) · Supabase (schema `sgc`: auth, RLS, edge fun
 
 ## Commands
 - Dev server: `npm start` · Build check: `npm run build` · Tests: `npm test` (vitest)
-- Supabase: CLI installed; access token in env var `SUPABASE_ACCESS_TOKEN`. You may apply migrations, fix RLS/grants, and deploy edge functions yourself.
+- Supabase: CLI installed; access token in env var `SUPABASE_CSD_CONSTRUCTORA_TOKEN`. You may apply migrations, fix RLS/grants, and deploy edge functions yourself.
 - SQL history lives in `sql/` and `supabase/`.
 
 ## Modules (keep this list updated)

@@ -49,6 +49,11 @@ begin
 
   -- Vinculada con Odoo (odoo_id) -> 'enviada a Odoo'. El estado vivo se lee de Odoo en la web,
   -- no se guarda en SGC (CY24k).
+  -- vincular_oc_odoo necesita una instancia; dev puede no tener ninguna (todo se revierte con el ROLLBACK).
+  reset role;
+  insert into sgc.odoo_instancias (nombre, base_url, base_datos, entorno, habilitada)
+    select 'smoke-vinculo', 'https://smoke.test', 'db_smoke', 'dev', true
+    where not exists (select 1 from sgc.odoo_instancias);
   perform sgc.vincular_oc_odoo(v_orden_id, (select id from sgc.odoo_instancias limit 1), 999001);
   perform set_config('request.jwt.claims', json_build_object('sub', v_solicitante_id::text, 'role','authenticated')::text, true);
   set local role authenticated;
