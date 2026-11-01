@@ -1,8 +1,9 @@
 import { OrdenCompra, OrdenCompraItem } from './orden-compra.model';
 import { OdooId, OdooProductoCompra } from './odoo.model';
 
-/** CY24 (#24, D3/D4) — semáforo de SGC sobre el ciclo de publicación (check real de la BD; NULL = nunca publicada). */
-export type OdooSyncEstado = 'pendiente' | 'publicada' | 'confirmada' | 'cancelada' | 'error' | 'incierto' | 'conflicto';
+/** CY24 (#24, D3/D4) — semáforo de SGC sobre el ciclo de publicación (check real de la BD; NULL = nunca publicada).
+ *  `por_aprobar`: Odoo dejó la OC en «To Approve» (doble validación); la aprueba un usuario autorizado en Odoo. */
+export type OdooSyncEstado = 'pendiente' | 'publicada' | 'por_aprobar' | 'confirmada' | 'cancelada' | 'error' | 'conflicto';
 
 /** Renglón de OC con la identidad Odoo del producto (instantánea para mostrarla sin Odoo, D1). */
 export interface OdooOrdenCompraItem extends OrdenCompraItem {

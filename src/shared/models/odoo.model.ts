@@ -75,7 +75,7 @@ export interface OdooStockFiltro {
 export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra';
 
 /** CY24 Fase C — acciones de ESCRITURA del gateway (módulo `compras`; el cliente solo manda `orden_id`, D5). */
-export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar';
+export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar' | 'compras.refrescar';
 
 /** Resultado de una escritura de OC; `repetido` = el comando ya estaba completado (idempotencia, D3). */
 export interface OdooComandoOcResultado {
@@ -83,6 +83,10 @@ export interface OdooComandoOcResultado {
   odoo_id: OdooId;
   nombre?: string;
   estado_odoo: string;
+  /** Total que armó Odoo (solo informativo: SGC no lo calcula ni lo compara). */
+  total?: number | null;
+  /** compras.refrescar: Odoo ya tiene una recepción realizada de esta OC. */
+  recibida_en_odoo?: boolean;
   repetido: boolean;
 }
 

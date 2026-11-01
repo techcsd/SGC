@@ -44,7 +44,7 @@ export class OdooApiService {
     return this.invocar<OdooStockPagina>('stock.consultar', { ...filtro });
   }
 
-  /** CY24 Fase C (D3/D5) — publica la OC en Odoo. Sin reintento automático: ante timeout la OC queda `incierto`. */
+  /** CY24 Fase C (D3/D5) — publica la OC en Odoo. Sin reintento automático: ante timeout la OC queda en `error` y el usuario pulsa Reintentar (es idempotente). */
   async publicarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
     return (await this.invocar<OdooComandoOcResultado>('compras.crear', { orden_id: ordenId })).data;
   }
@@ -55,6 +55,11 @@ export class OdooApiService {
 
   async cancelarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
     return (await this.invocar<OdooComandoOcResultado>('compras.cancelar', { orden_id: ordenId })).data;
+  }
+
+  /** Relee la OC en Odoo y actualiza su estado en SGC (p. ej. `por_aprobar` → `confirmada` cuando Odoo aprueba). */
+  async refrescarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.refrescar', { orden_id: ordenId })).data;
   }
 
   private async invocar<T>(accion: OdooAccion | OdooAccionEscritura, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {

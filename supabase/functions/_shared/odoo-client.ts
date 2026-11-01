@@ -1,7 +1,14 @@
-// _shared/odoo-client.ts — PoC "Odoo como fuente de verdad": cliente XML-RPC
-// (execute_kw) de SOLO lectura para Odoo 17. Las credenciales salen únicamente
-// de secrets del servidor (ODOO_URL, ODOO_DB, ODOO_USER, ODOO_API_KEY); nunca
-// viajan al navegador. Errores traducidos a OdooError con un código estable.
+// _shared/odoo-client.ts — PoC "Odoo como fuente de verdad": conector genérico
+// hacia Odoo 17. `OdooClient.call(model, method, args, kwargs)` es la única
+// operación; QUÉ se puede llamar lo decide una `PoliticaOdoo` inyectada (allowlist
+// modelo → métodos de lectura / escritura), no el código del cliente. El
+// transporte (`TransporteOdoo`: hoy XML-RPC execute_kw de Odoo 17) es
+// intercambiable: si algún día se migra a Odoo >= 19 (JSON-2) solo cambia el
+// transporte. Las lecturas reautentican una vez; las ESCRITURAS jamás se
+// reintentan (el reintento lo hace el usuario; es seguro por idempotencia).
+// Las credenciales salen únicamente de secrets del servidor (ODOO_URL, ODOO_DB,
+// ODOO_USER, ODOO_API_KEY); nunca viajan al navegador. Errores traducidos a
+// OdooError con un código estable.
 
 export type OdooCodigo =
   | "odoo_config"
@@ -13,7 +20,8 @@ export type OdooCodigo =
   | "odoo_saturado"; // CY23: demasiadas consultas simultáneas (semáforo global lleno)
 
 export class OdooError extends Error {
-  constructor(public codigo: OdooCodigo, message: string) {
+  /** `fault`: Odoo respondió con un fault XML-RPC (rechazo de negocio, la transacción se revirtió); false = falla de transporte/formato. */
+  constructor(public codigo: OdooCodigo, message: string, public fault = false) {
     super(message);
     this.name = "OdooError";
   }
@@ -154,7 +162,7 @@ export function parseResponse(xml: string): XmlRpcValue {
   if (!k || k.t !== "open") throw new OdooError("odoo_error", "Respuesta de Odoo no válida.");
   if (k.v === "fault") {
     const f = readValue();
-    throw new OdooError("odoo_error", faultCorto(f?.faultString));
+    throw new OdooError("odoo_error", faultCorto(f?.faultString), true);
   }
   if (k.v !== "params") throw new OdooError("odoo_error", "Respuesta de Odoo no válida.");
   skipWs(); expectOpen("param");
@@ -177,6 +185,38 @@ export interface OdooConfig {
   companyId: number;
   timeoutMs?: number;
   fetchFn?: typeof fetch;
+  /** Allowlist de llamadas. Por defecto POLITICA_POR_DEFECTO (lo que usa el gateway). */
+  politica?: PoliticaOdoo;
+  /** Transporte alternativo (p. ej. JSON-2 en Odoo >= 19). Por defecto XML-RPC. */
+  transporte?: TransporteOdoo;
+}
+
+/** Allowlist modelo → métodos. Vive en el servidor: el navegador nunca elige modelo ni método. */
+export interface PoliticaOdoo {
+  lectura: Readonly<Record<string, readonly string[]>>;
+  escritura: Readonly<Record<string, readonly string[]>>;
+}
+
+/** Lo que usa el gateway hoy. Ampliarla es un cambio de código revisado. */
+export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
+  lectura: {
+    "product.product": ["search_read"],
+    "stock.location": ["search_read"],
+    "stock.quant": ["read_group"],
+    "res.partner": ["search_read"],
+    "purchase.order": ["search_read"],
+    "stock.picking": ["search_read"],
+  },
+  escritura: {
+    "purchase.order": ["create", "button_confirm", "button_cancel"],
+  },
+};
+
+/** Contrato mínimo de un transporte hacia Odoo. */
+export interface TransporteOdoo {
+  /** `escritura` = una sola vez, sin reautenticar ni reenviar. */
+  call(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue>, escritura: boolean): Promise<XmlRpcValue>;
+  version(): Promise<XmlRpcValue>;
 }
 
 /** https obligatorio (la API key viaja en el body); http solo contra localhost en desarrollo. */
@@ -205,14 +245,14 @@ export function configDesdeEntorno(): OdooConfig {
   return { url: validarUrl(url), db, user, apiKey, companyId };
 }
 
-export class OdooClient {
+const RX_ACCESS_DENIED = /AccessDenied|Access Denied/i;
+
+/** Transporte XML-RPC (execute_kw) de Odoo 17: autenticación, timeout y reglas de reintento. */
+export class TransporteXmlRpc implements TransporteOdoo {
   private uid: number | null = null;
   private autenticando: Promise<number> | null = null;
-  readonly companyId: number;
 
-  constructor(private cfg: OdooConfig) {
-    this.companyId = cfg.companyId;
-  }
+  constructor(private cfg: OdooConfig) {}
 
   private async rpc(endpoint: "common" | "object", method: string, params: XmlRpcValue[]): Promise<XmlRpcValue> {
     const ctl = new AbortController();
@@ -256,22 +296,84 @@ export class OdooClient {
     })();
   }
 
-  /** execute_kw. Solo lo invocan los módulos de acciones del gateway (allowlist). */
-  async executeKw(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue> = {}): Promise<XmlRpcValue> {
+  version(): Promise<XmlRpcValue> {
+    return this.rpc("common", "version", []);
+  }
+
+  call(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue>, escritura: boolean): Promise<XmlRpcValue> {
+    return escritura ? this.escribir(model, method, args, kwargs) : this.leer(model, method, args, kwargs);
+  }
+
+  private async leer(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue>): Promise<XmlRpcValue> {
     const llamar = async () =>
       this.rpc("object", "execute_kw", [this.cfg.db, await this.autenticar(), this.cfg.apiKey, model, method, args, kwargs]);
     try {
       return await llamar();
     } catch (e) {
-      if (!(e instanceof OdooError) || !/AccessDenied|Access Denied/i.test(e.message)) throw e;
+      if (!(e instanceof OdooError) || !RX_ACCESS_DENIED.test(e.message)) throw e;
       // Clave rotada o uid caducado: reautentica UNA vez; si sigue fallando, es un problema de credenciales.
       this.uid = null;
       try { return await llamar(); } catch (e2) {
-        if (e2 instanceof OdooError && /AccessDenied|Access Denied/i.test(e2.message)) {
+        if (e2 instanceof OdooError && RX_ACCESS_DENIED.test(e2.message)) {
           throw new OdooError("odoo_auth", "Odoo rechazó las credenciales de la cuenta técnica.");
         }
         throw e2;
       }
     }
+  }
+
+  /**
+   * Escritura: UNA sola vez, jamás reintenta (ni backoff ni reautenticación que
+   * reenvíe). Timeout/caída lanza odoo_timeout/odoo_no_disponible: el llamador lo
+   * trata como error con reintento del usuario (los comandos son idempotentes).
+   * Una respuesta ilegible tras enviar se trata igual (no se sabe si aplicó).
+   * Un fault de Odoo (fault=true) es un rechazo cierto.
+   */
+  private async escribir(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue>): Promise<XmlRpcValue> {
+    const uid = await this.autenticar(); // si falla aquí, todavía no se envió nada
+    try {
+      return await this.rpc("object", "execute_kw", [this.cfg.db, uid, this.cfg.apiKey, model, method, args, kwargs]);
+    } catch (e) {
+      if (!(e instanceof OdooError)) throw e;
+      if (e.fault && RX_ACCESS_DENIED.test(e.message)) {
+        this.uid = null; // el próximo request reautentica; ESTE no se reenvía
+        throw new OdooError("odoo_auth", "Odoo rechazó las credenciales de la cuenta técnica.");
+      }
+      if (e.codigo === "odoo_error" && !e.fault) {
+        throw new OdooError("odoo_no_disponible", "Respuesta de Odoo ilegible tras una escritura: no se sabe si se aplicó.");
+      }
+      throw e;
+    }
+  }
+}
+
+/** Conector genérico: valida contra la política y delega en el transporte. */
+export class OdooClient {
+  readonly companyId: number;
+  private politica: PoliticaOdoo;
+  private transporte: TransporteOdoo;
+
+  constructor(cfg: OdooConfig) {
+    this.companyId = cfg.companyId;
+    this.politica = cfg.politica ?? POLITICA_POR_DEFECTO;
+    this.transporte = cfg.transporte ?? new TransporteXmlRpc(cfg);
+  }
+
+  version(): Promise<XmlRpcValue> {
+    return this.transporte.version();
+  }
+
+  /** execute_kw genérico. La escritura se detecta por la política (no por el nombre del método). */
+  call(model: string, method: string, args: XmlRpcValue[] = [], kwargs: Record<string, XmlRpcValue> = {}): Promise<XmlRpcValue> {
+    const escritura = !!this.politica.escritura[model]?.includes(method);
+    if (!escritura && !this.politica.lectura[model]?.includes(method)) {
+      return Promise.reject(new OdooError("odoo_error", `Llamada no permitida: ${model}.${method}.`));
+    }
+    return this.transporte.call(model, method, args, kwargs, escritura);
+  }
+
+  /** Azúcar de lectura sobre `call`. */
+  searchRead(model: string, dominio: XmlRpcValue[], fields: string[], opts: { limit?: number; order?: string } = {}): Promise<Record<string, XmlRpcValue>[]> {
+    return this.call(model, "search_read", [dominio], { fields, ...opts });
   }
 }

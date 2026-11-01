@@ -10,7 +10,7 @@ import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
 import { ACCIONES, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
-import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresOc, DEFINICIONES_ESCRITURA } from "./acciones-escritura.ts";
+import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresOc, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
 export const MODULO_REQUERIDO_ESCRITURA = "compras"; // CY24 Fase C
@@ -46,7 +46,7 @@ async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>, opts: { reint
     throw new OdooError("odoo_saturado", "Demasiadas consultas simultáneas a Odoo.");
   }
   try {
-    // Las ESCRITURAS nunca se reintentan solas (D3 / #23): un timeout deja el estado incierto.
+    // Las ESCRITURAS nunca se reintentan solas (D3 / #23): un timeout deja el comando en error y reintenta el usuario.
     const resultado = opts.reintentar ? await conReintentoLectura(fn) : await fn();
     deps.circuito.registrarExito();
     return resultado;
@@ -75,8 +75,9 @@ const MENSAJE_ODOO: Record<string, string> = {
   odoo_circuito_abierto: "Odoo está fallando seguido ahora mismo — espera un momento y vuelve a intentar.",
   odoo_saturado: "Hay demasiadas consultas a Odoo en este momento. Intenta de nuevo en unos segundos.",
 };
-// Escritura sin respuesta: puede haberse aplicado. El usuario NO debe reenviar a ciegas.
-const MENSAJE_INCIERTO = "Odoo no respondió y no sabemos si la acción se aplicó. No la reenvíes: Tecnología la conciliará con Odoo.";
+// Escritura sin respuesta (timeout/caída): error estable `odoo_reintentar`. El reintento del usuario es seguro:
+// crear busca primero por origin y confirmar/cancelar leen el estado antes de actuar.
+const CODIGO_REINTENTAR = "odoo_reintentar";
 const STATUS_ODOO: Record<string, number> = {
   odoo_timeout: 504, odoo_no_disponible: 502, odoo_auth: 502, odoo_config: 500, odoo_error: 502,
   odoo_circuito_abierto: 503, odoo_saturado: 429,
@@ -142,9 +143,10 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
       if (e instanceof ParamError) return json({ error: e.message }, 400);
       if (e instanceof OdooError) {
         console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
-        const incierto = e.codigo === "odoo_timeout" || e.codigo === "odoo_no_disponible";
-        const mensaje = incierto ? MENSAJE_INCIERTO : (MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error);
-        return json({ error: mensaje, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
+        if (CODIGOS_REINTENTABLES.has(e.codigo)) {
+          return json({ error: MENSAJE_REINTENTAR, error_code: CODIGO_REINTENTAR }, STATUS_ODOO[e.codigo] ?? 502);
+        }
+        return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
       }
       console.error(`[odoo-api] ${accion}:`, e);
       return json({ error: "Error interno del gateway.", error_code: "interno" }, 500);

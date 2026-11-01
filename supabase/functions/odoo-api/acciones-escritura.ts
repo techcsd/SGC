@@ -6,15 +6,17 @@
 // a Odoo (D5): el cliente solo manda `orden_id`, nunca precio/proveedor/líneas.
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { ParamError } from "./acciones.ts";
-import { cancelarOcMock, confirmarOcMock, type ResultadoPublicacionOc, publicarOcMock } from "../_shared/odoo-oc.ts";
+import {
+  type AdaptadorOc, type AdaptadoresOc, cancelarOcMock, confirmarOcMock, publicarOcMock, refrescarOcMock,
+  type ResultadoPublicacionOc,
+} from "../_shared/odoo-oc.ts";
 import { OdooError } from "../_shared/odoo-client.ts";
 
-export const ACCIONES_ESCRITURA = ["compras.crear", "compras.confirmar", "compras.cancelar"] as const;
+export const ACCIONES_ESCRITURA = ["compras.crear", "compras.confirmar", "compras.cancelar", "compras.refrescar"] as const;
 export type AccionEscritura = typeof ACCIONES_ESCRITURA[number];
 
-/** Adaptador hacia Odoo por acción. Hoy mocks (D-08); el swap por el cliente real es solo aquí. */
-export type AdaptadorOc = (paraComando: Record<string, unknown>) => Promise<ResultadoPublicacionOc>;
-export interface AdaptadoresOc { crear: AdaptadorOc; confirmar: AdaptadorOc; cancelar: AdaptadorOc }
+/** Adaptador hacia Odoo por acción: mock o real, elegido en index.ts (seleccionarAdaptadoresOc). */
+export type { AdaptadorOc, AdaptadoresOc };
 
 export interface CtxEscritura {
   admin: SupabaseClient;
@@ -23,8 +25,20 @@ export interface CtxEscritura {
   adaptador?: Partial<AdaptadoresOc>;
 }
 
-// Fallas de infraestructura: no se sabe si Odoo llegó a procesar el comando.
-const CODIGOS_INCIERTOS = new Set(["odoo_timeout", "odoo_no_disponible"]);
+/** Fallas de transporte: el usuario puede reintentar la misma acción (es idempotente). */
+export const CODIGOS_REINTENTABLES = new Set(["odoo_timeout", "odoo_no_disponible"]);
+export const MENSAJE_REINTENTAR = "Odoo no respondió; puedes reintentar.";
+
+/** Estado de sincronización de SGC según el `state` de la OC en Odoo (null = estado desconocido). */
+export function estadoSyncDesdeOdoo(state: unknown): string | null {
+  switch (state) {
+    case "draft": case "sent": return "publicada";
+    case "to approve": return "por_aprobar"; // confirmada, pendiente de aprobación en Odoo (SGC no aprueba)
+    case "purchase": case "done": return "confirmada";
+    case "cancel": return "cancelada";
+    default: return null;
+  }
+}
 
 interface DefEscritura<P> {
   normalizar(p: Record<string, unknown>): P;
@@ -56,7 +70,7 @@ async function ejecutarComando(
   orden_id: string,
   paraComando: (admin: SupabaseClient, orden_id: string) => Promise<RpcResult>,
   publicar: (p: Record<string, unknown>) => Promise<ResultadoPublicacionOc>,
-  estadoSyncExito: string,
+  estadoSyncPorDefecto: string,
 ): Promise<unknown> {
   const { data: p0, error: errValidar } = await paraComando(admin, orden_id);
   if (errValidar) throw new ParamError(errValidar.message);
@@ -72,21 +86,19 @@ async function ejecutarComando(
   const ini = inicio as { ya_completado: boolean; resultado?: Record<string, unknown>; comando_id: string };
   if (ini.ya_completado) return { ...ini.resultado, repetido: true };
 
-  // HOY: mock (D-08). Cuando exista base de pruebas confirmada u orden puntual de
-  // Xaviel, este es el ÚNICO punto que cambia (swap del adaptador por uno real).
+  // Mock o real (D-08): el adaptador se elige en index.ts. NUNCA se reintenta aquí: si Odoo no
+  // respondió, el comando queda en 'error' y el usuario reintenta la misma acción (idempotente).
   let r: ResultadoPublicacionOc;
   try {
     r = await publicar(p);
   } catch (e) {
-    // Timeout / Odoo caído: el resultado es INCIERTO (Odoo pudo haber creado la OC).
-    // Se deja constancia en el comando y en la OC, y se relanza SIN reintentar (D3 / #23).
-    if (e instanceof OdooError && CODIGOS_INCIERTOS.has(e.codigo)) {
-      const detalle = "Sin respuesta de Odoo: no se sabe si la acción se aplicó. Requiere conciliación.";
-      const { error: errInc } = await admin.rpc("oc_comando_finalizar", {
-        p_comando_id: ini.comando_id, p_estado: "incierto", p_resultado: null, p_error: detalle,
+    if (e instanceof OdooError) {
+      const detalle = CODIGOS_REINTENTABLES.has(e.codigo) ? MENSAJE_REINTENTAR : "No se pudo completar la acción en Odoo.";
+      const { error: errErr } = await admin.rpc("oc_comando_finalizar", {
+        p_comando_id: ini.comando_id, p_estado: "error", p_resultado: null, p_error: detalle,
       });
-      if (errInc) console.error("[odoo-api] oc_comando_finalizar(incierto):", errInc);
-      await admin.rpc("registrar_publicacion_oc", { p_orden_id: orden_id, p_odoo_sync_estado: "incierto", p_odoo_sync_error: detalle });
+      if (errErr) console.error("[odoo-api] oc_comando_finalizar(error):", errErr);
+      await admin.rpc("registrar_publicacion_oc", { p_orden_id: orden_id, p_odoo_sync_estado: "error", p_odoo_sync_error: detalle });
     }
     throw e;
   }
@@ -98,8 +110,9 @@ async function ejecutarComando(
 
   await admin.rpc("registrar_publicacion_oc", r.estado === "completado"
     ? {
-      p_orden_id: orden_id, p_odoo_sync_estado: estadoSyncExito,
+      p_orden_id: orden_id, p_odoo_sync_estado: estadoSyncDesdeOdoo(r.resultado?.estado_odoo) ?? estadoSyncPorDefecto,
       p_odoo_state: (r.resultado?.estado_odoo as string) ?? null, p_odoo_nombre: (r.resultado?.nombre as string) ?? null,
+      p_odoo_total: typeof r.resultado?.total === "number" ? r.resultado.total : null, // informativo: lo arma Odoo
       // La identidad (instancia+odoo_id) solo importa al CREAR -- registrar_publicacion_oc
       // la fija una sola vez; en confirmar/cancelar ya existe y coalesce la deja intacta.
       p_odoo_instancia_id: accion === "crear" ? instanciaId : null,
@@ -129,8 +142,38 @@ const comprasCancelar: DefEscritura<{ orden_id: string }> = {
     ejecutarComando(ctx, "cancelar", orden_id, (a, id) => a.rpc("oc_para_comando", { p_orden_id: id, p_accion: "cancelar" }), ctx.adaptador?.cancelar ?? cancelarOcMock, "cancelada"),
 };
 
+/**
+ * Refresco (botón "Actualizar"): lee la OC en Odoo y registra el estado visto. Sin registro de
+ * comando (es lectura; repetirlo es inocuo). Resuelve `por_aprobar` cuando Odoo aprueba.
+ */
+const comprasRefrescar: DefEscritura<{ orden_id: string }> = {
+  normalizar: normalizarOrdenId,
+  async ejecutar({ admin, adaptador }, { orden_id }) {
+    const { data: fila, error: errFila } = await admin.from("ordenes_compra")
+      .select("odoo_id, odoo_sync_estado").eq("id", orden_id).maybeSingle();
+    if (errFila) throw new ParamError(errFila.message);
+    if (!fila) throw new ParamError("Orden de compra no encontrada.");
+    if (!fila.odoo_id) throw new ParamError("Esta orden todavía no se ha publicado en Odoo.");
+
+    const r = await (adaptador?.refrescar ?? refrescarOcMock)({ orden_id, odoo_id: fila.odoo_id, odoo_sync_estado_actual: fila.odoo_sync_estado });
+    if (r.estado !== "completado") throw new ParamError(r.error ?? "No se pudo leer la orden en Odoo.");
+
+    const sync = estadoSyncDesdeOdoo(r.resultado?.estado_odoo);
+    if (sync) {
+      const { error: errReg } = await admin.rpc("registrar_publicacion_oc", {
+        p_orden_id: orden_id, p_odoo_sync_estado: sync,
+        p_odoo_state: (r.resultado?.estado_odoo as string) ?? null, p_odoo_nombre: (r.resultado?.nombre as string) ?? null,
+        p_odoo_total: typeof r.resultado?.total === "number" ? r.resultado.total : null,
+      });
+      if (errReg) throw new ParamError(errReg.message);
+    }
+    return { ...r.resultado, repetido: false };
+  },
+};
+
 export const DEFINICIONES_ESCRITURA: { [A in AccionEscritura]: DefEscritura<never> } = {
   "compras.crear": comprasCrear,
   "compras.confirmar": comprasConfirmar,
   "compras.cancelar": comprasCancelar,
+  "compras.refrescar": comprasRefrescar,
 } as unknown as { [A in AccionEscritura]: DefEscritura<never> };
