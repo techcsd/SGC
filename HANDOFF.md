@@ -747,7 +747,59 @@ tal cual se escribió durante el trabajo. El resumen final y el estado real en
 producción están en la sección "✅ Ronda DC... EN PRODUCCIÓN" al principio de
 este archivo.
 
-### 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`
+## 🧪 Ronda DE (PROMPT-118 Fase C, 30-oct/01-nov-2026) — backend de "escribir OC en Odoo" completo y probado, SOLO MOCK, worktree `SGC-de`, rama `feature/de-fase-c-oc-odoo` (pusheada, NO mergeada a dev)
+
+**Paquete de contexto completo (plan, decisiones, gotchas, copias de archivos) en**
+`C:\developer\odoo integration\` — léelo ahí primero si retomas esto en una sesión sin
+memoria de esta ronda. Resumen aquí:
+
+**Qué se hizo:** F10 Fase C (#24) — escribir una Orden de Compra de verdad en Odoo —
+backend completo en 3 commits:
+- `e69c6901`: `sgc.odoo_comandos_oc` (D3, idempotencia) + `sgc.oc_para_publicar` (D5,
+  valida D-16/E9/E10/criterio 6).
+- `eb6aa192`: acción `compras.crear` en el gateway `odoo-api` — allowlist de escritura
+  separada de la de lectura (`acciones-escritura.ts`, módulo `compras` en vez de
+  `inventario`, sin caché, cliente `service_role` nuevo `deps.admin()`). Publica en
+  MOCK (`_shared/odoo-oc.ts`).
+- `697c2dcb`: acciones `compras.confirmar`/`compras.cancelar` (`sgc.oc_para_comando`,
+  refactor a helper compartido `ejecutarComando`) + `registrar_publicacion_oc` gana 2
+  params para fijar la identidad Odoo (`odoo_instancia_id`/`odoo_id`) **una sola vez**.
+
+46/46 tests en `odoo-api`, 118/118 en toda la suite de edges, build Angular verde. 3
+migraciones aplicadas y verificadas en **dev** (`fzfrnrvndzrjwyvdpkgg`), ninguna en
+prod. Smokes transaccionales (`scripts/smoke-cy24g-...`, `scripts/smoke-cy24i-...`)
+pasan con ROLLBACK limpio.
+
+**Por qué sigue en mock:** D-08 no está resuelto para escrituras recurrentes — la única
+escritura real que existe (proveedor `5432` + OC draft `P00919`, 27-oct-2026) fue una
+autorización puntual y específica, ya desmontada, no una luz verde general. Le pregunté
+a Xaviel qué necesitaba para destrabar D-08; va a revisar si su plan de Odoo permite
+duplicar la base a un sandbox/staging (Odoo.sh o Database Manager de Odoo Enterprise).
+**Esa respuesta no había llegado al cerrar esta sesión.**
+
+**Pendiente — Claude puede hacerlo:**
+1. Revisar si la pregunta sobre el sandbox de Odoo ya tiene respuesta.
+2. Vincular al menos un proveedor real a Odoo (`proveedores.odoo_id`) — hoy ~0% lo
+   tiene, y E9 bloquea publicar sin eso.
+3. Frontend: botones Publicar/Confirmar/Cancelar en Odoo en la ficha de OC + mostrar
+   `odoo_sync_estado`/`odoo_sync_error` (AT11, BS2). No se tocó nada de frontend en
+   esta ronda.
+4. Cuando D-08 se resuelva: swap mock→real es SOLO `_shared/odoo-oc.ts`.
+5. Investigar F11-F12 (#9-#15) — no revisado en esta ronda.
+
+**Pendiente — Xaviel:** decidir el sandbox de Odoo (ver arriba) y qué hacer con
+`P00919`/proveedor `5432` (archivar o usarlos para probar confirmar/cancelar).
+
+**Gotchas de esta ronda** (detalle completo en `C:\developer\odoo integration\GOTCHAS.md`):
+cambiar la firma de una RPC ya aplicada exige DROP+CREATE explícito (nunca dejar un
+overload ambiguo); las columnas de identidad F5 solo las escribe
+`service_role`/`postgres` vía el trigger `odoo_v1_proteger_campos`; verificar un UPDATE
+bajo `authenticated` en un smoke puede dar falso negativo por RLS — verificar con
+`reset role`; `deno check` no funciona en este repo por resolución de paquetes npm (no
+importa, el proyecto solo exige `deno test --no-check`); `node_modules`/`.env.local` no
+viajan a un worktree nuevo.
+
+## 🧪 Ronda DC (29-oct-2026) — Compa por WhatsApp Cloud API oficial, worktree `SGC-dc`, SIN COMMIT (espera OK de Xaviel)
 
 **Letra de ronda:** el prompt original pedía DA1–DA9, pero "DA" ya era la ronda
 de inventario tecnológico (PROMPT-122, en producción desde el 28-oct) y "DB"
