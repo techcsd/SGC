@@ -671,8 +671,8 @@ export class OrdenesOdoo implements OnInit {
       case 'publicada': return 'Publicada en Odoo';
       case 'confirmada': return 'Confirmada en Odoo';
       case 'cancelada': return 'Cancelada en Odoo';
-      case 'error': return 'Error al publicar';
-      case 'incierto': return 'Resultado incierto — en conciliación';
+      case 'por_aprobar': return 'Pendiente de aprobación en Odoo';
+      case 'error': return 'Error con Odoo — puedes reintentar';
       case 'conflicto': return 'Conflicto con Odoo';
       default: return 'Solo SGC';
     }
@@ -681,8 +681,8 @@ export class OrdenesOdoo implements OnInit {
   syncBadgeClass(e: OdooSyncEstado | null | undefined): string {
     switch (e) {
       case 'publicada': case 'confirmada': return 'sgc-badge sgc-badge--success';
-      case 'pendiente': return 'sgc-badge sgc-badge--warning';
-      case 'error': case 'incierto': case 'conflicto': case 'cancelada': return 'sgc-badge sgc-badge--danger';
+      case 'pendiente': case 'por_aprobar': return 'sgc-badge sgc-badge--warning';
+      case 'error': case 'conflicto': case 'cancelada': return 'sgc-badge sgc-badge--danger';
       default: return 'sgc-badge sgc-badge--neutral';
     }
   }
@@ -838,16 +838,37 @@ export class OrdenesOdoo implements OnInit {
       this.detailOrden.update((o) => (o ? { ...o, estado } : null));
     }
     try {
-      await this.ordenesService.updateEstado(orden, estado, motivo);
+      const r = await this.ordenesService.updateEstado(orden, estado, motivo);
+      if (r === 'por_aprobar') {
+        this.revertirEstado(orden.id, prev);
+        this.toast.success('Enviada a aprobación en Odoo', 'Cuando la aprueben en Odoo, pulsa «Actualizar desde Odoo».');
+      }
       await this.refrescarOrden(orden.id);
     } catch (e: unknown) {
-      this.ordenes.update((list) =>
-        list.map((o) => (o.id === orden.id ? { ...o, estado: prev } : o)),
-      );
-      if (this.detailOrden()?.id === orden.id) {
-        this.detailOrden.update((o) => (o ? { ...o, estado: prev } : null));
-      }
+      this.revertirEstado(orden.id, prev);
       this.toast.error('No se pudo cambiar el estado', e instanceof Error ? e.message : undefined);
+      await this.refrescarOrden(orden.id);
+    }
+  }
+
+  private revertirEstado(id: string, prev: OrdenEstado): void {
+    this.ordenes.update((list) => list.map((o) => (o.id === id ? { ...o, estado: prev } : o)));
+    if (this.detailOrden()?.id === id) this.detailOrden.update((o) => (o ? { ...o, estado: prev } : null));
+  }
+
+  /** Relee el estado en Odoo (aprobación, recepción) y lo refleja en SGC. */
+  async actualizarDesdeOdoo(orden: OdooOrdenCompra): Promise<void> {
+    this.publicando.set(orden.id);
+    try {
+      const fresca = await this.ordenesService.refrescarDesdeOdoo(orden.id);
+      if (fresca.odoo_sync_estado === 'confirmada' && fresca.estado === 'borrador') {
+        this.toast.success('Aprobada en Odoo', 'Ya puedes aprobarla en SGC.');
+      }
+    } catch (e: unknown) {
+      this.toast.error('No se pudo consultar Odoo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.publicando.set(null);
+      await this.refrescarOrden(orden.id);
     }
   }
 

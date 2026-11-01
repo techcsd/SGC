@@ -76,7 +76,7 @@ export class OdooOrdenesCompraService {
     return this.getById(ordenId as string);
   }
 
-  /** Publica la OC en Odoo (borrador + líneas). Idempotente en el servidor (D3); la OC puede quedar `incierto`. */
+  /** Publica la OC en Odoo (borrador + líneas). Idempotente en el servidor (D3); ante un fallo la OC queda en `error` y se reintenta con el mismo botón. */
   async publicar(ordenId: string): Promise<OdooOrdenCompra> {
     await this.odoo.publicarOrden(ordenId);
     return this.getById(ordenId);
@@ -88,12 +88,18 @@ export class OdooOrdenesCompraService {
    * no se valida en Odoo durante el piloto). Transition validity is enforced server-side.
    * CT3c — pasar a "recibida" con reconciliación incompleta exige `motivo` (solo admin).
    */
-  async updateEstado(orden: Pick<OdooOrdenCompra, 'id' | 'odoo_sync_estado'>, estado: OrdenEstado, motivo?: string | null): Promise<void> {
-    const publicada = orden.odoo_sync_estado === 'publicada' || orden.odoo_sync_estado === 'confirmada';
+  async updateEstado(orden: Pick<OdooOrdenCompra, 'id' | 'odoo_sync_estado' | 'odoo_id'>, estado: OrdenEstado, motivo?: string | null): Promise<'aplicado' | 'por_aprobar'> {
+    // Con `error` y odoo_id la OC ya existe en Odoo (falló confirmar/cancelar): se permite reintentar la acción.
+    const enOdoo = ['publicada', 'por_aprobar', 'confirmada'].includes(orden.odoo_sync_estado ?? '')
+      || (orden.odoo_sync_estado === 'error' && !!orden.odoo_id);
     if (estado === 'aprobada') {
-      if (!publicada) throw new Error('Publica la orden en Odoo antes de aprobarla.');
-      if (orden.odoo_sync_estado !== 'confirmada') await this.odoo.confirmarOrden(orden.id);
-    } else if (estado === 'cancelada' && publicada) {
+      if (!enOdoo) throw new Error('Publica la orden en Odoo antes de aprobarla.');
+      if (orden.odoo_sync_estado !== 'confirmada') {
+        const r = await this.odoo.confirmarOrden(orden.id);
+        // Odoo exige aprobación de un usuario autorizado: SGC espera, no avanza el estado local.
+        if (r.estado_odoo === 'to approve') return 'por_aprobar';
+      }
+    } else if (estado === 'cancelada' && enOdoo) {
       await this.odoo.cancelarOrden(orden.id);
     }
     const { error } = await this.supabase.client
@@ -101,6 +107,13 @@ export class OdooOrdenesCompraService {
       .rpc('actualizar_estado_orden', { p_orden_id: orden.id, p_nuevo_estado: estado, p_motivo: motivo ?? null });
 
     if (error) throw new Error(error.message);
+    return 'aplicado';
+  }
+
+  /** Relee el estado de la OC en Odoo (p. ej. para saber si ya aprobaron o recibieron). */
+  async refrescarDesdeOdoo(ordenId: string): Promise<OdooOrdenCompra> {
+    await this.odoo.refrescarOrden(ordenId);
+    return this.getById(ordenId);
   }
 
   /**

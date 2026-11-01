@@ -475,7 +475,12 @@
           }
           @if (!orden.es_prueba && (!orden.odoo_sync_estado || orden.odoo_sync_estado === 'pendiente' || orden.odoo_sync_estado === 'error')) {
             <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="publicando() === orden.id" (click)="publicarEnOdoo(orden)">
-              {{ publicando() === orden.id ? 'Publicando…' : 'Publicar en Odoo' }}
+              {{ publicando() === orden.id ? 'Publicando…' : (orden.odoo_sync_estado === 'error' ? 'Reintentar' : 'Publicar en Odoo') }}
+            </button>
+          }
+          @if (!orden.es_prueba && orden.odoo_id && (orden.odoo_sync_estado === 'por_aprobar' || orden.odoo_sync_estado === 'publicada')) {
+            <button class="sgc-btn sgc-btn--ghost" type="button" [disabled]="publicando() === orden.id" (click)="actualizarDesdeOdoo(orden)">
+              {{ publicando() === orden.id ? 'Consultando…' : 'Actualizar desde Odoo' }}
             </button>
           }
         </div>

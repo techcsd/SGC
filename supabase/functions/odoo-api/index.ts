@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
+import { escrituraOdooHabilitada, seleccionarAdaptadoresOc } from "../_shared/odoo-oc.ts";
 import { CacheOdoo, ttlDesdeEntorno } from "../_shared/odoo-cache.ts";
 import { LimitePorUsuario } from "../_shared/odoo-limite.ts";
 import { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
@@ -14,7 +15,8 @@ import { type Capacidades, type Deps, manejar } from "./handler.ts";
 // ODOO_USER, ODOO_API_KEY, ODOO_COMPANY_ID (opcional, 1). Opcionales:
 // ODOO_CACHE_TTL_S_<ACCION> (0 = sin caché), ODOO_CORS_ORIGINS (lista separada
 // por comas), ODOO_CIRCUITO_UMBRAL/ODOO_CIRCUITO_ENFRIAMIENTO_MS (CY23) y
-// ODOO_MAX_CONCURRENTE (CY23, semáforo global).
+// ODOO_MAX_CONCURRENTE (CY23, semáforo global). CY24 Fase C: las escrituras de OC
+// van a Odoo SOLO con ODOO_ESCRITURA_HABILITADA=true; si no, adaptadores mock.
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_ANON_KEY = envRequerido("SUPABASE_ANON_KEY");
 // CY24 Fase C — compras.crear necesita service role (D5: el edge relee todo, nunca confía en el cliente).
@@ -30,6 +32,8 @@ const ORIGENES_POR_DEFECTO = [
 
 let cliente: OdooClient | null = null; // reutiliza el uid autenticado entre requests del isolate
 let adminCliente: ReturnType<typeof createClient> | null = null; // CY24 Fase C — reutiliza el cliente service role entre requests del isolate
+
+const obtenerOdoo = () => (cliente ??= new OdooClient(configDesdeEntorno()));
 
 const caches = Object.fromEntries(
   ACCIONES.map((a) => [a, new CacheOdoo(ttlDesdeEntorno(a))]),
@@ -48,7 +52,8 @@ const deps: Deps = {
     if (!cap) return null;
     return { usuario_id: u.user.id, es_admin: !!cap.es_admin, modulos: Array.isArray(cap.modulos) ? cap.modulos : [] };
   },
-  odoo: () => (cliente ??= new OdooClient(configDesdeEntorno())),
+  odoo: obtenerOdoo,
+  adaptadorOc: seleccionarAdaptadoresOc(escrituraOdooHabilitada(), obtenerOdoo),
   admin: () => (adminCliente ??= createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" } })),
   caches,
   limite: new LimitePorUsuario(),

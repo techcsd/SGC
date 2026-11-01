@@ -58,7 +58,7 @@ const productosBuscar: Def<{ termino: string; limite: number }> = {
   },
   async ejecutar(odoo, { termino: crudo, limite }) {
     const termino = escapaLike(crudo);
-    const filas = await odoo.executeKw("product.product", "search_read", [[
+    const filas = await odoo.call("product.product", "search_read", [[
       ["active", "=", true],
       ["type", "=", "product"],
       ...dominioCompania(odoo.companyId),
@@ -80,7 +80,7 @@ const ubicacionesListar: Def<Record<string, never>> = {
   normalizar: () => ({}),
   async ejecutar(odoo) {
     // Pedimos una fila de más para avisar si la lista se truncó (en vez de cortar en silencio).
-    const filas = await odoo.executeKw("stock.location", "search_read", [[
+    const filas = await odoo.call("stock.location", "search_read", [[
       ["usage", "=", "internal"], ["active", "=", true], ["company_id", "=", odoo.companyId],
     ]], { fields: ["id", "complete_name", "warehouse_id"], limit: MAX_UBICACIONES + 1, order: "complete_name asc" }) as Record<string, unknown>[];
     return {
@@ -109,7 +109,7 @@ const stockConsultar: Def<{ producto_id: number | null; ubicacion_id: number | n
     if (ubicacion_id) dominio.push(["location_id", "child_of", ubicacion_id]);
     // Una sola llamada agrupada; pedimos tamano+1 para saber si hay otra página
     // sin una segunda consulta de conteo.
-    const grupos = await odoo.executeKw("stock.quant", "read_group", [dominio, ["quantity:sum", "reserved_quantity:sum"], ["product_id", "location_id"]], {
+    const grupos = await odoo.call("stock.quant", "read_group", [dominio, ["quantity:sum", "reserved_quantity:sum"], ["product_id", "location_id"]], {
       lazy: false, limit: tamano + 1, offset: (pagina - 1) * tamano, orderby: "product_id asc, location_id asc",
     }) as Record<string, unknown>[];
     return {
@@ -137,7 +137,7 @@ const productosBuscarCompra: Def<{ termino: string; limite: number }> = {
   normalizar: productosBuscar.normalizar,
   async ejecutar(odoo, { termino: crudo, limite }) {
     const termino = escapaLike(crudo);
-    const filas = await odoo.executeKw("product.product", "search_read", [[
+    const filas = await odoo.call("product.product", "search_read", [[
       ["active", "=", true],
       ["purchase_ok", "=", true],
       ...dominioCompania(odoo.companyId),
@@ -166,7 +166,7 @@ const productosObtener: Def<{ producto_id: number }> = {
     return { producto_id };
   },
   async ejecutar(odoo, { producto_id }) {
-    const filas = await odoo.executeKw("product.product", "search_read", [
+    const filas = await odoo.call("product.product", "search_read", [
       [["id", "=", producto_id], ...dominioCompania(odoo.companyId)],
     ], { fields: ["id", "display_name", "default_code", "uom_id", "uom_po_id", "categ_id", "active", "purchase_ok", "taxes_id"], limit: 1 }) as Record<string, unknown>[];
     const f = filas[0];
@@ -194,7 +194,7 @@ const proveedoresObtener: Def<{ proveedor_id: number }> = {
     return { proveedor_id };
   },
   async ejecutar(odoo, { proveedor_id }) {
-    const filas = await odoo.executeKw("res.partner", "search_read", [
+    const filas = await odoo.call("res.partner", "search_read", [
       [["id", "=", proveedor_id]],
     ], { fields: ["id", "name", "vat", "email", "phone", "is_company", "active", "supplier_rank"], limit: 1 }) as Record<string, unknown>[];
     const f = filas[0];
@@ -221,7 +221,7 @@ const comprasObtener: Def<{ orden_id: number }> = {
     return { orden_id };
   },
   async ejecutar(odoo, { orden_id }) {
-    const filas = await odoo.executeKw("purchase.order", "search_read", [
+    const filas = await odoo.call("purchase.order", "search_read", [
       [["id", "=", orden_id], ...dominioCompania(odoo.companyId)],
     ], { fields: ["id", "name", "state", "amount_total", "date_order", "partner_id", "currency_id"], limit: 1 }) as Record<string, unknown>[];
     const f = filas[0];

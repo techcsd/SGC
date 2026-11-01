@@ -11,12 +11,13 @@ function servicio(odoo: Record<string, unknown>, rpcError: { message: string } |
   return { svc, rpc };
 }
 
-const orden = (odoo_sync_estado: OdooSyncEstado) => ({ id: 'oc-1', odoo_sync_estado });
+const orden = (odoo_sync_estado: OdooSyncEstado, odoo_id: number | null = null) => ({ id: 'oc-1', odoo_sync_estado, odoo_id });
+const OK = { estado_odoo: 'purchase' };
 
 describe('OdooOrdenesCompraService.updateEstado', () => {
   it('aprobar confirma en Odoo ANTES de cambiar el estado SGC', async () => {
     const orden_ = vi.fn();
-    const odoo = { confirmarOrden: vi.fn().mockImplementation(async () => { orden_('odoo'); }) };
+    const odoo = { confirmarOrden: vi.fn().mockImplementation(async () => { orden_('odoo'); return OK; }) };
     const { svc, rpc } = servicio(odoo);
     rpc.mockImplementation(async () => { orden_('sgc'); return { error: null }; });
 
@@ -24,6 +25,28 @@ describe('OdooOrdenesCompraService.updateEstado', () => {
 
     expect(odoo.confirmarOrden).toHaveBeenCalledWith('oc-1');
     expect(orden_.mock.calls.map((c) => c[0])).toEqual(['odoo', 'sgc']);
+  });
+
+  it('si Odoo deja la OC en "to approve", SGC espera: no cambia su estado y avisa', async () => {
+    const odoo = { confirmarOrden: vi.fn().mockResolvedValue({ estado_odoo: 'to approve' }) };
+    const { svc, rpc } = servicio(odoo);
+
+    expect(await svc.updateEstado(orden('publicada'), 'aprobada')).toBe('por_aprobar');
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('tras un error con la OC ya creada en Odoo, aprobar se puede reintentar', async () => {
+    const odoo = { confirmarOrden: vi.fn().mockResolvedValue(OK) };
+    const { svc, rpc } = servicio(odoo);
+
+    expect(await svc.updateEstado(orden('error', 77), 'aprobada')).toBe('aplicado');
+    expect(odoo.confirmarOrden).toHaveBeenCalledWith('oc-1');
+    expect(rpc).toHaveBeenCalled();
+  });
+
+  it('con error y sin id de Odoo, primero hay que publicar', async () => {
+    const { svc } = servicio({});
+    await expect(svc.updateEstado(orden('error'), 'aprobada')).rejects.toThrow('Publica la orden en Odoo');
   });
 
   it('si Odoo rechaza, el estado SGC NO cambia', async () => {
@@ -76,8 +99,8 @@ describe('OdooOrdenesCompraService.updateEstado', () => {
     expect(rpc).toHaveBeenCalledTimes(2);
   });
 
-  it('un error del RPC de SGC tras confirmar en Odoo se propaga (la conciliación lo repara)', async () => {
-    const odoo = { confirmarOrden: vi.fn().mockResolvedValue(undefined) };
+  it('un error del RPC de SGC tras confirmar en Odoo se propaga', async () => {
+    const odoo = { confirmarOrden: vi.fn().mockResolvedValue(OK) };
     const { svc } = servicio(odoo, { message: 'transición inválida' });
 
     await expect(svc.updateEstado(orden('publicada'), 'aprobada')).rejects.toThrow('transición inválida');
