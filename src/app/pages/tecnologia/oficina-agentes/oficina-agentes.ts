@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import {
   Agente,
   AgenteAprobacion,
+  AgenteClave,
   AgenteEstado,
   AgentesService,
 } from '../../../../shared/services/agentes.service';
@@ -11,6 +12,7 @@ import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { presentarError } from '../../../../shared/utils/friendly-error.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { IconName } from '../../../../shared/ui/icon/icons';
 import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 
@@ -20,6 +22,16 @@ const ESTADO_LABEL: Record<AgenteEstado, string> = {
   esperando_ok: 'Espera tu OK',
   error: 'Tiene un error',
   inactivo: 'Sin conexión',
+};
+
+/** Un vistazo rápido a qué hace cada agente, sin depender de leer su nombre. */
+const ICONO_AGENTE: Record<AgenteClave, IconName> = {
+  vigia: 'eye',
+  capataz: 'wrench',
+  soporte: 'message-circle',
+  auditor: 'shield',
+  escriba: 'code',
+  cronista: 'file-text',
 };
 
 /**
@@ -45,6 +57,7 @@ export class OficinaAgentes implements OnInit, OnDestroy {
   private toast = inject(ToastService);
 
   readonly estadoLabel = ESTADO_LABEL;
+  readonly iconoAgente = (clave: AgenteClave): IconName => ICONO_AGENTE[clave] ?? 'circle';
   readonly formatTs = formatTimestampDisplay;
 
   loading = signal(true);

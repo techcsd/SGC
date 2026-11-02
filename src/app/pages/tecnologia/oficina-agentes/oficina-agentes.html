@@ -28,7 +28,9 @@
             role="group"
             [attr.aria-label]="agente.nombre + ': ' + (estadoLabel[estadoVisual(agente.id)] | t) + (resumenAgente(agente.id) ? ' — ' + resumenAgente(agente.id) : '')"
           >
-            <div class="estacion__escritorio"></div>
+            <div class="estacion__escritorio">
+              <app-icon [name]="iconoAgente(agente.clave)" [size]="18" />
+            </div>
             <div class="estacion__punto"></div>
             <div class="estacion__cuerpo">
               <span class="estacion__nombre">{{ agente.nombre }}</span>

@@ -76,14 +76,33 @@
 }
 
 .estacion__escritorio {
-  width: 48px;
-  height: 28px;
-  border-radius: 4px;
-  background: var(--sgc-surface-2);
-  border: 1px solid var(--sgc-border);
-  // leve efecto isométrico sin transform 3D — un paralelogramo simple
-  transform: skewX(-12deg);
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sgc-text-secondary);
+  z-index: 1;
+
+  // la "mesa" isométrica va detrás del ícono, como paralelogramo —
+  // así el ícono del agente queda recto y legible, sin distorsión.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: var(--sgc-surface-2);
+    border: 1px solid var(--sgc-border);
+    transform: skewX(-12deg) scaleY(0.72);
+    z-index: -1;
+  }
 }
+
+.estacion--observando .estacion__escritorio { color: var(--sgc-primary); }
+.estacion--trabajando .estacion__escritorio { color: var(--Hub); }
+.estacion--esperando_ok .estacion__escritorio { color: var(--sgc-warning); }
+.estacion--error .estacion__escritorio { color: var(--sgc-danger); }
 
 .estacion__punto {
   position: absolute;
