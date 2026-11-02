@@ -147,7 +147,12 @@ jobs:
       - name: Abrir PR contra dev (base hardcodeado a propósito — nunca main)
         id: pr
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # El GITHUB_TOKEN automático de Actions no puede crear PRs en este
+          # repo (restricción de GitHub, no de este workflow) -- se usa el
+          # PAT real del Escriba, que sí puede (encontrado en la tercera
+          # corrida real: "GitHub Actions is not permitted to create or
+          # approve pull requests").
+          GH_TOKEN: ${{ secrets.AGENTE_ESCRIBA_GITHUB_TOKEN }}
           BRANCH: ${{ steps.rama.outputs.branch }}
         run: |
           if git diff --quiet origin/dev -- . ; then
