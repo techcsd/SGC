@@ -43,6 +43,19 @@ import { PdfViewer } from '../../../../shared/ui/pdf-viewer/pdf-viewer';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
+import { GrabadoraAudio } from '../../../../shared/components/grabadora-audio/grabadora-audio';
+import { FormularioIaService } from '../../../../shared/services/formulario-ia.service';
+import { PrivacidadService } from '../../../../shared/services/privacidad.service';
+import { emparejarVehiculoSugerido } from '../../../../shared/utils/formulario-ia.util';
+import { clasificarConfianza, type ClasificacionConfianza } from '../../../../shared/utils/bitacora-ia.util';
+import type { PropuestaMantenimientoIA } from '../../../../shared/utils/formulario-ia.util';
+
+/** F2b — un campo de la propuesta de IA ya clasificado, para pintar su punto de confianza. */
+interface CampoRevisionMantenimiento {
+  etiqueta: string;
+  valor: string;
+  clasificacion: ClasificacionConfianza;
+}
 
 interface PendingFoto {
   file: File;
@@ -75,7 +88,7 @@ function normNombre(s: string): string {
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe, FilterSelect, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe, FilterSelect, StaggerDirective, GrabadoraAudio],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,6 +102,8 @@ export class Mantenimientos implements OnInit {
   private route = inject(ActivatedRoute);
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
+  private formularioIa = inject(FormularioIaService);
+  private privacidadService = inject(PrivacidadService);
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -387,6 +402,64 @@ export class Mantenimientos implements OnInit {
     incluye_preventivo: new FormControl<boolean>(false),
   });
 
+  // ── F2b — "Entender con voz" (nota de voz → descripción/vehículo/tipo) ──────
+  iaConsentimiento = signal(false);
+  iaCargando = signal(false);
+  iaError = signal('');
+  iaPropuesta = signal<PropuestaMantenimientoIA | null>(null);
+
+  camposRevisionIa = computed<CampoRevisionMantenimiento[]>(() => {
+    const p = this.iaPropuesta();
+    if (!p) return [];
+    const out: CampoRevisionMantenimiento[] = [];
+    if (p.descripcion?.valor) {
+      out.push({ etiqueta: 'Descripción', valor: p.descripcion.valor, clasificacion: clasificarConfianza(p.descripcion.valor, p.descripcion.confianza) });
+    }
+    if (p.vehiculo_sugerido?.valor) {
+      const v = this.vehiculos().find((x) => x.id === this.form.controls.vehiculo_id.value);
+      out.push({ etiqueta: 'Vehículo', valor: v ? this.idVehiculo(v) : p.vehiculo_sugerido.valor, clasificacion: clasificarConfianza(p.vehiculo_sugerido.valor, p.vehiculo_sugerido.confianza) });
+    }
+    if (p.tipo?.valor) {
+      out.push({ etiqueta: 'Tipo', valor: p.tipo.valor === 'correctivo' ? 'Correctivo' : 'Preventivo', clasificacion: clasificarConfianza(p.tipo.valor, p.tipo.confianza) });
+    }
+    return out;
+  });
+  iaSinNada = computed(() => !!this.iaPropuesta() && this.camposRevisionIa().length === 0);
+
+  /** Transcribe la nota de voz y propone descripción/vehículo/tipo — nunca sobrescribe lo que el usuario ya escribió. */
+  async onAudioMantenimiento(audio: Blob) {
+    if (this.iaCargando()) return;
+    this.iaError.set('');
+    this.iaCargando.set(true);
+    this.iaPropuesta.set(null);
+    try {
+      const propuesta = await this.formularioIa.leerMantenimiento({ audio });
+      if (!propuesta.ok) {
+        this.iaError.set(propuesta.error || 'No se pudo entender la nota de voz. Llena el formulario a mano.');
+        return;
+      }
+      this.iaPropuesta.set(propuesta);
+      if (propuesta.descripcion?.valor && !this.form.controls.descripcion.value?.trim()) {
+        this.form.controls.descripcion.setValue(propuesta.descripcion.valor);
+      }
+      if (propuesta.vehiculo_sugerido?.valor && !this.form.controls.vehiculo_id.value) {
+        const match = emparejarVehiculoSugerido(propuesta.vehiculo_sugerido.valor, this.vehiculos());
+        if (match) this.form.controls.vehiculo_id.setValue(match.id);
+      }
+      if (propuesta.tipo?.valor === 'correctivo') {
+        this.form.controls.tipo.setValue('correctivo');
+      }
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo entender la nota de voz. Llena el formulario a mano.');
+    } finally {
+      this.iaCargando.set(false);
+    }
+  }
+
+  descartarPropuestaIa() {
+    this.iaPropuesta.set(null);
+  }
+
   // X6 — el tipo de forma reactiva (OnPush: no leer form.value directo).
   tipoActual = toSignal(this.form.controls.tipo.valueChanges, {
     initialValue: this.form.controls.tipo.value,
@@ -506,6 +579,13 @@ export class Mantenimientos implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // F2b — el botón "Entender con voz" se OCULTA (no se deshabilita con tooltip
+    // técnico) si el usuario no activó el consentimiento de IA en su perfil.
+    try {
+      this.iaConsentimiento.set(await this.privacidadService.miConsentimiento('ia'));
+    } catch {
+      this.iaConsentimiento.set(false);
+    }
     // R9: crear cita precargada desde un aviso de flota (?nuevo=1&vehiculo=..&tipo=..).
     const qp = this.route.snapshot.queryParamMap;
     if (qp.get('nuevo')) {
@@ -622,6 +702,8 @@ export class Mantenimientos implements OnInit {
     this.proveedorAltaTaller.set(false);
     this.kmConfirmado.set(false);
     this.form.reset({ tipo: 'preventivo', estado: 'pendiente' });
+    this.iaPropuesta.set(null);
+    this.iaError.set('');
     this.drawerOpen.set(true);
   }
 
