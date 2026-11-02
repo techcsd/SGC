@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rumboEntre, distanciaMetros } from './geo.util';
+import { rumboEntre, distanciaMetros, etaMinutos } from './geo.util';
 
 // F6 (ronda DF, DF4-A) — geometría pura detrás del camión rotado en el mapa.
 describe('rumboEntre', () => {
@@ -29,5 +29,32 @@ describe('distanciaMetros', () => {
     const d = distanciaMetros({ lat: 18.0, lng: -69.9 }, { lat: 19.0, lng: -69.9 });
     expect(d).toBeGreaterThan(110000);
     expect(d).toBeLessThan(112000);
+  });
+});
+
+// F6b (ronda DF, DF4-C) — ETA honesta del tablero multi-vehículo: nunca un
+// número sin sustento (sin destino o sin velocidad real, debe dar null).
+describe('etaMinutos', () => {
+  const desde = { lat: 18.47, lng: -69.9 };
+  const destino = { lat: 18.48, lng: -69.9 }; // ~111 km de un grado → ~1.11 km a 1/100°
+
+  it('sin destino → null', () => {
+    expect(etaMinutos(desde, null, 40)).toBeNull();
+  });
+
+  it('sin velocidad (ruta sin estimado real) → null', () => {
+    expect(etaMinutos(desde, destino, null)).toBeNull();
+  });
+
+  it('velocidad cero o negativa → null (nunca divide por cero)', () => {
+    expect(etaMinutos(desde, destino, 0)).toBeNull();
+    expect(etaMinutos(desde, destino, -10)).toBeNull();
+  });
+
+  it('con destino y velocidad reales → minutos positivos y razonables', () => {
+    const min = etaMinutos(desde, destino, 40);
+    expect(min).not.toBeNull();
+    expect(min as number).toBeGreaterThan(0);
+    expect(min as number).toBeLessThan(10);
   });
 });

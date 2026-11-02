@@ -229,21 +229,27 @@ inventaron los 5 nodos del mockup original); contador de costo de IA del día vs
   limitación en vez de inventar un timestamp. `sgc.requisicion_flujo_detalle(etapa, dias)` da la
   lista exacta detrás de cada número (AT11). Componente `app-flujo-requisicion` en el Dashboard,
   cada etapa es un botón que abre/cierra su lista.
-- **Diferido, documentado**: tablero de varios conduces en tránsito con ETA por conduce (DF4-C —
-  `tablero-vivo` ya muestra TODA la flota en el mapa esquemático desde ronda DB; falta
-  específicamente la banda-por-conduce con ETA que pedía el mockup, no se llegó por tiempo) y pulso
-  del sistema (DF5-C — `monitoring.service.ts` existente es de monitoreo de DOMINIOS/suscripciones,
-  NO de salud de BD/crons/cola/STT/IA/GPS como pide el prompt; construirlo bien requiere decidir
-  cómo exponer `cron.job_run_details` de forma segura a un panel de Administración, no se apuró esa
-  decisión de seguridad en esta pasada).
+- **F6c (02-nov) — Pulso del sistema: COMPLETO.** `sgc.pulso_sistema()` (RPC admin/tecnología,
+  `sql/2026-11-02-df6c-pulso-sistema.sql`), aplicado a dev y verificado en vivo (encontró 2 crons
+  reales fallando en dev — ver abajo). Pantalla `admin/pulso-sistema`. 6 sistemas con dato real
+  (BD, crons, cola de envíos, STT, uso_ia, GPS), ninguno omitido.
+- **F6d (02-nov) — ETA en el tablero multi-vehículo: COMPLETO.** Extiende
+  `sgc.tablero_vivo_resumen()` (`sql/2026-11-02-df6d-tablero-eta.sql`) para traer, SOLO si el
+  vehículo tiene una `sgc.rutas` en curso (`iniciada_at` no nulo, `finalizada_at` nulo) con destino
+  real (`destino_lat/lng`): esos mismos destino_lat/lng + una velocidad derivada del propio
+  `km_estimado`/`tiempo_estimado_min` de la ruta (nunca inventada). El front
+  (`src/app/components/tablero-vivo/tablero-vivo.ts`) calcula minutos restantes con
+  `etaMinutos()` nueva en `shared/utils/geo.util.ts` (4 tests nuevos), reusando `distanciaMetros`
+  ya existente de F6 — sin destino o sin velocidad real, muestra "ETA no disponible", nunca un
+  número sin sustento. Verificado en vivo contra dev (RPC responde 200, sin filas hoy porque dev
+  no tiene GPS de hoy — no se pudo ver un ejemplo con datos, pero no rompe nada).
 - Verificación: `npm run build` verde (guards incluidos), `npx ng test --watch=false` y
   `npm run test:edge` — ver conteo en "Verify on resume" abajo.
 
 ### Pendiente — Claude puede hacerlo (próxima sesión)
-1. F6c: banda por conduce con ETA dentro de `tablero-vivo` (DF4-C, falta solo la ETA explícita por
-   conduce — la posición en el mapa ya existe); pulso del sistema (DF5-C) — requiere ANTES decidir
-   cómo exponer de forma segura el estado de `cron.job_run_details` a un panel de Administración (no
-   es solo "reusar monitoring.service.ts", ese servicio es de otra cosa — ver nota en F6b).
+1. ~~F6c pulso del sistema~~ y ~~F6d ETA en tablero~~ — **completos, ver arriba.** Pendiente real
+   para verificar con datos reales: no hay GPS de hoy en dev para ver un ejemplo de ETA poblado
+   (función corre sin error, solo sin filas).
 2. Comparar la oficina isométrica (F5) contra el mockup real una vez Xaviel comparta capturas, y
    ajustar visualmente.
 

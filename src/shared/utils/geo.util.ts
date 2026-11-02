@@ -27,3 +27,15 @@ export function distanciaMetros(from: LatLng, to: LatLng): number {
     Math.cos(toRad(from.lat)) * Math.cos(toRad(to.lat)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
+
+/**
+ * F6b (ronda DF, DF4-C) — ETA en minutos a partir de la posición actual, un
+ * destino real y una velocidad de referencia (nunca inventada: viene del
+ * km_estimado/tiempo_estimado_min de la propia ruta). `null` si falta
+ * cualquier dato — nunca un número sin sustento.
+ */
+export function etaMinutos(desde: LatLng, destino: LatLng | null | undefined, velocidadKmh: number | null | undefined): number | null {
+  if (!destino || !velocidadKmh || velocidadKmh <= 0) return null;
+  const metros = distanciaMetros(desde, destino);
+  return Math.round((metros / 1000 / velocidadKmh) * 60);
+}
