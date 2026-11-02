@@ -190,4 +190,14 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./whatsapp/whatsapp').then((m) => m.TecWhatsapp),
     title: 'Compa en WhatsApp — Tecnología',
   },
+  {
+    // F5 (ronda DF) — oficina de agentes IA (Vigía/Capataz/Soporte/Auditor/
+    // Escriba/Cronista). Gate: tecnologiaGuard, igual que el resto de la
+    // consola "Sistema" (no se creó un módulo `agentes` nuevo — ver nota en
+    // sql/2026-11-01-df3-agentes-aprobaciones-cronista.sql).
+    path: 'agentes',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./oficina-agentes/oficina-agentes').then((m) => m.OficinaAgentes),
+    title: 'Agentes — Tecnología',
+  },
 ];

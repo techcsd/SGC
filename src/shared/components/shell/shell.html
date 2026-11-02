@@ -46,7 +46,7 @@
             </span>
             <span class="nav-label">{{ item.label | t }}</span>
             @if (pendingBadge(item) > 0) {
-              <span class="nav-badge" [attr.aria-label]="pendingBadge(item) + ' sin leer'">{{ pendingBadge(item) }}</span>
+              <span class="nav-badge" [appEstadoPulse]="pendingBadge(item)" [attr.aria-label]="pendingBadge(item) + ' sin leer'">{{ pendingBadge(item) }}</span>
             }
             @if (item.phase) {
               <span class="nav-phase">{{ item.phase }}</span>
@@ -82,7 +82,7 @@
               </span>
               <span class="nav-label">{{ item.label | t }}</span>
               @if (pendingBadge(item) > 0) {
-                <span class="nav-badge" [attr.aria-label]="pendingBadge(item) + ' solicitudes pendientes'">{{ pendingBadge(item) }}</span>
+                <span class="nav-badge" [appEstadoPulse]="pendingBadge(item)" [attr.aria-label]="pendingBadge(item) + ' solicitudes pendientes'">{{ pendingBadge(item) }}</span>
               }
               <span class="nav-chevron" aria-hidden="true">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -102,7 +102,7 @@
                     >
                       <span class="nav-child__label">{{ child.label | t }}</span>
                       @if (childBadge(child) > 0) {
-                        <span class="nav-badge nav-badge--child" [attr.aria-label]="childBadge(child) + ' pendientes'">{{ childBadge(child) }}</span>
+                        <span class="nav-badge nav-badge--child" [appEstadoPulse]="childBadge(child)" [attr.aria-label]="childBadge(child) + ' pendientes'">{{ childBadge(child) }}</span>
                       }
                     </a>
                   }

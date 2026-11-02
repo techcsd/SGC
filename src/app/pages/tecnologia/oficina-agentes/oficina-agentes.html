@@ -1,0 +1,177 @@
+<div class="oficina">
+  <header class="oficina__header">
+    <h1>{{ 'Agentes' | t }}</h1>
+    <p class="oficina__subtitulo">
+      {{ 'Vigilan y mejoran SGC y CSD App. Nivel 1 solo avisa, Nivel 2 actúa y se puede deshacer, Nivel 3 propone código y espera tu OK.' | t }}
+    </p>
+  </header>
+
+  @if (error()) {
+    <app-error-state [error]="error()" pantalla="los agentes" (retry)="cargar()" />
+  } @else if (loading()) {
+    <p class="oficina__cargando">{{ 'Cargando…' | t }}</p>
+  } @else {
+    <!-- ── Oficina isométrica — SVG propio, 6 estaciones (una por agente) ── -->
+    <div class="oficina__escena" role="img" [attr.aria-label]="'Oficina con ' + agentes().length + ' agentes'">
+      <svg viewBox="0 0 900 420" class="oficina__svg" aria-hidden="true">
+        <!-- piso isométrico: un rombo por fila de 3 escritorios -->
+        <polygon points="450,40 820,140 450,240 80,140" class="oficina__piso" />
+      </svg>
+
+      <div class="oficina__estaciones">
+        @for (agente of agentes(); track agente.id) {
+          <div
+            class="estacion"
+            [class]="'estacion--' + estadoVisual(agente.id)"
+            [appEstadoPulse]="estadoVisual(agente.id)"
+            tabindex="0"
+            role="group"
+            [attr.aria-label]="agente.nombre + ': ' + (estadoLabel[estadoVisual(agente.id)] | t) + (resumenAgente(agente.id) ? ' — ' + resumenAgente(agente.id) : '')"
+          >
+            <div class="estacion__escritorio"></div>
+            <div class="estacion__punto"></div>
+            <div class="estacion__cuerpo">
+              <span class="estacion__nombre">{{ agente.nombre }}</span>
+              <span class="estacion__estado-texto">{{ estadoLabel[estadoVisual(agente.id)] | t }}</span>
+              @if (esperandoOk(agente); as aprobacion) {
+                <span class="estacion__badge-ok">{{ 'Espera tu OK' | t }}</span>
+              }
+            </div>
+            @if (resumenAgente(agente.id); as resumen) {
+              <div class="estacion__globo">{{ resumen }}</div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Costo de IA de hoy vs tope (DF4-extra) ── -->
+    @if (costoIaHoy(); as costo) {
+      <section class="panel panel--costo">
+        <header class="panel__header">
+          <app-icon name="dollar-sign" [size]="18" />
+          <h2>{{ 'Costo de IA hoy' | t }}</h2>
+        </header>
+        <div class="costo-ia" role="meter" [attr.aria-valuenow]="costoIaPct()" aria-valuemin="0" aria-valuemax="100">
+          <div class="costo-ia__barra">
+            <div class="costo-ia__relleno" [class.costo-ia__relleno--alto]="costoIaPct() >= 80" [style.width.%]="costoIaPct()"></div>
+          </div>
+          <span class="costo-ia__texto">
+            ${{ costo.costoHoy | number: '1.2-2' }} / ${{ costo.topeDiario | number: '1.0-0' }} ({{ costoIaPct() }}%)
+          </span>
+        </div>
+      </section>
+    }
+
+    <!-- ── Informe diario del Cronista ── -->
+    @if (informeHoy(); as informe) {
+      <section class="panel panel--informe">
+        <header class="panel__header">
+          <app-icon name="clipboard-check" [size]="18" />
+          <h2>{{ 'Informe de hoy' | t }}</h2>
+        </header>
+        <pre class="panel__informe-texto">{{ informe.contenido_md }}</pre>
+        @if (informe.enviado_en) {
+          <p class="panel__informe-enviado">{{ 'Enviado' | t }} — {{ formatTs(informe.enviado_en) }}</p>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="enviandoInforme()" (click)="enviarInforme()">
+            {{ 'Enviar a Eduardo' | t }}
+          </button>
+        }
+      </section>
+    }
+
+    <div class="oficina__paneles">
+      <!-- ── Lo que encontré hoy ── -->
+      <section class="panel">
+        <header class="panel__header">
+          <app-icon name="alert-triangle" [size]="18" />
+          <h2>{{ 'Lo que encontré hoy' | t }} ({{ hallazgosHoy().length }})</h2>
+        </header>
+        @if (!hallazgosHoy().length) {
+          <p class="panel__vacio">{{ 'Sin hallazgos nuevos hoy.' | t }}</p>
+        }
+        <ul class="panel__lista">
+          @for (h of hallazgosHoy(); track h.id) {
+            <li class="hallazgo" [class]="'hallazgo--' + h.severidad">
+              <span class="hallazgo__severidad">{{ h.severidad }}</span>
+              <span class="hallazgo__titulo">{{ h.titulo }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- ── Lo que arreglaron solos (Nivel 2) ── -->
+      <section class="panel">
+        <header class="panel__header">
+          <app-icon name="check-circle" [size]="18" />
+          <h2>{{ 'Lo que arreglaron solos' | t }} ({{ accionesHoy().length }})</h2>
+        </header>
+        @if (!accionesHoy().length) {
+          <p class="panel__vacio">{{ 'Ningún agente actuó hoy.' | t }}</p>
+        }
+        <ul class="panel__lista">
+          @for (a of accionesHoy(); track a.id) {
+            <li class="accion">
+              <span class="accion__texto">{{ a.que_hizo }}</span>
+              @if (a.reversible && !a.deshecha_en) {
+                <button type="button" class="accion__deshacer" (click)="deshacer(a.id)">
+                  <app-icon name="rotate-ccw" [size]="14" />
+                  {{ 'Deshacer' | t }}
+                </button>
+              } @else if (a.deshecha_en) {
+                <span class="accion__deshecha">{{ 'Deshecha' | t }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- ── Esperan tu OK (Nivel 3) ── -->
+      <section class="panel">
+        <header class="panel__header">
+          <app-icon name="message-circle" [size]="18" />
+          <h2>{{ 'Esperan tu OK' | t }} ({{ aprobacionesPendientes().length }})</h2>
+        </header>
+        @if (!aprobacionesPendientes().length) {
+          <p class="panel__vacio">{{ 'El Escriba no tiene propuestas pendientes.' | t }}</p>
+        }
+        <ul class="panel__lista panel__lista--aprobaciones">
+          @for (ap of aprobacionesPendientes(); track ap.id) {
+            <li class="aprobacion">
+              <p class="aprobacion__propuesta">{{ ap.propuesta }}</p>
+              <p class="aprobacion__nota-legal">
+                {{ 'Aprobar solo marca el estado — el merge real a dev lo haces tú en GitHub.' | t }}
+              </p>
+              <div class="aprobacion__acciones">
+                @if (ap.pr_url) {
+                  <a [href]="ap.pr_url" target="_blank" rel="noopener" class="aprobacion__ver">
+                    <app-icon name="external-link" [size]="14" />
+                    {{ 'Ver cambios' | t }}
+                  </a>
+                }
+                <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo() === ap.id" (click)="decidir(ap.id, 'aprobada')">
+                  {{ 'Aprobar para dev' | t }}
+                </button>
+                <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="decidiendo() === ap.id" (click)="decidir(ap.id, 'descartada')">
+                  {{ 'Descartar' | t }}
+                </button>
+              </div>
+              <div class="aprobacion__ajuste">
+                <input
+                  type="text"
+                  [placeholder]="'Qué le falta…' | t"
+                  [value]="notaAjuste()[ap.id] ?? ''"
+                  (input)="setNota(ap.id, $any($event.target).value)"
+                />
+                <button type="button" class="aprobacion__pedir-ajuste" [disabled]="decidiendo() === ap.id" (click)="decidir(ap.id, 'ajuste')">
+                  {{ 'Pedir ajuste' | t }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  }
+</div>

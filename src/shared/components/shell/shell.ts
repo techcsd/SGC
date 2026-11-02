@@ -32,6 +32,7 @@ import { PracticaBanda } from '../../ui/practica-banda/practica-banda';
 import { Lightbox } from '../../ui/lightbox/lightbox';
 import { LightboxService } from '../../ui/lightbox/lightbox.service';
 import { TranslatePipe } from '../../i18n/translate.pipe';
+import { EstadoPulseDirective } from '../../motion/estado-pulse.directive';
 import { formatFechaRelativa } from '../../utils/fecha.util';
 
 interface NavItem {
@@ -94,7 +95,7 @@ interface NavSubItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, Novedades, ConfirmDialog, LanguageOnboarding, PolicyGate, Celebracion, Momento, PracticaBanda, Lightbox, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, Novedades, ConfirmDialog, LanguageOnboarding, PolicyGate, Celebracion, Momento, PracticaBanda, Lightbox, TranslatePipe, EstadoPulseDirective],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -449,6 +450,8 @@ export class Shell implements OnInit {
         { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
         // DC7 — Compa en WhatsApp: badge = mensajes con error/fallido en las últimas 24h.
         { label: 'Compa en WhatsApp', route: '/tecnologia/whatsapp', soloTecnologia: true, badgeKey: 'tecnologia.whatsapp' },
+        // F5 (ronda DF) — badge = propuestas del Escriba esperando tu OK.
+        { label: 'Agentes', route: '/tecnologia/agentes', soloTecnologia: true, badgeKey: 'tecnologia.agentes' },
       ],
     },
     {
