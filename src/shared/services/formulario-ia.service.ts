@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { invokeEdge } from '../utils/edge.util';
-import type { PropuestaConduceIA, PropuestaMantenimientoIA, PropuestaChecklistIA } from '../utils/formulario-ia.util';
+import type { PropuestaConduceIA, PropuestaMantenimientoIA, PropuestaChecklistIA, PropuestaRequisicionIA } from '../utils/formulario-ia.util';
 
 /**
  * DF1-B..E / F2b — cliente del lector IA genérico `leer-formulario`.
@@ -46,6 +46,14 @@ export class FormularioIaService {
       items: input.items,
       audio: { data: await this.aBase64(input.audio), mime: input.audio.type || 'audio/webm' },
       fotos,
+    });
+  }
+
+  /** F2d — nota de voz → renglones (match contra el catálogo real de artículos) + obra mencionada + urgencia. */
+  async leerRequisicionVoz(input: { audio: Blob }): Promise<PropuestaRequisicionIA> {
+    return invokeEdge<PropuestaRequisicionIA>(this.supabase.client, 'leer-formulario', {
+      tipo: 'requisicion',
+      audio: { data: await this.aBase64(input.audio), mime: input.audio.type || 'audio/webm' },
     });
   }
 

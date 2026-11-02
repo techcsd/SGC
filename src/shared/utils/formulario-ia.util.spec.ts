@@ -3,6 +3,7 @@ import {
   emparejarProveedorSugerido,
   emparejarItemsPropuestos,
   emparejarVehiculoSugerido,
+  emparejarProyectoSugerido,
   filtrarRespuestasChecklist,
   type ItemPropuesto,
   type RespuestaChecklistPropuesta,
@@ -105,5 +106,38 @@ describe('formulario-ia.util — checklist de vehículos (F2b)', () => {
 
   it('arreglo vacío (nota de voz sin hallazgos) no produce nada', () => {
     expect(filtrarRespuestasChecklist([], itemsVisibles)).toEqual([]);
+  });
+});
+
+describe('formulario-ia.util — requisición por voz (F2d)', () => {
+  const proyectos = [
+    { id: 'o1', nombre: 'Los Prados' },
+    { id: 'o2', nombre: 'Los Prados Fase 2' },
+  ];
+  const articulos = [{ id: 'a1', nombre: 'Cemento gris 42.5kg' }];
+
+  it('voz vacía (sin obra mencionada) no empareja nada', () => {
+    expect(emparejarProyectoSugerido(null, proyectos)).toBeNull();
+    expect(emparejarProyectoSugerido('', proyectos)).toBeNull();
+  });
+
+  it('empareja la obra por coincidencia exacta normalizada', () => {
+    expect(emparejarProyectoSugerido('los prados', proyectos)).toEqual(proyectos[0]);
+  });
+
+  it('obra ambigua entre dos parecidas no empareja (nunca adivina)', () => {
+    expect(emparejarProyectoSugerido('Los Prados Fase', proyectos)).toBeNull();
+  });
+
+  it('obra sin match en las que el usuario puede ver no empareja', () => {
+    expect(emparejarProyectoSugerido('Obra que no existe', proyectos)).toBeNull();
+  });
+
+  it('reusa emparejarItemsPropuestos para los renglones de la requisición', () => {
+    const items: ItemPropuesto[] = [
+      { articulo: 'cemento gris 42.5kg', cantidad: 50, unidad: 'saco', confianza: 0.9 },
+      { articulo: 'Madera que no está en catálogo', cantidad: 5, unidad: null, confianza: 0.6 },
+    ];
+    expect(emparejarItemsPropuestos(items, articulos)).toEqual([{ articuloId: 'a1', cantidad: 50 }]);
   });
 });

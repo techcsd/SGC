@@ -43,7 +43,6 @@
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/moldes | - | 28 | 0 | 28 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| bitacora/solicitudes-material | - | 126 | 0 | 126 | 0% |
 | compras/ordenes | - | 171 | 0 | 171 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
@@ -156,6 +155,7 @@
 | inventario/conduce-externo-ficha | - | 62 | 2 | 60 | 3% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | bitacora/nueva | - | 300 | 17 | 283 | 6% |
+| bitacora/solicitudes-material | - | 145 | 9 | 136 | 6% |
 | flota/mantenimientos | - | 178 | 16 | 162 | 9% |
 | flota/vehiculos | - | 589 | 66 | 523 | 11% |
 | app-movil | - | 55 | 8 | 47 | 15% |

@@ -238,6 +238,52 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     @if (step() === 'form') {
+      @if (!editandoId() && iaConsentimiento()) {
+        <div class="sgc-field requisicion-voz">
+          <span class="requisicion-voz__titulo">{{ 'Entender con voz' | t }}</span>
+          <app-grabadora-audio (grabado)="onAudioRequisicion($event)" />
+          @if (iaCargando()) {
+            <p class="requisicion-voz__estado">{{ 'Entendiendo la nota de voz…' | t }}</p>
+          }
+          @if (iaError()) {
+            <p class="requisicion-voz__error" role="alert">{{ iaError() }}</p>
+          }
+          @if (iaPropuesta() && !iaCargando()) {
+            <div class="requisicion-voz__revision">
+              @if (iaSinNada()) {
+                <p class="requisicion-voz__estado">{{ 'No entendí ningún material en la nota. Llena el formulario a mano.' | t }}</p>
+              } @else {
+                <p class="requisicion-voz__titulo">{{ 'Esto entendí' | t }}</p>
+                <ul class="mant-ia-campos">
+                  @for (r of renglonesVozPropuestos(); track r.articuloId) {
+                    <li class="mant-ia-campo mant-ia-campo--alta"><span class="mant-ia-campo__punto"></span> {{ r.cantidad }} {{ r.unidad }} — {{ r.nombre }}</li>
+                  }
+                  @if (obraVozClasificacion()) {
+                    <li class="mant-ia-campo" [class]="'mant-ia-campo--' + obraVozClasificacion()">
+                      <span class="mant-ia-campo__punto"></span>
+                      {{ 'Obra' | t }}: {{ iaPropuesta()?.obra_mencionada?.valor }}
+                      @if (obraVozClasificacion() === 'dudosa') { <em>({{ '¿seguro?' | t }})</em> }
+                    </li>
+                  }
+                  @if (urgenciaVozClasificacion()) {
+                    <li class="mant-ia-campo" [class]="'mant-ia-campo--' + urgenciaVozClasificacion()">
+                      <span class="mant-ia-campo__punto"></span>
+                      {{ 'Urgencia' | t }}: {{ iaPropuesta()?.urgencia?.valor === 'urgente' ? ('Urgente' | t) : ('Normal' | t) }}
+                    </li>
+                  }
+                </ul>
+              }
+              <div class="requisicion-voz__acciones">
+                @if (!iaSinNada()) {
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="usarPropuestaVoz()">{{ 'Usar esto' | t }}</button>
+                }
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarPropuestaIaVoz()">{{ 'Descartar' | t }}</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
       <div class="sgc-field">
         <label for="proyecto_id">Obra <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">

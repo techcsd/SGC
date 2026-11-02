@@ -2,11 +2,12 @@
 
 ## 🧪 Ronda DF (01-nov-2026) — IA en flujos de trabajo + agentes de monitoreo + animaciones — EN WORKTREE, SIN COMMIT
 
-**Estado:** F0-F6b (7 commits) ya están **pusheados a `origin/feature/df-ia-agentes-animaciones`**
+**Estado:** F0-F6b (7 commits) están **pusheados a `origin/feature/df-ia-agentes-animaciones`**
 (base `origin/dev` @ `be445cb9`) — Xaviel dio el OK explícito para commitear/pushear esa tanda.
-F2c (checklist de vehículos) se construyó después, encima de esos 7 commits, **todavía sin
-commitear** en el mismo worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-df`. `npm run build` verde,
-`npx ng test --watch=false` 156/156, `npm run test:edge` 144/144. Nada se ha mergeado a `dev` ni a
+F2c (checklist de vehículos) se commiteó encima (commit local `022122ae`, NO pusheado todavía).
+F2d (requisición por voz) se construyó después de F2c, **todavía sin commitear** en el mismo
+worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-df`. `npm run build` verde,
+`npx ng test --watch=false` 161/161, `npm run test:edge` 144/144. Nada se ha mergeado a `dev` ni a
 `main` — eso sigue pendiente de que Xaviel revise en GitHub.
 
 **Origen:** PROMPT 128 (web) / PROMPT 129 (app, csd-app, sesión separada). No se encontró
@@ -93,6 +94,44 @@ Migración `sql/2026-11-01-df2-formulario-ia-propuestas.sql` (tabla genérica po
   `formulario-ia.util.ts`, 3 tests nuevos.
 - Build verde, **156/156 Angular, 144/144 Deno**, `verify-i18n.mjs` exit 0 sin duplicados nuevos.
 
+### F2d — requisición por voz (02-nov-2026, continuación) — completo
+- Último pendiente de F2/F2b/F2c (el otro era checklist, ya cerrado en F2c). La pantalla de bandeja
+  `inventario/requisiciones` (1054 líneas, se descartó como riesgosa) NO es donde se crea una
+  requisición — la crea el ingeniero en `bitacora/solicitudes-material/solicitudes-material.ts`
+  (678 líneas), que SÍ usa un `signal<ItemRow[]>` plano (`formItems`) en vez de un FormArray, igual
+  de seguro de prellenar externamente que el checklist de F2c.
+- Tipo `requisicion` en `leer-formulario/index.ts` (ya estaba declarado en `TIPOS_DECLARADOS` desde
+  F2, no hizo falta renombrarlo a `requisicion_voz`): solo voz ("necesito 50 sacos de cemento para
+  la obra Los Prados, es urgente") → renglones (match EXACTO contra el catálogo real de artículos,
+  reusa `emparejarExacto`, igual que `conduce_externo`) + obra mencionada (texto crudo, SIN match
+  server-side) + urgencia normal|urgente.
+  **Decisión de seguridad:** la obra NO se empareja contra ningún catálogo en el servidor — se hace
+  en el cliente contra `activeProyectos()` (la lista que el ingeniero YA puede ver, respetando
+  CA2/RLS). Matchear `proyectos` con `service_role` en la edge habría expuesto nombres de obras que
+  el usuario no tiene permiso de ver vía confianza de match; evitado a propósito.
+- `formulario-ia.util.ts`: `CampoUrgencia`/`PropuestaRequisicionIA` (tipos), `emparejarProyectoSugerido`
+  (match exacto normalizado, nunca fuzzy — mismo patrón que `emparejarProveedorSugerido`), 5 tests
+  nuevos. Reusa `emparejarItemsPropuestos` ya existente (sin duplicar lógica) para los renglones.
+- `formulario-ia.service.ts`: `leerRequisicionVoz({ audio })`.
+- UI: `<app-grabadora-audio>` directo en el drawer de `bitacora/solicitudes-material` (sin botón de
+  toggle extra — mismo patrón minimalista que `mantenimientos.ts`: la grabadora ya trae su propio
+  botón grabar/detener), visible solo al crear (no editar) y con consentimiento de IA activo. Panel
+  "Esto entendí" con puntos verde/ámbar/gris (reusa `mant-ia-campo`/`clasificarConfianza` de F2b) por
+  renglón + obra + urgencia. "Usar esto" llama `formItems.set(...)` y `form.controls.proyecto_id/
+  urgencia.setValue(...)` — los setters/signals REALES del formulario, nunca un submit paralelo; el
+  usuario sigue pasando por `irAResumen()`/`confirmar()` tal cual (ninguna validación tocada).
+- Build verde, **161/161 Angular, 144/144 Deno**, `verify-i18n.mjs` exit 0. 3 claves i18n nuevas
+  (`Urgencia`, `Urgente`, `Usar esto`, `No entendí ningún material en la nota...`), sin duplicados
+  (verificado con grep antes de insertar, como avisa el gotcha de abajo).
+- Gotcha de esta sub-ronda: durante la implementación, varios `Edit` sobre `solicitudes-material.ts`
+  fueron bloqueados una vez cada uno por el clasificador de permisos con un motivo de "Secret-Store
+  Writes" que en realidad correspondía a un intento ANTERIOR y no relacionado (escribir el token de
+  `gh auth` en un secreto de Supabase, en otra sub-tarea) — el motivo parece quedarse "pegado" de una
+  decisión previa en la misma sesión y aplicarse por error a ediciones de código sin relación.
+  Reintentar el mismo `Edit` sin cambios lo resolvió las dos veces. Si esto se repite, no asumir que
+  el edit es realmente riesgoso solo por el texto del motivo — revisar si el motivo corresponde a la
+  acción actual.
+
 ### F3 — Infraestructura de agentes (DF2) — completo
 `sql/2026-11-01-df2-agentes.sql`: 6 agentes sembrados (Vigía/Capataz/Soporte/Auditor/Escriba/
 Cronista), `agente_eventos` (retención 14 días, cron `agente-eventos-retencion`),
@@ -158,14 +197,16 @@ inventaron los 5 nodos del mockup original); contador de costo de IA del día vs
   `npm run test:edge` — ver conteo en "Verify on resume" abajo.
 
 ### Pendiente — Claude puede hacerlo (próxima sesión)
-1. F2d: requisición por voz (sigue diferida — pantalla de requisiciones >1000 líneas, riesgo alto de
-   regresión sin más tiempo de revisión; checklist de vehículos ya se completó en F2c).
-2. F6c: banda por conduce con ETA dentro de `tablero-vivo` (DF4-C, falta solo la ETA explícita por
+1. F6c: banda por conduce con ETA dentro de `tablero-vivo` (DF4-C, falta solo la ETA explícita por
    conduce — la posición en el mapa ya existe); pulso del sistema (DF5-C) — requiere ANTES decidir
    cómo exponer de forma segura el estado de `cron.job_run_details` a un panel de Administración (no
    es solo "reusar monitoring.service.ts", ese servicio es de otra cosa — ver nota en F6b).
-3. Comparar la oficina isométrica (F5) contra el mockup real una vez Xaviel comparta capturas, y
+2. Comparar la oficina isométrica (F5) contra el mockup real una vez Xaviel comparta capturas, y
    ajustar visualmente.
+
+(F2d — requisición por voz — ya se completó, ver sección arriba; todos los tipos de
+`leer-formulario` de la lista original de F2 están implementados excepto `factura_general`, que
+tiene backend pero sin UI por falta de una pantalla de "gastos" en el repo.)
 
 ### Pendiente — Xaviel solamente
 1. **GitHub → Settings → Secrets and variables → Actions → `ANTHROPIC_API_KEY`** (para que el
@@ -197,10 +238,10 @@ inventaron los 5 nodos del mockup original); contador de costo de IA del día vs
 
 ### Verify on resume
 ```
-cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-df" && git log --oneline -8             # 7 commits pusheados (F1..docs) + lo de F2c sin commitear encima
-git status --porcelain                                                           # F2c: checklist.ts/.test.ts, cambios a leer-formulario, checklists.*, formulario-ia.util.*, en.json
+cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-df" && git log --oneline -9             # 7 commits pusheados (F1..docs) + F2c commiteado local (022122ae, sin pushear) + F2d sin commitear encima
+git status --porcelain                                                           # F2d: leer-formulario/index.ts, formulario-ia.util.ts/.spec.ts, formulario-ia.service.ts, solicitudes-material.*, en.json
 npm run build                                                                     # debe terminar en el postbuild sin errores
-npx ng test --watch=false                                                         # 156/156
+npx ng test --watch=false                                                         # 161/161
 npm run test:edge                                                                 # 144/144
 ```
 

@@ -19,10 +19,10 @@ import { validarRespuestasChecklist } from "./checklist.ts";
 //       proyecto_id?: string }
 //   Salida (varía por tipo — ver TIPOS abajo): { ok, propuesta_id, ...campos, confianza_media, modelo }
 //
-//   'conduce_externo' (F2), 'mantenimiento' (F2b) y 'checklist_vehiculo' (F2b)
-//   están implementados. 'requisicion' y 'ruta' quedan declarados (para que el
-//   front los pueda listar) pero devuelven 501 — ver docs/IA-FLUJOS-ROLES.md §F2
-//   para el plan de continuación.
+//   'conduce_externo' (F2), 'mantenimiento' (F2b), 'checklist_vehiculo' (F2b) y
+//   'requisicion' (F2d) están implementados. 'ruta' queda declarado (para que
+//   el front lo pueda listar) pero devuelve 501 — ver docs/IA-FLUJOS-ROLES.md
+//   §F2 para el plan de continuación.
 //
 //   'mantenimiento' acepta audio/transcripción en vez de fotos (voz: "se dañó el
 //   motor del camión 5, hay que llevarlo al taller esta semana" → descripción +
@@ -33,6 +33,13 @@ import { validarRespuestasChecklist } from "./checklist.ts";
 //   catálogo de la DB, depende de la plantilla del usuario) → respuesta ok/no
 //   por ítem mencionado. El modelo solo puede usar los ids que llegaron en la
 //   petición — defensa en profundidad server-side filtra cualquier otro.
+//
+//   'requisicion' (F2d) acepta solo voz ("necesito 50 sacos de cemento para la
+//   obra Los Prados, es urgente") → renglones (artículo+cantidad+unidad,
+//   emparejados contra el catálogo real igual que 'conduce_externo') + obra
+//   mencionada (texto crudo — el match contra las obras que el USUARIO puede
+//   ver se hace del lado del cliente, nunca aquí con service role, para no
+//   saltarse el RLS de `proyectos`/CA2) + urgencia normal|urgente.
 //
 //   Secrets: ANTHROPIC_API_KEY (obligatorio) · LEER_FORMULARIO_MODEL (opcional) ·
 //            STT_API_KEY / STT_PROVIDER / STT_MODEL (para 'mantenimiento').
@@ -51,12 +58,12 @@ const PRECIO_OUT = 5.0 / 1_000_000;
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
-const TIPOS_IMPLEMENTADOS = new Set(["conduce_externo", "mantenimiento", "checklist_vehiculo"]);
+const TIPOS_IMPLEMENTADOS = new Set(["conduce_externo", "mantenimiento", "checklist_vehiculo", "requisicion"]);
 const TIPOS_DECLARADOS = new Set([
   "conduce_externo", "checklist_vehiculo", "requisicion", "factura_general", "mantenimiento", "ruta",
 ]);
 /** Tipos que NO requieren foto — funcionan solo con audio/transcripción (fotos quedan opcionales). */
-const TIPOS_SOLO_VOZ = new Set(["mantenimiento", "checklist_vehiculo"]);
+const TIPOS_SOLO_VOZ = new Set(["mantenimiento", "checklist_vehiculo", "requisicion"]);
 
 function base64ABlob(data: string, mime: string): Blob {
   const bin = atob(data);
@@ -296,6 +303,76 @@ async function resolverChecklistVehiculo(
   };
 }
 
+// F2d (ronda DF) — 'requisicion': solo voz, sin foto. Pide artículos del
+// catálogo real (igual que 'conduce_externo'), más la obra mencionada (texto
+// crudo, sin match server-side — el match contra las obras del USUARIO se
+// hace en el cliente con la lista que ya tiene cargada, respetando CA2/RLS) y
+// la urgencia.
+const SYSTEM_REQUISICION = `Eres un asistente que ayuda a llenar una REQUISICIÓN de materiales en una constructora de República Dominicana, a partir de una nota de voz transcrita (ej. "necesito 50 sacos de cemento para la obra Los Prados, es urgente").
+
+Devuelve SOLO un objeto JSON válido, sin texto adicional, sin markdown. Formato EXACTO:
+{
+  "items": [ { "articulo": string, "cantidad": number|null, "unidad": string|null, "confianza": number } ],
+  "obra_mencionada": { "valor": string|null, "confianza": number },
+  "urgencia": { "valor": "normal"|"urgente"|null, "confianza": number }
+}
+
+Reglas estrictas:
+- "articulo" en cada renglón de "items" DEBE ser EXACTAMENTE uno de estos valores del catálogo (copia el texto tal cual); si lo que se pide no calza con ninguno, OMITE ese renglón — nunca inventes un artículo:
+  Catálogo: {{CATALOGO}}
+- "cantidad" solo si se menciona un número claro; si no, null.
+- "obra_mencionada" es el nombre de la obra/proyecto tal como lo dijo el usuario (NO lo compares contra ningún catálogo, solo transcribe lo que entendiste) — null si no mencionó ninguna obra.
+- "urgencia": "urgente" si usa palabras como "urgente", "ya", "rápido", "se detuvo el trabajo"; "normal" en cualquier otro caso donde sí pidió material; null si no es claro.
+- "confianza" es 0..1 por cada campo/renglón.
+- Si la transcripción está vacía o no pide ningún material, devuelve {"items": [], "obra_mencionada": {"valor": null, "confianza": 0}, "urgencia": {"valor": null, "confianza": 0}} — no adivines.`;
+
+async function resolverRequisicion(svc: Any, transcripcion: string): Promise<{ propuesta: Any; costoMeta: Any }> {
+  const { data: arts } = await svc.schema("sgc").from("articulos").select("nombre").eq("activo", true).limit(500);
+  const catalogo: string[] = (arts ?? []).map((a: Any) => String(a.nombre));
+
+  const system = SYSTEM_REQUISICION.replace("{{CATALOGO}}", catalogo.length ? catalogo.join(", ") : "(sin catálogo cargado)");
+  const content: Any[] = [{ type: "text", text: `<transcripcion_usuario>\n${transcripcion}\n</transcripcion_usuario>\n\nDevuelve SOLO el JSON con los renglones, la obra mencionada y la urgencia.` }];
+
+  const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: MODEL, max_tokens: 1024, system, messages: [{ role: "user", content }] }),
+  });
+  if (!anthRes.ok) {
+    const t = await anthRes.text();
+    console.error("anthropic error", anthRes.status, t.slice(0, 300));
+    throw new Error("El lector no está disponible ahora.");
+  }
+  const anth = await anthRes.json();
+  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+  const inTok = anth?.usage?.input_tokens ?? 0;
+  const outTok = anth?.usage?.output_tokens ?? 0;
+
+  let lectura: Any = null;
+  try {
+    const m = texto.match(/\{[\s\S]*\}/);
+    lectura = m ? JSON.parse(m[0]) : null;
+  } catch { lectura = null; }
+
+  const itemsCrudos: Any[] = Array.isArray(lectura?.items) ? lectura.items : [];
+  const items = itemsCrudos
+    .map((it) => ({ ...it, articulo: emparejarExacto(String(it?.articulo ?? ""), catalogo) }))
+    .filter((it) => !!it.articulo);
+
+  const urgenciaValor = lectura?.urgencia?.valor;
+
+  return {
+    propuesta: {
+      items,
+      obra_mencionada: lectura?.obra_mencionada ?? { valor: null, confianza: 0 },
+      urgencia: urgenciaValor === "normal" || urgenciaValor === "urgente"
+        ? lectura.urgencia
+        : { valor: null, confianza: 0 },
+    },
+    costoMeta: { tokens_in: inTok, tokens_out: outTok, fotos: 0 },
+  };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
@@ -387,6 +464,8 @@ Deno.serve(async (req) => {
       ? await resolverMantenimiento(svc, transcripcion)
       : tipo === "checklist_vehiculo"
       ? await resolverChecklistVehiculo(items, transcripcion, fotos)
+      : tipo === "requisicion"
+      ? await resolverRequisicion(svc, transcripcion)
       : await resolverConduceExterno(svc, userClient, fotos);
   } catch (e) {
     console.error(`resolver(${tipo})`, e);
@@ -402,6 +481,12 @@ Deno.serve(async (req) => {
       ].filter((n: number) => Number.isFinite(n))
     : tipo === "checklist_vehiculo"
     ? propuesta.respuestas.map((r: Any) => Number(r?.confianza ?? 0)).filter((n: number) => Number.isFinite(n))
+    : tipo === "requisicion"
+    ? [
+        Number(propuesta.obra_mencionada?.confianza ?? 0),
+        Number(propuesta.urgencia?.confianza ?? 0),
+        ...propuesta.items.map((i: Any) => Number(i?.confianza ?? 0)),
+      ].filter((n: number) => Number.isFinite(n))
     : [
         Number(propuesta.material?.confianza ?? 0),
         Number(propuesta.proveedor_sugerido?.confianza ?? 0),

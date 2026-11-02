@@ -75,6 +75,24 @@ export interface PropuestaChecklistIA {
   error_code?: string;
 }
 
+/** F2d — urgencia clasificada por la IA (nunca inventada: solo normal/urgente). */
+export interface CampoUrgencia {
+  valor: 'normal' | 'urgente' | null;
+  confianza: number;
+}
+
+export interface PropuestaRequisicionIA {
+  ok: boolean;
+  propuesta_id?: string | null;
+  items?: ItemPropuesto[];
+  obra_mencionada?: CampoSimple;
+  urgencia?: CampoUrgencia;
+  confianza_media?: number;
+  modelo?: string;
+  error?: string;
+  error_code?: string;
+}
+
 /**
  * Defensa en profundidad del lado del cliente: el servidor ya filtra las
  * respuestas a los ids que se mandaron, pero si la pantalla cambió de
@@ -120,6 +138,21 @@ export function emparejarProveedorSugerido(
   const nombre = emparejarExacto(sugerido, proveedores.map((p) => p.nombre));
   if (!nombre) return null;
   return proveedores.find((p) => p.nombre === nombre) ?? null;
+}
+
+/**
+ * F2d — empareja la obra mencionada por voz contra las obras que el USUARIO
+ * puede ver (la lista ya cargada en el cliente, respetando CA2/RLS — nunca
+ * contra un catálogo global del servidor). Match exacto únicamente.
+ */
+export function emparejarProyectoSugerido(
+  sugerido: string | null | undefined,
+  proyectos: readonly { id: string; nombre: string }[],
+): { id: string; nombre: string } | null {
+  if (!sugerido) return null;
+  const nombre = emparejarExacto(sugerido, proyectos.map((p) => p.nombre));
+  if (!nombre) return null;
+  return proyectos.find((p) => p.nombre === nombre) ?? null;
 }
 
 /**
