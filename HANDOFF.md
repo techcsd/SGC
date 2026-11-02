@@ -209,16 +209,29 @@ inventaron los 5 nodos del mockup original); contador de costo de IA del día vs
 tiene backend pero sin UI por falta de una pantalla de "gastos" en el repo.)
 
 ### Pendiente — Xaviel solamente
-1. **GitHub → Settings → Secrets and variables → Actions → `ANTHROPIC_API_KEY`** (para que el
-   Escriba pueda correr de verdad).
-2. **Supabase dev → Edge Functions → Secrets → `AGENTE_ESCRIBA_GITHUB_TOKEN`** (PAT fine-grained,
-   permiso "Actions: write" sobre `techcsd/SGC`).
-3. Revisar el diff completo en `SGC-df` y decidir si commitea/pushea tal cual, por partes, o pide
-   ajustes — nada se subió solo (regla 5 del prompt: avisar antes de commit/push/deploy).
-4. Compartir una captura/export del board DF2/DF3 (oficina isométrica) si quiere que se ajuste el
+1. ~~GitHub → Secrets → `ANTHROPIC_API_KEY`~~ y ~~Supabase dev → Edge Functions → `AGENTE_ESCRIBA_GITHUB_TOKEN`~~
+   — **ambos configurados el 02-nov-2026** (Xaviel los puso en `.env.local` del worktree principal,
+   Claude los leyó de ahí y los subió con `gh secret set`/`supabase secrets set --yes`, sin pasar por
+   el chat). `AGENTE_ESCRIBA_GITHUB_TOKEN` es un PAT **clásico** con scope `repo` (no fine-grained —
+   `techcsd` resultó ser una cuenta personal, no una organización, y los fine-grained PAT no dejan
+   elegir repos de otra cuenta personal aunque seas colaborador ahí; ver gotcha abajo). El Escriba
+   está técnicamente desbloqueado pero **no se ha disparado nunca en vivo** — falta la primera prueba
+   real end-to-end.
+2. Revisar el diff completo en `SGC-df` (10 commits, ya pusheados a
+   `origin/feature/df-ia-agentes-animaciones`) y decidir cuándo abrir el PR a `dev`.
+3. Compartir una captura/export del board DF2/DF3 (oficina isométrica) si quiere que se ajuste el
    visual de F5 contra el mockup real — el link de artifact no es legible por herramientas.
 
 ### Gotchas de esta sesión
+- **Fine-grained PAT no sirve para repos de otra cuenta personal.** `techcsd` (dueño de `SGC` en
+  GitHub) es una cuenta de usuario normal, no una organización. Un fine-grained PAT con
+  "Resource owner" = tu cuenta personal solo deja elegir repos que **tú posees** — no aparece un
+  repo de otra cuenta aunque seas colaborador con push ahí. Eso solo funciona para organizaciones
+  (donde sí puedes delegar scope a repos de la org). Solución real: PAT **clásico** con scope `repo`
+  (mismo scope que ya usa el `gh` CLI autenticado, que sí opera sobre `techcsd/SGC` sin problema).
+- Supabase CLI en modo agente exige `--yes` explícito para `secrets set` (sin él, falla con
+  `HostedMutationConsentRequiredError` y sugiere "ask the user before re-running with --yes") —
+  no es un bug, es la salvaguarda del propio CLI.
 - El link de artifact de claude.ai (`claude.ai/artifact/...`) **no se puede leer con WebFetch** —
   devuelve el shell vacío de la SPA (el contenido se dibuja con JS, WebFetch no lo ejecuta). Si se
   necesita ver un mockup de un artifact en una próxima ronda, pedirle a Xaviel una captura de
