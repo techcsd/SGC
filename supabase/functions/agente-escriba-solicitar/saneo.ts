@@ -1,4 +1,6 @@
 // Extraído de index.ts para poder testearlo sin levantar Deno.serve.
+export { slugDe } from "../_shared/agente-escriba-slug.ts";
+
 const LIMITE_DETALLE = 2000;
 
 export function sanearEvidencia(texto: string): string {
@@ -12,6 +14,3 @@ export function sanearEvidencia(texto: string): string {
   return limpio;
 }
 
-export function slugDe(id: string): string {
-  return id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toLowerCase();
-}

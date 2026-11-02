@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
-import { slugDe } from "../agente-escriba-solicitar/saneo.ts";
+import { slugDe } from "../_shared/agente-escriba-slug.ts";
 
 // ============================================================================
 // DF2/F4 — agente-escriba-estado. Refleja en sgc.agente_aprobaciones el estado
