@@ -226,6 +226,8 @@ export class Shell implements OnInit {
         { label: 'Solicitar Compra', route: '/compras/solicitar', submodulo: 'compras.solicitudes' },
         // CY24 Fase B (#24) — productos de una OC sin equivalente en Odoo.
         { label: 'Productos por dar de alta', route: '/compras/productos-por-dar-de-alta', modulo: 'compras', badgeKey: 'compras.productos_pendientes' },
+        // DF-gastos — gastos directos del proyecto (sin requisición).
+        { label: 'Gastos', route: '/compras/gastos', modulo: 'compras' },
         { label: 'Reportes', route: '/compras/reportes', modulo: 'compras' },
       ],
     },

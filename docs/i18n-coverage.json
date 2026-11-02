@@ -15588,6 +15588,32 @@
       ]
     },
     {
+      "pantalla": "compras/gastos",
+      "total": 40,
+      "cubiertos": 25,
+      "sin": 15,
+      "pct": 63,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@for (p of proyectosOrdenados(); track p.id) {",
+        "@if (proyectoId()) {",
+        "@if (facturaPreview(); as preview) {",
+        "} @else {",
+        "@if (iaConsentimiento()) {",
+        "@if (iaError()) {",
+        "} @if (iaPropuesta()) {",
+        "@for (c of camposRevision(); track c.etiqueta) {",
+        "@if (c.clasificacion === 'dudosa') {",
+        "@for (c of categorias(); track c.clave) {",
+        "@if (formError()) {",
+        "@if (cargandoLista()) {",
+        "} @else if (!gastos().length) {",
+        "} @else {",
+        "@for (g of gastos(); track g.id) {"
+      ]
+    },
+    {
       "pantalla": "flota/transferencias",
       "total": 16,
       "cubiertos": 10,
