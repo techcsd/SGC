@@ -1,5 +1,187 @@
 # HANDOFF — SGC
 
+## 🧪 Ronda DF (01-nov-2026) — IA en flujos de trabajo + agentes de monitoreo + animaciones — EN WORKTREE, SIN COMMIT
+
+**Estado:** construido completo en el worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-df` (rama
+`feature/df-ia-agentes-animaciones`, HEAD `be445cb9` de `origin/dev`). **Nada commiteado, pusheado
+ni desplegado** — 56+ archivos nuevos/modificados, `npm run build` verde, `npx ng test --watch=false`
+148/148, `npm run test:edge` 137/137. Falta: que Xaviel revise, y entonces commitear → push →
+`feature/df-ia-agentes-animaciones` → `dev` (regla 18, nunca directo a `main`).
+
+**Origen:** PROMPT 128 (web) / PROMPT 129 (app, csd-app, sesión separada). No se encontró
+`CONTEXTO-ACTUALIZACION-63.md` en ningún lado del disco (se le preguntó a Xaviel, no respondió a
+tiempo) — se ejecutó con los defaults DF-xx que SÍ estaban embebidos literalmente en el texto del
+prompt. **DF-00, DF-10, DF-14, DF-16, DF-17 no aparecen en ningún punto del texto** — no hay ni tema
+para inferirlos; si cubren algo que hacía falta para F3-F6, no se construyó por falta de esa info.
+
+### F0 — Verificación (docs/IA-FLUJOS-ROLES.md)
+- Ya existía: STT (`_shared/stt.ts`), lectores IA con costo (`leer-recibo`, `leer-documento-flota`),
+  tabla `sgc.uso_ia`, consentimientos `tipo='ia'`, `catalogo-movimiento.ts` (niveles reales
+  `grande|mediano|base`, el prompt decía "simple").
+- Correcciones al prompt original: la tabla es `conduces_externos` (no `conduces`), no existe tabla
+  `ordenes_trabajo` (vive dentro de bitácora), `solicitudes_compra` (no `ordenes_compra`).
+- **Corrección a esta misma sección (F6b, 02-nov):** lo de arriba decía que `tablero-vivo` no existía
+  — ESO ERA UN ERROR de F0: la investigación de F0 corrió contra el worktree principal en rama
+  `main`, que está 48 commits atrás de `origin/dev`. `tablero-vivo` SÍ existe desde la ronda DB
+  (`sql/2026-10-29-db14-tablero-vivo.sql`, `sgc.tablero_vivo_resumen()`,
+  `src/app/components/tablero-vivo/`, v1.205.0, ya en `origin/dev` = base de este worktree `SGC-df`)
+  — F6/F6b NO lo crearon, lo reusaron para las piezas de abajo. Lección para la próxima ronda:
+  verificar "¿existe?" contra `origin/dev`, nunca contra `main`, cuando la rama base de trabajo es
+  `dev`.
+- Licencia de `ajsahni/agents-office` (referencia de N3): 🔴 PolyForm Noncommercial prohíbe
+  explícitamente usarlo para dar cara a otro sistema de agentes — cero código copiable, solo la idea
+  general (que el mockup aprobado ya cubre).
+- Uso real 30 días: solo se pudo medir en **dev** (staging, no representativo — 3 bitácoras, 0
+  conduces, 0 combustible); el intento de correr el mismo SELECT-only contra prod fue bloqueado por
+  el gate de autorización granular de la sesión (correcto). Si se quiere el volumen real de prod,
+  hace falta que Xaviel lo autorice explícitamente nombrando ese SELECT.
+
+### F1 — Modo rápido de bitácora (DF1-A) — completo
+Edge `bitacora-ia` (STT + visión/texto → Claude Haiku 4.5 vía `BITACORA_IA_MODEL`, gate de
+consentimiento `403 sin_consentimiento_ia`, match exacto contra catálogo real de la obra — nunca
+inventa), migración `sql/2026-11-01-df1-bitacora-ia.sql` (tabla `bitacora_ia_propuestas`), parser
+puro con 6 tests, componente nuevo `grabadora-audio`, panel "Modo rápido" en `bitacora/nueva`
+(fotos+voz → "Esto entendí" con confianza por campo → revisar dudosos → el mismo `onSubmit()` real
+de siempre). Moldes/daños excluidos a propósito (el prompt lo pedía).
+
+### F2 — Lectores IA en otros formularios (DF1-B..E) — parcial a propósito
+Edge única `leer-formulario` (parámetro `tipo`, como pedía el prompt) — **solo `conduce_externo`
+implementado de verdad** (`conduce-externo-form`, botón "Entender con IA"); los otros 5 tipos
+(`factura`, `combustible`, `checklist_vehiculo`, `requisicion_voz`, `mantenimiento_ruta`) responden
+`501 tipo_no_implementado`, no fingen funcionar. Combustible ya estaba cubierto desde antes
+(`combustible.service.ts:160` ya invocaba `leer-recibo`) — confirmado por código, no duplicado.
+Migración `sql/2026-11-01-df2-formulario-ia-propuestas.sql` (tabla genérica por tipo).
+
+### F2b — continuación de lectores IA (02-nov-2026) — 2 de 4 pendientes completados
+- **Facturas/gastos**: `leer-recibo/index.ts` extendida con `contexto: 'factura_general'` (RNC, NCF,
+  subtotal, ITBIS, total, concepto, proveedor) — compatibilidad total con el uso existente de
+  combustible (`contexto` por defecto sigue siendo `'combustible'`). Sin UI todavía (no hay pantalla
+  de "gastos" separada en el repo, como ya se documentó en F2).
+- **Mantenimientos — completo**: tipo `mantenimiento` en `leer-formulario/index.ts` (voz, SIN foto
+  obligatoria — reusa `_shared/stt.ts` igual que `bitacora-ia`), propone descripción + vehículo
+  (match exacto por placa/alias contra el catálogo real, `emparejarVehiculoSugerido` en
+  `formulario-ia.util.ts`, 5 tests nuevos) + tipo preventivo/correctivo (clasificación, no dato
+  inventado). UI: botón "Entender con voz" (`<app-grabadora-audio>`, reusa el componente de F1) en
+  el drawer de `mantenimientos.ts`/`.html`/`.scss` — solo al crear, no al editar; rellena solo
+  campos vacíos, nunca sobrescribe. Nota: el modelo de `Mantenimiento` no tiene campo "prioridad"
+  como asumía el prompt original — se usa `tipo` (preventivo/correctivo), que es lo que existe.
+- **Checklist de vehículos y requisición por voz**: siguen diferidos (sin cambios desde F2) — la
+  razón documentada en F2 sigue vigente (estructura por-ítem más compleja / archivo de requisiciones
+  de riesgo alto para tocar sin más tiempo de revisión).
+- Build (`npm run build`, todos los guards) y pruebas verdes: **153/153 Angular, 137/137 Deno**.
+- Gotcha propio: la primera versión de `emparejarVehiculoSugerido` devolvía `{id, texto}` en vez de
+  `{id}` — los tests con `toEqual({id: ...})` lo atraparon (deep-equality falla con campos extra).
+  Corregido antes de reportar.
+
+### F3 — Infraestructura de agentes (DF2) — completo
+`sql/2026-11-01-df2-agentes.sql`: 6 agentes sembrados (Vigía/Capataz/Soporte/Auditor/Escriba/
+Cronista), `agente_eventos` (retención 14 días, cron `agente-eventos-retencion`),
+`agente_hallazgos`, `agente_acciones_permitidas` (**exactamente las 4 del DF-09, ninguna más**),
+`agente_acciones`, `agente_aprobaciones`. Tope de costo diario reusa `sgc.uso_ia` (no duplica),
+default $5/agente/día vía `sgc.parametros.agente_costo_tope_diario_usd` (no había monto exacto en
+el prompt). Edges: `agente-vigia` (cron cada 5 min, 100% determinista — reintenta transcripciones,
+recuerda envíos atascados, abre reporte por error repetido; **no** duplica el recordatorio de firma
+de conduce porque ya existe `sgc-recordar-firma-despachante` cada 2h), `agente-capataz` (obras sin
+bitácora hoy), `agente-soporte` (reportes sin respuesta +48h), `agente-auditor` (tablas con RLS sin
+política) — estos 3 solo detectan (Nivel 1), no tienen ninguna acción Nivel 2 que les aplique ni
+cron fijo todavía. Ver `docs/AGENTES.md` para el detalle completo de niveles/límites.
+
+### F4 — Agente Escriba (Nivel 3) — completo pero bloqueado
+`.github/workflows/agente-escriba.yml` (verifica permiso de escritura, usa
+`anthropics/claude-code-action@v1`, PR **siempre y solo** a `dev` hardcodeado, sin acceso a
+secretos de Supabase/prod). `agente-escriba-solicitar` (dispara el workflow por API, sanea
+evidencia). `agente-escriba-estado` (polling por cron cada 10 min, no webhook — el repo no tiene
+receptor de webhooks de GitHub). **Pendiente físico de Xaviel** (ver abajo) — sin esos 2 secretos
+responde `501 github_no_configurado` y el resto del sistema de agentes sigue funcionando normal.
+
+### F5 — Oficina isométrica + aprobaciones + Cronista (DF2/DF3) — completo, sin verificar visual
+Ruta `/tecnologia/agentes` (gate `tecnologiaGuard`, **no** se creó un módulo `agentes` nuevo —
+mismo patrón que QA/Issues/monitoreo, documentado en el SQL). Oficina SVG propia (6 estaciones,
+Realtime vía `postgres_changes` clonando `realtime-notificaciones.service.ts`), panel "Lo que
+encontré hoy / Lo que arreglaron solos (con Deshacer honesto) / Esperan tu OK (Aprobar para dev no
+mezcla a main, solo marca estado)". Cronista (`agente-cronista`, cron 22:30 UTC = 6:30pm RD) lee
+`app_error_reports`/`app_versiones` para la parte de CSD App. **No se pudo ver el mockup real**
+(el artifact de claude.ai no renderiza para WebFetch, es una SPA) — implementación fiel al texto,
+falta que Xaviel la compare contra el board aprobado.
+
+### F6 — Animaciones del flujo (DF4) — parcial a propósito
+Hecho: camión con ícono rotado por rumbo real + velocidad en `flota/seguimiento` (geometría pura
+extraída a `shared/utils/geo.util.ts`, con tests); línea de vida honesta del conduce externo en su
+ficha (2-3 nodos **reales** — `conduces_externos` solo tiene emitido/recibido/anulado, no se
+inventaron los 5 nodos del mockup original); contador de costo de IA del día vs tope
+(`sgc.agentes_costo_hoy_total()`) y "cola de aprobaciones late" resuelto generalizando
+`appEstadoPulse` a TODOS los badges del nav (no solo agentes).
+
+### F6b — Pulso de obras + requisición→recepción (02-nov-2026) — 2 de 4 completados
+- **Pulso de obras (DF5-B) — completo**: `sql/2026-11-02-df6b-pulso-obras-y-flujo.sql`,
+  `sgc.pulso_obras_hoy()` (envoltorio de `sgc.bitacoras_cobertura_resumen()`, BJ1b — NO duplica el
+  cálculo de cobertura). Componente `app-pulso-obras` en el Dashboard: anillo que respira en
+  naranja mientras la obra no tiene parte de hoy, verde fijo cuando ya lo tiene. Animación nueva
+  registrada en `catalogo-movimiento.ts` (`pulso-obra-pendiente`, nivel base, solo `box-shadow`).
+- **Requisición → recepción con cuello de botella (DF5-A) — completo con una limitación honesta**:
+  `sgc.requisicion_flujo_tiempos(p_dias)` calcula el promedio real de horas en 3 transiciones
+  medibles con los timestamps que YA existen (`solicitudes_material.created_at/atendido_en`,
+  `salidas_inventario.created_at/transito_at/entregado_en` — los mismos que usa
+  `tablero_vivo_resumen()`, DB14) y marca la más lenta. **No se mide "aprobada→despachada"**: no hay
+  una FK verificada en este repo que enlace una solicitud con su salida — se documentó como
+  limitación en vez de inventar un timestamp. `sgc.requisicion_flujo_detalle(etapa, dias)` da la
+  lista exacta detrás de cada número (AT11). Componente `app-flujo-requisicion` en el Dashboard,
+  cada etapa es un botón que abre/cierra su lista.
+- **Diferido, documentado**: tablero de varios conduces en tránsito con ETA por conduce (DF4-C —
+  `tablero-vivo` ya muestra TODA la flota en el mapa esquemático desde ronda DB; falta
+  específicamente la banda-por-conduce con ETA que pedía el mockup, no se llegó por tiempo) y pulso
+  del sistema (DF5-C — `monitoring.service.ts` existente es de monitoreo de DOMINIOS/suscripciones,
+  NO de salud de BD/crons/cola/STT/IA/GPS como pide el prompt; construirlo bien requiere decidir
+  cómo exponer `cron.job_run_details` de forma segura a un panel de Administración, no se apuró esa
+  decisión de seguridad en esta pasada).
+- Verificación: `npm run build` verde (guards incluidos), `npx ng test --watch=false` y
+  `npm run test:edge` — ver conteo en "Verify on resume" abajo.
+
+### Pendiente — Claude puede hacerlo (próxima sesión)
+1. F2c: checklist de vehículos, requisición por voz (quedaron diferidos en F2 y F2b).
+2. F6c: banda por conduce con ETA dentro de `tablero-vivo` (DF4-C, falta solo la ETA explícita por
+   conduce — la posición en el mapa ya existe); pulso del sistema (DF5-C) — requiere ANTES decidir
+   cómo exponer de forma segura el estado de `cron.job_run_details` a un panel de Administración (no
+   es solo "reusar monitoring.service.ts", ese servicio es de otra cosa — ver nota en F6b).
+3. Comparar la oficina isométrica (F5) contra el mockup real una vez Xaviel comparta capturas, y
+   ajustar visualmente.
+
+### Pendiente — Xaviel solamente
+1. **GitHub → Settings → Secrets and variables → Actions → `ANTHROPIC_API_KEY`** (para que el
+   Escriba pueda correr de verdad).
+2. **Supabase dev → Edge Functions → Secrets → `AGENTE_ESCRIBA_GITHUB_TOKEN`** (PAT fine-grained,
+   permiso "Actions: write" sobre `techcsd/SGC`).
+3. Revisar el diff completo en `SGC-df` y decidir si commitea/pushea tal cual, por partes, o pide
+   ajustes — nada se subió solo (regla 5 del prompt: avisar antes de commit/push/deploy).
+4. Compartir una captura/export del board DF2/DF3 (oficina isométrica) si quiere que se ajuste el
+   visual de F5 contra el mockup real — el link de artifact no es legible por herramientas.
+
+### Gotchas de esta sesión
+- El link de artifact de claude.ai (`claude.ai/artifact/...`) **no se puede leer con WebFetch** —
+  devuelve el shell vacío de la SPA (el contenido se dibuja con JS, WebFetch no lo ejecuta). Si se
+  necesita ver un mockup de un artifact en una próxima ronda, pedirle a Xaviel una captura de
+  pantalla en vez del link.
+- Agent/fork **no se puede invocar desde dentro de un worker forkeado** ("Fork is not available
+  inside a forked worker") — si una fase se ejecuta como fork y necesita delegar más trabajo, hay
+  que hacerlo directo con las herramientas propias, no re-delegar.
+- `google-maps-marker.util.ts` no se puede importar desde un `*.spec.ts` sin que falle el type-check
+  de vitest (`Cannot find namespace 'google'` — el entorno de test no carga los tipos del SDK de
+  Maps aunque `ng build` sí). Las funciones puras de geometría (`rumboEntre`, `distanciaMetros`) se
+  movieron a `shared/utils/geo.util.ts`, sin ninguna dependencia de `google.maps`, específicamente
+  para poder testearlas.
+- Duplicados de claves en `public/i18n/en.json` son fáciles de introducir sin darse cuenta
+  (`"Con error"`, `"Enviado"`, `"Descartar"`, `"Cargando…"` ya existían con otro texto) — JSON
+  permite claves duplicadas sin error de parseo, pero el ÚLTIMO valor gana silenciosamente. Revisar
+  con grep antes de insertar una clave nueva, no asumir que no existe.
+
+### Verify on resume
+```
+cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-df" && git status --porcelain | wc -l   # debe dar ~56+, nada commiteado
+npm run build                                                                     # debe terminar en el postbuild sin errores
+npx ng test --watch=false                                                         # 148/148
+npm run test:edge                                                                 # 137/137
+```
+
 ## ✅ Ronda DE (30-oct a 01-nov-2026) — Documentos de flota con IA, badges honestos, transferencias — EN PRODUCCIÓN v1.206.0
 
 **Shipped:** PR #47 (`feature/de-ronda → dev`) + PR #48 (registro QA) mergeados; `release-check.mjs
