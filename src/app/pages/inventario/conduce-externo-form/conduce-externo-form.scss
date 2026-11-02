@@ -174,3 +174,49 @@
   border: 1px solid var(--accent, #f97316); border-left-width: 4px;
   border-radius: 10px; color: var(--sgc-text); font-size: 0.85rem; font-weight: 600;
 }
+
+// DF1-B — "Entender con IA" (lee placa+carga) y panel "Esto entendí".
+.cef-ia {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
+}
+.cef-ia__error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--sgc-danger, #dc2626);
+}
+.cef-ia-panel {
+  border: 1px solid var(--accent, #f97316);
+}
+.cef-ia-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cef-ia-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--sgc-text);
+
+  &__punto {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: var(--sgc-text-muted);
+  }
+  &--alta &__punto { background: var(--sgc-success); }
+  &--dudosa &__punto { background: var(--sgc-warning); }
+  &--vacia &__punto { background: var(--sgc-text-muted); }
+
+  &__texto em { color: var(--sgc-text-secondary); font-style: normal; }
+}

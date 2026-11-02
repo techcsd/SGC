@@ -2,7 +2,32 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
+import { invokeEdge } from '../utils/edge.util';
 import { Bitacora, BitacoraArchivo, BitacoraFormData, BitacoraDanoInput, BitacoraMoldeInput } from '../models/bitacora.model';
+import { CampoPropuesto, ActividadPropuesta } from '../utils/bitacora-ia.util';
+
+// DF1-A — restricción propuesta por el "Modo rápido" de bitácora (misma forma
+// que usa el formulario manual: tipo_restriccion + descripcion_otro).
+export interface RestriccionPropuesta {
+  tipo_restriccion: string;
+  descripcion_otro: string | null;
+  confianza: number;
+  fuente: 'voz' | 'foto' | 'ambas';
+}
+
+/** DF1-A — respuesta de la edge `bitacora-ia`: campos + actividades + restricciones
+ *  propuestas, cada uno con su confianza. El usuario SIEMPRE revisa antes de enviar. */
+export interface PropuestaBitacoraIA {
+  ok: boolean;
+  error?: string;
+  propuesta_id: string | null;
+  campos: Record<string, CampoPropuesto>;
+  actividades: ActividadPropuesta[];
+  restricciones: RestriccionPropuesta[];
+  confianza_media: number;
+  modelo: string;
+  transcripcion: string;
+}
 
 /** BJ1 — fila de cobertura por obra (RPC bitacoras_cobertura). */
 export interface CoberturaObra {
@@ -123,6 +148,53 @@ export class BitacoraService {
 
     if (error) throw new Error(error.message);
     return this.getById(bitacoraId as string);
+  }
+
+  /**
+   * DF1-A — "Modo rápido": manda fotos + (opcional) audio de la nota de voz a la
+   * edge `bitacora-ia`, que devuelve una propuesta de los campos del parte diario
+   * con confianza por campo. Nunca envía la bitácora por sí sola — el usuario
+   * siempre revisa y confirma con el submit normal.
+   */
+  async entenderParte(input: {
+    proyectoId: string;
+    fecha: string;
+    fotos: File[];
+    audio?: Blob | null;
+  }): Promise<PropuestaBitacoraIA> {
+    const fotos = await Promise.all(
+      input.fotos.map(async (f) => ({ data: await this.aBase64(f), mime: f.type || 'image/jpeg' })),
+    );
+    const audio = input.audio
+      ? { data: await this.aBase64(input.audio), mime: input.audio.type || 'audio/webm' }
+      : undefined;
+    return invokeEdge<PropuestaBitacoraIA>(this.supabase.client, 'bitacora-ia', {
+      proyecto_id: input.proyectoId,
+      fecha: input.fecha,
+      fotos,
+      audio,
+    });
+  }
+
+  /** Marca la propuesta de IA como aceptada (se usó para llenar la bitácora creada) o descartada. */
+  async resolverPropuestaIA(propuestaId: string, estado: 'aceptada' | 'descartada', bitacoraId?: string): Promise<void> {
+    await this.supabase.client
+      .from('bitacora_ia_propuestas')
+      .update({ estado, bitacora_id: bitacoraId ?? null, resuelta_en: new Date().toISOString() })
+      .eq('id', propuestaId);
+  }
+
+  private aBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => {
+        const result = String(r.result);
+        const idx = result.indexOf(',');
+        resolve(idx >= 0 ? result.slice(idx + 1) : result);
+      };
+      r.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+      r.readAsDataURL(blob);
+    });
   }
 
   /**

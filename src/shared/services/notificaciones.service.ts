@@ -87,6 +87,7 @@ export class NotificacionesService {
     // Tecnología › Compa en WhatsApp. Mismo gate que esa pantalla (tecnologiaGuard).
     if (this.userService.esTecnologia()) {
       checks.push(this.loadWhatsappErrores());
+      checks.push(this.loadAgentesAprobacionesPendientes());
     }
 
     await Promise.all(checks);
@@ -253,6 +254,16 @@ export class NotificacionesService {
       .in('estado', ['error', 'fallido'])
       .gte('creado_en', desde);
     this._pendingBySubmodulo.update((m) => ({ ...m, 'tecnologia.whatsapp': count ?? 0 }));
+  }
+
+  /** F5 (ronda DF) — propuestas del Escriba (Nivel 3) esperando tu OK →
+   *  badge en Tecnología › Agentes. */
+  private async loadAgentesAprobacionesPendientes(): Promise<void> {
+    const { count } = await this.supabase.client
+      .from('agente_aprobaciones')
+      .select('id', { count: 'exact', head: true })
+      .eq('estado', 'pendiente');
+    this._pendingBySubmodulo.update((m) => ({ ...m, 'tecnologia.agentes': count ?? 0 }));
   }
 
   /** AY11 — solicitudes de movimiento pendientes → badge en el nav. */

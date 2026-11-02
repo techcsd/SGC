@@ -49,6 +49,91 @@
       </a>
     </section>
 
+    <!-- DF1-A — Modo rápido: fotos + nota de voz → la IA propone el parte -->
+    @if (tipoActual() === 'parte_diario' && !sinActividad() && iaConsentimiento()) {
+      <section class="bitacora-section bitacora-ia sgc-card">
+        <h2 class="bitacora-section__title">
+          <app-icon name="sparkles" [size]="18" />
+          {{ 'Modo rápido' | t }}
+        </h2>
+        @if (!f.proyecto_id.value) {
+          <p class="bitacora-section__hint">{{ 'Elige la obra en "Información general" para activar el modo rápido.' | t }}</p>
+        } @else if (iaPantalla() === 'cerrado') {
+          <p class="bitacora-section__hint">{{ 'Sube fotos del trabajo y graba una nota de voz contando qué se hizo — la IA te llena el parte y tú lo revisas.' | t }}</p>
+          <div class="bitacora-ia__entrada">
+            <app-file-upload
+              [files]="archivos()"
+              [max]="maxArchivos"
+              accept="image/*"
+              [hint]="('Las mismas fotos del trabajo realizado (mínimo ' + minFotosModoRapido + ').') | t"
+              (add)="onFilesAdded($event)"
+              (removeAt)="removeArchivo($event)"
+            />
+            <app-grabadora-audio (grabado)="onAudioGrabado($event)" />
+          </div>
+          @if (iaError()) {
+            <div class="page-error" role="alert">{{ iaError() }}</div>
+          }
+          <button type="button" class="sgc-btn sgc-btn--secondary bitacora-ia__btn-entender" (click)="entenderParte()">
+            <app-icon name="sparkles" [size]="16" />
+            {{ 'Entender y llenar el parte' | t }}
+          </button>
+        } @else if (iaPantalla() === 'cargando') {
+          <p class="bitacora-section__hint">{{ 'Leyendo las fotos y la nota de voz…' | t }}</p>
+        } @else if (iaPantalla() === 'revision') {
+          <h3 class="bitacora-ia__revision-title">{{ 'Esto entendí' | t }}</h3>
+          @if (iaDudososCount() > 0) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="iaSoloDudosos.set(!iaSoloDudosos())">
+              @if (iaSoloDudosos()) { {{ 'Ver todos los campos' | t }} }
+              @else { {{ 'Revisar los' | t }} {{ iaDudososCount() }} {{ 'que dudo' | t }} }
+            </button>
+          }
+          <div class="bitacora-ia__campos">
+            @for (c of camposRevision(); track c.clave) {
+              <div class="bitacora-ia__campo">
+                <span class="bitacora-ia__dot" [class.bitacora-ia__dot--alta]="c.clasificacion === 'alta'"
+                  [class.bitacora-ia__dot--dudosa]="c.clasificacion === 'dudosa'"
+                  [class.bitacora-ia__dot--vacia]="c.clasificacion === 'vacia'" aria-hidden="true"></span>
+                <label>
+                  {{ c.etiqueta | t }}
+                  <span class="bitacora-ia__estado">
+                    @if (c.clasificacion === 'alta') { {{ 'entendido' | t }} }
+                    @else if (c.clasificacion === 'dudosa') { {{ '¿seguro?' | t }} }
+                    @else { {{ 'sin datos' | t }} }
+                  </span>
+                </label>
+                <input type="text" [value]="c.valor ?? ''" (change)="setCampoEditable(c.clave, $any($event.target).value)" />
+              </div>
+            }
+          </div>
+
+          @if (iaActividadesEditables().length) {
+            <h4 class="bitacora-ia__revision-title">{{ 'Actividades que entendí' | t }}</h4>
+            <div class="bitacora-ia__actividades">
+              @for (a of iaActividadesEditables(); track $index) {
+                <label class="bitacora-ia__actividad">
+                  <input type="checkbox" [checked]="a.incluir" (change)="toggleActividadIa($index)" />
+                  <span>{{ a.estructura }} · {{ a.actividad }}</span>
+                  <input type="number" min="0" [value]="a.cantidad ?? ''"
+                    (change)="setCantidadActividadIa($index, $any($event.target).value ? +$any($event.target).value : null)" />
+                  <span class="bitacora-ia__unidad">{{ a.unidad }}</span>
+                </label>
+              }
+            </div>
+          }
+
+          <div class="bitacora-ia__acciones">
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarPropuestaIa()">
+              {{ 'Enviar bitácora' | t }}
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="descartarPropuestaIa()">
+              {{ 'Prefiero llenarlo paso a paso' | t }}
+            </button>
+          </div>
+        }
+      </section>
+    }
+
     <!-- Sección 1: Información General -->
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">1. Información general</h2>
@@ -1001,10 +1086,14 @@
       <div class="page-error" role="alert">{{ saveError() }}</div>
     }
 
-    <div class="bitacora-form-actions">
-      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { Enviando… } @else { Enviar bitácora }
-      </button>
-    </div>
+    <!-- DF1-A — mientras se revisa la propuesta del modo rápido, ESE panel tiene
+         el único botón naranja de la pantalla (su propio "Enviar bitácora"). -->
+    @if (iaPantalla() !== 'revision') {
+      <div class="bitacora-form-actions">
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+          @if (saving()) { {{ 'Enviando…' | t }} } @else { {{ 'Enviar bitácora' | t }} }
+        </button>
+      </div>
+    }
   </form>
 }

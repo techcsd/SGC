@@ -338,6 +338,38 @@
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
+    @if (iaConsentimiento() && !editingId()) {
+      <div class="mant-ia">
+        <span class="mant-ia__label">{{ 'Entender con voz' | t }}</span>
+        <app-grabadora-audio (grabado)="onAudioMantenimiento($event)" />
+        @if (iaCargando()) { <p class="mant-ia__hint">{{ 'Entendiendo la nota de voz…' | t }}</p> }
+        @if (iaError()) { <p class="mant-ia__error" role="alert">{{ iaError() }}</p> }
+      </div>
+    }
+    @if (iaPropuesta()) {
+      <div class="mant-ia-panel">
+        <div class="mant-ia-panel__head">
+          <strong>{{ 'Esto entendí' | t }}</strong>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarPropuestaIa()">{{ 'Descartar' | t }}</button>
+        </div>
+        @if (iaSinNada()) {
+          <p class="mant-ia-panel__hint">{{ 'No encontré nada claro en la nota de voz. Llena el formulario a mano.' | t }}</p>
+        } @else {
+          <ul class="mant-ia-campos">
+            @for (c of camposRevisionIa(); track c.etiqueta + c.valor) {
+              <li class="mant-ia-campo" [class]="'mant-ia-campo--' + c.clasificacion">
+                <span class="mant-ia-campo__punto" aria-hidden="true"></span>
+                <span><strong>{{ c.etiqueta | t }}:</strong> {{ c.valor }}
+                  @if (c.clasificacion === 'dudosa') { <em>({{ '¿seguro?' | t }})</em> }
+                </span>
+              </li>
+            }
+          </ul>
+          <p class="mant-ia-panel__hint">{{ 'Ya se aplicó a los campos de abajo — revísalos antes de guardar.' | t }}</p>
+        }
+      </div>
+    }
+
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
       <select

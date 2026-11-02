@@ -105,7 +105,57 @@
             }
           </div>
         </div>
+
+        @if (iaConsentimiento()) {
+          <div class="cef-ia">
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!puedeEntenderIA()" (click)="entenderConIA()">
+              @if (iaCargando()) {
+                {{ 'Leyendo…' | t }}
+              } @else {
+                <app-icon name="sparkles" [size]="14" /> {{ 'Entender con IA' | t }}
+              }
+            </button>
+            @if (iaError()) {
+              <p class="cef-ia__error" role="alert">{{ iaError() }}</p>
+            }
+          </div>
+        }
       </section>
+
+      <!-- Panel "Esto entendí" — DF1-B, nunca envía solo, el usuario siempre revisa -->
+      @if (iaPropuesta()) {
+        <section class="sgc-card cef-card cef-ia-panel">
+          <div class="cef-card__head">
+            <h2 class="cef-h">{{ 'Esto entendí' | t }}</h2>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarPropuestaIA()">{{ 'Descartar' | t }}</button>
+          </div>
+          @if (iaSinNada()) {
+            <p class="cef-hint">{{ 'No encontré nada claro en la foto. Llena los campos a mano.' | t }}</p>
+          } @else {
+            <ul class="cef-ia-campos">
+              @for (c of camposRevision(); track c.etiqueta + c.valor) {
+                <li class="cef-ia-campo" [class]="'cef-ia-campo--' + c.clasificacion">
+                  <span class="cef-ia-campo__punto" aria-hidden="true"></span>
+                  <span class="cef-ia-campo__texto">
+                    <strong>{{ c.etiqueta | t }}:</strong> {{ c.valor }}
+                    @if (c.clasificacion === 'dudosa') { <em>({{ '¿seguro?' | t }})</em> }
+                  </span>
+                </li>
+              }
+            </ul>
+            @if (iaDudososCount() > 0) {
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="iaSoloDudosos.set(!iaSoloDudosos())">
+                @if (iaSoloDudosos()) {
+                  {{ 'Ver todos los campos' | t }}
+                } @else {
+                  {{ 'Revisar los' | t }} {{ iaDudososCount() }} {{ 'que dudo' | t }}
+                }
+              </button>
+            }
+          }
+          <p class="cef-hint">{{ 'Ya se aplicó a los campos de arriba — revísalos y corrige lo que haga falta antes de emitir.' | t }}</p>
+        </section>
+      }
 
       <!-- 3 · Qué mueve -->
       <section class="sgc-card cef-card cef-mv" style="--d:60ms">

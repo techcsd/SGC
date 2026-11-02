@@ -80,6 +80,11 @@
          componente se oculta si el rol no tiene inventario/flota/proyectos/dirección. -->
     <app-tablero-vivo />
 
+    <!-- DF5-B/DF5-A — Pulso de obras + flujo requisición→recepción (Ronda DF, F6b).
+         Ambos se ocultan solos si el rol no tiene el módulo correspondiente. -->
+    <app-pulso-obras />
+    <app-flujo-requisicion />
+
     <!-- KPI cards — Q3: cada número abre su listado (drill-down filtrado) -->
     <div class="kpi-grid">
       @if (canSee('inventario')) {

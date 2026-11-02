@@ -143,3 +143,22 @@ verify_jwt = false
 # fireflies-webhook.
 [functions.whatsapp-webhook]
 verify_jwt = false
+
+# ── Ronda DF (01-nov-2026) — Agentes ──
+# DF2 — agente-vigia lo invoca pg_cron cada 5 min vía net.http_post con
+# x-sync-secret (mismo patrón que check-domains/fuel-prices). Capataz/Soporte/
+# Auditor aún no tienen disparador fijo (DF-07: "según necesidad") — quedan con
+# verify_jwt por defecto (true) hasta que F5/F6 les den un trigger de usuario.
+[functions.agente-vigia]
+verify_jwt = false
+
+# F4 — agente-escriba-estado es polling por cron (mismo patrón x-sync-secret),
+# no un usuario autenticado. Corrige un hueco de la pasada F4 (la función ya
+# validaba x-sync-secret en código pero verify_jwt=true de la plataforma la
+# habría bloqueado antes de llegar ahí — cron nunca manda un JWT de Supabase).
+[functions.agente-escriba-estado]
+verify_jwt = false
+
+# F5 — agente-cronista: mismo patrón, invocado por pg_cron a las 6:30pm RD.
+[functions.agente-cronista]
+verify_jwt = false

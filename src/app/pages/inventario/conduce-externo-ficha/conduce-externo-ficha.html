@@ -59,6 +59,19 @@
         @if (d.notas_recepcion) { <div><dt>Notas de recepción</dt><dd>{{ d.notas_recepcion }}</dd></div> }
       </dl>
 
+      <!-- F6 (DF4-B) — línea de vida: nodos reales del dato (sin inventar pasos). -->
+      <ol class="ce-linea-vida no-print" [attr.aria-label]="'Estado del conduce'">
+        @for (nodo of lineaVida(); track nodo.clave) {
+          <li class="ce-linea-vida__nodo" [class.ce-linea-vida__nodo--activo]="nodo.activo">
+            <span class="ce-linea-vida__punto" [appEstadoPulse]="nodo.activo"></span>
+            <span class="ce-linea-vida__label">{{ nodo.label | t }}</span>
+            @if (nodo.at) {
+              <span class="ce-linea-vida__fecha">{{ nodo.at | date: 'dd/MM HH:mm' }}</span>
+            }
+          </li>
+        }
+      </ol>
+
       @if (d.renglones?.length) {
         <h2 class="ce-doc__sub">Renglones</h2>
         <table class="data-table ce-renglones">

@@ -1,0 +1,367 @@
+.oficina {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.oficina__header h1 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+
+.oficina__subtitulo {
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+  margin: 0;
+  max-width: 68ch;
+}
+
+.oficina__cargando {
+  color: var(--sgc-text-muted);
+}
+
+// ── Oficina isométrica (SVG propio) ──────────────────────────────────────
+.oficina__escena {
+  position: relative;
+  background: var(--sgc-surface-2);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-md);
+  padding: 24px;
+  min-height: 320px;
+}
+
+.oficina__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.oficina__piso {
+  fill: var(--sgc-surface);
+  stroke: var(--sgc-border);
+  stroke-width: 1;
+}
+
+.oficina__estaciones {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  z-index: 1;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.estacion {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  transition: all 0.3s ease;
+
+  &:focus-visible {
+    outline: 2px solid var(--sgc-primary);
+    outline-offset: 2px;
+  }
+}
+
+.estacion__escritorio {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sgc-text-secondary);
+  z-index: 1;
+
+  // la "mesa" isométrica va detrás del ícono, como paralelogramo —
+  // así el ícono del agente queda recto y legible, sin distorsión.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: var(--sgc-surface-2);
+    border: 1px solid var(--sgc-border);
+    transform: skewX(-12deg) scaleY(0.72);
+    z-index: -1;
+  }
+}
+
+.estacion--observando .estacion__escritorio { color: var(--sgc-primary); }
+.estacion--trabajando .estacion__escritorio { color: var(--Hub); }
+.estacion--esperando_ok .estacion__escritorio { color: var(--sgc-warning); }
+.estacion--error .estacion__escritorio { color: var(--sgc-danger); }
+
+.estacion__punto {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sgc-text-muted);
+}
+
+.estacion--observando .estacion__punto { background: var(--sgc-primary); }
+.estacion--trabajando .estacion__punto { background: var(--Hub); }
+.estacion--esperando_ok .estacion__punto { background: var(--sgc-warning); }
+.estacion--error .estacion__punto { background: var(--sgc-danger); }
+.estacion--inactivo .estacion__punto { background: var(--sgc-text-muted); }
+
+.estacion__cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.estacion__nombre {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.estacion__estado-texto {
+  font-size: 11px;
+  color: var(--sgc-text-muted);
+}
+
+.estacion__badge-ok {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sgc-warning);
+  background: var(--sgc-warning-light);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.estacion__globo {
+  font-size: 11px;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-surface-2);
+  border-radius: var(--sgc-radius-sm);
+  padding: 6px 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// CL2 — el pulso de estado (appEstadoPulse) ya trae su propia animación
+// base (mv-estado-pulse); con prefers-reduced-motion/ajuste de usuario la
+// directiva ni siquiera dispara, así que aquí no hace falta un @media extra.
+
+// ── Paneles ──────────────────────────────────────────────────────────────
+.oficina__paneles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-md);
+  padding: 16px;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--sgc-text-secondary);
+
+  h2 {
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+.panel__vacio {
+  color: var(--sgc-text-muted);
+  font-size: 13px;
+}
+
+.panel__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel__informe-texto {
+  white-space: pre-wrap;
+  font-family: var(--font-body);
+  font-size: 13px;
+  background: var(--sgc-surface-2);
+  border-radius: var(--sgc-radius-sm);
+  padding: 12px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.costo-ia {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.costo-ia__barra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sgc-surface-2);
+  overflow: hidden;
+}
+
+.costo-ia__relleno {
+  height: 100%;
+  background: var(--sgc-primary);
+  transition: width 0.3s ease;
+
+  &--alto { background: var(--sgc-danger); }
+}
+
+.costo-ia__texto {
+  font-size: 12px;
+  color: var(--sgc-text-secondary);
+  white-space: nowrap;
+}
+
+.panel__informe-enviado {
+  color: var(--sgc-success);
+  font-size: 13px;
+}
+
+.hallazgo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.hallazgo__severidad {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--sgc-surface-2);
+}
+
+.hallazgo--alta .hallazgo__severidad,
+.hallazgo--critica .hallazgo__severidad {
+  background: var(--sgc-danger-light);
+  color: var(--sgc-danger);
+}
+
+.accion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.accion__deshacer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--sgc-text-secondary);
+
+  &:hover {
+    border-color: var(--sgc-border-active);
+  }
+}
+
+.accion__deshecha {
+  font-size: 11px;
+  color: var(--sgc-text-muted);
+}
+
+.aprobacion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--sgc-surface-2);
+  border-radius: var(--sgc-radius-sm);
+}
+
+.aprobacion__propuesta {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.aprobacion__nota-legal {
+  margin: 0;
+  font-size: 11px;
+  color: var(--sgc-text-muted);
+}
+
+.aprobacion__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.aprobacion__ver {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--sgc-primary);
+}
+
+.aprobacion__ajuste {
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    padding: 6px 8px;
+    font-size: 12px;
+    background: var(--sgc-surface);
+    color: var(--sgc-text);
+  }
+}
+
+.aprobacion__pedir-ajuste {
+  background: none;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--sgc-text-secondary);
+}

@@ -4,6 +4,7 @@ import { TableroVivoService, TableroVivo } from '../../../shared/services/tabler
 import { UserService } from '../../core/services/user.service';
 import { CountUpDirective } from '../../../shared/motion/count-up.directive';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { etaMinutos } from '../../../shared/utils/geo.util';
 
 /**
  * DB1 (Ronda DB) — «Hoy, en vivo» en el Inicio (mockup DB1): KPIs con count-up,
@@ -69,6 +70,11 @@ export class TableroVivoComponent implements OnInit, OnDestroy {
       x: 12 + ((f.lng - minLng) / spanLng) * 76,
       y: 12 + ((maxLat - f.lat) / spanLat) * 56,
       etiqueta: f.alias || f.placa || '—',
+      etaMin: etaMinutos(
+        { lat: f.lat, lng: f.lng },
+        f.destino_lat != null && f.destino_lng != null ? { lat: f.destino_lat, lng: f.destino_lng } : null,
+        f.velocidad_estim_kmh,
+      ),
     }));
   });
 

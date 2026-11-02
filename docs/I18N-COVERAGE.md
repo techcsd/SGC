@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 7%** (47/676 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 8%** (57/695 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -11,7 +11,7 @@
 | inventario/conduce | scope | 226 | 0 | 226 | 0% |
 | inventario/requisiciones | scope | 241 | 0 | 241 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
-| inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
+| inventario/conduce-externo-form | scope | 98 | 12 | 86 | 12% |
 | configuracion | scope | 74 | 45 | 29 | 61% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
@@ -42,9 +42,7 @@
 | bitacora/historial | - | 175 | 0 | 175 | 0% |
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/moldes | - | 28 | 0 | 28 | 0% |
-| bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| bitacora/solicitudes-material | - | 126 | 0 | 126 | 0% |
 | compras/ordenes | - | 171 | 0 | 171 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
@@ -57,7 +55,6 @@
 | dudas | - | 30 | 0 | 30 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
-| flota/checklists | - | 165 | 0 | 165 | 0% |
 | flota/choferes-privados | - | 106 | 0 | 106 | 0% |
 | flota/combustible | - | 307 | 0 | 307 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
@@ -154,17 +151,22 @@
 | verificar | - | 13 | 0 | 13 | 0% |
 | legal/expedientes | - | 140 | 3 | 137 | 2% |
 | soporte | - | 52 | 1 | 51 | 2% |
-| inventario/conduce-externo-ficha | - | 59 | 2 | 57 | 3% |
+| flota/checklists | - | 175 | 5 | 170 | 3% |
+| inventario/conduce-externo-ficha | - | 62 | 2 | 60 | 3% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
-| flota/mantenimientos | - | 163 | 9 | 154 | 6% |
+| bitacora/nueva | - | 300 | 17 | 283 | 6% |
+| bitacora/solicitudes-material | - | 145 | 9 | 136 | 6% |
+| flota/mantenimientos | - | 178 | 16 | 162 | 9% |
 | flota/vehiculos | - | 589 | 66 | 523 | 11% |
 | app-movil | - | 55 | 8 | 47 | 15% |
 | proyectos/personal | - | 415 | 74 | 341 | 18% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
+| admin/pulso-sistema | - | 7 | 3 | 4 | 43% |
 | reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | asistente | - | 61 | 30 | 31 | 49% |
+| tecnologia/oficina-agentes | - | 42 | 22 | 20 | 52% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |

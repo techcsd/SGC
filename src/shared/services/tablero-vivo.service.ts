@@ -33,6 +33,12 @@ export interface TableroVivo {
     lat: number;
     lng: number;
     capturado_en: string;
+    /** F6b (DF4-C) — solo si el vehículo tiene una ruta en curso con destino real. */
+    destino_lat: number | null;
+    destino_lng: number | null;
+    destino_texto: string | null;
+    /** Derivada del km_estimado/tiempo_estimado_min de la propia ruta — nunca inventada. */
+    velocidad_estim_kmh: number | null;
   }[];
   generado_en: string;
 }

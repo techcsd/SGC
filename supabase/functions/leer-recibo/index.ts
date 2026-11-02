@@ -13,10 +13,14 @@ import { envRequerido } from "../_shared/env.ts";
 //   corrige — nunca se envía solo.
 //
 //   Entrada (POST, JWT del usuario):
-//     { imagenes: [{ tipo: 'recibo'|'tablero'|'bomba', data: '<base64>', mime: 'image/jpeg' }] }
-//   Salida:
+//     { imagenes: [{ tipo: 'recibo'|'tablero'|'bomba'|'factura', data: '<base64>', mime: 'image/jpeg' }],
+//       contexto?: 'combustible' | 'factura_general' }
+//   Salida (contexto 'combustible', default — compatibilidad total con lo existente):
 //     { ok, lectura: { monto, galones, precio_galon, producto, numero_recibo, fecha,
 //                      hora, estacion, ncf, bomba, tarjeta_ult4, km, horas },
+//       confianza: { <campo>: 0..1 }, modelo }
+//   Salida (contexto 'factura_general' — DF2b, F2b):
+//     { ok, lectura: { proveedor, rnc, ncf, fecha, subtotal, itbis, total, concepto, numero_recibo },
 //       confianza: { <campo>: 0..1 }, modelo }
 //
 //   Secrets: ANTHROPIC_API_KEY (obligatorio) · LEER_RECIBO_MODEL (opcional).
@@ -59,6 +63,29 @@ Reglas:
 - producto: usa "diesel", "gasolina", "gasolina premium", "glp" o lo que diga el recibo.
 - NO inventes. Si dudas, confianza baja.`;
 
+// F2b (ronda DF) — contexto 'factura_general': factura/recibo de compra genérico,
+// no de combustible. RNC/NCF son de uso fiscal en República Dominicana.
+const SYSTEM_FACTURA = `Eres un extractor de datos de facturas y recibos de compra de la República Dominicana.
+Lees imágenes de facturas/recibos y devuelves SOLO un objeto JSON válido, sin texto adicional, sin markdown.
+Formato EXACTO:
+{
+  "proveedor": string|null, "rnc": string|null, "ncf": string|null, "fecha": "YYYY-MM-DD"|null,
+  "subtotal": number|null, "itbis": number|null, "total": number|null,
+  "concepto": string|null, "numero_recibo": string|null,
+  "confianza": { "<campo>": number }
+}
+Reglas:
+- "rnc" es el Registro Nacional del Contribuyente del proveedor (9 u 11 dígitos, puede llevar guiones en la factura pero devuélvelo solo con dígitos).
+- "ncf" es el Número de Comprobante Fiscal (formato tipo B0100000001 o E310000000001).
+- Números con punto decimal, sin separador de miles, sin símbolos de moneda.
+- "concepto" es una descripción corta de qué se compró (ej. "Materiales de plomería", "Servicio de grúa").
+- Si un campo no se ve o no aplica, ponlo en null y su confianza en 0.
+- NO inventes. Si dudas, confianza baja. Si la foto no es una factura/recibo legible, todo en null con confianza 0.`;
+
+const TIPO_INSTRUCCION_FACTURA: Record<string, string> = {
+  factura: "Es la FOTO DE UNA FACTURA O RECIBO DE COMPRA. Extrae: proveedor, RNC, NCF, fecha, subtotal, ITBIS, total, concepto y número de recibo/factura.",
+};
+
 async function leerParametro(svc: Any, clave: string, def: number): Promise<number> {
   const { data } = await svc.schema("sgc").from("parametros").select("valor").eq("clave", clave).maybeSingle();
   const n = data?.valor ? Number(data.valor) : NaN;
@@ -98,31 +125,35 @@ Deno.serve(async (req) => {
   let payload: Any;
   try { payload = await req.json(); } catch { return json({ ok: false, error: "Cuerpo inválido" }, 400); }
   const imagenes: Any[] = Array.isArray(payload?.imagenes) ? payload.imagenes : [];
+  const contexto: "combustible" | "factura_general" = payload?.contexto === "factura_general" ? "factura_general" : "combustible";
   if (!imagenes.length) return json({ ok: false, error: "Sin imágenes para leer." }, 400);
   if (imagenes.length > 4) return json({ ok: false, error: "Máximo 4 imágenes por lectura." }, 400);
 
-  // ── Rate limit: por usuario/hora y global/día ──────────────────────────────
+  // ── Rate limit: por usuario/hora y global/día (compartido entre contextos) ──
+  const funcionUso = contexto === "factura_general" ? "leer_recibo_factura_general" : "leer_recibo";
   const limHora = await leerParametro(svc, "leer_recibo_limite_usuario_hora", 30);
   const limDia = await leerParametro(svc, "leer_recibo_limite_diario_global", 400);
   const haceUnaHora = new Date(Date.now() - 3600_000).toISOString();
   const inicioDia = new Date(); inicioDia.setHours(0, 0, 0, 0);
   const [{ count: usoHora }, { count: usoDia }] = await Promise.all([
     svc.schema("sgc").from("uso_ia").select("id", { count: "exact", head: true })
-      .eq("funcion", "leer_recibo").eq("usuario_id", userId).gte("created_at", haceUnaHora),
+      .eq("funcion", funcionUso).eq("usuario_id", userId).gte("created_at", haceUnaHora),
     svc.schema("sgc").from("uso_ia").select("id", { count: "exact", head: true })
-      .eq("funcion", "leer_recibo").gte("created_at", inicioDia.toISOString()),
+      .eq("funcion", funcionUso).gte("created_at", inicioDia.toISOString()),
   ]);
   if ((usoHora ?? 0) >= limHora) return json({ ok: false, error: "Alcanzaste el límite de lecturas por hora. Escribe los datos a mano." }, 429);
   if ((usoDia ?? 0) >= limDia) return json({ ok: false, error: "Se alcanzó el límite diario de lecturas del sistema. Escribe los datos a mano." }, 429);
 
-  // ── Construir el mensaje de visión ─────────────────────────────────────────
+  // ── Construir el mensaje de visión (DF2b — instrucción/sistema según contexto) ──
+  const instrucciones = contexto === "factura_general" ? TIPO_INSTRUCCION_FACTURA : TIPO_INSTRUCCION;
+  const systemPrompt = contexto === "factura_general" ? SYSTEM_FACTURA : SYSTEM;
   const content: Any[] = [];
   for (const img of imagenes) {
-    const tipo = String(img?.tipo ?? "recibo");
+    const tipo = String(img?.tipo ?? (contexto === "factura_general" ? "factura" : "recibo"));
     const data = String(img?.data ?? "");
     const mime = String(img?.mime ?? "image/jpeg");
     if (!data) continue;
-    content.push({ type: "text", text: TIPO_INSTRUCCION[tipo] ?? TIPO_INSTRUCCION.recibo });
+    content.push({ type: "text", text: instrucciones[tipo] ?? instrucciones.recibo ?? instrucciones.factura });
     content.push({ type: "image", source: { type: "base64", media_type: mime, data } });
   }
   content.push({ type: "text", text: "Devuelve SOLO el JSON con los campos leídos y su confianza." });
@@ -132,7 +163,7 @@ Deno.serve(async (req) => {
     anthRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: MODEL, max_tokens: 1024, system: SYSTEM, messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 1024, system: systemPrompt, messages: [{ role: "user", content }] }),
     });
   } catch (_e) {
     return json({ ok: false, error: "No se pudo leer el recibo (red)." }, 502);
@@ -157,10 +188,10 @@ Deno.serve(async (req) => {
   // Registrar uso (best-effort).
   try {
     await svc.schema("sgc").from("uso_ia").insert({
-      usuario_id: userId, funcion: "leer_recibo", modelo: MODEL,
+      usuario_id: userId, funcion: funcionUso, modelo: MODEL,
       tokens_in: inTok, tokens_out: outTok,
       costo_estimado: inTok * PRECIO_IN + outTok * PRECIO_OUT,
-      meta: { imagenes: imagenes.map((i: Any) => i?.tipo ?? "recibo") },
+      meta: { imagenes: imagenes.map((i: Any) => i?.tipo ?? "recibo"), contexto },
     });
   } catch (e) { console.error("uso_ia insert", e); }
 

@@ -27,6 +27,21 @@ import { formatFechaDisplay, formatTimestampDisplay, todayIso, daysUntil } from 
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 import { OrdenTh } from '../../../../shared/ui/orden-th/orden-th';
+import { GrabadoraAudio } from '../../../../shared/components/grabadora-audio/grabadora-audio';
+import { FormularioIaService } from '../../../../shared/services/formulario-ia.service';
+import { PrivacidadService } from '../../../../shared/services/privacidad.service';
+import { emparejarProyectoSugerido, emparejarItemsPropuestos } from '../../../../shared/utils/formulario-ia.util';
+import type { PropuestaRequisicionIA } from '../../../../shared/utils/formulario-ia.util';
+import { clasificarConfianza, type ClasificacionConfianza } from '../../../../shared/utils/bitacora-ia.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+
+/** F2d — un renglón propuesto por voz ya emparejado contra el catálogo, para revisar antes de aceptar. */
+interface RenglonVozPropuesto {
+  articuloId: string;
+  nombre: string;
+  cantidad: number;
+  unidad: string | null;
+}
 import { OrdenColumna, compararConNulosAlFinal, leerOrdenGuardado, guardarOrden } from '../../../../shared/utils/orden-columnas.util';
 
 /** CS1 — columnas ordenables (mismas que Inventario › Requisiciones). */
@@ -89,7 +104,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe, StaggerDirective, FilterSelect, OrdenTh],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe, StaggerDirective, FilterSelect, OrdenTh, GrabadoraAudio, TranslatePipe],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -104,6 +119,8 @@ export class SolicitudesMaterial implements OnInit {
   private bodegasService = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private formularioIa = inject(FormularioIaService);
+  private privacidadService = inject(PrivacidadService);
 
   formatFecha = formatFechaDisplay;
   formatTimestamp = formatTimestampDisplay;
@@ -365,6 +382,84 @@ export class SolicitudesMaterial implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    try {
+      this.iaConsentimiento.set(await this.privacidadService.miConsentimiento('ia'));
+    } catch {
+      this.iaConsentimiento.set(false);
+    }
+  }
+
+  // ── F2d — "Entender con voz" (nota de voz → renglones + obra + urgencia) ───
+  iaConsentimiento = signal(false);
+  iaCargando = signal(false);
+  iaError = signal('');
+  iaPropuesta = signal<PropuestaRequisicionIA | null>(null);
+
+  renglonesVozPropuestos = computed<RenglonVozPropuesto[]>(() => {
+    const p = this.iaPropuesta();
+    if (!p?.items?.length) return [];
+    return emparejarItemsPropuestos(p.items, this.articulos()).map((it) => {
+      const a = this.articuloById(it.articuloId);
+      return { articuloId: it.articuloId, nombre: a?.nombre ?? '—', cantidad: it.cantidad, unidad: a?.unidad ?? null };
+    });
+  });
+
+  obraVozClasificacion = computed<ClasificacionConfianza | null>(() => {
+    const p = this.iaPropuesta();
+    if (!p?.obra_mencionada?.valor) return null;
+    return clasificarConfianza(p.obra_mencionada.valor, p.obra_mencionada.confianza);
+  });
+
+  urgenciaVozClasificacion = computed<ClasificacionConfianza | null>(() => {
+    const p = this.iaPropuesta();
+    if (!p?.urgencia?.valor) return null;
+    return clasificarConfianza(p.urgencia.valor, p.urgencia.confianza);
+  });
+
+  iaSinNada = computed(() => !!this.iaPropuesta() && this.renglonesVozPropuestos().length === 0 && !this.iaPropuesta()?.obra_mencionada?.valor);
+
+  /** Transcribe la nota de voz y propone renglones+obra+urgencia — el usuario SIEMPRE revisa antes de "Usar esto". */
+  async onAudioRequisicion(audio: Blob) {
+    if (this.iaCargando()) return;
+    this.iaError.set('');
+    this.iaCargando.set(true);
+    try {
+      const propuesta = await this.formularioIa.leerRequisicionVoz({ audio });
+      if (!propuesta.ok) {
+        this.iaError.set(propuesta.error || 'No se pudo entender la nota de voz. Llena el formulario a mano.');
+        return;
+      }
+      this.iaPropuesta.set(propuesta);
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo entender la nota de voz. Llena el formulario a mano.');
+    } finally {
+      this.iaCargando.set(false);
+    }
+  }
+
+  descartarPropuestaIaVoz() {
+    this.iaPropuesta.set(null);
+  }
+
+  /** Aplica la propuesta a `form`/`formItems` reales — NUNCA los valida ni envía por sí misma. */
+  usarPropuestaVoz() {
+    const p = this.iaPropuesta();
+    if (!p) return;
+    const renglones = this.renglonesVozPropuestos();
+    if (renglones.length) {
+      this.formItems.set(renglones.map((r) => {
+        const a = this.articuloById(r.articuloId);
+        return { ...NUEVO_ITEM(), articulo_id: r.articuloId, cantidad: r.cantidad, unidad: a?.unidad ?? r.unidad ?? '' };
+      }));
+    }
+    if (p.obra_mencionada?.valor && !this.form.controls.proyecto_id.value) {
+      const match = emparejarProyectoSugerido(p.obra_mencionada.valor, this.activeProyectos());
+      if (match) this.form.controls.proyecto_id.setValue(match.id);
+    }
+    if (p.urgencia?.valor === 'urgente') {
+      this.form.controls.urgencia.setValue('urgente');
+    }
+    this.iaPropuesta.set(null);
   }
 
   private async loadAll() {

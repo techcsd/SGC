@@ -79,6 +79,32 @@ export class ConduceExternoFicha implements OnInit {
     return e === 'recibido' ? 'Recibido' : e === 'anulado' ? 'Anulado' : 'Emitido';
   }
 
+  /**
+   * F6 (ronda DF, DF4-B) — "línea de vida" del conduce externo. Honesto con el
+   * dato real: `conduces_externos` solo guarda 3 estados (emitido/recibido/
+   * anulado) y no tiene columnas de GPS/vehículo asociado, así que NO se
+   * inventan los nodos "Cargado"/"En ruta"/"Llegó" del mockup original — eso
+   * necesitaría un modelo de datos que este conduce no tiene (documentado en
+   * el reporte de la ronda). Se enciende con el timestamp real de `historial`.
+   */
+  lineaVida = computed(() => {
+    const d = this.detalle();
+    if (!d) return [];
+    const emitidoAt = d.historial.find((h) => h.estado === 'emitido')?.at ?? d.fecha;
+    const recibidoAt = d.historial.find((h) => h.estado === 'recibido')?.at ?? d.recibido_en;
+    const anuladoAt = d.historial.find((h) => h.estado === 'anulado')?.at ?? null;
+    if (d.anulado) {
+      return [
+        { clave: 'emitido', label: 'Emitido', activo: true, at: emitidoAt },
+        { clave: 'anulado', label: 'Anulado', activo: true, at: anuladoAt },
+      ];
+    }
+    return [
+      { clave: 'emitido', label: 'Emitido', activo: true, at: emitidoAt },
+      { clave: 'recibido', label: 'Recibido / firmado', activo: !!recibidoAt, at: recibidoAt },
+    ];
+  });
+
   imprimir() { window.print(); }
 
   async compartir() {
