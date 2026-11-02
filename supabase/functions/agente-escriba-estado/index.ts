@@ -52,8 +52,13 @@ Deno.serve(async (req) => {
 
   if (!pendientes?.length) return json({ ok: true, revisados: 0 });
 
+  // El filtro `head=owner:branch` de la API de GitHub exige coincidencia
+  // EXACTA de rama, no prefijo -- con "feature/agente-" (sin slug) nunca
+  // matcheaba nada. Se trae todo lo abierto y se filtra abajo por prefijo,
+  // que ya era el filtro real correcto (encontrado en la primera corrida
+  // real end-to-end del Escriba: revisados:0 con PRs reales abiertos).
   const resp = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/pulls?state=open&head=${GITHUB_REPO.split("/")[0]}:feature/agente-`,
+    `https://api.github.com/repos/${GITHUB_REPO}/pulls?state=open&per_page=100`,
     { headers: { Authorization: `Bearer ${ghToken}`, Accept: "application/vnd.github+json" } },
   );
   if (!resp.ok) return json({ ok: false, error: "github_no_disponible" }, 502);
