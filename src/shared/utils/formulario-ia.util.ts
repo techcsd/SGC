@@ -57,6 +57,38 @@ export interface PropuestaMantenimientoIA {
   error_code?: string;
 }
 
+/** F2b — una respuesta propuesta por la IA para un ítem del checklist. */
+export interface RespuestaChecklistPropuesta {
+  id: string;
+  respuesta: 'ok' | 'no';
+  comentario: string | null;
+  confianza: number;
+}
+
+export interface PropuestaChecklistIA {
+  ok: boolean;
+  propuesta_id?: string | null;
+  respuestas?: RespuestaChecklistPropuesta[];
+  confianza_media?: number;
+  modelo?: string;
+  error?: string;
+  error_code?: string;
+}
+
+/**
+ * Defensa en profundidad del lado del cliente: el servidor ya filtra las
+ * respuestas a los ids que se mandaron, pero si la pantalla cambió de
+ * plantilla entre que se disparó la lectura y llegó la respuesta, esto evita
+ * aplicar una respuesta a un ítem que ya no está visible.
+ */
+export function filtrarRespuestasChecklist(
+  respuestas: readonly RespuestaChecklistPropuesta[],
+  itemsVisibles: readonly { id: string }[],
+): RespuestaChecklistPropuesta[] {
+  const idsVisibles = new Set(itemsVisibles.map((it) => it.id));
+  return respuestas.filter((r) => idsVisibles.has(r.id));
+}
+
 /**
  * Empareja el vehículo sugerido por la IA (placa o alias) contra el catálogo
  * real de vehículos. Match exacto únicamente — sin match devuelve null.

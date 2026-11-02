@@ -56,7 +56,6 @@
 | dudas | - | 30 | 0 | 30 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
-| flota/checklists | - | 165 | 0 | 165 | 0% |
 | flota/choferes-privados | - | 106 | 0 | 106 | 0% |
 | flota/combustible | - | 307 | 0 | 307 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
@@ -153,6 +152,7 @@
 | verificar | - | 13 | 0 | 13 | 0% |
 | legal/expedientes | - | 140 | 3 | 137 | 2% |
 | soporte | - | 52 | 1 | 51 | 2% |
+| flota/checklists | - | 175 | 5 | 170 | 3% |
 | inventario/conduce-externo-ficha | - | 62 | 2 | 60 | 3% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | bitacora/nueva | - | 300 | 17 | 283 | 6% |

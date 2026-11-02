@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
 import { resolverSttConfig, transcribirAudio } from "../_shared/stt.ts";
+import { validarRespuestasChecklist } from "./checklist.ts";
 
 // ============================================================================
 // DF1-B..E (ronda DF) — lector IA GENÉRICO para formularios que no son la
@@ -18,14 +19,20 @@ import { resolverSttConfig, transcribirAudio } from "../_shared/stt.ts";
 //       proyecto_id?: string }
 //   Salida (varía por tipo — ver TIPOS abajo): { ok, propuesta_id, ...campos, confianza_media, modelo }
 //
-//   'conduce_externo' (F2) y 'mantenimiento' (F2b) están implementados.
-//   'checklist_vehiculo', 'requisicion' y 'ruta' quedan declarados (para que el
+//   'conduce_externo' (F2), 'mantenimiento' (F2b) y 'checklist_vehiculo' (F2b)
+//   están implementados. 'requisicion' y 'ruta' quedan declarados (para que el
 //   front los pueda listar) pero devuelven 501 — ver docs/IA-FLUJOS-ROLES.md §F2
 //   para el plan de continuación.
 //
 //   'mantenimiento' acepta audio/transcripción en vez de fotos (voz: "se dañó el
 //   motor del camión 5, hay que llevarlo al taller esta semana" → descripción +
 //   vehículo sugerido + tipo preventivo/correctivo). Reusa _shared/stt.ts.
+//
+//   'checklist_vehiculo' acepta voz (+ fotos opcionales de daños) + `items`
+//   (los ítems de la plantilla elegida, [{id, etiqueta, es_critico}] — NO es un
+//   catálogo de la DB, depende de la plantilla del usuario) → respuesta ok/no
+//   por ítem mencionado. El modelo solo puede usar los ids que llegaron en la
+//   petición — defensa en profundidad server-side filtra cualquier otro.
 //
 //   Secrets: ANTHROPIC_API_KEY (obligatorio) · LEER_FORMULARIO_MODEL (opcional) ·
 //            STT_API_KEY / STT_PROVIDER / STT_MODEL (para 'mantenimiento').
@@ -44,12 +51,12 @@ const PRECIO_OUT = 5.0 / 1_000_000;
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
-const TIPOS_IMPLEMENTADOS = new Set(["conduce_externo", "mantenimiento"]);
+const TIPOS_IMPLEMENTADOS = new Set(["conduce_externo", "mantenimiento", "checklist_vehiculo"]);
 const TIPOS_DECLARADOS = new Set([
   "conduce_externo", "checklist_vehiculo", "requisicion", "factura_general", "mantenimiento", "ruta",
 ]);
-/** Tipos que NO requieren foto — funcionan solo con audio/transcripción. */
-const TIPOS_SOLO_VOZ = new Set(["mantenimiento"]);
+/** Tipos que NO requieren foto — funcionan solo con audio/transcripción (fotos quedan opcionales). */
+const TIPOS_SOLO_VOZ = new Set(["mantenimiento", "checklist_vehiculo"]);
 
 function base64ABlob(data: string, mime: string): Blob {
   const bin = atob(data);
@@ -216,6 +223,79 @@ async function resolverMantenimiento(svc: Any, transcripcion: string): Promise<{
   };
 }
 
+// F2b (ronda DF) — 'checklist_vehiculo': voz describiendo el estado del vehículo
+// (+ fotos opcionales de daños) → respuesta ok/no por ítem. Los ítems del
+// checklist NO son un catálogo fijo de la DB (dependen de la plantilla elegida
+// por el usuario, que varía por tipo de vehículo), así que el cliente los manda
+// en el payload (`items`) y el modelo elige SOLO entre esos ids — mismo
+// principio de "nunca inventa" que el catálogo de artículos/vehículos, aplicado
+// a una lista que llega en la petición en vez de una tabla.
+const SYSTEM_CHECKLIST = `Eres un asistente que ayuda a llenar un CHECKLIST DE INSPECCIÓN de vehículo/equipo en una constructora de República Dominicana, a partir de una nota de voz transcrita (y opcionalmente fotos de daños) donde el chofer describe el estado del vehículo.
+
+Devuelve SOLO un objeto JSON válido, sin texto adicional, sin markdown. Formato EXACTO:
+{ "respuestas": [ { "id": string, "respuesta": "ok"|"no", "comentario": string|null, "confianza": number } ] }
+
+Reglas estrictas:
+- Cada "id" DEBE ser EXACTAMENTE uno de estos ids de la lista de ítems (cópialo tal cual, nunca inventes uno que no esté):
+  Ítems (id | etiqueta | crítico): {{ITEMS}}
+- Si la transcripción/fotos no mencionan nada sobre un ítem, OMÍTELO del arreglo — no le asignes "ok" por defecto, el usuario lo revisa a mano.
+- "respuesta": "no" si describe una falla, daño o problema en ese ítem; "ok" solo si dice explícitamente que ese ítem está bien.
+- "comentario": resumen corto de lo que dijo sobre ese ítem, o null si solo confirmó que está bien sin detalle. Si el ítem es CRÍTICO y la respuesta es "no", el comentario es OBLIGATORIO (nunca null) — resume lo que se percibe aunque sea breve.
+- "confianza" es 0..1: qué tan seguro estás de esa lectura.
+- Si la transcripción está vacía o no tiene relación con un vehículo, devuelve {"respuestas": []} — no adivines.`;
+
+async function resolverChecklistVehiculo(
+  items: Any[],
+  transcripcion: string,
+  fotos: Any[],
+): Promise<{ propuesta: Any; costoMeta: Any }> {
+  const itemsValidos = items
+    .map((it) => ({ id: String(it?.id ?? ""), etiqueta: String(it?.etiqueta ?? ""), es_critico: !!it?.es_critico }))
+    .filter((it) => it.id && it.etiqueta);
+  const listaItems = itemsValidos.map((it) => `${it.id} | ${it.etiqueta} | ${it.es_critico ? "crítico" : "normal"}`).join("\n");
+
+  const content: Any[] = [];
+  for (const foto of fotos) {
+    const data = String(foto?.data ?? "");
+    const mime = String(foto?.mime ?? "image/jpeg");
+    if (!data) continue;
+    content.push({ type: "image", source: { type: "base64", media_type: mime, data } });
+  }
+  content.push({ type: "text", text: `<transcripcion_usuario>\n${transcripcion}\n</transcripcion_usuario>\n\nDevuelve SOLO el JSON con las respuestas de los ítems que se hayan mencionado.` });
+
+  const system = SYSTEM_CHECKLIST.replace("{{ITEMS}}", listaItems || "(sin ítems)");
+
+  const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: MODEL, max_tokens: 1024, system, messages: [{ role: "user", content }] }),
+  });
+  if (!anthRes.ok) {
+    const t = await anthRes.text();
+    console.error("anthropic error", anthRes.status, t.slice(0, 300));
+    throw new Error("El lector no está disponible ahora.");
+  }
+  const anth = await anthRes.json();
+  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+  const inTok = anth?.usage?.input_tokens ?? 0;
+  const outTok = anth?.usage?.output_tokens ?? 0;
+
+  let lectura: Any = null;
+  try {
+    const m = texto.match(/\{[\s\S]*\}/);
+    lectura = m ? JSON.parse(m[0]) : null;
+  } catch { lectura = null; }
+
+  const respuestasCrudas: Any[] = Array.isArray(lectura?.respuestas) ? lectura.respuestas : [];
+  // Defensa en profundidad extraída a checklist.ts (testeable sin red/DB).
+  const respuestas = validarRespuestasChecklist(respuestasCrudas, itemsValidos);
+
+  return {
+    propuesta: { respuestas },
+    costoMeta: { tokens_in: inTok, tokens_out: outTok, fotos: fotos.length },
+  };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
@@ -257,6 +337,7 @@ Deno.serve(async (req) => {
   const proyectoId: string | null = payload?.proyecto_id ? String(payload.proyecto_id) : null;
   const audio = payload?.audio ?? null;
   let transcripcion: string = typeof payload?.transcripcion === "string" ? payload.transcripcion : "";
+  const items: Any[] = Array.isArray(payload?.items) ? payload.items : [];
 
   if (TIPOS_SOLO_VOZ.has(tipo)) {
     if (!audio?.data && !transcripcion.trim()) return json({ ok: false, error: "Graba una nota de voz." }, 400);
@@ -264,6 +345,10 @@ Deno.serve(async (req) => {
     if (!fotos.length) return json({ ok: false, error: "Agrega al menos una foto." }, 400);
     if (fotos.length > 6) return json({ ok: false, error: "Máximo 6 fotos por lectura." }, 400);
   }
+  if (tipo === "checklist_vehiculo" && items.length === 0) {
+    return json({ ok: false, error: "Faltan los ítems del checklist." }, 400);
+  }
+  if (fotos.length > 6) return json({ ok: false, error: "Máximo 6 fotos por lectura." }, 400);
 
   // ── Transcribir la voz (si llegó audio y no una transcripción ya hecha) ─────
   if (audio?.data && !transcripcion.trim()) {
@@ -300,6 +385,8 @@ Deno.serve(async (req) => {
   try {
     resultado = tipo === "mantenimiento"
       ? await resolverMantenimiento(svc, transcripcion)
+      : tipo === "checklist_vehiculo"
+      ? await resolverChecklistVehiculo(items, transcripcion, fotos)
       : await resolverConduceExterno(svc, userClient, fotos);
   } catch (e) {
     console.error(`resolver(${tipo})`, e);
@@ -313,6 +400,8 @@ Deno.serve(async (req) => {
         Number(propuesta.vehiculo_sugerido?.confianza ?? 0),
         Number(propuesta.tipo?.confianza ?? 0),
       ].filter((n: number) => Number.isFinite(n))
+    : tipo === "checklist_vehiculo"
+    ? propuesta.respuestas.map((r: Any) => Number(r?.confianza ?? 0)).filter((n: number) => Number.isFinite(n))
     : [
         Number(propuesta.material?.confianza ?? 0),
         Number(propuesta.proveedor_sugerido?.confianza ?? 0),

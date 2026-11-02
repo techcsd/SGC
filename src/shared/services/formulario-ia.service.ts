@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { invokeEdge } from '../utils/edge.util';
-import type { PropuestaConduceIA, PropuestaMantenimientoIA } from '../utils/formulario-ia.util';
+import type { PropuestaConduceIA, PropuestaMantenimientoIA, PropuestaChecklistIA } from '../utils/formulario-ia.util';
 
 /**
  * DF1-B..E / F2b — cliente del lector IA genérico `leer-formulario`.
@@ -28,6 +28,24 @@ export class FormularioIaService {
     return invokeEdge<PropuestaMantenimientoIA>(this.supabase.client, 'leer-formulario', {
       tipo: 'mantenimiento',
       audio: { data: await this.aBase64(input.audio), mime: input.audio.type || 'audio/webm' },
+    });
+  }
+
+  /** F2b — voz (+ fotos opcionales de daños) → respuesta ok/no por ítem del checklist.
+   *  `items` son los ítems VISIBLES de la plantilla elegida (no un catálogo de la DB). */
+  async leerChecklistVehiculo(input: {
+    items: { id: string; etiqueta: string; es_critico: boolean }[];
+    audio: Blob;
+    fotos?: File[];
+  }): Promise<PropuestaChecklistIA> {
+    const fotos = await Promise.all(
+      (input.fotos ?? []).map(async (f) => ({ data: await this.aBase64(f), mime: f.type || 'image/jpeg' })),
+    );
+    return invokeEdge<PropuestaChecklistIA>(this.supabase.client, 'leer-formulario', {
+      tipo: 'checklist_vehiculo',
+      items: input.items,
+      audio: { data: await this.aBase64(input.audio), mime: input.audio.type || 'audio/webm' },
+      fotos,
     });
   }
 

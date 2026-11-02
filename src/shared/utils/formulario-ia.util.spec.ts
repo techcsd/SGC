@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { emparejarProveedorSugerido, emparejarItemsPropuestos, emparejarVehiculoSugerido, type ItemPropuesto } from './formulario-ia.util';
+import {
+  emparejarProveedorSugerido,
+  emparejarItemsPropuestos,
+  emparejarVehiculoSugerido,
+  filtrarRespuestasChecklist,
+  type ItemPropuesto,
+  type RespuestaChecklistPropuesta,
+} from './formulario-ia.util';
 
 describe('formulario-ia.util — conduce externo', () => {
   const proveedores = [
@@ -76,5 +83,27 @@ describe('formulario-ia.util — mantenimiento (F2b)', () => {
 
   it('vehículo sin match en el catálogo no empareja', () => {
     expect(emparejarVehiculoSugerido('Camión 99', vehiculos)).toBeNull();
+  });
+});
+
+describe('formulario-ia.util — checklist de vehículos (F2b)', () => {
+  const itemsVisibles = [{ id: 'i1' }, { id: 'i2' }];
+
+  it('respuesta de un ítem que ya no está visible (cambió de plantilla) se descarta', () => {
+    const respuestas: RespuestaChecklistPropuesta[] = [
+      { id: 'i-de-otra-plantilla', respuesta: 'no', comentario: 'algo', confianza: 0.9 },
+    ];
+    expect(filtrarRespuestasChecklist(respuestas, itemsVisibles)).toEqual([]);
+  });
+
+  it('respuesta de un ítem visible se conserva', () => {
+    const respuestas: RespuestaChecklistPropuesta[] = [
+      { id: 'i1', respuesta: 'ok', comentario: null, confianza: 0.95 },
+    ];
+    expect(filtrarRespuestasChecklist(respuestas, itemsVisibles)).toEqual(respuestas);
+  });
+
+  it('arreglo vacío (nota de voz sin hallazgos) no produce nada', () => {
+    expect(filtrarRespuestasChecklist([], itemsVisibles)).toEqual([]);
   });
 });

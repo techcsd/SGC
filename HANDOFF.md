@@ -2,11 +2,12 @@
 
 ## 🧪 Ronda DF (01-nov-2026) — IA en flujos de trabajo + agentes de monitoreo + animaciones — EN WORKTREE, SIN COMMIT
 
-**Estado:** construido completo en el worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-df` (rama
-`feature/df-ia-agentes-animaciones`, HEAD `be445cb9` de `origin/dev`). **Nada commiteado, pusheado
-ni desplegado** — 56+ archivos nuevos/modificados, `npm run build` verde, `npx ng test --watch=false`
-148/148, `npm run test:edge` 137/137. Falta: que Xaviel revise, y entonces commitear → push →
-`feature/df-ia-agentes-animaciones` → `dev` (regla 18, nunca directo a `main`).
+**Estado:** F0-F6b (7 commits) ya están **pusheados a `origin/feature/df-ia-agentes-animaciones`**
+(base `origin/dev` @ `be445cb9`) — Xaviel dio el OK explícito para commitear/pushear esa tanda.
+F2c (checklist de vehículos) se construyó después, encima de esos 7 commits, **todavía sin
+commitear** en el mismo worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-df`. `npm run build` verde,
+`npx ng test --watch=false` 156/156, `npm run test:edge` 144/144. Nada se ha mergeado a `dev` ni a
+`main` — eso sigue pendiente de que Xaviel revise en GitHub.
 
 **Origen:** PROMPT 128 (web) / PROMPT 129 (app, csd-app, sesión separada). No se encontró
 `CONTEXTO-ACTUALIZACION-63.md` en ningún lado del disco (se le preguntó a Xaviel, no respondió a
@@ -73,6 +74,25 @@ Migración `sql/2026-11-01-df2-formulario-ia-propuestas.sql` (tabla genérica po
   `{id}` — los tests con `toEqual({id: ...})` lo atraparon (deep-equality falla con campos extra).
   Corregido antes de reportar.
 
+### F2c — checklist de vehículos (02-nov-2026, continuación) — completo
+- Tipo `checklist_vehiculo` en `leer-formulario/index.ts`: voz describiendo el estado del vehículo
+  (+ fotos opcionales de daños) → respuesta ok/no por ítem. A diferencia de `conduce_externo`/
+  `mantenimiento`, los ítems NO son un catálogo de la DB — dependen de la plantilla elegida por el
+  usuario (varía por tipo de vehículo) — así que el cliente manda `items: [{id, etiqueta,
+  es_critico}]` en el payload y el modelo solo puede usar esos ids (nunca inventa uno nuevo).
+  Validación extraída a `leer-formulario/checklist.ts` (testeable sin red/DB, 7 tests Deno: positivo,
+  id inventado descartado, respuesta ambigua descartada, voz vacía, crítico-en-NO-sin-comentario
+  nunca queda mudo, no-crítico-sin-comentario se deja null, confianza no numérica cae a 0).
+- UI: botón "Entender con voz" en el drawer de `flota/checklists/checklists.ts`/`.html`/`.scss`
+  (visible solo con plantilla ya elegida y consentimiento de IA activo — mismo patrón
+  `PrivacidadService.miConsentimiento('ia')` de F1). Llena `respuestas`/`comentarios` con los
+  **mismos setters** (`setRespuesta`/`setComentario`) que ya usa el formulario manual — no se tocó
+  la validación de guardado (comentario obligatorio en crítico-en-NO, odómetro no retrocede, etc.).
+  Badge "entendido"/"¿seguro?" junto a cada ítem leído por voz (reusa clasificación F1).
+  `filtrarRespuestasChecklist()` (defensa en profundidad del lado del cliente) en
+  `formulario-ia.util.ts`, 3 tests nuevos.
+- Build verde, **156/156 Angular, 144/144 Deno**, `verify-i18n.mjs` exit 0 sin duplicados nuevos.
+
 ### F3 — Infraestructura de agentes (DF2) — completo
 `sql/2026-11-01-df2-agentes.sql`: 6 agentes sembrados (Vigía/Capataz/Soporte/Auditor/Escriba/
 Cronista), `agente_eventos` (retención 14 días, cron `agente-eventos-retencion`),
@@ -138,7 +158,8 @@ inventaron los 5 nodos del mockup original); contador de costo de IA del día vs
   `npm run test:edge` — ver conteo en "Verify on resume" abajo.
 
 ### Pendiente — Claude puede hacerlo (próxima sesión)
-1. F2c: checklist de vehículos, requisición por voz (quedaron diferidos en F2 y F2b).
+1. F2d: requisición por voz (sigue diferida — pantalla de requisiciones >1000 líneas, riesgo alto de
+   regresión sin más tiempo de revisión; checklist de vehículos ya se completó en F2c).
 2. F6c: banda por conduce con ETA dentro de `tablero-vivo` (DF4-C, falta solo la ETA explícita por
    conduce — la posición en el mapa ya existe); pulso del sistema (DF5-C) — requiere ANTES decidir
    cómo exponer de forma segura el estado de `cron.job_run_details` a un panel de Administración (no
@@ -176,10 +197,11 @@ inventaron los 5 nodos del mockup original); contador de costo de IA del día vs
 
 ### Verify on resume
 ```
-cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-df" && git status --porcelain | wc -l   # debe dar ~56+, nada commiteado
+cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-df" && git log --oneline -8             # 7 commits pusheados (F1..docs) + lo de F2c sin commitear encima
+git status --porcelain                                                           # F2c: checklist.ts/.test.ts, cambios a leer-formulario, checklists.*, formulario-ia.util.*, en.json
 npm run build                                                                     # debe terminar en el postbuild sin errores
-npx ng test --watch=false                                                         # 148/148
-npm run test:edge                                                                 # 137/137
+npx ng test --watch=false                                                         # 156/156
+npm run test:edge                                                                 # 144/144
 ```
 
 ## ✅ Ronda DE (30-oct a 01-nov-2026) — Documentos de flota con IA, badges honestos, transferencias — EN PRODUCCIÓN v1.206.0

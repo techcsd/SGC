@@ -51,6 +51,11 @@ import { formatFechaDisplay, formatHoraTimestamp, todayIso } from '../../../../s
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
+import { GrabadoraAudio } from '../../../../shared/components/grabadora-audio/grabadora-audio';
+import { PrivacidadService } from '../../../../shared/services/privacidad.service';
+import { FormularioIaService } from '../../../../shared/services/formulario-ia.service';
+import { filtrarRespuestasChecklist } from '../../../../shared/utils/formulario-ia.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * Checklists digitales de flota (pre-uso e inspección de seguridad). Historial +
@@ -59,7 +64,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas, Icon, ErrorState],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas, GrabadoraAudio, Icon, ErrorState, TranslatePipe],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,6 +78,15 @@ export class Checklists implements OnInit {
   private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
   private route = inject(ActivatedRoute);
+  // ── F2b — modo rápido (voz → propone ok/no por ítem) ──────
+  private privacidadService = inject(PrivacidadService);
+  private formularioIa = inject(FormularioIaService);
+  iaConsentimiento = signal(false);
+  modoRapidoAbierto = signal(false);
+  leyendoIA = signal(false);
+  iaError = signal('');
+  /** item.id → confianza de la última lectura IA (para el punto ámbar/verde junto al ítem). */
+  confianzasIA = signal<Record<string, number>>({});
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -275,6 +289,13 @@ export class Checklists implements OnInit {
     if (frec === 'semanal') {
       this.openCreate('semanal');
     }
+    // F2b — el botón de modo rápido se OCULTA (no se deshabilita con tooltip
+    // técnico) si el usuario no activó el consentimiento de IA en su perfil.
+    try {
+      this.iaConsentimiento.set(await this.privacidadService.miConsentimiento('ia'));
+    } catch {
+      this.iaConsentimiento.set(false);
+    }
   }
 
   /** Plantillas activas agrupadas por frecuencia, para el <select> con optgroup. */
@@ -334,6 +355,9 @@ export class Checklists implements OnInit {
     this.respuestas.set({});
     this.comentarios.set({});
     this.limpiarFotos();
+    this.modoRapidoAbierto.set(false);
+    this.iaError.set('');
+    this.confianzasIA.set({});
     this.form.reset({
       vehiculo_id: null,
       conductor_id: null,
@@ -434,6 +458,63 @@ export class Checklists implements OnInit {
 
   setComentario(itemId: string, texto: string) {
     this.comentarios.update((m) => ({ ...m, [itemId]: texto }));
+  }
+
+  /** F2b — confianza de la IA para este ítem (null si no se leyó por voz). */
+  confianzaDeItem(itemId: string): number | null {
+    return this.confianzasIA()[itemId] ?? null;
+  }
+
+  // ── F2b — modo rápido (voz → ok/no por ítem) ──────────────
+  abrirModoRapidoIA() {
+    if (!this.selectedPlantilla() || !this.visibleItems().length) return;
+    this.iaError.set('');
+    this.modoRapidoAbierto.set(true);
+  }
+
+  cerrarModoRapidoIA() {
+    this.modoRapidoAbierto.set(false);
+  }
+
+  async onAudioChecklistIA(blob: Blob) {
+    const items = this.visibleItems();
+    if (!items.length || this.leyendoIA()) return;
+    this.leyendoIA.set(true);
+    this.iaError.set('');
+    try {
+      const propuesta = await this.formularioIa.leerChecklistVehiculo({
+        items: items.map((it) => ({ id: it.id, etiqueta: it.etiqueta, es_critico: it.es_critico })),
+        audio: blob,
+      });
+      if (!propuesta.ok) {
+        this.iaError.set(propuesta.error ?? 'No se pudo leer la nota de voz.');
+        return;
+      }
+      const validas = filtrarRespuestasChecklist(propuesta.respuestas ?? [], items);
+      const confianzas: Record<string, number> = {};
+      for (const r of validas) {
+        this.setRespuesta(r.id, r.respuesta);
+        if (r.comentario) this.setComentario(r.id, r.comentario);
+        confianzas[r.id] = r.confianza;
+      }
+      this.confianzasIA.update((m) => ({ ...m, ...confianzas }));
+      if (propuesta.propuesta_id) {
+        this.formularioIa.resolverPropuesta(propuesta.propuesta_id, 'aceptada').catch(() => {});
+      }
+      this.modoRapidoAbierto.set(false);
+      if (validas.length) {
+        this.toast.success(
+          'Listo',
+          `Se propusieron ${validas.length} de ${items.length} ítems — revísalos antes de guardar.`,
+        );
+      } else {
+        this.toast.warning('Sin hallazgos claros', 'No se entendió ningún ítem en la nota de voz. Llénalo a mano.');
+      }
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo leer la nota de voz.');
+    } finally {
+      this.leyendoIA.set(false);
+    }
   }
 
   // ── Fotos del checklist (paridad con la app de campo) ────

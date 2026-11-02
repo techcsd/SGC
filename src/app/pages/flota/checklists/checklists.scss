@@ -533,3 +533,39 @@ textarea {
   &__actions { display: flex; gap: 8px; }
   &__del { color: var(--sgc-danger, #d32f2f); }
 }
+
+// ── F2b — modo rápido (voz → propone ok/no por ítem) ──────
+.cl-ia-btn {
+  align-self: flex-start;
+}
+
+.cl-ia-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--sgc-surface-hover);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+
+  &__hint {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__cargando {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--sgc-danger);
+  }
+}
