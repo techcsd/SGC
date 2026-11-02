@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.207.0": {
+      "titulo": "IA en bitácora, conduce, mantenimientos y requisiciones + agentes de monitoreo + gastos",
+      "cambios": [
+        { "t": "nuevo", "m": "Bitácora", "d": "Modo rápido: sube fotos y graba una nota de voz, y la IA propone los pasos del parte diario (confianza por campo, siempre revisas antes de enviar)." },
+        { "t": "nuevo", "m": "Inventario", "d": "Conduce externo: botón \"Entender con IA\" lee la foto del conduce físico y propone material, cantidades, proveedor y chofer." },
+        { "t": "nuevo", "m": "Flota", "d": "Mantenimientos y checklist/inspección de vehículos: grábalo con tu voz y, en el checklist, también con foto del daño — la IA propone y tú confirmas." },
+        { "t": "nuevo", "m": "Inventario", "d": "Requisición de materiales por voz: dí lo que necesitas y la IA propone los renglones contra el catálogo real de la obra." },
+        { "t": "nuevo", "m": "Compras", "d": "Pantalla nueva de Gastos directos del proyecto, con lector de IA para la foto de la factura (proveedor, RNC, NCF, monto)." },
+        { "t": "nuevo", "m": "Tecnología", "d": "Agentes de monitoreo (Vigía, Capataz, Soporte, Auditor, Escriba, Cronista): detectan y a veces resuelven solos problemas del sistema, con informe diario y panel de aprobaciones." },
+        { "t": "nuevo", "m": "Flota", "d": "El camión en el mapa ahora gira según su rumbo real y muestra velocidad y tiempo estimado de llegada." },
+        { "t": "nuevo", "m": "Dashboard", "d": "Pulso de obras (qué obras ya mandaron su parte de hoy) y flujo de requisición → recepción con el cuello de botella resaltado." },
+        { "t": "nuevo", "m": "Administración", "d": "Pulso del sistema: línea de vida de base de datos, tareas programadas, cola de envíos, voz a texto, lectores de IA y GPS." },
+        { "t": "arreglo", "m": "Inventario", "d": "El aviso de requisiciones vencidas volvió a funcionar — llevaba días sin avisar a nadie por una columna que faltaba." }
+      ]
+    },
     "1.206.0": {
       "titulo": "Documentos de flota con sugerencias e IA, badges honestos, transferencias con seguimiento",
       "cambios": [

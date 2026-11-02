@@ -42,9 +42,9 @@
   6. `scripts/data-fixes/2026-10-30-de-transferencias-huerfanas.mjs --env prod`
      (dry-run, solo lectura): 0 ofertas fantasma encontradas en prod.
 - **Resultado:** automatizado + navegador = OK, sin fallas encontradas.
-  **Prueba humana de Xaviel en `dev.sgcconstructorasd.com` sigue recomendada**
-  antes de abrir el PR `dev → main` (subir un documento real, revisar
-  sugerencias, probar una transferencia con un chofer real).
 - Fecha: 2026-11-01
+
+**OK:** Xaviel probó en producción (sgcconstructorasd.com) tras el merge del PR
+#49 y confirmó "i tested it, it works good." 2026-11-01.
 
 **OK:** _(pendiente — Xaviel confirma tras probar en dev.sgcconstructorasd.com)_

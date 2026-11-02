@@ -510,3 +510,101 @@
   &:hover { background: rgba(255, 179, 0, 0.08); }
   strong { color: var(--accent-hover, #ea580c); }
 }
+
+// DF1-A — Modo rápido de bitácora (fotos + voz → la IA propone el parte).
+.bitacora-ia {
+  border: 1px solid var(--accent);
+
+  .bitacora-section__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+  }
+
+  &__entrada {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  // Acción de ayuda (no la única naranja de la pantalla: el envío final sigue siendo eso).
+  &__btn-entender {
+    align-self: flex-start;
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &__revision-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sgc-text);
+    margin: 4px 0 0;
+  }
+
+  &__campos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__campo {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+      color: var(--sgc-text);
+    }
+
+    input[type='text'] {
+      min-width: 0;
+    }
+  }
+
+  &__estado {
+    font-size: 11px;
+    color: var(--sgc-text-muted);
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--sgc-text-muted); // vacía (gris)
+
+    &--alta { background: var(--sgc-success); } // entendido (verde)
+    &--dudosa { background: var(--sgc-warning); } // ¿seguro? (ámbar)
+    &--vacia { background: var(--sgc-text-muted); }
+  }
+
+  &__actividades {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__actividad {
+    display: grid;
+    grid-template-columns: auto 1fr 70px auto;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--sgc-text);
+  }
+
+  &__unidad {
+    color: var(--sgc-text-muted);
+    font-size: 12px;
+  }
+
+  &__acciones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}

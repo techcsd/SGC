@@ -1,0 +1,51 @@
+.pulso-obras__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pulso-obras__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pulso-obras__anillo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+
+  &--ok {
+    background: var(--sgc-success);
+  }
+
+  &--pendiente {
+    background: var(--sgc-warning);
+    animation: pulso-obra-respira 1.8s ease-in-out infinite;
+  }
+}
+
+.pulso-obras__obra {
+  flex: 1 1 auto;
+  font-weight: 600;
+}
+
+.pulso-obras__estado {
+  color: var(--main-ultra-light);
+  font-size: 0.85rem;
+}
+
+@keyframes pulso-obra-respira {
+  0%, 100% { box-shadow: 0 0 0 0 var(--sgc-warning-light); }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulso-obras__anillo--pendiente { animation: none; }
+}
+
+:host-context(html.motion-reduced) .pulso-obras__anillo--pendiente { animation: none; }

@@ -43,6 +43,13 @@ export const comprasRoutes: Routes = [
     title: 'Reportes — Compras',
   },
   {
+    // DF-gastos — gastos directos del proyecto (AS14 ya tenía el backend, sin pantalla).
+    path: 'gastos',
+    canActivate: [moduleGuard('compras')],
+    loadComponent: () => import('./gastos/gastos').then((m) => m.Gastos),
+    title: 'Gastos — Compras',
+  },
+  {
     // CY24 Fase B (#24) — bandeja de productos sin equivalente en Odoo.
     path: 'productos-por-dar-de-alta',
     canActivate: [moduleGuard('compras')],

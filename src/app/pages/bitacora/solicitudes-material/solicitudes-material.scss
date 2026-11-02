@@ -281,3 +281,42 @@ textarea {
 }
 .req-fecha-edit { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
 .req-fecha-edit__acc { display: flex; gap: 4px; }
+
+// F2d — "Entender con voz" (requisición por voz).
+.requisicion-voz {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 8px;
+
+  &__grabadora { display: flex; align-items: center; gap: 10px; }
+  &__estado { font-size: 0.85rem; color: var(--sgc-text-secondary); margin: 0; }
+  &__error { font-size: 0.85rem; color: var(--sgc-danger); margin: 0; }
+  &__titulo { font-size: 0.85rem; font-weight: 600; margin: 0 0 8px; }
+  &__acciones { display: flex; gap: 8px; margin-top: 10px; }
+}
+
+.mant-ia-campos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.mant-ia-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--sgc-text);
+
+  &__punto {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: var(--sgc-text-muted);
+  }
+  &--alta &__punto { background: var(--sgc-success); }
+  &--dudosa &__punto { background: var(--sgc-warning); }
+  &--vacia &__punto { background: var(--sgc-text-muted); }
+
+  em { color: var(--sgc-text-secondary); font-style: normal; }
+}

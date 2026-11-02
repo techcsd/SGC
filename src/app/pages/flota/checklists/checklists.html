@@ -253,9 +253,32 @@
     @if (selectedPlantilla()) {
       <div class="cl-items">
         <div class="cl-items__head">
-          <span>Ítems de inspección · {{ progreso().respondidos }}/{{ progreso().total }}</span>
+          <span>{{ 'Ítems de inspección' | t }} · {{ progreso().respondidos }}/{{ progreso().total }}</span>
           <span class="sgc-badge sgc-badge--{{ veredictoFormMeta().badge }}">{{ veredictoFormMeta().label }}</span>
         </div>
+
+        <!-- F2b — modo rápido: voz → propone ok/no por ítem (oculto sin consentimiento IA) -->
+        @if (iaConsentimiento()) {
+          @if (!modoRapidoAbierto()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost cl-ia-btn" (click)="abrirModoRapidoIA()">
+              <app-icon name="mic" [size]="16" /> {{ 'Entender con voz' | t }}
+            </button>
+          } @else {
+            <div class="cl-ia-panel">
+              <p class="cl-ia-panel__hint">{{ 'Describe el estado del vehículo: qué está bien y qué tiene daño.' | t }}</p>
+              <app-grabadora-audio (grabado)="onAudioChecklistIA($event)" />
+              @if (leyendoIA()) {
+                <p class="cl-ia-panel__cargando"><span class="spinner" aria-hidden="true"></span> {{ 'Entendiendo la nota de voz…' | t }}</p>
+              }
+              @if (iaError()) {
+                <p class="cl-ia-panel__error" role="alert">{{ iaError() }}</p>
+              }
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarModoRapidoIA()">
+                {{ 'Cancelar' | t }}
+              </button>
+            </div>
+          }
+        }
 
         @for (grupo of itemsPorSeccion(); track grupo.seccion) {
           <div class="cl-seccion-title">{{ grupo.seccion }}</div>
@@ -264,6 +287,11 @@
               <div class="item-row__label">
                 <span>@if (it.numero) { <b class="cl-num">{{ it.numero }}</b> } {{ it.etiqueta }}</span>
                 @if (it.es_critico) { <span class="cl-critico" title="Ítem crítico">● crítico</span> }
+                @if (confianzaDeItem(it.id); as conf) {
+                  <span class="sgc-badge sgc-badge--{{ conf < 0.70 ? 'warning' : 'success' }} cl-badge-gap">
+                    {{ (conf < 0.70 ? '¿seguro?' : 'entendido') | t }}
+                  </span>
+                }
               </div>
 
               <div class="cl-seg" role="group" [attr.aria-label]="it.etiqueta">

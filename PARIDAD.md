@@ -1226,6 +1226,35 @@ tabla solo registra fallos del outbox; este botón llama el RPC directo, no por 
 4. El push de oferta ahora apunta a `/transporte/conduce-transferencias` (antes `/transporte/conduces`)
    — ajusta el deep-link/ruta si la app tiene una ruta distinta para esa pantalla.
 
+### DF — Agentes IA, lectores de formularios, animaciones (01/11/2026)
+Ronda web-only de principio a fin (no hay contrato nuevo de servidor pensado para
+la app todavía, salvo lo que se note abajo). Resumen para quien lea esto desde
+PROMPT-129 (csd-app):
+
+1. **Modo rápido de bitácora (fotos+voz → parte propuesto)**: edge nueva
+   `bitacora-ia` + tabla `sgc.bitacora_ia_propuestas`. Es un flujo exclusivo de
+   la pantalla web de nueva bitácora; la app YA tiene su propio flujo offline-
+   first de bitácora y no necesita este modo (el usuario de campo de la app
+   llena su parte normal, sin conexión). Si Xaviel pide este modo también en
+   la app, el esquema JSON de la propuesta (`{valor, confianza, fuente}` por
+   campo) es reusable tal cual.
+2. **Lector IA de conduce externo** (`leer-formulario` con `tipo:
+   'conduce_externo'`): nuevo, solo web. Los otros 5 tipos declarados
+   (`factura`, `combustible`, `checklist_vehiculo`, `requisicion_voz`,
+   `mantenimiento_ruta`) responden `501 tipo_no_implementado` — no hay nada que
+   mirroring todavía.
+3. **Agentes (Vigía/Capataz/Soporte/Auditor/Escriba/Cronista)**: backend +
+   panel 100% internos de Tecnología (`sgc.agentes*`, Tecnología › Agentes).
+   El Cronista SÍ lee `sgc.app_error_reports` y `sgc.app_versiones` de la app
+   para el informe diario — ningún cambio de contrato necesario, son lecturas.
+4. **Animaciones de flujo**: el camión rotado/con velocidad vive en el mapa
+   de seguimiento de flota (`src/app/pages/flota/seguimiento`), que no tiene
+   equivalente en la app (la app no pinta un mapa con todos los choferes).
+   Sin acción para PROMPT-129.
+
+Nada de esta ronda requiere cambios en `csd-app` — se documenta aquí por la
+regla de paridad, no porque haya un gap abierto.
+
 ### DE1/DE2 — Documentos de flota (sin contrato para la app esta ronda)
 `cargar-documentos` (sugerencias, visor, reverso) es una pantalla **web-only** (el lote de
 marbetes/seguros se carga desde el escritorio de Flota); la app ya tiene su propio flujo reducido

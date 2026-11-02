@@ -52,6 +52,43 @@
   .ce-doc { box-shadow: none; border: none; }
 }
 
+// F6 (DF4-B) — línea de vida.
+.ce-linea-vida {
+  display: flex;
+  gap: 24px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ce-linea-vida__nodo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.5;
+
+  &--activo { opacity: 1; }
+}
+
+.ce-linea-vida__punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sgc-border);
+
+  .ce-linea-vida__nodo--activo & { background: var(--sgc-success); }
+}
+
+.ce-linea-vida__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ce-linea-vida__fecha {
+  font-size: 0.75rem;
+  color: var(--sgc-text-muted);
+}
+
 // CL6 — banda de "dato de prueba".
 .ce-prueba-band {
   margin: 12px 0;

@@ -21,3 +21,25 @@ export function pinIcon(color: string, size = 34): google.maps.Icon {
 export function dotIcon(color: string, size = 26): google.maps.Icon {
   return pinIcon(color, size);
 }
+
+/**
+ * F6 (ronda DF, DF4-A) — ícono de camión visto desde arriba, rotado según el
+ * rumbo (`headingDeg`, 0 = norte, sentido horario). Para el marcador "en ruta"
+ * del mapa de flota — reemplaza el pin genérico solo cuando el vehículo tiene
+ * al menos 2 posiciones (hace falta rumbo real, nunca inventamos uno).
+ */
+export function truckIcon(color: string, headingDeg: number, size = 32): google.maps.Icon {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" ` +
+    `style="transform:rotate(${Math.round(headingDeg)}deg)">` +
+    `<g fill="${color}" stroke="#ffffff" stroke-width="1">` +
+    `<rect x="9" y="2" width="6" height="13" rx="1.5"/>` +
+    `<path d="M9 15h6l3 4v3H6v-3z"/>` +
+    `</g></svg>`;
+  return {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(size, size),
+    anchor: new google.maps.Point(size / 2, size / 2),
+  };
+}
+

@@ -14,6 +14,18 @@ import { UserService } from '../../../core/services/user.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
+import { PrivacidadService } from '../../../../shared/services/privacidad.service';
+import { FormularioIaService } from '../../../../shared/services/formulario-ia.service';
+import { emparejarProveedorSugerido, emparejarItemsPropuestos } from '../../../../shared/utils/formulario-ia.util';
+import { clasificarConfianza, type ClasificacionConfianza } from '../../../../shared/utils/bitacora-ia.util';
+import type { PropuestaConduceIA } from '../../../../shared/utils/formulario-ia.util';
+
+/** DF1-B — un campo de la propuesta de IA, ya clasificado para pintar su punto de confianza. */
+interface CampoRevisionConduce {
+  etiqueta: string;
+  valor: string;
+  clasificacion: ClasificacionConfianza;
+}
 
 /** BV6 — un renglón de material del catálogo dentro del conduce externo. */
 interface ItemConduce {
@@ -53,6 +65,8 @@ export class ConduceExternoForm {
   private motion = inject(MotionService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private privacidadService = inject(PrivacidadService);
+  private formularioIa = inject(FormularioIaService);
 
   // CL1 — los 3 proveedores más a mano (quick-pick en la tarjeta 1).
   top3Proveedores = computed(() => this.proveedores().slice(0, 3));
@@ -132,6 +146,15 @@ export class ConduceExternoForm {
   guardando = signal(false);
   formError = signal('');
 
+  // ── DF1-B — "Entender con IA" (lee placa+carga, propone material/proveedor/items) ──
+  iaConsentimiento = signal(false);
+  iaCargando = signal(false);
+  iaError = signal('');
+  iaPropuesta = signal<PropuestaConduceIA | null>(null);
+  iaSoloDudosos = signal(false);
+  /** Puede pedir lectura si hay al menos una foto y ya terminó de cargar la anterior. */
+  puedeEntenderIA = computed(() => (!!this.placaFile() || !!this.cargaFile()) && !this.iaCargando());
+
   async ngOnInit() {
     try {
       this.proveedores.set(await this.svc.proveedores());
@@ -144,6 +167,13 @@ export class ConduceExternoForm {
       this.categorias.set(cats);
     } catch {
       /* sin catálogo el conduce sigue siendo solo de transporte */
+    }
+    // DF1-B — el botón "Entender con IA" se OCULTA (no se deshabilita con tooltip
+    // técnico) si el usuario no activó el consentimiento de IA en su perfil.
+    try {
+      this.iaConsentimiento.set(await this.privacidadService.miConsentimiento('ia'));
+    } catch {
+      this.iaConsentimiento.set(false);
     }
     // BR5 — abierto desde una requisición: enlaza + prellena destino (obra) y material.
     const qp = this.route.snapshot.queryParamMap;
@@ -283,6 +313,94 @@ export class ConduceExternoForm {
     this.items.update((xs) => xs.map((it, idx) => (idx === i ? { ...it, cantidad: isNaN(n) ? 0 : n } : it)));
   }
 
+  // ── DF1-B — "Entender con IA" ────────────────────────────────────────────────
+  /** Puntos de confianza a mostrar en el panel de revisión (solo campos con valor). */
+  camposRevision = computed<CampoRevisionConduce[]>(() => {
+    const p = this.iaPropuesta();
+    if (!p) return [];
+    const out: CampoRevisionConduce[] = [];
+    if (p.material?.valor) {
+      out.push({ etiqueta: 'Material', valor: p.material.valor, clasificacion: clasificarConfianza(p.material.valor, p.material.confianza) });
+    }
+    if (p.proveedor_sugerido?.valor) {
+      out.push({
+        etiqueta: 'Proveedor',
+        valor: p.proveedor_sugerido.valor,
+        clasificacion: clasificarConfianza(p.proveedor_sugerido.valor, p.proveedor_sugerido.confianza),
+      });
+    }
+    for (const it of p.items ?? []) {
+      out.push({
+        etiqueta: 'Material del catálogo',
+        valor: `${it.articulo} × ${it.cantidad ?? '?'}`,
+        clasificacion: clasificarConfianza(it.articulo, it.confianza),
+      });
+    }
+    return out.filter((c) => !this.iaSoloDudosos() || c.clasificacion !== 'alta');
+  });
+  iaDudososCount = computed(() => this.camposRevision().filter((c) => c.clasificacion === 'dudosa').length);
+  iaSinNada = computed(() => !!this.iaPropuesta() && this.camposRevision().length === 0 && !this.iaSoloDudosos());
+
+  /** Lee la placa+carga con IA y propone material/proveedor/items — el usuario siempre confirma. */
+  async entenderConIA() {
+    if (this.iaCargando()) return;
+    const fotos = [this.placaFile(), this.cargaFile()].filter((f): f is File => !!f);
+    if (!fotos.length) { this.iaError.set('Agrega al menos una foto para que la IA la pueda leer.'); return; }
+    this.iaError.set('');
+    this.iaCargando.set(true);
+    this.iaPropuesta.set(null);
+    try {
+      const propuesta = await this.formularioIa.leerConduceExterno({
+        fotos,
+        proyectoId: this.origenSel()?.proyectoId ?? this.destinoSel()?.proyectoId ?? null,
+      });
+      if (!propuesta.ok) {
+        this.iaError.set(propuesta.error || 'No se pudo leer el conduce. Llénalo a mano.');
+        return;
+      }
+      this.iaPropuesta.set(propuesta);
+      this.aplicarPropuestaIA(propuesta);
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo leer el conduce. Llénalo a mano.');
+    } finally {
+      this.iaCargando.set(false);
+    }
+  }
+
+  /** Rellena los campos del formulario con lo que la IA entendió — nunca sobrescribe lo que el usuario ya escribió. */
+  private aplicarPropuestaIA(p: PropuestaConduceIA) {
+    if (p.material?.valor && !this.material().trim()) {
+      this.material.set(p.material.valor);
+    }
+    if (p.proveedor_sugerido?.valor && !this.usarTexto() && !this.proveedorId()) {
+      const match = emparejarProveedorSugerido(p.proveedor_sugerido.valor, this.proveedores());
+      if (match) {
+        this.elegirProveedor(match.id);
+      } else {
+        // Sin match en el catálogo: lo ofrece como texto «Otro» en vez de inventar un proveedor nuevo.
+        this.usarTexto.set(true);
+        this.transportaTexto.set(p.proveedor_sugerido.valor);
+      }
+    }
+    const itemsNuevos = emparejarItemsPropuestos(p.items ?? [], this.articulos());
+    if (itemsNuevos.length) {
+      this.materialAbierto.set(true);
+      const existentes = new Set(this.items().map((it) => it.articuloId).filter(Boolean));
+      const aAgregar = itemsNuevos.filter((it) => !existentes.has(it.articuloId));
+      if (aAgregar.length) {
+        this.items.update((xs) => [...xs, ...aAgregar.map((it) => ({ articuloId: it.articuloId, cantidad: it.cantidad }))]);
+      }
+    }
+  }
+
+  /** Descarta la propuesta sin aplicar nada más — el usuario sigue llenando a mano. */
+  descartarPropuestaIA() {
+    const id = this.iaPropuesta()?.propuesta_id;
+    this.iaPropuesta.set(null);
+    this.iaSoloDudosos.set(false);
+    if (id) void this.formularioIa.resolverPropuesta(id, 'descartada');
+  }
+
   // ── Emitir ──────────────────────────────────────────────────────────────────
   async guardar() {
     if (this.guardando()) return;
@@ -328,6 +446,8 @@ export class ConduceExternoForm {
         verUrl: `/inventario/conduces-externos/${id}`, verLabel: 'Ver conduce',
       });
       this.toast.success('Conduce externo emitido', 'El viaje quedó registrado (pendiente de pago).');
+      const propuestaId = this.iaPropuesta()?.propuesta_id;
+      if (propuestaId) void this.formularioIa.resolverPropuesta(propuestaId, 'aceptada', id);
       this.router.navigate(['/inventario/conduces-externos'], { queryParams: { nuevo: id } });
     } catch (e) {
       // BT7/regla 16: nunca el `e.message` crudo (FK/SQL) en pantalla. `humanizeError`

@@ -527,3 +527,51 @@ textarea {
   &__item { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   &__veh { font-weight: 500; }
 }
+
+// F2b — "Entender con voz" (lector IA de mantenimiento, mismo lenguaje visual
+// que conduce-externo-form.scss, clases propias porque está en otro componente).
+.mant-ia {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 16px;
+
+  &__label { font-size: 0.8rem; font-weight: 600; color: var(--sgc-text-secondary); }
+  &__hint { margin: 0; font-size: 0.8rem; color: var(--sgc-text-secondary); }
+  &__error { margin: 0; font-size: 0.8rem; color: var(--sgc-danger, #dc2626); }
+}
+
+.mant-ia-panel {
+  border: 1px solid var(--accent, #f97316);
+  border-radius: var(--sgc-radius);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+
+  &__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  &__hint { font-size: 0.8rem; color: var(--sgc-text-secondary); margin: 8px 0 0; }
+}
+
+.mant-ia-campos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.mant-ia-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--sgc-text);
+
+  &__punto {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: var(--sgc-text-muted);
+  }
+  &--alta &__punto { background: var(--sgc-success); }
+  &--dudosa &__punto { background: var(--sgc-warning); }
+  &--vacia &__punto { background: var(--sgc-text-muted); }
+
+  em { color: var(--sgc-text-secondary); font-style: normal; }
+}

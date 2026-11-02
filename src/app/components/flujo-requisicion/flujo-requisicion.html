@@ -1,0 +1,60 @@
+@if (puedeVer() && !cargando() && !error() && etapas().length) {
+  <section class="chart-card" aria-labelledby="flujo-requisicion-title">
+    <h2 class="chart-title" id="flujo-requisicion-title">{{ 'Requisición → recepción' | t }}</h2>
+    <p class="flujo-requisicion__nota">{{ 'Últimos 30 días · toca una etapa para ver la lista' | t }}</p>
+    <ul class="flujo-requisicion__lista">
+      @for (e of etapas(); track e.etapa) {
+        <li class="flujo-requisicion__etapa">
+          <button
+            type="button"
+            class="flujo-requisicion__boton"
+            [class.flujo-requisicion__boton--cuello]="e.es_cuello_botella"
+            [attr.aria-expanded]="etapaAbierta() === e.etapa"
+            (click)="toggleEtapa(e.etapa)"
+          >
+            <span class="flujo-requisicion__etiqueta">{{ etiqueta(e.etapa) | t }}</span>
+            @if (e.cantidad > 0) {
+              <span class="flujo-requisicion__horas">
+                {{ e.promedio_horas | number: '1.0-1' }} {{ 'h promedio' | t }}
+                ({{ e.cantidad }} {{ 'casos' | t }})
+              </span>
+              @if (e.es_cuello_botella) {
+                <span class="flujo-requisicion__badge">{{ 'Tramo más lento' | t }}</span>
+              }
+            } @else {
+              <span class="flujo-requisicion__horas">{{ 'Sin datos en el período' | t }}</span>
+            }
+          </button>
+          @if (etapaAbierta() === e.etapa) {
+            <div class="flujo-requisicion__detalle">
+              @if (cargandoDetalle()) {
+                <p>{{ 'Cargando…' | t }}</p>
+              } @else if (!detalle().length) {
+                <p>{{ 'Sin casos en el período.' | t }}</p>
+              } @else {
+                <table class="flujo-requisicion__tabla">
+                  <thead>
+                    <tr>
+                      <th>{{ 'Referencia' | t }}</th>
+                      <th>{{ 'Obra' | t }}</th>
+                      <th>{{ 'Horas' | t }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (d of detalle(); track d.referencia) {
+                      <tr>
+                        <td>{{ d.referencia }}</td>
+                        <td>{{ d.obra }}</td>
+                        <td>{{ d.horas | number: '1.0-1' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+}

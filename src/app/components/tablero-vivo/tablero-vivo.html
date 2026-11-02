@@ -71,6 +71,18 @@
                 }
               </svg>
               <p class="tv__mapa-nota">{{ 'Posiciones relativas de hoy (las manda la app de los choferes).' | t }}</p>
+              <ul class="tv__eta-lista">
+                @for (v of flotaSvg(); track v.vehiculo_id) {
+                  <li class="tv__eta-item">
+                    <span class="tv__eta-veh">{{ v.etiqueta }}</span>
+                    @if (v.etaMin !== null) {
+                      <span class="tv__eta-valor">{{ 'Llega en' | t }} {{ v.etaMin }} min</span>
+                    } @else {
+                      <span class="tv__eta-valor tv__eta-valor--vacio">{{ 'ETA no disponible' | t }}</span>
+                    }
+                  </li>
+                }
+              </ul>
             } @else {
               <p class="tv__vacio">{{ 'Ningún vehículo ha mandado su posición hoy.' | t }}</p>
             }

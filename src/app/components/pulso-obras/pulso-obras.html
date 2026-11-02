@@ -1,0 +1,22 @@
+@if (puedeVer() && !cargando() && !error() && obras().length) {
+  <section class="chart-card" aria-labelledby="pulso-obras-title">
+    <h2 class="chart-title" id="pulso-obras-title">{{ 'Pulso de obras' | t }}</h2>
+    <ul class="pulso-obras__lista">
+      @for (o of obras(); track o.obra) {
+        <li class="pulso-obras__item">
+          <span
+            class="pulso-obras__anillo"
+            [class.pulso-obras__anillo--ok]="o.reporto_hoy"
+            [class.pulso-obras__anillo--pendiente]="!o.reporto_hoy"
+            role="img"
+            [attr.aria-label]="(o.reporto_hoy ? ('Reportó hoy' | t) : ('Falta el parte de hoy' | t))"
+          ></span>
+          <span class="pulso-obras__obra">{{ o.obra }}</span>
+          <span class="pulso-obras__estado">
+            {{ o.reporto_hoy ? ('Reportó hoy' | t) : ('Falta el parte de hoy' | t) }}
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+}
