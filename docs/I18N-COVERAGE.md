@@ -162,6 +162,7 @@
 | proyectos/personal | - | 415 | 74 | 341 | 18% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
+| admin/pulso-sistema | - | 7 | 3 | 4 | 43% |
 | reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | asistente | - | 61 | 30 | 31 | 49% |

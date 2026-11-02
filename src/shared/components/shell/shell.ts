@@ -520,6 +520,8 @@ export class Shell implements OnInit {
       { label: 'Claude', route: '/admin/claude' },
       { label: 'Animaciones', route: '/admin/animaciones' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
+      // F6c (ronda DF) — línea de vida por sistema.
+      { label: 'Pulso del sistema', route: '/admin/pulso-sistema' },
     ],
   };
 

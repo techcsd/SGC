@@ -15027,6 +15027,21 @@
       ]
     },
     {
+      "pantalla": "admin/pulso-sistema",
+      "total": 7,
+      "cubiertos": 3,
+      "sin": 4,
+      "pct": 43,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "@if (error()) {",
+        "} @else if (loading()) {",
+        "} @else {",
+        "@for (fila of filas(); track fila.sistema) {"
+      ]
+    },
+    {
       "pantalla": "reuniones/reuniones-lista",
       "total": 101,
       "cubiertos": 47,

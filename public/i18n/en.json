@@ -1027,5 +1027,11 @@
   "Tramo más lento": "Slowest stage",
   "Sin casos en el período.": "No cases in this period.",
   "Referencia": "Reference",
-  "Horas": "Hours"
+  "Horas": "Hours",
+  "Pulso del sistema": "System pulse",
+  "Línea de vida de cada sistema. Sin actividad reciente no es lo mismo que caído.": "A heartbeat for each system. No recent activity isn't the same as down.",
+  "Con actividad": "Active",
+  "Sin actividad reciente": "No recent activity",
+  "Necesita atención": "Needs attention",
+  "Falló": "Failed"
 }

@@ -143,4 +143,11 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./conduces-huerfanos/conduces-huerfanos').then((m) => m.AdminConducesHuerfanos),
     title: 'Conduces huérfanos — Administración',
   },
+  {
+    // F6c (ronda DF) — línea de vida por sistema (BD, crons, cola de envíos,
+    // STT, lectores de IA, GPS); gate server-side en sgc.pulso_sistema().
+    path: 'pulso-sistema',
+    loadComponent: () => import('./pulso-sistema/pulso-sistema').then((m) => m.AdminPulsoSistema),
+    title: 'Pulso del sistema — Administración',
+  },
 ];

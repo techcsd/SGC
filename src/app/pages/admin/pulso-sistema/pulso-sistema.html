@@ -1,0 +1,29 @@
+<div class="pulso">
+  <header class="pulso__header">
+    <h1>{{ 'Pulso del sistema' | t }}</h1>
+    <p class="pulso__subtitulo">
+      {{ 'Línea de vida de cada sistema. Sin actividad reciente no es lo mismo que caído.' | t }}
+    </p>
+  </header>
+
+  @if (error()) {
+    <app-error-state [error]="error()" pantalla="el pulso del sistema" (retry)="cargar()" />
+  } @else if (loading()) {
+    <p class="pulso__cargando">{{ 'Cargando…' | t }}</p>
+  } @else {
+    <ul class="pulso__lista">
+      @for (fila of filas(); track fila.sistema) {
+        <li class="linea" [class]="'linea--' + fila.estado" [appEstadoPulse]="fila.estado">
+          <span class="linea__punto" aria-hidden="true"></span>
+          <div class="linea__cuerpo">
+            <div class="linea__encabezado">
+              <span class="linea__sistema">{{ fila.sistema }}</span>
+              <span class="linea__estado-texto">{{ estadoLabel[fila.estado] | t }}</span>
+            </div>
+            <span class="linea__detalle">{{ fila.detalle }} — {{ relativo(fila) }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>
