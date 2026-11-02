@@ -52,6 +52,30 @@ import { ArticulosService } from '../../../../shared/services/articulos.service'
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
+import { PrivacidadService } from '../../../../shared/services/privacidad.service';
+import { PropuestaBitacoraIA } from '../../../../shared/services/bitacora.service';
+import { GrabadoraAudio } from '../../../../shared/components/grabadora-audio/grabadora-audio';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import {
+  clasificarConfianza,
+  contarDudosos,
+  filtrarActividadesContraCatalogo,
+  ActividadPropuesta,
+  CampoPropuesto,
+  ClasificacionConfianza,
+} from '../../../../shared/utils/bitacora-ia.util';
+
+// DF1-A — mínimo de fotos O una nota de voz para pedirle a la IA que entienda el parte.
+const MIN_FOTOS_MODO_RAPIDO = 2;
+
+/** DF1-A — un campo del parte en la pantalla "Esto entendí", ya con su punto de confianza. */
+interface CampoRevision {
+  clave: string;
+  etiqueta: string;
+  valor: unknown;
+  confianza: number;
+  clasificacion: ClasificacionConfianza;
+}
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -143,7 +167,7 @@ interface Draft {
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema, MoldeCompositor, ArticuloPicker],
+  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema, MoldeCompositor, ArticuloPicker, GrabadoraAudio, TranslatePipe],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -177,6 +201,151 @@ export class Nueva implements OnInit {
   private categoriasService = inject(CategoriasService);
   articulosCat = signal<Articulo[]>([]);
   categoriasCat = signal<Categoria[]>([]);
+
+  // ── DF1-A — Modo rápido (fotos + voz → la IA propone el parte) ─────────────
+  private privacidadService = inject(PrivacidadService);
+  readonly minFotosModoRapido = MIN_FOTOS_MODO_RAPIDO;
+  iaConsentimiento = signal(false);
+  iaPantalla = signal<'cerrado' | 'cargando' | 'revision'>('cerrado');
+  iaAudio = signal<Blob | null>(null);
+  iaError = signal('');
+  iaPropuesta = signal<PropuestaBitacoraIA | null>(null);
+  iaSoloDudosos = signal(false);
+  // Copia editable de lo propuesto — el usuario corrige antes de enviar.
+  iaCamposEditables = signal<Record<string, unknown>>({});
+  iaActividadesEditables = signal<(ActividadPropuesta & { incluir: boolean })[]>([]);
+
+  private readonly CAMPOS_PARTE: { clave: string; etiqueta: string }[] = [
+    { clave: 'bloque_entrepiso', etiqueta: 'Bloque / entrepiso' },
+    { clave: 'ingeniero_responsable', etiqueta: 'Ingeniero responsable' },
+    { clave: 'hora_fin_trabajo', etiqueta: 'Hora de fin de trabajo' },
+    { clave: 'personal_carpinteria', etiqueta: 'Personal de carpintería' },
+    { clave: 'personal_acero', etiqueta: 'Personal de acero' },
+    { clave: 'trabajadores_casa', etiqueta: 'Trabajadores de casa' },
+    { clave: 'otro_personal', etiqueta: 'Otro personal' },
+    { clave: 'comentarios', etiqueta: 'Comentarios' },
+  ];
+
+  /** Campos de la propuesta con su clasificación de confianza, para pintar los puntos. */
+  camposRevision = computed<CampoRevision[]>(() => {
+    const original = this.iaPropuesta()?.campos ?? ({} as Record<string, CampoPropuesto>);
+    const editables = this.iaCamposEditables();
+    return this.CAMPOS_PARTE.map(({ clave, etiqueta }) => {
+      const base = original[clave];
+      const valor = editables[clave] ?? base?.valor ?? null;
+      const confianza = base?.confianza ?? 0;
+      return { clave, etiqueta, valor, confianza, clasificacion: clasificarConfianza(valor, confianza) };
+    }).filter((c) => !this.iaSoloDudosos() || c.clasificacion !== 'alta');
+  });
+
+  /** Cuántos campos quedaron en "¿seguro?" (ámbar) — para el botón "Revisar los N que dudo". */
+  iaDudososCount = computed(() => {
+    const prop = this.iaPropuesta();
+    if (!prop) return 0;
+    return contarDudosos(prop.campos);
+  });
+
+  onAudioGrabado(blob: Blob) {
+    this.iaAudio.set(blob);
+  }
+
+  /** Abre el panel, cierra si ya estaba abierto (botón único por pantalla, AW12/BS2 — sin jerga). */
+  async entenderParte() {
+    const v = this.form.getRawValue();
+    const fotos = this.archivos().filter((f) => f.type.startsWith('image/'));
+    if (fotos.length < this.minFotosModoRapido && !this.iaAudio()) {
+      this.iaError.set(`Agrega al menos ${this.minFotosModoRapido} fotos o graba una nota de voz.`);
+      return;
+    }
+    this.iaError.set('');
+    this.iaPantalla.set('cargando');
+    try {
+      const propuesta = await this.bitacoraService.entenderParte({
+        proyectoId: v.proyecto_id!,
+        fecha: v.fecha!,
+        fotos,
+        audio: this.iaAudio(),
+      });
+      if (!propuesta.ok) {
+        this.iaError.set(propuesta.error || 'No se pudo entender el parte. Llénalo a mano.');
+        this.iaPantalla.set('cerrado');
+        return;
+      }
+      this.iaPropuesta.set(propuesta);
+      const editables: Record<string, unknown> = {};
+      for (const { clave } of this.CAMPOS_PARTE) editables[clave] = propuesta.campos[clave]?.valor ?? null;
+      this.iaCamposEditables.set(editables);
+      this.iaActividadesEditables.set(propuesta.actividades.map((a) => ({ ...a, incluir: true })));
+      this.iaPantalla.set('revision');
+    } catch (e: unknown) {
+      this.iaError.set(e instanceof Error ? e.message : 'No se pudo entender el parte. Llénalo a mano.');
+      this.iaPantalla.set('cerrado');
+    }
+  }
+
+  setCampoEditable(clave: string, valor: unknown) {
+    this.iaCamposEditables.update((m) => ({ ...m, [clave]: valor }));
+  }
+
+  toggleActividadIa(index: number) {
+    this.iaActividadesEditables.update((list) =>
+      list.map((a, i) => (i === index ? { ...a, incluir: !a.incluir } : a)),
+    );
+  }
+
+  setCantidadActividadIa(index: number, cantidad: number | null) {
+    this.iaActividadesEditables.update((list) => list.map((a, i) => (i === index ? { ...a, cantidad } : a)));
+  }
+
+  /** Aplica lo revisado/editado al formulario REAL (mismos signals que llena el flujo manual)
+   *  y manda a enviar — mismo RPC de siempre, el usuario ya confirmó cada dato. */
+  async confirmarPropuestaIa() {
+    const propuesta = this.iaPropuesta();
+    if (!propuesta) return;
+    const editables = this.iaCamposEditables();
+    for (const { clave } of this.CAMPOS_PARTE) {
+      const valor = editables[clave];
+      // Nunca sobrescribe con vacío un campo que ya tenía algo (manual o de un borrador).
+      if (valor === null || valor === undefined || valor === '') continue;
+      this.form.get(clave)?.setValue(valor);
+    }
+    // Actividades: solo las incluidas, re-validadas contra el catálogo vigente de la obra.
+    const actividadesIncluidas = this.iaActividadesEditables().filter((a) => a.incluir);
+    const validas = filtrarActividadesContraCatalogo(actividadesIncluidas, this.estructuras(), this.actividades());
+    for (const a of validas) {
+      if (!this.actividadesSeleccionadas().has(this.key(a.estructura, a.actividad))) {
+        this.toggleActividad(a.estructura, a.actividad);
+      }
+      if (a.cantidad != null) this.setCantidad(a.estructura, a.actividad, a.cantidad);
+      if (a.unidad) this.setUnidad(a.estructura, a.actividad, a.unidad);
+    }
+    // Restricciones propuestas (solo si el usuario no había elegido ninguna aún).
+    if (this.restriccionesSeleccionadas().size === 0) {
+      for (const r of propuesta.restricciones) {
+        const real = this.restricciones().find((x) => x.value === r.tipo_restriccion);
+        if (!real) continue;
+        this.toggleRestriccion(real.value);
+        if (r.descripcion_otro) this.setRestriccionDescripcion(real.value, r.descripcion_otro);
+      }
+    }
+    this.iaPantalla.set('cerrado');
+    if (propuesta.propuesta_id) {
+      this.bitacoraService.resolverPropuestaIA(propuesta.propuesta_id, 'aceptada').catch(() => {});
+    }
+    await this.onSubmit();
+  }
+
+  /** "Prefiero llenarlo paso a paso" — descarta la propuesta y deja el formulario manual intacto. */
+  descartarPropuestaIa() {
+    const propuesta = this.iaPropuesta();
+    if (propuesta?.propuesta_id) {
+      this.bitacoraService.resolverPropuestaIA(propuesta.propuesta_id, 'descartada').catch(() => {});
+    }
+    this.iaPantalla.set('cerrado');
+    this.iaPropuesta.set(null);
+    this.iaAudio.set(null);
+    this.iaSoloDudosos.set(false);
+  }
 
   // Default to the built-in lists, then override with the admin-managed catalog.
   estructuras = signal<readonly string[]>(ESTRUCTURAS);
@@ -593,6 +762,14 @@ export class Nueva implements OnInit {
       this.equiposSugeridos.set(await this.bitacoraService.getEquiposSugeridos());
     } catch {
       /* sin sugerencias, no pasa nada */
+    }
+
+    // DF1-A — el botón de modo rápido se OCULTA (no se deshabilita con tooltip
+    // técnico) si el usuario no activó el consentimiento de IA en su perfil.
+    try {
+      this.iaConsentimiento.set(await this.privacidadService.miConsentimiento('ia'));
+    } catch {
+      this.iaConsentimiento.set(false);
     }
     // T19 — si ya hay obra elegida, prioriza los equipos de esa obra.
     void this.loadEquiposDeObra(this.form.controls.proyecto_id.value ?? null);

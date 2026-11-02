@@ -1,0 +1,76 @@
+.grabadora-audio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.grabadora-audio__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2, var(--sgc-text-muted));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-body);
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--text-1, var(--sgc-text));
+  }
+
+  &--activo {
+    border-color: var(--sgc-danger);
+    color: var(--text-1, var(--sgc-text));
+    background: var(--sgc-danger-light);
+  }
+}
+
+// CJ4 — nivel "base": solo transform/opacity, respeta prefers-reduced-motion.
+.grabadora-audio__onda {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+
+  span {
+    width: 3px;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--sgc-danger);
+    animation: grabadora-onda var(--motion-slow, 700ms) var(--ease-out, ease-in-out) infinite;
+
+    &:nth-child(2) { animation-delay: 0.1s; }
+    &:nth-child(3) { animation-delay: 0.2s; }
+    &:nth-child(4) { animation-delay: 0.3s; }
+    &:nth-child(5) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes grabadora-onda {
+  0%, 100% { transform: scaleY(0.3); opacity: 0.6; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+html.motion-reduced .grabadora-audio__onda span {
+  animation: none;
+  transform: scaleY(0.7);
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grabadora-audio__onda span {
+    animation: none;
+    transform: scaleY(0.7);
+    opacity: 0.8;
+  }
+}
+
+.grabadora-audio__error {
+  color: var(--sgc-danger);
+  font-size: 0.85rem;
+  margin: 0;
+}

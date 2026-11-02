@@ -1,0 +1,27 @@
+<div class="grabadora-audio">
+  <button
+    type="button"
+    class="grabadora-audio__btn"
+    [class.grabadora-audio__btn--activo]="grabando()"
+    (click)="toggle()"
+  >
+    @if (grabando()) {
+      <app-icon name="square" [size]="16" />
+      <span>{{ 'Detener' | t }} · {{ segundos() }}s</span>
+    } @else if (tieneAudio()) {
+      <app-icon name="check" [size]="16" />
+      <span>{{ 'Nota de voz grabada — grabar de nuevo' | t }}</span>
+    } @else {
+      <app-icon name="mic" [size]="16" />
+      <span>{{ 'Grabar nota de voz' | t }}</span>
+    }
+  </button>
+  @if (grabando()) {
+    <div class="grabadora-audio__onda" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  }
+  @if (error()) {
+    <p class="grabadora-audio__error" role="alert">{{ error() | t }}</p>
+  }
+</div>
