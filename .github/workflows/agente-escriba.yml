@@ -137,9 +137,9 @@ jobs:
           # y a propósito NO se lo damos a este job (el Escriba no toca ningún
           # entorno real) — por eso el PR queda marcado "guards_supabase: omitidos"
           # y Xaviel debe correr el build completo en local/dev antes de aprobar.
-          npm run build > build.log 2>&1
+          npm run build > "$RUNNER_TEMP/build.log" 2>&1
           echo "build_exit=$?" >> "$GITHUB_OUTPUT"
-          npm run test:unit > test.log 2>&1
+          npm run test:unit > "$RUNNER_TEMP/test.log" 2>&1
           echo "test_exit=$?" >> "$GITHUB_OUTPUT"
           set -e
         continue-on-error: true
@@ -159,6 +159,11 @@ jobs:
           git config user.email "agente-escriba@users.noreply.github.com"
           git add -A
           git commit -m "feat(agente-escriba): propuesta automática para hallazgo ${{ github.event.inputs.hallazgo_id || github.event.issue.number }}"
+          # El paso de Claude Code reconfigura las credenciales de git para su
+          # propio uso (App de GitHub) y deja el remote sin el token de este
+          # job -- se fuerza explícitamente aquí en vez de depender de lo que
+          # haya quedado configurado (encontrado en la primera corrida real).
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin "$BRANCH"
           URL=$(gh pr create --base dev --head "$BRANCH" \
             --title "[agente-escriba] ${{ github.event.inputs.hallazgo_id && format('hallazgo {0}', github.event.inputs.hallazgo_id) || format('issue #{0}', github.event.issue.number) }}" \
