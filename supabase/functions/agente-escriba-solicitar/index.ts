@@ -132,6 +132,15 @@ Deno.serve(async (req) => {
 
   if (!resp.ok) {
     const detalle = await resp.text();
+    // No dejar la fila "pendiente" para siempre -- sin esto nunca llega un PR
+    // y el panel "Esperan tu OK" la mostraría como si el Escriba la estuviera
+    // trabajando. Se marca descartada con el error como evidencia.
+    if (aprobacion?.id) {
+      await svc
+        .from("agente_aprobaciones")
+        .update({ estado: "descartada", pruebas_resultado: `dispatch_fallido: ${detalle.slice(0, 300)}` })
+        .eq("id", aprobacion.id);
+    }
     return json(
       req,
       {
