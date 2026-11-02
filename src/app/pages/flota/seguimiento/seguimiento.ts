@@ -9,7 +9,8 @@ import {
   SeguimientoService, UltimaPosicion, ChoferEstadoRow, RutaActiva, ChoferEstado,
 } from '../../../../shared/services/seguimiento.service';
 import { GoogleMapsLoader } from '../../../../shared/context/google-maps-loader.service';
-import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
+import { pinIcon, truckIcon } from '../../../../shared/context/google-maps-marker.util';
+import { rumboEntre, distanciaMetros } from '../../../../shared/utils/geo.util';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
@@ -82,6 +83,7 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private trailLines: google.maps.Polyline[] = [];      // AJ14/AS14 — trazado de ruta (uno por tramo)
   private trailMarkers: google.maps.Marker[] = [];      // inicio/fin del trayecto
   private markerAnim = new Map<string, number>();       // AV1 — RAF por marcador (interpolación)
+  private capturadoEnAnterior = new Map<string, string>(); // F6 (DF4-A) — para calcular velocidad
   private choferTrail: google.maps.Polyline[] = [];     // AV1 — trayectoria del chofer seleccionado
   private choferTrailMarkers: google.maps.Marker[] = [];
   trazaChoferCargando = signal(false);
@@ -293,11 +295,20 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
     const position = { lat: p.lat, lng: p.lng };
     const existing = this.markers.get(uid);
     if (existing) {
+      const from = existing.getPosition();
+      // F6 (DF4-A) — ícono de camión rotado por rumbo real (solo si se movió de
+      // verdad: 2 posiciones distintas y recientes); si está quieto o sin señal,
+      // vuelve al pin genérico — nunca inventamos un rumbo sin dato.
+      const icon =
+        from && !stale && (from.lat() !== position.lat || from.lng() !== position.lng)
+          ? truckIcon(color, rumboEntre({ lat: from.lat(), lng: from.lng() }, position))
+          : pinIcon(color);
+      const velocidad = from ? this.velocidadKmH(uid, { lat: from.lat(), lng: from.lng() }, position, p.capturado_en) : null;
       // AV1 — punto en movimiento: interpola suave de la posición actual a la nueva.
       this.animarMarcador(uid, existing, position);
-      existing.setIcon(pinIcon(color));
+      existing.setIcon(icon);
       existing.setOpacity(stale ? 0.45 : 1);
-      existing.setTitle(title);
+      existing.setTitle(velocidad ? `${title} · ${velocidad} km/h` : title);
     } else {
       const m = new google.maps.Marker({
         position, map: this.map, icon: pinIcon(color), title, opacity: stale ? 0.45 : 1,
@@ -305,6 +316,23 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
       m.addListener('click', () => this.seleccionar(uid, false));
       this.markers.set(uid, m);
     }
+    this.capturadoEnAnterior.set(uid, p.capturado_en);
+  }
+
+  /** F6 (DF4-A) — km/h entre dos posiciones reales; null si el tiempo entre
+   *  reportes es demasiado corto/largo para que el cálculo sea confiable. */
+  private velocidadKmH(
+    uid: string,
+    from: google.maps.LatLngLiteral,
+    to: google.maps.LatLngLiteral,
+    capturadoEn: string,
+  ): number | null {
+    const anteriorIso = this.capturadoEnAnterior.get(uid);
+    if (!anteriorIso) return null;
+    const segundos = (new Date(capturadoEn).getTime() - new Date(anteriorIso).getTime()) / 1000;
+    if (!isFinite(segundos) || segundos < 3 || segundos > GAP_MIN * 60) return null;
+    const metros = distanciaMetros(from, to);
+    return Math.round((metros / segundos) * 3.6);
   }
 
   /** AV1 — anima el marcador entre su posición actual y la nueva (~900 ms). */

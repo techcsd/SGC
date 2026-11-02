@@ -55,6 +55,9 @@ export const MOTION_IDS = {
   // desliza entre posiciones (tablero-vivo.scss; solo transform/opacity).
   tableroVivoFeed: 'tablero-vivo-feed',
   tableroVivoFlota: 'tablero-vivo-flota',
+  // DF5-B — Pulso de obras (Ronda DF, F6b): anillo que respira en naranja
+  // mientras falta el parte del día (solo box-shadow, sin transform de layout).
+  pulsoObraPendiente: 'pulso-obra-pendiente',
 } as const;
 
 export type MotionId = (typeof MOTION_IDS)[keyof typeof MOTION_IDS];
@@ -170,5 +173,12 @@ export const CATALOGO_MOVIMIENTO: MovimientoEntry[] = [
     donde: 'Los vehículos del mapa esquemático se deslizan a su nueva posición al llegar un reporte GPS', pantallas: ['dashboard'],
     duracionMs: 1200, curva: 'var(--ease-out)', reducido: 'El punto salta a la posición nueva sin animar', desdeVersion: '1.205.0',
     previewKey: 'tablero-vivo-flota', estado: 'en_uso',
+  },
+  {
+    id: MOTION_IDS.pulsoObraPendiente, nombre: 'Pulso de obra pendiente', nivel: 'base', sistema: 'web',
+    donde: 'Anillo que respira en naranja mientras la obra no tiene parte del día; se apaga al llegar',
+    pantallas: ['dashboard'],
+    duracionMs: 1800, curva: 'ease-in-out', reducido: 'El anillo queda estático (naranja o verde, sin latido)', desdeVersion: '1.207.0',
+    previewKey: 'pulso-obra-pendiente', estado: 'en_uso',
   },
 ];
