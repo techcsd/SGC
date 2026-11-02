@@ -1,0 +1,162 @@
+<div class="gastos">
+  <header class="gastos__header">
+    <h1>{{ 'Gastos' | t }}</h1>
+    <p class="gastos__subtitulo">{{ 'Gastos directos del proyecto — sin requisición: alimentación, transporte, imprevistos.' | t }}</p>
+  </header>
+
+  <div class="gastos__proyecto">
+    <label for="gastos-proyecto">{{ 'Obra / Proyecto' | t }}</label>
+    <select id="gastos-proyecto" class="sgc-input" (change)="elegirProyecto($any($event.target).value)">
+      <option value="">{{ 'Selecciona obra…' | t }}</option>
+      @for (p of proyectosOrdenados(); track p.id) {
+        <option [value]="p.id">{{ p.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  @if (proyectoId()) {
+    <form class="panel gastos__form" (submit)="$event.preventDefault(); guardar()">
+      <h2>{{ 'Registrar gasto' | t }}</h2>
+
+      <div class="gastos__foto-row">
+        <label class="gastos__foto-dropzone">
+          <input type="file" accept="image/*" (change)="onFoto($event)" hidden />
+          @if (facturaPreview(); as preview) {
+            <img [src]="preview" alt="" class="gastos__foto-preview" />
+          } @else {
+            <app-icon name="camera" [size]="24" />
+            <span>{{ 'Foto de la factura (opcional)' | t }}</span>
+          }
+        </label>
+
+        @if (iaConsentimiento()) {
+          <button
+            type="button"
+            class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+            [disabled]="!puedeEntenderIA()"
+            (click)="entenderConIA()"
+          >
+            <app-icon name="sparkles" [size]="16" />
+            {{ (iaCargando() ? 'Leyendo…' : 'Entender con IA') | t }}
+          </button>
+        }
+      </div>
+
+      @if (iaError()) {
+        <p class="gastos__ia-error">{{ iaError() }}</p>
+      }
+
+      @if (iaPropuesta()) {
+        <div class="gastos__ia-revision">
+          <p class="gastos__ia-revision-titulo">{{ 'Esto entendí' | t }}</p>
+          <ul>
+            @for (c of camposRevision(); track c.etiqueta) {
+              <li class="gastos__ia-campo" [class]="'gastos__ia-campo--' + c.clasificacion">
+                <span class="gastos__ia-campo__punto" aria-hidden="true"></span>
+                <strong>{{ c.etiqueta }}:</strong> {{ c.valor }}
+                @if (c.clasificacion === 'dudosa') {
+                  <em>({{ '¿seguro?' | t }})</em>
+                }
+              </li>
+            }
+          </ul>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarPropuestaIA()">
+            {{ 'Prefiero llenarlo a mano' | t }}
+          </button>
+        </div>
+      }
+
+      <div class="gastos__grid">
+        <div class="gastos__campo">
+          <label for="gastos-categoria">{{ 'Categoría' | t }}</label>
+          <select id="gastos-categoria" class="sgc-input" [value]="categoria()" (change)="categoria.set($any($event.target).value)">
+            @for (c of categorias(); track c.clave) {
+              <option [value]="c.clave">{{ c.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="gastos__campo">
+          <label for="gastos-fecha">{{ 'Fecha' | t }}</label>
+          <input id="gastos-fecha" type="date" class="sgc-input" [value]="fecha()" (change)="fecha.set($any($event.target).value)" />
+        </div>
+        <div class="gastos__campo gastos__campo--ancho">
+          <label for="gastos-concepto">{{ 'Concepto' | t }}</label>
+          <input
+            id="gastos-concepto"
+            type="text"
+            class="sgc-input"
+            [value]="concepto()"
+            (input)="concepto.set($any($event.target).value)"
+            [placeholder]="'Ej. Almuerzo de cuadrilla, pasajes…' | t"
+          />
+        </div>
+        <div class="gastos__campo">
+          <label for="gastos-monto">{{ 'Monto total' | t }}</label>
+          <input
+            id="gastos-monto"
+            type="number"
+            min="0"
+            step="0.01"
+            class="sgc-input"
+            [value]="monto() ?? ''"
+            (input)="monto.set($any($event.target).value ? +$any($event.target).value : null)"
+          />
+        </div>
+        <div class="gastos__campo">
+          <label for="gastos-proveedor">{{ 'Proveedor' | t }}</label>
+          <input id="gastos-proveedor" type="text" class="sgc-input" [value]="proveedor()" (input)="proveedor.set($any($event.target).value)" />
+        </div>
+        <div class="gastos__campo">
+          <label for="gastos-rnc">{{ 'RNC' | t }}</label>
+          <input id="gastos-rnc" type="text" class="sgc-input" [value]="rnc()" (input)="rnc.set($any($event.target).value)" />
+        </div>
+        <div class="gastos__campo">
+          <label for="gastos-ncf">{{ 'NCF' | t }}</label>
+          <input id="gastos-ncf" type="text" class="sgc-input" [value]="ncf()" (input)="ncf.set($any($event.target).value)" />
+        </div>
+      </div>
+
+      @if (formError()) {
+        <p class="gastos__form-error">{{ formError() }}</p>
+      }
+
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="!puedeGuardar()">
+        {{ (guardando() ? 'Guardando…' : 'Registrar gasto') | t }}
+      </button>
+    </form>
+
+    <section class="panel gastos__lista">
+      <h2>{{ 'Gastos de esta obra' | t }}</h2>
+      @if (cargandoLista()) {
+        <p class="gastos__vacio">{{ 'Cargando…' | t }}</p>
+      } @else if (!gastos().length) {
+        <p class="gastos__vacio">{{ 'Todavía no hay gastos registrados en esta obra.' | t }}</p>
+      } @else {
+        <table class="gastos__tabla">
+          <thead>
+            <tr>
+              <th>{{ 'Fecha' | t }}</th>
+              <th>{{ 'Categoría' | t }}</th>
+              <th>{{ 'Concepto' | t }}</th>
+              <th>{{ 'Proveedor' | t }}</th>
+              <th>{{ 'Monto' | t }}</th>
+              <th>{{ 'Registrado por' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (g of gastos(); track g.id) {
+              <tr>
+                <td>{{ g.fecha }}</td>
+                <td>{{ g.categoria }}</td>
+                <td>{{ g.concepto }}</td>
+                <td>{{ g.proveedor || '—' }}</td>
+                <td>{{ g.monto | number: '1.2-2' }}</td>
+                <td>{{ g.registrado_por_nombre || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</div>
