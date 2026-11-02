@@ -1,14 +1,57 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DF (01-nov-2026) — IA en flujos de trabajo + agentes de monitoreo + animaciones — EN WORKTREE, SIN COMMIT
+## 🧪 Ronda DF (01-02-nov-2026) — IA en flujos de trabajo + agentes de monitoreo + animaciones — EN `origin/feature/df-ia-agentes-animaciones`, DESPLEGADO A DEV, SIN MERGE A `dev`/`main`
 
-**Estado:** F0-F6b (7 commits) están **pusheados a `origin/feature/df-ia-agentes-animaciones`**
-(base `origin/dev` @ `be445cb9`) — Xaviel dio el OK explícito para commitear/pushear esa tanda.
-F2c (checklist de vehículos) se commiteó encima (commit local `022122ae`, NO pusheado todavía).
-F2d (requisición por voz) se construyó después de F2c, **todavía sin commitear** en el mismo
-worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-df`. `npm run build` verde,
-`npx ng test --watch=false` 161/161, `npm run test:edge` 144/144. Nada se ha mergeado a `dev` ni a
-`main` — eso sigue pendiente de que Xaviel revise en GitHub.
+**Estado:** 14 commits pusheados a `origin/feature/df-ia-agentes-animaciones` (base `origin/dev` @
+`be445cb9`). **Backend desplegado de verdad al proyecto Supabase dev** (`fzfrnrvndzrjwyvdpkgg`): las
+7 migraciones de F1-F6b aplicadas y en el ledger dev, los 10 edge functions nuevos/modificados
+desplegados (`bitacora-ia`, `leer-formulario`, `leer-recibo`, `agente-vigia/capataz/soporte/auditor`,
+`agente-escriba-solicitar/estado`, `agente-cronista`). `npm run build` verde,
+`npx ng test --watch=false` 161/161, `npm run test:edge` 144/144. **Nada mergeado a `dev` ni a
+`main`** — el PR a `dev` sigue pendiente de que Xaviel lo abra cuando revise el diff.
+
+### Verificación visual real (Playwright, `qa/visual/`) — 02-nov-2026
+`ng serve --port 4201` contra el dev ya desplegado arriba + login real como `tecnologia@…` +
+capturas de las pantallas nuevas. Hallazgos:
+- **Bitácora modo rápido, dashboard (pulso de obras), conduce-externo, checklist,
+  solicitudes-material, mantenimientos: se ven bien** — estilo consistente con el sistema de diseño,
+  textos correctos, "Modo rápido" con el borde naranja y el CTA esperado.
+- **🔴 Oficina de agentes (F5) NO es una "oficina isométrica" visualmente** — el único `<svg>` real
+  es un rombo de piso que no se nota; cada "estación" es una tarjeta plana con un recuadro gris vacío
+  (sin icono/ilustración real dentro) + texto de estado. Es honesto y funcional (datos reales via
+  Realtime, costo de IA, paneles de aprobación todos correctos) pero visualmente es un dashboard de
+  tarjetas, no la escena isométrica 2D del mockup aprobado. **Necesita una pasada de diseño real**
+  (SVG de escritorio/personaje por agente) una vez Xaviel comparta el mockup, o aceptar el estilo de
+  tarjeta como versión 1.
+
+### Primera prueba en vivo del agente Escriba — 02-nov-2026
+Con el backend ya desplegado: login real → `agente-auditor` invocado de verdad (encontró 12
+hallazgos reales de tablas `sgc.*` con RLS sin política, algunos probablemente falsos-positivos de
+tablas deliberadamente cerradas tipo `boveda_intentos`/`conductor_login_intentos`) → se tomó
+`sgc.snap_cache` (el más inocuo) y se llamó `agente-escriba-solicitar` de verdad.
+
+**🔴 Hallazgo real: el dispatch a GitHub Actions falla con 404.** `gh workflow list --repo
+techcsd/SGC` solo reconoce `pr-main` — GitHub **nunca ha registrado** `agente-escriba.yml` porque
+el archivo del workflow solo existe en esta rama feature, nunca en `dev` ni en `main`. GitHub indexa
+los workflows disponibles para `workflow_dispatch` a partir del/los branch(es) donde el archivo
+existe de verdad en su historial — mientras `agente-escriba.yml` no llegue (al menos) a `dev`, el
+Escriba **no se puede probar de verdad**, sin importar cuántos secretos estén configurados. Esto se
+resuelve solo cuando el PR de esta ronda se mergee a `dev` (regla 18) — no es nada que el código
+pueda arreglar por su cuenta.
+
+**Bug real encontrado y arreglado por esta misma prueba:** cuando el dispatch fallaba, la fila de
+`agente_aprobaciones` se quedaba `pendiente` para siempre (el código insertaba la fila ANTES de
+llamar a GitHub pero nunca la actualizaba si fallaba) — el panel "Esperan tu OK" la mostraría como si
+el Escriba la estuviera trabajando, sin que llegara nunca ningún PR. Arreglado: ahora el fallo marca
+`estado='descartada'` + el error en `pruebas_resultado` (commit `4e052eda`). Las 2 filas de prueba en
+dev ya quedaron limpias (ninguna aparece como pendiente falsa).
+
+**Otro bug real encontrado y arreglado durante el despliegue:** `agente-escriba-estado/index.ts`
+importaba `slugDe` desde la carpeta de `agente-escriba-solicitar` (función hermana) — el bundler real
+de `deploy-edge.mjs` solo empaqueta la carpeta propia + `_shared/`, nunca carpetas de otras
+funciones. Fallaba al desplegar con "Module not found" (los tests locales de Deno no lo atrapan
+porque sí resuelven imports relativos cruzados). Arreglado moviendo `slugDe` a
+`_shared/agente-escriba-slug.ts` (commit `7eff1b6e`).
 
 **Origen:** PROMPT 128 (web) / PROMPT 129 (app, csd-app, sesión separada). No se encontró
 `CONTEXTO-ACTUALIZACION-63.md` en ningún lado del disco (se le preguntó a Xaviel, no respondió a
