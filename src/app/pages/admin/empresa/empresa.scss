@@ -55,6 +55,38 @@
   display: flex; align-items: center; justify-content: center;
   border: 1px dashed #b0b0b0; border-radius: 6px;
   font-size: 0.7rem; color: #909090; font-weight: 700;
+
+  // DH10 — logo real (ya no placeholder de texto).
+  &--img {
+    border-style: solid;
+    object-fit: contain;
+    background: #fff;
+  }
+}
+
+// DH10 — fila de subida de logo en el formulario.
+.empresa-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.empresa-logo-actual {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--sgc-border, #2d2d2d);
+
+  &--vacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--sgc-text-muted, var(--main-ultra-light));
+    text-align: center;
+  }
 }
 .doc-head__title { font-weight: 800; font-size: 1rem; }
 .doc-head__line { font-size: 0.78rem; color: #444; margin-top: 2px; }

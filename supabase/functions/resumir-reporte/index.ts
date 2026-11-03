@@ -121,38 +121,64 @@ Deno.serve(async (req) => {
     parecidos,
   };
 
-  let anthRes: Response;
-  try {
-    anthRes = await fetch("https://api.anthropic.com/v1/messages", {
+  // DH1 — max_tokens 1500 cortaba el JSON a mitad de camino en reportes largos
+  // (descripción extensa + "parecidos" + prompt_hotfix), y sin mirar `stop_reason`
+  // el truncado se trataba igual que cualquier respuesta rara: "no se pudo
+  // interpretar" sin pista de la causa real. Ahora: más presupuesto, se registra
+  // el motivo (truncado vs. no-JSON), y se reintenta UNA vez si vino truncado.
+  async function llamarAnthropic(): Promise<{ texto: string; stopReason: string; inTok: number; outTok: number }> {
+    const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
-        model: MODEL, max_tokens: 1500, system: SYSTEM,
+        model: MODEL, max_tokens: 3000, system: SYSTEM,
         messages: [{ role: "user", content: [...imagenes, { type: "text", text: construirPromptUsuario(ctx) }] }],
       }),
     });
-  } catch (_e) {
-    return json({ ok: false, error: "No se pudo resumir (red)." }, 502);
+    if (!anthRes.ok) {
+      const cuerpo = await anthRes.text();
+      console.error("anthropic error", anthRes.status, cuerpo.slice(0, 300));
+      throw new Error(`anthropic_${anthRes.status}`);
+    }
+    const anth = await anthRes.json();
+    const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+    return {
+      texto,
+      stopReason: anth?.stop_reason ?? "desconocido",
+      inTok: anth?.usage?.input_tokens ?? 0,
+      outTok: anth?.usage?.output_tokens ?? 0,
+    };
   }
-  if (!anthRes.ok) {
-    console.error("anthropic error", anthRes.status, (await anthRes.text()).slice(0, 300));
+
+  let resultado: { texto: string; stopReason: string; inTok: number; outTok: number };
+  try {
+    resultado = await llamarAnthropic();
+    if (resultado.stopReason === "max_tokens") {
+      console.error("resumir-reporte: truncado (max_tokens), reintentando una vez", { reporteId });
+      resultado = await llamarAnthropic();
+    }
+  } catch (_e) {
     return json({ ok: false, error: "El resumen con IA no está disponible ahora." }, 502);
   }
-  const anth = await anthRes.json();
-  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
-  const inTok = anth?.usage?.input_tokens ?? 0;
-  const outTok = anth?.usage?.output_tokens ?? 0;
+
+  const { texto, stopReason, inTok, outTok } = resultado;
   const costoUsd = inTok * PRECIO_IN + outTok * PRECIO_OUT;
 
   try {
     await svc.from("uso_ia").insert({
       usuario_id: userId, funcion: "resumir_reporte", modelo: MODEL,
-      tokens_in: inTok, tokens_out: outTok, costo_estimado: costoUsd, meta: { reporte_id: reporteId },
+      tokens_in: inTok, tokens_out: outTok, costo_estimado: costoUsd, meta: { reporte_id: reporteId, stop_reason: stopReason },
     });
   } catch (e) { console.error("uso_ia insert", e); }
 
   const resumen = parsearResumen(texto);
-  if (!resumen) return json({ ok: false, error: "No se pudo interpretar el resumen. Inténtalo de nuevo." }, 200);
+  if (!resumen) {
+    console.error("resumir-reporte: no se pudo interpretar", { reporteId, stopReason, textoCrudo: texto.slice(0, 1000) });
+    const motivo = stopReason === "max_tokens"
+      ? "El reporte es muy largo para resumirlo incluso tras reintentar."
+      : "La IA no devolvió un resumen válido.";
+    return json({ ok: false, error: `No se pudo interpretar el resumen (${motivo}). Inténtalo de nuevo.` }, 200);
+  }
 
   // Guardar con el gate del RPC (jwt del usuario — queda auditado como suyo).
   const { error: saveErr } = await userClient.schema("sgc").rpc("reporte_guardar_ia_resumen", {

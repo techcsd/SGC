@@ -398,6 +398,24 @@
   margin-top: 16px;
 }
 .aud__drill-box { padding: 16px; }
+
+// DH5 — bloques narrativos del Resumen ("Qué pasó hoy", "Cambios sensibles"…).
+.aud__narrativa {
+  padding: 16px;
+  margin-bottom: 14px;
+
+  .aud__drill-list li {
+    display: block;
+    grid-template-columns: unset;
+    border-bottom: none;
+    padding: 3px 0;
+  }
+
+  &--alerta {
+    border-color: var(--sgc-warning, #d97706);
+    background: color-mix(in srgb, var(--sgc-warning, #d97706) 8%, var(--sgc-surface));
+  }
+}
 .aud__drill-title {
   margin: 0 0 10px;
   font-size: 14px;

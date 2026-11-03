@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TecnologiaService, LeerCotizacionResultado } from '../../../../shared/services/tecnologia.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { TecCotizacion, TecEquipo, TecCompraOpcion } from '../../../../shared/models/tecnologia.model';
+import { LecturaCotizacionArticulo } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
@@ -214,10 +215,64 @@ export class TecCotizaciones implements OnInit {
     this.compraSeleccionada.set('');
     this.editando.set(false);
     this.detailOpen.set(true);
+    this.renglones.set(this.renglonesDe(c));
+    this.editandoRenglones.set(false);
     if (c.archivo_path) {
       try {
         this.archivoUrl.set(await this.tecnologia.getCotizacionUrl(c.archivo_path));
       } catch { /* best-effort */ }
+    }
+  }
+
+  // ── DH20 — renglones (dentro de lectura.articulos) ───────────────────────
+  private renglonesDe(c: TecCotizacion): LecturaCotizacionArticulo[] {
+    const lectura = c.lectura as { articulos?: LecturaCotizacionArticulo[] } | null;
+    return (lectura?.articulos ?? []).map((a) => ({ ...a }));
+  }
+  renglones = signal<LecturaCotizacionArticulo[]>([]);
+  editandoRenglones = signal(false);
+  guardandoRenglones = signal(false);
+
+  editarDescripcion(i: number, valor: string) {
+    this.renglones.update((list) => list.map((r, idx) => (idx === i ? { ...r, descripcion: valor } : r)));
+  }
+  editarUnidad(i: number, valor: string) {
+    this.renglones.update((list) => list.map((r, idx) => (idx === i ? { ...r, unidad: valor || null } : r)));
+  }
+  editarCantidad(i: number, valor: string) {
+    const n = valor === '' ? null : Number(valor);
+    this.renglones.update((list) => list.map((r, idx) => (idx === i ? { ...r, cantidad: n } : r)));
+  }
+  editarPrecio(i: number, valor: string) {
+    const n = valor === '' ? null : Number(valor);
+    this.renglones.update((list) => list.map((r, idx) => (idx === i ? { ...r, precio: n } : r)));
+  }
+  quitarRenglon(i: number) {
+    this.renglones.update((list) => list.filter((_, idx) => idx !== i));
+  }
+  agregarRenglon() {
+    this.renglones.update((list) => [...list, { descripcion: '', cantidad: null, unidad: null, precio: null }]);
+  }
+  cancelarRenglones() {
+    const c = this.detail();
+    if (c) this.renglones.set(this.renglonesDe(c));
+    this.editandoRenglones.set(false);
+  }
+  async guardarRenglones() {
+    const c = this.detail();
+    if (!c || this.guardandoRenglones()) return;
+    this.guardandoRenglones.set(true);
+    try {
+      const limpios = this.renglones().filter((r) => r.descripcion.trim());
+      await this.tecnologia.actualizarRenglonesCotizacion(c.id, limpios);
+      this.renglones.set(limpios);
+      this.editandoRenglones.set(false);
+      this.toast.success('Renglones guardados');
+      await this.refrescarDetalle(c.id);
+    } catch (e: unknown) {
+      this.toast.error('No se pudieron guardar los renglones', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoRenglones.set(false);
     }
   }
   cerrarDetalle() {

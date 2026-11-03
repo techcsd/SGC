@@ -24,6 +24,8 @@ export interface ValidacionKm {
   km_despues: number | null;
   fecha_despues: string | null;
   fuente_despues: string | null;
+  mismo_dia?: boolean;
+  forzado?: boolean;
   mensaje: string | null;
 }
 

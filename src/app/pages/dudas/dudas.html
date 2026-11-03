@@ -104,7 +104,9 @@
   </div>
 
   <!-- Categories -->
-  @if (!hasResults()) {
+  @if (loading()) {
+    <app-skeleton variant="cards" [rows]="3" />
+  } @else if (!hasResults()) {
     <div class="dudas__empty sgc-card">
       <p>No encontramos nada con esa búsqueda. Prueba con otras palabras, o contáctanos.</p>
       <a routerLink="/soporte" class="sgc-btn sgc-btn--secondary">Ir a Soporte</a>

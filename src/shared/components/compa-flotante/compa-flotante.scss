@@ -24,6 +24,14 @@ $z-ventana: 1151;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 
+  // DH6 — `[hidden]` del DOM NO vence por sí solo un `display` de autor con la
+  // misma especificidad (la regla del user-agent `[hidden]{display:none}` SIEMPRE
+  // pierde contra CSS de autor, sin importar el orden). Sin este `!important` la
+  // burbuja/ventana quedaban ambas pintadas a la vez según el estado de `abierta()`.
+  &[hidden] {
+    display: none !important;
+  }
+
   &:hover {
     transform: translateY(-2px);
   }
@@ -46,6 +54,11 @@ $z-ventana: 1151;
   box-shadow: var(--sgc-shadow-lg, 0 24px 64px rgba(0, 0, 0, 0.3));
   overflow: hidden;
   animation: cf-ventana-in var(--motion-base, 220ms) var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+
+  // DH6 — ver nota en `.cf-burbuja` arriba: mismo arreglo de cascada.
+  &[hidden] {
+    display: none !important;
+  }
 
   &--minimizada {
     height: auto !important;

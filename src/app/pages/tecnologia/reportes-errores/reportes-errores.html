@@ -80,6 +80,8 @@
       <div class="rep__tabs rep__tabs--estado">
         <button type="button" class="rep__tab" [class.rep__tab--active]="estadoVista() === 'abiertos'" (click)="cambiarEstadoVista('abiertos')">Bandeja (abiertos / en revisión)</button>
         <button type="button" class="rep__tab" [class.rep__tab--active]="estadoVista() === 'solucionado'" (click)="cambiarEstadoVista('solucionado')">Historial (solucionados)</button>
+        <!-- DH23 — rechazos esperados (regla de negocio), no bugs. -->
+        <button type="button" class="rep__tab" [class.rep__tab--active]="estadoVista() === 'regla_negocio'" (click)="cambiarEstadoVista('regla_negocio')">Regla de negocio</button>
       </div>
 
       <div class="kpi-grid">
@@ -134,11 +136,13 @@
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verOcurrencias(g)">
                     {{ firmaExpandida() === g.firma ? 'Ocultar' : 'Ocurrencias' }}
                   </button>
-                  @if (g.estado !== 'solucionado') {
+                  @if (g.estado !== 'solucionado' && g.estado !== 'regla_negocio') {
                     @if (g.estado !== 'en_revision') {
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'en_revision')">En revisión</button>
                     }
                     <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'solucionado')">Solucionado</button>
+                    <!-- DH23 — el rechazo es esperado (fecha pasada, lectura menor, sin existencia…), no un bug. -->
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'regla_negocio')" title="Es la regla de negocio funcionando, no un bug">Regla de negocio</button>
                   } @else {
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'abierto')">Reabrir</button>
                   }

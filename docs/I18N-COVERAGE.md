@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 9%** (65/704 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 9%** (65/703 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,13 +12,12 @@
 | inventario/requisiciones | scope | 241 | 0 | 241 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 98 | 12 | 86 | 12% |
-| configuracion | scope | 83 | 53 | 30 | 64% |
+| configuracion | scope | 82 | 53 | 29 | 65% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 150 | 0 | 150 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
 | admin/conduces-huerfanos | - | 22 | 0 | 22 | 0% |
-| admin/empresa | - | 53 | 0 | 53 | 0% |
 | admin/historial-versiones | - | 46 | 0 | 46 | 0% |
 | admin/importar | - | 2 | 0 | 2 | 0% |
 | admin/jira | - | 86 | 0 | 86 | 0% |
@@ -43,7 +42,7 @@
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/moldes | - | 28 | 0 | 28 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| compras/ordenes | - | 171 | 0 | 171 | 0% |
+| compras/ordenes | - | 176 | 0 | 176 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
 | dashboard | - | 143 | 0 | 143 | 0% |
@@ -52,11 +51,11 @@
 | documentos/historial | - | 15 | 0 | 15 | 0% |
 | documentos/plantillas | - | 70 | 0 | 70 | 0% |
 | documentos/ver | - | 19 | 0 | 19 | 0% |
-| dudas | - | 30 | 0 | 30 | 0% |
+| dudas | - | 31 | 0 | 31 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/choferes-privados | - | 106 | 0 | 106 | 0% |
-| flota/combustible | - | 307 | 0 | 307 | 0% |
+| flota/combustible | - | 312 | 0 | 312 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
@@ -136,19 +135,20 @@
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
-| tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
+| tecnologia/homologacion | - | 44 | 0 | 44 | 0% |
 | tecnologia/inventario | - | 297 | 0 | 297 | 0% |
 | tecnologia/matriz | - | 39 | 0 | 39 | 0% |
 | tecnologia/monitoreo | - | 97 | 0 | 97 | 0% |
 | tecnologia/odoo-sync | - | 51 | 0 | 51 | 0% |
 | tecnologia/outbox-atascados | - | 90 | 0 | 90 | 0% |
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
-| tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
+| tecnologia/reportes-errores | - | 92 | 0 | 92 | 0% |
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
 | trabajos-transporte | - | 31 | 0 | 31 | 0% |
 | verificar | - | 13 | 0 | 13 | 0% |
 | legal/expedientes | - | 140 | 3 | 137 | 2% |
 | soporte | - | 52 | 1 | 51 | 2% |
+| admin/empresa | - | 62 | 2 | 60 | 3% |
 | flota/checklists | - | 175 | 5 | 170 | 3% |
 | inventario/conduce-externo-ficha | - | 62 | 2 | 60 | 3% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
@@ -165,18 +165,18 @@
 | admin/pulso-sistema | - | 7 | 3 | 4 | 43% |
 | demo/progreso | - | 19 | 9 | 10 | 47% |
 | reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
+| tecnologia/oficina-agentes | - | 46 | 22 | 24 | 48% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
-| asistente | - | 61 | 30 | 31 | 49% |
+| asistente | - | 67 | 33 | 34 | 49% |
 | demo/escenarios | - | 27 | 14 | 13 | 52% |
-| tecnologia/oficina-agentes | - | 42 | 22 | 20 | 52% |
+| admin/auditoria | - | 117 | 62 | 55 | 53% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |
-| admin/auditoria | - | 104 | 57 | 47 | 55% |
+| tecnologia/cotizaciones | - | 118 | 65 | 53 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
-| tecnologia/cotizaciones | - | 97 | 54 | 43 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
 | ingenieria/pagos | - | 63 | 37 | 26 | 59% |
-| admin/vault | - | 103 | 62 | 41 | 60% |
+| admin/vault | - | 108 | 65 | 43 | 60% |
 | tecnologia/envios-automaticos | - | 33 | 20 | 13 | 61% |
 | compras/gastos | - | 40 | 25 | 15 | 63% |
 | flota/transferencias | - | 16 | 10 | 6 | 63% |

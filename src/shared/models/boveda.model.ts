@@ -10,6 +10,10 @@ export interface BovedaEntrada {
   nombre: string;
   sitio_url: string | null;
   usuario_texto: string | null;
+  // DH4 — persona responsable DENTRO del SGC (distinto de `usuario_texto`, que es
+  // el usuario/login del SITIO externo).
+  responsable_id: string | null;
+  responsable_nombre?: string | null;
   archivo_path: string | null;
   archivo_nombre: string | null;
   archivo_mime: string | null;

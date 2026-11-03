@@ -98,22 +98,26 @@ Deno.serve(async (req) => {
   }
 
   // ── 2) Envíos atascados (sgc.outbox_atascados) ────────────────────────────
+  // DH22 — enfriamiento: como esto corre cada 5 min, sin control de "ya avisé"
+  // el mismo registro atascado generaba un recordatorio nuevo cada 5 min
+  // mientras siguiera sin resolver. Máximo 1 aviso cada 24h por registro, y
+  // `ultimo_aviso_at` solo se actualiza cuando de verdad se notifica.
+  const ENFRIAMIENTO_MS = 24 * 60 * 60 * 1000;
   try {
     const { data: candidatos } = await svc
       .from("outbox_atascados")
-      .select("id, usuario_id, tipo_op, resuelto, categoria, ultima_vez")
+      .select("id, usuario_id, tipo_op, resuelto, categoria, ultima_vez, ultimo_aviso_at")
       .eq("resuelto", false)
       .eq("categoria", "sistema")
       .order("ultima_vez", { ascending: true })
       .limit(200);
     const atascados = (candidatos ?? [])
       .filter((o) => envioAtascado(o.resuelto, o.categoria, o.ultima_vez, ahoraIso))
+      .filter((o) => !o.ultimo_aviso_at || Date.now() - new Date(o.ultimo_aviso_at).getTime() >= ENFRIAMIENTO_MS)
       .slice(0, LIMITE_POR_CHEQUEO);
 
-    const usuariosAvisados = new Set<string>();
     for (const o of atascados) {
-      if (!o.usuario_id || usuariosAvisados.has(o.usuario_id)) continue;
-      usuariosAvisados.add(o.usuario_id);
+      if (!o.usuario_id) continue;
       await svc.rpc("notificar", {
         p_usuario: o.usuario_id,
         p_tipo: "sistema",
@@ -121,11 +125,14 @@ Deno.serve(async (req) => {
         p_mensaje: "Abre la app para reintentar un envío que quedó atascado.",
         p_ruta: null,
       });
+      await svc.from("outbox_atascados").update({ ultimo_aviso_at: ahoraIso }).eq("id", o.id);
       resumen.envios_recordados++;
+      // DH17 — nombre, no UUID crudo (esto termina tal cual en el informe del Cronista).
+      const { data: u } = await svc.from("usuarios").select("nombre").eq("id", o.usuario_id).maybeSingle();
       await registrarAccion(
         "reiniciar_envio_atascado",
-        `Recordó a usuario ${o.usuario_id} reabrir la app (${o.tipo_op} atascado)`,
-        "Notificación enviada vía sgc.notificar.",
+        `Recordó a ${u?.nombre ?? "un usuario"} reabrir la app (${o.tipo_op} atascado)`,
+        "Notificación enviada vía sgc.notificar (enfriamiento 24h por registro).",
         false,
       );
     }

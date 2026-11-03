@@ -26,7 +26,7 @@
             [appEstadoPulse]="estadoVisual(agente.id)"
             tabindex="0"
             role="group"
-            [attr.aria-label]="agente.nombre + ': ' + (estadoLabel[estadoVisual(agente.id)] | t) + (resumenAgente(agente.id) ? ' — ' + resumenAgente(agente.id) : '')"
+            [attr.aria-label]="agente.nombre + ': ' + (estadoLabelMostrar(agente) | t) + (resumenAgente(agente.id) ? ' — ' + resumenAgente(agente.id) : '')"
           >
             <div class="estacion__escritorio">
               <app-icon [name]="iconoAgente(agente.clave)" [size]="18" />
@@ -34,9 +34,17 @@
             <div class="estacion__punto"></div>
             <div class="estacion__cuerpo">
               <span class="estacion__nombre">{{ agente.nombre }}</span>
-              <span class="estacion__estado-texto">{{ estadoLabel[estadoVisual(agente.id)] | t }}</span>
+              <span class="estacion__estado-texto">{{ estadoLabelMostrar(agente) | t }}</span>
+              <!-- DH16 — horario real, o "a demanda" si no tiene schedule. -->
+              <span class="estacion__horario text-muted">{{ (horarioAgente(agente.clave) ?? 'A demanda (lo ejecutas tú)') | t }}</span>
               @if (esperandoOk(agente); as aprobacion) {
                 <span class="estacion__badge-ok">{{ 'Espera tu OK' | t }}</span>
+              }
+              @if (puedeEjecutarAhora(agente.clave)) {
+                <button type="button" class="estacion__ejecutar sgc-btn sgc-btn--ghost sgc-btn--sm"
+                  [disabled]="ejecutando() === agente.clave" (click)="ejecutarAhora(agente)">
+                  {{ (ejecutando() === agente.clave ? 'Ejecutando…' : 'Ejecutar ahora') | t }}
+                </button>
               }
             </div>
             @if (resumenAgente(agente.id); as resumen) {
@@ -72,7 +80,7 @@
           <app-icon name="clipboard-check" [size]="18" />
           <h2>{{ 'Informe de hoy' | t }}</h2>
         </header>
-        <pre class="panel__informe-texto">{{ informe.contenido_md }}</pre>
+        <div class="panel__informe-texto" [innerHTML]="informeHtml()"></div>
         @if (informe.enviado_en) {
           <p class="panel__informe-enviado">{{ 'Enviado' | t }} — {{ formatTs(informe.enviado_en) }}</p>
         } @else {
@@ -94,13 +102,16 @@
           <p class="panel__vacio">{{ 'Sin hallazgos nuevos hoy.' | t }}</p>
         }
         <ul class="panel__lista">
-          @for (h of hallazgosHoy(); track h.id) {
+          @for (h of hallazgosPagina(); track h.id) {
             <li class="hallazgo" [class]="'hallazgo--' + h.severidad">
               <span class="hallazgo__severidad">{{ h.severidad }}</span>
               <span class="hallazgo__titulo">{{ h.titulo }}</span>
             </li>
           }
         </ul>
+        @if (hallazgosHoy().length) {
+          <app-paginador id="agentes.hallazgos" [total]="hallazgosHoy().length" [(page)]="pagHallazgos" [(pageSize)]="tamHallazgos" />
+        }
       </section>
 
       <!-- ── Lo que arreglaron solos (Nivel 2) ── -->
@@ -113,7 +124,7 @@
           <p class="panel__vacio">{{ 'Ningún agente actuó hoy.' | t }}</p>
         }
         <ul class="panel__lista">
-          @for (a of accionesHoy(); track a.id) {
+          @for (a of accionesPagina(); track a.id) {
             <li class="accion">
               <span class="accion__texto">{{ a.que_hizo }}</span>
               @if (a.reversible && !a.deshecha_en) {
@@ -127,6 +138,9 @@
             </li>
           }
         </ul>
+        @if (accionesHoy().length) {
+          <app-paginador id="agentes.acciones" [total]="accionesHoy().length" [(page)]="pagAcciones" [(pageSize)]="tamAcciones" />
+        }
       </section>
 
       <!-- ── Esperan tu OK (Nivel 3) ── -->
@@ -139,7 +153,7 @@
           <p class="panel__vacio">{{ 'El Escriba no tiene propuestas pendientes.' | t }}</p>
         }
         <ul class="panel__lista panel__lista--aprobaciones">
-          @for (ap of aprobacionesPendientes(); track ap.id) {
+          @for (ap of aprobacionesPagina(); track ap.id) {
             <li class="aprobacion">
               <p class="aprobacion__propuesta">{{ ap.propuesta }}</p>
               <p class="aprobacion__nota-legal">
@@ -173,6 +187,9 @@
             </li>
           }
         </ul>
+        @if (aprobacionesPendientes().length) {
+          <app-paginador id="agentes.aprobaciones" [total]="aprobacionesPendientes().length" [(page)]="pagAprobaciones" [(pageSize)]="tamAprobaciones" />
+        }
       </section>
     </div>
   }

@@ -47,6 +47,19 @@
             <input id="representante" type="text" formControlName="representante" placeholder="Ej: Ing. Juan Domínguez" />
             <span class="field-hint">Quien firma en nombre de la empresa (sale en los contratos como representante).</span>
           </div>
+          <!-- DH10 — logo real: preview + subida, ya no un placeholder de texto. -->
+          <div class="sgc-field">
+            <label>Logo</label>
+            <div class="empresa-logo-row">
+              @if (logoUrl(); as url) {
+                <img [src]="url" alt="Logo de la empresa" class="empresa-logo-actual" />
+              } @else {
+                <div class="empresa-logo-actual empresa-logo-actual--vacio">{{ 'Sin logo' | t }}</div>
+              }
+              <app-file-upload [max]="1" accept="image/*" (add)="onLogoAdd($event)" />
+            </div>
+            @if (subiendoLogo()) { <span class="field-hint">{{ 'Subiendo…' | t }}</span> }
+          </div>
         </section>
 
         <!-- Contacto -->
@@ -102,7 +115,11 @@
     <aside class="empresa-preview">
       <h2 class="empresa-preview__h">Vista previa (encabezado de documento)</h2>
       <div class="doc-head">
-        <div class="doc-head__logo">LOGO</div>
+        @if (logoUrl(); as url) {
+          <img [src]="url" alt="" class="doc-head__logo doc-head__logo--img" />
+        } @else {
+          <div class="doc-head__logo">LOGO</div>
+        }
         <div class="doc-head__data">
           <div class="doc-head__title">{{ preview().titulo }}</div>
           @if (preview().rnc) { <div class="doc-head__line">RNC: {{ preview().rnc }}</div> }
