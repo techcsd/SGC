@@ -4,6 +4,17 @@
     <span class="page-count">{{ filtered().length }} molde{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
+    <!-- DI2 — toggle de vista tarjetas/tabla -->
+    <div class="vista-toggle" role="tablist" [attr.aria-label]="'Vista' | t">
+      <button type="button" role="tab" class="vista-toggle__btn" [class.vista-toggle__btn--active]="vista() === 'tarjetas'"
+              [attr.aria-selected]="vista() === 'tarjetas'" (click)="setVista('tarjetas')">
+        <app-icon name="grid" [size]="15" /> {{ 'Tarjetas' | t }}
+      </button>
+      <button type="button" role="tab" class="vista-toggle__btn" [class.vista-toggle__btn--active]="vista() === 'tabla'"
+              [attr.aria-selected]="vista() === 'tabla'" (click)="setVista('tabla')">
+        <app-icon name="list" [size]="15" /> {{ 'Tabla' | t }}
+      </button>
+    </div>
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelLista()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
       <app-icon name="download" [size]="16" /> Excel
@@ -42,7 +53,47 @@
   <div class="table-wrapper sgc-card">
     <div class="table-empty"><p>No hay medidas de moldes para los filtros seleccionados.</p></div>
   </div>
+} @else if (vista() === 'tarjetas') {
+  <!-- DI2 — vista tarjetas: esquema grande, clicable para ampliar -->
+  <div class="moldes-grid">
+    @for (m of tarjetasPagina(); track m.id) {
+      <div class="sgc-card moldes-card" [class.moldes-card--alerta]="fueraTolerancia(m)">
+        <div class="moldes-card__head">
+          @if (m.bitacora?.id) {
+            <a [routerLink]="['/bitacora/historial']" [queryParams]="{ item: m.bitacora?.id }">{{ obraNombre(m) }}</a>
+          } @else {
+            <span>{{ obraNombre(m) }}</span>
+          }
+          <span class="moldes-card__fecha">{{ m.bitacora?.fecha ? formatFecha(m.bitacora!.fecha) : '—' }}</span>
+        </div>
+        <div class="moldes-card__titulo">
+          <span class="moldes-table__titulo">{{ moldeTitulo(m) }}</span>
+          <span class="moldes-table__forma">{{ m.forma }}</span>
+        </div>
+        <span class="moldes-table__medidas">{{ 'Ingeniero' | t }}: {{ ingeniero(m) }}</span>
+
+        <div class="moldes-card__esquema" (click)="abrirVisor(m)">
+          <app-molde-esquema [forma]="$any(m.forma) ?? 'rectangular'" [tramos]="tramosReal(m)"
+            [medidaPlano]="tramosPlano(m)" [toleranciaCm]="toleranciaCm()" [ampliable]="true" />
+        </div>
+
+        <div class="moldes-card__foot">
+          <span>{{ 'Desviación máx.' | t }}:</span>
+          @if (m.desviacion_max_cm != null) {
+            <span [class.moldes-table__desv--alerta]="fueraTolerancia(m)">
+              {{ m.desviacion_max_cm | number:'1.0-1' }} cm
+            </span>
+          } @else {
+            —
+          }
+        </div>
+      </div>
+    }
+  </div>
+  <app-paginador id="moldes.tarjetas" [total]="filtered().length" [tamanos]="[6, 12, 24]"
+    [(page)]="paginaTarjetas" [(pageSize)]="tamanoTarjetas" />
 } @else {
+  <!-- Vista tabla -->
   <div class="table-wrapper sgc-card table-scroll">
     <table class="data-table moldes-table">
       <thead>
@@ -56,7 +107,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (m of filtered(); track m.id) {
+        @for (m of tablaPagina(); track m.id) {
           <tr [class.moldes-table__row--alerta]="fueraTolerancia(m)">
             <td>
               @if (m.bitacora?.id) {
@@ -75,9 +126,9 @@
                 <span class="moldes-table__medidas">Plano: {{ medidasPlano(m) }}</span>
               }
             </td>
-            <td class="moldes-table__esquema">
+            <td class="moldes-table__esquema" (click)="abrirVisor(m)">
               <app-molde-esquema [forma]="$any(m.forma) ?? 'rectangular'" [tramos]="tramosReal(m)"
-                [medidaPlano]="tramosPlano(m)" [toleranciaCm]="toleranciaCm()" />
+                [medidaPlano]="tramosPlano(m)" [toleranciaCm]="toleranciaCm()" [ampliable]="true" />
             </td>
             <td class="num">
               @if (m.desviacion_max_cm != null) {
@@ -93,4 +144,9 @@
       </tbody>
     </table>
   </div>
+  <app-paginador id="moldes.tabla" [total]="filtered().length" [(page)]="paginaTabla" [(pageSize)]="tamanoTabla" />
 }
+
+<!-- DI2 — visor ampliado (pantalla casi completa) -->
+<app-molde-visor [open]="visorAbierto()" [moldes]="visorItems()" [(index)]="visorIndex"
+  [toleranciaCm]="toleranciaCm()" (closed)="cerrarVisor()" />

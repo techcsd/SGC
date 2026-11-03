@@ -13,6 +13,9 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { CartillaFiguraIcono } from '../../../../shared/ui/cartilla-figura-icono/cartilla-figura-icono';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface ObraRef { id: string; nombre: string; }
 
@@ -24,7 +27,7 @@ interface ObraRef { id: string; nombre: string; }
  */
 @Component({
   selector: 'app-cartillas',
-  imports: [DecimalPipe, Skeleton, FormDrawer, Icon, CartillaFiguraIcono],
+  imports: [DecimalPipe, Skeleton, FormDrawer, Icon, CartillaFiguraIcono, DateRangeFilter, Paginador, TranslatePipe],
   templateUrl: './cartillas.html',
   styleUrl: './cartillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,16 +56,41 @@ export class Cartillas implements OnInit {
   loading = signal(true);
   error = signal('');
 
-  // Filtros
+  // Filtros — obra/fecha van al RPC (server-side); estado (chips) y texto se
+  // aplican en cliente sobre la lista ya cargada, para poder mostrar conteo
+  // por estado y no perder la lista completa al cambiar de chip.
   fObra = signal('');
   fEstado = signal('');
   fDesde = signal('');
   fHasta = signal('');
+  qTexto = signal('');
+
+  // DI3 — paginación client-side de la lista (el RPC cartillas_listado no acepta limit/offset).
+  page = signal(1);
+  pageSize = signal(10);
 
   esOficina = computed(() =>
     this.userService.hasRole('admin') || this.userService.hasModulo('bitacora'),
   );
   kgTotal = computed(() => this.resumen().reduce((s, r) => s + Number(r.peso_kg || 0), 0));
+
+  // Lista filtrada en cliente por estado (chip) + texto (folio/ingeniero).
+  visibles = computed(() => {
+    const estado = this.fEstado();
+    const q = this.qTexto().trim().toLowerCase();
+    return this.cartillas().filter((c) => {
+      if (estado && c.estado !== estado) return false;
+      if (!q) return true;
+      return (c.folio ?? '').toLowerCase().includes(q) || (c.ingeniero ?? '').toLowerCase().includes(q);
+    });
+  });
+  paginaActual = computed(() => {
+    const desde = (this.page() - 1) * this.pageSize();
+    return this.visibles().slice(desde, desde + this.pageSize());
+  });
+  conteoEstado(estado: string): number {
+    return estado ? this.cartillas().filter((c) => c.estado === estado).length : this.cartillas().length;
+  }
 
   figuraNombre = (codigo: string | null): string =>
     this.figuras().find((f) => f.codigo === codigo)?.nombre ?? codigo ?? '—';
@@ -88,9 +116,12 @@ export class Cartillas implements OnInit {
   async cargar() {
     this.loading.set(true);
     this.error.set('');
+    this.page.set(1);
     try {
+      // Nota: el estado NO se manda al RPC — se filtra en cliente (chips) para
+      // poder mostrar el conteo por estado sobre la lista completa obra/fecha.
       const [lista, resumen] = await Promise.all([
-        this.svc.listado({ proyectoId: this.fObra() || null, desde: this.fDesde() || null, hasta: this.fHasta() || null, estado: this.fEstado() || null }),
+        this.svc.listado({ proyectoId: this.fObra() || null, desde: this.fDesde() || null, hasta: this.fHasta() || null }),
         this.svc.resumenAcero({ proyectoId: this.fObra() || null, desde: this.fDesde() || null, hasta: this.fHasta() || null }),
       ]);
       this.cartillas.set(lista);
@@ -102,13 +133,30 @@ export class Cartillas implements OnInit {
     }
   }
 
+  onRango(r: RangoFecha) {
+    this.fDesde.set(r.desde ?? '');
+    this.fHasta.set(r.hasta ?? '');
+    this.cargar();
+  }
+
+  setEstadoChip(estado: string) {
+    this.fEstado.set(estado);
+    this.page.set(1);
+  }
+
+  onTexto(v: string) {
+    this.qTexto.set(v);
+    this.page.set(1);
+  }
+
   limpiarFiltros() {
-    this.fObra.set(''); this.fEstado.set(''); this.fDesde.set(''); this.fHasta.set('');
+    this.fObra.set(''); this.fEstado.set(''); this.fDesde.set(''); this.fHasta.set(''); this.qTexto.set('');
     this.cargar();
   }
 
   exportar() {
-    const rows = this.cartillas().map((c) => ({
+    // Exporta lo visible (chip de estado + búsqueda aplicados), no la lista cruda del RPC.
+    const rows = this.visibles().map((c) => ({
       Folio: c.folio ?? '', Obra: c.proyecto ?? '', Ingeniero: c.ingeniero ?? '',
       Fecha: this.formatFecha(c.fecha), Estado: this.ESTADO_LABEL[c.estado] ?? c.estado,
       'Peso (kg)': c.peso_total_kg,

@@ -1,0 +1,127 @@
+// DI4 — CSS tras OK (board DI4). Solo layout funcional por ahora.
+
+.cct__breadcrumb {
+  font-size: 12.5px;
+  color: var(--sgc-text-secondary);
+  margin-bottom: 4px;
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+}
+
+.cct__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.cct__tab {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-surface);
+  color: var(--sgc-text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover { border-color: var(--sgc-primary); }
+  &--active {
+    background: var(--sgc-primary);
+    border-color: var(--sgc-primary);
+    color: #fff;
+  }
+}
+
+.cct__tab-badge {
+  background: var(--sgc-danger);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10.5px;
+  padding: 1px 6px;
+  font-weight: 700;
+}
+
+.cct__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.filtro-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-surface);
+  color: var(--sgc-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover { border-color: var(--sgc-primary); }
+  &--activo {
+    background: var(--sgc-primary);
+    border-color: var(--sgc-primary);
+    color: #fff;
+  }
+}
+
+.cct__muted {
+  color: var(--sgc-text-secondary);
+  font-size: 13px;
+}
+
+.cct__acciones {
+  white-space: nowrap;
+}
+
+.cct__respuesta {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--sgc-text-secondary);
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+
+.cct__barra {
+  width: 120px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sgc-border);
+  overflow: hidden;
+  margin-bottom: 4px;
+
+  &-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--sgc-success);
+  }
+
+  &--alerta &-fill { background: var(--sgc-warning); }
+  &--critico &-fill { background: var(--sgc-danger); }
+}
+
+.cct__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cct__form-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}

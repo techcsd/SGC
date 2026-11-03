@@ -158,25 +158,48 @@ Deno.serve(async (req) => {
   }
   content.push({ type: "text", text: "Devuelve SOLO el JSON con los campos leídos y su confianza." });
 
-  let anthRes: Response;
-  try {
-    anthRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: MODEL, max_tokens: 1024, system: systemPrompt, messages: [{ role: "user", content }] }),
-    });
-  } catch (_e) {
-    return json({ ok: false, error: "No se pudo leer el recibo (red)." }, 502);
+  // DI10/DI-19 — hasta 2 intentos: 1 reintento si la respuesta vino truncada
+  // (stop_reason 'max_tokens') o el JSON no se pudo interpretar. Se registra la
+  // respuesta cruda en el log cuando falla, para poder diagnosticar (mismo
+  // patrón que debió existir para "Resumir para ronda", DH1).
+  let anth: Any = null;
+  let texto = "";
+  let stopReason = "";
+  let inTok = 0, outTok = 0;
+  let intentos = 0;
+  const MAX_INTENTOS = 2;
+
+  for (intentos = 1; intentos <= MAX_INTENTOS; intentos++) {
+    let anthRes: Response;
+    try {
+      anthRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({ model: MODEL, max_tokens: 1536, system: systemPrompt, messages: [{ role: "user", content }] }),
+      });
+    } catch (_e) {
+      if (intentos < MAX_INTENTOS) continue;
+      return json({ ok: false, error: "No se pudo leer el recibo (red)." }, 502);
+    }
+    if (!anthRes.ok) {
+      const t = await anthRes.text();
+      console.error("anthropic error", anthRes.status, t.slice(0, 300));
+      if (intentos < MAX_INTENTOS) continue;
+      return json({ ok: false, error: "El lector de recibos no está disponible ahora." }, 502);
+    }
+    anth = await anthRes.json();
+    stopReason = String(anth?.stop_reason ?? "");
+    texto = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+    inTok += anth?.usage?.input_tokens ?? 0;
+    outTok += anth?.usage?.output_tokens ?? 0;
+
+    if (stopReason === "max_tokens") {
+      console.error("leer-recibo: respuesta truncada (max_tokens)", { intento: intentos, texto: texto.slice(0, 500) });
+      if (intentos < MAX_INTENTOS) continue;
+      break;
+    }
+    break;
   }
-  if (!anthRes.ok) {
-    const t = await anthRes.text();
-    console.error("anthropic error", anthRes.status, t.slice(0, 300));
-    return json({ ok: false, error: "El lector de recibos no está disponible ahora." }, 502);
-  }
-  const anth = await anthRes.json();
-  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
-  const inTok = anth?.usage?.input_tokens ?? 0;
-  const outTok = anth?.usage?.output_tokens ?? 0;
 
   // Parsear el JSON (tolerante a ```json ... ``` o texto alrededor).
   let lectura: Any = null;
@@ -185,17 +208,44 @@ Deno.serve(async (req) => {
     lectura = m ? JSON.parse(m[0]) : null;
   } catch { lectura = null; }
 
+  if (!lectura && intentos === 1 && stopReason !== "max_tokens") {
+    // JSON no interpretable en el primer intento (y no fue por truncamiento) → 1 reintento más.
+    console.error("leer-recibo: JSON no interpretable, reintentando", { texto: texto.slice(0, 500) });
+    try {
+      const anthRes2 = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({ model: MODEL, max_tokens: 1536, system: systemPrompt, messages: [{ role: "user", content }] }),
+      });
+      if (anthRes2.ok) {
+        const anth2 = await anthRes2.json();
+        stopReason = String(anth2?.stop_reason ?? "");
+        texto = (anth2?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+        inTok += anth2?.usage?.input_tokens ?? 0;
+        outTok += anth2?.usage?.output_tokens ?? 0;
+        const m2 = texto.match(/\{[\s\S]*\}/);
+        lectura = m2 ? JSON.parse(m2[0]) : null;
+      }
+    } catch (e) { console.error("leer-recibo: reintento falló", e); }
+  }
+
   // Registrar uso (best-effort).
   try {
     await svc.schema("sgc").from("uso_ia").insert({
       usuario_id: userId, funcion: funcionUso, modelo: MODEL,
       tokens_in: inTok, tokens_out: outTok,
       costo_estimado: inTok * PRECIO_IN + outTok * PRECIO_OUT,
-      meta: { imagenes: imagenes.map((i: Any) => i?.tipo ?? "recibo"), contexto },
+      meta: { imagenes: imagenes.map((i: Any) => i?.tipo ?? "recibo"), contexto, stop_reason: stopReason || undefined },
     });
   } catch (e) { console.error("uso_ia insert", e); }
 
-  if (!lectura) return json({ ok: false, error: "No se pudo interpretar el recibo. Escribe los datos a mano." }, 200);
+  if (!lectura) {
+    console.error("leer-recibo: no se pudo interpretar la respuesta", { stop_reason: stopReason, texto: texto.slice(0, 800) });
+    const motivo = stopReason === "max_tokens"
+      ? "La lectura quedó incompleta (demasiado detalle en la imagen). Prueba con menos fotos o escribe los datos a mano."
+      : "No se pudo interpretar la foto (borrosa, sin señal clara, o sin datos legibles). Escribe los datos a mano.";
+    return json({ ok: false, error: motivo }, 200);
+  }
 
   const confianza = lectura.confianza ?? {};
   delete lectura.confianza;

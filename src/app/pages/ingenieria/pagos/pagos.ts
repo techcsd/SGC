@@ -1,14 +1,19 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PagosObraService, PagoObra, PagoObraLinea } from '../../../../shared/services/pagos-obra.service';
+import { PagosObraService, PagoObra, PagoObraLinea, ResumenSemanaObra } from '../../../../shared/services/pagos-obra.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { DecimalPipe } from '@angular/common';
+
+type FiltroEstadoLinea = 'todos' | 'pendiente' | 'firmado' | 'ausente';
+const CLAVE_ULTIMA_OBRA = 'sgc.pagos.ultimaObra';
 
 /**
  * DB4 (Ronda DB) — Ingeniería › Pagos de la semana: el ingeniero arma la semana
@@ -21,7 +26,7 @@ import { DecimalPipe } from '@angular/common';
   templateUrl: './pagos.html',
   styleUrl: './pagos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, SignaturePad, FormDrawer, TranslatePipe, DecimalPipe],
+  imports: [FormsModule, SignaturePad, FormDrawer, ConfirmDialog, Paginador, TranslatePipe, DecimalPipe],
 })
 export class IngenieriaPagos implements OnInit {
   private service = inject(PagosObraService);
@@ -42,6 +47,16 @@ export class IngenieriaPagos implements OnInit {
   error = signal('');
   firmandoLinea = signal<PagoObraLinea | null>(null);
   pdfAbriendo = signal(false);
+  enviarPedido = signal(false);
+  reabrirPedido = signal(false);
+
+  // ── DI — pantalla de arranque «Mis obras» ───────────────────────────────
+  /** 'obras' = lista de arranque · 'detalle' = semana de una obra (como antes). */
+  vista = signal<'obras' | 'detalle'>('obras');
+  resumenPorObra = signal<Map<string, ResumenSemanaObra>>(new Map());
+  loadingResumen = signal(false);
+  filtroObra = signal('');
+  ultimaObraId = signal<string | null>(null);
 
   readonly esAdmin = this.user.hasRole('admin');
   /** operar = ingenieros (el RPC re-valida por obra). */
@@ -53,7 +68,51 @@ export class IngenieriaPagos implements OnInit {
   totalFirmado = computed(() => this.lineas().filter((l) => l.estado === 'firmado').reduce((s, l) => s + Number(l.monto ?? 0), 0));
   cerrado = computed(() => this.pagoSel()?.estado === 'enviado');
 
+  // ── «Mis obras» — KPIs + lista filtrada ─────────────────────────────────
+  obrasFiltradas = computed(() => {
+    const q = this.filtroObra().trim().toLowerCase();
+    const base = q ? this.obras().filter((o) => o.nombre.toLowerCase().includes(q)) : this.obras();
+    // Quien no puede operar en ninguna obra solo ve semanas YA enviadas (solo lectura).
+    const visibles = this.puedeOperar() ? base : base.filter((o) => this.resumenPorObra().get(o.id)?.pago?.estado === 'enviado');
+    const ultima = this.ultimaObraId();
+    if (!ultima) return visibles;
+    return [...visibles].sort((a, b) => (a.id === ultima ? -1 : b.id === ultima ? 1 : 0));
+  });
+
+  kpiAbiertas = computed(() => [...this.resumenPorObra().values()].filter((r) => r.pago?.estado === 'borrador').length);
+  kpiEnviadas = computed(() => [...this.resumenPorObra().values()].filter((r) => r.pago?.estado === 'enviado').length);
+  kpiSinEmpezar = computed(() => Math.max(0, this.obras().length - this.resumenPorObra().size));
+  kpiTotalFirmado = computed(() => [...this.resumenPorObra().values()].reduce((s, r) => s + r.montoFirmado, 0));
+
+  // ── Historial de semanas — paginado client-side ─────────────────────────
+  semanasPage = signal(1);
+  semanasPageSize = signal(10);
+  semanasPaginadas = computed(() => {
+    const desde = (this.semanasPage() - 1) * this.semanasPageSize();
+    return this.pagos().slice(desde, desde + this.semanasPageSize());
+  });
+
+  // ── Personas de la semana — buscador + chip + paginado client-side ──────
+  buscarPersona = signal('');
+  filtroEstadoPersona = signal<FiltroEstadoLinea>('todos');
+  personasPage = signal(1);
+  personasPageSize = signal(10);
+  lineasFiltradas = computed(() => {
+    const q = this.buscarPersona().trim().toLowerCase();
+    const f = this.filtroEstadoPersona();
+    return this.lineas().filter((l) => {
+      if (f !== 'todos' && l.estado !== f) return false;
+      if (q && !l.nombre_snapshot.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
+  lineasPaginadas = computed(() => {
+    const desde = (this.personasPage() - 1) * this.personasPageSize();
+    return this.lineasFiltradas().slice(desde, desde + this.personasPageSize());
+  });
+
   async ngOnInit() {
+    this.ultimaObraId.set(this.leerUltimaObra());
     try {
       const [obras, correos] = await Promise.all([
         this.proyectos.getDirectorio('personal'),
@@ -61,9 +120,83 @@ export class IngenieriaPagos implements OnInit {
       ]);
       this.obras.set(obras);
       this.correos.set(correos);
-      if (obras.length === 1) { this.obraId.set(obras[0].id); await this.cargarPagos(); }
+      if (obras.length === 1) {
+        this.obraId.set(obras[0].id);
+        this.vista.set('detalle');
+        await this.cargarPagos();
+      } else {
+        await this.cargarResumenSemana();
+      }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudieron cargar las obras.');
+    }
+  }
+
+  /** DI — estado de la semana actual de TODAS las obras, en una sola query. */
+  async cargarResumenSemana() {
+    const obras = this.obras();
+    if (!obras.length) { this.resumenPorObra.set(new Map()); return; }
+    this.loadingResumen.set(true);
+    this.error.set('');
+    try {
+      const { desde } = this.semanaActual();
+      this.resumenPorObra.set(await this.service.resumenSemana(obras.map((o) => o.id), desde));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudo cargar el estado de las obras.');
+    } finally {
+      this.loadingResumen.set(false);
+    }
+  }
+
+  estadoDeObra(obraId: string): 'sin_crear' | 'borrador' | 'enviado' {
+    return this.resumenPorObra().get(obraId)?.pago?.estado ?? 'sin_crear';
+  }
+  resumenDeObra(obraId: string): ResumenSemanaObra | undefined {
+    return this.resumenPorObra().get(obraId);
+  }
+
+  /** Entra al detalle de una obra (desde «Mis obras» o por ser la única obra). */
+  async abrirObra(obraId: string, pagoIdAutoAbrir?: string | null) {
+    this.obraId.set(obraId);
+    this.vista.set('detalle');
+    this.guardarUltimaObra(obraId);
+    await this.cargarPagos();
+    if (pagoIdAutoAbrir) {
+      const pago = this.pagos().find((p) => p.id === pagoIdAutoAbrir);
+      if (pago) await this.abrir(pago);
+    }
+  }
+
+  /** Vuelve a la pantalla de arranque «Mis obras». */
+  async volverAObras() {
+    this.vista.set('obras');
+    this.obraId.set('');
+    this.pagoSel.set(null);
+    this.lineas.set([]);
+    this.pagos.set([]);
+    await this.cargarResumenSemana();
+  }
+
+  private guardarUltimaObra(obraId: string) {
+    this.ultimaObraId.set(obraId);
+    try { localStorage.setItem(CLAVE_ULTIMA_OBRA, obraId); } catch { /* best-effort */ }
+  }
+  private leerUltimaObra(): string | null {
+    try { return localStorage.getItem(CLAVE_ULTIMA_OBRA); } catch { return null; }
+  }
+
+  /** Crea la semana en curso para `obraId` desde la pantalla «Mis obras». */
+  async crearSemanaDesdeObras(obraId: string) {
+    if (this.saving()) return;
+    this.saving.set(true);
+    try {
+      const { desde, hasta } = this.semanaActual();
+      const id = await this.service.crear(obraId, desde, hasta);
+      await this.abrirObra(obraId, id);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear la semana', e instanceof Error ? humanizeError(e).mensaje : undefined);
+    } finally {
+      this.saving.set(false);
     }
   }
 
@@ -71,6 +204,7 @@ export class IngenieriaPagos implements OnInit {
     const obra = this.obraId();
     this.pagoSel.set(null);
     this.lineas.set([]);
+    this.semanasPage.set(1);
     if (!obra) { this.pagos.set([]); return; }
     this.loading.set(true);
     this.error.set('');
@@ -113,12 +247,19 @@ export class IngenieriaPagos implements OnInit {
   async abrir(p: PagoObra) {
     this.pagoSel.set(p);
     this.lineas.set([]);
+    this.buscarPersona.set('');
+    this.filtroEstadoPersona.set('todos');
+    this.personasPage.set(1);
     try {
       this.lineas.set(await this.service.lineas(p.id));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudieron cargar las líneas.');
     }
   }
+
+  /** Buscador/chip de la tabla de personas — reinician la página al cambiar. */
+  buscarPersonaCambio(q: string) { this.buscarPersona.set(q); this.personasPage.set(1); }
+  filtrarPersonaPor(f: FiltroEstadoLinea) { this.filtroEstadoPersona.set(f); this.personasPage.set(1); }
 
   async guardarMonto(l: PagoObraLinea, montoRaw: string) {
     const monto = montoRaw === '' ? null : Number(montoRaw);
@@ -174,10 +315,23 @@ export class IngenieriaPagos implements OnInit {
     }
   }
 
-  async enviar() {
+  /** Abre la confirmación de envío (reemplaza confirm() nativo). */
+  pedirEnviar() {
     const pago = this.pagoSel();
     if (!pago || this.saving()) return;
-    if (!confirm(`¿Enviar el reporte con ${this.firmadas()} descargo(s) firmado(s)? Al enviar, la semana queda cerrada y el PDF llega a: ${this.correos().join(', ') || '(sin correos configurados)'}.`)) return;
+    this.enviarPedido.set(true);
+  }
+  cancelarEnviar() { this.enviarPedido.set(false); }
+
+  mensajeEnviar(): string {
+    const correos = this.correos().join(', ') || '(sin correos configurados)';
+    return `¿Enviar el reporte con ${this.firmadas()} descargo(s) firmado(s)? Al enviar, la semana queda cerrada y el PDF llega a: ${correos}.`;
+  }
+
+  async enviar() {
+    const pago = this.pagoSel();
+    this.enviarPedido.set(false);
+    if (!pago || this.saving()) return;
     this.saving.set(true);
     try {
       await this.service.enviar(pago.id);
@@ -209,10 +363,18 @@ export class IngenieriaPagos implements OnInit {
     }
   }
 
-  async reabrir() {
+  /** Abre la confirmación de reapertura (reemplaza confirm() nativo). */
+  pedirReabrir() {
     const pago = this.pagoSel();
     if (!pago || !this.esAdmin || this.saving()) return;
-    if (!confirm('¿Reabrir esta semana enviada? Queda registrado quién la reabrió.')) return;
+    this.reabrirPedido.set(true);
+  }
+  cancelarReabrir() { this.reabrirPedido.set(false); }
+
+  async reabrir() {
+    const pago = this.pagoSel();
+    this.reabrirPedido.set(false);
+    if (!pago || !this.esAdmin || this.saving()) return;
     this.saving.set(true);
     try {
       await this.service.reabrir(pago.id);

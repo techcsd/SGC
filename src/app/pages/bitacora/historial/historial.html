@@ -540,7 +540,7 @@
       @if ((b.moldes ?? []).length > 0) {
         <div class="bitacora-detail__section">
           <h3>Moldes del día</h3>
-          @for (m of b.moldes; track m.id) {
+          @for (m of b.moldes; track m.id; let i = $index) {
             <div class="bitacora-detail__molde">
               <div class="bitacora-detail__molde-head">
                 <strong>Molde</strong>
@@ -550,8 +550,11 @@
                   <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">Desvío {{ m.desviacion_max_cm }} cm</span>
                 }
               </div>
-              <app-molde-esquema [forma]="m.forma ?? 'rectangular'" [tramos]="m.tramos ?? []"
-                [medidaPlano]="m.medida_plano ?? null" />
+              <!-- DI2 — ampliable: clic en el esquema o en "Ampliar" abre app-molde-visor. -->
+              <div (click)="abrirMoldeVisor(i)">
+                <app-molde-esquema [forma]="m.forma ?? 'rectangular'" [tramos]="m.tramos ?? []"
+                  [medidaPlano]="m.medida_plano ?? null" [ampliable]="true" />
+              </div>
             </div>
           }
         </div>
@@ -608,3 +611,7 @@
     </div>
   }
 </app-form-drawer>
+
+<!-- DI2 — visor ampliado de moldes (pantalla casi completa) -->
+<app-molde-visor [open]="moldeVisorAbierto()" [moldes]="moldeVisorItems()" [(index)]="moldeVisorIndex"
+  (closed)="cerrarMoldeVisor()" />

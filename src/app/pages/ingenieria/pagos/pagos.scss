@@ -1,9 +1,31 @@
 // DB4 — Pagos de la semana (descargos). Tokens v2; estados = punto + palabra;
 // una sola acción naranja («Enviar reporte»).
+// DI — pantalla de arranque «Mis obras» + buscador/chips/paginador. CSS tras OK (board DI1).
 .pgo {
   &__filtros { padding: 14px 16px; margin-bottom: 14px; display: flex; gap: 16px; }
   &__obra { min-width: 260px; margin: 0; }
   &__layout { display: grid; grid-template-columns: 290px 1fr; gap: 14px; align-items: start; }
+
+  // CSS tras OK (board DI1) — «Mis obras»: KPIs + lista de filas por obra.
+  &__kpis { padding: 14px 16px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  &__kpi { display: flex; flex-direction: column; gap: 2px; }
+  &__kpi-num { font-size: 22px; font-weight: 700; color: var(--text-1); }
+  &__kpi-label { font-size: 11.5px; color: var(--text-3); }
+
+  &__obras { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  &__fila {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+    &--reciente { border-color: var(--brand); }
+  }
+  &__fila-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  &__fila-accion { flex: none; }
+
+  &__volver { margin-bottom: 10px; }
+
+  &__personas-filtros { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin: 12px 0; }
+  &__personas-buscar { min-width: 220px; margin: 0; }
+  &__chips { display: flex; gap: 6px; flex-wrap: wrap; }
   &__subtitulo { font-size: 15px; font-weight: 700; margin: 0 0 8px; }
   &__muted { color: var(--text-3); font-size: 12.5px; }
 
@@ -76,4 +98,10 @@
 
 @media (max-width: 900px) {
   .pgo__layout { grid-template-columns: 1fr; }
+  .pgo__kpis { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .pgo__kpis { grid-template-columns: 1fr; }
+  .pgo__fila { flex-direction: column; align-items: stretch; }
 }

@@ -1,4 +1,33 @@
 .molde-esquema {
+  position: relative;
+
+  // DI2 — botón flotante "Ampliar" (solo cuando [ampliable]="true"). CSS funcional,
+  // sin pulir (board DI2 sin aprobar).
+  &--ampliable { padding-top: 22px; }
+
+  &__ampliar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sgc-text-secondary, #6b7280);
+    background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.05));
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius, 8px);
+    cursor: pointer;
+    transition: var(--sgc-transition-fast, all 0.15s ease);
+
+    &:hover {
+      color: var(--sgc-text, #1c2230);
+      background: var(--sgc-surface, #fff);
+    }
+  }
+
   &__real { stroke: var(--sgc-text, #1c2230); stroke-width: 2; stroke-linejoin: round; }
   &__plano { stroke: var(--sgc-text-muted, #9aa2b1); stroke-width: 2; stroke-linejoin: round; }
   &__cota { stroke: var(--sgc-text-muted, #6b7280); stroke-width: 1; }

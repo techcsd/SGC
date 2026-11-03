@@ -58,10 +58,13 @@ const PRECIO_OUT = 5.0 / 1_000_000;
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
-const TIPOS_IMPLEMENTADOS = new Set(["conduce_externo", "mantenimiento", "checklist_vehiculo", "requisicion"]);
+const TIPOS_IMPLEMENTADOS = new Set(["conduce_externo", "mantenimiento", "checklist_vehiculo", "requisicion", "uso_vehiculo"]);
 const TIPOS_DECLARADOS = new Set([
-  "conduce_externo", "checklist_vehiculo", "requisicion", "factura_general", "mantenimiento", "ruta",
+  "conduce_externo", "checklist_vehiculo", "requisicion", "factura_general", "mantenimiento", "ruta", "uso_vehiculo",
 ]);
+const NIVELES_COMBUSTIBLE = new Set(["E", "1/4", "1/2", "3/4", "F"]);
+/** DI-17 — el nivel analógico nunca pasa de 0.75 de confianza (la aguja entre marcas nunca es un dato exacto). */
+const TOPE_CONFIANZA_NIVEL = 0.75;
 /** Tipos que NO requieren foto — funcionan solo con audio/transcripción (fotos quedan opcionales). */
 const TIPOS_SOLO_VOZ = new Set(["mantenimiento", "checklist_vehiculo", "requisicion"]);
 
@@ -373,6 +376,83 @@ async function resolverRequisicion(svc: Any, transcripcion: string): Promise<{ p
   };
 }
 
+// DI7/DI-17 (ronda DI) — 'uso_vehiculo': foto del tablero del vehículo al tomar/
+// recibir o al soltar. Lee kilometraje u horas (equipos con horómetro), el nivel
+// de combustible (E/1/4/1/2/3/4/F, el mismo catálogo que ya usa
+// `vehiculo_usos.nivel_combustible_inicio/fin`) y las luces de advertencia
+// encendidas en el tablero. El nivel analógico es una lectura aproximada — el
+// servidor SIEMPRE topa su confianza a 0.75, nunca "inventa" certeza.
+const SYSTEM_USO_VEHICULO = `Eres un asistente que lee el TABLERO/ODÓMETRO de un vehículo o equipo de una constructora de República Dominicana, a partir de una foto, para llenar el formulario de "Uso de vehículo".
+
+Devuelve SOLO un objeto JSON válido, sin texto adicional, sin markdown. Formato EXACTO:
+{
+  "km": { "valor": number|null, "confianza": number },
+  "horas": { "valor": number|null, "confianza": number },
+  "nivel": { "valor": "E"|"1/4"|"1/2"|"3/4"|"F"|null, "confianza": number },
+  "luces": [ { "nombre": string, "confianza": number } ]
+}
+
+Reglas estrictas:
+- "km" es el kilometraje del odómetro SI el tablero es de un vehículo (carro/camión). "horas" es el horómetro SI es un equipo (excavadora, planta, generador). Llena SOLO el que aplique; el otro queda null con confianza 0. Nunca llenes ambos.
+- "nivel" es la posición de la AGUJA del medidor de combustible, redondeada a la marca más cercana del catálogo (E, 1/4, 1/2, 3/4, F). Si la aguja está claramente entre dos marcas, elige la más cercana pero con confianza BAJA (0.3-0.5). Si el medidor es digital y muestra un número de porcentaje, conviértelo a la marca más cercana. Si no se ve el medidor de combustible, null y confianza 0.
+- "luces" son SOLO las luces de advertencia que se ven ENCENDIDAS en el tablero (ej. "motor", "aceite", "batería", "frenos", "temperatura", "presión de aceite", "combustible bajo", "check engine", "ABS"). Si no hay ninguna encendida o no se distingue, arreglo vacío [].
+- "confianza" es 0..1 por cada campo: qué tan seguro estás de ese valor exacto.
+- NO inventes. Si la foto está oscura, borrosa, o no es un tablero, todo en null/vacío con confianza 0.`;
+
+async function resolverUsoVehiculo(fotos: Any[]): Promise<{ propuesta: Any; costoMeta: Any }> {
+  const content: Any[] = [];
+  for (const foto of fotos) {
+    const data = String(foto?.data ?? "");
+    const mime = String(foto?.mime ?? "image/jpeg");
+    if (!data) continue;
+    content.push({ type: "image", source: { type: "base64", media_type: mime, data } });
+  }
+  content.push({ type: "text", text: "Devuelve SOLO el JSON con el km u horas, el nivel de combustible y las luces de advertencia encendidas." });
+
+  const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: MODEL, max_tokens: 1024, system: SYSTEM_USO_VEHICULO, messages: [{ role: "user", content }] }),
+  });
+  if (!anthRes.ok) {
+    const t = await anthRes.text();
+    console.error("anthropic error", anthRes.status, t.slice(0, 300));
+    throw new Error("El lector no está disponible ahora.");
+  }
+  const anth = await anthRes.json();
+  const texto: string = (anth?.content ?? []).map((c: Any) => c?.text ?? "").join("").trim();
+  const inTok = anth?.usage?.input_tokens ?? 0;
+  const outTok = anth?.usage?.output_tokens ?? 0;
+
+  let lectura: Any = null;
+  try {
+    const m = texto.match(/\{[\s\S]*\}/);
+    lectura = m ? JSON.parse(m[0]) : null;
+  } catch { lectura = null; }
+
+  const nivelCrudo = lectura?.nivel ?? { valor: null, confianza: 0 };
+  const nivelValor = NIVELES_COMBUSTIBLE.has(nivelCrudo?.valor) ? nivelCrudo.valor : null;
+  const nivel = {
+    valor: nivelValor,
+    confianza: nivelValor ? Math.min(TOPE_CONFIANZA_NIVEL, Number(nivelCrudo?.confianza ?? 0)) : 0,
+  };
+
+  const lucesCrudas: Any[] = Array.isArray(lectura?.luces) ? lectura.luces : [];
+  const luces = lucesCrudas
+    .map((l) => ({ nombre: String(l?.nombre ?? "").trim(), confianza: Number(l?.confianza ?? 0) }))
+    .filter((l) => l.nombre);
+
+  return {
+    propuesta: {
+      km: lectura?.km ?? { valor: null, confianza: 0 },
+      horas: lectura?.horas ?? { valor: null, confianza: 0 },
+      nivel,
+      luces,
+    },
+    costoMeta: { tokens_in: inTok, tokens_out: outTok, fotos: fotos.length },
+  };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
@@ -466,6 +546,8 @@ Deno.serve(async (req) => {
       ? await resolverChecklistVehiculo(items, transcripcion, fotos)
       : tipo === "requisicion"
       ? await resolverRequisicion(svc, transcripcion)
+      : tipo === "uso_vehiculo"
+      ? await resolverUsoVehiculo(fotos)
       : await resolverConduceExterno(svc, userClient, fotos);
   } catch (e) {
     console.error(`resolver(${tipo})`, e);
@@ -486,6 +568,13 @@ Deno.serve(async (req) => {
         Number(propuesta.obra_mencionada?.confianza ?? 0),
         Number(propuesta.urgencia?.confianza ?? 0),
         ...propuesta.items.map((i: Any) => Number(i?.confianza ?? 0)),
+      ].filter((n: number) => Number.isFinite(n))
+    : tipo === "uso_vehiculo"
+    ? [
+        Number(propuesta.km?.confianza ?? 0),
+        Number(propuesta.horas?.confianza ?? 0),
+        Number(propuesta.nivel?.confianza ?? 0),
+        ...propuesta.luces.map((l: Any) => Number(l?.confianza ?? 0)),
       ].filter((n: number) => Number.isFinite(n))
     : [
         Number(propuesta.material?.confianza ?? 0),
