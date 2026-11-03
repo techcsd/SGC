@@ -149,12 +149,14 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'flota.rutas', label: 'Rutas / Seguimiento', enforced: true,
       descripcion: 'Rutas de transporte y seguimiento GPS en tiempo real.' },
   ],
+  // DH11 — gateados end-to-end (ruta con submoduloGuard + RLS vía
+  // puede_ver_submodulo/puede_operar_submodulo, ver sql/2026-11-03-dh11-rrhh-submodulos.sql).
   rrhh: [
-    { key: 'rrhh.empleados', label: 'Empleados',
+    { key: 'rrhh.empleados', label: 'Empleados', enforced: true,
       descripcion: 'Expediente del personal: datos y documentos del empleado.' },
-    { key: 'rrhh.asistencia', label: 'Asistencia',
+    { key: 'rrhh.asistencia', label: 'Asistencia', enforced: true,
       descripcion: 'Marcaje y control de asistencia diaria.' },
-    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones',
+    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones', enforced: true,
       descripcion: 'Solicitar y aprobar permisos, ausencias y vacaciones.' },
   ],
   // AR1 — gateados end-to-end (menú + ruta + RLS por obra).
