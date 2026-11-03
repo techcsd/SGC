@@ -343,3 +343,42 @@
   .compa__chat { height: 70vh; }
   .compa__msg { max-width: 90%; }
 }
+
+// DG — modo compacto (embebido en `app-compa-flotante`): solo CSS, nada de lógica
+// nueva. La ventana flotante es chica (mín. 320×380) así que la lista de
+// conversaciones y el enlace a Claude Desktop no caben — siguen disponibles en la
+// pantalla completa /asistente (el botón "Compa (asistente)" del menú).
+.compa--compacta {
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+
+  .compa__side {
+    display: none;
+  }
+  .compa__chat {
+    border: none;
+    border-radius: 0;
+    height: 100%;
+  }
+  .compa__header {
+    padding: 10px 14px;
+  }
+  .compa__title {
+    font-size: 15px;
+  }
+  .compa__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+  .compa__claude-link {
+    display: none;
+  }
+  .compa__messages {
+    padding: 12px;
+  }
+  .compa__welcome {
+    padding: 10px;
+  }
+}

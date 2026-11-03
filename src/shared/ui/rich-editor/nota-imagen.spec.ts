@@ -2,10 +2,16 @@
 // vio). Esta prueba ejerce el NodeView real (addNodeView de nota-imagen.extension.ts)
 // montado por un Editor de TipTap sin DOM real (mismo patrón que markdown-roundtrip.spec.ts):
 // confirma que el botón «Quitar» pide confirmación, borra el nodo del documento,
-// y avisa al consumidor (onQuitar) para que borre el archivo de Storage.
+// y avisa al consumidor (onQuitar) para que lo archive (DG7 — papelera de 30 días,
+// ya no borra el archivo al instante). Sin `confirmarQuitar` propio, la extensión
+// cae a `window.confirm` (estas pruebas no montan el `confirm-dialog` de Angular).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Editor } from '@tiptap/core';
 import { extensionesNotasRicas } from './rich-editor';
+
+function flush() {
+  return new Promise((r) => setTimeout(r, 0));
+}
 
 describe('NotaImagen — quitar imagen', () => {
   let confirmSpy: ReturnType<typeof vi.spyOn>;
@@ -17,7 +23,7 @@ describe('NotaImagen — quitar imagen', () => {
     confirmSpy.mockRestore();
   });
 
-  function crearEditorConImagen(onQuitar: (src: string) => void) {
+  function crearEditorConImagen(onQuitar: (src: string, deshacer: () => void) => void) {
     // El editor interpreta `content` como Markdown (extensión `Markdown`), no HTML
     // — mismo formato en que se guardan las notas: `![](nota-img:ruta)`.
     return new Editor({
@@ -26,7 +32,7 @@ describe('NotaImagen — quitar imagen', () => {
     });
   }
 
-  it('pide confirmación antes de borrar', () => {
+  it('pide confirmación antes de borrar', async () => {
     confirmSpy.mockReturnValue(false);
     const onQuitar = vi.fn();
     const editor = crearEditorConImagen(onQuitar);
@@ -34,6 +40,7 @@ describe('NotaImagen — quitar imagen', () => {
       const btn = editor.view.dom.querySelector<HTMLButtonElement>('.nota-img__btn--danger');
       expect(btn).toBeTruthy();
       btn!.click();
+      await flush();
       expect(confirmSpy).toHaveBeenCalledOnce();
       expect(onQuitar).not.toHaveBeenCalled();
       // Si cancela, la imagen sigue en el documento.
@@ -43,17 +50,57 @@ describe('NotaImagen — quitar imagen', () => {
     }
   });
 
-  it('al confirmar: borra el nodo del documento y avisa a onQuitar con la ruta', () => {
+  it('al confirmar: borra el nodo del documento y avisa a onQuitar con la ruta + un "deshacer"', async () => {
     confirmSpy.mockReturnValue(true);
     const onQuitar = vi.fn();
     const editor = crearEditorConImagen(onQuitar);
     try {
       const btn = editor.view.dom.querySelector<HTMLButtonElement>('.nota-img__btn--danger');
       btn!.click();
-      expect(onQuitar).toHaveBeenCalledWith('nota-img:ruta/prueba.png');
+      await flush();
+      expect(onQuitar).toHaveBeenCalledWith('nota-img:ruta/prueba.png', expect.any(Function));
       expect(editor.getHTML()).not.toContain('nota-img:ruta/prueba.png');
       expect(editor.getText()).toContain('Antes');
       expect(editor.getText()).toContain('Después');
+    } finally {
+      editor.destroy();
+    }
+  });
+
+  it('DG7 — el "deshacer" que recibe onQuitar reinserta la imagen en el mismo lugar (undo nativo)', async () => {
+    confirmSpy.mockReturnValue(true);
+    let deshacer: (() => void) | null = null;
+    const onQuitar = vi.fn((_src: string, d: () => void) => { deshacer = d; });
+    const editor = crearEditorConImagen(onQuitar);
+    try {
+      const btn = editor.view.dom.querySelector<HTMLButtonElement>('.nota-img__btn--danger');
+      btn!.click();
+      await flush();
+      expect(editor.getHTML()).not.toContain('nota-img:ruta/prueba.png');
+      expect(deshacer).toBeTruthy();
+      deshacer!();
+      expect(editor.getHTML()).toContain('nota-img:ruta/prueba.png');
+      expect(editor.getText()).toContain('Antes');
+      expect(editor.getText()).toContain('Después');
+    } finally {
+      editor.destroy();
+    }
+  });
+
+  it('DG7 — con `confirmarQuitar` propio (async): no usa window.confirm y respeta su resultado', async () => {
+    const confirmarQuitar = vi.fn(async () => true);
+    const onQuitar = vi.fn();
+    const editor = new Editor({
+      extensions: extensionesNotasRicas({ confirmarQuitar, onQuitar }),
+      content: '![](nota-img:ruta/prueba.png)',
+    });
+    try {
+      const btn = editor.view.dom.querySelector<HTMLButtonElement>('.nota-img__btn--danger');
+      btn!.click();
+      await flush();
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(confirmarQuitar).toHaveBeenCalledWith('nota-img:ruta/prueba.png');
+      expect(onQuitar).toHaveBeenCalledWith('nota-img:ruta/prueba.png', expect.any(Function));
     } finally {
       editor.destroy();
     }

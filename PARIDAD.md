@@ -1262,3 +1262,29 @@ de "Leer documento" (una foto, PROMPT-125 A5, `DB3 lector flota` en la tabla de 
 usando `flota_documentos_emparejar`/`flota_documentos_aplicar` sin cambios de contrato — las
 mejoras de esta ronda (sugerencias con puntaje, placa tapada, reverso) benefician esa pantalla
 automáticamente porque son las MISMAS RPCs, sin que la app tenga que cambiar nada.
+
+## Ronda DG (PROMPT-130 web, 02/11/2026) — solo web, sin contrato para la app
+
+Todo lo de esta ronda es **web-only** por diseño (no hay PROMPT-131 F-equivalente que replique esto en `csd-app`):
+
+1. **Módulo "Developer"** (reorganización del menú `shell.ts`: consola de versiones, calidad, Dev
+   notes, Compa/operación, infraestructura, diseño) — concepto de escritorio, sin equivalente en
+   una app de campo. Sin cambios de servidor.
+2. **Buscador maestro (Ctrl+K)** — navegación de menú lateral de la web; la app tiene su propio
+   patrón de navegación por tabs/hubs, no un buscador de pantallas.
+3. **Dev notes** (grupo nuevo desde el selector + papelera de 30 días para imágenes quitadas,
+   `sgc.nota_imagenes_quitadas` + cron `sgc-purgar-imagenes-notas`) — la app ya es **solo lectura**
+   de Dev notes desde BP5 (ver arriba); sin escritura en la app, no hay nada que portar.
+4. **Dashboard "Hoy, en vivo"** (`tablero_vivo_resumen()` con ventanas de tiempo para
+   `en_ruta`/`atrasados`/`vehiculos_en_uso`/`usos_sin_cerrar`/edad de posición GPS) — pantalla
+   exclusiva del Inicio web (DB1); la app no tiene un tablero equivalente.
+5. **Módulo "Demo"** (misiones de práctica ampliadas + `sgc.demo_catalogo()` + más datos `DEMO-*`)
+   — Xaviel pidió un módulo "Demo" en **ambos** sistemas (ver nota DG5 del prompt); la mitad de la
+   app (csd-app) queda pendiente de una ronda propia (no incluida en PROMPT-130/131), anotado aquí
+   para no perderlo.
+6. **Compa flotante** (ventana arrastrable/redimensionable, reusa `AsistenteService`) — concepto de
+   ventana de escritorio; la app ya tiene su propia pantalla de Compa de pantalla completa, sin
+   gesto de "flotar" en móvil.
+7. **Registro rápido de personal (DG8)** — se agregó compresión de fotos (`comprimirImagen(…,
+   'documento')`) antes de leerlas con IA en `personal-registro.ts`; si la app tiene un flujo
+   equivalente de 2 fotos sin comprimir, debería revisar el mismo patrón (no verificado esta ronda).

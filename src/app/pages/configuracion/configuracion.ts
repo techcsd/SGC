@@ -265,6 +265,23 @@ export class Configuracion implements OnInit {
     this.logoAlRefrescar.set(mostrar);
   }
 
+  // DG — Compa flotante (burbuja → ventana, server-side: sigue a la persona entre dispositivos).
+  async setCompaFlotante(activo: boolean) {
+    try {
+      await this.prefsService.set('compa_flotante', String(activo));
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo guardar');
+    }
+  }
+
+  async setCompaFlotanteRecordarPosicion(activo: boolean) {
+    try {
+      await this.prefsService.set('compa_flotante_recordar_posicion', String(activo));
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo guardar');
+    }
+  }
+
   async setModuloInicio(route: string) {
     try {
       await this.prefsService.set('modulo_inicio', route);

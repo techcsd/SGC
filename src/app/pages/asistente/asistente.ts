@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, ElementRef, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, ElementRef, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AsistenteService, AsistenteMensaje, AsistenteConversacion, AsistentePropuesta, CompaCompartida } from '../../../shared/services/asistente.service';
@@ -27,6 +27,15 @@ export class Asistente implements OnInit {
   private privacidad = inject(PrivacidadService);
   private toast = inject(ToastService);
   private router = inject(Router);
+
+  /** DG — modo compacto: embebido dentro de `app-compa-flotante` (ventana chica).
+   *  Oculta la lista de conversaciones y el enlace a Claude Desktop vía CSS
+   *  (`compa--compacta`); no cambia ninguna lógica de conversación. */
+  compacto = input(false);
+  /** DG — en modo flotante NUNCA se autoenfoca el textarea al aparecer (no robar
+   *  foco de un formulario que el usuario esté llenando en otra pantalla); el
+   *  usuario entra al campo con un click explícito, como cualquier input normal. */
+  autoenfocar = input(true);
 
   // CI10 — consentimiento de IA: null = aún sin saber, false = debe decidir.
   consentIA = signal<boolean | null>(null);
@@ -100,8 +109,10 @@ export class Asistente implements OnInit {
   }
 
   /** BB2 — enfoca el input, pero NO en móvil (abrir el teclado de golpe molesta).
-   *  Solo en dispositivos con puntero fino (desktop/web). */
+   *  Solo en dispositivos con puntero fino (desktop/web). DG — tampoco si
+   *  `autoenfocar` está en false (modo flotante: nunca robar foco al aparecer). */
   private enfocarInput() {
+    if (!this.autoenfocar()) return;
     if (typeof window === 'undefined' || !window.matchMedia?.('(pointer: fine)').matches) return;
     setTimeout(() => this.composer()?.nativeElement.focus(), 30);
   }

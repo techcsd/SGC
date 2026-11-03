@@ -1,0 +1,66 @@
+<div class="page dp-page">
+  <!-- Section: header -->
+  <header class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">{{ 'Mi progreso' | t }}</h1>
+      <p class="page-sub">{{ 'Qué misiones de práctica ya completaste y cuáles te faltan. No cuenta en nada — es solo para acompañarte.' | t }}</p>
+    </div>
+    <a routerLink="/practica" class="sgc-btn sgc-btn--secondary">{{ 'Ir a misiones' | t }}</a>
+  </header>
+
+  @if (cargando()) {
+    <div class="sgc-card">{{ 'Cargando…' | t }}</div>
+  } @else if (error()) {
+    <div class="sgc-card dp-error">{{ error() }}</div>
+  } @else {
+    <!-- Section: resumen -->
+    <div class="dp-resumen">
+      <div class="sgc-card dp-kpi">
+        <span class="dp-kpi__num">{{ completadas() }}/{{ totalMisiones() }}</span>
+        <span class="dp-kpi__label">{{ 'Misiones aprobadas' | t }}</span>
+      </div>
+      <div class="sgc-card dp-kpi">
+        <span class="dp-kpi__num">{{ pendientes() }}</span>
+        <span class="dp-kpi__label">{{ 'Por practicar' | t }}</span>
+      </div>
+      @if (promedioNota(); as prom) {
+        <div class="sgc-card dp-kpi">
+          <span class="dp-kpi__num">{{ prom }}</span>
+          <span class="dp-kpi__label">{{ 'Nota promedio' | t }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Section: lista de misiones -->
+    <div class="dp-lista" appStagger>
+      @for (f of filas(); track trackFila($index, f)) {
+        <article class="sgc-card dp-fila" [class.dp-fila--aprobada]="estado(f) === 'aprobada'">
+          <span class="dp-fila__icono" [class.dp-fila--aprobada]="estado(f) === 'aprobada'" aria-hidden="true">
+            @switch (estado(f)) {
+              @case ('aprobada') {
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              }
+              @case ('intentada') {
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              }
+              @default {
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+              }
+            }
+          </span>
+          <div class="dp-fila__info">
+            <span class="dp-fila__titulo">{{ f.mision.titulo | t }}</span>
+            @if (f.resultado; as r) {
+              <span class="dp-fila__meta">{{ r.intentos }} {{ 'intento(s)' | t }} · {{ 'mejor nota' | t }} {{ r.mejor_nota }}</span>
+            } @else {
+              <span class="dp-fila__meta">{{ 'Todavía no la practicas' | t }}</span>
+            }
+          </div>
+          <a [routerLink]="['/practica']" class="sgc-btn sgc-btn--ghost sgc-btn--sm">
+            {{ (f.resultado ? 'Repetir' : 'Practicar') | t }}
+          </a>
+        </article>
+      }
+    </div>
+  }
+</div>

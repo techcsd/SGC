@@ -1,4 +1,5 @@
 import Image from '@tiptap/extension-image';
+import type { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 
 /**
@@ -8,18 +9,57 @@ import { NodeSelection } from '@tiptap/pm/state';
  * una URL firmada, que caduca) y este NodeView la resuelve a una URL mostrable
  * al vuelo. Miniatura acotada (CT2: antes ocupaba varias pantallas de alto),
  * barra de acciones siempre visible (antes solo al hover — Xaviel no la vio),
- * visor a pantalla completa, y «Quitar» con confirmación (antes borraba sin
- * avisar) que también funciona con `Supr`/`Backspace` sobre la imagen seleccionada.
+ * visor a pantalla completa, y «Quitar» con confirmación que también funciona
+ * con `Supr`/`Backspace` sobre la imagen seleccionada.
+ *
+ * DG7 — «Quitar» ya NO borra el archivo al instante: pide confirmación con el
+ * `confirm-dialog` de la app (vía `confirmarQuitar`, que el consumidor conecta a
+ * un diálogo Angular; si no se provee, cae a `window.confirm` — p. ej. en los
+ * tests de este archivo o en `markdown-roundtrip.spec.ts`, que no montan UI), y
+ * tras confirmar avisa a `onQuitar(src, deshacer)`: el consumidor archiva la
+ * ruta en `sgc.nota_imagenes_quitadas` (papelera de 30 días; el borrado real del
+ * archivo lo hace solo el cron) y puede ofrecer «Deshacer» llamando a `deshacer`.
  */
 export interface NotaImagenOptions {
   resolverUrl: (src: string) => Promise<string>;
   copiarAlPortapapeles: (url: string) => Promise<void>;
   descargar: (url: string, nombre: string) => void;
-  /** Se llama al pulsar «Quitar» (ya confirmado) — borra el archivo de Storage (best-effort). */
-  onQuitar: (src: string) => void;
+  /** Pide confirmación antes de quitar. `true` = sigue adelante. */
+  confirmarQuitar: (src: string) => Promise<boolean>;
+  /** Se llama tras confirmar Y quitar el nodo del documento (ya no está en el
+   *  editor). `deshacer()` reinserta la imagen en la MISMA posición. */
+  onQuitar: (src: string, deshacer: () => void) => void;
 }
 
-const CONFIRM_QUITAR = '¿Quitar esta imagen? También se borra el archivo.';
+const MENSAJE_CONFIRMAR_QUITAR = '¿Quitar esta imagen de la nota?';
+
+/**
+ * DG7 — único punto de entrada para quitar una imagen (botón «Quitar», visor a
+ * pantalla completa, atajo Supr/Backspace con la imagen seleccionada): pide
+ * confirmación y, si se confirma, ejecuta `remover()` (quita el nodo del
+ * documento) y avisa a `onQuitar`.
+ *
+ * `deshacer` es `editor.commands.undo()` — NO se reimplementa una pila de
+ * deshacer propia. `remover()` es una transacción normal del editor (no se le
+ * pone `addToHistory: false`), así que ya entra sola al historial nativo de
+ * ProseMirror: `Ctrl+Z` la revierte sin que esta extensión intercepte esa
+ * tecla, y el botón «Deshacer» del toast (10 s, lo arma el consumidor) solo
+ * necesita invocar el mismo `undo()` para devolver la imagen exactamente a su
+ * posición. Si el usuario sigue editando antes de esos 10 s, `undo()` revierte
+ * ese cambio más reciente en su lugar — mismo comportamiento esperable de
+ * cualquier deshacer de editor, y evita mantener un snapshot de posición aparte.
+ */
+async function solicitarQuitar(
+  editor: Editor,
+  options: NotaImagenOptions,
+  src: string,
+  remover: () => void,
+): Promise<void> {
+  const ok = await options.confirmarQuitar(src);
+  if (!ok) return;
+  remover();
+  options.onQuitar(src, () => editor.commands.undo());
+}
 
 export const NotaImagen = Image.extend<NotaImagenOptions>({
   addOptions() {
@@ -30,19 +70,22 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
       resolverUrl: async (src: string) => src,
       copiarAlPortapapeles: async () => { throw new Error('No configurado.'); },
       descargar: () => {},
+      confirmarQuitar: async () => confirm(MENSAJE_CONFIRMAR_QUITAR),
       onQuitar: () => {},
     };
   },
 
-  // CT2 — Supr/Backspace con la imagen seleccionada (NodeSelection de este tipo)
-  // piden la misma confirmación y limpieza que el botón «Quitar».
+  // CT2/DG7 — Supr/Backspace con la imagen seleccionada (NodeSelection de este
+  // tipo) pasan por el mismo `solicitarQuitar` que el botón «Quitar».
   addKeyboardShortcuts() {
     const quitarSiSeleccionada = (): boolean => {
       const { selection } = this.editor.state;
       if (!(selection instanceof NodeSelection) || selection.node.type.name !== this.name) return false;
-      if (!confirm(CONFIRM_QUITAR)) return true; // evita que el navegador borre texto alrededor
-      this.options.onQuitar((selection.node.attrs['src'] as string) ?? '');
-      return this.editor.commands.deleteSelection();
+      const src = (selection.node.attrs['src'] as string) ?? '';
+      void solicitarQuitar(this.editor, this.options, src, () => {
+        this.editor.commands.deleteSelection();
+      });
+      return true; // swallow Supr/Retroceso mientras se decide (evita borrar texto alrededor)
     };
     return { Delete: quitarSiSeleccionada, Backspace: quitarSiSeleccionada };
   },
@@ -125,12 +168,15 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
         }
       };
 
+      // DG7 — botón «Quitar» Y el «Quitar» del visor a pantalla completa (bQuitar,
+      // más abajo) comparten esta misma función, que a su vez delega en el único
+      // `solicitarQuitar` de la extensión.
       const quitar = () => {
-        if (!confirm(CONFIRM_QUITAR)) return;
-        this.options.onQuitar(rutaOriginal);
-        if (typeof getPos !== 'function') return;
-        const pos = getPos();
-        editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run();
+        void solicitarQuitar(editor, this.options, rutaOriginal, () => {
+          if (typeof getPos !== 'function') return;
+          const pos = getPos();
+          editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run();
+        });
       };
 
       // ── CT2 — visor a pantalla completa (overlay propio: el NodeView vive

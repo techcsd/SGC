@@ -4,11 +4,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { RichEditor, ImagenEditorConfig } from '../../../../shared/ui/rich-editor/rich-editor';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NotasService, DirectorioUsuario } from '../../../../shared/services/notas.service';
+import { NotasService, DirectorioUsuario, NOTA_IMAGEN_PREFIJO } from '../../../../shared/services/notas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { FullscreenModeService } from '../../../../shared/services/fullscreen-mode.service';
-import { Nota, NotaCompartido, NotaPermiso, NotaGrupo } from '../../../../shared/models/nota.model';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { Nota, NotaCompartido, NotaPermiso, NotaGrupo, NotaImagenQuitada } from '../../../../shared/models/nota.model';
 import { markdownAPlano } from '../../../../shared/utils/markdown-a-plano.util';
 import { copiarImagenAlPortapapeles, descargarDesdeUrl } from '../../../../shared/utils/clipboard-imagen.util';
 import { validarNombreGrupo, puedeMoverGrupo, puedeCrearSubgrupo, zonaDestinoDeFila, FilaAgrupadaLike } from '../../../../shared/utils/nota-grupos.util';
@@ -75,6 +77,20 @@ const DT_NOTA = 'application/x-sgc-nota';
 const DT_GRUPO = 'application/x-sgc-grupo';
 const MS_AUTO_ABRIR_GRUPO = 600;
 
+// ── DG4 — "Nuevo grupo…" en el selector de carpeta de la barra del editor (CW3) ──
+/** `<option>` sentinela al final del `<select>`; nunca es un id de grupo real. */
+const NUEVO_GRUPO_SENTINEL = '__nuevo__';
+
+/** Fila editable del selector de carpeta convertido en input (DG4). Vive aparte
+ *  de `GrupoEditando` (la fila del panel lateral) porque debe funcionar aunque
+ *  la lista esté plegada (Ctrl+\\) — el selector vive en la cabecera del editor. */
+interface CreandoGrupoSelector {
+  /** Grupo que estaba elegido en el selector al pulsar "Nuevo grupo…" (null = Sin grupo). */
+  parentId: string | null;
+  valor: string;
+  error: string | null;
+}
+
 /** Días (locales, medianoche a medianoche) entre una fecha y hoy. 0 = hoy. */
 function diasDesdeHoy(iso: string): number {
   const d = new Date(iso);
@@ -97,7 +113,7 @@ function diasDesdeHoy(iso: string): number {
  */
 @Component({
   selector: 'app-dev-notes',
-  imports: [Icon, RichEditor, ConfirmDialog, NgTemplateOutlet],
+  imports: [Icon, RichEditor, ConfirmDialog, NgTemplateOutlet, TranslatePipe],
   templateUrl: './dev-notes.html',
   styleUrl: './dev-notes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -112,6 +128,7 @@ export class DevNotes implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private host = inject(ElementRef<HTMLElement>);
   protected fullscreen = inject(FullscreenModeService);
+  private i18n = inject(I18nService);
 
   tab = signal<Tab>('mias');
   mias = signal<Nota[]>([]);
@@ -132,6 +149,9 @@ export class DevNotes implements OnInit, OnDestroy {
   grupoResaltado = signal<string | null>(null);
   /** Eliminar grupo: confirm-dialog propio (reemplaza confirm() nativo). */
   grupoAEliminar = signal<NotaGrupo | null>(null);
+
+  // ── DG4 — "Nuevo grupo…" en el selector de carpeta (barra CW3 del editor) ───
+  creandoGrupoSelector = signal<CreandoGrupoSelector | null>(null);
 
   // ── CV3 — menú "⋯" (nota/grupo) y "Mover a…" ──────────────────────────────
   menuNotaAbierto = signal<string | null>(null);
@@ -214,7 +234,7 @@ export class DevNotes implements OnInit, OnDestroy {
   /** true cuando la nota abierta ya existe en BD (se puede compartir/mover). */
   persistida = signal(false);
 
-  // ── CS2 — imágenes pegadas/arrastradas en el editor ─────────────────────────
+  // ── CS2/DG7 — imágenes pegadas/arrastradas en el editor ─────────────────────
   readonly imagenesConfig: ImagenEditorConfig = {
     subir: (file) => this.subirImagenEnNotaActiva(file),
     resolverUrl: (src) => this.notasSvc.resolverImagenNota(src),
@@ -225,8 +245,111 @@ export class DevNotes implements OnInit, OnDestroy {
       this.toast.success('Imagen copiada', 'Ya la puedes pegar (Ctrl+V) en Claude Desktop, un correo, etc.');
     },
     descargar: (url, nombre) => descargarDesdeUrl(url, nombre),
-    quitar: (src) => { void this.notasSvc.borrarImagenNota(src); },
+    confirmarQuitar: (src) => this.confirmarQuitarImagen(src),
+    quitar: (src, deshacer) => this.quitarImagenDeNotaActiva(src, deshacer),
   };
+
+  // ── DG7 — confirmar «Quitar» (reusa <app-confirm-dialog>, igual que grupo/nota) ──
+  imagenAQuitar = signal<{ src: string; resolve: (v: boolean) => void } | null>(null);
+  private confirmarQuitarImagen(src: string): Promise<boolean> {
+    return new Promise((resolve) => this.imagenAQuitar.set({ src, resolve }));
+  }
+  onImagenAQuitarConfirmada() {
+    this.imagenAQuitar()?.resolve(true);
+    this.imagenAQuitar.set(null);
+  }
+  onImagenAQuitarCancelada() {
+    this.imagenAQuitar()?.resolve(false);
+    this.imagenAQuitar.set(null);
+  }
+
+  /** DG7 — papelera de imágenes quitadas de la nota abierta: "Imágenes quitadas (N)". */
+  imagenesQuitadas = signal<NotaImagenQuitada[]>([]);
+  mostrarImagenesQuitadas = signal(false);
+  /** Miniatura (URL firmada) por fila, cargada best-effort — si falla, la plantilla
+   *  cae a un ícono genérico (no bloquea la función de recuperar). */
+  miniaturasQuitadas = signal<Record<string, string>>({});
+  toggleImagenesQuitadas() { this.mostrarImagenesQuitadas.update((v) => !v); }
+
+  private async cargarImagenesQuitadas(notaId: string) {
+    try {
+      const filas = await this.notasSvc.getImagenesQuitadas(notaId);
+      this.imagenesQuitadas.set(filas);
+      void this.cargarMiniaturasQuitadas(filas);
+    } catch {
+      this.imagenesQuitadas.set([]); // best-effort — no bloquea abrir la nota
+    }
+  }
+
+  private async cargarMiniaturasQuitadas(filas: NotaImagenQuitada[]) {
+    for (const f of filas) {
+      if (this.miniaturasQuitadas()[f.id]) continue;
+      try {
+        const url = await this.notasSvc.resolverImagenNota(NOTA_IMAGEN_PREFIJO + f.ruta_storage);
+        this.miniaturasQuitadas.update((m) => ({ ...m, [f.id]: url }));
+      } catch {
+        /* sin miniatura — la plantilla muestra el ícono genérico */
+      }
+    }
+  }
+
+  /** DG7 — "Quitar" tras confirmar: archiva la ruta (papelera 30 días — el cron
+   *  `sgc-purgar-imagenes-notas` borra el archivo real) y ofrece "Deshacer" 10 s. */
+  private quitarImagenDeNotaActiva(src: string, deshacer: () => void) {
+    const n = this.activa();
+    if (!n) return;
+    const miId = this.userService.profile()?.id ?? null;
+    void (async () => {
+      try {
+        const fila = await this.notasSvc.borrarImagenNota(n.id, src, miId);
+        if (fila) {
+          this.imagenesQuitadas.update((l) => [fila, ...l]);
+          void this.cargarMiniaturasQuitadas([fila]);
+        }
+        this.toast.show(this.i18n.t('Imagen quitada de la nota'), {
+          tipo: 'success',
+          durationMs: 10000,
+          action: {
+            label: this.i18n.t('Deshacer'),
+            handler: () => {
+              // CT2/DG7 — delega en el undo nativo del editor (ProseMirror): la
+              // transacción de quitar nunca se marcó `addToHistory:false`, así que
+              // ya estaba en el historial. NO se reimplementa una pila propia.
+              deshacer();
+              if (fila) {
+                void this.notasSvc.cancelarImagenQuitada(fila.id).then(() => {
+                  this.imagenesQuitadas.update((l) => l.filter((x) => x.id !== fila.id));
+                });
+              }
+            },
+          },
+        });
+      } catch (e) {
+        this.toast.errorFrom(e, this.i18n.t('No se pudo quitar la imagen'));
+      }
+    })();
+  }
+
+  /** DG7 — "Recuperar" en la lista: reinserta al final de la nota (misma sintaxis
+   *  Markdown `![](nota-img:ruta)` que resuelve `nota-imagen.extension.ts`) y
+   *  saca la fila de la papelera. */
+  async recuperarImagenQuitada(fila: NotaImagenQuitada) {
+    try {
+      await this.notasSvc.cancelarImagenQuitada(fila.id);
+      const md = `![](${NOTA_IMAGEN_PREFIJO}${fila.ruta_storage})`;
+      this.contenido.update((c) => (c.trim() ? `${c}\n\n${md}` : md));
+      this.imagenesQuitadas.update((l) => l.filter((x) => x.id !== fila.id));
+      this.toast.success(this.i18n.t('Imagen recuperada'));
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo recuperar la imagen'));
+    }
+  }
+
+  /** Fecha de purga legible (dd/mm/aaaa) para la lista "Imágenes quitadas". */
+  formatFechaPurga(iso: string): string {
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
 
   /** CS2 — si la nota es nueva (nunca se guardó), guárdala primero: el bucket
    *  exige que la nota ya exista (RLS por nota_id). */
@@ -526,6 +649,61 @@ export class DevNotes implements OnInit, OnDestroy {
     return puedeCrearSubgrupo(g.id, this.grupos());
   }
 
+  // ── DG4 — "Nuevo grupo…" en el selector de carpeta (barra CW3 del editor) ───
+  /** El `<select>` «Mover esta nota a otra carpeta»: si se elige el sentinel
+   *  "Nuevo grupo…", se convierte en un input (toma como padre el grupo que
+   *  estaba elegido ANTES de abrir el input — null si estaba en «Sin grupo»). */
+  onSelectorCarpetaChange(nota: Nota, valor: string) {
+    if (valor === NUEVO_GRUPO_SENTINEL) {
+      this.creandoGrupoSelector.set({ parentId: nota.grupo_id ?? null, valor: '', error: null });
+      return;
+    }
+    this.moverNotaDesdeMenu(nota, valor);
+  }
+
+  onCreandoGrupoSelectorInput(valor: string) {
+    this.creandoGrupoSelector.update((e) => (e ? { ...e, valor, error: null } : e));
+  }
+
+  onCreandoGrupoSelectorKeydown(ev: KeyboardEvent, nota: Nota) {
+    if (ev.key === 'Enter') { ev.preventDefault(); void this.confirmarNuevoGrupoDesdeSelector(nota); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); this.cancelarNuevoGrupoDesdeSelector(); }
+  }
+
+  cancelarNuevoGrupoDesdeSelector() {
+    this.creandoGrupoSelector.set(null);
+  }
+
+  /** Misma lógica de validación/creación que el "+" del panel lateral
+   *  (`confirmarGrupoEditando`): `validarNombreGrupo` + `puedeCrearSubgrupo`, y
+   *  tras crear, mueve la nota activa al grupo nuevo (eso es lo que pedía el
+   *  selector: "mover esta nota a otra carpeta"). */
+  async confirmarNuevoGrupoDesdeSelector(nota: Nota) {
+    const e = this.creandoGrupoSelector();
+    if (!e) return;
+    const nombre = e.valor.trim();
+    if (!nombre) { this.creandoGrupoSelector.set(null); return; }
+    if (e.parentId && !puedeCrearSubgrupo(e.parentId, this.grupos())) {
+      this.creandoGrupoSelector.update((cur) => (cur ? { ...cur, error: 'Los grupos admiten hasta 4 niveles.' } : cur));
+      return;
+    }
+    const hermanos = this.grupos().filter((g) => (g.parent_id ?? null) === e.parentId).map((g) => g.nombre);
+    const error = validarNombreGrupo(nombre, hermanos);
+    if (error) { this.creandoGrupoSelector.update((cur) => (cur ? { ...cur, error } : cur)); return; }
+
+    const miId = this.userService.profile()?.id;
+    if (!miId) return;
+    try {
+      const g = await this.notasSvc.crearGrupo(nombre, e.parentId, miId);
+      this.grupos.update((l) => [...l, g]);
+      this.creandoGrupoSelector.set(null);
+      this.toast.success(this.i18n.t('Grupo creado'));
+      await this.moverNotaAGrupoConAviso(nota, g.id, g.nombre);
+    } catch (err) {
+      this.creandoGrupoSelector.update((cur) => (cur ? { ...cur, error: this.mensajeErrorGrupo(err) } : cur));
+    }
+  }
+
   // ── CV2 — eliminar grupo (confirm-dialog en vez de confirm() nativo) ────────
   pedirEliminarGrupo(g: NotaGrupo) {
     this.menuGrupoAbierto.set(null);
@@ -777,6 +955,15 @@ export class DevNotes implements OnInit, OnDestroy {
         input?.focus();
       }, 0);
     });
+
+    // DG4 — ídem para el input "Nuevo grupo…" del selector de carpeta.
+    effect(() => {
+      if (!this.creandoGrupoSelector()) return;
+      setTimeout(() => {
+        const input = this.host.nativeElement.querySelector('.dn-editor__carpeta-nueva input') as HTMLInputElement | null;
+        input?.focus();
+      }, 0);
+    });
   }
 
   async ngOnInit() {
@@ -856,6 +1043,10 @@ export class DevNotes implements OnInit, OnDestroy {
     this.baseline = this.snapshot();
     if (typeof localStorage !== 'undefined') localStorage.setItem(LS_ULTIMA_ID, n.id);
     void this.cargarCompartidos(n.id);
+    this.imagenesQuitadas.set([]);
+    this.miniaturasQuitadas.set({});
+    this.mostrarImagenesQuitadas.set(false);
+    void this.cargarImagenesQuitadas(n.id);
   }
 
   nueva() {
@@ -876,6 +1067,9 @@ export class DevNotes implements OnInit, OnDestroy {
     this.compartirUsuario.set(null);
     this.guardadoEn.set(null);
     this.errorGuardado.set(null);
+    this.imagenesQuitadas.set([]);
+    this.miniaturasQuitadas.set({});
+    this.mostrarImagenesQuitadas.set(false);
     this.baseline = this.snapshot();
   }
 
