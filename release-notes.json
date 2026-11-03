@@ -6024,6 +6024,16 @@
           "d": "Empleados, Asistencia y Ausencias/Vacaciones (RRHH) ya se pueden asignar como permiso independiente desde Roles — antes decían \"Próximamente\"."
         }
       ]
+    },
+    "1.209.1": {
+      "titulo": "Novedades: ahora dice de qué módulo es cada cambio",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Novedades",
+          "d": "El aviso de \"Esto cambió en el SGC\" ahora agrupa cada cambio bajo el módulo al que pertenece (Compa, Combustible, Vault, etc.), igual que el Historial de versiones completo."
+        }
+      ]
     }
   }
 }
