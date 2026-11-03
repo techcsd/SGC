@@ -175,3 +175,25 @@ que SÍ cruza o es reusable:
 consuma. Las 18 herramientas nuevas son exclusivamente `canales: ['mcp']`
 (servidor remoto que Claude Desktop usa, no algo que csd-app invoque). Detalle
 en `supabase/functions/assistant/PERMISOS-TOOLS.md` §"CY".
+
+---
+
+## 11. DH (PROMPT 132, ronda 03-nov-2026)
+
+100% web, módulos que **solo existen en la web** (Vault, Auditoría, Roles,
+Empresa, Usuarios, Agentes, Homologación, Cotizaciones) — nada que la app
+(csd-app) deba consumir. La única pieza compartida con el servidor que una app
+futura podría reusar:
+
+- **DH8 — `notif_tipo` nuevos `solicitud_material`/`solicitud_compra`**: si la
+  app alguna vez envía/recibe push de requisiciones, debe respetar el mismo
+  tipo (y por tanto el mismo apagador) en vez de inventar uno propio.
+- **DH2 — `validar_km_vehiculo`/`registrar_combustible_app` con
+  `p_forzar`/`p_motivo`**: la app YA llama `registrar_combustible_app`
+  (combustible móvil); estos 2 parámetros son aditivos (default `false`/`null`)
+  así que no rompe nada, pero si se quiere exponer "forzar con motivo" en la
+  app también, ya existe el soporte de servidor.
+- Compa flotante (DH6/DH7/DH9), Sistema (DH3/DH19), Agentes (DH16/DH17),
+  Dudas/Usuarios/Empresa/Homologación/Cotizaciones (DH10-DH20): exclusivamente
+  pantallas de la web Angular — la app tiene (o no) sus propias pantallas
+  equivalentes, sin relación de contrato con estos cambios.

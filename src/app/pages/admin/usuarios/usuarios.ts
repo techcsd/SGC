@@ -33,6 +33,10 @@ type SortKey = 'nombre' | 'web' | 'app';
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // DH12 — el menú kebab se posiciona una vez con getBoundingClientRect(); si la
+  // ventana cambia de tamaño con el menú abierto, queda flotando en el lugar
+  // viejo. Más simple y seguro que reposicionarlo: cerrarlo.
+  host: { '(window:resize)': 'closeMenu()' },
 })
 export class AdminUsuarios implements OnInit {
   private adminService = inject(AdminService);

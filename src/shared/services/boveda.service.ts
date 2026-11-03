@@ -36,10 +36,13 @@ export class BovedaService {
   async listar(): Promise<BovedaEntrada[]> {
     const { data, error } = await this.supabase.client
       .from('boveda_entradas')
-      .select('id, tipo, nombre, sitio_url, usuario_texto, archivo_path, archivo_nombre, archivo_mime, etiquetas, rotar_cada_dias, ultima_rotacion, notas, creado_por, created_at, updated_at')
+      .select('id, tipo, nombre, sitio_url, usuario_texto, responsable_id, responsable:usuarios!boveda_entradas_responsable_id_fkey(nombre), archivo_path, archivo_nombre, archivo_mime, etiquetas, rotar_cada_dias, ultima_rotacion, notas, creado_por, created_at, updated_at')
       .order('updated_at', { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as BovedaEntrada[];
+    return (data ?? []).map((e: Record<string, unknown>) => ({
+      ...e,
+      responsable_nombre: (e['responsable'] as { nombre: string } | null)?.nombre ?? null,
+    })) as unknown as BovedaEntrada[];
   }
 
   async listarAccesos(entradaId?: string): Promise<BovedaAcceso[]> {
@@ -63,13 +66,14 @@ export class BovedaService {
 
   async crear(payload: {
     tipo: BovedaTipo; nombre: string; sitio_url?: string | null; usuario_texto?: string | null;
+    responsable_id?: string | null;
     valor?: string | null; etiquetas?: string[]; rotar_cada_dias?: number | null; notas?: string | null;
   }): Promise<{ id: string }> {
     return this.invocar('crear', payload);
   }
 
   async editar(entradaId: string, payload: {
-    nombre?: string; sitio_url?: string | null; usuario_texto?: string | null; valor?: string | null;
+    nombre?: string; sitio_url?: string | null; usuario_texto?: string | null; responsable_id?: string | null; valor?: string | null;
     etiquetas?: string[]; rotar_cada_dias?: number | null; ultima_rotacion?: string | null; notas?: string | null;
   }): Promise<void> {
     await this.invocar('editar', { entrada_id: entradaId, ...payload });

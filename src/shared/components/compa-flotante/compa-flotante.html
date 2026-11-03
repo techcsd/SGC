@@ -20,7 +20,7 @@
   [class.cf-ventana--hoja]="esMovil()"
   [class.cf-ventana--minimizada]="minimizada()"
   [style]="estiloVentana()"
-  [hidden]="!abierta()"
+  [hidden]="!abierta() || (!esMovil() && !posicion())"
   role="dialog"
   aria-modal="false"
   [attr.aria-label]="'Compa' | t"

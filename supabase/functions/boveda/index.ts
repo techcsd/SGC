@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (accion === "crear") {
-      const { tipo, nombre, sitio_url, usuario_texto, valor, etiquetas, rotar_cada_dias, notas } = body;
+      const { tipo, nombre, sitio_url, usuario_texto, responsable_id, valor, etiquetas, rotar_cada_dias, notas } = body;
       if (!tipo || !nombre) return json({ ok: false, error: "Tipo y nombre son obligatorios." }, 400);
       const id = crypto.randomUUID();
       let valorCifradoHex: string | null = null, ivHex: string | null = null;
@@ -168,6 +168,7 @@ Deno.serve(async (req: Request) => {
       }
       const { error } = await svc.from("boveda_entradas").insert({
         id, tipo, nombre, sitio_url: sitio_url ?? null, usuario_texto: usuario_texto ?? null,
+        responsable_id: responsable_id ?? null,
         valor_cifrado: valorCifradoHex, valor_iv: ivHex,
         etiquetas: etiquetas ?? [], rotar_cada_dias: rotar_cada_dias ?? null, notas: notas ?? null,
         creado_por: userId,
@@ -178,13 +179,14 @@ Deno.serve(async (req: Request) => {
     }
 
     if (accion === "editar") {
-      const { entrada_id, nombre, sitio_url, usuario_texto, valor, etiquetas, rotar_cada_dias, ultima_rotacion, notas } = body;
+      const { entrada_id, nombre, sitio_url, usuario_texto, responsable_id, valor, etiquetas, rotar_cada_dias, ultima_rotacion, notas } = body;
       if (!entrada_id) return json({ ok: false, error: "Falta la entrada." }, 400);
       // deno-lint-ignore no-explicit-any
       const update: Any = { updated_at: new Date().toISOString() };
       if (nombre !== undefined) update.nombre = nombre;
       if (sitio_url !== undefined) update.sitio_url = sitio_url;
       if (usuario_texto !== undefined) update.usuario_texto = usuario_texto;
+      if (responsable_id !== undefined) update.responsable_id = responsable_id;
       if (etiquetas !== undefined) update.etiquetas = etiquetas;
       if (rotar_cada_dias !== undefined) update.rotar_cada_dias = rotar_cada_dias;
       if (ultima_rotacion !== undefined) update.ultima_rotacion = ultima_rotacion;

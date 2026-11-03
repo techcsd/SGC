@@ -271,12 +271,11 @@
           <div class="cfg__card">
             <h2>{{ 'Acerca de' | t }}</h2>
             <p class="cfg__muted">{{ 'Versión web' | t }}: <strong>{{ appVersion }}</strong></p>
-            @if (esTecnologia()) {
-              <a class="cfg__btn" routerLink="/tecnologia/historial-versiones">
-                <app-icon name="file-text" [size]="16" />
-                {{ 'Historial de versiones' | t }}
-              </a>
-            }
+            <!-- DH3 — ahora visible a todo usuario autenticado (grupo «Sistema»), no solo Tecnología. -->
+            <a class="cfg__btn" routerLink="/historial-versiones">
+              <app-icon name="file-text" [size]="16" />
+              {{ 'Historial de versiones' | t }}
+            </a>
           </div>
         }
       }

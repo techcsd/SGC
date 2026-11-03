@@ -5,6 +5,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { SignedUrlCache } from '../../../shared/services/signed-url-cache.service';
 import { BienvenidaService } from '../../../shared/services/bienvenida.service';
 import { VideoTeatro } from '../../../shared/ui/video-teatro/video-teatro';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { DudaCategoria, GuiaVisual } from './dudas-content';
 
 interface VideoActivo { video: string; vtt: string | null; poster: string | null; titulo: string; slug: string; }
@@ -17,7 +18,7 @@ export interface GuiaVideoUrls { video: string; poster: string | null; vtt: stri
 // origen de los tipos.
 @Component({
   selector: 'app-dudas',
-  imports: [RouterLink, VideoTeatro],
+  imports: [RouterLink, VideoTeatro, Skeleton],
   templateUrl: './dudas.html',
   styleUrl: './dudas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,24 +48,31 @@ export class Dudas {
 
   private _guias = signal<GuiaVisual[]>([]);
   private _categorias = signal<DudaCategoria[]>([]);
+  // DH13 — sin esto, el vacío ("No encontramos nada") se veía un instante antes
+  // de que llegara el contenido real (la carga es async, no instantánea).
+  loading = signal(true);
 
   constructor() {
     void this.load();
   }
 
   private async load(): Promise<void> {
-    const { data } = await this.supabase.client
-      .from('ayuda_contenido')
-      .select('tipo, contenido, orden')
-      .eq('activo', true)
-      .order('orden', { ascending: true });
-    const rows = (data ?? []) as { tipo: string; contenido: GuiaVisual | DudaCategoria }[];
-    const guias = rows.filter((r) => r.tipo === 'guia').map((r) => r.contenido as GuiaVisual);
-    this._guias.set(guias);
-    this._categorias.set(
-      rows.filter((r) => r.tipo === 'duda_categoria').map((r) => r.contenido as DudaCategoria),
-    );
-    await this.cargarVideos(guias);
+    try {
+      const { data } = await this.supabase.client
+        .from('ayuda_contenido')
+        .select('tipo, contenido, orden')
+        .eq('activo', true)
+        .order('orden', { ascending: true });
+      const rows = (data ?? []) as { tipo: string; contenido: GuiaVisual | DudaCategoria }[];
+      const guias = rows.filter((r) => r.tipo === 'guia').map((r) => r.contenido as GuiaVisual);
+      this._guias.set(guias);
+      this._categorias.set(
+        rows.filter((r) => r.tipo === 'duda_categoria').map((r) => r.contenido as DudaCategoria),
+      );
+      await this.cargarVideos(guias);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   /** CK5 — resuelve las URLs firmadas de los videos (bucket privado). */

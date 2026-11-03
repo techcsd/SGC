@@ -22,12 +22,16 @@ export interface AppErrorReport {
 }
 
 // AW14 — estado del workflow de atención por firma de error.
-export type AppErrorEstado = 'abierto' | 'en_revision' | 'solucionado';
+// DH23 — 'regla_negocio': el rechazo es la regla de negocio funcionando (fecha
+// pasada, lectura menor, conduce no despachado, sin existencia…), no un bug.
+// Se cuenta aparte y no pide acción, sin mentir diciendo "solucionado".
+export type AppErrorEstado = 'abierto' | 'en_revision' | 'solucionado' | 'regla_negocio';
 
 export const APP_ERROR_ESTADOS: { value: AppErrorEstado; label: string }[] = [
   { value: 'abierto', label: 'Abierto' },
   { value: 'en_revision', label: 'En revisión' },
   { value: 'solucionado', label: 'Solucionado' },
+  { value: 'regla_negocio', label: 'Regla de negocio (no es bug)' },
 ];
 
 /** Fila del RPC de agrupación por firma de mensaje. */

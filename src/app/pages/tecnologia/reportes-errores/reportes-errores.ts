@@ -55,7 +55,8 @@ export class TecReportesErrores implements OnInit {
   vista = signal<'agrupado' | 'detalle'>('agrupado');
 
   // AW14 — bandeja (abiertos + en revisión) vs Historial (solucionados).
-  estadoVista = signal<'abiertos' | 'solucionado'>('abiertos');
+  // DH23 — + "regla de negocio" (rechazos esperados, no bugs — se cuentan aparte).
+  estadoVista = signal<'abiertos' | 'solucionado' | 'regla_negocio'>('abiertos');
 
   // AW14 — drill-down de ocurrencias por firma (usuario + metadata).
   firmaExpandida = signal<string | null>(null);
@@ -121,8 +122,8 @@ export class TecReportesErrores implements OnInit {
     };
   }
 
-  /** AW14 — cambia entre bandeja de abiertos y Historial de solucionados. */
-  cambiarEstadoVista(v: 'abiertos' | 'solucionado') {
+  /** AW14 — cambia entre bandeja de abiertos, Historial de solucionados y regla de negocio. */
+  cambiarEstadoVista(v: 'abiertos' | 'solucionado' | 'regla_negocio') {
     if (this.estadoVista() === v) return;
     this.estadoVista.set(v);
     this.firmaExpandida.set(null);
@@ -183,12 +184,16 @@ export class TecReportesErrores implements OnInit {
   }
 
   estadoLabel(e: string): string {
-    return e === 'en_revision' ? 'En revisión' : e === 'solucionado' ? 'Solucionado' : 'Abierto';
+    if (e === 'en_revision') return 'En revisión';
+    if (e === 'solucionado') return 'Solucionado';
+    if (e === 'regla_negocio') return 'Regla de negocio';
+    return 'Abierto';
   }
   estadoBadgeClass(e: string): string {
     const base = 'sgc-badge ';
     if (e === 'solucionado') return base + 'sgc-badge--success';
     if (e === 'en_revision') return base + 'sgc-badge--info';
+    if (e === 'regla_negocio') return base + 'sgc-badge--neutral';
     return base + 'sgc-badge--warning';
   }
 

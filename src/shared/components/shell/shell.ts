@@ -396,10 +396,9 @@ export class Shell implements OnInit {
       submodulos: ['tecnologia.cotizaciones', 'tecnologia.inventario', 'tecnologia.compras'],
       children: [
         { label: 'Inventario tecnológico', route: '/tecnologia/inventario', submodulo: 'tecnologia.inventario' },
-        // CZ4 — la ruta ya es pública (sin gate); el ítem del menú no debe
-        // restringirla con el módulo (hallazgo F3: estaba oculta para quien no
-        // tuviera `tecnologia`, aunque cualquiera podía navegarla a mano).
-        { label: 'Guía de herramientas', route: '/tecnologia/guia' },
+        // DH3/DH19 — movida al grupo «Sistema» (abajo), visible a TODO usuario
+        // autenticado. Antes vivía aquí pero el GRUPO entero exige `modulo:
+        // 'tecnologia'`, así que seguía oculta para quien no tuviera ese módulo.
         { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', submodulo: 'tecnologia.compras' },
@@ -419,7 +418,9 @@ export class Shell implements OnInit {
       nuevoHasta: '2026-11-16',
       children: [
         // Versiones
-        { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
+        // DH3 — "Historial de versiones" se movió al grupo «Sistema» (abajo):
+        // Xaviel no quería perder el acceso de todo usuario a ese submódulo al
+        // crear Developer. "Versiones de la app" sigue solo-tecnología.
         { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
         // Calidad
         { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
@@ -449,6 +450,19 @@ export class Shell implements OnInit {
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         // Diseño
         { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
+      ],
+    },
+    {
+      // DH3/DH19 — grupo «Sistema»: visible a TODO usuario autenticado (sin
+      // `modulo`/`soloTecnologia`), para no perder acceso a estos submódulos
+      // informativos al crear el grupo «Developer» (gated, solo Tecnología).
+      // Los permisos finos por rol (ver/ocultar cada ítem) se controlan desde
+      // Administración › Roles vía `sistema.*` (F4, DH11).
+      label: 'Sistema',
+      icon: 'tecnologia',
+      children: [
+        { label: 'Historial de versiones', route: '/historial-versiones' },
+        { label: 'Guía de herramientas', route: '/herramientas' },
       ],
     },
     {

@@ -75,6 +75,15 @@ export class AgentesService {
   informeHoy = signal<AgenteInformeDiario | null>(null);
   costoIaHoy = signal<{ costoHoy: number; topeDiario: number } | null>(null);
 
+  /** DH16 — "Ejecutar ahora" para los agentes a demanda (auditor/capataz/soporte);
+   *  usa la sesión real del usuario (las 3 edges exigen auth, no un secreto de cron). */
+  async ejecutarAhora(clave: AgenteClave): Promise<void> {
+    const { data, error } = await this.supabase.client.functions.invoke(`agente-${clave}`, { body: {} });
+    if (error) throw new Error(error.message);
+    const d = data as { error?: string } | null;
+    if (d?.error) throw new Error(d.error);
+  }
+
   async cargar(): Promise<void> {
     const hoyInicio = new Date();
     hoyInicio.setHours(0, 0, 0, 0);

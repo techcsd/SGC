@@ -6,6 +6,8 @@ import { BovedaEntrada, BovedaAcceso, BovedaTipo, BovedaEstadoRotacion } from '.
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
+import { UserPicker } from '../../../../shared/ui/user-picker/user-picker';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import {
   generarPassword, generarPassphrase, generarLlaveApi, generarSemilla2fa, etiquetaFortaleza,
@@ -31,7 +33,7 @@ function estadoRotacion(e: BovedaEntrada): BovedaEstadoRotacion {
 
 @Component({
   selector: 'app-admin-vault',
-  imports: [ReactiveFormsModule, FormDrawer, Icon, FileUpload, TranslatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, Icon, FileUpload, TranslatePipe, UserPicker, Paginador],
   templateUrl: './vault.html',
   styleUrl: './vault.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,6 +76,14 @@ export class AdminVault implements OnInit, OnDestroy {
     return this.entradas().filter((e) => e.tipo === t).length;
   }
 
+  // DH21 — paginación (antes mostraba todas las filas sin límite).
+  page = signal(1);
+  pageSize = signal(10);
+  entradasPagina = computed(() => {
+    const desde = (this.page() - 1) * this.pageSize();
+    return this.entradasFiltradas().slice(desde, desde + this.pageSize());
+  });
+
   // ── Crear/editar ──────────────────────────────────────────────────────
   drawerOpen = signal(false);
   editandoId = signal<string | null>(null);
@@ -89,6 +99,9 @@ export class AdminVault implements OnInit, OnDestroy {
     notas: new FormControl<string | null>(null),
   });
   archivoPendiente = signal<File | null>(null);
+  // DH4 — Responsable (persona SGC), fuera del FormGroup: el picker emite
+  // {usuario_id, nombre}, no un valor de <input> nativo.
+  responsableId = signal<string | null>(null);
 
   // ── Generador (CZ9) ─────────────────────────────────────────────────────
   generadorAbierto = signal(false);
@@ -179,6 +192,7 @@ export class AdminVault implements OnInit, OnDestroy {
     this.form.reset({ tipo: 'cuenta', nombre: '', sitio_url: null, usuario_texto: null, valor: '', etiquetasTexto: '', rotar_cada_dias: null, notas: null });
     this.archivoPendiente.set(null);
     this.generadorResultado.set(null);
+    this.responsableId.set(null);
     this.drawerOpen.set(true);
   }
   abrirEditar(e: BovedaEntrada) {
@@ -189,6 +203,7 @@ export class AdminVault implements OnInit, OnDestroy {
     });
     this.archivoPendiente.set(null);
     this.generadorResultado.set(null);
+    this.responsableId.set(e.responsable_id);
     this.drawerOpen.set(true);
   }
   cerrarDrawer() {
@@ -197,6 +212,10 @@ export class AdminVault implements OnInit, OnDestroy {
 
   async onArchivoAdd(files: File[]) {
     this.archivoPendiente.set(files[0] ?? null);
+  }
+
+  onResponsableSeleccionado(sel: { usuario_id: string | null; nombre: string } | null) {
+    this.responsableId.set(sel?.usuario_id ?? null);
   }
 
   async guardar() {
@@ -211,12 +230,12 @@ export class AdminVault implements OnInit, OnDestroy {
         await this.boveda.subirArchivo({ nombre: v.nombre, archivo_nombre: file.name, mime: file.type, contenido_base64: base64, etiquetas, notas: v.notas });
       } else if (this.editandoId()) {
         await this.boveda.editar(this.editandoId()!, {
-          nombre: v.nombre, sitio_url: v.sitio_url, usuario_texto: v.usuario_texto,
+          nombre: v.nombre, sitio_url: v.sitio_url, usuario_texto: v.usuario_texto, responsable_id: this.responsableId(),
           valor: v.valor || undefined, etiquetas, rotar_cada_dias: v.rotar_cada_dias, notas: v.notas,
         });
       } else {
         await this.boveda.crear({
-          tipo: v.tipo, nombre: v.nombre, sitio_url: v.sitio_url, usuario_texto: v.usuario_texto,
+          tipo: v.tipo, nombre: v.nombre, sitio_url: v.sitio_url, usuario_texto: v.usuario_texto, responsable_id: this.responsableId(),
           valor: v.valor || null, etiquetas, rotar_cada_dias: v.rotar_cada_dias, notas: v.notas,
         });
       }

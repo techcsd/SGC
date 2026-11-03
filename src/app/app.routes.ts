@@ -259,6 +259,26 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),
       },
       {
+        // DH3/DH19 — grupo «Sistema»: antes vivían bajo /tecnologia/*, cuyo PADRE
+        // exige el módulo `tecnologia` (moduloOSubmoduloGuard) — así que aunque el
+        // menú las mostrara a todos, la URL directa las bloqueaba igual. Rutas
+        // propias, fuera de ese padre, gateadas por `sistema.*` (sembrado = Ver
+        // para todos los roles — ver sql/2026-11-03-dh3-sistema-submodulos.sql).
+        path: 'herramientas',
+        canActivate: [submoduloGuard('sistema.guia_herramientas')],
+        loadComponent: () => import('./pages/tecnologia/guia/guia').then((m) => m.TecGuia),
+        title: 'Guía de herramientas',
+      },
+      {
+        path: 'historial-versiones',
+        canActivate: [submoduloGuard('sistema.historial_versiones')],
+        loadComponent: () =>
+          import('./pages/admin/historial-versiones/historial-versiones').then(
+            (m) => m.AdminHistorialVersiones,
+          ),
+        title: 'Historial de versiones',
+      },
+      {
         // AW4 — Tato, el asistente de IA. Sin gate de módulo: hereda los permisos
         // del usuario (la edge function ejecuta las herramientas con su JWT).
         path: 'asistente',

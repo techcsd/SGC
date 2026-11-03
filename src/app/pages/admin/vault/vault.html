@@ -46,28 +46,28 @@
   <div class="vault-toolbar">
     <div class="vault-search">
       <app-icon name="search" [size]="15" />
-      <input type="text" [placeholder]="'Buscar…' | t" [value]="query()" (input)="query.set($any($event.target).value)" />
+      <input type="text" [placeholder]="'Buscar…' | t" [value]="query()" (input)="query.set($any($event.target).value); page.set(1)" />
     </div>
     <div class="filtros-estado" role="tablist">
-      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'all'" (click)="filtroTipo.set('all')">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'all'" (click)="filtroTipo.set('all'); page.set(1)">
         {{ 'Todas' | t }} <span class="filtro-chip__count">{{ conteo('all') }}</span>
       </button>
-      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'cuenta'" (click)="filtroTipo.set('cuenta')">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'cuenta'" (click)="filtroTipo.set('cuenta'); page.set(1)">
         {{ 'Cuentas' | t }} <span class="filtro-chip__count">{{ conteo('cuenta') }}</span>
       </button>
-      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'api'" (click)="filtroTipo.set('api')">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'api'" (click)="filtroTipo.set('api'); page.set(1)">
         {{ 'Llaves API' | t }} <span class="filtro-chip__count">{{ conteo('api') }}</span>
       </button>
-      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === '2fa'" (click)="filtroTipo.set('2fa')">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === '2fa'" (click)="filtroTipo.set('2fa'); page.set(1)">
         2FA <span class="filtro-chip__count">{{ conteo('2fa') }}</span>
       </button>
-      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'nota'" (click)="filtroTipo.set('nota')">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'nota'" (click)="filtroTipo.set('nota'); page.set(1)">
         {{ 'Notas' | t }} <span class="filtro-chip__count">{{ conteo('nota') }}</span>
       </button>
-      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'archivo'" (click)="filtroTipo.set('archivo')">
+      <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'archivo'" (click)="filtroTipo.set('archivo'); page.set(1)">
         {{ 'Archivos' | t }} <span class="filtro-chip__count">{{ conteo('archivo') }}</span>
       </button>
-      <button type="button" class="filtro-chip" [class.active]="soloPorRotar()" (click)="soloPorRotar.set(!soloPorRotar())">
+      <button type="button" class="filtro-chip" [class.active]="soloPorRotar()" (click)="soloPorRotar.set(!soloPorRotar()); page.set(1)">
         {{ 'Por rotar' | t }}
       </button>
     </div>
@@ -79,12 +79,12 @@
     <div class="table-empty sgc-card"><p>{{ 'No hay entradas en este filtro.' | t }}</p></div>
   } @else {
     <div class="vault-grid">
-      @for (e of entradasFiltradas(); track e.id) {
+      @for (e of entradasPagina(); track e.id) {
         <button type="button" class="vault-card" (click)="abrirDetalle(e)">
           <div class="vault-card__thumb"><app-icon [name]="e.tipo === 'archivo' ? 'file' : e.tipo === '2fa' ? 'shield' : 'key'" [size]="24" /></div>
           <div class="vault-card__body">
             <span class="vault-card__nombre">{{ e.nombre }}</span>
-            <span class="vault-card__meta text-muted">{{ TIPO_LABEL[e.tipo] | t }}@if (e.usuario_texto) { · {{ e.usuario_texto }} }</span>
+            <span class="vault-card__meta text-muted">{{ TIPO_LABEL[e.tipo] | t }}@if (e.usuario_texto) { · {{ e.usuario_texto }} }@if (e.responsable_nombre) { · {{ 'Responsable' | t }}: {{ e.responsable_nombre }} }</span>
             @if (e.rotar_cada_dias) {
               <span class="status-pill"
                 [class.status-pill--success]="estadoRotacion(e) === 'al_dia'"
@@ -101,6 +101,7 @@
         </button>
       }
     </div>
+    <app-paginador id="vault.lista" [total]="entradasFiltradas().length" [(page)]="page" [(pageSize)]="pageSize" />
   }
 
   <!-- ── Drawer: crear/editar ── -->
@@ -119,6 +120,11 @@
       <div class="sgc-field">
         <label for="v-nombre">{{ 'Nombre' | t }} *</label>
         <input id="v-nombre" type="text" formControlName="nombre" />
+      </div>
+      <!-- DH4 — Responsable: persona SGC a cargo (select, ya no texto libre). -->
+      <div class="sgc-field">
+        <label>{{ 'Responsable' | t }}</label>
+        <app-user-picker [value]="responsableId()" placeholder="¿Quién es responsable?" (selected)="onResponsableSeleccionado($event)" />
       </div>
       @if (form.getRawValue().tipo !== 'archivo' && form.getRawValue().tipo !== 'nota') {
         <div class="form-row">
@@ -218,6 +224,7 @@
           <div><dt>{{ 'Tipo' | t }}</dt><dd>{{ TIPO_LABEL[e.tipo] | t }}</dd></div>
           @if (e.sitio_url) { <div><dt>{{ 'Sitio' | t }}</dt><dd>{{ e.sitio_url }}</dd></div> }
           @if (e.usuario_texto) { <div><dt>{{ 'Usuario' | t }}</dt><dd>{{ e.usuario_texto }}</dd></div> }
+          @if (e.responsable_nombre) { <div><dt>{{ 'Responsable' | t }}</dt><dd>{{ e.responsable_nombre }}</dd></div> }
         </dl>
 
         @if (e.tipo === 'archivo') {

@@ -10,10 +10,12 @@ import {
 
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
 
 @Component({
   selector: 'app-tec-homologacion',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, ConfirmDialog, Paginador],
   templateUrl: './homologacion.html',
   styleUrl: './homologacion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,32 @@ export class TecHomologacion implements OnInit {
 
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
+
+  // DH18 — buscador + filtro por categoría + paginación (antes mostraba todo sin tope).
+  query = signal('');
+  filtroCategoria = signal<string | ''>('');
+  page = signal(1);
+  pageSize = signal(10);
+  herramientasFiltradas = computed(() => {
+    const q = this.query().trim().toLowerCase();
+    const cat = this.filtroCategoria();
+    return this.herramientas().filter((h) => {
+      if (cat && h.categoria !== cat) return false;
+      if (!q) return true;
+      return h.nombre.toLowerCase().includes(q)
+        || (h.para_que ?? '').toLowerCase().includes(q)
+        || (h.quien_usa ?? '').toLowerCase().includes(q);
+    });
+  });
+  herramientasPagina = computed(() => {
+    const desde = (this.page() - 1) * this.pageSize();
+    return this.herramientasFiltradas().slice(desde, desde + this.pageSize());
+  });
+  onBuscar(v: string) { this.query.set(v); this.page.set(1); }
+  onFiltroCategoria(v: string) { this.filtroCategoria.set(v); this.page.set(1); }
+
+  // DH18 — eliminar vía <app-confirm-dialog>, ya no `confirm()` nativo.
+  herramientaAEliminar = signal<TecHerramienta | null>(null);
 
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
@@ -141,8 +169,18 @@ export class TecHomologacion implements OnInit {
     }
   }
 
-  async remove(h: TecHerramienta) {
-    if (!confirm(`¿Eliminar la herramienta "${h.nombre}"? Esta acción no se puede deshacer.`)) return;
+  remove(h: TecHerramienta) {
+    this.herramientaAEliminar.set(h);
+  }
+
+  cancelarEliminar() {
+    this.herramientaAEliminar.set(null);
+  }
+
+  async confirmarEliminar() {
+    const h = this.herramientaAEliminar();
+    if (!h) return;
+    this.herramientaAEliminar.set(null);
     try {
       await this.tecnologia.removeHerramienta(h.id);
       this.herramientas.update((list) => list.filter((x) => x.id !== h.id));

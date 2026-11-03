@@ -22,13 +22,30 @@
   </div>
 }
 
+  <!-- DH18 — buscador + filtro por categoría (antes no existían). -->
+<div class="hom-toolbar">
+  <input
+    type="search"
+    class="sgc-input hom-toolbar__search"
+    placeholder="Buscar herramienta, uso o quién la usa…"
+    [value]="query()"
+    (input)="onBuscar($any($event.target).value)"
+  />
+  <select class="hom-toolbar__filtro" [value]="filtroCategoria()" (change)="onFiltroCategoria($any($event.target).value)">
+    <option value="">Todas las categorías</option>
+    @for (c of categorias(); track c.value) {
+      <option [value]="c.value">{{ c.label }}</option>
+    }
+  </select>
+</div>
+
 <!-- ── Table ── -->
 <div class="table-wrapper sgc-card">
   @if (loading()) {
     <app-skeleton variant="table" [rows]="8" />
-  } @else if (herramientas().length === 0) {
+  } @else if (herramientasFiltradas().length === 0) {
     <div class="table-empty">
-      <p>No hay herramientas registradas. Crea la primera.</p>
+      <p>{{ herramientas().length === 0 ? 'No hay herramientas registradas. Crea la primera.' : 'Nada coincide con ese filtro.' }}</p>
     </div>
   } @else {
     <div class="table-scroll">
@@ -44,7 +61,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (h of herramientas(); track h.id) {
+          @for (h of herramientasPagina(); track h.id) {
             <tr [class.row--inactive]="!h.activo">
               <td><span class="tool-nombre">{{ h.nombre }}</span></td>
               <td>
@@ -97,8 +114,13 @@
         </tbody>
       </table>
     </div>
+    <app-paginador id="homologacion.lista" [total]="herramientasFiltradas().length" [(page)]="page" [(pageSize)]="pageSize" />
   }
 </div>
+
+<app-confirm-dialog [open]="!!herramientaAEliminar()" title="¿Eliminar herramienta?"
+  [message]="'¿Eliminar «' + (herramientaAEliminar()?.nombre ?? '') + '»? Esta acción no se puede deshacer.'"
+  confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminar()" (cancelled)="cancelarEliminar()" />
 
 <!-- ── Form Drawer ── -->
 <app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">

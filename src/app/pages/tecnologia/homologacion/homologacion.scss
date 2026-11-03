@@ -154,3 +154,28 @@ textarea {
   border-top: 1px solid var(--sgc-border);
   margin-top: 4px;
 }
+
+// DH18 — buscador + filtro por categoría.
+.hom-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  &__search {
+    flex: 1;
+  }
+
+  &__filtro {
+    padding: 9px 12px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    font-size: 14px;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    cursor: pointer;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+}

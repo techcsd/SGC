@@ -237,3 +237,31 @@ textarea { resize: vertical; min-height: 64px; }
 
   select.sgc-input[size] { flex: 1; height: auto; }
 }
+
+// DH20 — preview de renglones leídos (drawer de creación).
+.cot-renglones-preview {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--sgc-surface-hover, var(--sgc-surface-2));
+  border-radius: var(--sgc-radius-sm, var(--sgc-radius));
+  font-size: 12.5px;
+
+  &__h { font-weight: 600; display: block; margin-bottom: 4px; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin: 2px 0; }
+}
+
+// DH20 — editor de renglones (detalle de cotización).
+.renglones-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  &__fila {
+    display: grid;
+    grid-template-columns: 2fr 80px 90px 100px auto;
+    gap: 6px;
+    align-items: center;
+  }
+}
