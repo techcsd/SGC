@@ -6017,6 +6017,11 @@
           "t": "mejora",
           "m": "Cotizaciones",
           "d": "Los renglones que lee la IA de un PDF/foto ahora se guardan, se ven y se pueden editar (antes se descartaban)."
+        },
+        {
+          "t": "mejora",
+          "m": "Roles",
+          "d": "Empleados, Asistencia y Ausencias/Vacaciones (RRHH) ya se pueden asignar como permiso independiente desde Roles — antes decían \"Próximamente\"."
         }
       ]
     }
