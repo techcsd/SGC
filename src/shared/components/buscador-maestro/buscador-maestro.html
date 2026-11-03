@@ -1,0 +1,87 @@
+@if (abierto()) {
+  <div class="bm-backdrop" (click)="onBackdropClick()" aria-hidden="true"></div>
+
+  <div
+    class="bm-dialog"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'Buscar módulo o pantalla…' | t"
+  >
+    <div class="bm-field">
+      <svg class="bm-field__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        #campoInput
+        class="bm-field__input"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded="true"
+        aria-controls="bm-listbox"
+        [attr.aria-activedescendant]="activeDescendant()"
+        [attr.placeholder]="'Buscar módulo o pantalla…' | t"
+        [value]="query()"
+        (input)="onQueryChange($any($event.target).value)"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button
+        class="bm-field__cerrar"
+        type="button"
+        (click)="cerrar()"
+        [attr.aria-label]="'Cerrar' | t"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Anuncio para lector de pantalla (cantidad de resultados) -->
+    <div class="sr-only" aria-live="polite">{{ anuncio() }}</div>
+
+    <div class="bm-body" id="bm-listbox" role="listbox" [attr.aria-label]="'Resultados' | t">
+      @if (sinResultados()) {
+        <div class="bm-empty">
+          <p class="bm-empty__texto">{{ 'No encontré eso. Prueba con el nombre del módulo' | t }}</p>
+        </div>
+      }
+
+      @for (seccion of secciones(); track seccion.titulo) {
+        <div class="bm-seccion">
+          <div class="bm-seccion__titulo">{{ seccion.titulo }}</div>
+          @for (fila of seccion.filas; track fila.entrada.id) {
+            <button
+              type="button"
+              class="bm-opcion"
+              [id]="seleccionId(indiceDe(fila))"
+              role="option"
+              [attr.aria-selected]="indiceDe(fila) === seleccionIndex()"
+              [class.bm-opcion--activa]="indiceDe(fila) === seleccionIndex()"
+              (mouseenter)="seleccionIndex.set(indiceDe(fila))"
+              (click)="elegir(fila)"
+            >
+              <span class="bm-opcion__camino">
+                @for (seg of segmentosCamino(fila); track $index) {
+                  @if (seg.marcado) {
+                    <mark>{{ seg.texto }}</mark>
+                  } @else {
+                    <span>{{ seg.texto }}</span>
+                  }
+                }
+              </span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="bm-footer">
+      <span class="bm-footer__hint"><kbd>↑</kbd><kbd>↓</kbd> {{ 'para moverte' | t }}</span>
+      <span class="bm-footer__hint"><kbd>Enter</kbd> {{ 'para ir' | t }}</span>
+      <span class="bm-footer__hint"><kbd>Esc</kbd> {{ 'para cerrar' | t }}</span>
+    </div>
+  </div>
+}

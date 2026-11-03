@@ -36,6 +36,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.check-subscriptions]
 verify_jwt = false
+[functions.purgar-imagenes-notas]
+verify_jwt = false
 [functions.notificar-soporte]
 verify_jwt = false
 [functions.generar-informe-obra]

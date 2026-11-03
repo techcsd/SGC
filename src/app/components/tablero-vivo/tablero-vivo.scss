@@ -83,6 +83,47 @@
   }
   &__etapa-flecha { color: var(--text-3); margin-left: 2px; }
 
+  // DG3 — "atrasados" / "usos sin cerrar": número aparte, abrible (AT11).
+  &__alerta {
+    margin: 8px 0 10px;
+  }
+  &__alerta-boton {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--sgc-warning-light, color-mix(in srgb, var(--sgc-warning) 14%, transparent));
+    border: 1px solid var(--sgc-warning);
+    border-radius: 999px;
+    padding: 5px 12px;
+    color: var(--sgc-warning);
+    font: inherit;
+    font-weight: 700;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    &:hover, &:focus-visible { filter: brightness(1.08); }
+  }
+  &__alerta-num { font-size: 14px; font-weight: 800; }
+  &__alerta-detalle {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 12.5px;
+  }
+  &__alerta-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+  }
+  &__alerta-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--brand);
+    font-weight: 600;
+    font-size: 12px;
+  }
+
   // feed de eventos (entra deslizándose — base-tablero-feed)
   &__feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
   &__evento {
@@ -119,9 +160,17 @@
   &__veh-label { font-size: 3px; fill: var(--text-2); font-weight: 600; }
   &__mapa-nota { font-size: 11px; color: var(--text-3); margin: 6px 2px 0; }
 
+  // DG3 — posición vieja (>15 min, umbral AV1-like): gris/atenuada, "sin señal".
+  &__veh--sin-senal {
+    .tv__veh-halo { fill: var(--sgc-text-muted, #9ca3af); opacity: 0.12; animation: none; }
+    .tv__veh-punto { fill: var(--sgc-text-muted, #9ca3af); }
+    .tv__veh-label { fill: var(--text-3); }
+  }
+
   // F6b (DF4-C) — ETA honesta por vehículo, lista debajo del mapa esquemático.
   &__eta-lista { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
   &__eta-item { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+  &__eta-item--sin-senal { opacity: 0.7; }
   &__eta-veh { color: var(--text-2); font-weight: 600; }
   &__eta-valor { color: var(--text-2); }
   &__eta-valor--vacio { color: var(--text-3); }

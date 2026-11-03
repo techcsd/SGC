@@ -21,6 +21,69 @@
         <div class="tv__kpi"><span class="tv__kpi-num" [appCountUp]="d.kpis.vehiculos_en_uso"></span><span class="tv__kpi-label">{{ 'Vehículos en uso' | t }}</span></div>
       </div>
 
+      @if (d.kpis.usos_sin_cerrar > 0) {
+        <!-- DG3 — usos abiertos hace más de 24h: aparte, honesto, abrible (AT11) -->
+        <div class="tv__alerta">
+          <button type="button" class="tv__alerta-boton" [attr.aria-expanded]="usosSinCerrarAbierto()" (click)="toggleUsosSinCerrar()">
+            <span class="tv__alerta-num">{{ d.kpis.usos_sin_cerrar }}</span>
+            <span class="tv__alerta-texto">{{ (d.kpis.usos_sin_cerrar === 1 ? 'uso sin cerrar hace más de 24 h' : 'usos sin cerrar hace más de 24 h') | t }}</span>
+          </button>
+          @if (usosSinCerrarAbierto()) {
+            <div class="tv__alerta-detalle">
+              @if (cargandoUsosSinCerrar()) {
+                <p>{{ 'Cargando…' | t }}</p>
+              } @else if (!usosSinCerrarDetalle().length) {
+                <p>{{ 'Sin casos.' | t }}</p>
+              } @else {
+                <table class="tv__alerta-tabla">
+                  <thead>
+                    <tr><th>{{ 'Vehículo' | t }}</th><th>{{ 'Chofer' | t }}</th><th>{{ 'Horas abierto' | t }}</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (u of usosSinCerrarDetalle(); track u.vehiculo_id + u.inicio_at) {
+                      <tr><td>{{ u.vehiculo }}</td><td>{{ u.chofer }}</td><td>{{ u.horas_abierto | number:'1.0-1' }}</td></tr>
+                    }
+                  </tbody>
+                </table>
+              }
+              <a class="tv__alerta-link" routerLink="/flota/responsabilidad">{{ 'Ver en Flota › Vehículos en uso' | t }}</a>
+            </div>
+          }
+        </div>
+      }
+
+      @if (d.flujo.atrasados > 0) {
+        <!-- DG3 — en tránsito hace más de 48h sin entregar: aparte de "en ruta" Y de
+             "hay movimiento hoy" (un atrasado de hace semanas no es actividad de hoy,
+             pero tampoco debe desaparecer solo porque hoy no hubo movimiento). -->
+        <div class="tv__alerta tv__alerta--conduces">
+          <button type="button" class="tv__alerta-boton" [attr.aria-expanded]="atrasadosAbierto()" (click)="toggleAtrasados()">
+            <span class="tv__alerta-num">{{ d.flujo.atrasados }}</span>
+            <span class="tv__alerta-texto">{{ (d.flujo.atrasados === 1 ? 'atrasado' : 'atrasados') | t }}</span>
+          </button>
+          @if (atrasadosAbierto()) {
+            <div class="tv__alerta-detalle">
+              @if (cargandoAtrasados()) {
+                <p>{{ 'Cargando…' | t }}</p>
+              } @else if (!atrasadosDetalle().length) {
+                <p>{{ 'Sin casos.' | t }}</p>
+              } @else {
+                <table class="tv__alerta-tabla">
+                  <thead>
+                    <tr><th>{{ 'Conduce' | t }}</th><th>{{ 'Obra' | t }}</th><th>{{ 'Vehículo' | t }}</th><th>{{ 'Horas en tránsito' | t }}</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (c of atrasadosDetalle(); track c.referencia) {
+                      <tr><td>{{ c.referencia }}</td><td>{{ c.obra }}</td><td>{{ c.vehiculo }}</td><td>{{ c.horas_en_transito | number:'1.0-1' }}</td></tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+        </div>
+      }
+
       @if (!hayMovimiento()) {
         <p class="tv__vacio">{{ 'Todavía no hay movimiento hoy.' | t }}</p>
       } @else {
@@ -37,6 +100,7 @@
                 </li>
               }
             </ol>
+
             <ul class="tv__feed" aria-live="polite">
               @for (ev of d.eventos; track ev.at + ev.tipo) {
                 <li class="tv__evento">
@@ -63,19 +127,21 @@
                   <line [attr.x1]="l" y1="0" [attr.x2]="l" y2="70" class="tv__mapa-linea" />
                 }
                 @for (v of flotaSvg(); track v.vehiculo_id) {
-                  <g class="tv__veh" [style.transform]="'translate(' + v.x + 'px,' + v.y + 'px)'">
+                  <g class="tv__veh" [class.tv__veh--sin-senal]="v.sinSenal" [style.transform]="'translate(' + v.x + 'px,' + v.y + 'px)'">
                     <circle r="2.6" class="tv__veh-halo" />
                     <circle r="1.6" class="tv__veh-punto" />
                     <text x="3.4" y="1.1" class="tv__veh-label">{{ v.etiqueta }}</text>
                   </g>
                 }
               </svg>
-              <p class="tv__mapa-nota">{{ 'Posiciones relativas de hoy (las manda la app de los choferes).' | t }}</p>
+              <p class="tv__mapa-nota">{{ 'Posición reciente (últimas 12 h, la manda la app de los choferes).' | t }}</p>
               <ul class="tv__eta-lista">
                 @for (v of flotaSvg(); track v.vehiculo_id) {
-                  <li class="tv__eta-item">
+                  <li class="tv__eta-item" [class.tv__eta-item--sin-senal]="v.sinSenal">
                     <span class="tv__eta-veh">{{ v.etiqueta }}</span>
-                    @if (v.etaMin !== null) {
+                    @if (v.sinSenal) {
+                      <span class="tv__eta-valor tv__eta-valor--vacio">{{ 'Sin señal hace' | t }} {{ v.edad_min }} min</span>
+                    } @else if (v.etaMin !== null) {
                       <span class="tv__eta-valor">{{ 'Llega en' | t }} {{ v.etaMin }} min</span>
                     } @else {
                       <span class="tv__eta-valor tv__eta-valor--vacio">{{ 'ETA no disponible' | t }}</span>
@@ -84,7 +150,7 @@
                 }
               </ul>
             } @else {
-              <p class="tv__vacio">{{ 'Ningún vehículo ha mandado su posición hoy.' | t }}</p>
+              <p class="tv__vacio">{{ 'Ningún vehículo ha mandado su posición en las últimas 12 h.' | t }}</p>
             }
           </div>
         </div>

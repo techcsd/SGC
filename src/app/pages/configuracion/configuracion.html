@@ -98,6 +98,27 @@
               <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="!logoAlRefrescar()"
                       (click)="setLogoAlRefrescar(false)">{{ 'Desactivado' | t }}</button>
             </div>
+
+            <!-- DG — Compa flotante: burbuja → ventana disponible en todo el sistema. -->
+            <label class="cfg__label">{{ 'Compa flotante' | t }}</label>
+            <p class="cfg__muted">{{ 'Muestra una burbuja de Compa abajo a la derecha en todas las pantallas, que puedes abrir como una ventana.' | t }}</p>
+            <div class="cfg__seg">
+              <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="(prefs()?.compa_flotante ?? true)"
+                      (click)="setCompaFlotante(true)">{{ 'Activado' | t }}</button>
+              <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="!(prefs()?.compa_flotante ?? true)"
+                      (click)="setCompaFlotante(false)">{{ 'Desactivado' | t }}</button>
+            </div>
+
+            @if (prefs()?.compa_flotante ?? true) {
+              <label class="cfg__label">{{ 'Recordar posición y tamaño' | t }}</label>
+              <p class="cfg__muted">{{ 'Guarda dónde dejaste la ventana de Compa en este dispositivo para la próxima vez.' | t }}</p>
+              <div class="cfg__seg">
+                <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="(prefs()?.compa_flotante_recordar_posicion ?? true)"
+                        (click)="setCompaFlotanteRecordarPosicion(true)">{{ 'Activado' | t }}</button>
+                <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="!(prefs()?.compa_flotante_recordar_posicion ?? true)"
+                        (click)="setCompaFlotanteRecordarPosicion(false)">{{ 'Desactivado' | t }}</button>
+              </div>
+            }
           </div>
         }
 

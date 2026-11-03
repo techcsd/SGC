@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 8%** (57/695 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 9%** (65/704 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,7 +12,7 @@
 | inventario/requisiciones | scope | 241 | 0 | 241 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 98 | 12 | 86 | 12% |
-| configuracion | scope | 74 | 45 | 29 | 61% |
+| configuracion | scope | 83 | 53 | 30 | 64% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 150 | 0 | 150 | 0% |
@@ -113,7 +113,6 @@
 | obra/subcontratistas | - | 104 | 0 | 104 | 0% |
 | politicas/eliminar-cuenta | - | 13 | 0 | 13 | 0% |
 | politicas | - | 21 | 0 | 21 | 0% |
-| practica | - | 68 | 0 | 68 | 0% |
 | proyectos/cargos | - | 31 | 0 | 31 | 0% |
 | proyectos/clima | - | 54 | 0 | 54 | 0% |
 | proyectos/compras | - | 40 | 0 | 40 | 0% |
@@ -135,7 +134,6 @@
 | tecnologia/compras | - | 136 | 0 | 136 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
-| tecnologia/dev-notes | - | 120 | 0 | 120 | 0% |
 | tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
 | tecnologia/guia | - | 19 | 0 | 19 | 0% |
 | tecnologia/homologacion | - | 41 | 0 | 41 | 0% |
@@ -156,16 +154,20 @@
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | bitacora/nueva | - | 300 | 17 | 283 | 6% |
 | bitacora/solicitudes-material | - | 145 | 9 | 136 | 6% |
+| tecnologia/dev-notes | - | 137 | 10 | 127 | 7% |
 | flota/mantenimientos | - | 178 | 16 | 162 | 9% |
 | flota/vehiculos | - | 589 | 66 | 523 | 11% |
 | app-movil | - | 55 | 8 | 47 | 15% |
 | proyectos/personal | - | 415 | 74 | 341 | 18% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
+| practica | - | 69 | 24 | 45 | 35% |
 | admin/pulso-sistema | - | 7 | 3 | 4 | 43% |
+| demo/progreso | - | 19 | 9 | 10 | 47% |
 | reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | asistente | - | 61 | 30 | 31 | 49% |
+| demo/escenarios | - | 27 | 14 | 13 | 52% |
 | tecnologia/oficina-agentes | - | 42 | 22 | 20 | 52% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
 | tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |

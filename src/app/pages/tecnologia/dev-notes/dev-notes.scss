@@ -469,6 +469,78 @@
   }
 }
 
+// DG4 — "Nuevo grupo…" convierte el <select> en un input + Crear/Cancelar.
+.dn-editor__carpeta-nueva {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    input {
+      border: 1px solid var(--brand, #1e3a5f);
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 13px;
+      background: var(--sgc-surface, #fff);
+      color: var(--sgc-text, #121212);
+      width: 150px;
+      outline: none;
+    }
+  }
+  &--error &-row input { border-color: var(--danger, #d92d20); }
+}
+
+// DG7 — papelera de imágenes quitadas de la nota (30 días).
+.dn-img-papelera {
+  border-top: 1px solid var(--sgc-border, #e4e7ec);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    color: var(--sgc-text-muted, #7a8799);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    align-self: flex-start;
+    &:hover { color: var(--brand, #1e3a5f); }
+  }
+  &__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--sgc-border, #e4e7ec);
+    border-radius: 10px;
+    padding: 6px 10px;
+  }
+  &__thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex: none;
+    &--icono {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--sgc-surface-muted, #f3f5f8);
+      color: var(--sgc-text-muted, #7a8799);
+    }
+  }
+  &__info { flex: 1; color: var(--sgc-text-muted, #7a8799); font-size: 12px; }
+}
+
 .dn-editor__canvas {
   flex: 1;
   overflow-y: auto;

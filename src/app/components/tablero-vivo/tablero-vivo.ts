@@ -1,10 +1,17 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { TableroVivoService, TableroVivo } from '../../../shared/services/tablero-vivo.service';
+import { RouterLink } from '@angular/router';
+import {
+  TableroVivoService, TableroVivo, ConduceAtrasado, UsoSinCerrar,
+} from '../../../shared/services/tablero-vivo.service';
 import { UserService } from '../../core/services/user.service';
 import { CountUpDirective } from '../../../shared/motion/count-up.directive';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { etaMinutos } from '../../../shared/utils/geo.util';
+
+/** DG3 — a partir de esta edad (min) la posición se pinta "sin señal" (mismo
+ *  concepto que AV1 en Flota › Seguimiento, umbral propio de este tablero). */
+const SIN_SENAL_MIN = 15;
 
 /**
  * DB1 (Ronda DB) — «Hoy, en vivo» en el Inicio (mockup DB1): KPIs con count-up,
@@ -19,7 +26,7 @@ import { etaMinutos } from '../../../shared/utils/geo.util';
   templateUrl: './tablero-vivo.html',
   styleUrl: './tablero-vivo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, CountUpDirective, TranslatePipe],
+  imports: [DecimalPipe, CountUpDirective, TranslatePipe, RouterLink],
 })
 export class TableroVivoComponent implements OnInit, OnDestroy {
   private service = inject(TableroVivoService);
@@ -28,6 +35,15 @@ export class TableroVivoComponent implements OnInit, OnDestroy {
   datos = signal<TableroVivo | null>(null);
   error = signal('');
   enVivo = signal(false); // Realtime conectado (si no: polling 30 s)
+
+  // DG3 — detalle abrible (AT11) de "atrasados" y "usos sin cerrar".
+  atrasadosAbierto = signal(false);
+  atrasadosDetalle = signal<ConduceAtrasado[]>([]);
+  cargandoAtrasados = signal(false);
+
+  usosSinCerrarAbierto = signal(false);
+  usosSinCerrarDetalle = signal<UsoSinCerrar[]>([]);
+  cargandoUsosSinCerrar = signal(false);
 
   private debounceId: ReturnType<typeof setTimeout> | null = null;
   private pollId: ReturnType<typeof setInterval> | null = null;
@@ -46,6 +62,9 @@ export class TableroVivoComponent implements OnInit, OnDestroy {
     { key: 'entregada', label: 'Entregada' },
   ];
 
+  /** DG3 — actividad de HOY únicamente. A propósito NO entran `flujo.en_ruta` ni
+   *  `flujo.atrasados`: un conduce atascado de hace semanas no es "movimiento hoy"
+   *  (por eso "atrasados" se muestra aparte, nunca mezclado con este mensaje). */
   hayMovimiento = computed(() => {
     const d = this.datos();
     if (!d) return false;
@@ -70,6 +89,9 @@ export class TableroVivoComponent implements OnInit, OnDestroy {
       x: 12 + ((f.lng - minLng) / spanLng) * 76,
       y: 12 + ((maxLat - f.lat) / spanLat) * 56,
       etiqueta: f.alias || f.placa || '—',
+      // DG3 — el backend ya solo manda posiciones de las últimas 12h; aquí solo
+      // decidimos el estilo "sin señal" (>15 min), nunca un filtro adicional.
+      sinSenal: f.edad_min > SIN_SENAL_MIN,
       etaMin: etaMinutos(
         { lat: f.lat, lng: f.lng },
         f.destino_lat != null && f.destino_lng != null ? { lat: f.destino_lat, lng: f.destino_lng } : null,
@@ -132,6 +154,42 @@ export class TableroVivoComponent implements OnInit, OnDestroy {
     } catch (e: unknown) {
       // El tablero nunca rompe el Inicio: error corto y sin jerga (regla 16).
       if (!this.datos()) this.error.set(e instanceof Error ? 'No se pudo cargar el tablero en vivo.' : '');
+    }
+  }
+
+  /** DG3 — abre/cierra la lista de conduces atrasados (AT11). */
+  async toggleAtrasados() {
+    if (this.atrasadosAbierto()) {
+      this.atrasadosAbierto.set(false);
+      return;
+    }
+    this.atrasadosAbierto.set(true);
+    this.usosSinCerrarAbierto.set(false);
+    this.cargandoAtrasados.set(true);
+    try {
+      this.atrasadosDetalle.set(await this.service.atrasadosDetalle());
+    } catch {
+      this.atrasadosDetalle.set([]);
+    } finally {
+      this.cargandoAtrasados.set(false);
+    }
+  }
+
+  /** DG3 — abre/cierra la lista de usos de vehículo sin cerrar (AT11). */
+  async toggleUsosSinCerrar() {
+    if (this.usosSinCerrarAbierto()) {
+      this.usosSinCerrarAbierto.set(false);
+      return;
+    }
+    this.usosSinCerrarAbierto.set(true);
+    this.atrasadosAbierto.set(false);
+    this.cargandoUsosSinCerrar.set(true);
+    try {
+      this.usosSinCerrarDetalle.set(await this.service.usosSinCerrarDetalle());
+    } catch {
+      this.usosSinCerrarDetalle.set([]);
+    } finally {
+      this.cargandoUsosSinCerrar.set(false);
     }
   }
 

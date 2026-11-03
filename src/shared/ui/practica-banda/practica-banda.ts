@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PracticaService } from '../../../app/core/practica/practica.service';
 import { PracticaClienteService } from '../../../app/core/practica/practica-cliente.service';
 import { ResultadoPractica } from '../../../app/core/practica/practica.model';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 /**
  * CM7 7b — "shell" de práctica para las misiones con PANTALLA REAL. Cuando una misión con
@@ -13,7 +14,7 @@ import { ResultadoPractica } from '../../../app/core/practica/practica.model';
  */
 @Component({
   selector: 'app-practica-banda',
-  standalone: true,
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './practica-banda.html',
   styleUrl: './practica-banda.scss',

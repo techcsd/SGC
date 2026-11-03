@@ -34,6 +34,18 @@ export interface NotaGrupo {
   created_at: string;
 }
 
+/** DG7 — fila de la papelera de imágenes quitadas de una nota (30 días antes de
+ *  purgarse de verdad del Storage). `ruta_storage` es la ruta DENTRO del bucket
+ *  `notas-imagenes` (sin el prefijo `nota-img:` que usa el Markdown). */
+export interface NotaImagenQuitada {
+  id: string;
+  nota_id: string;
+  ruta_storage: string;
+  quitada_en: string;
+  quitada_por: string | null;
+  purgar_en: string;
+}
+
 /** AD9 — un ítem de checklist estructurado de una nota. Puede vincularse a una Tarea.
  *  BQ/BP5 — ampliado para poder referenciar también un issue (Jira interno) o una
  *  versión (historial). El CHECK en BD acepta 'tarea','issue','version'. */

@@ -10,9 +10,15 @@ export interface MisPreferencias {
   tamano_letra: 'pequena' | 'normal' | 'grande';
   modulo_inicio: string | null;
   idioma_elegido_at: string | null;
+  /** DG8 — Compa flotante (burbuja → ventana) visible en todo el sistema. Default true. */
+  compa_flotante: boolean;
+  /** DG8 — si está en true, la posición/tamaño de la ventana se recuerdan en localStorage. */
+  compa_flotante_recordar_posicion: boolean;
 }
 
-export type ClavePreferencia = 'idioma' | 'tema' | 'densidad' | 'tamano_letra' | 'modulo_inicio';
+export type ClavePreferencia =
+  | 'idioma' | 'tema' | 'densidad' | 'tamano_letra' | 'modulo_inicio'
+  | 'compa_flotante' | 'compa_flotante_recordar_posicion';
 
 /**
  * BS3 — servicio de preferencias de Configuración. Lee/escribe vía RPCs

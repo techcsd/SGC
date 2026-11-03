@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
+import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
@@ -170,10 +171,21 @@ export class PersonalRegistro implements OnInit {
     this.leyendoIa.set(true);
     this.error.set('');
     try {
-      const [b1, b2] = await Promise.all([this.fileABase64(doc), this.fileABase64(per)]);
+      // DG8 — comprimir ANTES de mandar a la IA: una foto de cámara sin comprimir
+      // (varios MB, HEIC incluido) hacía que la llamada navegador→edge (lectura con
+      // Anthropic) pesara/tardara demasiado y el relay de Supabase la cortaba →
+      // FunctionsFetchError, mensaje "No se pudo contactar el servicio" (mismo patrón
+      // que BJ1 ya resolvió para las fotos de evidencia, que nunca llegó a este flujo
+      // de registro rápido). Perfil 'documento' (2000px/0.8) mantiene la legibilidad
+      // del documento y convierte HEIC a JPEG (Anthropic no acepta HEIC).
+      const [docComprimido, perComprimido] = await Promise.all([
+        comprimirImagen(doc, 'documento'),
+        comprimirImagen(per, 'documento'),
+      ]);
+      const [b1, b2] = await Promise.all([this.fileABase64(docComprimido), this.fileABase64(perComprimido)]);
       const lectura = await this.service.leerDocumento(
-        { data: b1, mime: doc.type || 'image/jpeg' },
-        { data: b2, mime: per.type || 'image/jpeg' },
+        { data: b1, mime: docComprimido.type || 'image/jpeg' },
+        { data: b2, mime: perComprimido.type || 'image/jpeg' },
       );
       // Precarga EDITABLE (nada se guarda solo). 'venezolano' no está en el
       // catálogo de nacionalidades del alta → cae a 'otro' y queda en notas.

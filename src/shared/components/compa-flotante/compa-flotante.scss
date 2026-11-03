@@ -1,0 +1,171 @@
+// DG — Compa flotante. Movimiento: nivel "base" de docs/MOVIMIENTO.md (mismo patrón
+// que `form-drawer.scss` `modalIn` / `buscador-maestro.scss` — panel que entra con
+// escala + fundido, 220ms). `prefers-reduced-motion`/`html.motion-reduced` ya anulan
+// duraciones globalmente (`_tokens.scss`), así que no hace falta duplicar esa regla.
+
+$z-burbuja: 1150;
+$z-ventana: 1151;
+
+// ── Burbuja ──────────────────────────────────────────────────────────────────
+.cf-burbuja {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: $z-burbuja;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: var(--brand);
+  color: var(--text-on-brand);
+  box-shadow: var(--sgc-shadow-lg, 0 12px 24px rgba(0, 0, 0, 0.25));
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+// ── Ventana flotante ─────────────────────────────────────────────────────────
+.cf-ventana {
+  position: fixed;
+  z-index: $z-ventana;
+  display: flex;
+  flex-direction: column;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg, 16px);
+  box-shadow: var(--sgc-shadow-lg, 0 24px 64px rgba(0, 0, 0, 0.3));
+  overflow: hidden;
+  animation: cf-ventana-in var(--motion-base, 220ms) var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+
+  &--minimizada {
+    height: auto !important;
+    width: min(320px, 92vw) !important;
+  }
+}
+
+@keyframes cf-ventana-in {
+  from { opacity: 0; transform: scale(0.98) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+// ── Barra superior (arrastrable) — "azul" = --brand (navy), AA con --text-on-brand ──
+.cf-barra {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 10px 12px;
+  background: var(--brand);
+  color: var(--text-on-brand);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+}
+.cf-barra__icono { flex-shrink: 0; opacity: 0.9; }
+.cf-barra__titulo { font-weight: 700; font-size: 13.5px; flex: 1; }
+.cf-barra__acciones { display: flex; align-items: center; gap: 2px; }
+.cf-barra__btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-on-brand);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: background 0.15s ease, opacity 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--text-on-brand);
+    outline-offset: 1px;
+  }
+}
+
+// ── "en <módulo>" ────────────────────────────────────────────────────────────
+.cf-modulo {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: var(--sgc-text-muted);
+  background: var(--sgc-surface-2, var(--surface-2));
+  border-bottom: 1px solid var(--sgc-border);
+}
+
+// ── Contenido (embebe `<app-asistente compacto>`) ───────────────────────────
+.cf-contenido {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// ── Manija de redimensionar ─────────────────────────────────────────────────
+.cf-resize {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--sgc-text-muted);
+  cursor: nwse-resize;
+  touch-action: none;
+  border-radius: 4px;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+}
+
+// ── Móvil (<768px): hoja que sube desde abajo, sin arrastre ni redimensionar ──
+@media (max-width: 768px) {
+  .cf-burbuja {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .cf-ventana--hoja {
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    width: 100% !important;
+    height: 78vh !important;
+    border-radius: var(--sgc-radius-lg, 16px) var(--sgc-radius-lg, 16px) 0 0;
+    animation: cf-hoja-in var(--motion-base, 220ms) var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+
+    .cf-barra {
+      cursor: default;
+    }
+  }
+}
+
+@keyframes cf-hoja-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
