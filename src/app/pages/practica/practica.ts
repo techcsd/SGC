@@ -2,11 +2,12 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { Router } from '@angular/router';
 import { PracticaService } from '../../core/practica/practica.service';
 import { UserService } from '../../core/services/user.service';
-import { MISIONES_PILOTO } from '../../core/practica/practica.data';
+import { misionesParaRoles } from '../../core/practica/practica.data';
 import {
   MisionPractica, ResultadoPractica, ResultadoEquipoFila, ResultadoPersonaFila,
   CampoPractica, OpcionCampo, FilaMaterial, FilaConteo,
 } from '../../core/practica/practica.model';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 
 /**
  * CM7 — Modo práctica (web): simulador local con nota tipo examen. Datos de mentira,
@@ -16,7 +17,7 @@ import {
  */
 @Component({
   selector: 'app-practica',
-  standalone: true,
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './practica.html',
   styleUrl: './practica.scss',
@@ -43,11 +44,7 @@ export class Practica implements OnInit {
   // Selección del picker "agregar material" por cada campo de tipo 'materiales'.
   private nuevoArt = signal<Record<string, string>>({});
 
-  misiones = computed(() => {
-    const roles = this.user.roles();
-    const esAdmin = roles.includes('admin');
-    return MISIONES_PILOTO.filter((m) => esAdmin || m.roles.length === 0 || m.roles.some((r) => roles.includes(r)));
-  });
+  misiones = computed(() => misionesParaRoles(this.user.roles()));
 
   campos = computed<CampoPractica[]>(() => this.practica.mision()?.campos ?? []);
 

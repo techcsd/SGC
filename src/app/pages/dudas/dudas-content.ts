@@ -817,7 +817,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Puedo ver qué dispositivo usa cada usuario?',
         respuesta:
-          'Sí. En Sistema > Estadísticas, la sección "Dispositivos por usuario" muestra, por cada persona, el dispositivo que usa (plataforma y modelo), la versión de la app y su último uso, con buscador y filtros por plataforma y por rol. Al tocar una fila se despliega el historial de sus últimos dispositivos. Es visible solo para admin y el rol Tecnología.',
+          'Sí. En Developer > Estadísticas, la sección "Dispositivos por usuario" muestra, por cada persona, el dispositivo que usa (plataforma y modelo), la versión de la app y su último uso, con buscador y filtros por plataforma y por rol. Al tocar una fila se despliega el historial de sus últimos dispositivos. Es visible solo para admin y el rol Tecnología.',
       },
       {
         pregunta: '¿Qué herramienta oficial usamos para cada cosa?',

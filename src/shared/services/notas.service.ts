@@ -8,6 +8,7 @@ import {
   NotaChecklistRefTipo,
   TareaVinculable,
   NotaGrupo,
+  NotaImagenQuitada,
 } from '../models/nota.model';
 
 export interface DirectorioUsuario {
@@ -36,7 +37,9 @@ export interface GuardarNotaResult {
 // CS2 — imágenes pegadas/arrastradas en notas (bucket privado `notas-imagenes`).
 export const NOTA_IMAGEN_MAX_BYTES = 5 * 1024 * 1024;
 export const NOTA_IMAGEN_MAX_POR_NOTA = 20;
-const NOTA_IMAGEN_PREFIJO = 'nota-img:';
+// DG7 — exportado: dev-notes.ts lo necesita para reconstruir `nota-img:<ruta>`
+// al reinsertar una imagen recuperada de la papelera.
+export const NOTA_IMAGEN_PREFIJO = 'nota-img:';
 
 @Injectable({ providedIn: 'root' })
 export class NotasService {
@@ -225,11 +228,46 @@ export class NotasService {
     return data.signedUrl;
   }
 
-  /** Borra el archivo de Storage cuando se quita la imagen de la nota (best-effort). */
-  async borrarImagenNota(src: string): Promise<void> {
-    if (!src.startsWith(NOTA_IMAGEN_PREFIJO)) return;
-    const path = src.slice(NOTA_IMAGEN_PREFIJO.length);
-    await this.supabase.client.storage.from('notas-imagenes').remove([path]).catch(() => { /* best-effort */ });
+  /**
+   * DG7 — YA NO borra el archivo de Storage al instante: archiva la ruta en
+   * `sgc.nota_imagenes_quitadas` (papelera de 30 días). Solo el cron
+   * `sgc-purgar-imagenes-notas` borra el archivo real, tras `purgar_en`. Esto
+   * permite "Deshacer" (undo del editor) y la lista "Imágenes quitadas" sin
+   * haber perdido el archivo. Devuelve `null` si `src` no es una imagen propia
+   * (p. ej. una imagen externa pegada como link) — nada que archivar.
+   */
+  async borrarImagenNota(notaId: string, src: string, quitadaPor: string | null): Promise<NotaImagenQuitada | null> {
+    if (!src.startsWith(NOTA_IMAGEN_PREFIJO)) return null;
+    const ruta = src.slice(NOTA_IMAGEN_PREFIJO.length);
+    const { data, error } = await this.supabase.client
+      .from('nota_imagenes_quitadas')
+      .insert({ nota_id: notaId, ruta_storage: ruta, quitada_por: quitadaPor })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as NotaImagenQuitada;
+  }
+
+  /** DG7 — papelera de imágenes quitadas de UNA nota (para el enlace "Imágenes quitadas (N)"). */
+  async getImagenesQuitadas(notaId: string): Promise<NotaImagenQuitada[]> {
+    const { data, error } = await this.supabase.client
+      .from('nota_imagenes_quitadas')
+      .select('*')
+      .eq('nota_id', notaId)
+      .order('quitada_en', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as NotaImagenQuitada[];
+  }
+
+  /**
+   * DG7 — saca una fila de la papelera SIN borrar el archivo: la llama tanto el
+   * "Deshacer" del toast (la imagen vuelve por el undo del editor) como
+   * "Recuperar" en la lista (la vuelve a insertar la propia UI). Si la fila ya
+   * no existe (p. ej. el cron la purgó entre tanto), no es un error.
+   */
+  async cancelarImagenQuitada(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('nota_imagenes_quitadas').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   }
 
   /**

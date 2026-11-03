@@ -59,6 +59,10 @@ export interface MisionPractica {
   roles: string[]; // [] = todos
   titulo: string;
   intro: string;
+  /** F6 (DG5) — minutos que toma, en promedio, completar la misión. Se muestra en la
+   *  tarjeta de la lista de misiones (módulo Demo), para que el usuario sepa cuánto
+   *  tiempo apartar antes de empezar. */
+  tiempoEstimadoMin: number;
   version: number;
   /** CM7 7b — campos del simulador. Si falta, la misión no tiene formulario (legacy). */
   campos?: CampoPractica[];

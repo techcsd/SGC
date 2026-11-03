@@ -261,6 +261,9 @@
 } @else {
   <!-- ── Editor a pantalla completa (CQ2) ── -->
   <div class="dn-shell" [class.dn-shell--lista-plegada]="listaPlegada()">
+    <!-- DG7 — confirmación antes de quitar una imagen (botón, atajo, Supr/Retroceso con selección). -->
+    <app-confirm-dialog [open]="!!imagenAQuitar()" [title]="'¿Quitar esta imagen de la nota?' | t"
+      confirmLabel="Quitar" tone="danger" (confirmed)="onImagenAQuitarConfirmada()" (cancelled)="onImagenAQuitarCancelada()" />
     <aside class="dn-list" [class.dn-list--plegada]="listaPlegada()">
       <div class="dn-list__top">
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm dn-list__nueva" (click)="nueva()">
@@ -292,15 +295,32 @@
           }
         </span>
         <span class="dn-spacer"></span>
-        <!-- CW3 — selector de Carpeta en la cabecera del editor (misma regla que el menú ⋯). -->
+        <!-- CW3/DG4 — selector de Carpeta en la cabecera del editor (misma regla que el menú ⋯);
+             "Nuevo grupo…" lo convierte en un input + Crear/Cancelar. -->
         @if (!soloLectura() && tab() === 'mias' && activa(); as notaActiva) {
-          <label class="dn-editor__carpeta" title="Mover esta nota a otra carpeta">
+          <label class="dn-editor__carpeta" [attr.title]="'Mover esta nota a otra carpeta' | t">
             <app-icon name="folder" [size]="14" />
-            <select [value]="notaActiva.grupo_id ?? ''" (change)="moverNotaDesdeMenu(notaActiva, $any($event.target).value)">
-              @for (o of opcionesMoverA(); track o.id) {
-                <option [value]="o.id">{{ o.label }}</option>
-              }
-            </select>
+            @if (creandoGrupoSelector(); as cg) {
+              <span class="dn-editor__carpeta-nueva" [class.dn-editor__carpeta-nueva--error]="!!cg.error">
+                <span class="dn-editor__carpeta-nueva-row">
+                  <input type="text" [value]="cg.valor" maxlength="60"
+                    [attr.aria-label]="'Nombre del grupo' | t" [placeholder]="'Nombre del grupo' | t"
+                    (input)="onCreandoGrupoSelectorInput($any($event.target).value)"
+                    (keydown)="onCreandoGrupoSelectorKeydown($event, notaActiva)" />
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!cg.valor.trim()"
+                    (click)="confirmarNuevoGrupoDesdeSelector(notaActiva)">{{ 'Crear' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarNuevoGrupoDesdeSelector()">{{ 'Cancelar' | t }}</button>
+                </span>
+                @if (cg.error) { <span class="field-error">{{ cg.error | t }}</span> }
+              </span>
+            } @else {
+              <select [value]="notaActiva.grupo_id ?? ''" (change)="onSelectorCarpetaChange(notaActiva, $any($event.target).value)">
+                @for (o of opcionesMoverA(); track o.id) {
+                  <option [value]="o.id">{{ o.label }}</option>
+                }
+                <option value="__nuevo__">{{ 'Nuevo grupo…' | t }}</option>
+              </select>
+            }
           </label>
         }
         @if (!soloLectura()) {
@@ -391,6 +411,38 @@
                       <option value="editar">Puede editar</option>
                     </select>
                     <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso"><app-icon name="x" [size]="14" /></button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        <!-- DG7 — papelera de imágenes quitadas de ESTA nota (30 días antes de purgarse). -->
+        @if (imagenesQuitadas().length) {
+          <section class="dn-img-papelera">
+            <button type="button" class="dn-img-papelera__toggle" (click)="toggleImagenesQuitadas()"
+              [attr.aria-expanded]="mostrarImagenesQuitadas()">
+              <app-icon [name]="mostrarImagenesQuitadas() ? 'chevron-down' : 'chevron-right'" [size]="13" />
+              {{ 'Imágenes quitadas ({n})' | t: { n: imagenesQuitadas().length } }}
+            </button>
+            @if (mostrarImagenesQuitadas()) {
+              <ul class="dn-img-papelera__lista">
+                @for (fila of imagenesQuitadas(); track fila.id) {
+                  <li class="dn-img-papelera__item">
+                    @if (miniaturasQuitadas()[fila.id]; as url) {
+                      <img [src]="url" [alt]="'Imagen quitada' | t" class="dn-img-papelera__thumb" />
+                    } @else {
+                      <span class="dn-img-papelera__thumb dn-img-papelera__thumb--icono" aria-hidden="true">
+                        <app-icon name="image" [size]="18" />
+                      </span>
+                    }
+                    <span class="dn-img-papelera__info">
+                      <small>{{ 'Se borra el {fecha}' | t: { fecha: formatFechaPurga(fila.purgar_en) } }}</small>
+                    </span>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="recuperarImagenQuitada(fila)">
+                      {{ 'Recuperar' | t }}
+                    </button>
                   </li>
                 }
               </ul>

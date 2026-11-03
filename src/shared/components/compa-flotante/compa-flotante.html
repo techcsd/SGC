@@ -1,0 +1,114 @@
+<!-- Burbuja cerrada — siempre visible salvo cuando la ventana está abierta. -->
+<button
+  type="button"
+  class="cf-burbuja"
+  [hidden]="abierta()"
+  (click)="abrir()"
+  [attr.aria-label]="'Abrir el asistente Compa' | t"
+  [title]="'Compa' | t"
+>
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 4h8"/>
+    <circle cx="9" cy="14" r="1.4"/><circle cx="15" cy="14" r="1.4"/>
+  </svg>
+</button>
+
+<!-- Ventana / hoja — permanece en el DOM (oculta con `hidden`) para que `app-asistente`
+     nunca se destruya mientras la preferencia siga activa (ver cabecera del .ts). -->
+<div
+  class="cf-ventana"
+  [class.cf-ventana--hoja]="esMovil()"
+  [class.cf-ventana--minimizada]="minimizada()"
+  [style]="estiloVentana()"
+  [hidden]="!abierta()"
+  role="dialog"
+  aria-modal="false"
+  [attr.aria-label]="'Compa' | t"
+  (keydown.escape)="cerrar()"
+>
+  <div
+    class="cf-barra"
+    tabindex="0"
+    [attr.aria-label]="'Arrastra para mover la ventana de Compa. Con el teclado: Alt + flechas.' | t"
+    (pointerdown)="onPointerDownBarra($event)"
+    (pointermove)="onPointerMoveBarra($event)"
+    (pointerup)="onPointerUpBarra()"
+    (pointercancel)="onPointerUpBarra()"
+    (keydown)="onKeydownBarra($event)"
+  >
+    <svg class="cf-barra__icono" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 4h8"/>
+      <circle cx="9" cy="14" r="1.4"/><circle cx="15" cy="14" r="1.4"/>
+    </svg>
+    <span class="cf-barra__titulo">Compa</span>
+
+    <div class="cf-barra__acciones">
+      <button
+        type="button"
+        class="cf-barra__btn"
+        [hidden]="esMovil()"
+        (click)="anclar()"
+        [attr.aria-label]="'Anclar a la esquina' | t"
+        [title]="'Anclar a la esquina' | t"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="cf-barra__btn"
+        [hidden]="esMovil()"
+        (click)="toggleMinimizada()"
+        [attr.aria-label]="(minimizada() ? 'Restaurar ventana' : 'Minimizar') | t"
+        [title]="(minimizada() ? 'Restaurar ventana' : 'Minimizar') | t"
+      >
+        @if (minimizada()) {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        } @else {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        }
+      </button>
+      <button
+        type="button"
+        class="cf-barra__btn"
+        (click)="cerrar()"
+        [attr.aria-label]="'Cerrar' | t"
+        [title]="'Cerrar' | t"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  @if (!minimizada()) {
+    @if (moduloActual(); as modulo) {
+      <div class="cf-modulo">{{ 'en {modulo}' | t:{ modulo } }}</div>
+    }
+
+    <div class="cf-contenido">
+      @if (montada()) {
+        <app-asistente [compacto]="true" [autoenfocar]="false" />
+      }
+    </div>
+
+    <div
+      class="cf-resize"
+      [hidden]="esMovil()"
+      tabindex="0"
+      role="separator"
+      aria-orientation="horizontal"
+      [attr.aria-label]="'Redimensionar la ventana de Compa' | t"
+      (pointerdown)="onPointerDownResize($event)"
+      (pointermove)="onPointerMoveResize($event)"
+      (pointerup)="onPointerUpResize()"
+      (pointercancel)="onPointerUpResize()"
+    >
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <line x1="21" y1="15" x2="15" y2="21"/><line x1="21" y1="9" x2="9" y2="21"/>
+      </svg>
+    </div>
+  }
+</div>

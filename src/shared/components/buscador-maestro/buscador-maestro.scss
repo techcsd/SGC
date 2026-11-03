@@ -1,0 +1,200 @@
+// DG — Buscador maestro (Ctrl+K). Overlay nivel "mediano" (CJ4/MOVIMIENTO.md): se
+// trata como el patrón ya documentado para abrir modal/panel ("base", 220ms, escala
+// .98→1 + fundido — ver `form-drawer.scss` `modalIn`), reutilizado aquí porque
+// estructuralmente ES un panel modal (no un toast ni una celebración a pantalla
+// completa). Solo `transform`/`opacity`; `prefers-reduced-motion`/`html.motion-reduced`
+// ya anulan duraciones globalmente (`_tokens.scss`), así que no hace falta duplicar
+// esa regla aquí.
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(10, 14, 22, 0.5);
+  backdrop-filter: blur(3px);
+  animation: bm-backdrop-in var(--motion-fast, 150ms) var(--ease-out, ease);
+}
+
+.bm-dialog {
+  position: fixed;
+  z-index: 1201;
+  top: 14vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(620px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
+  box-shadow: var(--sgc-shadow-lg, 0 24px 64px rgba(0, 0, 0, 0.3));
+  overflow: hidden;
+  animation: bm-dialog-in var(--motion-base, 220ms) var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+
+@keyframes bm-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bm-dialog-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.bm-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--sgc-border);
+  flex-shrink: 0;
+
+  &__icon {
+    flex-shrink: 0;
+    color: var(--sgc-text-muted);
+  }
+
+  &__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: none;
+    font: inherit;
+    font-size: 16px;
+    color: var(--sgc-text);
+
+    &::placeholder {
+      color: var(--sgc-text-muted);
+    }
+  }
+
+  &__cerrar {
+    flex-shrink: 0;
+    display: flex;
+    border: none;
+    background: none;
+    color: var(--sgc-text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+
+    &:hover {
+      color: var(--sgc-text);
+      background: var(--sgc-surface-2);
+    }
+  }
+}
+
+.bm-body {
+  overflow-y: auto;
+  padding: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.bm-empty {
+  padding: 28px 16px;
+  text-align: center;
+
+  &__texto {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--sgc-text-secondary);
+  }
+}
+
+.bm-seccion {
+  & + & {
+    margin-top: 6px;
+  }
+
+  &__titulo {
+    padding: 8px 10px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--sgc-text-muted);
+  }
+}
+
+.bm-opcion {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: none;
+  border-radius: var(--sgc-radius);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--sgc-text);
+  text-align: left;
+  cursor: pointer;
+
+  &--activa,
+  &:hover {
+    background: var(--sgc-surface-2);
+  }
+
+  &__camino {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    mark {
+      background: var(--sgc-primary-soft, rgba(249, 115, 22, 0.25));
+      color: inherit;
+      border-radius: 3px;
+      padding: 0 1px;
+    }
+  }
+}
+
+.bm-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--sgc-border);
+  flex-shrink: 0;
+
+  &__hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    color: var(--sgc-text-muted);
+
+    kbd {
+      padding: 1px 5px;
+      border: 1px solid var(--sgc-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 10.5px;
+      background: var(--sgc-surface-2);
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .bm-dialog {
+    top: 8vh;
+    width: 94vw;
+    max-height: 80vh;
+  }
+}

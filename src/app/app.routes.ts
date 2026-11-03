@@ -81,9 +81,29 @@ export const routes: Routes = [
       },
       {
         // CM7 — modo práctica (sin gate de módulo: para todos, como Dudas).
+        // F6 (DG5) — esta ruta sigue viva tal cual: es la pantalla "Misiones" del
+        // módulo Demo (ver shell.ts). No se mueve ni se renombra (regla DG-03).
         path: 'practica',
         loadComponent: () => import('./pages/practica/practica').then((m) => m.Practica),
         title: 'Modo práctica',
+      },
+      {
+        // F6 (DG5) — "Demo" como grupo de menú apunta a /practica = "Misiones".
+        path: 'demo',
+        redirectTo: 'practica',
+        pathMatch: 'full',
+      },
+      {
+        // F6 (DG5) — módulo Demo: "Mi progreso" (sin gate, como /practica).
+        path: 'demo/progreso',
+        loadComponent: () => import('./pages/demo/progreso/demo-progreso').then((m) => m.DemoProgreso),
+        title: 'Mi progreso · Demo',
+      },
+      {
+        // F6 (DG5) — módulo Demo: "Escenarios" (sin gate, como /practica).
+        path: 'demo/escenarios',
+        loadComponent: () => import('./pages/demo/escenarios/demo-escenarios').then((m) => m.DemoEscenarios),
+        title: 'Escenarios · Demo',
       },
       {
         // BS3 — módulo "Configuración" (general, sin gate de módulo: como Notas/Mensajes).

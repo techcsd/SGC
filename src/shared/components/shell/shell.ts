@@ -29,76 +29,35 @@ import { PolicyGate } from '../../ui/policy-gate/policy-gate';
 import { Celebracion } from '../../ui/celebracion/celebracion';
 import { Momento } from '../../ui/momento/momento';
 import { PracticaBanda } from '../../ui/practica-banda/practica-banda';
+import { PracticaService } from '../../../app/core/practica/practica.service';
+import { misionesParaRoles } from '../../../app/core/practica/practica.data';
 import { Lightbox } from '../../ui/lightbox/lightbox';
 import { LightboxService } from '../../ui/lightbox/lightbox.service';
 import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../i18n/i18n.service';
 import { EstadoPulseDirective } from '../../motion/estado-pulse.directive';
 import { formatFechaRelativa } from '../../utils/fecha.util';
+import { BuscadorMaestro } from '../buscador-maestro/buscador-maestro';
+import { NavItem, NavSubItem, construirIndiceMenu, moduloActualDesdeRuta } from './menu-index.util';
+import { esAtajoCtrlK, esAtajoBarra, esCampoDeTexto } from './atajo-buscador.util';
+import { CompaFlotante } from '../compa-flotante/compa-flotante';
+import { PreferenciasService } from '../../services/preferencias.service';
+import { compaFlotanteVisible } from '../compa-flotante/compa-flotante-visibilidad.util';
 
-interface NavItem {
-  label: string;
-  icon: string;
-  route?: string;
-  modulo?: string;
-  /** Nav badge counter key, when it differs from `modulo` (e.g. Tareas has no
-   *  module gate on the parent but still shows a per-user pending count). */
-  badgeKey?: string;
-  phase?: string;
-  /** AC2 — oculto para la persona "chofer" (rol chofer_transportista). */
-  noChofer?: boolean;
-  /** AL1 — grupo de plataforma "Sistema": solo admin | rol tecnologia | gerencia | dirección. */
-  soloTecnologia?: boolean;
-  soloDesarrollador?: boolean;
-  /** AF32 — visible además para roles de flota elevados aunque no tengan el módulo
-   *  (el jefe de flota entra a Compras SOLO por Proveedores). */
-  flotaElevado?: boolean;
-  /** AG12 — visible si el usuario puede VER alguno de estos submódulos (permiso
-   *  granular), aunque no tenga el módulo padre. */
-  submodulos?: string[];
-  /** AT (PROMPT-4) — módulo EXTRA que también hace visible el grupo aunque no
-   *  tenga el módulo padre (p. ej. Flota visible para quien tiene `incentivos`,
-   *  para llegar a "Desempeño de choferes"). Cada hija sigue con su propio gate. */
-  extraModulo?: string;
-  /** AU1 — bandeja personal que solo aparece cuando hay algo pendiente (badge>0).
-   *  P. ej. "Conduces por firmar": cualquier usuario puede ser despachante. */
-  soloConPendiente?: boolean;
-  /** AU6 — el grupo se muestra si el usuario puede ver AL MENOS un hijo (en vez de
-   *  gatear por un módulo padre). Para paraguas como "Ingeniería" que agrupan hijos
-   *  con permisos distintos, sin que nadie pierda acceso ni se muestre un grupo vacío. */
-  showIfAnyChild?: boolean;
-  /** AV2 — visible SOLO para estos roles (por roles.codigo). Para vistas que aplican
-   *  a un rol específico y a nadie más (p. ej. "Mi rendimiento" = Chofer + Jefe de flota),
-   *  aunque el admin no lo vea. Se evalúa con la misma matriz de roles del UserService. */
-  soloRoles?: string[];
-  children?: NavSubItem[];
-}
-
-interface NavSubItem {
-  label: string;
-  route: string;
-  /** When set, this child only renders if the user has the given module. */
-  modulo?: string;
-  /** R5 — clave del conteo desglosado por submódulo (pendingBySubmodulo). */
-  badgeKey?: string;
-  /** R14 — solo visible para roles de flota elevados (no el chofer). */
-  flotaElevado?: boolean;
-  /** Y11 — solo visible para admin | rol tecnologia (módulo Tecnología de plataforma). */
-  soloTecnologia?: boolean;
-  soloDesarrollador?: boolean;
-  /** AS10 — solo visible para admin (herramientas admin como Apertura). */
-  soloAdmin?: boolean;
-  /** AG12 — visible si el usuario puede VER este submódulo (permiso granular). */
-  submodulo?: string;
-  /** AS7 — bandeja global de requisiciones: módulo inventario o roles de proyecto. */
-  verTodasRequisiciones?: boolean;
-}
+export type { NavItem, NavSubItem };
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, Novedades, ConfirmDialog, LanguageOnboarding, PolicyGate, Celebracion, Momento, PracticaBanda, Lightbox, TranslatePipe, EstadoPulseDirective],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, Novedades, ConfirmDialog, LanguageOnboarding, PolicyGate, Celebracion, Momento, PracticaBanda, Lightbox, TranslatePipe, EstadoPulseDirective, BuscadorMaestro, CompaFlotante],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    // DG — Ctrl+K (o Cmd+K en Mac) abre el buscador maestro desde cualquier
+    // pantalla; `/` también, pero SOLO si el foco no está en un campo de texto
+    // (si no, escribir "precio/u" en cualquier input abriría el buscador).
+    '(document:keydown)': 'onKeydownGlobal($event)',
+  },
 })
 export class Shell implements OnInit {
   private authService = inject(AuthService);
@@ -114,6 +73,9 @@ export class Shell implements OnInit {
   protected theme = inject(ThemeService);
   private moduloOrden = inject(ModuloOrdenService);
   private destroyRef = inject(DestroyRef);
+  private practica = inject(PracticaService); // F6 (DG5) — insignia de "Demo"
+  private i18n = inject(I18nService);
+  private preferencias = inject(PreferenciasService); // DG — Compa flotante (preferencia por persona)
   /** CQ2 — modo inmersivo (oculta sidebar + header), activado por pantallas como Dev notes. */
   protected fullscreenMode = inject(FullscreenModeService);
 
@@ -168,6 +130,28 @@ export class Shell implements OnInit {
   notifItems = this.centro.items;
   notifNoLeidas = this.centro.noLeidas;
   notifOpen = signal(false);
+
+  // ── DG — Buscador maestro (Ctrl+K) ──
+  buscadorAbierto = signal(false);
+
+  // ── DG — Compa flotante (burbuja → ventana) ──
+  /** Ruta activa (sin query string), actualizada en cada NavigationEnd (ver ngOnInit).
+   *  Única fuente para "en <módulo>" Y para ocultar la flotante en /asistente — no
+   *  se recalcula la ruta por otro camino. */
+  rutaActual = signal(this.router.url.split('?')[0]);
+  private enPantallaAsistente = computed(() => this.rutaActual() === '/asistente');
+  /** "en <módulo>" de la barra de Compa flotante — reusa el MISMO índice de menú
+   *  (permisos incluidos) que ya arma `menuIndice()` para el buscador maestro. */
+  moduloActualLabel = computed(() => moduloActualDesdeRuta(this.rutaActual(), this.menuIndice()));
+  /** Preferencia por persona (Configuración › Apariencia) + oculto en /asistente
+   *  (redundante con la pantalla completa) + oculto durante una misión de práctica. */
+  mostrarCompaFlotante = computed(() =>
+    compaFlotanteVisible({
+      prefActiva: this.preferencias.prefs()?.compa_flotante ?? true,
+      enPantallaAsistente: this.enPantallaAsistente(),
+      practicaActiva: this.practica.activa(),
+    }),
+  );
 
   navItems: NavItem[] = [
     {
@@ -420,40 +404,51 @@ export class Shell implements OnInit {
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', submodulo: 'tecnologia.compras' },
         { label: 'Cotizaciones', route: '/tecnologia/cotizaciones', submodulo: 'tecnologia.cotizaciones' },
-        // AW9 — Monitoreo de infraestructura pasa a Tecnología (antes vivía en
-        // "Sistema"). Gateado por el módulo tecnologia, alineado con su RLS
-        // (es_tecnologia = admin OR módulo tecnologia).
-        { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', modulo: 'tecnologia' },
-        { label: 'APIs y consumo', route: '/tecnologia/apis-consumo', modulo: 'tecnologia' },
       ],
     },
     {
-      // AL1 — "Sistema" = consola de plataforma/DevOps (lo que ANTES vivía dentro
-      // de "Tecnología" pero no es TI de activos). Solo es_tecnologia
-      // (admin | tecnologia | gerencia | dirección).
-      label: 'Sistema',
-      icon: 'tecnologia',
+      // DG1 — "Developer" junta TODA la consola de plataforma/DevOps: lo que antes
+      // era el grupo "Sistema" + "Monitoreo de infraestructura"/"APIs y consumo"
+      // (antes en Tecnología) + "Pulso del sistema" (antes en Administración). Pedido
+      // de Xaviel: "Todo Sistema + Monitoreo + APIs (Recomendado)". Solo es_tecnologia
+      // (admin | tecnologia | gerencia | dirección); cada hijo conserva su propio gate
+      // tal cual lo tenía en su grupo original — el grupo en sí no añade restricción.
+      label: 'Developer',
+      icon: 'developer',
       soloTecnologia: true,
+      nuevoHasta: '2026-11-16',
       children: [
+        // Versiones
         { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
         { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
+        // Calidad
         { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
-        { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
         { label: 'Issues (Jira interno)', route: '/tecnologia/issues', soloTecnologia: true },
+        // Dev notes
         { label: 'Dev notes', route: '/tecnologia/dev-notes', soloDesarrollador: true },
+        // Compa / operación
         { label: 'Resumen de operaciones', route: '/tecnologia/resumen-operaciones', soloTecnologia: true },
         { label: 'Consultas de Compa', route: '/tecnologia/consultas-compa', soloTecnologia: true },
         { label: 'Conversaciones de Compa', route: '/admin/compa-conversaciones', soloAdmin: true },
-        { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
-        // CY16 (#16) — sincronización con Odoo (outbox distinto del de arriba).
-        { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
-        { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
-        { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
         // DC7 — Compa en WhatsApp: badge = mensajes con error/fallido en las últimas 24h.
         { label: 'Compa en WhatsApp', route: '/tecnologia/whatsapp', soloTecnologia: true, badgeKey: 'tecnologia.whatsapp' },
         // F5 (ronda DF) — badge = propuestas del Escriba esperando tu OK.
         { label: 'Agentes', route: '/tecnologia/agentes', soloTecnologia: true, badgeKey: 'tecnologia.agentes' },
+        // Infraestructura (AW9 — venían en Tecnología; F6c — Pulso venía en Administración)
+        { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', modulo: 'tecnologia' },
+        { label: 'APIs y consumo', route: '/tecnologia/apis-consumo', modulo: 'tecnologia' },
+        // DG1 — "Pulso del sistema" no tenía gate propio: heredaba el `modulo: 'admin'`
+        // del grupo Administración. Se preserva como `soloAdmin` (mismo efecto práctico,
+        // el idioma ya usado en este grupo para hojas admin-only como "Vault").
+        { label: 'Pulso del sistema', route: '/admin/pulso-sistema', soloAdmin: true },
+        { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
+        // CY16 (#16) — sincronización con Odoo (outbox distinto del de arriba).
+        { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
+        { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
+        { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
+        // Diseño
+        { label: 'Sistema de diseño', route: '/tecnologia/design-system', soloTecnologia: true },
       ],
     },
     {
@@ -474,6 +469,19 @@ export class Shell implements OnInit {
       label: 'Notas',
       icon: 'notas',
       route: '/notas',
+    },
+    {
+      // F6 (DG5) — módulo "Demo" = práctica ampliada. Sin gate de módulo (como
+      // Mensajes/Notas): visible para todo usuario autenticado. Insignia = misiones
+      // del catálogo que el usuario todavía no completó (ver demoPendientes()).
+      label: 'Demo',
+      icon: 'demo',
+      badgeKey: 'demo',
+      children: [
+        { label: 'Misiones', route: '/practica' },
+        { label: 'Mi progreso', route: '/demo/progreso' },
+        { label: 'Escenarios', route: '/demo/escenarios' },
+      ],
     },
     {
       // App móvil de campo (APK Android + PWA iPhone) — visible para todos.
@@ -522,17 +530,48 @@ export class Shell implements OnInit {
       { label: 'Claude', route: '/admin/claude' },
       { label: 'Animaciones', route: '/admin/animaciones' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
-      // F6c (ronda DF) — línea de vida por sistema.
-      { label: 'Pulso del sistema', route: '/admin/pulso-sistema' },
+      // F6c (ronda DF) — "Pulso del sistema" se movió a Developer (DG1), junto con
+      // el resto de la consola de plataforma/DevOps.
     ],
   };
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
   confirmLogoutOpen = signal(false);
 
+  // F6 (DG5) — insignia del ítem "Demo": misiones del catálogo que el usuario nunca
+  // ha intentado (best-effort; si falla, sin insignia — no bloquea el menú).
+  demoPendientes = signal(0);
+
+  /**
+   * DG — índice único del menú para el buscador maestro. REUSA `canAccess`/
+   * `canAccessChild` (las mismas funciones que gatean el sidebar) — el buscador
+   * jamás puede mostrar una pantalla que el usuario no vería en el menú. Incluye
+   * "Administración" solo cuando `isAdmin()` (igual que el sidebar, que la pinta
+   * en un bloque aparte gateado por `isAdmin()`, no por `canAccess`).
+   */
+  menuIndice = computed(() => {
+    const items = this.isAdmin() ? [...this.orderedNavItems(), this.adminNavItem] : this.orderedNavItems();
+    return construirIndiceMenu(items, {
+      canAccess: (item) => (item === this.adminNavItem ? true : this.canAccess(item)),
+      canAccessChild: (child) => this.canAccessChild(child),
+      t: (texto) => this.i18n.t(texto),
+    });
+  });
+
+  /** DG1 — chip "Nuevo" junto al label de un grupo, visible hasta `nuevoHasta`
+   *  inclusive (fin del día en hora local). */
+  esNuevo(item: NavItem): boolean {
+    if (!item.nuevoHasta) return false;
+    const limite = new Date(`${item.nuevoHasta}T23:59:59`);
+    return Date.now() <= limite.getTime();
+  }
+
   pendingBadge(item: NavItem): number {
     const key = item.badgeKey ?? item.modulo;
     if (!key) return 0;
+    // F6 (DG5) — "Demo": NO viene del backend de notificaciones (no es un módulo de
+    // negocio); se calcula en el cliente contra el catálogo de misiones.
+    if (key === 'demo') return this.demoPendientes();
     return this.notificaciones.pendingByModulo()[key] ?? 0;
   }
 
@@ -615,6 +654,14 @@ export class Shell implements OnInit {
       if (this.userService.hasRole('admin')) {
         void this.appVersiones.autoRegistrarVersionWeb();
       }
+      // F6 (DG5) — insignia de "Demo": misiones del catálogo sin ningún intento todavía.
+      this.practica.resultadosPersona(userId)
+        .then((filas) => {
+          const total = misionesParaRoles(this.userService.roles());
+          const intentadas = new Set(filas.map((f) => f.mision_id));
+          this.demoPendientes.set(total.filter((m) => !intentadas.has(m.id)).length);
+        })
+        .catch(() => {});
     }
 
     // Catches any count-affecting mutation that doesn't already call
@@ -622,6 +669,8 @@ export class Shell implements OnInit {
     // in solicitudes-material/compra.service.ts and salidas.service.ts).
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
+        // DG — Compa flotante: "en <módulo>" + ocultar en /asistente leen de aquí.
+        this.rutaActual.set(event.urlAfterRedirects.split('?')[0]);
         this.notificaciones.refresh();
         // W12 — registrar actividad web (throttled en cliente y servidor).
         this.actividad.ping();
@@ -646,6 +695,30 @@ export class Shell implements OnInit {
 
   closeNotif() {
     this.notifOpen.set(false);
+  }
+
+  /** DG — Ctrl/Cmd+K siempre abre el buscador; `/` también, pero solo si el foco no
+   *  está en un campo de texto/textarea/select/contenteditable (si no, cualquier
+   *  pantalla con un input de búsqueda quedaría imposible de usar con "/"). */
+  onKeydownGlobal(e: KeyboardEvent) {
+    if (esAtajoCtrlK(e)) {
+      e.preventDefault();
+      this.abrirBuscador();
+      return;
+    }
+    const focoEnCampo = esCampoDeTexto(e.target as HTMLElement | null);
+    if (esAtajoBarra(e, { buscadorYaAbierto: this.buscadorAbierto(), focoEnCampoDeTexto: focoEnCampo })) {
+      e.preventDefault();
+      this.abrirBuscador();
+    }
+  }
+
+  abrirBuscador() {
+    this.buscadorAbierto.set(true);
+  }
+
+  cerrarBuscador() {
+    this.buscadorAbierto.set(false);
   }
 
   async abrirNotif(n: Notif) {

@@ -14,14 +14,20 @@ export interface TableroVivo {
     conduces_hoy: number;
     entregas_hoy: number;
     echadas_hoy: number;
+    /** DG3 — solo usos abiertos en las últimas 24h (ventana rodante, no "fin_at is null" a secas). */
     vehiculos_en_uso: number;
+    /** DG3 — usos abiertos hace MÁS de 24h: probable olvido de cerrar, no uso real de hoy. */
+    usos_sin_cerrar: number;
     bitacoras_hoy: number;
   };
   flujo: {
     solicitada: number;
     aprobada: number;
     despachada: number;
+    /** DG3 — ventana rodante de 48h (antes contaba conduces en tránsito de hace semanas). */
     en_ruta: number;
+    /** DG3 — en tránsito hace MÁS de 48h sin entregar: conduces atascados, aparte de "en_ruta". */
+    atrasados: number;
     entregada: number;
   };
   eventos: { tipo: string; titulo: string; detalle: string; at: string }[];
@@ -33,6 +39,8 @@ export interface TableroVivo {
     lat: number;
     lng: number;
     capturado_en: string;
+    /** DG3 — minutos desde capturado_en hasta ahora, calculado en el servidor. */
+    edad_min: number;
     /** F6b (DF4-C) — solo si el vehículo tiene una ruta en curso con destino real. */
     destino_lat: number | null;
     destino_lng: number | null;
@@ -41,6 +49,23 @@ export interface TableroVivo {
     velocidad_estim_kmh: number | null;
   }[];
   generado_en: string;
+}
+
+/** DG3 — detalle abrible (AT11) de "atrasados" y "usos sin cerrar". */
+export interface ConduceAtrasado {
+  referencia: string;
+  obra: string;
+  vehiculo: string;
+  horas_en_transito: number;
+  transito_at: string;
+}
+
+export interface UsoSinCerrar {
+  vehiculo_id: string;
+  vehiculo: string;
+  chofer: string;
+  horas_abierto: number;
+  inicio_at: string;
 }
 
 /** Tablas cuyo cambio re-pide el resumen (mismas de la publicación, db14). */
@@ -58,6 +83,20 @@ export class TableroVivoService {
     const { data, error } = await this.supabase.client.rpc('tablero_vivo_resumen');
     if (error) throw new Error(error.message);
     return data as unknown as TableroVivo;
+  }
+
+  /** DG3 — detalle de los conduces atrasados (en tránsito hace más de 48h). */
+  async atrasadosDetalle(): Promise<ConduceAtrasado[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_atrasados_detalle');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConduceAtrasado[];
+  }
+
+  /** DG3 — detalle de los usos de vehículo abiertos hace más de 24h. */
+  async usosSinCerrarDetalle(): Promise<UsoSinCerrar[]> {
+    const { data, error } = await this.supabase.client.rpc('usos_sin_cerrar_detalle');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as UsoSinCerrar[];
   }
 
   /** Se suscribe a los cambios de las tablas del tablero. `onCambio` se dispara

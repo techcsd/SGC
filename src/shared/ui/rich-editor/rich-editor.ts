@@ -35,7 +35,11 @@ export interface ImagenEditorConfig {
   resolverUrl: (src: string) => Promise<string>;
   copiarAlPortapapeles: (url: string) => Promise<void>;
   descargar: (url: string, nombre: string) => void;
-  quitar: (src: string) => void;
+  /** DG7 — pide confirmación (reusa el `confirm-dialog` de la app) antes de quitar una imagen. */
+  confirmarQuitar: (src: string) => Promise<boolean>;
+  /** DG7 — se llama tras confirmar Y quitar el nodo del documento. `deshacer()`
+   *  reinserta la imagen en la misma posición (undo nativo del editor). */
+  quitar: (src: string, deshacer: () => void) => void;
 }
 
 /**
@@ -218,7 +222,13 @@ export class RichEditor implements AfterViewInit, OnDestroy, OnChanges {
       editable: !this.disabled(),
       extensions: extensionesNotasRicas(
         img
-          ? { resolverUrl: img.resolverUrl, copiarAlPortapapeles: img.copiarAlPortapapeles, descargar: img.descargar, onQuitar: img.quitar }
+          ? {
+              resolverUrl: img.resolverUrl,
+              copiarAlPortapapeles: img.copiarAlPortapapeles,
+              descargar: img.descargar,
+              confirmarQuitar: img.confirmarQuitar,
+              onQuitar: img.quitar,
+            }
           : undefined,
       ),
       content: markdownInicial,

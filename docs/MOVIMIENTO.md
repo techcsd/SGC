@@ -128,3 +128,16 @@ Tablero del Inicio (mockup DB1): nivel **mediano** de la tabla CJ4.
 - Datos: `tablero_vivo_resumen()` re-pedido por Realtime (debounce 2 s) o polling 30 s;
   la suscripción vive SOLO con la pestaña visible. Sin datos reales de hoy → estado
   «Todavía no hay movimiento hoy» (no se inventa movimiento).
+
+## DG2/DG6 — Buscador maestro y Compa flotante (1.208.0)
+
+Ambos son overlays persistentes (no celebraciones de un solo evento), así que
+reusan el mismo patrón ya documentado para «Abrir modal/panel/drawer» (nivel
+**mediano**, `--motion-base` 220ms, scale .98→1 + fade) en vez de inventar un
+nivel nuevo:
+- `buscador-maestro` — abre/cierra con ese mismo patrón `modalIn`. Respeta
+  `prefers-reduced-motion`/`html.motion-reduced` (aparece/desaparece sin animar).
+- `compa-flotante` — burbuja↔ventana usa el mismo nivel; el arrastre y el
+  redimensionado en sí son interacción directa del usuario (solo `transform`,
+  sin easing de por medio, como cualquier drag nativo), no "movimiento" en el
+  sentido de esta tabla.

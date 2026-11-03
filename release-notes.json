@@ -1,5 +1,18 @@
 {
   "web": {
+    "1.208.0": {
+      "titulo": "Módulo Developer, buscador maestro (Ctrl+K), Compa flotante y módulo Demo",
+      "cambios": [
+        { "t": "nuevo", "m": "Developer", "d": "Nuevo módulo que junta toda la consola de plataforma: versiones, calidad, Dev notes, monitoreo de infraestructura, APIs y Pulso del sistema." },
+        { "t": "nuevo", "m": "Buscador", "d": "Lupa arriba y atajo Ctrl+K: escribe el nombre de cualquier módulo o pantalla y ve directo ahí, con tolerancia a errores de tecleo." },
+        { "t": "nuevo", "m": "Compa", "d": "Ahora puede abrirse en una ventana flotante arrastrable y redimensionable, para hablar con él sin salir de la pantalla en la que estás. Se puede apagar en Configuración." },
+        { "t": "nuevo", "m": "Demo", "d": "Nuevo módulo de práctica con más misiones (bitácora, conduce, combustible, checklist, requisición, compra, mantenimiento, ruta, orden de trabajo), tu progreso y los escenarios de demostración." },
+        { "t": "mejora", "m": "Dev notes", "d": "El selector de grupo ahora permite crear un grupo nuevo sin salir del editor." },
+        { "t": "mejora", "m": "Dev notes", "d": "Quitar una imagen de una nota ahora pide confirmación y se puede deshacer; las imágenes quitadas se guardan 30 días antes de borrarse de verdad." },
+        { "t": "arreglo", "m": "Dashboard", "d": "\"Hoy, en vivo\" ya no cuenta como \"en ruta\" los conduces viejos atascados ni como \"en uso\" un vehículo olvidado hace días — ahora se muestran aparte como \"atrasados\" y \"uso sin cerrar\", y el mapa avisa cuándo una posición dejó de ser reciente." },
+        { "t": "arreglo", "m": "RRHH", "d": "El registro rápido de personal (2 fotos) ya no falla por fotos sin comprimir antes de leerlas con IA." }
+      ]
+    },
     "1.207.0": {
       "titulo": "IA en bitácora, conduce, mantenimientos y requisiciones + agentes de monitoreo + gastos",
       "cambios": [
