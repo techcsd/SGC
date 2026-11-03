@@ -11,6 +11,13 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { MoldeEsquema, MoldeTramo } from '../../../../shared/ui/molde-esquema/molde-esquema';
+import { MoldeVisor, MoldeVisorItem } from '../../../../shared/ui/molde-visor/molde-visor';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+
+/** Clave de vista recordada por pantalla (localStorage, DI2). */
+type VistaMoldes = 'tarjetas' | 'tabla';
+const CLAVE_VISTA = 'sgc.moldes.vista';
 
 /**
  * BO9 — Vista de oficina: revisión de medidas de moldes por obra. Lista las filas
@@ -20,7 +27,7 @@ import { MoldeEsquema, MoldeTramo } from '../../../../shared/ui/molde-esquema/mo
  */
 @Component({
   selector: 'app-bitacora-moldes',
-  imports: [DecimalPipe, RouterLink, Skeleton, Icon, DateRangeFilter, MoldeEsquema],
+  imports: [DecimalPipe, RouterLink, Skeleton, Icon, DateRangeFilter, MoldeEsquema, MoldeVisor, Paginador, TranslatePipe],
   templateUrl: './moldes.html',
   styleUrl: './moldes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,6 +80,33 @@ export class BitacoraMoldes implements OnInit {
 
   hasActiveFilters = computed(() => !!(this.selectedEstructura() || this.dateFrom() || this.dateTo()));
 
+  // ── Vista: tarjetas (default) / tabla — DI2 ───────────────
+  vista = signal<VistaMoldes>(this.leerVistaGuardada());
+
+  // ── Paginación por vista (client-side, sobre `filtered()`) ─
+  paginaTarjetas = signal(1);
+  tamanoTarjetas = signal(6);
+  paginaTabla = signal(1);
+  tamanoTabla = signal(10);
+
+  tarjetasPagina = computed(() => {
+    const inicio = (this.paginaTarjetas() - 1) * this.tamanoTarjetas();
+    return this.filtered().slice(inicio, inicio + this.tamanoTarjetas());
+  });
+
+  tablaPagina = computed(() => {
+    const inicio = (this.paginaTabla() - 1) * this.tamanoTabla();
+    return this.filtered().slice(inicio, inicio + this.tamanoTabla());
+  });
+
+  // ── Visor ampliado (DI2) ───────────────────────────────────
+  visorAbierto = signal(false);
+  visorIndex = signal(0);
+
+  /** Lista completa (no la página visible) para que ← → del visor recorra todos
+   * los moldes filtrados, no solo los de la página actual. */
+  visorItems = computed<MoldeVisorItem[]>(() => this.filtered().map((m) => this.toVisorItem(m)));
+
   async ngOnInit() {
     await this.load();
   }
@@ -92,17 +126,68 @@ export class BitacoraMoldes implements OnInit {
   // ── Filtros ──────────────────────────────────────────────
   onEstructuraChange(value: string) {
     this.selectedEstructura.set(value);
+    this.resetPaginas();
   }
 
   onRango(r: RangoFecha) {
     this.dateFrom.set(r.desde ?? '');
     this.dateTo.set(r.hasta ?? '');
+    this.resetPaginas();
   }
 
   clearFilters() {
     this.selectedEstructura.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
+    this.resetPaginas();
+  }
+
+  private resetPaginas() {
+    this.paginaTarjetas.set(1);
+    this.paginaTabla.set(1);
+  }
+
+  // ── Vista ────────────────────────────────────────────────
+  setVista(v: VistaMoldes) {
+    this.vista.set(v);
+    try {
+      localStorage.setItem(CLAVE_VISTA, v);
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  private leerVistaGuardada(): VistaMoldes {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(CLAVE_VISTA) : null;
+      return raw === 'tabla' ? 'tabla' : 'tarjetas';
+    } catch {
+      return 'tarjetas';
+    }
+  }
+
+  // ── Visor ampliado ───────────────────────────────────────
+  abrirVisor(m: BitacoraMoldeOffice) {
+    const idx = this.filtered().findIndex((x) => x.id === m.id);
+    this.visorIndex.set(idx >= 0 ? idx : 0);
+    this.visorAbierto.set(true);
+  }
+
+  cerrarVisor() {
+    this.visorAbierto.set(false);
+  }
+
+  private toVisorItem(m: BitacoraMoldeOffice): MoldeVisorItem {
+    return {
+      forma: m.forma,
+      tramos: this.tramosReal(m),
+      medidaPlano: this.tramosPlano(m),
+      titulo: this.moldeTitulo(m),
+      obra: this.obraNombre(m),
+      fecha: m.bitacora?.fecha ? this.formatFecha(m.bitacora.fecha) : undefined,
+      ingeniero: this.ingeniero(m),
+      bitacoraId: m.bitacora?.id ?? null,
+    };
   }
 
   // ── Helpers de presentación ──────────────────────────────

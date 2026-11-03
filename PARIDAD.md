@@ -1288,3 +1288,46 @@ Todo lo de esta ronda es **web-only** por diseño (no hay PROMPT-131 F-equivalen
 7. **Registro rápido de personal (DG8)** — se agregó compresión de fotos (`comprimirImagen(…,
    'documento')`) antes de leerlas con IA en `personal-registro.ts`; si la app tiene un flujo
    equivalente de 2 fotos sin comprimir, debería revisar el mismo patrón (no verificado esta ronda).
+
+## Ronda DI (PROMPT-134 web / PROMPT-135 app, 03-nov-2026 #2)
+
+Backend compartido (SQL + edge functions) hecho aquí; la app (PROMPT-135) es quien lo consume.
+
+1. **Pagos de la semana, Medidas de moldes, Cartillas de acero (N1/N2/N3 — DI1/DI2/DI3)** — las
+   tres son pantallas **web-only** de oficina (pagos con descargo firmado por el ingeniero, revisión
+   de moldes/cartillas por Dirección); `csd-app` tiene sus propias pantallas de lista
+   (`pagos-lista`, lista de cartillas) con el patrón "Mostrar 10 más" — PROMPT-135 F7 revisa si el
+   mismo callejón sin salida de Pagos (selector de obra sin acción) existe también ahí y, de ser
+   así, aplica el mismo default (obra por defecto + botón visible).
+2. **`leer-recibo` (DI10) — lectura robusta** — `max_tokens` 1536, revisa `stop_reason`, 1
+   reintento si la respuesta vino truncada o el JSON no se pudo interpretar, log de la respuesta
+   cruda al fallar. Mismo endpoint que ya usa la app — **se beneficia automáticamente**, sin que la
+   app cambie nada. Sigue pendiente (app, 135 F1): pedir una lectura de **solo tablero** sin esperar
+   a que haya foto de recibo (`combustible.ts:1086-1092` hoy solo relee si ya hay recibo).
+3. **`leer-formulario` tipo `uso_vehiculo` (DI7) — nuevo** — lee foto de tablero → `km`/`horas`,
+   `nivel` (E/1/4/1/2/3/4/F, tope de confianza 0.75 por ser lectura analógica) y `luces[]`
+   (advertencias encendidas). La pantalla "Uso de vehículo" que lo consume es **solo app**
+   (`csd-app/src/app/pages/transporte/uso-vehiculo`) — PROMPT-135 F5 la conecta.
+4. **`registrar_combustible_app` (DI5/DI6) — modo rápido con IA + corrección de diferencias** —
+   parámetros nuevos `p_captura` (`normal`/`rapido_ia`) y `p_diferencias` (jsonb: campo/valor
+   tecleado/valor leído/decisión/motivo cuando el chofer mantiene un valor distinto al del recibo).
+   La pantalla de selección "Rápido con IA / Normal" y el aviso de diferencia en vivo son **solo
+   app** (combustible.ts) — PROMPT-135 F3/F4 los construye contra este contrato ya en `dev`.
+5. **Cupo de tarjeta de combustible (N4 — DI4)** — backend completo (tablas, 9 RPCs, alerta 80/100%
+   enganchada a `registrar_combustible_app`) + bandeja web en `/flota/cupos-combustible`. La
+   **solicitud del chofer** ("Pedir más cupo", hoja con motivo/galones/foto) es **solo app**
+   (RPC `solicitar_cupo_tarjeta` ya lista) — PROMPT-135 F6 la construye. `mi_tarjeta_vehiculo(vehiculo)`
+   (solo lectura) también es para que la app muestre "te quedan ~N gal" sin mapeo visible al chofer.
+6. **Uso de vehículo con foto de tablero (DI7/DI-18)** — columnas `vehiculo_usos.foto_tablero_inicio_path`
+   / `foto_tablero_fin_path` + `set_uso_fotos` extendido (parámetros nuevos al final, backward-compatible
+   con la llamada actual de la app). Captura y conexión al lector: **solo app**, PROMPT-135 F5.
+7. **Paginación (DI8)** — `app-paginador` en Pagos/Moldes/Cartillas/bandeja de cupo es patrón web
+   (`src/shared/components/paginador/`); en la app sigue el patrón "Mostrar 10 más" ya establecido
+   (regla 8 de la ronda 133) — sin cambios de contrato, cada plataforma pagina a su manera.
+8. **Gotcha de esta ronda (anotado para futuras rondas)**: `origin/dev` ya traía
+   `registrar_combustible_app` con 24 args (`p_km_forzar`/`p_km_motivo`, ronda DH2) antes de que esta
+   ronda empezara. El primer diagnóstico (F0) solo mostró 22 args porque el script de diagnóstico
+   imprimía una sola fila de `pg_get_functiondef` — con 2 overloads coexistiendo, eso esconde el
+   real. Corregido en `sql/2026-11-03-di4b-fix-overload-registrar-combustible.sql` (ahora 26 args,
+   1 sola función). **Lección:** al diagnosticar una función que podría tener overloads, contar
+   `select count(*) from pg_proc where proname=...` ANTES de asumir cuántos argumentos tiene.

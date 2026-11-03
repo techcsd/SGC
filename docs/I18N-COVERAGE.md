@@ -34,13 +34,11 @@
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | apoyo-transporte | - | 65 | 0 | 65 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
-| bitacora/cartillas | - | 116 | 0 | 116 | 0% |
 | bitacora/cobertura | - | 25 | 0 | 25 | 0% |
 | bitacora/dashboard | - | 31 | 0 | 31 | 0% |
 | bitacora/entregas | - | 45 | 0 | 45 | 0% |
 | bitacora/historial | - | 175 | 0 | 175 | 0% |
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
-| bitacora/moldes | - | 28 | 0 | 28 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | compras/ordenes | - | 176 | 0 | 176 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
@@ -157,6 +155,8 @@
 | tecnologia/dev-notes | - | 137 | 10 | 127 | 7% |
 | flota/mantenimientos | - | 178 | 16 | 162 | 9% |
 | flota/vehiculos | - | 589 | 66 | 523 | 11% |
+| bitacora/cartillas | - | 118 | 15 | 103 | 13% |
+| bitacora/moldes | - | 40 | 5 | 35 | 13% |
 | app-movil | - | 55 | 8 | 47 | 15% |
 | proyectos/personal | - | 415 | 74 | 341 | 18% |
 | auth | - | 71 | 15 | 56 | 21% |
@@ -175,12 +175,13 @@
 | tecnologia/cotizaciones | - | 118 | 65 | 53 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
-| ingenieria/pagos | - | 63 | 37 | 26 | 59% |
 | admin/vault | - | 108 | 65 | 43 | 60% |
+| ingenieria/pagos | - | 96 | 59 | 37 | 61% |
 | tecnologia/envios-automaticos | - | 33 | 20 | 13 | 61% |
 | compras/gastos | - | 40 | 25 | 15 | 63% |
 | flota/transferencias | - | 16 | 10 | 6 | 63% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
+| flota/cupos-combustible | - | 61 | 40 | 21 | 66% |
 | admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |

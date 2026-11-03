@@ -1,4 +1,6 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed, output } from '@angular/core';
+import { Icon } from '../icon/icon';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 export interface MoldeTramo {
   lado?: string;
@@ -43,7 +45,7 @@ interface Geom { pts: Pt[]; edges: GeomEdge[]; lens: number[]; }
  */
 @Component({
   selector: 'app-molde-esquema',
-  imports: [],
+  imports: [Icon, TranslatePipe],
   templateUrl: './molde-esquema.html',
   styleUrl: './molde-esquema.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +55,10 @@ export class MoldeEsquema {
   tramos = input<MoldeTramo[]>([]);
   medidaPlano = input<MoldeTramo[] | null>(null);
   toleranciaCm = input<number>(2);
+  /** DI2 — cuando está encendido, pinta un botón "Ampliar" que el padre usa para
+   * abrir `app-molde-visor`. El componente nunca se abre a sí mismo. */
+  ampliable = input<boolean>(false);
+  ampliar = output<void>();
 
   readonly W = 420;
   readonly H = 220;

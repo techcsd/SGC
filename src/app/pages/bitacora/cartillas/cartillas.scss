@@ -1,13 +1,50 @@
 // BO10 — Cartillas de acero.
+// DI3 — filtros con controles del sistema (sgc-field/sgc-select/sgc-input) +
+// chips de estado + buscador. CSS solo funcional; pulido visual tras OK (board DI3).
 .cart-filtros {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.6rem;
   padding: 0.75rem;
   margin-bottom: 0.75rem;
-  align-items: center;
+
+  &__fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-end;
+  }
+
+  &__buscar {
+    min-width: 180px;
+    flex: 1 1 180px;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
 
   select, input { min-width: 0; }
+}
+
+// CSS tras OK (board DI3) — chip simple, sin pulido visual aún.
+.cart-chip {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--sgc-border, var(--border));
+  border-radius: 999px;
+  background: var(--sgc-surface, var(--surface));
+  color: var(--sgc-text-secondary, var(--main-ultra-light));
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &--activo {
+    border-color: var(--Hub);
+    color: var(--sgc-text, inherit);
+    background: var(--surface-2, var(--sgc-surface));
+  }
 }
 
 .cart-acero {

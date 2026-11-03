@@ -1,0 +1,151 @@
+// DI2 — visor de molde a pantalla casi completa. CSS funcional, sin pulir
+// (board DI2 sin aprobar).
+.molde-visor {
+  padding: 0;
+  border: none;
+  border-radius: var(--sgc-radius-lg, 14px);
+  background: var(--sgc-surface, #fff);
+  width: min(96vw, 1100px);
+  height: min(92vh, 800px);
+  max-width: 96vw;
+  max-height: 92vh;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--sgc-border, #e2e5ea);
+  }
+
+  &__titulo {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--sgc-text);
+  }
+
+  &__meta {
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    color: var(--sgc-text-muted, #6b7280);
+
+    span + span { margin-left: 4px; }
+  }
+
+  &__cerrar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--sgc-text-secondary, #6b7280);
+    border-radius: var(--sgc-radius, 8px);
+    cursor: pointer;
+
+    &:hover { background: var(--sgc-surface-hover); color: var(--sgc-text); }
+  }
+
+  &__body {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 12px;
+    min-height: 0;
+  }
+
+  &__lienzo {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__zoom-wrap {
+    width: 100%;
+    transform-origin: center center;
+    transition: transform 0.15s ease;
+  }
+
+  &__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text-secondary, #6b7280);
+    border-radius: 50%;
+    cursor: pointer;
+
+    &:hover { color: var(--sgc-text); border-color: var(--sgc-primary); }
+    &--prev { left: 10px; }
+    &--next { right: 10px; }
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--sgc-border, #e2e5ea);
+  }
+
+  &__zoom-controles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__zoom-valor {
+    font-size: 12.5px;
+    color: var(--sgc-text-muted, #6b7280);
+    min-width: 36px;
+    text-align: center;
+  }
+
+  &__contador {
+    font-size: 12.5px;
+    color: var(--sgc-text-muted, #6b7280);
+  }
+
+  &__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .molde-visor {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}

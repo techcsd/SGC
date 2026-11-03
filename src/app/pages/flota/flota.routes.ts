@@ -201,6 +201,14 @@ export const flotaRoutes: Routes = [
     title: 'Reportes — Flota',
   },
   {
+    // DI4 — cupo opcional por tarjeta de combustible + solicitudes manuales de los choferes.
+    path: 'cupos-combustible',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./cupos-combustible/cupos-combustible').then((m) => m.CuposCombustible),
+    title: 'Cupos de tarjetas — Flota',
+  },
+  {
     // DE4 (Ronda DE, DE-12e) — transferencias de conduce "ofrecida" con antigüedad + Cancelar.
     path: 'transferencias',
     canActivate: [flotaElevadoGuard],

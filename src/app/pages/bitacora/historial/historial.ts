@@ -16,11 +16,12 @@ import { interpretarCodigoTiempo } from '../../../../shared/context/weather.mode
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
+import { MoldeVisor, MoldeVisorItem } from '../../../../shared/ui/molde-visor/molde-visor';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema, StaggerDirective],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema, MoldeVisor, StaggerDirective],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -121,6 +122,29 @@ export class Historial implements OnInit {
 
   /** Icon + label for the captured weather of the entry being viewed. */
   detailTiempo = computed(() => interpretarCodigoTiempo(this.detail()?.weather_snapshot?.codigo_tiempo ?? null));
+
+  // ── Visor ampliado de moldes (DI2) ──────────────────────────
+  moldeVisorAbierto = signal(false);
+  moldeVisorIndex = signal(0);
+
+  /** Moldes de la bitácora abierta en el drawer, mapeados para `app-molde-visor`. */
+  moldeVisorItems = computed<MoldeVisorItem[]>(() =>
+    (this.detail()?.moldes ?? []).map((m) => ({
+      forma: m.forma,
+      tramos: m.tramos ?? [],
+      medidaPlano: m.medida_plano ?? null,
+      titulo: [m.estructura, m.identificador].filter(Boolean).join(' · ') || 'Molde',
+    })),
+  );
+
+  abrirMoldeVisor(index: number) {
+    this.moldeVisorIndex.set(index);
+    this.moldeVisorAbierto.set(true);
+  }
+
+  cerrarMoldeVisor() {
+    this.moldeVisorAbierto.set(false);
+  }
 
   /** Aplica todos los filtros MENOS el alcance (mías/todas). */
   private aplicarFiltros(list: Bitacora[]): Bitacora[] {

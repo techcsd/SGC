@@ -1,5 +1,12 @@
 @if (geo(); as g) {
-  <div class="molde-esquema">
+  <div class="molde-esquema" [class.molde-esquema--ampliable]="ampliable()">
+    @if (ampliable()) {
+      <button type="button" class="molde-esquema__ampliar" [attr.aria-label]="'Ampliar esquema del molde' | t"
+        (click)="ampliar.emit()">
+        <app-icon name="external-link" [size]="13" />
+        <span>{{ 'Ampliar' | t }}</span>
+      </button>
+    }
     <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" width="100%" role="img" aria-label="Esquema del molde con cotas">
       <!-- Plano (punteado gris) -->
       @for (p of g.planoPolys; track $index) {

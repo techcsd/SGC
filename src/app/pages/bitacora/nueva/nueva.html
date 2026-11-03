@@ -813,8 +813,9 @@
           }
 
           <div class="molde-preview">
+            <!-- DI2 — pantalla de captura, sin visor ampliado (el ingeniero está llenando datos). -->
             <app-molde-esquema [forma]="m.forma" [tramos]="moldeTramos(m)"
-              [medidaPlano]="moldePlano(m)" [toleranciaCm]="moldeToleranciaCm()" />
+              [medidaPlano]="moldePlano(m)" [toleranciaCm]="moldeToleranciaCm()" [ampliable]="false" />
           </div>
 
           <div class="sgc-field">
