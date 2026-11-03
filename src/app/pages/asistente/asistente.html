@@ -1,6 +1,9 @@
-<div class="compa" [class.compa--compacta]="compacto()">
+<div class="compa" [class.compa--compacta]="compacto()" [class.compa--sidebar-abierto]="sidebarAbierto()">
   <!-- ── Historial de conversaciones ── -->
   <aside class="compa__side">
+    @if (compacto()) {
+      <button type="button" class="compa__side-cerrar" (click)="toggleSidebar()" [attr.aria-label]="'Cerrar' | t">×</button>
+    }
     <button type="button" class="sgc-btn sgc-btn--primary compa__new" (click)="nueva()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -43,6 +46,14 @@
           <circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/>
         </svg>
       </span>
+      @if (compacto()) {
+        <!-- DH7 — conversaciones están ocultas en la ventana chica; este botón las muestra como dropdown. -->
+        <button type="button" class="compa__side-toggle" (click)="toggleSidebar()" [attr.aria-label]="'Conversaciones' | t" [attr.aria-expanded]="sidebarAbierto()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+          </svg>
+        </button>
+      }
       <div class="compa__header-text">
         <h1 class="compa__title">Compa</h1>
         <p class="compa__subtitle">
@@ -66,8 +77,13 @@
       <a routerLink="/configuracion/claude" class="compa__claude-link">{{ '¿Prefieres usar Claude Desktop?' | t }}</a>
     </header>
 
-    <!-- CP2 — aviso fijo (dado a los usuarios como respuesta a #230) -->
-    <div class="compa__notice">{{ 'Tecnología puede revisar estas conversaciones para mejorar a Compa.' | t }}</div>
+    <!-- CP2 — aviso de privacidad. DH7 — descartable por persona (no vuelve a aparecer en este dispositivo). -->
+    @if (!avisoDescartado()) {
+      <div class="compa__notice">
+        <span>{{ 'Tecnología puede revisar estas conversaciones para mejorar a Compa.' | t }}</span>
+        <button type="button" class="compa__notice-cerrar" (click)="descartarAviso()" [attr.aria-label]="'Descartar' | t">×</button>
+      </div>
+    }
 
     @if (viendoCompartida(); as compartida) {
       <!-- ── Vista de solo lectura de una conversación compartida ── -->

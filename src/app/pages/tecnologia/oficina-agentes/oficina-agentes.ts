@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { renderMarkdownSimple } from '../../../../shared/utils/markdown-simple.util';
 import {
   Agente,
   AgenteAprobacion,
@@ -15,6 +17,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
 import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
 
 const ESTADO_LABEL: Record<AgenteEstado, string> = {
   observando: 'Observando',
@@ -22,6 +25,19 @@ const ESTADO_LABEL: Record<AgenteEstado, string> = {
   esperando_ok: 'Espera tu OK',
   error: 'Tiene un error',
   inactivo: 'Sin conexión',
+};
+
+// DH16 — solo vigía (cada 5 min) y cronista (6:30pm RD) corren por cron/schedule
+// propio hoy; capataz/soporte/auditor/escriba son A DEMANDA (se disparan a mano
+// o por un workflow externo), así que "Sin conexión" era engañoso: un agente a
+// demanda sin eventos recientes no está roto, simplemente no lo han llamado.
+const AGENTE_HORARIO: Record<AgenteClave, string | null> = {
+  vigia: 'Cada 5 minutos',
+  cronista: 'Diario, 6:30 p. m.',
+  capataz: null,
+  soporte: null,
+  auditor: null,
+  escriba: null,
 };
 
 /** Un vistazo rápido a qué hace cada agente, sin depender de leer su nombre. */
@@ -47,7 +63,7 @@ const ICONO_AGENTE: Record<AgenteClave, IconName> = {
  */
 @Component({
   selector: 'app-oficina-agentes',
-  imports: [TranslatePipe, Icon, ErrorState, EstadoPulseDirective, DecimalPipe],
+  imports: [TranslatePipe, Icon, ErrorState, EstadoPulseDirective, DecimalPipe, Paginador],
   templateUrl: './oficina-agentes.html',
   styleUrl: './oficina-agentes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +71,13 @@ const ICONO_AGENTE: Record<AgenteClave, IconName> = {
 export class OficinaAgentes implements OnInit, OnDestroy {
   private service = inject(AgentesService);
   private toast = inject(ToastService);
+  private sanitizer = inject(DomSanitizer);
+
+  /** DH17 — render real del informe (antes `<pre>` con el markdown crudo). */
+  informeHtml = computed<SafeHtml | null>(() => {
+    const md = this.informeHoy()?.contenido_md;
+    return md ? this.sanitizer.bypassSecurityTrustHtml(renderMarkdownSimple(md)) : null;
+  });
 
   readonly estadoLabel = ESTADO_LABEL;
   readonly iconoAgente = (clave: AgenteClave): IconName => ICONO_AGENTE[clave] ?? 'circle';
@@ -63,6 +86,7 @@ export class OficinaAgentes implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<unknown>(null);
   decidiendo = signal<string | null>(null);
+  ejecutando = signal<AgenteClave | null>(null);
   notaAjuste = signal<Record<string, string>>({});
   enviandoInforme = signal(false);
 
@@ -92,6 +116,16 @@ export class OficinaAgentes implements OnInit, OnDestroy {
 
   resumenAgente = (agenteId: string): string | null => this.eventosPorAgente()[agenteId]?.resumen ?? null;
 
+  /** DH16 — horario real (o null si es a demanda); para "Última / próxima ejecución". */
+  horarioAgente = (clave: AgenteClave): string | null => AGENTE_HORARIO[clave] ?? null;
+
+  /** DH16 — etiqueta honesta: "A demanda" en vez de "Sin conexión" para quien no tiene cron. */
+  estadoLabelMostrar = (agente: Agente): string => {
+    const estado = this.estadoVisual(agente.id);
+    if (estado === 'inactivo' && !this.horarioAgente(agente.clave)) return 'A demanda';
+    return this.estadoLabel[estado];
+  };
+
   esperandoOk = (agente: Agente): AgenteAprobacion | undefined =>
     agente.nivel_max === 3
       ? this.aprobacionesPendientes().find((a) => a.agente_id === agente.id)
@@ -100,6 +134,17 @@ export class OficinaAgentes implements OnInit, OnDestroy {
   totalHoy = computed(
     () => this.hallazgosHoy().length + this.accionesHoy().length + this.aprobacionesPendientes().length,
   );
+
+  // DH21 — paginación de los 3 paneles (antes mostraban todas las filas juntas).
+  pagHallazgos = signal(1);
+  tamHallazgos = signal(10);
+  pagAcciones = signal(1);
+  tamAcciones = signal(10);
+  pagAprobaciones = signal(1);
+  tamAprobaciones = signal(10);
+  hallazgosPagina = computed(() => this.hallazgosHoy().slice((this.pagHallazgos() - 1) * this.tamHallazgos(), this.pagHallazgos() * this.tamHallazgos()));
+  accionesPagina = computed(() => this.accionesHoy().slice((this.pagAcciones() - 1) * this.tamAcciones(), this.pagAcciones() * this.tamAcciones()));
+  aprobacionesPagina = computed(() => this.aprobacionesPendientes().slice((this.pagAprobaciones() - 1) * this.tamAprobaciones(), this.pagAprobaciones() * this.tamAprobaciones()));
 
   async ngOnInit(): Promise<void> {
     await this.cargar();
@@ -119,6 +164,23 @@ export class OficinaAgentes implements OnInit, OnDestroy {
       this.error.set(e);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /** DH16 — solo tiene sentido en agentes a demanda (sin horario fijo). */
+  puedeEjecutarAhora = (clave: AgenteClave): boolean => !this.horarioAgente(clave);
+
+  async ejecutarAhora(agente: Agente): Promise<void> {
+    if (this.ejecutando()) return;
+    this.ejecutando.set(agente.clave);
+    try {
+      await this.service.ejecutarAhora(agente.clave);
+      this.toast.success('Ejecutado', `${agente.nombre} corrió y registró lo que encontró.`);
+      await this.service.cargar();
+    } catch (e) {
+      this.toast.error('No se pudo ejecutar', presentarError(e, { pantalla: 'Agentes', accion: 'ejecutar el agente' }).mensajeUsuario);
+    } finally {
+      this.ejecutando.set(null);
     }
   }
 

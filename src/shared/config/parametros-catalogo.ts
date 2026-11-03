@@ -160,7 +160,9 @@ export function metaDe(clave: string, fuenteReal: ParamFuente): ParamMeta {
 
 /** Valida un valor contra su metadato. Devuelve null si es válido, o el mensaje de error. */
 export function validarValor(meta: ParamMeta, valor: string): string | null {
-  const v = (valor ?? '').trim();
+  // DH15 — `valor` puede llegar como number (algunos parámetros se guardan
+  // numéricos), y `(valor ?? '')` no lo convierte a string: `.trim()` reventaba.
+  const v = String(valor ?? '').trim();
   switch (meta.tipo) {
     case 'entero':
     case 'decimal': {

@@ -390,10 +390,15 @@
 
   <!-- DG — Compa flotante: burbuja → ventana arrastrable/redimensionable, disponible
        en todo el sistema salvo /asistente (pantalla completa), práctica activa, o si
-       la persona la apagó en Configuración › Apariencia. -->
-  @if (mostrarCompaFlotante()) {
-    <app-compa-flotante [moduloActual]="moduloActualLabel()" />
-  }
+       la persona la apagó en Configuración › Apariencia.
+       DH6/DH9 — antes esto era un `@if`: cada vez que `mostrarCompaFlotante()`
+       recalculaba (p. ej. al cargar `preferencias`/`practica` tras el primer
+       render), Angular DESTRUÍA y RECREABA `<app-compa-flotante>`, perdiendo el
+       estado `abierta`/`montada` — por eso un clic en la burbuja no abría nada
+       hasta que una navegación volvía a estabilizar el cálculo. Ahora el
+       componente queda SIEMPRE montado y solo se oculta con `[hidden]` (CSS),
+       nunca se recrea. -->
+  <app-compa-flotante [hidden]="!mostrarCompaFlotante()" [moduloActual]="moduloActualLabel()" />
   @if (lightbox.estado(); as lb) {
     <app-lightbox [src]="lb.src" [alt]="lb.alt" [title]="lb.title" [images]="lb.images" [startIndex]="lb.startIndex" (closed)="lightbox.cerrar()" />
   }

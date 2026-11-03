@@ -83,6 +83,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'incentivos', label: 'Incentivos (choferes)', desc: 'AT1 — Informe semanal de desempeño por chofer con puntaje y badge de cumplimiento, aprobar/declinar el incentivo con historial y export para nómina. Lo gestionan Logística y Transportación, Gerencia y Administración. (El chofer ve solo su propio rendimiento, sin este módulo.)' },
   { key: 'direccion', label: 'Gerencia (vista ejecutiva)', desc: 'Vista ejecutiva: KPIs y dashboards consolidados de gerencia. (Clave interna: direccion.)', sensible: true },
   { key: 'plataforma', label: 'Plataforma (app)', desc: 'Personalización de la app: orden y tamaño de los módulos del launcher. Permiso delegable, no requiere ser administrador.' },
+  { key: 'sistema', label: 'Sistema', desc: 'DH3 — Pantallas informativas visibles a todo usuario por defecto (historial de versiones, guía de herramientas). Aquí se puede OCULTAR alguna a un rol específico; no es necesario marcarlo para que el rol las vea.' },
   { key: 'reuniones', label: 'Reuniones', desc: 'CP8 — Programar reuniones, agenda, notas, acuerdos → tareas y actas. Por defecto: gerencia/dirección, ingenieros, logística, legal y RRHH.' },
   { key: 'admin', label: 'Administración', desc: 'Usuarios, roles y permisos, versiones de la app, auditoría y reportes. Acceso máximo — asignar con cuidado.', sensible: true },
 ];
@@ -148,12 +149,14 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'flota.rutas', label: 'Rutas / Seguimiento', enforced: true,
       descripcion: 'Rutas de transporte y seguimiento GPS en tiempo real.' },
   ],
+  // DH11 — gateados end-to-end (ruta con submoduloGuard + RLS vía
+  // puede_ver_submodulo/puede_operar_submodulo, ver sql/2026-11-03-dh11-rrhh-submodulos.sql).
   rrhh: [
-    { key: 'rrhh.empleados', label: 'Empleados',
+    { key: 'rrhh.empleados', label: 'Empleados', enforced: true,
       descripcion: 'Expediente del personal: datos y documentos del empleado.' },
-    { key: 'rrhh.asistencia', label: 'Asistencia',
+    { key: 'rrhh.asistencia', label: 'Asistencia', enforced: true,
       descripcion: 'Marcaje y control de asistencia diaria.' },
-    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones',
+    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones', enforced: true,
       descripcion: 'Solicitar y aprobar permisos, ausencias y vacaciones.' },
   ],
   // AR1 — gateados end-to-end (menú + ruta + RLS por obra).
@@ -170,18 +173,30 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
   // AG16 — Gestión de Producción de Obra. `obra.no_conformidades` ya se gatea
   // end-to-end (menú + ruta + RLS); el resto se irá gateando por fase.
   obra: [
-    { key: 'obra.plan_dia', label: 'Plan del día y charla de seguridad',
+    // DH11 — los 5 ya se gatean end-to-end (ruta con submoduloGuard real + RLS vía
+    // puede_ver_submodulo('obra.xxx') en sql/2026-08-06-ag16-fase*.sql); el chip
+    // "Próximamente" era una mentira de UI, no reflejaba el código.
+    { key: 'obra.plan_dia', label: 'Plan del día y charla de seguridad', enforced: true,
       descripcion: 'Plan diario de producción y charla de seguridad (toolbox talk).' },
     { key: 'obra.no_conformidades', label: 'No conformidades e incidentes', enforced: true,
       descripcion: 'Registrar no conformidades, incidentes y accidentes en obra.' },
-    { key: 'obra.checklists', label: 'Checklists de calidad',
+    { key: 'obra.checklists', label: 'Checklists de calidad', enforced: true,
       descripcion: 'Listas de verificación de calidad en obra.' },
-    { key: 'obra.subcontratistas', label: 'Subcontratistas y cubicaciones',
+    { key: 'obra.subcontratistas', label: 'Subcontratistas y cubicaciones', enforced: true,
       descripcion: 'Subcontratos y cubicaciones de avance de subcontratistas.' },
-    { key: 'obra.avance', label: 'Avance, costos y logística',
+    { key: 'obra.avance', label: 'Avance, costos y logística', enforced: true,
       descripcion: 'Avance real, curva S, costos y mano de obra de la producción.' },
-    { key: 'obra.informes', label: 'Informe semanal',
+    { key: 'obra.informes', label: 'Informe semanal', enforced: true,
       descripcion: 'Informe semanal de obra autocompilado.' },
+  ],
+  // DH3/DH11 — grupo «Sistema»: informativo, visible por defecto a TODO rol
+  // (sembrado en 'ver' por sql/2026-11-03-dh3-sistema-submodulos.sql). Gateado
+  // end-to-end (ruta propia fuera de /tecnologia + submoduloGuard, ver app.routes.ts).
+  sistema: [
+    { key: 'sistema.historial_versiones', label: 'Historial de versiones', enforced: true,
+      descripcion: 'Qué cambió en cada versión de la web y la app.' },
+    { key: 'sistema.guia_herramientas', label: 'Guía de herramientas', enforced: true,
+      descripcion: 'Catálogo de herramientas/equipos homologados por puesto.' },
   ],
   // AJ4 — permiso delegable para personalizar el layout de la app (launcher).
   // Gateado server-side en set_module_order (is_admin OR puede_operar_submodulo).

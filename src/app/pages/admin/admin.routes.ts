@@ -60,8 +60,9 @@ export const adminRoutes: Routes = [
   // Y11 — movidas al módulo Tecnología. Redirect para no romper enlaces viejos.
   { path: 'app-versiones', redirectTo: '/tecnologia/app-versiones', pathMatch: 'full' },
   {
+    // DH3 — ahora vive en /historial-versiones (grupo «Sistema», fuera de /tecnologia).
     path: 'historial-versiones',
-    redirectTo: '/tecnologia/historial-versiones',
+    redirectTo: '/historial-versiones',
     pathMatch: 'full',
   },
   {

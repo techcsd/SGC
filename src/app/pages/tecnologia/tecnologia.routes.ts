@@ -4,13 +4,10 @@ import { submoduloGuard } from '../../core/guards/submodulo.guard';
 import { tecnologiaGuard, desarrolladorGuard } from '../../core/guards/tecnologia.guard';
 
 export const tecnologiaRoutes: Routes = [
-  { path: '', redirectTo: 'guia', pathMatch: 'full' },
-  // Guía de homologación: informativa para TODO usuario autenticado (sin gate de módulo).
-  {
-    path: 'guia',
-    loadComponent: () => import('./guia/guia').then((m) => m.TecGuia),
-    title: 'Homologación — Tecnología',
-  },
+  { path: '', redirectTo: 'homologacion', pathMatch: 'full' },
+  // DH3/DH19 — «Guía de herramientas» se movió a /herramientas (grupo «Sistema»,
+  // fuera del padre /tecnologia que exige el módulo tecnologia). Redirige lo viejo.
+  { path: 'guia', redirectTo: '/herramientas', pathMatch: 'full' },
   // Gestión: gateada por el módulo 'tecnologia'.
   {
     path: 'homologacion',
@@ -96,13 +93,12 @@ export const tecnologiaRoutes: Routes = [
     title: 'Dev notes — Tecnología',
   },
   {
-    // Z26 — Historial de versiones es público (sin guard).
+    // DH3 — se movió a /historial-versiones (grupo «Sistema»): el padre /tecnologia
+    // exige el módulo tecnologia, así que "público" acá era mentira para quien no
+    // lo tuviera. Redirige lo viejo (enlaces/bookmarks existentes).
     path: 'historial-versiones',
-    loadComponent: () =>
-      import('../admin/historial-versiones/historial-versiones').then(
-        (m) => m.AdminHistorialVersiones,
-      ),
-    title: 'Historial de versiones — Tecnología',
+    redirectTo: '/historial-versiones',
+    pathMatch: 'full',
   },
   {
     path: 'app-versiones',

@@ -102,6 +102,17 @@
             <span class="field-hint">{{ 'No se pudo leer automáticamente — llena los campos a mano.' | t }}</span>
           } @else {
             <span class="field-hint">{{ 'Leído con IA — revisa los campos antes de guardar.' | t }}</span>
+            <!-- DH20 — antes esto se descartaba; ahora se ve (y se podrá editar tras guardar). -->
+            @if (l.lectura?.articulos?.length) {
+              <div class="cot-renglones-preview">
+                <span class="cot-renglones-preview__h">{{ 'Renglones leídos' | t }} ({{ l.lectura!.articulos.length }})</span>
+                <ul>
+                  @for (a of l.lectura!.articulos; track $index) {
+                    <li>{{ a.descripcion }}@if (a.cantidad) { — {{ a.cantidad }}@if (a.unidad) { {{ a.unidad }} } }@if (a.precio) { · {{ a.precio | number:'1.2-2' }} }</li>
+                  }
+                </ul>
+              </div>
+            }
           }
         }
       } @else {
@@ -249,6 +260,44 @@
         @if (c.notas) {
           <p class="text-muted">{{ c.notas }}</p>
         }
+      }
+
+      <!-- DH20 — renglones leídos de la cotización (antes se descartaban). -->
+      <h3 class="section-title">
+        {{ 'Renglones' | t }} ({{ renglones().length }})
+        @if (!editandoRenglones()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoRenglones.set(true)">{{ 'Editar' | t }}</button>
+        }
+      </h3>
+      @if (!renglones().length && !editandoRenglones()) {
+        <p class="text-muted">{{ 'Sin renglones (no se leyeron o se subieron a mano).' | t }}</p>
+      } @else if (!editandoRenglones()) {
+        <ul class="vinculos-list">
+          @for (r of renglones(); track $index) {
+            <li>
+              <span>{{ r.descripcion }}@if (r.cantidad) { — {{ r.cantidad }}@if (r.unidad) { {{ r.unidad }} } }@if (r.precio) { · {{ r.precio | number:'1.2-2' }} }</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="renglones-editor">
+          @for (r of renglones(); track $index) {
+            <div class="renglones-editor__fila">
+              <input type="text" class="sgc-input" [placeholder]="'Descripción' | t" [value]="r.descripcion" (input)="editarDescripcion($index, $any($event.target).value)" />
+              <input type="number" class="sgc-input" [placeholder]="'Cant.' | t" min="0" step="0.01" [value]="r.cantidad" (input)="editarCantidad($index, $any($event.target).value)" />
+              <input type="text" class="sgc-input" [placeholder]="'Unidad' | t" [value]="r.unidad" (input)="editarUnidad($index, $any($event.target).value)" />
+              <input type="number" class="sgc-input" [placeholder]="'Precio' | t" min="0" step="0.01" [value]="r.precio" (input)="editarPrecio($index, $any($event.target).value)" />
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarRenglon($index)" [attr.aria-label]="'Quitar renglón' | t">×</button>
+            </div>
+          }
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarRenglon()">+ {{ 'Agregar renglón' | t }}</button>
+          <div class="drawer-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarRenglones()">{{ 'Cancelar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoRenglones()" (click)="guardarRenglones()">
+              {{ (guardandoRenglones() ? 'Guardando…' : 'Guardar renglones') | t }}
+            </button>
+          </div>
+        </div>
       }
 
       <!-- CZ2 — vínculo con compra/solicitud tecnológica -->

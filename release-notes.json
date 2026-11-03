@@ -3,66 +3,206 @@
     "1.208.0": {
       "titulo": "Módulo Developer, buscador maestro (Ctrl+K), Compa flotante y módulo Demo",
       "cambios": [
-        { "t": "nuevo", "m": "Developer", "d": "Nuevo módulo que junta toda la consola de plataforma: versiones, calidad, Dev notes, monitoreo de infraestructura, APIs y Pulso del sistema." },
-        { "t": "nuevo", "m": "Buscador", "d": "Lupa arriba y atajo Ctrl+K: escribe el nombre de cualquier módulo o pantalla y ve directo ahí, con tolerancia a errores de tecleo." },
-        { "t": "nuevo", "m": "Compa", "d": "Ahora puede abrirse en una ventana flotante arrastrable y redimensionable, para hablar con él sin salir de la pantalla en la que estás. Se puede apagar en Configuración." },
-        { "t": "nuevo", "m": "Demo", "d": "Nuevo módulo de práctica con más misiones (bitácora, conduce, combustible, checklist, requisición, compra, mantenimiento, ruta, orden de trabajo), tu progreso y los escenarios de demostración." },
-        { "t": "mejora", "m": "Dev notes", "d": "El selector de grupo ahora permite crear un grupo nuevo sin salir del editor." },
-        { "t": "mejora", "m": "Dev notes", "d": "Quitar una imagen de una nota ahora pide confirmación y se puede deshacer; las imágenes quitadas se guardan 30 días antes de borrarse de verdad." },
-        { "t": "arreglo", "m": "Dashboard", "d": "\"Hoy, en vivo\" ya no cuenta como \"en ruta\" los conduces viejos atascados ni como \"en uso\" un vehículo olvidado hace días — ahora se muestran aparte como \"atrasados\" y \"uso sin cerrar\", y el mapa avisa cuándo una posición dejó de ser reciente." },
-        { "t": "arreglo", "m": "RRHH", "d": "El registro rápido de personal (2 fotos) ya no falla por fotos sin comprimir antes de leerlas con IA." }
+        {
+          "t": "nuevo",
+          "m": "Developer",
+          "d": "Nuevo módulo que junta toda la consola de plataforma: versiones, calidad, Dev notes, monitoreo de infraestructura, APIs y Pulso del sistema."
+        },
+        {
+          "t": "nuevo",
+          "m": "Buscador",
+          "d": "Lupa arriba y atajo Ctrl+K: escribe el nombre de cualquier módulo o pantalla y ve directo ahí, con tolerancia a errores de tecleo."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compa",
+          "d": "Ahora puede abrirse en una ventana flotante arrastrable y redimensionable, para hablar con él sin salir de la pantalla en la que estás. Se puede apagar en Configuración."
+        },
+        {
+          "t": "nuevo",
+          "m": "Demo",
+          "d": "Nuevo módulo de práctica con más misiones (bitácora, conduce, combustible, checklist, requisición, compra, mantenimiento, ruta, orden de trabajo), tu progreso y los escenarios de demostración."
+        },
+        {
+          "t": "mejora",
+          "m": "Dev notes",
+          "d": "El selector de grupo ahora permite crear un grupo nuevo sin salir del editor."
+        },
+        {
+          "t": "mejora",
+          "m": "Dev notes",
+          "d": "Quitar una imagen de una nota ahora pide confirmación y se puede deshacer; las imágenes quitadas se guardan 30 días antes de borrarse de verdad."
+        },
+        {
+          "t": "arreglo",
+          "m": "Dashboard",
+          "d": "\"Hoy, en vivo\" ya no cuenta como \"en ruta\" los conduces viejos atascados ni como \"en uso\" un vehículo olvidado hace días — ahora se muestran aparte como \"atrasados\" y \"uso sin cerrar\", y el mapa avisa cuándo una posición dejó de ser reciente."
+        },
+        {
+          "t": "arreglo",
+          "m": "RRHH",
+          "d": "El registro rápido de personal (2 fotos) ya no falla por fotos sin comprimir antes de leerlas con IA."
+        }
       ]
     },
     "1.207.0": {
       "titulo": "IA en bitácora, conduce, mantenimientos y requisiciones + agentes de monitoreo + gastos",
       "cambios": [
-        { "t": "nuevo", "m": "Bitácora", "d": "Modo rápido: sube fotos y graba una nota de voz, y la IA propone los pasos del parte diario (confianza por campo, siempre revisas antes de enviar)." },
-        { "t": "nuevo", "m": "Inventario", "d": "Conduce externo: botón \"Entender con IA\" lee la foto del conduce físico y propone material, cantidades, proveedor y chofer." },
-        { "t": "nuevo", "m": "Flota", "d": "Mantenimientos y checklist/inspección de vehículos: grábalo con tu voz y, en el checklist, también con foto del daño — la IA propone y tú confirmas." },
-        { "t": "nuevo", "m": "Inventario", "d": "Requisición de materiales por voz: dí lo que necesitas y la IA propone los renglones contra el catálogo real de la obra." },
-        { "t": "nuevo", "m": "Compras", "d": "Pantalla nueva de Gastos directos del proyecto, con lector de IA para la foto de la factura (proveedor, RNC, NCF, monto)." },
-        { "t": "nuevo", "m": "Tecnología", "d": "Agentes de monitoreo (Vigía, Capataz, Soporte, Auditor, Escriba, Cronista): detectan y a veces resuelven solos problemas del sistema, con informe diario y panel de aprobaciones." },
-        { "t": "nuevo", "m": "Flota", "d": "El camión en el mapa ahora gira según su rumbo real y muestra velocidad y tiempo estimado de llegada." },
-        { "t": "nuevo", "m": "Dashboard", "d": "Pulso de obras (qué obras ya mandaron su parte de hoy) y flujo de requisición → recepción con el cuello de botella resaltado." },
-        { "t": "nuevo", "m": "Administración", "d": "Pulso del sistema: línea de vida de base de datos, tareas programadas, cola de envíos, voz a texto, lectores de IA y GPS." },
-        { "t": "arreglo", "m": "Inventario", "d": "El aviso de requisiciones vencidas volvió a funcionar — llevaba días sin avisar a nadie por una columna que faltaba." }
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Modo rápido: sube fotos y graba una nota de voz, y la IA propone los pasos del parte diario (confianza por campo, siempre revisas antes de enviar)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Conduce externo: botón \"Entender con IA\" lee la foto del conduce físico y propone material, cantidades, proveedor y chofer."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Mantenimientos y checklist/inspección de vehículos: grábalo con tu voz y, en el checklist, también con foto del daño — la IA propone y tú confirmas."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Requisición de materiales por voz: dí lo que necesitas y la IA propone los renglones contra el catálogo real de la obra."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "Pantalla nueva de Gastos directos del proyecto, con lector de IA para la foto de la factura (proveedor, RNC, NCF, monto)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Agentes de monitoreo (Vigía, Capataz, Soporte, Auditor, Escriba, Cronista): detectan y a veces resuelven solos problemas del sistema, con informe diario y panel de aprobaciones."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "El camión en el mapa ahora gira según su rumbo real y muestra velocidad y tiempo estimado de llegada."
+        },
+        {
+          "t": "nuevo",
+          "m": "Dashboard",
+          "d": "Pulso de obras (qué obras ya mandaron su parte de hoy) y flujo de requisición → recepción con el cuello de botella resaltado."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Pulso del sistema: línea de vida de base de datos, tareas programadas, cola de envíos, voz a texto, lectores de IA y GPS."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "El aviso de requisiciones vencidas volvió a funcionar — llevaba días sin avisar a nadie por una columna que faltaba."
+        }
       ]
     },
     "1.206.0": {
       "titulo": "Documentos de flota con sugerencias e IA, badges honestos, transferencias con seguimiento",
       "cambios": [
-        { "t": "nuevo", "m": "Flota", "d": "Al cargar documentos sin vehículo claro, ahora el sistema sugiere candidatos por placa parecida, VIN, marca/modelo o póliza — con un visor grande (zoom/girar) y buscador por placa, alias, marca, modelo, chasis o responsable. Si la placa está tapada, ya no se compara (evita falsos positivos) y se busca por el resto de los datos." },
-        { "t": "nuevo", "m": "Flota", "d": "El reverso del marbete/seguro ahora se guarda como segundo documento del vehículo, emparejado automáticamente con su anverso." },
-        { "t": "arreglo", "m": "Inventario", "d": "El número en el icono de Inventario ahora refleja tus pendientes reales (conduces por recibir + requisiciones por despachar), no un conteo de todo lo despachado en la empresa." },
-        { "t": "arreglo", "m": "Flota", "d": "Transferir un conduce a un chofer sin usuario en el sistema ahora se rechaza con un mensaje claro en vez de crear una oferta que el receptor nunca podía ver. Nueva pantalla \"Transferencias pendientes\" para cancelar las que se atascan." }
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Al cargar documentos sin vehículo claro, ahora el sistema sugiere candidatos por placa parecida, VIN, marca/modelo o póliza — con un visor grande (zoom/girar) y buscador por placa, alias, marca, modelo, chasis o responsable. Si la placa está tapada, ya no se compara (evita falsos positivos) y se busca por el resto de los datos."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "El reverso del marbete/seguro ahora se guarda como segundo documento del vehículo, emparejado automáticamente con su anverso."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "El número en el icono de Inventario ahora refleja tus pendientes reales (conduces por recibir + requisiciones por despachar), no un conteo de todo lo despachado en la empresa."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Transferir un conduce a un chofer sin usuario en el sistema ahora se rechaza con un mensaje claro en vez de crear una oferta que el receptor nunca podía ver. Nueva pantalla \"Transferencias pendientes\" para cancelar las que se atascan."
+        }
       ]
     },
     "1.205.2": {
       "titulo": "Cargar documentos de flota: la lectura ya no se corta por tardar",
       "cambios": [
-        { "t": "arreglo", "m": "Flota", "d": "El error \"No se pudo contactar el servicio\" al leer un PDF con muchas páginas no volverá a salir: la lectura ahora corre en segundo plano, sin depender de que tu navegador aguante la espera." }
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El error \"No se pudo contactar el servicio\" al leer un PDF con muchas páginas no volverá a salir: la lectura ahora corre en segundo plano, sin depender de que tu navegador aguante la espera."
+        }
       ]
     },
     "1.205.1": {
       "titulo": "Cargar documentos de flota: arreglo del arrastrar y soltar + lectura más rápida",
       "cambios": [
-        { "t": "arreglo", "m": "Flota", "d": "Arrastrar y soltar el PDF en \"Cargar documentos\" ya funciona (antes solo servía hacer clic para elegir el archivo)." },
-        { "t": "arreglo", "m": "Flota", "d": "La lectura de un PDF con muchas páginas (como el de marbetes/seguros) ahora es varias veces más rápida y ya no se queda a medias por demora del servicio." }
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Arrastrar y soltar el PDF en \"Cargar documentos\" ya funciona (antes solo servía hacer clic para elegir el archivo)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "La lectura de un PDF con muchas páginas (como el de marbetes/seguros) ahora es varias veces más rápida y ya no se queda a medias por demora del servicio."
+        }
       ]
     },
     "1.205.0": {
       "titulo": "Ronda DB: Compa, tablero en vivo, lectores con IA (flota y personal), pagos con descargo, reportes → ronda",
       "cambios": [
-        { "t": "arreglo", "m": "Compa", "d": "Compa ya no muestra el error técnico «Failed to send a request…» ante un fallo de conexión: reintenta una vez y avisa en lenguaje claro. También se agregó el dominio www al permitido." },
-        { "t": "arreglo", "m": "Inventario", "d": "Al aprobar una requisición, el material que ya llegó a la obra por otra vía ahora se descuenta correctamente del pendiente a despachar (antes se podía despachar/comprar de más)." },
-        { "t": "arreglo", "m": "Flota", "d": "El sistema ya no le \"quita\" la unidad asignada a un chofer cada 24 horas — respeta su asignación (con un tope de 7 días)." },
-        { "t": "nuevo", "m": "Flota", "d": "Cargar documentos: sube el PDF o las fotos del seguro/matrícula/marbete renovados y la IA los lee, los empareja con cada vehículo y los aplica tras tu revisión." },
-        { "t": "nuevo", "m": "Proyectos", "d": "Registro rápido de personal de obra con 2 fotos (la IA precarga los datos) y Levantamiento de hoy (quién está, quién es nuevo, quién falta) con descarga a Excel." },
-        { "t": "nuevo", "m": "Ingeniería", "d": "Pagos de la semana: arma el pago del personal, cada quien firma su descargo, y al enviar se genera un PDF que llega por correo a Legal y Gerencia." },
-        { "t": "nuevo", "m": "Administración", "d": "Reportes: \"Resumir para ronda\" convierte un reporte en una nota lista para copiar (y, si es un error urgente, un prompt de hotfix)." },
-        { "t": "mejora", "m": "Dev notes", "d": "Las imágenes ahora muestran su barra de acciones debajo de la miniatura (antes la tapaba) y las consecutivas se agrupan en galería." },
-        { "t": "nuevo", "m": "Dashboard", "d": "\"Hoy, en vivo\": KPIs del día, flujo de pedidos y la flota en un mapa, todo actualizándose solo." },
-        { "t": "mejora", "m": "Administración", "d": "Los envíos automáticos por correo ahora permiten agregar \"personas extra\" por familia, además de los roles." }
+        {
+          "t": "arreglo",
+          "m": "Compa",
+          "d": "Compa ya no muestra el error técnico «Failed to send a request…» ante un fallo de conexión: reintenta una vez y avisa en lenguaje claro. También se agregó el dominio www al permitido."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Al aprobar una requisición, el material que ya llegó a la obra por otra vía ahora se descuenta correctamente del pendiente a despachar (antes se podía despachar/comprar de más)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El sistema ya no le \"quita\" la unidad asignada a un chofer cada 24 horas — respeta su asignación (con un tope de 7 días)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Cargar documentos: sube el PDF o las fotos del seguro/matrícula/marbete renovados y la IA los lee, los empareja con cada vehículo y los aplica tras tu revisión."
+        },
+        {
+          "t": "nuevo",
+          "m": "Proyectos",
+          "d": "Registro rápido de personal de obra con 2 fotos (la IA precarga los datos) y Levantamiento de hoy (quién está, quién es nuevo, quién falta) con descarga a Excel."
+        },
+        {
+          "t": "nuevo",
+          "m": "Ingeniería",
+          "d": "Pagos de la semana: arma el pago del personal, cada quien firma su descargo, y al enviar se genera un PDF que llega por correo a Legal y Gerencia."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Reportes: \"Resumir para ronda\" convierte un reporte en una nota lista para copiar (y, si es un error urgente, un prompt de hotfix)."
+        },
+        {
+          "t": "mejora",
+          "m": "Dev notes",
+          "d": "Las imágenes ahora muestran su barra de acciones debajo de la miniatura (antes la tapaba) y las consecutivas se agrupan en galería."
+        },
+        {
+          "t": "nuevo",
+          "m": "Dashboard",
+          "d": "\"Hoy, en vivo\": KPIs del día, flujo de pedidos y la flota en un mapa, todo actualizándose solo."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "Los envíos automáticos por correo ahora permiten agregar \"personas extra\" por familia, además de los roles."
+        }
       ]
     },
     "1.204.0": {
@@ -5792,6 +5932,96 @@
           "t": "nuevo",
           "m": "Tecnología",
           "d": "Compa (el asistente de IA) ya responde por WhatsApp a través del canal oficial de Meta — antes era un puente no oficial que Meta bloqueó. Responde con los mismos permisos de siempre; para crear o aprobar algo, manda un enlace para confirmarlo en SGC o la app (por WhatsApp no se confirma nada todavía)."
+        }
+      ]
+    },
+    "1.209.0": {
+      "titulo": "Compa más estable, combustible sin bloqueos falsos, y mejoras en Sistema/Auditoría/Agentes",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Compa",
+          "d": "La ventana flotante ya abre con un solo clic (antes a veces había que cambiar de pantalla) y el botón de cerrar funciona siempre."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compa",
+          "d": "Dentro de la ventana flotante ya puedes cambiar de conversación, ver las compartidas contigo y empezar una nueva. El aviso de privacidad se puede cerrar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Combustible",
+          "d": "Registrar una echada con otra lectura del mismo día ya no se bloquea como error — ahora es un aviso que puedes confirmar; solo un choque real entre fechas distintas bloquea."
+        },
+        {
+          "t": "arreglo",
+          "m": "Sistema",
+          "d": "Historial de versiones y Guía de herramientas vuelven a ser visibles para todos, no solo para Tecnología."
+        },
+        {
+          "t": "mejora",
+          "m": "Roles",
+          "d": "Los permisos de Plan del día, Checklists, Subcontratistas, Avance e Informe semanal (Producción de obra) ya no dicen \"Próximamente\" — se pueden asignar de verdad."
+        },
+        {
+          "t": "arreglo",
+          "m": "Órdenes de compra",
+          "d": "Marcar una orden como \"Recibida\" con un renglón sin artículo de catálogo ahora explica qué falta y cómo resolverlo, en vez de solo bloquear."
+        },
+        {
+          "t": "nuevo",
+          "m": "Vault",
+          "d": "El responsable de una entrada ahora se elige de la lista de usuarios (ya no se escribe a mano); la lista se pagina."
+        },
+        {
+          "t": "nuevo",
+          "m": "Empresa",
+          "d": "Ya se puede subir el logo de la empresa y se ve en la vista previa del documento."
+        },
+        {
+          "t": "arreglo",
+          "m": "Dudas",
+          "d": "Ya no se ve un instante vacío antes de que cargue el contenido real."
+        },
+        {
+          "t": "arreglo",
+          "m": "Usuarios",
+          "d": "El menú de acciones (⋯) ya no se queda flotando en el lugar equivocado si cambias el tamaño de la ventana."
+        },
+        {
+          "t": "mejora",
+          "m": "Homologación",
+          "d": "Se agregó buscador, filtro por categoría y paginación."
+        },
+        {
+          "t": "mejora",
+          "m": "Auditoría",
+          "d": "El Resumen ahora cuenta en frases qué pasó, qué fue sensible, quién hizo qué (sin ruido de sistema) y qué se ve raro — en vez de solo barras de colores."
+        },
+        {
+          "t": "mejora",
+          "m": "Agentes",
+          "d": "Los agentes sin horario fijo (Capataz, Auditor, Soporte) ya no dicen \"Sin conexión\" — muestran \"A demanda\" y tienen un botón \"Ejecutar ahora\". El informe del día usa nombres de persona y agrupa avisos repetidos."
+        },
+        {
+          "t": "mejora",
+          "m": "Reportes de errores",
+          "d": "Nuevo estado \"Regla de negocio\" para rechazos esperados (no son bugs) — ya no se confunden con errores reales pendientes."
+        },
+        {
+          "t": "nuevo",
+          "m": "Requisiciones",
+          "d": "El correo de requisiciones de materiales/compra ahora se puede apagar en Configuración › Notificaciones."
+        },
+        {
+          "t": "mejora",
+          "m": "Cotizaciones",
+          "d": "Los renglones que lee la IA de un PDF/foto ahora se guardan, se ven y se pueden editar (antes se descartaban)."
+        },
+        {
+          "t": "mejora",
+          "m": "Roles",
+          "d": "Empleados, Asistencia y Ausencias/Vacaciones (RRHH) ya se pueden asignar como permiso independiente desde Roles — antes decían \"Próximamente\"."
         }
       ]
     }

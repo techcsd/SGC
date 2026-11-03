@@ -337,6 +337,7 @@ acepta; motivo por qué NO tienen herramienta propia esta ronda):
 | `plantillas` (crear/editar plantillas) | Es edición, no lectura — fuera de alcance de un conector de solo lectura; se cubre si algún día hay `proponer_*` |
 | `obra` (Producción de Obra) | Sin pantallas propias construidas aún en este repo (AT6 — ver roles.service.ts); nada que cubrir todavía |
 | `plataforma` (personalización launcher app) | Preferencia de UI de la app móvil, no dato de negocio — no aplica a un conector de datos |
+| `sistema` (Historial de versiones, Guía de herramientas) | DH3 — pantallas de navegación informativas, sin dato de negocio propio; `changelog_reciente`/`buscar_ayuda` ya cubren lo consultable |
 | `tecnologia` (compras tec., inventario de equipos) | Pendiente — próxima ronda (contexto 53+) |
 | `reuniones` | Ya cubierto por `mis_reuniones`/`acuerdos_pendientes`/`resumen_reunion` (identidad estricta, `modulos: null` — no se declaran bajo `reuniones` a propósito, ver PERMISOS-TOOLS.md) |
 | Políticas (`/politicas/*`) | Contenido público y estático (no hay tabla en BD); se puede leer directo por URL, no necesita una herramienta del conector |

@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EmpresaService } from '../../../../shared/services/empresa.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * AG13 — Empresa / parámetros generales: datos de la constructora (razón social,
@@ -11,7 +13,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-admin-empresa',
-  imports: [ReactiveFormsModule, Skeleton],
+  imports: [ReactiveFormsModule, Skeleton, FileUpload, TranslatePipe],
   templateUrl: './empresa.html',
   styleUrl: './empresa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +26,10 @@ export class AdminEmpresa implements OnInit {
   loading = signal(true);
   saving = signal(false);
   error = signal('');
+  // DH10 — logo: preview real en vez del placeholder "LOGO".
+  logoPath = signal<string | null>(null);
+  subiendoLogo = signal(false);
+  logoUrl = computed(() => this.svc.logoUrl(this.logoPath()));
 
   form = this.fb.group({
     razon_social: ['', [Validators.maxLength(200)]],
@@ -56,6 +62,7 @@ export class AdminEmpresa implements OnInit {
     try {
       const e = await this.svc.get();
       if (e) {
+        this.logoPath.set(e.logo_path);
         this.form.patchValue({
           razon_social: e.razon_social ?? '',
           nombre_comercial: e.nombre_comercial ?? '',
@@ -100,6 +107,21 @@ export class AdminEmpresa implements OnInit {
       this.error.set(e instanceof Error ? e.message : 'No se pudo guardar.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  async onLogoAdd(files: File[]) {
+    const file = files[0];
+    if (!file || this.subiendoLogo()) return;
+    this.subiendoLogo.set(true);
+    try {
+      const path = await this.svc.subirLogo(file);
+      this.logoPath.set(path);
+      this.toast.success('Logo actualizado', 'Ya sale en la vista previa y en los documentos nuevos.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo subir el logo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.subiendoLogo.set(false);
     }
   }
 

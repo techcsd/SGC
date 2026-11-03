@@ -177,6 +177,45 @@
     @if (resumenLoading()) {
       <app-skeleton variant="cards" [rows]="6" />
     } @else if (resumen(); as r) {
+      <!-- DH5 — narrativa en frases (lo primero que se lee, no las barras). -->
+      <div class="sgc-card aud__narrativa">
+        <h3 class="aud__drill-title">{{ 'Qué pasó hoy' | t }}</h3>
+        <ul class="aud__drill-list">
+          @for (f of resumenFrases(); track f) { <li>{{ f }}</li> }
+        </ul>
+      </div>
+
+      @if (cambiosSensibles().length) {
+        <div class="sgc-card aud__narrativa">
+          <h3 class="aud__drill-title">{{ 'Cambios sensibles' | t }}</h3>
+          <ul class="aud__drill-list">
+            @for (c of cambiosSensibles().slice(0, 10); track c.id) {
+              <li>{{ adminAccionLabel(c.action) }} — {{ c.actor_nombre ?? 'Sistema' }}@if (c.target_nombre) { → {{ c.target_nombre }} } · {{ formatTs(c.created_at) }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="sgc-card aud__narrativa">
+        <h3 class="aud__drill-title">{{ 'Actividad por persona' | t }}</h3>
+        <ul class="aud__drill-list">
+          @for (u of actividadPorPersona().slice(0, 10); track u.actor_id) {
+            <li><button type="button" class="aud__link-btn" (click)="verUsuario(u.actor_id)">{{ u.nombre }}: {{ u.n }}</button></li>
+          } @empty {
+            <li class="aud__muted">{{ 'Sin actividad de personas en este período.' | t }}</li>
+          }
+        </ul>
+      </div>
+
+      @if (cosasRaras().length) {
+        <div class="sgc-card aud__narrativa aud__narrativa--alerta">
+          <h3 class="aud__drill-title">{{ 'Cosas raras' | t }}</h3>
+          <ul class="aud__drill-list">
+            @for (c of cosasRaras(); track c) { <li>{{ c }}</li> }
+          </ul>
+        </div>
+      }
+
       <div class="kpi-grid">
         <div class="kpi-card kpi-card--primary"><span class="kpi-label">{{ 'Acciones' | t }}</span><span class="kpi-value">{{ r.total | number }}</span></div>
         <div class="kpi-card"><span class="kpi-label">{{ 'Usuarios activos' | t }}</span><span class="kpi-value">{{ r.usuarios_activos | number }}</span></div>

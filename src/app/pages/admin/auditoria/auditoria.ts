@@ -103,6 +103,15 @@ const ADMIN_ACCION_LABELS: Record<string, string> = {
   credencial_acceso_creado: 'Creó acceso de campo (cédula + PIN)',
   credencial_pin_rotado: 'Fijó/rotó el PIN de un usuario',
   credencial_email_resync: 'Resincronizó el correo de acceso por cédula',
+  // DH5 — faltaban en ADMIN_ACCION_LABELS (se mostraban crudas).
+  usuarios_fusionados: 'Fusionó dos usuarios',
+  usuario_hecho_conductor: 'Convirtió un usuario en conductor',
+  conductor_fantasma_fusionado: 'Fusionó un conductor fantasma',
+  nota_grupo_creado: 'Creó un grupo de notas',
+  nota_grupo_eliminado: 'Eliminó un grupo de notas',
+  nota_grupo_movido: 'Movió una nota de grupo',
+  nota_grupo_renombrado: 'Renombró un grupo de notas',
+  reuniones_consulto_calendario_google: 'Consultó el calendario de Google (Reuniones)',
 };
 
 // CQ3 — a dónde enlazar un registro desde el panel de detalle. Solo las tablas
@@ -444,6 +453,9 @@ export class AdminAuditoria implements OnInit {
     this.resumenLoading.set(true);
     try {
       this.resumen.set(await this.service.resumen({ desde: this.rDesde() || undefined, hasta: this.rHasta() || undefined }));
+      // DH5 — "Cambios sensibles" lee de Admin; si aún no se cargó, lo trae ahora
+      // (el backend de listAdmin no filtra por fecha — muestra lo más reciente).
+      if (!this.adminCargado) await this.loadAdmin();
     } catch (e: unknown) {
       this.actError.set(e instanceof Error ? e.message : 'Error al cargar el panel.');
     } finally {
@@ -463,26 +475,79 @@ export class AdminAuditoria implements OnInit {
   expandA = signal(false);
   expandM = signal(false);
   usuariosDrill = computed(() => {
-    const l = this.resumen()?.por_usuario ?? [];
+    const l = this.actividadPorPersona();
     return this.expandU() ? l : l.slice(0, this.DRILL_TOP);
   });
   accionesDrill = computed(() => {
     const l = this.resumen()?.acciones_comunes ?? [];
     return this.expandA() ? l : l.slice(0, this.DRILL_TOP);
   });
+  // DH5 — sin ruido de sistema (clima, conteos, stock_apertura…) en los módulos.
+  private sinRuido = <T extends { tabla: string }>(l: T[]) => l.filter((x) => !AdminAuditoria.TABLAS_RUIDO.has(x.tabla));
   modulosDrill = computed(() => {
-    const l = this.resumen()?.por_modulo ?? [];
+    const l = this.sinRuido(this.resumen()?.por_modulo ?? []);
     return this.expandM() ? l : l.slice(0, this.DRILL_TOP);
+  });
+
+  // DH5 — "Qué pasó hoy" en frases: tablas/acciones de sistema que no son una
+  // persona decidiendo algo (ruido que Xaviel pidió sacar de "actividad por persona").
+  private static readonly TABLAS_RUIDO = new Set([
+    'weather_snapshots', 'conteos_inventario', 'stock_apertura', 'clima',
+  ]);
+  private esNombreSistema(nombre: string | null): boolean {
+    return !nombre || nombre === '(sistema)' || nombre.toLowerCase() === 'sistema';
+  }
+  /** DH5 — "Actividad por persona, sin ruido de sistema". */
+  actividadPorPersona = computed(() => (this.resumen()?.por_usuario ?? []).filter((u) => !this.esNombreSistema(u.nombre)));
+
+  /** DH5 — "Qué pasó hoy, en frases": resumen narrativo del período elegido. */
+  resumenFrases = computed<string[]>(() => {
+    const r = this.resumen();
+    if (!r || r.total === 0) return ['Sin actividad registrada en este período.'];
+    const frases: string[] = [];
+    frases.push(`${r.total} acción(es) de ${r.usuarios_activos} persona(s) en ${r.modulos_activos} área(s).`);
+    const top = this.actividadPorPersona()[0];
+    if (top) frases.push(`${top.nombre} fue quien más tocó el sistema (${top.n} ${top.n === 1 ? 'vez' : 'veces'}).`);
+    const accionTop = (r.acciones_comunes ?? [])[0];
+    if (accionTop) frases.push(`Lo más común fue "${this.accionLabel(accionTop.accion)} ${this.tablaLabel(accionTop.tabla).toLowerCase()}" (${accionTop.n} ${accionTop.n === 1 ? 'vez' : 'veces'}).`);
+    return frases;
+  });
+
+  // DH5 — "Cambios sensibles": acciones de administración (no de negocio) dentro
+  // del mismo rango de fechas del Resumen — accesos, roles, credenciales, fusiones.
+  private static readonly PALABRAS_SENSIBLES = ['rol', 'password', 'credencial', 'fusion', 'eliminad', 'impersona', 'desactiv'];
+  cambiosSensibles = computed(() =>
+    this.adminRows().filter((row) =>
+      AdminAuditoria.PALABRAS_SENSIBLES.some((p) => row.action.includes(p)),
+    ),
+  );
+
+  // DH5 — "Cosas raras": heurísticas simples, sin IA — concentración anómala de
+  // actividad en una sola persona, o actividad fuera de horario laboral.
+  cosasRaras = computed<string[]>(() => {
+    const r = this.resumen();
+    if (!r || r.total === 0) return [];
+    const raras: string[] = [];
+    const top = this.actividadPorPersona()[0];
+    if (top && r.total >= 10 && top.n / r.total > 0.6) {
+      raras.push(`${top.nombre} concentra ${Math.round((top.n / r.total) * 100)}% de toda la actividad del período.`);
+    }
+    const madrugada = (r.por_hora ?? []).filter((h) => h.hora >= 0 && h.hora <= 5 && h.n > 0);
+    if (madrugada.length) {
+      const total = madrugada.reduce((s, h) => s + h.n, 0);
+      raras.push(`Hubo ${total} acción(es) de madrugada (entre 12 a.m. y 5 a.m.).`);
+    }
+    return raras;
   });
 
   // Charts derivados del resumen.
   rankingUsuarios = computed<BarDatum[]>(() =>
-    (this.resumen()?.por_usuario ?? []).slice(0, 10).map((u, i) => ({
+    this.actividadPorPersona().slice(0, 10).map((u, i) => ({
       label: u.nombre, value: u.n, color: CAT[i % CAT.length],
     })),
   );
   porModuloChart = computed<BarDatum[]>(() =>
-    (this.resumen()?.por_modulo ?? []).slice(0, 10).map((m, i) => ({
+    this.sinRuido(this.resumen()?.por_modulo ?? []).slice(0, 10).map((m, i) => ({
       label: this.tablaLabel(m.tabla), value: m.n, color: CAT[i % CAT.length],
     })),
   );

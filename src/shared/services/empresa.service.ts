@@ -48,6 +48,22 @@ export class EmpresaService {
     if (error) throw new Error(error.message);
   }
 
+  /** DH10 — logo de la empresa: bucket público `sgc-avatars`, carpeta `empresa/`
+   *  (política de storage solo-admin, no es un dato de un usuario). */
+  async subirLogo(file: File): Promise<string> {
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+    const path = `empresa/logo-${Date.now()}.${ext}`;
+    const { error } = await this.supabase.client.storage.from('sgc-avatars').upload(path, file, { upsert: true });
+    if (error) throw new Error(error.message);
+    await this.update({ logo_path: path });
+    return path;
+  }
+
+  logoUrl(path: string | null): string | null {
+    if (!path) return null;
+    return this.supabase.client.storage.from('sgc-avatars').getPublicUrl(path).data.publicUrl;
+  }
+
   /** CF7 — guarda la configuración legal (empresa + testigos) vía RPC definer (legal/admin). */
   async guardarConfigLegal(cfg: {
     razon_social?: string | null;

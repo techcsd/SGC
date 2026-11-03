@@ -532,6 +532,9 @@ export class Combustible implements OnInit {
   kmValidacion = toSignal(this.kmValidacion$, { initialValue: null as ValidacionKm | null });
   /** Confirmación del usuario ante un salto inverosímil (aviso ámbar). */
   kmConfirmado = signal(false);
+  /** DH2 — un flota-elevado puede forzar un bloqueo real (fechas distintas) explicando por qué. */
+  kmForzarAbierto = signal(false);
+  kmMotivo = signal('');
 
   // AA18.3 — unidad del vehículo seleccionado (km | horas) para labels/mensajes.
   medidaSel = computed<'km' | 'horas'>(() => {
@@ -995,8 +998,13 @@ export class Combustible implements OnInit {
     // rechazaba cualquier echada retroactiva con km menor al actual aunque fuera
     // correcta para su fecha (mismo bug que CH1 ya resolvió para mantenimientos).
     const km = this.kmValidacion();
-    if (km?.nivel === 'error') {
+    const kmForzando = km?.nivel === 'error' && this.esFlotaElevado() && this.kmForzarAbierto();
+    if (km?.nivel === 'error' && !kmForzando) {
       this.saveError.set(km.mensaje ?? 'El kilometraje no es coherente con las lecturas del vehículo.');
+      return;
+    }
+    if (kmForzando && !this.kmMotivo().trim()) {
+      this.saveError.set('Explica el motivo para forzar este kilometraje.');
       return;
     }
     if (km?.nivel === 'aviso' && !this.kmConfirmado()) {
@@ -1056,8 +1064,12 @@ export class Combustible implements OnInit {
       proyecto_id: deposito ? raw.proyecto_id || null : null,
     };
 
+    // DH2 — excepción con motivo (solo tiene efecto en el servidor si el choque
+    // de km es real y el usuario es flota-elevado; ver validar_km_vehiculo).
+    const kmOpts = kmForzando ? { kmForzar: true, kmMotivo: this.kmMotivo().trim() } : {};
+
     try {
-      let res = await this.combustibleService.registrar(payload, recibo, tablero);
+      let res = await this.combustibleService.registrar(payload, recibo, tablero, kmOpts);
 
       // AW3 — el servidor pidió confirmar un valor inusual (alto pero no imposible).
       if (res.needsConfirm) {
@@ -1067,6 +1079,7 @@ export class Combustible implements OnInit {
         res = await this.combustibleService.registrar(payload, recibo, tablero, {
           confirmado: true,
           clientUuid: res.clientUuid,
+          ...kmOpts,
         });
         if (res.needsConfirm) return; // no debería repetir; corte de seguridad
       }

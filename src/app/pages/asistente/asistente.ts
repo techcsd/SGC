@@ -78,6 +78,29 @@ export class Asistente implements OnInit {
   saludo = signal('¡Hola! Soy Compa 👋');
   subtitulo = signal('Tu asistente de SGC — responde con datos reales, según lo que tú puedes ver.');
 
+  // DH7 — en modo compacto (ventana flotante) la lista de conversaciones está
+  // oculta por espacio; este toggle la muestra como dropdown sin tocar la lógica.
+  sidebarAbierto = signal(false);
+  toggleSidebar() {
+    this.sidebarAbierto.update((v) => !v);
+  }
+  private cerrarSidebarSiCompacto() {
+    if (this.compacto()) this.sidebarAbierto.set(false);
+  }
+
+  // DH7 — el aviso de privacidad ya no es un banner fijo: se puede descartar (por
+  // dispositivo, localStorage — no amerita una preferencia de servidor para esto).
+  private static readonly CLAVE_AVISO = 'sgc.compa.aviso_descartado';
+  avisoDescartado = signal(this.leerAvisoDescartado());
+  private leerAvisoDescartado(): boolean {
+    try { return typeof localStorage !== 'undefined' && localStorage.getItem(Asistente.CLAVE_AVISO) === '1'; }
+    catch { return false; }
+  }
+  descartarAviso() {
+    this.avisoDescartado.set(true);
+    try { localStorage.setItem(Asistente.CLAVE_AVISO, '1'); } catch { /* best-effort */ }
+  }
+
   async ngOnInit() {
     // CI10 — consentimiento de IA: si no lo otorgó, muestra la hoja antes del primer uso.
     void this.privacidad.miConsentimiento('ia').then((ok) => {
@@ -142,6 +165,7 @@ export class Asistente implements OnInit {
     this.input.set(this.service.getDraft(c.id));
     this.scrollAlFinal();
     this.enfocarInput();
+    this.cerrarSidebarSiCompacto();
   }
 
   nueva() {
@@ -154,6 +178,7 @@ export class Asistente implements OnInit {
     this.archivos.set([]);
     this.input.set(this.service.getDraft(null));
     this.enfocarInput();
+    this.cerrarSidebarSiCompacto();
   }
 
   usarSugerencia(s: string) {
@@ -286,6 +311,7 @@ export class Asistente implements OnInit {
     } finally {
       this.cargandoCompartida.set(false);
       this.scrollAlFinal();
+      this.cerrarSidebarSiCompacto();
     }
   }
 

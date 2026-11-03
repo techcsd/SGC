@@ -48,7 +48,7 @@ const TEC_EQUIPO_SPECS_COLS = new Set<string>([
   'bateria_unidad', 'bateria_voltaje', 'bateria_sello', 'accesorios', 'camara_specs',
 ]);
 import { formatFechaMedia } from '../utils/fecha.util';
-import { SolicitudCompra, LecturaCotizacion } from '../models/solicitud.model';
+import { SolicitudCompra, LecturaCotizacion, LecturaCotizacionArticulo } from '../models/solicitud.model';
 
 /** CQ1 — payload del encabezado + renglones de una compra tecnológica (crear/editar). */
 export interface CompraTecFormPayload {
@@ -772,6 +772,15 @@ export class TecnologiaService {
       p_itbis: payload.itbis,
       p_total: payload.total,
       p_notas: payload.notas,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** DH20 — guarda los renglones (editados) dentro de `lectura.articulos`. */
+  async actualizarRenglonesCotizacion(id: string, articulos: LecturaCotizacionArticulo[]): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cotizacion_actualizar_renglones', {
+      p_id: id,
+      p_articulos: articulos,
     });
     if (error) throw new Error(error.message);
   }

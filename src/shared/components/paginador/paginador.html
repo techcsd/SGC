@@ -1,0 +1,52 @@
+<!-- DH21 — barra de paginación compartida. -->
+<nav class="paginador" [attr.aria-label]="'Paginación' | t" (keydown)="onKeydown($event)">
+  <span class="paginador__rango">
+    {{ 'Mostrando' | t }} {{ rangoInicio() | number:'1.0-0' }}–{{ rangoFin() | number:'1.0-0' }}
+    {{ 'de' | t }} {{ total() | number:'1.0-0' }}
+  </span>
+
+  <div class="paginador__controles">
+    <button
+      type="button"
+      class="paginador__btn"
+      [disabled]="page() <= 1"
+      [attr.aria-label]="'Página anterior' | t"
+      (click)="anterior()"
+    >
+      <app-icon name="chevron-left" [size]="16" />
+    </button>
+
+    <span class="paginador__pagina">
+      {{ 'Página' | t }}
+      <input
+        type="number"
+        class="paginador__ir-a"
+        min="1"
+        [max]="totalPaginas()"
+        [value]="page()"
+        (change)="irA($any($event.target).valueAsNumber)"
+        [attr.aria-label]="'Ir a página' | t"
+      />
+      {{ 'de' | t }} {{ totalPaginas() }}
+    </span>
+
+    <button
+      type="button"
+      class="paginador__btn"
+      [disabled]="page() >= totalPaginas()"
+      [attr.aria-label]="'Página siguiente' | t"
+      (click)="siguiente()"
+    >
+      <app-icon name="chevron-right" [size]="16" />
+    </button>
+  </div>
+
+  <label class="paginador__tamano">
+    {{ 'Filas por página' | t }}
+    <select [value]="pageSize()" (change)="cambiarTamano($any($event.target).valueAsNumber)">
+      @for (t of tamanos(); track t) {
+        <option [value]="t">{{ t }}</option>
+      }
+    </select>
+  </label>
+</nav>

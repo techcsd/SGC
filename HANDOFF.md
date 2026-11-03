@@ -1,5 +1,89 @@
 # HANDOFF — SGC
 
+## 🧪 Ronda DH (03-nov-2026) — PROMPT 132, 20 notas (DH1-DH23) — EN `SGC-dh` worktree, rama `feature/dh-ronda-03nov`, SIN COMMIT — v1.209.0
+
+**TL;DR:** Ronda grande (20 notas, 13 fases) **completa** en el worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-dh` (rama `feature/dh-ronda-03nov`, base `origin/dev`). `npm run build` (con todos los guards de `prebuild`) y `npm test` verdes — 31 archivos / 264 tests. **Nada commiteado/pusheado** (regla explícita del prompt: avisar antes). Versión bump a **1.209.0** (`package.json` + `release-notes.json`, 16 cambios estructurados). Migraciones SQL de esta ronda **ya aplicadas a dev** y 5 edge functions **ya desplegadas a dev** — nada en prod.
+
+### F1-F2 — hotfixes reales (reportados por usuarios, verificados con datos reales)
+- **DH6/DH9 — Compa flotante no abría / X no cerraba:** `[hidden]` del DOM no vencía un `display` de autor con la misma especificidad → `&[hidden] { display: none !important; }` en `compa-flotante.scss`; el shell ya no usa `@if` para montar/destruir `<app-compa-flotante>` (reiniciaba su estado) — siempre montado, oculto con `[hidden]`.
+- **DH22 — agente-vigia avisaba el mismo envío atascado cada 5 min:** columna `ultimo_aviso_at` (`sql/2026-11-03-dh22-vigia-enfriamiento-aviso.sql`) + enfriamiento 24h en `agente-vigia` (desplegada dev v4).
+- **DH1 — "Mandar a ronda" fallaba en reportes largos:** `resumir-reporte` tenía `max_tokens:1500` sin mirar `stop_reason` → ahora 3000 + reintento automático + log crudo + motivo real en el mensaje (desplegada dev v9).
+- **DH2 🔴 — Raykler no podía registrar una echada de combustible** (bug real, confirmado con L542136): `validar_km_vehiculo` bloqueaba como error duro un choque de lecturas del MISMO día → ahora aviso ámbar confirmable; solo fechas distintas bloquean. Excepción con motivo para flota-elevado (auditada en `audit_log`), dice "de quién" es la otra lectura. `sql/2026-11-03-dh2-combustible-km-mismo-dia.sql` + UI "Forzar con motivo". **La migración tuvo 4 bugs reales que solo salieron al EJECUTARLA** (columnas inexistentes ×3, `format()` mal contado, `stable`→`volatile`) — corregidos y reverificados con 3 escenarios reales.
+- **DH23 — reportes de error nuevos:** nuevo estado `regla_negocio` en `app_error_estados` (`sql/2026-11-03-dh23-error-regla-negocio.sql`) para rechazos esperados; ya no se confunden con bugs reales en la bandeja de "abiertos".
+- **DH14 — OC "Recibida" bloqueada con renglón libre** (reporte real de Raykler): el mensaje no decía que ya existía "Vincular artículo"; ahora nombra el renglón y la acción correcta; `prompt()` nativo reemplazado por panel inline.
+
+### F4 — Sistema / Roles
+- **DH3/DH19:** "Historial de versiones"/"Guía de herramientas" quedaban bloqueados por el guard del padre `/tecnologia` aunque no tuvieran guard propio. Rutas nuevas `/herramientas` y `/historial-versiones` fuera de ese padre, gateadas por `submoduloGuard('sistema.*')`; redirects desde las rutas viejas. `sql/2026-11-03-dh3-sistema-submodulos.sql` siembra esos 2 submódulos en `'ver'` para TODOS los roles (nadie pierde acceso). Verificado con un chofer sin módulo tecnología.
+- **DH11 (parcial):** los 5 submódulos de `obra.*` (plan_dia/checklists/subcontratistas/avance/informes) ya tenían guard+RLS reales — solo les faltaba `enforced:true` en `roles.service.ts` (ya aplicado). **`rrhh.*` (empleados/asistencia/ausencias) sigue sin `enforced`**: esas rutas NO tienen guard propio (solo el del módulo padre `rrhh`), así que marcarlas como efectivas sin wiring real sería mentir — queda pendiente, es un cambio de control de acceso real (RRHH, sensible) que merece su propia verificación de RLS antes de endurecer.
+
+### F3 — Paginador compartido
+`shared/components/paginador` (standalone, señales, tamaño recordado en localStorage) construido y **aplicado** a: Vault, Agentes (3 paneles), Homologación. **Pendiente**: Auditoría › Actividad (sigue en "Cargar más"), Cotizaciones, y el resto de paneles no tocados esta ronda — inventario completo lo hizo F0 (ver conversación / pedir a Xaviel el detalle de PROMPT 132).
+
+### F5 — Reportes de errores / Consultas de Compa / Outbox
+- **Outbox atascados:** ya estaba en 0 abiertos, nada que resolver.
+- **Reportes de errores (7 firmas abiertas):** triadas. 1 bug real de web arreglado (`(valor ?? "").trim is not a function` en `parametros-catalogo.ts` — `valor` llegaba como `number`); 1 marcado `regla_negocio` (falta config de Odoo en dev, esperado); 5 marcadas `en_revision` con nota "depende de la app móvil" (sw_update, GPS timeout, postgres_changes doble-subscribe, crash "reading 'icon'" — todas `source:'app'`) o pendientes de revisar logs (compa_transporte, 1 sola ocurrencia).
+- **Consultas de Compa (2 filas):** 1 resuelta ("ya existe: listar_almacenes"), 1 gap real documentado (historial de precios — no inventé una herramienta).
+
+### F6 — Agentes / Informe del día
+- **DH16:** agentes sin cron (Capataz, Auditor, Soporte) ya no dicen "Sin conexión" — dicen "A demanda" + botón **"Ejecutar ahora"** (invoca la edge con la sesión real del usuario, las 3 edges ya exigían auth — no cron). Programar Auditor/Soporte a diario vía pg_cron **NO se hizo**: esas edges exigen JWT de usuario real, no un secreto de servicio como agente-vigia — cablear eso es un cambio de modelo de auth más grande, documentado como pendiente.
+- **DH17:** `agente-vigia` ya no mete el UUID crudo en `que_hizo` (ahora resuelve el nombre); `agente-cronista` agrupa acciones repetidas por persona ("Recordó a Ana reabrir la app (12 veces)"); el informe se renderiza con markdown real (`shared/utils/markdown-simple.util.ts`) en vez de `<pre>`; paginación en los 3 paneles.
+
+### F7 — Correos de requisiciones (DH8)
+`notif_tipo` nunca tuvo filas para `solicitud_material`/`solicitud_compra` (el propio código lo admitía) — sin fila, Configuración no podía mostrar el apagador aunque el backend ya lo hubiera honrado. `sql/2026-11-03-dh8-notif-requisiciones.sql` las siembra; `notificar-solicitud` unificado a un solo tipo por request (creada+resuelta comparten un interruptor, ya no 3 constantes separadas). Desplegada dev v31. **No se tocó la cuenta de Sonia.**
+
+### F8 — Vault (DH4)
+`responsable_id` (FK `usuarios`) + select de usuario (`app-user-picker`) en vez de texto libre; paginación. **`vault_compartidos` NO se construyó**: Vault es admin-only hoy (`puede_ver_vault() = is_admin()`), no hay concepto de "dueño" de una entrada para compartir — expandir quién ve credenciales es un cambio de seguridad aparte que Xaviel no pidió literalmente (su respuesta fue solo "Responsable").
+
+### F9 — Auditoría (DH5)
+Resumen reescrito: narrativa en frases ("Qué pasó hoy"), "Cambios sensibles" (acciones de administración filtradas por palabras clave), "Actividad por persona" (sin `weather_snapshots`/`conteos_inventario`/`stock_apertura`/`(sistema)`), "Cosas raras" (concentración >60% en una persona, actividad de madrugada). `ADMIN_ACCION_LABELS` completo (+8: `usuarios_fusionados`, `nota_grupo_*`, etc. — ya no se mostraban crudas). El tab Admin **ya tenía** paginación real (prev/next), solo no usa el componente compartido — no se tocó por bajo riesgo/beneficio. Actividad sigue en "Cargar más", no convertida a paginación real.
+
+### F10 — Compa: conversaciones y avisos (DH7)
+El selector de conversaciones **ya existía** en `<app-asistente>` (Mías/Compartidas/Nueva) — el modo `compacto` (ventana flotante) lo ocultaba por completo vía CSS. Se agregó un toggle (ícono de lista en el header) que lo muestra como dropdown/overlay sobre el chat, sin tocar la lógica de conversaciones. El aviso de privacidad (`compa__notice`) ahora se puede cerrar (×) — persistido en **localStorage** (no `PreferenciasService`: hubiera requerido tocar el RPC `set_mi_preferencia` por una sola bandera de UI de un dispositivo, más riesgo que beneficio).
+
+### F11 — Empresa / Usuarios / Dudas / Homologación
+- **DH10 Empresa:** logo real — bucket público `sgc-avatars` bajo `empresa/` (política nueva solo-admin, `sql/2026-11-03-dh10-empresa-logo.sql`), subida + preview real (ya no el placeholder "LOGO").
+- **DH12 Usuarios:** el menú kebab (`position:fixed`, calculado una vez con `getBoundingClientRect()`) quedaba flotando en el lugar viejo si la ventana cambiaba de tamaño con el menú abierto — ahora se cierra solo (`host: '(window:resize)': 'closeMenu()'`).
+- **DH13 Dudas:** no tenía señal de `loading` — el vacío ("No encontramos nada") se veía un instante antes de que la carga async terminara. Ahora hay skeleton real; esto también tapa el "hueco" de las tarjetas de video (sus URLs firmadas cargan en el mismo `load()`).
+- **DH18 Homologación:** buscador + filtro por categoría + paginación + `confirm()` nativo reemplazado por `<app-confirm-dialog>`. **No hecho:** licencia/costo/renovación/responsable, vínculo con matriz puesto×herramienta, "Solicitar herramienta" — son campos/flujos nuevos, no estaban ni en el modelo; necesitan su propia ronda con el board DH6 aprobado.
+
+### F12 — Cotizaciones (DH20)
+`leer-cotizacion` YA extraía `articulos` (línea por línea) pero el front los descartaba por completo. Ahora: se muestran (solo-lectura) al crear una cotización, y son **editables y guardables** en el detalle (`sql/2026-11-03-dh20-cotizacion-renglones.sql`, nueva RPC `cotizacion_actualizar_renglones` que mergea `lectura.articulos` — no se creó una tabla relacional nueva porque no hacía falta para lo "Recomendado" por Xaviel). **No hecho** (no era el default): crear compra prellenada, proponer equipos del inventario, comparar con otras cotizaciones.
+
+### 🔴 Incidente de esta sesión — agentes de investigación que implementaron código
+Para el diagnóstico inicial (F0) se lanzaron 4 agentes de investigación en paralelo contra este mismo worktree. 3 se mantuvieron de solo-lectura; 1 (un `Agent(fork)`, que hereda todo el contexto de la conversación) terminó implementando código real porque el propio PROMPT 132 ya traía instrucciones de implementación — y hubo un segundo momento de confusión cuando el orquestador seguía escribiendo en paralelo al mismo worktree, viéndose a sí mismo como "otra sesión". **Se revisó cada pieza a mano antes de aceptarla** (así salieron los 4 bugs reales de la migración DH2, que un fork detectó ejecutándola contra dev, no leyendo el código). Lección para la próxima ronda grande: no lanzar forks de "solo investigación" sobre un prompt que ya trae instrucciones de implementación explícitas — el fork puede no respetar el límite de lectura si el contexto heredado lo contradice; si se necesita investigación paralela de verdad solo-lectura, usar agentes frescos (no forks) con instrucciones que no referencien el prompt de implementación completo.
+
+### Pendiente — Claude puede hacerlo (próxima ronda, en orden sugerido)
+1. **DH11 rrhh.\*** — wiring real de `submoduloGuard` en `rrhh.routes.ts` + verificar RLS de `empleados`/`asistencia`/`ausencias` antes de marcar `enforced:true` (quién gana/pierde acceso — avisar a Xaviel antes de endurecer).
+2. **F3** — inventario completo de paneles sin paginar fuera de los ya tocados (Auditoría Actividad, Cotizaciones, y lo que quede) + convertirlos.
+3. **F6 DH16** — si se quiere cron real para Auditor/Soporte, cambiar esas edges a aceptar `x-sync-secret` (server-to-server) igual que agente-vigia, o crear un JWT de servicio — ahora mismo solo "Ejecutar ahora" (manual) funciona.
+4. **F9** — convertir Actividad de "Cargar más" a paginación real; filtros adicionales/exportar vista filtrada/enlace desde cada fila (pedidos como "mejoras extra", no bloqueantes).
+5. **F10** — revisar visualmente el dropdown de conversaciones en la ventana flotante real (320×380 mín.) — se implementó sin poder ver el mockup.
+6. **F11 Homologación** — licencia/costo/renovación/responsable + matriz puesto×herramienta + "Solicitar herramienta" (feature nueva completa).
+7. **F12 Cotizaciones** — "crear compra prellenada"/"proponer equipos"/"comparar precios" si Xaviel los sigue queriendo tras ver lo básico.
+8. Antes de cualquier PR: `node scripts/release-check.mjs --env dev --version 1.209.0` (regla CP5) tras que Xaviel pruebe en `dev.sgcconstructorasd.com` y deje `qa/release-1.209.0.md`.
+
+### Pendiente — Xaviel únicamente
+1. **Probar en dev** (`dev.sgcconstructorasd.com`) las 20 notas antes de aprobar el merge — especialmente DH2 (combustible, reporte real de Raykler) y DH14 (OC, reporte real de Raykler).
+2. **Decidir si esta ronda se entrega completa o por partes** — ya está completa, pero 20 notas en un solo PR es mucho para probar de una vez; partir por fase (F1-F2 primero) puede ser más sano para el QA humano.
+3. Revisar los boards de mockup (DH1-DH7) antes de aprobar el CSS nuevo de Auditoría/Vault/Empresa/Usuarios/Dudas/Homologación/Cotizaciones — todo el CSS de esta ronda reusa estilos/tokens existentes (regla "CSS tras OK" del prompt), nada se diseñó de cero.
+4. **DH11 rrhh** — confirmar que SÍ quiere endurecer el acceso a Empleados/Asistencia/Ausencias por rol (hoy cualquiera con el módulo `rrhh` ve las 4 pantallas) antes de que la próxima sesión lo haga.
+
+### Gotchas descubiertos
+- **Un `Agent(fork)` puede implementar código real aunque se le pida "solo investigación"**, si hereda un contexto con instrucciones de implementación. Usar agentes frescos (no forks) para investigación de verdad solo-lectura.
+- **`.env.local` es gitignored → no llega a un `git worktree add` nuevo**: copiarlo a mano desde el worktree principal antes de correr scripts de Supabase.
+- **Nunca confíes en una migración de combustible/vehículos por lectura de código sola** — verificar con queries reales contra dev antes de dar por buena una función `plpgsql` nueva.
+- **`npx ng build` NO corre el `prebuild` de `npm run build`** (que incluye 20+ guards: `verify-version-notes`, `cobertura-conector`, `verify-campos-sgc-field`, etc.) — usar `npm run build` para el chequeo final, `npx ng build` sirve solo como check rápido intermedio.
+- **`cobertura-conector.mjs` exige que todo módulo nuevo en `MODULOS_DISPONIBLES` tenga herramienta de Compa o exención en `docs/CLAUDE-CONECTOR.md`** — el módulo `sistema` (puramente navegacional) necesitó la exención.
+- **`origin/dev` estaba 2 commits detrás de `origin/main`** al empezar (`9b4a0521`, `ded30380`) — vale sincronizar en algún momento.
+
+### Verificar al retomar
+- `cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-dh" && git status` — debe seguir sin commits, ~27 archivos modificados + 7 `sql/*.sql` nuevos + `shared/components/paginador/`.
+- `npm run build && npm test` — deben seguir verdes (31/31, 264/264), versión 1.209.0.
+- Migraciones ya aplicadas a dev (ledger `sgc.migraciones_aplicadas`): `dh1-chofer-privado-quita-wall` (pre-existente, no de esta ronda), `dh2-combustible-km-mismo-dia`, `dh3-sistema-submodulos`, `dh4-vault-responsable`, `dh8-notif-requisiciones`, `dh10-empresa-logo`, `dh20-cotizacion-renglones`, `dh22-vigia-enfriamiento-aviso`, `dh23-error-regla-negocio`.
+- Edges desplegadas a dev: `agente-vigia` (v4), `agente-cronista` (v3), `resumir-reporte` (v9), `notificar-solicitud` (v31), `boveda` (v16).
+
+---
+
 ## 🧪 Ronda DG (02-nov-2026) — Developer, buscador maestro, dashboard, Dev notes, Compa flotante, Demo — EN `SGC-dg` worktree, rama `feature/dg-developer-buscador-compa-demo`, SIN COMMIT
 
 **TL;DR:** PROMPT 130 (DG1-DG9) completo en el working tree del worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-dg` (rama `feature/dg-developer-buscador-compa-demo`, base `origin/dev`). **Nada está commiteado ni pusheado** (instrucción explícita del prompt: avisar antes de commit/push/deploy). `npm run build` y `npx ng test --no-watch` verdes (31/31 archivos, 264/264 tests) sobre el merge de 6 agentes trabajando en paralelo. Varias migraciones de ronda DF (anterior) que nunca se habían desplegado a dev quedaron aplicadas como efecto colateral necesario de esta ronda.

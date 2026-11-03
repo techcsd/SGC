@@ -138,6 +138,16 @@
   color: var(--sgc-text-muted);
 }
 
+// DH16 — horario real del agente (o "a demanda").
+.estacion__horario {
+  font-size: 10px;
+}
+
+.estacion__ejecutar {
+  margin-top: 6px;
+  align-self: flex-start;
+}
+
 .estacion__badge-ok {
   margin-top: 4px;
   font-size: 10px;
@@ -209,8 +219,8 @@
   gap: 8px;
 }
 
+// DH17 — ya no es <pre>: markdown renderizado (h2/h3/ul/p reales).
 .panel__informe-texto {
-  white-space: pre-wrap;
   font-family: var(--font-body);
   font-size: 13px;
   background: var(--sgc-surface-2);
@@ -218,6 +228,12 @@
   padding: 12px;
   max-height: 320px;
   overflow: auto;
+
+  h2, h3 { margin: 12px 0 6px; }
+  h2:first-child, h3:first-child { margin-top: 0; }
+  p { margin: 4px 0; }
+  ul { margin: 4px 0; padding-left: 18px; }
+  li { margin: 2px 0; }
 }
 
 .costo-ia {

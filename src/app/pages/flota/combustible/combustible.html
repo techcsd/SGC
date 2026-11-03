@@ -463,6 +463,18 @@
       <!-- CZ1 — error (bloquea Guardar): retroceso vs. lectura anterior o exceso retroactivo. -->
       @if (kmValidacion()?.nivel === 'error') {
         <span class="field-error">{{ kmValidacion()!.mensaje }}</span>
+        <!-- DH2 — un flota-elevado puede forzar el registro explicando por qué. -->
+        @if (esFlotaElevado()) {
+          @if (!kmForzarAbierto()) {
+            <button type="button" class="cmb-km-forzar-btn" (click)="kmForzarAbierto.set(true)">Forzar con motivo</button>
+          } @else {
+            <div class="cmb-km-aviso">
+              <label for="km-motivo">Motivo para forzar este kilometraje</label>
+              <textarea id="km-motivo" rows="2" [value]="kmMotivo()" (input)="kmMotivo.set($any($event.target).value)"
+                placeholder="Ej.: el conductor confirmó la lectura por teléfono, la otra fuente está mal capturada…"></textarea>
+            </div>
+          }
+        }
       }
       <!-- CZ1 — aviso ámbar (no bloquea; pide confirmar) por salto inverosímil. -->
       @if (kmValidacion()?.nivel === 'aviso') {

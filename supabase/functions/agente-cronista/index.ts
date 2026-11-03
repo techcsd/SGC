@@ -21,6 +21,35 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 
+// DH17 — "Recordó a Ana reabrir la app" repetido 12 veces (una por envío
+// atascado distinto) es ruido, no 12 hechos distintos: se agrupa en "Recordó a
+// Ana reabrir la app (12 veces)". Solo agrupa el patrón "<Verbo> a <Persona>
+// ..." (el único que hoy se repite por persona); lo demás queda tal cual.
+function agruparAcciones(
+  acciones: { que_hizo: string; reversible: boolean; agentes?: { nombre?: string } | null }[],
+): string[] {
+  const PATRON = /^(Record[oó]|Avis[oó]|Notific[oó]) a ([^,(]+?) (.+)$/;
+  const grupos = new Map<string, { n: number; linea: string; reversible: boolean }>();
+  const resultado: string[] = [];
+  for (const a of acciones) {
+    const nombreAgente = a.agentes?.nombre ?? "Agente";
+    const m = PATRON.exec(a.que_hizo);
+    if (m) {
+      const [, verbo, persona, resto] = m;
+      const key = `${nombreAgente}|${verbo}|${persona}`;
+      const prev = grupos.get(key);
+      if (prev) prev.n++;
+      else grupos.set(key, { n: 1, linea: `${nombreAgente}: ${verbo} a ${persona} ${resto}${a.reversible ? " (se puede deshacer)" : ""}`, reversible: a.reversible });
+    } else {
+      resultado.push(`- ${nombreAgente}: ${a.que_hizo}${a.reversible ? " (se puede deshacer)" : ""}`);
+    }
+  }
+  for (const { n, linea } of grupos.values()) {
+    resultado.push(n > 1 ? `- ${linea} (${n} veces)` : `- ${linea}`);
+  }
+  return resultado;
+}
+
 function hoyRD(): string {
   // America/Santo_Domingo = UTC-4 todo el año (sin horario de verano).
   const ahoraUtc = new Date();
@@ -58,10 +87,7 @@ Deno.serve(async (req) => {
   }
   lineas.push("");
   lineas.push(`**Lo que arreglaron solos:** ${acciones?.length ?? 0} acción(es).`);
-  for (const a of acciones ?? []) {
-    const nombreAgente = (a as { agentes?: { nombre?: string } }).agentes?.nombre ?? "Agente";
-    lineas.push(`- ${nombreAgente}: ${a.que_hizo}${a.reversible ? " (se puede deshacer)" : ""}`);
-  }
+  lineas.push(...agruparAcciones((acciones ?? []) as { que_hizo: string; reversible: boolean; agentes?: { nombre?: string } | null }[]));
   lineas.push("");
   lineas.push(`**Esperando tu OK:** ${aprobaciones?.filter((a) => a.estado === "pendiente").length ?? 0} propuesta(s) de código.`);
   for (const p of (aprobaciones ?? []).filter((a) => a.estado === "pendiente")) {

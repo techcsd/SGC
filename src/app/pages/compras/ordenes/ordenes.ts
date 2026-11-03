@@ -755,20 +755,61 @@ export class Ordenes implements OnInit {
   }
 
   // ── Estado ───────────────────────────────────────────────
+  // DH14 — F0 confirmó que un renglón "sin artículo" SÍ tiene salida (botón
+  // "Vincular artículo" en la tabla de reconciliación, QA-076b) pero el aviso de
+  // bloqueo solo decía "Usa Registrar entrada de esta orden" — un renglón sin
+  // artículo nunca se resuelve registrando una entrada (no hay a qué artículo
+  // sumarla). El mensaje ahora nombra el renglón y dice QUÉ acción le toca.
+  private describirRenglonesPendientes(): string {
+    const pendientes = this.reconciliacion().filter((r) => r.estado !== 'completo');
+    const sinArticulo = pendientes.filter((r) => r.estado === 'sin_articulo');
+    const resto = pendientes.filter((r) => r.estado !== 'sin_articulo');
+    const partes: string[] = [];
+    if (sinArticulo.length) {
+      const extra = sinArticulo.length > 1 ? ` (y ${sinArticulo.length - 1} más)` : '';
+      partes.push(`"${sinArticulo[0].descripcion}"${extra} no está vinculado a un artículo del catálogo — vincúlalo en la tabla de abajo ("Vincular artículo").`);
+    }
+    if (resto.length) {
+      const extra = resto.length > 1 ? ` (y ${resto.length - 1} más)` : '';
+      partes.push(`"${resto[0].descripcion}"${extra} todavía no tiene entrada registrada — usa "Registrar entrada de esta orden".`);
+    }
+    return partes.join(' ') || 'Hay renglones sin recibir en el inventario.';
+  }
+
+  /** CT3c/DH14 — panel inline para el motivo de forzado (admin), sin `prompt()` nativo. */
+  forzarRecibida = signal<{ orden: OrdenCompra; detalle: string } | null>(null);
+  forzarMotivo = signal('');
+
   async cambiarEstado(orden: OrdenCompra, estado: OrdenEstado) {
     // CT3c — el servidor igual lo valida, pero si ya sabemos que va a pedir
     // motivo (admin + reconciliación incompleta) se lo pedimos aquí para no
     // hacer un viaje al servidor solo para recibir el error y reintentar.
-    let motivo: string | null = null;
     if (estado === 'recibida' && this.reconciliacionIncompleta()) {
+      const detalle = this.describirRenglonesPendientes();
       if (!this.esAdmin()) {
-        this.toast.error('No se puede marcar "recibida"', 'Hay renglones sin recibir en el inventario. Usa "Registrar entrada de esta orden".');
+        this.toast.error('No se puede marcar "recibida"', detalle);
         return;
       }
-      motivo = prompt('Hay renglones sin recibir en el inventario. Escribe el motivo para forzar "recibida" de todas formas:');
-      if (!motivo || !motivo.trim()) return;
+      this.forzarMotivo.set('');
+      this.forzarRecibida.set({ orden, detalle });
+      return;
     }
+    await this.aplicarCambioEstado(orden, estado, null);
+  }
 
+  cancelarForzarRecibida() {
+    this.forzarRecibida.set(null);
+  }
+
+  async confirmarForzarRecibida() {
+    const pendiente = this.forzarRecibida();
+    const motivo = this.forzarMotivo().trim();
+    if (!pendiente || !motivo) return;
+    this.forzarRecibida.set(null);
+    await this.aplicarCambioEstado(pendiente.orden, 'recibida', motivo);
+  }
+
+  private async aplicarCambioEstado(orden: OrdenCompra, estado: OrdenEstado, motivo: string | null) {
     const prev = orden.estado;
     this.ordenes.update((list) =>
       list.map((o) => (o.id === orden.id ? { ...o, estado } : o)),

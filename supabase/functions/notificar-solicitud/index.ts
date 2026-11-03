@@ -299,9 +299,13 @@ Deno.serve(async (req: Request) => {
     type DestRow = { usuario_id: string; email: string; nombre: string; excluido_por: string | null };
     let destRows: DestRow[] = [];
     let incluidos: DestRow[] = [];
-    // No hay un notif_tipo registrado para solicitudes; se usa una constante
-    // sensata por evento (judgment call BQ2, ver reporte).
-    const notiTipo = evento === "creada" ? `solicitud_${tipo}` : "solicitud_resuelta";
+    // DH8 — un solo interruptor por tipo de solicitud cubre TODO su ciclo
+    // (creada + resuelta), para que "Requisiciones por correo" apague las dos
+    // sin que la persona tenga que encontrar un segundo toggle escondido.
+    // Antes eran 3 constantes ('solicitud_material'/'solicitud_compra'/
+    // 'solicitud_resuelta') que ni siquiera existían en sgc.notif_tipo — sin
+    // fila ahí, Configuración no podía mostrar el apagador (ver sql/2026-11-03-dh8-notif-requisiciones.sql).
+    const notiTipo = `solicitud_${tipo}`;
 
     if (evento === "creada") {
       if (tipo === "material") {

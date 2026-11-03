@@ -235,11 +235,19 @@ export class CombustibleService {
    * (sin fecha), que rechazaba cualquier echada retroactiva con km menor al
    * actual aunque fuera correcta para su fecha.
    */
-  async validarKm(vehiculoId: string, km: number, fecha: string): Promise<ValidacionKm | null> {
+  async validarKm(
+    vehiculoId: string,
+    km: number,
+    fecha: string,
+    forzar = false,
+    motivo: string | null = null,
+  ): Promise<ValidacionKm | null> {
     const { data, error } = await this.supabase.client.rpc('validar_km_vehiculo', {
       p_vehiculo: vehiculoId,
       p_km: km,
       p_fecha: fecha,
+      p_forzar: forzar,
+      p_motivo: motivo,
     });
     if (error) throw new Error(error.message);
     return (data ?? null) as ValidacionKm | null;
@@ -254,7 +262,7 @@ export class CombustibleService {
     payload: RegistroCombustibleFormData,
     recibo: File,
     tablero: File,
-    opts?: { confirmado?: boolean; clientUuid?: string },
+    opts?: { confirmado?: boolean; clientUuid?: string; kmForzar?: boolean; kmMotivo?: string },
   ): Promise<
     | { needsConfirm: true; message: string; clientUuid: string }
     | { needsConfirm?: false; registro: RegistroCombustible; derivados: CombustibleDerivados; clientUuid: string }
@@ -295,6 +303,9 @@ export class CombustibleService {
       p_confirmado: opts?.confirmado ?? false,
       // CW5 — ya lo acepta el RPC (CO15); el formulario de creación no lo mandaba.
       p_numero_recibo: payload.numero_recibo,
+      // DH2 — excepción con motivo para un choque de km entre fechas distintas.
+      p_km_forzar: opts?.kmForzar ?? false,
+      p_km_motivo: opts?.kmMotivo ?? null,
     });
     if (error) throw new Error(error.message);
     const derivados = data as unknown as CombustibleDerivados;
