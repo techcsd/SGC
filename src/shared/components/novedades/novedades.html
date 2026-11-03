@@ -32,11 +32,14 @@
                 {{ v.fecha ? fFecha(v.fecha) : '' }}{{ v.titulo ? ' · ' + v.titulo : '' }}
               </span>
             </div>
-            @for (c of v.cambios; track $index) {
-              <div class="novedades__cambio">
-                <span [class]="tagBadgeClass(c.t)">{{ tagLabel(c.t) }}</span>
-                <span class="novedades__cambio-texto">{{ c.d }}</span>
-              </div>
+            @for (g of gruposCambios(v.cambios); track g.modulo) {
+              @if (g.modulo) { <div class="novedades__grupo-modulo">{{ g.modulo }}</div> }
+              @for (c of g.items; track $index) {
+                <div class="novedades__cambio">
+                  <span [class]="tagBadgeClass(c.t)">{{ tagLabel(c.t) }}</span>
+                  <span class="novedades__cambio-texto">{{ c.d }}</span>
+                </div>
+              }
             }
           </div>
         }

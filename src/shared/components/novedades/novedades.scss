@@ -94,6 +94,18 @@
 .novedades__cambio { display: flex; gap: 10px; align-items: flex-start; }
 .novedades__cambio-texto { font-size: 14px; color: #344054; }
 
+// Hotfix — de qué módulo es cada cambio (mismo estilo que historial-versiones).
+.novedades__grupo-modulo {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #98a2b3;
+  margin: 10px 0 4px;
+
+  &:first-child { margin-top: 0; }
+}
+
 .novedades__footer {
   padding: 16px 32px 24px;
   border-top: 1px solid var(--border, #f2f4f7);

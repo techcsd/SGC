@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { UserService } from '../../../app/core/services/user.service';
 import { BienvenidaService } from '../../services/bienvenida.service';
 import { NovedadesService, VersionNovedad } from '../../services/novedades.service';
-import { CAMBIO_META, semverCode } from '../../models/app-version.model';
+import { CAMBIO_META, CambioItem, semverCode } from '../../models/app-version.model';
 import { Icon } from '../../ui/icon/icon';
 import { formatFechaDisplay } from '../../utils/fecha.util';
 
@@ -99,5 +99,19 @@ export class Novedades {
   tagBadgeClass(t: string): string {
     const badge = this.CAMBIO_META[t]?.badge ?? 'neutral';
     return 'sgc-badge sgc-badge--' + badge;
+  }
+
+  /** Hotfix — este popup nunca agrupaba por módulo (solo el historial completo
+   *  lo hacía), aunque el dato (`c.m`) siempre estuvo ahí. Mismo agrupador que
+   *  `historial-versiones.ts` para que ambas vistas digan lo mismo. */
+  gruposCambios(cambios: CambioItem[]): { modulo: string | null; items: CambioItem[] }[] {
+    const orden: (string | null)[] = [];
+    const mapa = new Map<string | null, CambioItem[]>();
+    for (const c of cambios) {
+      const m = (c.m ?? '').trim() || null;
+      if (!mapa.has(m)) { mapa.set(m, []); orden.push(m); }
+      mapa.get(m)!.push(c);
+    }
+    return orden.map((m) => ({ modulo: m, items: mapa.get(m)! }));
   }
 }
