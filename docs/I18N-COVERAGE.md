@@ -176,10 +176,10 @@
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
 | admin/vault | - | 108 | 65 | 43 | 60% |
-| ingenieria/pagos | - | 96 | 59 | 37 | 61% |
 | tecnologia/envios-automaticos | - | 33 | 20 | 13 | 61% |
 | compras/gastos | - | 40 | 25 | 15 | 63% |
 | flota/transferencias | - | 16 | 10 | 6 | 63% |
+| ingenieria/pagos | - | 86 | 54 | 32 | 63% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | flota/cupos-combustible | - | 61 | 40 | 21 | 66% |

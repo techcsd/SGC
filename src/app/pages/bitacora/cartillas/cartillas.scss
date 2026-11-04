@@ -1,6 +1,6 @@
 // BO10 — Cartillas de acero.
 // DI3 — filtros con controles del sistema (sgc-field/sgc-select/sgc-input) +
-// chips de estado + buscador. CSS solo funcional; pulido visual tras OK (board DI3).
+// chips de estado + buscador, pulidos con los tokens/patrones ya en uso en Vault.
 .cart-filtros {
   display: flex;
   flex-direction: column;
@@ -29,21 +29,29 @@
   select, input { min-width: 0; }
 }
 
-// CSS tras OK (board DI3) — chip simple, sin pulido visual aún.
+// Chip de filtro — mismo patrón que Vault/Pagos (.filtro-chip): navy sólido
+// cuando está activo, no el acento naranja (ese queda para UNA acción por
+// pantalla, no para indicar selección de filtro).
 .cart-chip {
-  padding: 0.3rem 0.65rem;
-  border: 1px solid var(--sgc-border, var(--border));
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--sgc-surface, var(--surface));
-  color: var(--sgc-text-secondary, var(--main-ultra-light));
-  font-size: 0.82rem;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
+
+  &:hover { border-color: var(--brand); }
 
   &--activo {
-    border-color: var(--Hub);
-    color: var(--sgc-text, inherit);
-    background: var(--surface-2, var(--sgc-surface));
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--text-on-brand, #fff);
   }
 }
 

@@ -16,23 +16,22 @@
 
 <!-- ══════════════════════════════ «Mis obras» ══════════════════════════════ -->
 @if (vista() === 'obras') {
-  <!-- CSS tras OK (board DI1) -->
-  <div class="sgc-card pgo__kpis">
-    <div class="pgo__kpi">
-      <span class="pgo__kpi-num">{{ kpiAbiertas() }}</span>
-      <span class="pgo__kpi-label">{{ 'Obras con semana abierta' | t }}</span>
+  <div class="kpi-grid pgo__kpis">
+    <div class="kpi-card kpi-card--warning">
+      <span class="kpi-label">{{ 'Obras con semana abierta' | t }}</span>
+      <span class="kpi-value">{{ kpiAbiertas() }}</span>
     </div>
-    <div class="pgo__kpi">
-      <span class="pgo__kpi-num">{{ kpiEnviadas() }}</span>
-      <span class="pgo__kpi-label">{{ 'Obras con semana enviada' | t }}</span>
+    <div class="kpi-card kpi-card--success">
+      <span class="kpi-label">{{ 'Obras con semana enviada' | t }}</span>
+      <span class="kpi-value">{{ kpiEnviadas() }}</span>
     </div>
-    <div class="pgo__kpi">
-      <span class="pgo__kpi-num">{{ kpiSinEmpezar() }}</span>
-      <span class="pgo__kpi-label">{{ 'Obras sin empezar' | t }}</span>
+    <div class="kpi-card">
+      <span class="kpi-label">{{ 'Obras sin empezar' | t }}</span>
+      <span class="kpi-value">{{ kpiSinEmpezar() }}</span>
     </div>
-    <div class="pgo__kpi">
-      <span class="pgo__kpi-num">RD$ {{ kpiTotalFirmado() | number:'1.2-2' }}</span>
-      <span class="pgo__kpi-label">{{ 'Total firmado esta semana' | t }}</span>
+    <div class="kpi-card kpi-card--primary">
+      <span class="kpi-label">{{ 'Total firmado esta semana' | t }}</span>
+      <span class="kpi-value kpi-value--sm">RD$ {{ kpiTotalFirmado() | number:'1.2-2' }}</span>
     </div>
   </div>
 
@@ -52,17 +51,17 @@
           <span class="pgo__nombre">{{ o.nombre }}</span>
           @switch (estadoDeObra(o.id)) {
             @case ('enviado') {
-              <span class="pgo__estado pgo__estado--ok"><span class="pgo__punto" aria-hidden="true"></span>
+              <span class="status-pill" [class]="'status-pill--' + tonoSemana('enviado')">
                 {{ 'Enviado' | t }} — {{ resumenDeObra(o.id)?.firmados }}/{{ resumenDeObra(o.id)?.totalLineas }}
               </span>
             }
             @case ('borrador') {
-              <span class="pgo__estado pgo__estado--warn"><span class="pgo__punto" aria-hidden="true"></span>
+              <span class="status-pill" [class]="'status-pill--' + tonoSemana('borrador')">
                 {{ 'Borrador' | t }} — {{ resumenDeObra(o.id)?.firmados }}/{{ resumenDeObra(o.id)?.totalLineas }}
               </span>
             }
             @default {
-              <span class="pgo__estado pgo__estado--muted"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Sin empezar' | t }}</span>
+              <span class="status-pill" [class]="'status-pill--' + tonoSemana('sin_crear')">{{ 'Sin empezar' | t }}</span>
             }
           }
         </div>
@@ -118,11 +117,7 @@
           <span class="pgo__semana-fechas">{{ fecha(p.semana_desde) }} – {{ fecha(p.semana_hasta) }}
             @if (p.complemento_de) { <span class="pgo__tag">{{ 'complemento' | t }}</span> }
           </span>
-          @if (p.estado === 'enviado') {
-            <span class="pgo__estado pgo__estado--ok"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Enviado' | t }}</span>
-          } @else {
-            <span class="pgo__estado pgo__estado--warn"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Borrador' | t }}</span>
-          }
+          <span class="status-pill" [class]="'status-pill--' + tonoSemana(p.estado)">{{ (p.estado === 'enviado' ? 'Enviado' : 'Borrador') | t }}</span>
         </button>
       } @empty {
         @if (!loading() && obraId()) { <p class="pgo__muted">{{ 'Esta obra no tiene semanas de pago todavía.' | t }}</p> }
@@ -215,11 +210,9 @@
                     }
                   </td>
                   <td>
-                    @switch (l.estado) {
-                      @case ('firmado') { <span class="pgo__estado pgo__estado--ok"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Firmado' | t }}</span> }
-                      @case ('ausente') { <span class="pgo__estado pgo__estado--muted"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Ausente' | t }}</span> }
-                      @default { <span class="pgo__estado pgo__estado--warn"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Pendiente' | t }}</span> }
-                    }
+                    <span class="status-pill" [class]="'status-pill--' + tonoLinea(l.estado)">
+                      {{ (l.estado === 'firmado' ? 'Firmado' : l.estado === 'ausente' ? 'Ausente' : 'Pendiente') | t }}
+                    </span>
                   </td>
                   <td class="pgo__acciones">
                     @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {

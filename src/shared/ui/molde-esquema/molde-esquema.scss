@@ -1,8 +1,7 @@
 .molde-esquema {
   position: relative;
 
-  // DI2 — botón flotante "Ampliar" (solo cuando [ampliable]="true"). CSS funcional,
-  // sin pulir (board DI2 sin aprobar).
+  // DI2 — botón flotante "Ampliar" (solo cuando [ampliable]="true").
   &--ampliable { padding-top: 22px; }
 
   &__ampliar {
