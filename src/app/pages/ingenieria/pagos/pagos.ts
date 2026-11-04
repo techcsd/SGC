@@ -155,6 +155,14 @@ export class IngenieriaPagos implements OnInit {
     return this.resumenPorObra().get(obraId);
   }
 
+  /** CB Regla 2 — estado = punto + palabra + fondo suave (status-pill). */
+  tonoSemana(estado: 'sin_crear' | 'borrador' | 'enviado'): 'success' | 'warning' | 'neutral' {
+    return estado === 'enviado' ? 'success' : estado === 'borrador' ? 'warning' : 'neutral';
+  }
+  tonoLinea(estado: PagoObraLinea['estado']): 'success' | 'warning' | 'neutral' {
+    return estado === 'firmado' ? 'success' : estado === 'ausente' ? 'neutral' : 'warning';
+  }
+
   /** Entra al detalle de una obra (desde «Mis obras» o por ser la única obra). */
   async abrirObra(obraId: string, pagoIdAutoAbrir?: string | null) {
     this.obraId.set(obraId);

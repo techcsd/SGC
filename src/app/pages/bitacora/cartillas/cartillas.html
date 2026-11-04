@@ -76,7 +76,7 @@
               <td>{{ c.proyecto ?? '—' }}</td>
               <td>{{ c.ingeniero ?? '—' }}</td>
               <td>{{ formatFecha(c.fecha) }}</td>
-              <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">{{ ESTADO_LABEL[c.estado] ?? c.estado }}</span></td>
+              <td><span class="status-pill" [class]="'status-pill--' + estadoBadge(c.estado)">{{ ESTADO_LABEL[c.estado] ?? c.estado }}</span></td>
               <td class="text-right">{{ c.peso_total_kg | number:'1.0-1' }}</td>
             </tr>
           }
@@ -97,7 +97,7 @@
         <div><dt>Obra</dt><dd>{{ d.proyecto ?? '—' }}</dd></div>
         <div><dt>Ingeniero</dt><dd>{{ d.ingeniero ?? '—' }}</dd></div>
         <div><dt>Fecha</dt><dd>{{ formatFecha(d.fecha) }}</dd></div>
-        <div><dt>Estado</dt><dd><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
+        <div><dt>Estado</dt><dd><span class="status-pill" [class]="'status-pill--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
         <div><dt>Peso total</dt><dd>{{ d.peso_total_kg | number:'1.0-2' }} kg</dd></div>
       </dl>
       @if (d.observacion) { <p class="cart-detalle__obs"><strong>Observación:</strong> {{ d.observacion }}</p> }
@@ -140,7 +140,7 @@
       <ul class="cart-eventos">
         @for (e of d.eventos; track e.created_at) {
           <li>
-            <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(e.estado_hasta ?? '')">{{ ESTADO_LABEL[e.estado_hasta ?? ''] ?? e.estado_hasta }}</span>
+            <span class="status-pill" [class]="'status-pill--' + estadoBadge(e.estado_hasta ?? '')">{{ ESTADO_LABEL[e.estado_hasta ?? ''] ?? e.estado_hasta }}</span>
             <span class="text-muted">{{ e.usuario ?? '—' }} · {{ formatFecha(e.created_at) }}</span>
             @if (e.nota) { <span> — {{ e.nota }}</span> }
           </li>

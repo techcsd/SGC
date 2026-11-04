@@ -11,7 +11,7 @@
 
 <app-flota-subnav grupo="combustible" />
 
-<!-- CSS tras OK (board DI4) -->
+
 <div class="cct__tabs">
   <button type="button" class="cct__tab" [class.cct__tab--active]="vista() === 'solicitudes'" (click)="cambiarVista('solicitudes')">
     {{ 'Solicitudes de cupo' | t }}
@@ -72,7 +72,7 @@
                 @if (!s.galones_pedidos && !s.monto_pedido) { — }
               </td>
               <td>{{ fecha(s.created_at) }}</td>
-              <td><span class="sgc-badge" [class]="'sgc-badge--' + (s.estado === 'pendiente' ? 'warning' : s.estado === 'ampliada' ? 'success' : s.estado === 'rechazada' ? 'danger' : 'neutral')">{{ estadoLabel[s.estado] | t }}</span></td>
+              <td><span class="status-pill" [class]="'status-pill--' + (s.estado === 'pendiente' ? 'warning' : s.estado === 'ampliada' ? 'success' : s.estado === 'rechazada' ? 'danger' : 'neutral')">{{ estadoLabel[s.estado] | t }}</span></td>
               <td class="cct__acciones">
                 @if (s.estado === 'pendiente') {
                   <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirAtender(s)">{{ 'Atender' | t }}</button>

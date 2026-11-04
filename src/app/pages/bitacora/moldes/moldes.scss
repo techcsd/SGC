@@ -1,5 +1,5 @@
 // BO9 — vista de oficina de medidas de moldes.
-// DI2 — toggle tarjetas/tabla. CSS funcional, sin pulir (board DI2 sin aprobar).
+// DI2 — toggle tarjetas/tabla, pulido con los tokens del sistema.
 .vista-toggle {
   display: inline-flex;
   border: 1px solid var(--sgc-border);
@@ -36,7 +36,9 @@
   flex-direction: column;
   gap: 6px;
   padding: 14px;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 
+  &:hover { box-shadow: var(--shadow-md, 0 4px 14px rgba(0, 0, 0, 0.08)); }
   &--alerta { border-color: var(--sgc-danger); }
 
   &__head {
