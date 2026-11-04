@@ -1,9 +1,53 @@
-// DB4 — Pagos de la semana (descargos). Tokens v2; estados = punto + palabra;
-// una sola acción naranja («Enviar reporte»).
+// DB4 — Pagos de la semana (descargos). Tokens v2; estados = punto + palabra +
+// fondo suave (status-pill, Regla 2); una sola acción navy por bloque («Enviar
+// reporte»/«Crear semana»).
 .pgo {
   &__filtros { padding: 14px 16px; margin-bottom: 14px; display: flex; gap: 16px; }
   &__obra { min-width: 260px; margin: 0; }
   &__layout { display: grid; grid-template-columns: 290px 1fr; gap: 14px; align-items: start; }
+
+  // «Mis obras» — KPIs (.kpi-grid/.kpi-card globales, mismo patrón que el dashboard).
+  &__kpis { margin-bottom: 14px; }
+
+  &__obras { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  &__fila {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg, 10px);
+    background: var(--surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    &:hover { border-color: var(--border-hover, var(--brand)); box-shadow: var(--shadow-sm); }
+    &--reciente { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand) inset; }
+  }
+  &__fila-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  &__fila-accion { flex: none; }
+
+  &__volver { margin-bottom: 10px; }
+
+  &__personas-filtros { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin: 12px 0; }
+  &__personas-buscar { min-width: 220px; margin: 0; }
+  &__chips { display: flex; gap: 6px; flex-wrap: wrap; }
+}
+
+// Chips de filtro de estado — mismo patrón que Vault/Homologación.
+.filtro-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover { border-color: var(--brand); }
+  &.active { background: var(--brand); border-color: var(--brand); color: var(--text-on-brand, #fff); }
+}
+
+.pgo {
   &__subtitulo { font-size: 15px; font-weight: 700; margin: 0 0 8px; }
   &__muted { color: var(--text-3); font-size: 12.5px; }
 
@@ -58,13 +102,6 @@
     font-size: 12.5px;
     &--monto { max-width: 110px; }
   }
-  &__estado {
-    display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12.5px;
-    &--ok { color: var(--success, #1a7f37); }
-    &--warn { color: var(--warning, #9a6700); }
-    &--muted { color: var(--text-3); }
-  }
-  &__punto { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
   &__acciones { display: flex; gap: 6px; justify-content: flex-end; }
   &__vacio { text-align: center; color: var(--text-3); padding: 22px !important; }
   &__hint { font-size: 12px; color: var(--text-3); margin: 10px 2px 0; }
@@ -74,6 +111,48 @@
   &__firma-foot { display: flex; justify-content: flex-end; gap: 10px; }
 }
 
+// «Mis obras» KPIs — mismo patrón que src/app/pages/dashboard/dashboard.scss
+// (component-scoped por diseño del proyecto: cada pantalla define su propia
+// .kpi-grid/.kpi-card, no hay una versión global compartida).
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &--primary .kpi-value { color: var(--brand); }
+  &--success .kpi-value { color: var(--success); }
+  &--warning .kpi-value { color: var(--warning); }
+}
+
+.kpi-label { font-size: 12px; color: var(--text-2); }
+
+.kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+
+  &--sm { font-size: 16px; }
+}
+
 @media (max-width: 900px) {
   .pgo__layout { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .pgo__fila { flex-direction: column; align-items: stretch; }
 }

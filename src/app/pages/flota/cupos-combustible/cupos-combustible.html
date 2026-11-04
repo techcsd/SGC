@@ -1,0 +1,207 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <nav class="cct__breadcrumb">
+      <a routerLink="/flota/vehiculos">{{ 'Flota' | t }}</a> <span aria-hidden="true">›</span>
+      <span>{{ 'Cupos de tarjetas' | t }}</span>
+    </nav>
+    <h1 class="page-title">{{ 'Cupos de tarjetas de combustible' | t }}</h1>
+    <p class="page-subtitle">{{ 'Atiende lo que pidan los choferes y anota el cupo de cada tarjeta (opcional — sin cupo no hay alertas).' | t }}</p>
+  </div>
+</div>
+
+<app-flota-subnav grupo="combustible" />
+
+
+<div class="cct__tabs">
+  <button type="button" class="cct__tab" [class.cct__tab--active]="vista() === 'solicitudes'" (click)="cambiarVista('solicitudes')">
+    {{ 'Solicitudes de cupo' | t }}
+    @if (conteoEstado('pendiente') > 0) { <span class="cct__tab-badge">{{ conteoEstado('pendiente') }}</span> }
+  </button>
+  <button type="button" class="cct__tab" [class.cct__tab--active]="vista() === 'tarjetas'" (click)="cambiarVista('tarjetas')">
+    {{ 'Cupos de tarjetas' | t }}
+  </button>
+</div>
+
+@if (vista() === 'solicitudes') {
+  <div class="cct__chips">
+    <button type="button" class="filtro-chip" [class.filtro-chip--activo]="filtroEstado() === 'pendiente'" (click)="setFiltroEstado('pendiente')">
+      {{ 'Pendientes' | t }} ({{ conteoEstado('pendiente') }})
+    </button>
+    <button type="button" class="filtro-chip" [class.filtro-chip--activo]="filtroEstado() === 'ampliada'" (click)="setFiltroEstado('ampliada')">
+      {{ 'Ampliadas' | t }} ({{ conteoEstado('ampliada') }})
+    </button>
+    <button type="button" class="filtro-chip" [class.filtro-chip--activo]="filtroEstado() === 'rechazada'" (click)="setFiltroEstado('rechazada')">
+      {{ 'Rechazadas' | t }} ({{ conteoEstado('rechazada') }})
+    </button>
+    <button type="button" class="filtro-chip" [class.filtro-chip--activo]="filtroEstado() === 'todas'" (click)="setFiltroEstado('todas')">
+      {{ 'Todas' | t }}
+    </button>
+  </div>
+
+  @if (errorSolicitudes()) { <p class="page-error" role="alert">{{ errorSolicitudes() }}</p> }
+
+  @if (loadingSolicitudes()) {
+    <p class="cct__muted">{{ 'Cargando…' | t }}</p>
+  } @else if (!solicitudesFiltradas().length) {
+    <p class="cct__muted">{{ 'No hay solicitudes con este filtro.' | t }}</p>
+  } @else {
+    <div class="table-wrapper sgc-card table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'Chofer' | t }}</th>
+            <th>{{ 'Tarjeta' | t }}</th>
+            <th>{{ 'Vehículo' | t }}</th>
+            <th>{{ 'Motivo' | t }}</th>
+            <th>{{ 'Pide' | t }}</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of solicitudesPagina(); track s.id) {
+            <tr>
+              <td>{{ s.solicitante_nombre ?? '—' }}</td>
+              <td><code>···{{ s.codigo_tarjeta.slice(-4) }}</code></td>
+              <td>{{ s.vehiculo_placa ?? '—' }}</td>
+              <td>{{ motivoLabel[s.motivo] | t }}</td>
+              <td>
+                @if (s.galones_pedidos) { {{ s.galones_pedidos }} {{ 'gal' | t }} }
+                @if (s.monto_pedido) { RD$ {{ s.monto_pedido | number:'1.0-0' }} }
+                @if (!s.galones_pedidos && !s.monto_pedido) { — }
+              </td>
+              <td>{{ fecha(s.created_at) }}</td>
+              <td><span class="status-pill" [class]="'status-pill--' + (s.estado === 'pendiente' ? 'warning' : s.estado === 'ampliada' ? 'success' : s.estado === 'rechazada' ? 'danger' : 'neutral')">{{ estadoLabel[s.estado] | t }}</span></td>
+              <td class="cct__acciones">
+                @if (s.estado === 'pendiente') {
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirAtender(s)">{{ 'Atender' | t }}</button>
+                } @else if (s.respuesta) {
+                  <span class="cct__respuesta" [title]="s.respuesta">{{ s.respuesta }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-paginador id="combustible.solicitudes_cupo" [total]="solicitudesFiltradas().length" [(page)]="pagSolPage" [(pageSize)]="pagSolSize" />
+  }
+}
+
+@if (vista() === 'tarjetas') {
+  @if (errorTarjetas()) { <p class="page-error" role="alert">{{ errorTarjetas() }}</p> }
+
+  @if (loadingTarjetas()) {
+    <p class="cct__muted">{{ 'Cargando…' | t }}</p>
+  } @else if (!tarjetas().length) {
+    <p class="cct__muted">{{ 'No hay tarjetas mapeadas todavía.' | t }}</p>
+  } @else {
+    <div class="table-wrapper sgc-card table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'Titular' | t }}</th>
+            <th>{{ 'Tarjeta' | t }}</th>
+            <th>{{ 'Vehículo' | t }}</th>
+            <th>{{ 'Cupo' | t }}</th>
+            <th>{{ 'Consumo del período' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tarjetasPagina(); track t.codigo_tarjeta) {
+            <tr>
+              <td>{{ t.titular_nombre ?? '—' }} @if (t.es_persona) { <span class="sgc-badge sgc-badge--neutral">{{ 'persona' | t }}</span> }</td>
+              <td><code>···{{ t.codigo_tarjeta.slice(-4) }}</code></td>
+              <td>{{ t.vehiculo_placa ?? '—' }}</td>
+              <td>
+                @if (t.cupo_gal || t.cupo_monto) {
+                  @if (t.cupo_gal) { {{ t.cupo_gal }} {{ 'gal' | t }} }
+                  @if (t.cupo_monto) { RD$ {{ t.cupo_monto | number:'1.0-0' }} }
+                } @else {
+                  <span class="cct__muted">{{ 'Sin anotar' | t }}</span>
+                }
+              </td>
+              <td>
+                @if (t.cupo_gal || t.cupo_monto) {
+                  <div class="cct__barra" [class]="'cct__barra--' + pctTono(t.pct_gal ?? t.pct_monto)">
+                    <div class="cct__barra-fill" [style.width.%]="barraAncho(t.pct_gal ?? t.pct_monto)"></div>
+                  </div>
+                  <span class="cct__muted">{{ t.consumo_gal | number:'1.0-1' }} {{ 'gal' | t }} · {{ t.pct_gal ?? t.pct_monto ?? 0 }}%</span>
+                } @else {
+                  <span class="cct__muted">{{ t.consumo_gal | number:'1.0-1' }} {{ 'gal' | t }} ({{ t.periodo }})</span>
+                }
+              </td>
+              <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(t)">{{ 'Editar cupo' | t }}</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-paginador id="combustible.cupo_tarjetas" [total]="tarjetas().length" [(page)]="pagTarPage" [(pageSize)]="pagTarSize" />
+  }
+}
+
+<!-- Drawer: atender solicitud -->
+<app-form-drawer [title]="'Atender solicitud de cupo' | t" [open]="!!atendiendo()" (closed)="cerrarAtender()">
+  @if (atendiendo(); as s) {
+    <div class="cct__form">
+      <p><strong>{{ s.solicitante_nombre ?? 'Chofer' }}</strong> · ···{{ s.codigo_tarjeta.slice(-4) }} · {{ motivoLabel[s.motivo] | t }}</p>
+      @if (s.nota) { <p class="cct__muted">{{ s.nota }}</p> }
+
+      <label class="sgc-field">
+        <span>{{ 'Nuevo cupo en galones (opcional)' | t }}</span>
+        <input class="sgc-input" type="number" min="0" [ngModel]="nuevoCupoGal()" (ngModelChange)="nuevoCupoGal.set($event)" />
+      </label>
+      <label class="sgc-field">
+        <span>{{ 'Nuevo cupo en RD$ (opcional)' | t }}</span>
+        <input class="sgc-input" type="number" min="0" [ngModel]="nuevoCupoMonto()" (ngModelChange)="nuevoCupoMonto.set($event)" />
+      </label>
+      <label class="sgc-field">
+        <span>{{ 'Respuesta / nota (obligatoria si rechazas)' | t }}</span>
+        <textarea class="sgc-input" rows="3" [ngModel]="respuesta()" (ngModelChange)="respuesta.set($event)"></textarea>
+      </label>
+
+      <div class="cct__form-foot">
+        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="guardandoAtencion()" (click)="pedirRechazo()">{{ 'Rechazar' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoAtencion()" (click)="ampliar()">
+          {{ (guardandoAtencion() ? 'Guardando…' : 'Ampliar cupo') | t }}
+        </button>
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+<app-confirm-dialog [open]="!!confirmarRechazo()" [title]="'¿Rechazar la solicitud?' | t"
+  [message]="('Se le avisará al chofer con el motivo que escribiste.' | t)"
+  [confirmLabel]="'Rechazar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
+  (confirmed)="confirmarYRechazar()" (cancelled)="confirmarRechazo.set(null)" />
+
+<!-- Drawer: editar cupo de tarjeta -->
+<app-form-drawer [title]="'Editar cupo de tarjeta' | t" [open]="!!editando()" (closed)="cerrarEditar()">
+  @if (editando(); as t) {
+    <div class="cct__form">
+      <p><strong>{{ t.titular_nombre ?? 'Tarjeta' }}</strong> · ···{{ t.codigo_tarjeta.slice(-4) }}</p>
+      <label class="sgc-field">
+        <span>{{ 'Cupo en galones (opcional)' | t }}</span>
+        <input class="sgc-input" type="number" min="0" [ngModel]="editCupoGal()" (ngModelChange)="editCupoGal.set($event)" />
+      </label>
+      <label class="sgc-field">
+        <span>{{ 'Cupo en RD$ (opcional)' | t }}</span>
+        <input class="sgc-input" type="number" min="0" [ngModel]="editCupoMonto()" (ngModelChange)="editCupoMonto.set($event)" />
+      </label>
+      <label class="sgc-field">
+        <span>{{ 'Día de corte del mes (opcional, 1-31)' | t }}</span>
+        <input class="sgc-input" type="number" min="1" max="31" [ngModel]="editCupoDiaCorte()" (ngModelChange)="editCupoDiaCorte.set($event)" />
+      </label>
+      <p class="cct__muted">{{ 'Déjalo en blanco si no quieres llevar el cupo de esta tarjeta — sin cupo no hay barra ni alertas.' | t }}</p>
+
+      <div class="cct__form-foot">
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoEdicion()" (click)="guardarEdicion()">
+          {{ (guardandoEdicion() ? 'Guardando…' : 'Guardar') | t }}
+        </button>
+      </div>
+    </div>
+  }
+</app-form-drawer>

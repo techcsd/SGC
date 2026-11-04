@@ -1,0 +1,79 @@
+<!-- DI2 — visor de esquema de molde a pantalla casi completa. -->
+<dialog #dlg class="molde-visor" aria-labelledby="molde-visor-titulo"
+  (close)="onDialogClose()" (click)="onBackdropClick($event)" (keydown)="onKeydown($event)">
+  @if (actual(); as m) {
+    <div class="molde-visor__panel" (click)="$event.stopPropagation()">
+      <header class="molde-visor__header">
+        <div class="molde-visor__titulo-wrap">
+          <h2 id="molde-visor-titulo" class="molde-visor__titulo">{{ m.titulo || ('Molde' | t) }}</h2>
+          @if (m.obra || m.fecha || m.ingeniero) {
+            <p class="molde-visor__meta">
+              @if (m.obra) { <span>{{ m.obra }}</span> }
+              @if (m.fecha) { <span>· {{ m.fecha }}</span> }
+              @if (m.ingeniero) { <span>· {{ m.ingeniero }}</span> }
+            </p>
+          }
+        </div>
+        <button type="button" class="molde-visor__cerrar" [attr.aria-label]="'Cerrar' | t" (click)="cerrar()">
+          <app-icon name="x" [size]="18" />
+        </button>
+      </header>
+
+      <div class="molde-visor__body">
+        @if (tieneVarios()) {
+          <button type="button" class="molde-visor__nav molde-visor__nav--prev"
+            [attr.aria-label]="'Molde anterior' | t" (click)="anterior()">
+            <app-icon name="chevron-left" [size]="22" />
+          </button>
+        }
+
+        <div class="molde-visor__lienzo" #svgHost>
+          <div class="molde-visor__zoom-wrap" [style.transform]="'scale(' + zoom() + ')'">
+            <app-molde-esquema [forma]="m.forma ?? 'rectangular'" [tramos]="m.tramos"
+              [medidaPlano]="m.medidaPlano ?? null" [toleranciaCm]="toleranciaCm()" />
+          </div>
+        </div>
+
+        @if (tieneVarios()) {
+          <button type="button" class="molde-visor__nav molde-visor__nav--next"
+            [attr.aria-label]="'Molde siguiente' | t" (click)="siguiente()">
+            <app-icon name="chevron-right" [size]="22" />
+          </button>
+        }
+      </div>
+
+      <footer class="molde-visor__footer">
+        <div class="molde-visor__zoom-controles">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="zoom() <= 0.5"
+            [attr.aria-label]="'Alejar' | t" (click)="alejar()">
+            <app-icon name="minus" [size]="14" />
+          </button>
+          <span class="molde-visor__zoom-valor">{{ zoom() | number:'1.0-2' }}x</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="zoom() >= 2.5"
+            [attr.aria-label]="'Acercar' | t" (click)="acercar()">
+            <app-icon name="plus" [size]="14" />
+          </button>
+        </div>
+
+        @if (tieneVarios()) {
+          <span class="molde-visor__contador">{{ index() + 1 }} / {{ moldes().length }}</span>
+        }
+
+        <div class="molde-visor__acciones">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPng()">
+            <app-icon name="download" [size]="14" /> {{ 'Descargar PNG' | t }}
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()">
+            <app-icon name="printer" [size]="14" /> {{ 'Imprimir' | t }}
+          </button>
+          @if (m.bitacoraId) {
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/bitacora/historial']"
+              [queryParams]="{ item: m.bitacoraId }" (click)="cerrar()">
+              <app-icon name="external-link" [size]="14" /> {{ 'Abrir la bitácora de ese día' | t }}
+            </a>
+          }
+        </div>
+      </footer>
+    </div>
+  }
+</dialog>

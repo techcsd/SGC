@@ -35,6 +35,14 @@ export interface PagoObraLinea {
   estado: 'pendiente' | 'firmado' | 'ausente';
 }
 
+/** DI — resumen de la semana actual por obra, para la pantalla «Mis obras». */
+export interface ResumenSemanaObra {
+  pago: PagoObra | null;
+  firmados: number;
+  totalLineas: number;
+  montoFirmado: number;
+}
+
 const BUCKET = 'obra';
 
 @Injectable({ providedIn: 'root' })
@@ -48,9 +56,39 @@ export class PagosObraService {
       .select('*, proyecto:proyectos!proyecto_id(nombre)')
       .eq('proyecto_id', proyectoId)
       .order('semana_desde', { ascending: false })
-      .limit(40);
+      // DI — sin RPC de range server-side todavía; 200 semanas (~4 años por
+      // obra) alcanza de sobra y el padre pagina client-side (app-paginador).
+      .limit(200);
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as PagoObra[];
+  }
+
+  /** DI — estado de la semana ACTUAL de varias obras en una sola query batched
+   *  (para la pantalla de arranque «Mis obras»). RLS (`puede_ver_pagos`) ya
+   *  filtra qué obras puede ver cada quien; no hace falta pedir permiso aparte. */
+  async resumenSemana(proyectoIds: string[], desde: string): Promise<Map<string, ResumenSemanaObra>> {
+    const mapa = new Map<string, ResumenSemanaObra>();
+    if (!proyectoIds.length) return mapa;
+    const { data, error } = await this.supabase.client
+      .from('pagos_obra')
+      .select('*, lineas:pagos_obra_lineas(estado, monto)')
+      .in('proyecto_id', proyectoIds)
+      .eq('semana_desde', desde)
+      .is('complemento_de', null);
+    if (error) throw new Error(error.message);
+    type Fila = PagoObra & { lineas: { estado: string; monto: number | null }[] };
+    for (const fila of (data ?? []) as unknown as Fila[]) {
+      const lineas = fila.lineas ?? [];
+      const firmadas = lineas.filter((l) => l.estado === 'firmado');
+      const { lineas: _omit, ...pago } = fila;
+      mapa.set(fila.proyecto_id, {
+        pago: pago as PagoObra,
+        firmados: firmadas.length,
+        totalLineas: lineas.length,
+        montoFirmado: firmadas.reduce((s, l) => s + Number(l.monto ?? 0), 0),
+      });
+    }
+    return mapa;
   }
 
   async lineas(pagoId: string): Promise<PagoObraLinea[]> {

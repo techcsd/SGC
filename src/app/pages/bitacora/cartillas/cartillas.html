@@ -13,17 +13,32 @@
 
   <!-- Filtros -->
   <div class="cart-filtros sgc-card">
-    <select [value]="fObra()" (change)="fObra.set($any($event.target).value); cargar()">
-      <option value="">Todas las obras</option>
-      @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
-    </select>
-    <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value); cargar()">
-      <option value="">Todos los estados</option>
-      @for (e of ESTADOS; track e) { <option [value]="e">{{ ESTADO_LABEL[e] }}</option> }
-    </select>
-    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value); cargar()" aria-label="Desde" />
-    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value); cargar()" aria-label="Hasta" />
-    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFiltros()">Limpiar</button>
+    <div class="cart-filtros__fila">
+      <label class="sgc-field">
+        <span>{{ 'Obra' | t }}</span>
+        <select class="sgc-select" [value]="fObra()" (change)="fObra.set($any($event.target).value); cargar()">
+          <option value="">{{ 'Todas las obras' | t }}</option>
+          @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+        </select>
+      </label>
+      <app-date-range-filter [desde]="fDesde() || null" [hasta]="fHasta() || null" (rangeChange)="onRango($event)" />
+      <label class="sgc-field cart-filtros__buscar">
+        <span>{{ 'Buscar' | t }}</span>
+        <input class="sgc-input" type="search" [value]="qTexto()" (input)="onTexto($any($event.target).value)" [placeholder]="'Folio o ingeniero…' | t" />
+      </label>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFiltros()">{{ 'Limpiar filtros' | t }}</button>
+    </div>
+    <!-- Estado: chips clicables con conteo sobre la lista obra/fecha ya cargada -->
+    <div class="cart-filtros__chips" role="group" [attr.aria-label]="'Filtrar por estado' | t">
+      <button type="button" class="cart-chip" [class.cart-chip--activo]="!fEstado()" (click)="setEstadoChip('')">
+        {{ 'Todos' | t }} ({{ conteoEstado('') }})
+      </button>
+      @for (e of ESTADOS; track e) {
+        <button type="button" class="cart-chip" [class.cart-chip--activo]="fEstado() === e" (click)="setEstadoChip(e)">
+          {{ ESTADO_LABEL[e] | t }} ({{ conteoEstado(e) }})
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Reporte "Acero por obra" -->
@@ -47,26 +62,27 @@
       <app-skeleton variant="table" [rows]="6" />
     } @else if (error()) {
       <p class="page-error" role="alert">{{ error() }}</p>
-    } @else if (!cartillas().length) {
-      <div class="table-empty"><p>Aún no hay cartillas con estos filtros.</p></div>
+    } @else if (!visibles().length) {
+      <div class="table-empty"><p>{{ 'Aún no hay cartillas con estos filtros.' | t }}</p></div>
     } @else {
       <table class="data-table">
         <thead>
-          <tr><th>Folio</th><th>Obra</th><th>Ingeniero</th><th>Fecha</th><th>Estado</th><th class="text-right">Peso (kg)</th></tr>
+          <tr><th>{{ 'Folio' | t }}</th><th>{{ 'Obra' | t }}</th><th>{{ 'Ingeniero' | t }}</th><th>{{ 'Fecha' | t }}</th><th>{{ 'Estado' | t }}</th><th class="text-right">{{ 'Peso (kg)' | t }}</th></tr>
         </thead>
         <tbody>
-          @for (c of cartillas(); track c.id) {
+          @for (c of paginaActual(); track c.id) {
             <tr class="row--link" (click)="abrirDetalle(c)" role="button" tabindex="0" (keydown.enter)="abrirDetalle(c)">
               <td><code class="req-codigo">{{ c.folio ?? '—' }}</code>@if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }</td>
               <td>{{ c.proyecto ?? '—' }}</td>
               <td>{{ c.ingeniero ?? '—' }}</td>
               <td>{{ formatFecha(c.fecha) }}</td>
-              <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">{{ ESTADO_LABEL[c.estado] ?? c.estado }}</span></td>
+              <td><span class="status-pill" [class]="'status-pill--' + estadoBadge(c.estado)">{{ ESTADO_LABEL[c.estado] ?? c.estado }}</span></td>
               <td class="text-right">{{ c.peso_total_kg | number:'1.0-1' }}</td>
             </tr>
           }
         </tbody>
       </table>
+      <app-paginador id="cartillas.lista" [total]="visibles().length" [(page)]="page" [(pageSize)]="pageSize" />
     }
   </div>
 </div>
@@ -81,7 +97,7 @@
         <div><dt>Obra</dt><dd>{{ d.proyecto ?? '—' }}</dd></div>
         <div><dt>Ingeniero</dt><dd>{{ d.ingeniero ?? '—' }}</dd></div>
         <div><dt>Fecha</dt><dd>{{ formatFecha(d.fecha) }}</dd></div>
-        <div><dt>Estado</dt><dd><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
+        <div><dt>Estado</dt><dd><span class="status-pill" [class]="'status-pill--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
         <div><dt>Peso total</dt><dd>{{ d.peso_total_kg | number:'1.0-2' }} kg</dd></div>
       </dl>
       @if (d.observacion) { <p class="cart-detalle__obs"><strong>Observación:</strong> {{ d.observacion }}</p> }
@@ -124,7 +140,7 @@
       <ul class="cart-eventos">
         @for (e of d.eventos; track e.created_at) {
           <li>
-            <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(e.estado_hasta ?? '')">{{ ESTADO_LABEL[e.estado_hasta ?? ''] ?? e.estado_hasta }}</span>
+            <span class="status-pill" [class]="'status-pill--' + estadoBadge(e.estado_hasta ?? '')">{{ ESTADO_LABEL[e.estado_hasta ?? ''] ?? e.estado_hasta }}</span>
             <span class="text-muted">{{ e.usuario ?? '—' }} · {{ formatFecha(e.created_at) }}</span>
             @if (e.nota) { <span> — {{ e.nota }}</span> }
           </li>
@@ -134,7 +150,7 @@
       <!-- Acciones de estado -->
       @if (puedeObservar()) {
         <div class="cart-detalle__nota">
-          <input type="text" [value]="estadoNota()" (input)="estadoNota.set($any($event.target).value)" placeholder="Nota / observación" />
+          <input class="sgc-input" type="text" [value]="estadoNota()" (input)="estadoNota.set($any($event.target).value)" [placeholder]="'Nota / observación' | t" />
         </div>
       }
       <div class="cart-detalle__acciones">
@@ -161,6 +177,9 @@
       <input type="date" [value]="cFecha()" (change)="cFecha.set($any($event.target).value)" />
     </div>
 
+    <!-- DI3 — grilla de atados/piezas: controles sueltos con anchos fijos (flex en
+         cart-cap-pieza/cart-cap-tramos). Aplicar .sgc-input aquí sin rediseñar el
+         layout rompería los anchos; se deja para la pasada de diseño (board DI3). -->
     @for (a of cAtados(); track $index) {
       <div class="cart-cap-atado">
         <div class="cart-cap-atado__head">
@@ -233,6 +252,8 @@
 
 <!-- ── F8 — Admin: catálogos de acero ── -->
 <app-form-drawer title="Catálogos de acero" [open]="catalogosOpen()" (closed)="cerrarCatalogos()">
+  <!-- DI3 — tabla de catálogo con inputs numéricos estrechos por celda; dejar
+       .sgc-input fuera por ahora (board DI3 definirá el look de tablas editables). -->
   <div class="cart-catalogos">
     <h4>Diámetros (kg por metro)</h4>
     <table class="data-table">

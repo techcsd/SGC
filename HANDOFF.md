@@ -1,5 +1,70 @@
 # HANDOFF — SGC
 
+## ✅ Ronda DI (03-nov/04-nov-2026 #2) — PROMPT 134, 10 notas (DI1-DI10) — PR #103 abierto `feature/di-ronda-03nov-2` → `dev` — v1.210.0
+
+**TL;DR:** Ronda completa (F0-F8 + pulido CSS) en PR [#103](https://github.com/techcsd/SGC/pull/103). Pagos de la semana rediseñado, moldes con visor grande, cartillas con filtros del sistema, lectores IA más robustos, cupo de tarjeta de combustible (backend + bandeja web). Xaviel **probó en vivo y confirmó que funciona**; aprobó seguir con los tokens de diseño existentes para el CSS (los boards DI1-DI4 del lienzo no se pudieron leer — `claude.ai/artifact/...` es una SPA client-rendered, `WebFetch` solo ve el shell vacío). `npm run build` (prebuild completo, todos los guards) y `npm test` verdes (264/264) en ambos commits. Migraciones **ya aplicadas y verificadas por objeto en dev**. Contexto completo: `C:\developer\improvements\noviembre 2026\imp 03112026\CONTEXTO-ACTUALIZACION-66.md`. Contraparte móvil: PROMPT-135 (repo `csd-app`), bloqueada hasta que esto llegue a `dev` real (merge del PR).
+
+**Commits:** `50993d65` (F0-F8, funcionalidad completa) + `9da6e7f4` (pulido CSS de Pagos/Moldes/Cartillas/Cupos con `status-pill`, `.kpi-grid/.kpi-card`, chips navy unificados — mismos tokens que Vault/dashboard, sin tocar backend).
+
+### F0 — Verificación (corrigió 2 supuestos del contexto)
+- **DI1:** la hipótesis de "0 obras" era falsa — 18 obras activas en dev, el contexto `personal` del selector es WIDE (todas para todos). La causa real es 100% la pantalla sin salida (sin botón/mensaje sin obra elegida).
+- **DI4:** el esquema real de `combustible_tarjeta_map` usa `usuario_id`/`es_persona`/`titular_nombre` (NO `persona_id` como sugería el contexto) — las migraciones se ajustaron a lo real.
+- **🔴 Gotcha grande (ver Gotchas abajo):** `registrar_combustible_app` ya tenía 24 args en `origin/dev` (ronda DH2, ya mergeada) antes de empezar; el F0 propio no lo vio.
+
+### F1 (DI1) — Pagos de la semana
+Pantalla **"Mis obras"** nueva (reemplaza el `<select>` como entrada): una fila por obra con el estado de su semana actual (sin empezar/borrador/enviada) y una acción por fila; KPIs arriba; recuerda la última obra en `localStorage`. Detalle de obra con buscador + chips (Todos/Pendientes/Firmados/Ausentes) + `app-paginador` (`pagos.personas`, `pagos.semanas`). Los 2 `confirm()` nativos → `app-confirm-dialog`. Archivos: `src/app/pages/ingenieria/pagos/*`, `src/shared/services/pagos-obra.service.ts` (nuevo método `resumenSemana` batched). **No probado visualmente** (sin browser en el agente que lo hizo).
+
+### F2 (DI2) — Visor grande de moldes
+`app-molde-esquema` gana `ampliable`/`ampliar` (apagado por defecto, encendido en Moldes+Historial, apagado explícito en Nueva). Nuevo `shared/ui/molde-visor/` (`<dialog>` nativo: zoom, PNG, imprimir, ←/→, foco accesible). `moldes.html` con vista Tarjetas (default, esquema grande, 6/pág) / Tabla (10/pág), preferencia en `localStorage`. Detalle: `docs/DI2-molde-visor.md`. **No probado visualmente.**
+
+### F3 (DI3) — Cartillas de acero
+Filtros crudos → `.sgc-field`/`.sgc-select` + `app-date-range-filter` + chips de estado con conteo + buscador + `app-paginador` (`cartillas.lista`). **Decisión:** el filtro de estado/texto pasó a ser 100% client-side (el RPC `cartillas_listado` ya no recibe `p_estado`) para que los chips muestren conteos exactos.
+
+### F4 (DI10/DI7) — Lectores IA más robustos
+`leer-recibo`: `max_tokens` 1024→1536, revisa `stop_reason`, 1 reintento si viene truncado o el JSON no se interpreta, log de la respuesta cruda al fallar (antes se perdía sin rastro). `leer-formulario` gana tipo `uso_vehiculo` (foto de tablero → km/horas/nivel —tope de confianza 0.75, es analógico— /luces de advertencia). Detalle: `docs/DI5-DI7-lectores-combustible-uso.md`.
+
+### F5+F6 (DI4/DI5/DI6/DI7) — SQL de combustible y cupo de tarjeta
+3 migraciones aplicadas y verificadas por objeto en dev:
+- `sql/2026-11-03-di5-combustible-captura.sql` — `registros_combustible.captura`/`sin_foto_bomba`/`diferencias_recibo`, parámetro `combustible_rapido_exige_bomba` (default `false`), `vehiculo_usos.foto_tablero_inicio/fin_path`, `set_uso_fotos` extendido.
+- `sql/2026-11-03-di4-tarjeta-cupo.sql` — `combustible_solicitudes_cupo` + `combustible_tarjeta_alertas`, `cupo_gal`/`cupo_monto`/`cupo_dia_corte` en `combustible_tarjeta_map`, 9 RPCs (`solicitar_cupo_tarjeta`, `atender_solicitud_cupo`, `mi_tarjeta_vehiculo`, etc.), alerta 80%/100% enganchada **dentro de** `registrar_combustible_app` (sin cron nuevo), 4 `notif_tipo` nuevos.
+- `sql/2026-11-03-di4b-fix-overload-registrar-combustible.sql` — corrección del overload (ver Gotchas) + 2 bugs de columna ambigua en `tarjeta_consumo_periodo`/`tarjeta_periodo_rango` encontrados al correr smoke tests.
+Bandeja web `/flota/cupos-combustible` (`flotaElevadoGuard`, 2 pestañas paginadas). Detalle: `docs/DI4-cupo-tarjeta.md`. 3 smoke tests manuales corridos y verdes (normal / rápido_ia con diferencia mantenida / rápido_ia sin foto de bomba).
+
+### F7 — Paridad, docs, versión
+`PARIDAD.md` (sección "Ronda DI" con lo que queda para PROMPT-135), 3 docs nuevos (`docs/DI2-molde-visor.md`, `docs/DI4-cupo-tarjeta.md`, `docs/DI5-DI7-lectores-combustible-uso.md`). Versión **1.210.0** (`package.json` + `release-notes.json`, 7 cambios sin jerga técnica).
+
+### F8 — Verificación final
+`npm run build` (prebuild completo, 25 guards incluidos) **verde**; `npm test` **264/264**. Todos los guards corridos también uno por uno para diagnóstico (verify-regresiones, audit-rpc-grants, verify-public-schema-rls, audit-buckets-upsert-policy, verify-campos-sgc-field, verify-i18n, verify-dev-strings, etc.) — todos ✓.
+
+### Pendiente — Claude puede hacerlo (próxima sesión, en orden sugerido)
+1. **`node scripts/release-check.mjs --env dev --version 1.210.0`** (regla CP5, obligatorio) antes de que el PR #103 pueda ir a `main` — falta que Xaviel deje `qa/release-1.210.0.md` con el registro humano de prueba (ya probó en vivo según dijo, pero el gate pide el archivo).
+2. Tras merge de PR #103 a `dev`: abrir PR `dev→main` siguiendo el mismo flujo (regla 18).
+3. **PROMPT-135 (csd-app)** queda bloqueado hasta que esto esté en `dev` real (merge del PR #103): pantalla rápido/normal de combustible, diferencias en vivo, foto de tablero en Uso de vehículo, botón "Pedir más cupo", lectura de solo-tablero sin esperar recibo.
+4. Si Xaviel consigue las capturas de los boards DI1-DI4 más adelante, revisar si el pulido con tokens existentes (commit `9da6e7f4`) necesita ajustarse a algo específico del mockup que no se pudo anticipar sin verlo.
+
+### Pendiente — Xaviel únicamente
+1. ✅ Probó en vivo — confirmado que funciona (04-nov-2026).
+2. ✅ Aprobó seguir con los tokens de diseño existentes (no se pudieron leer los boards DI1-DI4 del lienzo).
+3. **Dejar `qa/release-1.210.0.md`** con el registro de la prueba (formato de rondas anteriores) para que `release-check.mjs` pase.
+4. Confirmar con Raykler si va a anotar cupos de tarjetas (si no, el cupo queda sin anotar y el sistema simplemente no muestra barra ni alertas — no bloquea nada).
+5. Aprobar/mergear PR #103 (`feature/di-ronda-03nov-2` → `dev`) en GitHub; luego decidir cuándo aplicar las 3 migraciones a prod.
+
+### Gotchas descubiertos
+- **🔴 Diagnosticar una función con posibles overloads: SIEMPRE contar filas primero.** `origin/dev` ya traía `registrar_combustible_app` con 24 args (`p_km_forzar`/`p_km_motivo`, ronda DH2 ya mergeada) antes de que esta ronda empezara. El script de diagnóstico propio hacía `select pg_get_functiondef(oid) from pg_proc where proname=...` y solo imprimía `r[0]` — con 2 filas (overloads) coexistiendo, eso esconde la segunda. Resultado: las migraciones DI5 y DI4 asumieron una base de 22 args y dejaron DOS overloads de 24 args viviendo juntos en dev (detectado recién al correr `select pronargs, count(*) ... group by pronargs` después de aplicar — dio 2 filas en vez de 1). Corregido con una migración de fusión (`di4b`). **Regla para la próxima vez:** antes de escribir `DROP FUNCTION IF EXISTS fn(firma_vieja)`, correr `select count(*) from pg_proc where proname='fn'` — si da más de 1, pedir `pg_get_function_identity_arguments` de CADA oid antes de asumir cuál es "la" firma vieja.
+- El esquema real de una tabla puede diferir de lo que describe un documento de contexto externo (`combustible_tarjeta_map` con `usuario_id` no `persona_id`) — verificar `information_schema.columns` siempre antes de escribir una migración que la toca, no confiar en la prosa del contexto.
+- `tarjeta_periodo_rango(p_dia_corte smallint, ...)` rechazaba un literal entero sin cast explícito (Postgres no castea `integer`→`smallint` implícitamente para resolución de sobrecarga) — cambiado a `integer`.
+- Una función `RETURNS TABLE(cupo_gal numeric, ...)` con un `SELECT cupo_gal FROM tabla_con_columna_cupo_gal` es **ambigua** (el nombre del OUT-param choca con el nombre de columna) incluso dentro de un `SELECT ... INTO` — hay que alias-calificar siempre la tabla fuente (`SELECT m.cupo_gal FROM tabla m`).
+- `.env.local` es gitignored → se copió a mano de `SGC` a `SGC-di` antes de correr scripts de Supabase (mismo gotcha que dejó anotado la ronda DH).
+- `npx ng build` NO corre el `prebuild` completo (25 guards) — para el chequeo final real usar `npm run build`.
+- **`WebFetch` NO puede leer un artifact de `claude.ai`** (`claude.ai/artifact/...`): es una SPA client-rendered, devuelve el shell vacío ("Content is user-generated and unverified.") sin el contenido real del lienzo de mockups. Para mockups en ese formato, pedirle a Xaviel capturas de pantalla directamente.
+- **El sistema de diseño tiene DOS familias de botones conviviendo**: la legacy `.sgc-btn--*` (navy = primary, usada en las 131+ pantallas reales de la app) y la más nueva `.ui-btn--*`/directiva `appButton` (CB v2: `.ui-btn--accent` = el ÚNICO acento naranja por pantalla). La segunda existe en `_components.scss` pero **no se usa en ninguna pantalla real todavía** (solo en `design-system.scss`, el showcase). Para no desentonar con el resto de la app ya en producción, esta ronda polisheó con `.sgc-btn`/`.sgc-card`/`status-pill` (lo que SÍ está desplegado en todos lados), no con `.ui-btn`. Si se decide adoptar `.ui-btn` de verdad, debe ser una migración deliberada de TODA la app, no pantalla por pantalla.
+
+### Verificar al retomar
+- `cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-di" && git log --oneline -3` — debe mostrar los 2 commits de la ronda (`9da6e7f4` pulido CSS, `50993d65` funcionalidad) sobre `feature/di-ronda-03nov-2`, ya pusheados.
+- `gh pr view 103` (o `https://github.com/techcsd/SGC/pull/103`) — debe seguir abierto contra `dev`, sin conflictos.
+- `select pronargs, count(*) from pg_proc where proname='registrar_combustible_app' and pronamespace='sgc'::regnamespace group by pronargs;` en dev — debe dar **1 sola fila, pronargs=26**. Si da más de una fila, alguien volvió a tocar esa función sin fusionar el overload.
+- `npm run build && npm test` — deben seguir verdes antes de continuar.
+
 ## 🧪 Ronda DH (03-nov-2026) — PROMPT 132, 20 notas (DH1-DH23) — EN `SGC-dh` worktree, rama `feature/dh-ronda-03nov`, SIN COMMIT — v1.209.0
 
 **TL;DR:** Ronda grande (20 notas, 13 fases) **completa** en el worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-dh` (rama `feature/dh-ronda-03nov`, base `origin/dev`). `npm run build` (con todos los guards de `prebuild`) y `npm test` verdes — 31 archivos / 264 tests. **Nada commiteado/pusheado** (regla explícita del prompt: avisar antes). Versión bump a **1.209.0** (`package.json` + `release-notes.json`, 16 cambios estructurados). Migraciones SQL de esta ronda **ya aplicadas a dev** y 5 edge functions **ya desplegadas a dev** — nada en prod.

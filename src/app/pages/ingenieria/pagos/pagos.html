@@ -4,7 +4,7 @@
     <p class="page-subtitle">{{ 'El personal firma su descargo; al enviar, el PDF llega por correo a Legal y Gerencia.' | t }}</p>
   </div>
   <div class="page-header__actions">
-    @if (puedeOperar() && obraId()) {
+    @if (vista() === 'detalle' && puedeOperar() && obraId()) {
       <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="saving()" (click)="crearSemana()">
         {{ 'Crear la semana en curso' | t }}
       </button>
@@ -14,134 +14,233 @@
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
 
-<div class="sgc-card pgo__filtros">
-  <label class="sgc-field pgo__obra">
-    <span>{{ 'Obra' | t }}</span>
-    <select class="sgc-select" [ngModel]="obraId()" (ngModelChange)="obraId.set($event); cargarPagos()">
-      <option value="" disabled>{{ 'Seleccionar obra…' | t }}</option>
-      @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
-    </select>
-  </label>
-</div>
-
-<div class="pgo__layout">
-  <!-- Historial de semanas -->
-  <div class="sgc-card pgo__lista">
-    <h2 class="pgo__subtitulo">{{ 'Semanas' | t }}</h2>
-    @if (loading()) { <p class="pgo__muted">{{ 'Cargando…' | t }}</p> }
-    @for (p of pagos(); track p.id) {
-      <button type="button" class="pgo__semana" [class.pgo__semana--sel]="pagoSel()?.id === p.id" (click)="abrir(p)">
-        <span class="pgo__semana-fechas">{{ fecha(p.semana_desde) }} – {{ fecha(p.semana_hasta) }}
-          @if (p.complemento_de) { <span class="pgo__tag">{{ 'complemento' | t }}</span> }
-        </span>
-        @if (p.estado === 'enviado') {
-          <span class="pgo__estado pgo__estado--ok"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Enviado' | t }}</span>
-        } @else {
-          <span class="pgo__estado pgo__estado--warn"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Borrador' | t }}</span>
-        }
-      </button>
-    } @empty {
-      @if (!loading() && obraId()) { <p class="pgo__muted">{{ 'Esta obra no tiene semanas de pago todavía.' | t }}</p> }
-    }
+<!-- ══════════════════════════════ «Mis obras» ══════════════════════════════ -->
+@if (vista() === 'obras') {
+  <div class="kpi-grid pgo__kpis">
+    <div class="kpi-card kpi-card--warning">
+      <span class="kpi-label">{{ 'Obras con semana abierta' | t }}</span>
+      <span class="kpi-value">{{ kpiAbiertas() }}</span>
+    </div>
+    <div class="kpi-card kpi-card--success">
+      <span class="kpi-label">{{ 'Obras con semana enviada' | t }}</span>
+      <span class="kpi-value">{{ kpiEnviadas() }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">{{ 'Obras sin empezar' | t }}</span>
+      <span class="kpi-value">{{ kpiSinEmpezar() }}</span>
+    </div>
+    <div class="kpi-card kpi-card--primary">
+      <span class="kpi-label">{{ 'Total firmado esta semana' | t }}</span>
+      <span class="kpi-value kpi-value--sm">RD$ {{ kpiTotalFirmado() | number:'1.2-2' }}</span>
+    </div>
   </div>
 
-  <!-- Detalle de la semana -->
-  @if (pagoSel(); as pago) {
-    <div class="sgc-card pgo__detalle">
-      <div class="pgo__detalle-head">
-        <div>
-          <h2 class="pgo__subtitulo">{{ 'Semana del {desde} al {hasta}' | t:{ desde: fecha(pago.semana_desde), hasta: fecha(pago.semana_hasta) } }}</h2>
-          <p class="pgo__muted">{{ '{f} firmado(s) · {p} sin firmar · total firmado RD$ {t}' | t:{ f: firmadas(), p: sinFirma(), t: (totalFirmado() | number:'1.2-2') ?? '0' } }}</p>
-        </div>
-        <div class="pgo__detalle-acciones">
-          @if (pago.pdf_path) {
-            <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="pdfAbriendo()" (click)="verPdf()">{{ 'Ver PDF' | t }}</button>
+  <div class="sgc-card pgo__filtros">
+    <label class="sgc-field pgo__obra">
+      <span>{{ 'Buscar obra' | t }}</span>
+      <input class="sgc-input" type="text" [ngModel]="filtroObra()" (ngModelChange)="filtroObra.set($event)"
+             [placeholder]="'Nombre de la obra…' | t" />
+    </label>
+  </div>
+
+  <div class="sgc-card pgo__obras">
+    @if (loadingResumen()) { <p class="pgo__muted">{{ 'Cargando…' | t }}</p> }
+    @for (o of obrasFiltradas(); track o.id) {
+      <div class="pgo__fila" [class.pgo__fila--reciente]="o.id === ultimaObraId()">
+        <div class="pgo__fila-info">
+          <span class="pgo__nombre">{{ o.nombre }}</span>
+          @switch (estadoDeObra(o.id)) {
+            @case ('enviado') {
+              <span class="status-pill" [class]="'status-pill--' + tonoSemana('enviado')">
+                {{ 'Enviado' | t }} — {{ resumenDeObra(o.id)?.firmados }}/{{ resumenDeObra(o.id)?.totalLineas }}
+              </span>
+            }
+            @case ('borrador') {
+              <span class="status-pill" [class]="'status-pill--' + tonoSemana('borrador')">
+                {{ 'Borrador' | t }} — {{ resumenDeObra(o.id)?.firmados }}/{{ resumenDeObra(o.id)?.totalLineas }}
+              </span>
+            }
+            @default {
+              <span class="status-pill" [class]="'status-pill--' + tonoSemana('sin_crear')">{{ 'Sin empezar' | t }}</span>
+            }
           }
-          @if (cerrado()) {
-            @if (puedeOperar() && sinFirma() > 0) {
-              <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="saving()" (click)="crearComplemento()">{{ 'Crear complemento ({n})' | t:{ n: sinFirma() } }}</button>
+        </div>
+        <div class="pgo__fila-accion">
+          @switch (estadoDeObra(o.id)) {
+            @case ('enviado') {
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirObra(o.id, resumenDeObra(o.id)?.pago?.id)">
+                {{ 'Ver enviada' | t }}
+              </button>
             }
-            @if (esAdmin) {
-              <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="reabrir()">{{ 'Reabrir (admin)' | t }}</button>
+            @case ('borrador') {
+              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirObra(o.id, resumenDeObra(o.id)?.pago?.id)">
+                {{ 'Continuar' | t }}
+              </button>
             }
-          } @else if (puedeOperar()) {
-            <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving() || firmadas() === 0" (click)="enviar()">
-              {{ 'Enviar reporte ({n} firmados)' | t:{ n: firmadas() } }}
-            </button>
+            @default {
+              @if (puedeOperar()) {
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="crearSemanaDesdeObras(o.id)">
+                  {{ 'Crear semana' | t }}
+                </button>
+              }
+            }
           }
         </div>
       </div>
+    } @empty {
+      @if (!loadingResumen()) {
+        @if (obras().length === 0) {
+          <p class="pgo__muted">{{ 'No tienes obras asignadas.' | t }}</p>
+        } @else {
+          <p class="pgo__muted">{{ 'No hay obras que coincidan.' | t }}</p>
+        }
+      }
+    }
+  </div>
+}
 
-      <!-- Panel «Al enviar» -->
-      <p class="pgo__al-enviar">{{ 'Al enviar, el PDF llega a:' | t }} <strong>{{ correos().join(', ') || ('(sin correos configurados — Administración › Parámetros)' | t) }}</strong></p>
-
-      <div class="pgo__tabla-wrap">
-        <table class="pgo__tabla">
-          <thead>
-            <tr>
-              <th>{{ 'Persona' | t }}</th>
-              <th>{{ 'Identificación' | t }}</th>
-              <th>{{ 'Cargo' | t }}</th>
-              <th>{{ 'Monto (RD$)' | t }}</th>
-              <th>{{ 'Concepto' | t }}</th>
-              <th>{{ 'Descargo' | t }}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (l of lineas(); track l.id) {
-              <tr [class.pgo__row--ausente]="l.estado === 'ausente'">
-                <td class="pgo__nombre">{{ l.nombre_snapshot }}</td>
-                <td class="pgo__muted">{{ l.documento_numero_snapshot || '—' }}</td>
-                <td class="pgo__muted">{{ l.cargo_snapshot || '—' }}</td>
-                <td>
-                  @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {
-                    <input class="pgo__input pgo__input--monto" type="number" min="0" step="0.01"
-                           [value]="l.monto ?? ''"
-                           (change)="guardarMonto(l, $any($event.target).value)" />
-                  } @else {
-                    {{ l.monto != null ? (l.monto | number:'1.2-2') : '—' }}
-                  }
-                </td>
-                <td>
-                  @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {
-                    <input class="pgo__input" type="text" [value]="l.concepto ?? ''"
-                           [placeholder]="'trabajos de la semana' | t"
-                           (change)="guardarConcepto(l, $any($event.target).value)" />
-                  } @else {
-                    <span class="pgo__muted">{{ l.concepto || '—' }}</span>
-                  }
-                </td>
-                <td>
-                  @switch (l.estado) {
-                    @case ('firmado') { <span class="pgo__estado pgo__estado--ok"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Firmado' | t }}</span> }
-                    @case ('ausente') { <span class="pgo__estado pgo__estado--muted"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Ausente' | t }}</span> }
-                    @default { <span class="pgo__estado pgo__estado--warn"><span class="pgo__punto" aria-hidden="true"></span>{{ 'Pendiente' | t }}</span> }
-                  }
-                </td>
-                <td class="pgo__acciones">
-                  @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {
-                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="l.monto == null"
-                            [title]="l.monto == null ? ('Pon el monto antes de firmar' | t) : ''"
-                            (click)="abrirFirma(l)">{{ 'Firmar' | t }}</button>
-                    @if (l.estado !== 'ausente') {
-                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarAusente(l, true)">{{ 'Ausente' | t }}</button>
-                    } @else {
-                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarAusente(l, false)">{{ 'Quitar ausente' | t }}</button>
-                    }
-                  }
-                </td>
-              </tr>
-            } @empty {
-              <tr><td colspan="7" class="pgo__vacio">{{ 'Sin personal en esta semana.' | t }}</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <p class="pgo__hint">{{ 'La persona firma aquí mismo (recuadro de firma) o en el teléfono del ingeniero con la app de SGC.' | t }}</p>
+<!-- ══════════════════════════════ Detalle de una obra ══════════════════════════════ -->
+@if (vista() === 'detalle') {
+  @if (obras().length > 1) {
+    <div class="pgo__volver">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="volverAObras()">{{ '← Mis obras' | t }}</button>
     </div>
   }
-</div>
+
+  <div class="pgo__layout">
+    <!-- Historial de semanas -->
+    <div class="sgc-card pgo__lista">
+      <h2 class="pgo__subtitulo">{{ 'Semanas' | t }}</h2>
+      @if (loading()) { <p class="pgo__muted">{{ 'Cargando…' | t }}</p> }
+      @for (p of semanasPaginadas(); track p.id) {
+        <button type="button" class="pgo__semana" [class.pgo__semana--sel]="pagoSel()?.id === p.id" (click)="abrir(p)">
+          <span class="pgo__semana-fechas">{{ fecha(p.semana_desde) }} – {{ fecha(p.semana_hasta) }}
+            @if (p.complemento_de) { <span class="pgo__tag">{{ 'complemento' | t }}</span> }
+          </span>
+          <span class="status-pill" [class]="'status-pill--' + tonoSemana(p.estado)">{{ (p.estado === 'enviado' ? 'Enviado' : 'Borrador') | t }}</span>
+        </button>
+      } @empty {
+        @if (!loading() && obraId()) { <p class="pgo__muted">{{ 'Esta obra no tiene semanas de pago todavía.' | t }}</p> }
+      }
+      @if (pagos().length > 0) {
+        <app-paginador id="pagos.semanas" [total]="pagos().length" [(page)]="semanasPage" [(pageSize)]="semanasPageSize" />
+      }
+    </div>
+
+    <!-- Detalle de la semana -->
+    @if (pagoSel(); as pago) {
+      <div class="sgc-card pgo__detalle">
+        <div class="pgo__detalle-head">
+          <div>
+            <h2 class="pgo__subtitulo">{{ 'Semana del {desde} al {hasta}' | t:{ desde: fecha(pago.semana_desde), hasta: fecha(pago.semana_hasta) } }}</h2>
+            <p class="pgo__muted">{{ '{f} firmado(s) · {p} sin firmar · total firmado RD$ {t}' | t:{ f: firmadas(), p: sinFirma(), t: (totalFirmado() | number:'1.2-2') ?? '0' } }}</p>
+          </div>
+          <div class="pgo__detalle-acciones">
+            @if (pago.pdf_path) {
+              <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="pdfAbriendo()" (click)="verPdf()">{{ 'Ver PDF' | t }}</button>
+            }
+            @if (cerrado()) {
+              @if (puedeOperar() && sinFirma() > 0) {
+                <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="saving()" (click)="crearComplemento()">{{ 'Crear complemento ({n})' | t:{ n: sinFirma() } }}</button>
+              }
+              @if (esAdmin) {
+                <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="pedirReabrir()">{{ 'Reabrir (admin)' | t }}</button>
+              }
+            } @else if (puedeOperar()) {
+              <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving() || firmadas() === 0" (click)="pedirEnviar()">
+                {{ 'Enviar reporte ({n} firmados)' | t:{ n: firmadas() } }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Panel «Al enviar» -->
+        <p class="pgo__al-enviar">{{ 'Al enviar, el PDF llega a:' | t }} <strong>{{ correos().join(', ') || ('(sin correos configurados — Administración › Parámetros)' | t) }}</strong></p>
+
+        <!-- Buscador + chips de estado -->
+        <div class="pgo__personas-filtros">
+          <label class="sgc-field pgo__personas-buscar">
+            <span>{{ 'Buscar persona' | t }}</span>
+            <input class="sgc-input" type="text" [ngModel]="buscarPersona()" (ngModelChange)="buscarPersonaCambio($event)"
+                   [placeholder]="'Nombre…' | t" />
+          </label>
+          <div class="pgo__chips">
+            <button type="button" class="filtro-chip" [class.active]="filtroEstadoPersona() === 'todos'" (click)="filtrarPersonaPor('todos')">{{ 'Todos' | t }}</button>
+            <button type="button" class="filtro-chip" [class.active]="filtroEstadoPersona() === 'pendiente'" (click)="filtrarPersonaPor('pendiente')">{{ 'Pendientes' | t }}</button>
+            <button type="button" class="filtro-chip" [class.active]="filtroEstadoPersona() === 'firmado'" (click)="filtrarPersonaPor('firmado')">{{ 'Firmados' | t }}</button>
+            <button type="button" class="filtro-chip" [class.active]="filtroEstadoPersona() === 'ausente'" (click)="filtrarPersonaPor('ausente')">{{ 'Ausentes' | t }}</button>
+          </div>
+        </div>
+
+        <div class="pgo__tabla-wrap">
+          <table class="pgo__tabla">
+            <thead>
+              <tr>
+                <th>{{ 'Persona' | t }}</th>
+                <th>{{ 'Identificación' | t }}</th>
+                <th>{{ 'Cargo' | t }}</th>
+                <th>{{ 'Monto (RD$)' | t }}</th>
+                <th>{{ 'Concepto' | t }}</th>
+                <th>{{ 'Descargo' | t }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (l of lineasPaginadas(); track l.id) {
+                <tr [class.pgo__row--ausente]="l.estado === 'ausente'">
+                  <td class="pgo__nombre">{{ l.nombre_snapshot }}</td>
+                  <td class="pgo__muted">{{ l.documento_numero_snapshot || '—' }}</td>
+                  <td class="pgo__muted">{{ l.cargo_snapshot || '—' }}</td>
+                  <td>
+                    @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {
+                      <input class="pgo__input pgo__input--monto" type="number" min="0" step="0.01"
+                             [value]="l.monto ?? ''"
+                             (change)="guardarMonto(l, $any($event.target).value)" />
+                    } @else {
+                      {{ l.monto != null ? (l.monto | number:'1.2-2') : '—' }}
+                    }
+                  </td>
+                  <td>
+                    @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {
+                      <input class="pgo__input" type="text" [value]="l.concepto ?? ''"
+                             [placeholder]="'trabajos de la semana' | t"
+                             (change)="guardarConcepto(l, $any($event.target).value)" />
+                    } @else {
+                      <span class="pgo__muted">{{ l.concepto || '—' }}</span>
+                    }
+                  </td>
+                  <td>
+                    <span class="status-pill" [class]="'status-pill--' + tonoLinea(l.estado)">
+                      {{ (l.estado === 'firmado' ? 'Firmado' : l.estado === 'ausente' ? 'Ausente' : 'Pendiente') | t }}
+                    </span>
+                  </td>
+                  <td class="pgo__acciones">
+                    @if (!cerrado() && puedeOperar() && l.estado !== 'firmado') {
+                      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="l.monto == null"
+                              [title]="l.monto == null ? ('Pon el monto antes de firmar' | t) : ''"
+                              (click)="abrirFirma(l)">{{ 'Firmar' | t }}</button>
+                      @if (l.estado !== 'ausente') {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarAusente(l, true)">{{ 'Ausente' | t }}</button>
+                      } @else {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarAusente(l, false)">{{ 'Quitar ausente' | t }}</button>
+                      }
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="pgo__vacio">{{ 'Sin personal en esta semana.' | t }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (lineasFiltradas().length > 0) {
+          <app-paginador id="pagos.personas" [total]="lineasFiltradas().length" [(page)]="personasPage" [(pageSize)]="personasPageSize" />
+        }
+        <p class="pgo__hint">{{ 'La persona firma aquí mismo (recuadro de firma) o en el teléfono del ingeniero con la app de SGC.' | t }}</p>
+      </div>
+    }
+  </div>
+}
 
 <!-- Drawer de firma del descargo -->
 <app-form-drawer [title]="'Firma del descargo' | t" [open]="!!firmandoLinea()" (closed)="cerrarFirma()">
@@ -165,3 +264,12 @@
     </div>
   }
 </app-form-drawer>
+
+<!-- Confirmaciones (reemplazan confirm() nativo) -->
+<app-confirm-dialog [open]="enviarPedido()" [title]="'¿Enviar reporte?' | t" [message]="mensajeEnviar()"
+  [confirmLabel]="'Enviar' | t" [cancelLabel]="'Cancelar' | t" tone="default"
+  (confirmed)="enviar()" (cancelled)="cancelarEnviar()" />
+<app-confirm-dialog [open]="reabrirPedido()" [title]="'¿Reabrir esta semana?' | t"
+  [message]="'¿Reabrir esta semana enviada? Queda registrado quién la reabrió.' | t"
+  [confirmLabel]="'Reabrir' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
+  (confirmed)="reabrir()" (cancelled)="cancelarReabrir()" />
