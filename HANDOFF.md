@@ -1,8 +1,10 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DI (03-nov-2026 #2) — PROMPT 134, 10 notas (DI1-DI10) — EN `SGC-di` worktree, rama `feature/di-ronda-03nov-2`, SIN COMMIT — v1.210.0
+## ✅ Ronda DI (03-nov/04-nov-2026 #2) — PROMPT 134, 10 notas (DI1-DI10) — PR #103 abierto `feature/di-ronda-03nov-2` → `dev` — v1.210.0
 
-**TL;DR:** Ronda completa (F0-F8) en el worktree `C:\Users\xavie\Desktop\X Dev\dev\SGC-di` (rama `feature/di-ronda-03nov-2`, base `origin/dev` @ `7912bd78`, trae ya la ronda DH/1.209.1 mergeada). Pagos de la semana rediseñado, moldes con visor grande, cartillas con filtros del sistema, lectores IA más robustos, cupo de tarjeta de combustible (backend + bandeja web). `npm run build` (prebuild completo, todos los guards) y `npm test` verdes (264/264). Migraciones **ya aplicadas y verificadas por objeto en dev**. **Nada commiteado/pusheado** (regla del prompt: avisar antes). Contexto completo: `C:\developer\improvements\noviembre 2026\imp 03112026\CONTEXTO-ACTUALIZACION-66.md`. Contraparte móvil: PROMPT-135 (repo `csd-app`), bloqueada hasta que esto llegue a `dev` real vía PR.
+**TL;DR:** Ronda completa (F0-F8 + pulido CSS) en PR [#103](https://github.com/techcsd/SGC/pull/103). Pagos de la semana rediseñado, moldes con visor grande, cartillas con filtros del sistema, lectores IA más robustos, cupo de tarjeta de combustible (backend + bandeja web). Xaviel **probó en vivo y confirmó que funciona**; aprobó seguir con los tokens de diseño existentes para el CSS (los boards DI1-DI4 del lienzo no se pudieron leer — `claude.ai/artifact/...` es una SPA client-rendered, `WebFetch` solo ve el shell vacío). `npm run build` (prebuild completo, todos los guards) y `npm test` verdes (264/264) en ambos commits. Migraciones **ya aplicadas y verificadas por objeto en dev**. Contexto completo: `C:\developer\improvements\noviembre 2026\imp 03112026\CONTEXTO-ACTUALIZACION-66.md`. Contraparte móvil: PROMPT-135 (repo `csd-app`), bloqueada hasta que esto llegue a `dev` real (merge del PR).
+
+**Commits:** `50993d65` (F0-F8, funcionalidad completa) + `9da6e7f4` (pulido CSS de Pagos/Moldes/Cartillas/Cupos con `status-pill`, `.kpi-grid/.kpi-card`, chips navy unificados — mismos tokens que Vault/dashboard, sin tocar backend).
 
 ### F0 — Verificación (corrigió 2 supuestos del contexto)
 - **DI1:** la hipótesis de "0 obras" era falsa — 18 obras activas en dev, el contexto `personal` del selector es WIDE (todas para todos). La causa real es 100% la pantalla sin salida (sin botón/mensaje sin obra elegida).
@@ -35,17 +37,17 @@ Bandeja web `/flota/cupos-combustible` (`flotaElevadoGuard`, 2 pestañas paginad
 `npm run build` (prebuild completo, 25 guards incluidos) **verde**; `npm test` **264/264**. Todos los guards corridos también uno por uno para diagnóstico (verify-regresiones, audit-rpc-grants, verify-public-schema-rls, audit-buckets-upsert-policy, verify-campos-sgc-field, verify-i18n, verify-dev-strings, etc.) — todos ✓.
 
 ### Pendiente — Claude puede hacerlo (próxima sesión, en orden sugerido)
-1. **`npm start` en `SGC-di` y probar en vivo**: Pagos (crear semana, firmar, complemento, reabrir admin), Moldes (visor, zoom, PNG, imprimir), Cartillas (filtros/chips/paginación), Cupos de tarjetas (atender solicitud, editar cupo) — nada de esto se vio renderizado, solo verificado por build/tests/guards.
-2. **CSS pulido** de los boards DI1-DI4 una vez Xaviel los apruebe en el lienzo (`https://claude.ai/artifact/SUX68yer4hrM8ujFyndc5o`) — todo marcado `// CSS tras OK` en el código.
-3. **`node scripts/release-check.mjs --env dev --version 1.210.0`** (regla CP5, obligatorio) antes de abrir el PR `dev→main` — falta que Xaviel pruebe en `dev.sgcconstructorasd.com` y deje `qa/release-1.210.0.md`.
-4. Tras el OK de Xaviel: commit + push de `feature/di-ronda-03nov-2` + PR a `dev`.
-5. **PROMPT-135 (csd-app)** queda bloqueado hasta que esto esté en `dev` real (ahora mismo todo vive en el working tree local): pantalla rápido/normal de combustible, diferencias en vivo, foto de tablero en Uso de vehículo, botón "Pedir más cupo", lectura de solo-tablero sin esperar recibo.
+1. **`node scripts/release-check.mjs --env dev --version 1.210.0`** (regla CP5, obligatorio) antes de que el PR #103 pueda ir a `main` — falta que Xaviel deje `qa/release-1.210.0.md` con el registro humano de prueba (ya probó en vivo según dijo, pero el gate pide el archivo).
+2. Tras merge de PR #103 a `dev`: abrir PR `dev→main` siguiendo el mismo flujo (regla 18).
+3. **PROMPT-135 (csd-app)** queda bloqueado hasta que esto esté en `dev` real (merge del PR #103): pantalla rápido/normal de combustible, diferencias en vivo, foto de tablero en Uso de vehículo, botón "Pedir más cupo", lectura de solo-tablero sin esperar recibo.
+4. Si Xaviel consigue las capturas de los boards DI1-DI4 más adelante, revisar si el pulido con tokens existentes (commit `9da6e7f4`) necesita ajustarse a algo específico del mockup que no se pudo anticipar sin verlo.
 
 ### Pendiente — Xaviel únicamente
-1. Aprobar los boards DI1-DI4 en el lienzo de mockups.
-2. Probar en `npm start` (local) o `dev.sgcconstructorasd.com` (tras merge a `dev`) el flujo completo de las 4 pantallas tocadas.
-3. Confirmar con Raykler si va a anotar cupos de tarjetas (si no, el cupo queda sin anotar y el sistema simplemente no muestra barra ni alertas — no bloquea nada).
-4. Dar el OK para commit + push + PR `dev→main`; luego decidir cuándo aplicar las 3 migraciones a prod.
+1. ✅ Probó en vivo — confirmado que funciona (04-nov-2026).
+2. ✅ Aprobó seguir con los tokens de diseño existentes (no se pudieron leer los boards DI1-DI4 del lienzo).
+3. **Dejar `qa/release-1.210.0.md`** con el registro de la prueba (formato de rondas anteriores) para que `release-check.mjs` pase.
+4. Confirmar con Raykler si va a anotar cupos de tarjetas (si no, el cupo queda sin anotar y el sistema simplemente no muestra barra ni alertas — no bloquea nada).
+5. Aprobar/mergear PR #103 (`feature/di-ronda-03nov-2` → `dev`) en GitHub; luego decidir cuándo aplicar las 3 migraciones a prod.
 
 ### Gotchas descubiertos
 - **🔴 Diagnosticar una función con posibles overloads: SIEMPRE contar filas primero.** `origin/dev` ya traía `registrar_combustible_app` con 24 args (`p_km_forzar`/`p_km_motivo`, ronda DH2 ya mergeada) antes de que esta ronda empezara. El script de diagnóstico propio hacía `select pg_get_functiondef(oid) from pg_proc where proname=...` y solo imprimía `r[0]` — con 2 filas (overloads) coexistiendo, eso esconde la segunda. Resultado: las migraciones DI5 y DI4 asumieron una base de 22 args y dejaron DOS overloads de 24 args viviendo juntos en dev (detectado recién al correr `select pronargs, count(*) ... group by pronargs` después de aplicar — dio 2 filas en vez de 1). Corregido con una migración de fusión (`di4b`). **Regla para la próxima vez:** antes de escribir `DROP FUNCTION IF EXISTS fn(firma_vieja)`, correr `select count(*) from pg_proc where proname='fn'` — si da más de 1, pedir `pg_get_function_identity_arguments` de CADA oid antes de asumir cuál es "la" firma vieja.
@@ -54,9 +56,12 @@ Bandeja web `/flota/cupos-combustible` (`flotaElevadoGuard`, 2 pestañas paginad
 - Una función `RETURNS TABLE(cupo_gal numeric, ...)` con un `SELECT cupo_gal FROM tabla_con_columna_cupo_gal` es **ambigua** (el nombre del OUT-param choca con el nombre de columna) incluso dentro de un `SELECT ... INTO` — hay que alias-calificar siempre la tabla fuente (`SELECT m.cupo_gal FROM tabla m`).
 - `.env.local` es gitignored → se copió a mano de `SGC` a `SGC-di` antes de correr scripts de Supabase (mismo gotcha que dejó anotado la ronda DH).
 - `npx ng build` NO corre el `prebuild` completo (25 guards) — para el chequeo final real usar `npm run build`.
+- **`WebFetch` NO puede leer un artifact de `claude.ai`** (`claude.ai/artifact/...`): es una SPA client-rendered, devuelve el shell vacío ("Content is user-generated and unverified.") sin el contenido real del lienzo de mockups. Para mockups en ese formato, pedirle a Xaviel capturas de pantalla directamente.
+- **El sistema de diseño tiene DOS familias de botones conviviendo**: la legacy `.sgc-btn--*` (navy = primary, usada en las 131+ pantallas reales de la app) y la más nueva `.ui-btn--*`/directiva `appButton` (CB v2: `.ui-btn--accent` = el ÚNICO acento naranja por pantalla). La segunda existe en `_components.scss` pero **no se usa en ninguna pantalla real todavía** (solo en `design-system.scss`, el showcase). Para no desentonar con el resto de la app ya en producción, esta ronda polisheó con `.sgc-btn`/`.sgc-card`/`status-pill` (lo que SÍ está desplegado en todos lados), no con `.ui-btn`. Si se decide adoptar `.ui-btn` de verdad, debe ser una migración deliberada de TODA la app, no pantalla por pantalla.
 
 ### Verificar al retomar
-- `cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-di" && git status` — debe seguir sin commits: ~26 archivos modificados + 6 nuevos (3 `sql/*.sql`, 3 `docs/*.md`) + 2 carpetas nuevas (`src/app/pages/flota/cupos-combustible/`, `src/shared/ui/molde-visor/`) + `src/shared/services/cupo-tarjeta.service.ts`.
+- `cd "C:\Users\xavie\Desktop\X Dev\dev\SGC-di" && git log --oneline -3` — debe mostrar los 2 commits de la ronda (`9da6e7f4` pulido CSS, `50993d65` funcionalidad) sobre `feature/di-ronda-03nov-2`, ya pusheados.
+- `gh pr view 103` (o `https://github.com/techcsd/SGC/pull/103`) — debe seguir abierto contra `dev`, sin conflictos.
 - `select pronargs, count(*) from pg_proc where proname='registrar_combustible_app' and pronamespace='sgc'::regnamespace group by pronargs;` en dev — debe dar **1 sola fila, pronargs=26**. Si da más de una fila, alguien volvió a tocar esa función sin fusionar el overload.
 - `npm run build && npm test` — deben seguir verdes antes de continuar.
 
