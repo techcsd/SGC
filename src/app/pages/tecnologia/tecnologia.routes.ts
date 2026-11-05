@@ -184,9 +184,13 @@ export const tecnologiaRoutes: Routes = [
   },
   {
     // DC7 — "Compa en WhatsApp": gestión del canal WhatsApp Cloud API (whitelist,
-    // bitácora de mensajes, estado de secretos del edge whatsapp-webhook).
+    // bitácora de mensajes, estado de secretos del edge whatsapp-webhook) +
+    // DB2 — pestañas Grupos/Hallazgos/Archivo (memoria de grupos con IA). Gate:
+    // submódulo granular `tecnologia.wa_grupos` (quien tenga el módulo
+    // `tecnologia` completo, o sea admin, sigue entrando igual por la regla de
+    // compatibilidad de AG12 — ver sql/2026-11-05-db2-whatsapp-grupos.sql).
     path: 'whatsapp',
-    canActivate: [tecnologiaGuard],
+    canActivate: [submoduloGuard('tecnologia.wa_grupos')],
     loadComponent: () => import('./whatsapp/whatsapp').then((m) => m.TecWhatsapp),
     title: 'Compa en WhatsApp — Tecnología',
   },

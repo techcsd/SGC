@@ -170,7 +170,7 @@
 | demo/escenarios | - | 27 | 14 | 13 | 52% |
 | tecnologia/oficina-agentes | - | 42 | 22 | 20 | 52% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
-| tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |
+| tecnologia/whatsapp | - | 223 | 118 | 105 | 53% |
 | admin/auditoria | - | 104 | 57 | 47 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | tecnologia/cotizaciones | - | 97 | 54 | 43 | 56% |

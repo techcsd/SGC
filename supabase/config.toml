@@ -164,3 +164,15 @@ verify_jwt = false
 # F5 — agente-cronista: mismo patrón, invocado por pg_cron a las 6:30pm RD.
 [functions.agente-cronista]
 verify_jwt = false
+
+# ── Ronda DB (05-nov-2026) — WhatsApp: memoria de grupos (PROMPT DB-2) ──
+# DB-S3 — wa-ingest: la llama csd-wa-listener (repo hermano, server-to-server);
+# la autenticación real es el HMAC del Contrato (x-wa-signature/x-wa-timestamp,
+# WA_SHARED_SECRET), no un JWT de Supabase. Mismo criterio que whatsapp-webhook.
+[functions.wa-ingest]
+verify_jwt = false
+
+# DB-S4 — wa-extract: solo la invoca pg_cron (x-sync-secret, mismo patrón que
+# check-domains/agente-vigia) — nunca manda un JWT de Supabase.
+[functions.wa-extract]
+verify_jwt = false

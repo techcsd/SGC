@@ -1288,3 +1288,39 @@ Todo lo de esta ronda es **web-only** por diseño (no hay PROMPT-131 F-equivalen
 7. **Registro rápido de personal (DG8)** — se agregó compresión de fotos (`comprimirImagen(…,
    'documento')`) antes de leerlas con IA en `personal-registro.ts`; si la app tiene un flujo
    equivalente de 2 fotos sin comprimir, debería revisar el mismo patrón (no verificado esta ronda).
+
+## Ronda DB2 (WhatsApp grupos — memoria/hallazgos, 05/11/2026) — solo web, sin contrato para la app
+
+### DB-S6/DB-S10 — "Tecnología › Compa en WhatsApp": pestañas Grupos/Hallazgos/Archivo, SOLO web
+Esta ronda extiende la pantalla `Tecnología › Compa en WhatsApp` (`/tecnologia/whatsapp`, ya
+web-only desde la Ronda DC — ver esa entrada arriba) con tres pestañas nuevas sobre el esquema de
+"memoria de grupos" (`sgc.wa_grupos`/`wa_mensajes_grupo`/`wa_hallazgos`/`wa_listener_estado`/
+`wa_eventos`, ver `sql/2026-11-05-db2-whatsapp-grupos.sql`): **Grupos** (modo memoria/consulta/
+ignorar por grupo + proyecto vinculado + actividad), **Hallazgos** (inbox de acuerdos/pedidos/
+montos extraídos por IA, con Revisar/Descartar/Convertir/Editar) y **Archivo** (búsqueda full-text
+del histórico + importación manual de export `.txt` viejo, admin-only). Es intencionalmente
+web-only por el mismo motivo que el resto de esta pantalla: la captura de los mensajes de grupo la
+hace un listener externo (`csd-wa-listener`, un cliente WhatsApp Web en una laptop) y las acciones
+(cambiar el modo de un grupo, revisar un hallazgo, importar historial) son tareas de administración
+de Tecnología desde un escritorio — no hay, ni va a haber, una pantalla equivalente en `csd-app`.
+Submódulo nuevo `tecnologia.wa_grupos` (AG12) registrado en `roles.service.ts` (`SUBMODULOS.tecnologia`)
+para que se pueda otorgar sin abrir el resto de Tecnología; sin contrato pendiente para la app en
+esta ronda.
+
+**Gaps cerrados tras el reporte inicial (ya no son pendientes):**
+- **Preview de media** (imágenes/audio/video adjuntos en el Archivo): `wa-ingest` ahora expone
+  `GET ?modo=media&wa_message_id=X` (sesión real del usuario, gate `puede_ver_submodulo`), que
+  emite una URL firmada de 300s sobre el bucket privado `wa-media`. El botón "Ver vista previa"
+  en el detalle del Archivo la usa (`WaGruposService.urlMedia()`).
+- **Estado de secretos del canal de grupos**: `wa-ingest` ahora expone también `GET ?modo=estado`
+  (mismo patrón que `whatsapp-webhook`), con un indicador booleano propio (`WA_SHARED_SECRET`,
+  `WHATSAPP_ASSISTANT_SECRET`, `ANTHROPIC_API_KEY`, `INFRA_SYNC_SECRET`, `STT_API_KEY`,
+  `TELEGRAM_BOT_TOKEN`) en una tarjeta nueva de la pestaña Estado, separada de la del canal 1:1.
+- **DB-S10 (importar historial viejo)**: la UI completa (subir `.txt`, parsear Android/iPhone,
+  estimar tokens, elegir grupo) está construida, y el guardado final **ya persiste de verdad**
+  vía `sgc.wa_importar_mensajes(p_grupo_jid text, p_mensajes jsonb)` (admin-only, idempotente por
+  `wa_message_id`, agregada en `sql/2026-11-05-db2-whatsapp-grupos.sql` §15 tras el front) —
+  confirmado con una prueba real (JWT de admin simulado en transacción con rollback). El
+  comentario/mensaje de error desactualizado en `whatsapp.ts` ("falta un paso pequeño en el
+  servidor") se corrigió — ahora usa `toast.errorFrom` como fallback honesto para cualquier
+  otro motivo de fallo (permiso, red), ya no asume que el RPC no existe.

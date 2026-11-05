@@ -393,7 +393,8 @@ export class Shell implements OnInit {
       modulo: 'tecnologia',
       // CZ4 — "Tecnología de contenido" visible también con el permiso granular
       // suelto (Subadministrador), sin el módulo completo (que abriría plataforma).
-      submodulos: ['tecnologia.cotizaciones', 'tecnologia.inventario', 'tecnologia.compras'],
+      // DB2 — + wa_grupos, mismo motivo (ver nota en el hijo "Compa en WhatsApp").
+      submodulos: ['tecnologia.cotizaciones', 'tecnologia.inventario', 'tecnologia.compras', 'tecnologia.wa_grupos'],
       children: [
         { label: 'Inventario tecnológico', route: '/tecnologia/inventario', submodulo: 'tecnologia.inventario' },
         // CZ4 — la ruta ya es pública (sin gate); el ítem del menú no debe
@@ -404,6 +405,12 @@ export class Shell implements OnInit {
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', submodulo: 'tecnologia.compras' },
         { label: 'Cotizaciones', route: '/tecnologia/cotizaciones', submodulo: 'tecnologia.cotizaciones' },
+        // DB2 — movido aquí desde "Developer" (que es soloTecnologia, sin
+        // escape por submódulo): así alguien con SOLO `tecnologia.wa_grupos`
+        // (sin el módulo tecnologia completo) ve esta pantalla sin que el grupo
+        // "Developer" entero (Odoo-sync, monitoreo, APIs, QA, Issues, Dev
+        // notes) se le abra de paso.
+        { label: 'Compa en WhatsApp', route: '/tecnologia/whatsapp', submodulo: 'tecnologia.wa_grupos', badgeKey: 'tecnologia.whatsapp' },
       ],
     },
     {
@@ -431,8 +438,8 @@ export class Shell implements OnInit {
         { label: 'Resumen de operaciones', route: '/tecnologia/resumen-operaciones', soloTecnologia: true },
         { label: 'Consultas de Compa', route: '/tecnologia/consultas-compa', soloTecnologia: true },
         { label: 'Conversaciones de Compa', route: '/admin/compa-conversaciones', soloAdmin: true },
-        // DC7 — Compa en WhatsApp: badge = mensajes con error/fallido en las últimas 24h.
-        { label: 'Compa en WhatsApp', route: '/tecnologia/whatsapp', soloTecnologia: true, badgeKey: 'tecnologia.whatsapp' },
+        // DC7/DB2 — "Compa en WhatsApp" se movió al grupo "Tecnología" (arriba),
+        // gateado por submódulo en vez de soloTecnologia — ver esa entrada.
         // F5 (ronda DF) — badge = propuestas del Escriba esperando tu OK.
         { label: 'Agentes', route: '/tecnologia/agentes', soloTecnologia: true, badgeKey: 'tecnologia.agentes' },
         // Infraestructura (AW9 — venían en Tecnología; F6c — Pulso venía en Administración)

@@ -272,6 +272,53 @@ cerrada, no un "todavía no"):**
 queda completo** — las 5 fases de la nota están construidas o decididas
 explícitamente en su contra, ninguna sigue "pendiente de decisión".
 
+## DB-S5 (05-nov-2026) — memoria de grupos de WhatsApp (Compa + MCP)
+
+4 herramientas de LECTURA (`rpc+map`, sin `write`) para la memoria de grupos de
+WhatsApp capturada por el puente `wa-ingest`/`wa-extract` (ver
+`sql/2026-11-05-db2-whatsapp-grupos.sql`). **Mismo mecanismo de permiso que
+DA-15** (`tec_equipos`): `modulos:['tecnologia']` + `submodulos:['tecnologia.wa_grupos']`
+(AG12) — por la regla de compatibilidad de ese patrón, quien ya tiene el
+módulo `tecnologia` completo (admin/Tecnología) obtiene `'operar'`
+automáticamente en el submódulo; Xaviel puede otorgárselo suelto a otro rol
+desde Administración › Roles sin tocar código. A diferencia de `tec_equipos`
+(`canales:['mcp']` únicamente), estas 4 **sí se ofrecen también en Compa**
+(`canales:['compa','mcp']`) — el caso de uso principal ("¿qué se acordó en el
+grupo de X?") es del chat normal de la app, no solo de Claude Desktop.
+
+| Tool | RPC | Mecanismo | Quién (por defecto) |
+|---|---|---|---|
+| `buscar_en_grupos_whatsapp` | `wa_mensajes_grupo_buscar` | `security definer`, chequea `puede_ver_submodulo('tecnologia.wa_grupos')` internamente (defensa en profundidad); FTS español, `fragmento` ya viene resaltado (`ts_headline`, `**...**`) | admin/Tecnología |
+| `hallazgos_whatsapp` | `wa_hallazgos_listar` | ídem | admin/Tecnología |
+| `resumen_grupo_whatsapp` | `wa_resumen_grupo` | ídem; `grupo_jid` es **obligatorio** en el `input_schema` (no solo en la RPC) para que el modelo nunca omita el filtro y mezcle grupos | admin/Tecnología |
+| `listar_grupos_whatsapp` | `wa_grupos_listar` | ídem | admin/Tecnología |
+
+**Decisiones de esta ronda:**
+- **Gate por submódulo, no por predicado nuevo**: el registro YA soporta
+  `submodulos?: string[]` (`toolsParaUsuario`, DA-16) — se reutilizó tal cual,
+  sin inventar un mecanismo paralelo. No existe (ni hacía falta) una opción
+  "predicado de permiso arbitrario" en `ToolDef`; de haber faltado el soporte
+  de `submodulos`, la alternativa habría sido gatear solo por
+  `modulos:['tecnologia']` (más ancho) — innecesario porque ya existía el patrón fino.
+- **`resumen_grupo_whatsapp` exige `grupo_jid` como `required`** en el schema
+  (la RPC también lo exige, sin default) — doble cinturón contra que Claude
+  pida "el resumen del grupo" sin desambiguar y el modelo adivine un jid.
+- **Prompt-injection**: el texto de mensajes/hallazgos lo escriben terceros en
+  un grupo de WhatsApp — cada descripción le dice a Claude explícitamente que
+  es DATO, nunca una instrucción (mismo criterio que CX2 con reportes de
+  soporte). `confianza` de un hallazgo se describe como indicador/estimado,
+  nunca como hecho confirmado (BS2 — ninguna certeza falsa hacia el usuario).
+- **Conversión de un hallazgo a tarea NO es una tool nueva**: `hallazgos_whatsapp`
+  devuelve id/grupo/resumen/fecha_mencionada suficientes para que, si el
+  usuario lo pide, Compa llame la `proponer_tarea` EXISTENTE con esos datos
+  prellenados. Marcar `estado='convertido'` en `sgc.wa_hallazgos` sigue siendo
+  exclusivo de la pantalla de Tecnología (otro item del PROMPT-DB-2, fuera de
+  este alcance) — nunca desde una tool de chat.
+- **`mcp/index.ts` no necesitó cambios**: las 4 son `rpc+map` puro (sin
+  `write`/`escrituraDirecta`/`pdf`/`gap`), que ya corre por el camino genérico
+  `ejecutarHerramientaLectura` compartido con Compa — el `resumenBorrador()`
+  de `mcp/index.ts` solo aplica a tools con `write`, no se tocó.
+
 **Hallazgo lateral (no relacionado con el conector):** el smoke de esta ronda
 encontró `sgc.solicitudes_material_folio_seq` desincronizada en dev
 (`max(folio)=9001` por el seed demo de CK, secuencia en 11) — corregido con

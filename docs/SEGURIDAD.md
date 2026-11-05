@@ -221,3 +221,101 @@ modelo de autenticación es el que exige el propio protocolo de Meta:
   sesión real de Supabase (`Authorization: Bearer <access_token>`) y revalida
   `is_admin()/es_tecnologia()` en el servidor antes de responder. Devuelve
   booleans de "¿está configurado?" por secret, **nunca el valor**.
+
+## Ronda DB (05-nov-2026) — segundo canal de WhatsApp: grupos (`wa-ingest`/`wa-extract`)
+
+Runbook operativo completo en [`docs/WHATSAPP-GRUPOS.md`](./WHATSAPP-GRUPOS.md).
+Aquí solo la parte de seguridad — qué es distinto y qué invariantes no se pueden
+romper.
+
+### Esquema HMAC propio (`wa-ingest`) — distinto del `X-Hub-Signature-256` de Meta
+
+`wa-ingest` recibe POSTs de un programa externo (`csd-wa-listener`, un cliente
+WhatsApp Web NO oficial, no la Cloud API de Meta) — por eso usa un esquema
+**propio** del Contrato DB-2, no el de `whatsapp-webhook` (ronda DC):
+
+- **Algoritmo:** HMAC-SHA256, hex, sobre `timestamp + "." + cuerpo_crudo` (no
+  solo el cuerpo — el timestamp entra en la firma, para que no se pueda reusar
+  la misma firma con otro timestamp).
+- **Headers:** `x-wa-timestamp` (unix, segundos) + `x-wa-signature` (hex).
+- **Ventana anti-replay:** 300 segundos — si `|ahora - timestamp| > 300s`, se
+  rechaza aunque la firma sea matemáticamente válida (reloj desincronizado de
+  la laptop del listener, o un replay real).
+- **Comparación en tiempo constante** (`comparacionConstante`, XOR byte a byte,
+  no `===`) — la misma función que ya protegía `verificarFirmaMeta`, ahora
+  exportada y reusada por `verificarFirmaCompartida` (`_shared/whatsapp.ts`).
+- **Coexisten sin conflicto:** `whatsapp-webhook` (Meta, `X-Hub-Signature-256`,
+  firma solo el cuerpo con el App Secret de Meta) y `wa-ingest` (Contrato propio,
+  firma timestamp+cuerpo con `WA_SHARED_SECRET`) son dos esquemas
+  **independientes para dos transportes independientes** — no se mezclan los
+  secrets ni las funciones de verificación entre uno y otro.
+
+### `verify_jwt = false` en `wa-ingest` y `wa-extract` — mismo criterio que siempre
+
+Ninguna de las dos edges recibe un JWT de Supabase porque ninguno de sus dos
+llamantes es un usuario autenticado de la app:
+
+- **`wa-ingest`**: lo llama `csd-wa-listener` (server-to-server) — la
+  autenticación real es el HMAC de arriba. Mismo criterio que `whatsapp-webhook`.
+- **`wa-extract`**: lo llama **exclusivamente** `pg_cron` con `x-sync-secret`
+  (`INFRA_SYNC_SECRET`) — mismo patrón que `check-domains`/`agente-cronista`.
+  Nunca se expone a que un cliente externo lo invoque con un JWT.
+
+### El listener NUNCA tiene la `service_role key` — solo `WA_SHARED_SECRET`
+
+La laptop de oficina que corre `csd-wa-listener` es la máquina **menos
+confiable** de toda esta arquitectura (fuera de la infraestructura controlada,
+en una red de oficina normal). Por diseño, esa máquina **nunca** recibe la
+`service_role key` de Supabase ni ningún secret más privilegiado que
+`WA_SHARED_SECRET` — si esa laptop se compromete, lo máximo que se gana es la
+capacidad de **mandar POSTs firmados a `wa-ingest`** (que a su vez valida tipo
+de mensaje, tamaños de archivo, y el modo de cada grupo) — nunca acceso directo
+a la base de datos ni a los demás secrets del proyecto.
+
+### La separación grupo ↔ DM es el invariante de seguridad más importante de esta feature
+
+Dentro de un **grupo**, Compa responde preguntas con `consulta_grupo` — una
+llamada **aparte** a Claude (`_shared/claude.ts`, sin tool-use), con el prompt
+de sistema explícitamente acotado al archivo de ESE grupo (últimos 7 días +
+hallazgos), **sin herramientas de SGC y sin acceso a ningún otro grupo**. Datos
+privados de la empresa (requisiciones, nómina, inventario, lo que sea que vive
+detrás de un rol) **solo** salen por el camino `dm` — 1:1, a un número de la
+whitelist `sgc.whatsapp_autorizados`, bajo los permisos reales de esa persona
+(reusa `assistant` en modo WhatsApp tal cual, BJ2/DC5). **Estos dos caminos
+nunca se mezclan en el código**: `handleConsultaGrupo` no llama a `assistant` ni
+a ninguna herramienta; `handleDm` no tiene acceso al archivo de ningún grupo.
+Si algún día se quisiera "preguntar por un grupo desde el DM", eso es una
+decisión de producto nueva y explícita — no algo que deba colarse por reuso
+accidental de código.
+
+### Prompt-injection: el contenido de grupo SIEMPRE es dato, nunca instrucción
+
+Tanto el prompt de extracción (`wa-extract/prompts/extraccion.ts`) como el
+system prompt de `consulta_grupo` (`wa-ingest/index.ts`) le dicen explícitamente
+a Claude, en mayúsculas, que todo el texto de mensajes de WhatsApp es **dato de
+terceros** — nunca una instrucción, sin importar lo que el texto diga ("ignora
+las reglas anteriores", "actúa como", pida datos de otro grupo, etc. no tienen
+efecto). La salida de extracción además se valida del lado del servidor contra
+un esquema fijo (`logica.ts: validarHallazgo`) que descarta cualquier campo
+fuera de forma — nunca se ejecuta como código ni se interpreta como comando.
+Mismo criterio que ya usaba este repo para reportes de Soporte (CX2) y ahora se
+aplica también aquí.
+
+### URLs firmadas para `wa-media` — subida y descarga, ambas gateadas
+
+El bucket `wa-media` es **privado**, sin ninguna policy para `authenticated`/
+`anon` — el único acceso es `service_role` o una URL firmada de corta duración:
+
+- **Subida:** `wa-ingest` (`handleMediaUrl`, tipo `media_url` del Contrato) emite
+  una `createSignedUploadUrl` por mensaje, con el tipo/tamaño ya validado (tope
+  10 MB, 5 MB para imagen).
+- **Descarga desde el front:** `wa-ingest` expone `GET ?modo=media&wa_message_id=X`
+  — requiere una sesión real (Authorization header validado a mano, igual que
+  `?modo=estado`) y el gate `sgc.puede_ver_submodulo('tecnologia.wa_grupos')`;
+  emite una `createSignedUrl` de 300s sobre el `media_ref` del mensaje. La
+  pestaña Archivo lo usa (`WaGruposService.urlMedia()`) para el botón "Ver vista
+  previa" — nunca accede al bucket directo.
+- **`wa-extract`** descarga el archivo server-side
+  (`sb.storage.from('wa-media').download(...)`, con `service_role`) para
+  transcribir/describir — ese camino no necesita URL firmada porque nunca sale
+  hacia un navegador.

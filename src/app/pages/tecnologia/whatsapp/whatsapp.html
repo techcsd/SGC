@@ -21,6 +21,20 @@
       <app-icon name="activity" [size]="16" />
       {{ 'Estado' | t }}
     </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'grupos'" [attr.aria-selected]="tab() === 'grupos'" (click)="irA('grupos')">
+      <app-icon name="users" [size]="16" />
+      {{ 'Grupos' | t }}
+      @if (grupos().length) { <span class="wa__tab-count">{{ grupos().length }}</span> }
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'hallazgos'" [attr.aria-selected]="tab() === 'hallazgos'" (click)="irA('hallazgos')">
+      <app-icon name="clipboard-check" [size]="16" />
+      {{ 'Hallazgos' | t }}
+      @if (hallazgosVisibles().length) { <span class="wa__tab-count">{{ hallazgosVisibles().length }}</span> }
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'archivo'" [attr.aria-selected]="tab() === 'archivo'" (click)="irA('archivo')">
+      <app-icon name="archive" [size]="16" />
+      {{ 'Archivo' | t }}
+    </button>
   </nav>
 
   <!-- ═══════════════ AUTORIZADOS ═══════════════ -->
@@ -183,6 +197,23 @@
           </div>
 
           <div class="wa__card">
+            <h3>{{ 'Secretos — memoria de grupos' | t }}</h3>
+            <p class="wa__card-sub">{{ 'wa-ingest / wa-extract. Nunca se muestra el valor, solo si está configurado.' | t }}</p>
+            @if (waSecretos(); as ws) {
+              <div class="wa__secretos">
+                @for (s of waSecretosLista(); track s[0]) {
+                  <span class="wa__secreto" [class.wa__secreto--ok]="s[1]" [class.wa__secreto--falta]="!s[1]">
+                    <app-icon [name]="s[1] ? 'check-circle' : 'x'" [size]="15" />
+                    {{ s[0] }}
+                  </span>
+                }
+              </div>
+            } @else {
+              <p class="wa__card-sub">{{ 'No se pudo consultar (requiere el permiso de memoria de grupos).' | t }}</p>
+            }
+          </div>
+
+          <div class="wa__card">
             <h3>{{ 'Actividad reciente' | t }}</h3>
             @if (estadoResumen(); as r) {
               <ul class="wa__kpis">
@@ -211,6 +242,336 @@
               </button>
             </div>
           </div>
+
+          <!-- DB2 — heartbeat del listener externo (csd-wa-listener) -->
+          <div class="wa__card wa__card--wide">
+            <h3>{{ 'Puente de grupos (listener externo)' | t }}</h3>
+            <p class="wa__card-sub">{{ 'Un programa aparte (no oficial) reenvía los mensajes de los grupos. Esto muestra si sigue vivo.' | t }}</p>
+            @if (!waListenerEstados().length) {
+              <p class="wa__card-sub">{{ 'Todavía no reportó ningún host.' | t }}</p>
+            } @else {
+              <div class="wa__listeners">
+                @for (l of waListenerEstados(); track l.host) {
+                  <div class="wa__listener">
+                    <span class="wa__listener-dot" [class.wa__listener-dot--success]="listenerSalud(l) === 'success'"
+                          [class.wa__listener-dot--warning]="listenerSalud(l) === 'warning'"
+                          [class.wa__listener-dot--danger]="listenerSalud(l) === 'danger'" aria-hidden="true"></span>
+                    <div class="wa__listener-info">
+                      <span class="wa__listener-host">{{ l.host }}</span>
+                      <span class="sgc-badge" [class.sgc-badge--success]="listenerSalud(l) === 'success'"
+                            [class.sgc-badge--warning]="listenerSalud(l) === 'warning'"
+                            [class.sgc-badge--danger]="listenerSalud(l) === 'danger'">
+                        {{ listenerEstadoLabel[l.estado] | t }}
+                      </span>
+                      <span class="wa__card-sub">{{ 'Último latido: {fecha}' | t:{ fecha: fmtRelativa(l.ultimo_latido_en) } }}</span>
+                      @if (l.cola_pendiente) { <span class="wa__card-sub">{{ 'Cola pendiente: {n}' | t:{ n: l.cola_pendiente } }}</span> }
+                      @if (l.mensajes_enviados_24h !== null) { <span class="wa__card-sub">{{ 'Mensajes en 24h: {n}' | t:{ n: l.mensajes_enviados_24h } }}</span> }
+                      @if (l.reconexiones_24h) { <span class="wa__card-sub wa__card-sub--danger">{{ 'Reconexiones en 24h: {n}' | t:{ n: l.reconexiones_24h } }}</span> }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+            <!-- DB2 — gap documentado (no es un bug): no hay endpoint de estado de
+                 secretos para este canal todavía (ver el reporte de esta ronda). -->
+            <p class="wa__card-sub">{{ 'Secretos de este canal (p. ej. el que firma los mensajes del listener): todavía no hay un indicador aquí — queda pendiente de una ronda futura.' | t }}</p>
+          </div>
+
+          <!-- DB2 — últimos eventos (heartbeats, errores de ingest/extracción, avisos) -->
+          <div class="wa__card wa__card--wide">
+            <h3>{{ 'Últimos eventos' | t }}</h3>
+            @if (!waEventos().length) {
+              <p class="wa__card-sub">{{ 'Sin eventos registrados.' | t }}</p>
+            } @else {
+              <div class="wa__eventos">
+                @for (e of waEventos(); track e.id) {
+                  <div class="wa__evento">
+                    <span class="sgc-badge" [class.sgc-badge--info]="eventoTono(e.nivel) === 'info'"
+                          [class.sgc-badge--warning]="eventoTono(e.nivel) === 'warning'"
+                          [class.sgc-badge--danger]="eventoTono(e.nivel) === 'danger'">
+                      {{ e.nivel }}
+                    </span>
+                    <span class="wa__evento-codigo">{{ e.codigo }}</span>
+                    <span class="wa__evento-fecha">{{ fmtRelativa(e.creado_en) }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- DB2 — uso de IA (extracción de hallazgos, resúmenes, transcripción, visión) -->
+          <div class="wa__card wa__card--wide">
+            <h3>{{ 'Uso de IA (últimos 14 días)' | t }}</h3>
+            @if (!waUsoIaDiario().length) {
+              <p class="wa__card-sub">{{ 'Sin uso de IA registrado todavía.' | t }}</p>
+            } @else {
+              <app-bar-chart [data]="usoIaBars()" [titulo]="'Tokens por función' | t" />
+              <p class="wa__card-sub">{{ 'Costo estimado del período: {costo}' | t:{ costo: usoIaCostoTotalFmt() } }}</p>
+            }
+          </div>
+
+          <!-- DB2 — configuración global, solo lectura (sin pantalla de edición esta ronda) -->
+          @if (waConfig(); as cfg) {
+            <div class="wa__card">
+              <h3>{{ 'Configuración del puente de grupos' | t }}</h3>
+              <p class="wa__card-sub">{{ 'Modo por defecto: {m}' | t:{ m: (modoLabel[cfg.modo_por_defecto] | t) } }}</p>
+              <p class="wa__card-sub">{{ (cfg.dm_habilitado ? 'DM directo a Compa: habilitado' : 'DM directo a Compa: deshabilitado') | t }}</p>
+              <p class="wa__card-sub">{{ 'Máx. respuestas por grupo/hora: {n}' | t:{ n: cfg.max_respuestas_grupo_hora } }}</p>
+              @if (cfg.budget_tokens_dia) {
+                <p class="wa__card-sub">{{ 'Presupuesto diario de tokens: {n}' | t:{ n: cfg.budget_tokens_dia } }}</p>
+              } @else {
+                <p class="wa__card-sub">{{ 'Presupuesto diario de tokens: sin tope' | t }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ GRUPOS (DB2) ═══════════════ -->
+  @if (tab() === 'grupos') {
+    <section class="wa__panel">
+      <p class="wa__hint">
+        {{ 'Modo por grupo —' | t }}
+        <strong>{{ 'Memoria' | t }}</strong>: {{ modoExplicacion.memoria | t }}
+        {{ 'Consulta' | t }}: {{ modoExplicacion.consulta | t }}
+        {{ 'Ignorar' | t }}: {{ modoExplicacion.ignorar | t }}
+      </p>
+
+      @if (errorGrupos()) {
+        <app-error-state [error]="errorGrupos()" pantalla="los grupos de WhatsApp" (retry)="cargarGrupos()" />
+      } @else if (cargandoGrupos()) {
+        <app-skeleton variant="list" [rows]="4" />
+      } @else if (!grupos().length) {
+        <p class="wa__empty">{{ 'Todavía no hay grupos reportados por el listener.' | t }}</p>
+      } @else {
+        <div class="wa__list" appStagger>
+          @for (g of grupos(); track g.jid) {
+            <article class="wa__row">
+              <div class="wa__row-main">
+                <div class="wa__row-top">
+                  <span class="wa__row-nombre">{{ g.nombre || g.jid }}</span>
+                  @if (g.aviso_enviado_en) {
+                    <span class="sgc-badge sgc-badge--success">{{ 'Aviso enviado' | t }}</span>
+                  } @else {
+                    <span class="sgc-badge sgc-badge--neutral">{{ 'Aviso pendiente' | t }}</span>
+                  }
+                </div>
+                <div class="wa__row-meta">
+                  @if (g.participantes) { <span>{{ 'Participantes: {n}' | t:{ n: g.participantes } }}</span> }
+                  <span>{{ 'Últimas 24h: {n}' | t:{ n: g.mensajes_24h } }}</span>
+                  <span>{{ 'Últimos 7 días: {n}' | t:{ n: g.mensajes_7d } }}</span>
+                  @if (g.ultimo_mensaje_en) { <span>{{ 'Último mensaje: {fecha}' | t:{ fecha: fmtRelativa(g.ultimo_mensaje_en) } }}</span> }
+                  @else { <span>{{ 'Sin mensajes todavía' | t }}</span> }
+                </div>
+                <p class="wa__card-sub">{{ modoExplicacion[g.modo] | t }}</p>
+              </div>
+              <div class="wa__row-actions wa__row-actions--col">
+                <label class="sgc-field wa__grupo-select">
+                  <span>{{ 'Modo' | t }}</span>
+                  <select class="sgc-input sgc-input--sm" [value]="g.modo" (change)="cambiarModoGrupo(g, $any($event.target).value)">
+                    <option value="memoria">{{ modoLabel.memoria | t }}</option>
+                    <option value="consulta">{{ modoLabel.consulta | t }}</option>
+                    <option value="ignorar">{{ modoLabel.ignorar | t }}</option>
+                  </select>
+                </label>
+                <app-filter-select [label]="'Proyecto' | t" [options]="proyectoOptions()" [value]="g.proyecto_id"
+                                    [placeholder]="'Sin proyecto' | t" (valueChange)="cambiarProyectoGrupo(g, $event)" />
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ HALLAZGOS (DB2) ═══════════════ -->
+  @if (tab() === 'hallazgos') {
+    <section class="wa__panel">
+      <div class="wa__filtros">
+        <app-filter-select [label]="'Grupo' | t" [options]="grupoOptions()" [value]="filtroHallazgoGrupo()" (valueChange)="setFiltroHallazgoGrupo($event)" />
+        <app-filter-select [label]="'Tipo' | t" [options]="hallazgoTipoOptions" [value]="filtroHallazgoTipo()" (valueChange)="setFiltroHallazgoTipo($event)" />
+        <app-filter-select [label]="'Estado' | t" [options]="hallazgoEstadoOptions" [value]="filtroHallazgoEstado()" (valueChange)="setFiltroHallazgoEstado($event)" />
+        <app-date-range-filter [desde]="filtroHallazgoDesde()" [hasta]="filtroHallazgoHasta()" (rangeChange)="setRangoHallazgo($event)" />
+        <input class="sgc-input" type="search" [ngModel]="filtroHallazgoPersona()" (ngModelChange)="filtroHallazgoPersona.set($event)"
+               [placeholder]="'Buscar por persona mencionada…' | t" />
+      </div>
+
+      @if (errorHallazgos()) {
+        <app-error-state [error]="errorHallazgos()" pantalla="los hallazgos" (retry)="cargarHallazgos()" />
+      } @else if (cargandoHallazgos()) {
+        <app-skeleton variant="list" [rows]="5" />
+      } @else if (!hallazgosVisibles().length) {
+        <p class="wa__empty">{{ 'No hay hallazgos que coincidan con el filtro.' | t }}</p>
+      } @else {
+        <div class="wa__list" appStagger>
+          @for (h of hallazgosVisibles(); track h.id) {
+            <article class="wa__row wa__hallazgo" [class.wa__row--inactivo]="h.estado === 'descartado'">
+              <div class="wa__row-main">
+                <div class="wa__row-top">
+                  <span class="sgc-badge sgc-badge--info">{{ hallazgoTipoLabel[h.tipo] | t }}</span>
+                  <span class="sgc-badge" [class.sgc-badge--neutral]="h.estado === 'nuevo'"
+                        [class.sgc-badge--success]="h.estado === 'revisado' || h.estado === 'convertido'"
+                        [class.sgc-badge--warning]="h.estado === 'descartado'">
+                    {{ hallazgoEstadoLabel[h.estado] | t }}
+                  </span>
+                  <span class="wa__card-sub">{{ h.grupo_nombre }}</span>
+                  @if (confianzaPct(h) !== null) {
+                    <span class="wa__confianza" [class.wa__confianza--success]="confianzaTono(h) === 'success'"
+                          [class.wa__confianza--warning]="confianzaTono(h) === 'warning'"
+                          [class.wa__confianza--danger]="confianzaTono(h) === 'danger'"
+                          [attr.title]="'Confianza estimada' | t">
+                      {{ 'Confianza estimada: {pct}%' | t:{ pct: confianzaPct(h)! } }}
+                    </span>
+                  }
+                </div>
+
+                @if (editandoHallazgo() === h.id) {
+                  <div class="wa__hallazgo-edit">
+                    <input class="sgc-input sgc-input--sm" type="text" [ngModel]="resumenBorrador()" (ngModelChange)="resumenBorrador.set($event)" [placeholder]="'Resumen' | t" />
+                    <textarea class="sgc-input sgc-input--sm" rows="2" [ngModel]="detalleBorrador()" (ngModelChange)="detalleBorrador.set($event)" [placeholder]="'Detalle (opcional)' | t"></textarea>
+                    <div class="wa__row-actions">
+                      <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" (click)="guardarEdicionHallazgo(h)">{{ 'Guardar' | t }}</button>
+                      <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--ghost" (click)="cancelarEdicionHallazgo()">{{ 'Cancelar' | t }}</button>
+                    </div>
+                  </div>
+                } @else {
+                  <p class="wa__hallazgo-resumen">{{ h.resumen }}</p>
+                  @if (h.detalle) { <p class="wa__card-sub">{{ h.detalle }}</p> }
+                }
+
+                <div class="wa__row-meta">
+                  @if (h.fecha_mencionada) { <span>{{ 'Fecha mencionada: {fecha}' | t:{ fecha: fmtFecha(h.fecha_mencionada) } }}</span> }
+                  @if (h.monto) { <span>{{ 'Monto: {monto} {moneda}' | t:{ monto: h.monto, moneda: h.moneda || '' } }}</span> }
+                  <span>{{ fmtRelativa(h.creado_en) }}</span>
+                </div>
+
+                <button type="button" class="wa__ver-mensajes" (click)="toggleExpandirHallazgo(h)">
+                  <app-icon name="message-square" [size]="13" />
+                  {{ (expandidoHallazgo() === h.id ? 'Ocultar mensajes de origen' : 'Ver mensajes de origen') | t }}
+                </button>
+                @if (expandidoHallazgo() === h.id) {
+                  <div class="wa__conversacion">
+                    @if (cargandoMensajesFuente()) {
+                      <app-skeleton variant="list" [rows]="2" />
+                    } @else if (!mensajesFuente().length) {
+                      <p class="wa__card-sub">{{ 'No se encontraron los mensajes de origen (puede que ya se hayan purgado).' | t }}</p>
+                    } @else {
+                      @for (m of mensajesFuente(); track m.id) {
+                        <div class="wa__conv-item">
+                          <span class="wa__conv-dir">{{ m.autor_nombre || m.autor_telefono }}</span>
+                          <span class="wa__conv-texto">{{ m.texto || m.transcripcion || m.descripcion_media || ('(' + m.tipo + ')') }}</span>
+                          <span class="wa__conv-fecha">{{ fmtFechaHora(m.enviado_en) }}</span>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+              <div class="wa__row-actions wa__row-actions--col">
+                @if (h.estado === 'nuevo' || h.estado === 'revisado') {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editarHallazgo(h)">
+                    <app-icon name="edit" [size]="14" /> {{ 'Editar' | t }}
+                  </button>
+                }
+                @if (h.estado === 'nuevo') {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarHallazgo(h, 'revisado')">
+                    <app-icon name="check-circle" [size]="14" /> {{ 'Revisado' | t }}
+                  </button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm wa__btn-danger" (click)="marcarHallazgo(h, 'descartado')">
+                    <app-icon name="x" [size]="14" /> {{ 'Descartar' | t }}
+                  </button>
+                }
+                @if (h.estado !== 'convertido' && h.estado !== 'descartado') {
+                  <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" (click)="abrirConvertir(h)">
+                    <app-icon name="external-link" [size]="14" /> {{ 'Convertir' | t }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ ARCHIVO (DB2) ═══════════════ -->
+  @if (tab() === 'archivo') {
+    <section class="wa__panel">
+      <div class="wa__panel-head">
+        <p class="wa__hint">{{ 'Busca en el historial guardado de los grupos en modo memoria/consulta.' | t }}</p>
+        @if (esAdmin()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirImportar()">
+            <app-icon name="upload" [size]="16" />
+            {{ 'Importar historial (.txt)' | t }}
+          </button>
+        }
+      </div>
+
+      <div class="wa__filtros">
+        <input class="sgc-input" type="search" [ngModel]="archivoConsulta()" (ngModelChange)="archivoConsulta.set($event)"
+               (keyup.enter)="buscarArchivo()" [placeholder]="'Buscar en los mensajes…' | t" />
+        <app-filter-select [label]="'Grupo' | t" [options]="grupoOptions()" [value]="archivoGrupo()" (valueChange)="setArchivoGrupo($event)" />
+        <app-date-range-filter [desde]="archivoDesde()" [hasta]="archivoHasta()" (rangeChange)="setRangoArchivo($event)" />
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="buscarArchivo()">
+          <app-icon name="search" [size]="16" /> {{ 'Buscar' | t }}
+        </button>
+      </div>
+
+      @if (errorArchivo()) {
+        <app-error-state [error]="errorArchivo()" pantalla="el archivo de mensajes" (retry)="buscarArchivo()" />
+      } @else if (cargandoArchivo()) {
+        <app-skeleton variant="list" [rows]="5" />
+      } @else if (!buscadoArchivo()) {
+        <p class="wa__empty">{{ 'Escribe algo y toca Buscar para ver resultados.' | t }}</p>
+      } @else if (!archivoResultados().length) {
+        <p class="wa__empty">{{ 'No se encontraron mensajes para esa búsqueda.' | t }}</p>
+      } @else {
+        <div class="wa__msgs" appStagger>
+          @for (r of archivoResultados(); track r.id) {
+            <article class="wa__msg" [class.wa__msg--open]="expandidoArchivo() === r.id">
+              <button type="button" class="wa__msg-row" (click)="toggleDetalleArchivo(r)">
+                @if (r.tipo !== 'texto') {
+                  <span class="wa__media-chip" [attr.title]="'Adjunto: ' + r.tipo">
+                    <app-icon [name]="mediaIcon(r.tipo)" [size]="14" />
+                  </span>
+                }
+                <span class="wa__msg-usuario">{{ r.autor_nombre || r.autor_telefono }}</span>
+                <span class="wa__msg-tel">{{ r.grupo_nombre }}</span>
+                <span class="wa__msg-texto" [innerHTML]="fragmentoHtml(r.fragmento)"></span>
+                <span class="wa__msg-fecha">{{ fmtFechaHora(r.enviado_en) }}</span>
+              </button>
+              @if (expandidoArchivo() === r.id) {
+                <div class="wa__conversacion">
+                  @if (cargandoDetalleArchivo()) {
+                    <app-skeleton variant="list" [rows]="1" />
+                  } @else if (detalleArchivo(); as d) {
+                    <div class="wa__conv-item">
+                      <span class="wa__conv-dir">{{ d.autor_nombre || d.autor_telefono }}</span>
+                      <span class="wa__conv-texto">{{ d.texto || '—' }}</span>
+                      <span class="wa__conv-fecha">{{ fmtFechaHora(d.enviado_en) }}</span>
+                    </div>
+                    @if (d.tipo !== 'texto') {
+                      <div class="wa__conv-item">
+                        <span class="wa__media-chip" [attr.title]="'Tipo: ' + d.tipo + (d.media_mime ? ' (' + d.media_mime + ')' : '')">
+                          <app-icon [name]="mediaIcon(d.tipo)" [size]="14" />
+                          {{ 'Adjunto: {tipo}' | t:{ tipo: d.tipo } }}
+                        </span>
+                        @if (d.media_ref) {
+                          <button type="button" class="wa__btn-link" [disabled]="cargandoPreviewMedia()" (click)="verVistaPreviaMedia(d.wa_message_id)">
+                            {{ (cargandoPreviewMedia() ? 'Generando enlace…' : 'Ver vista previa (300s)') | t }}
+                          </button>
+                        }
+                      </div>
+                    }
+                    @if (d.transcripcion) { <p class="wa__card-sub">{{ 'Transcripción: {t}' | t:{ t: d.transcripcion } }}</p> }
+                    @if (d.descripcion_media) { <p class="wa__card-sub">{{ 'Descripción (IA): {t}' | t:{ t: d.descripcion_media } }}</p> }
+                  }
+                </div>
+              }
+            </article>
+          }
         </div>
       }
     </section>
@@ -247,3 +608,80 @@
                      [message]="(autorizadoAEliminar() ? ('{nombre} ya no podrá escribirle a Compa por WhatsApp.' | t:{ nombre: autorizadoAEliminar()!.usuario_nombre }) : '')"
                      [confirmLabel]="'Quitar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
                      (confirmed)="confirmarEliminar()" (cancelled)="confirmEliminarAbierto.set(false)" />
+
+<!-- Drawer: convertir hallazgo (DB2) — manual a propósito, ver nota BS2 en whatsapp.ts -->
+<app-form-drawer [open]="convertirOpen()" [title]="'Convertir hallazgo' | t" [dirty]="false" (closed)="convertirOpen.set(false)">
+  @if (convertirHallazgoSel(); as h) {
+    <div class="wa__form">
+      <p class="wa__hint">
+        {{ 'No hay un vínculo automático entre WhatsApp y Tareas/Requisiciones/Notas todavía: copia el texto, ábrelo donde corresponda, créalo ahí, y confirma aquí que ya quedó.' | t }}
+      </p>
+      <label class="sgc-field">
+        <span>{{ 'Texto para pegar' | t }}</span>
+        <textarea class="sgc-input" rows="5" readonly [value]="textoParaConvertir()"></textarea>
+      </label>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarTextoConvertir()">
+        <app-icon name="copy" [size]="14" />
+        {{ (convertirCopiado() ? 'Copiado' : 'Copiar texto') | t }}
+      </button>
+
+      <label class="sgc-field">
+        <span>{{ '¿Dónde lo vas a crear?' | t }}</span>
+        <select class="sgc-input" [value]="convertirTipo()" (change)="convertirTipo.set($any($event.target).value)">
+          <option value="tarea">{{ 'Tarea' | t }}</option>
+          <option value="requisicion">{{ 'Requisición' | t }}</option>
+          <option value="nota">{{ 'Nota' | t }}</option>
+        </select>
+      </label>
+      <a class="sgc-btn sgc-btn--ghost" [routerLink]="convertirRuta[convertirTipo()]" target="_blank" rel="noopener">
+        <app-icon name="external-link" [size]="14" />
+        {{ 'Abrir ' | t }}{{ convertirLabel[convertirTipo()] | t }}
+      </a>
+
+      <div class="wa__form-actions">
+        <button type="button" class="sgc-btn" (click)="convertirOpen.set(false)">{{ 'Cerrar' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarConvertido()">
+          <app-icon name="check" [size]="14" />
+          {{ 'Ya lo convertí' | t }}
+        </button>
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+<!-- Drawer: importar historial .txt (DB-S10, solo admin) -->
+<app-form-drawer [open]="importarOpen()" [title]="'Importar historial (.txt)' | t" [dirty]="!!importarArchivo()" (closed)="importarOpen.set(false)">
+  <div class="wa__form">
+    <p class="wa__hint">{{ 'Exporta el chat desde WhatsApp (sin incluir archivos adjuntos) y sube el .txt aquí. Máximo 20 MB.' | t }}</p>
+
+    <app-file-upload [files]="importarArchivo() ? [importarArchivo()!] : []" [max]="1" accept=".txt,text/plain"
+                      [label]="'Arrastra o toca para subir el .txt' | t" (add)="onArchivoImportar($event)" (removeAt)="quitarArchivoImportar()" />
+
+    @if (importarErrorMsg()) {
+      <p class="wa__msg-error wa__msg-error--amable">{{ importarErrorMsg() }}</p>
+    }
+
+    @if (importarProcesando()) {
+      <app-skeleton variant="list" [rows]="2" />
+    } @else if (importarResultado(); as r) {
+      <div class="wa__import-resumen">
+        <p class="wa__card-sub">{{ 'Formato detectado: {f}' | t:{ f: r.formatoDetectado } }}</p>
+        <p class="wa__card-sub">{{ '{n} mensajes reconocidos · {ig} líneas ignoradas (avisos del sistema, etc.)' | t:{ n: r.mensajes.length, ig: r.lineasIgnoradas } }}</p>
+        <p class="wa__card-sub">{{ 'Estimado de tokens de entrada para la extracción con IA: ~{t} (cálculo aproximado, no es una cifra exacta).' | t:{ t: estimadoTokens() } }}</p>
+      </div>
+
+      @if (r.mensajes.length) {
+        <p class="wa__hint">{{ 'Grupo al que pertenecen estos mensajes' | t }}</p>
+        <app-filter-select [label]="'Grupo' | t" [options]="grupoOptions()" [value]="importarGrupoJid()" (valueChange)="importarGrupoJid.set($event)" />
+
+        <div class="wa__form-actions">
+          <button type="button" class="sgc-btn" (click)="importarOpen.set(false)">{{ 'Cancelar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="importarGuardando() || !importarGrupoJid()"
+                  (click)="confirmarImportar()">
+            {{ (importarGuardando() ? 'Guardando…' : 'Importar') | t }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</app-form-drawer>
