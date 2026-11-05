@@ -1,7 +1,13 @@
 import { assertEquals } from "jsr:@std/assert@1";
 import {
-  normalizarTelefono, verificarFirmaMeta, markdownAWhatsapp, dividirEnChunks, conReintentoHttp,
+  normalizarTelefono, verificarFirmaMeta, verificarFirmaCompartida, markdownAWhatsapp, dividirEnChunks, conReintentoHttp,
 } from "./whatsapp.ts";
+
+async function firmarCompartido(secreto: string, timestamp: string, cuerpo: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secreto), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const firma = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${timestamp}.${cuerpo}`));
+  return Array.from(new Uint8Array(firma)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 Deno.test("normalizarTelefono — toma los últimos 10 dígitos, ignora símbolos", () => {
   assertEquals(normalizarTelefono("8299663040"), "8299663040");
@@ -21,6 +27,26 @@ Deno.test("verificarFirmaMeta — firma válida pasa, inválida no", async () =>
   assertEquals(await verificarFirmaMeta(cuerpo, null, secreto), false);
   assertEquals(await verificarFirmaMeta(cuerpo, "sin-prefijo", secreto), false);
   assertEquals(await verificarFirmaMeta('{"hola":"otro"}', `sha256=${hex}`, secreto), false);
+});
+
+Deno.test("verificarFirmaCompartida (DB2/wa-ingest) — firma válida pasa, inválida/vencida no", async () => {
+  const secreto = "wa-shared-secret-de-prueba";
+  const cuerpo = JSON.stringify({ type: "config" });
+  const ahora = Math.floor(Date.now() / 1000).toString();
+  const firmaOk = await firmarCompartido(secreto, ahora, cuerpo);
+
+  assertEquals((await verificarFirmaCompartida(cuerpo, ahora, firmaOk, secreto)).ok, true);
+  assertEquals((await verificarFirmaCompartida(cuerpo, ahora, firmaOk + "0", secreto)).ok, false);
+  assertEquals((await verificarFirmaCompartida(cuerpo, null, firmaOk, secreto)).ok, false);
+  assertEquals((await verificarFirmaCompartida(cuerpo, ahora, null, secreto)).ok, false);
+  assertEquals((await verificarFirmaCompartida('{"type":"otro"}', ahora, firmaOk, secreto)).ok, false);
+
+  // Replay: timestamp fuera de la ventana de 300s.
+  const viejo = (Number(ahora) - 600).toString();
+  const firmaVieja = await firmarCompartido(secreto, viejo, cuerpo);
+  const resultadoViejo = await verificarFirmaCompartida(cuerpo, viejo, firmaVieja, secreto);
+  assertEquals(resultadoViejo.ok, false);
+  assertEquals(resultadoViejo.motivo?.includes("replay") || resultadoViejo.motivo?.includes("ventana"), true);
 });
 
 Deno.test("markdownAWhatsapp — negrita, encabezados, enlaces y tablas", () => {

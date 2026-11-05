@@ -174,7 +174,7 @@
 | demo/escenarios | - | 27 | 14 | 13 | 52% |
 | admin/auditoria | - | 117 | 62 | 55 | 53% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
-| tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |
+| tecnologia/whatsapp | - | 223 | 118 | 105 | 53% |
 | tecnologia/cotizaciones | - | 118 | 65 | 53 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
