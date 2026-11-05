@@ -27,7 +27,7 @@
 //
 // --apply SOLO corre con --env dev (el destino de escritura siempre es dev; prod
 // se lee, nunca se escribe, desde este script). Lectura de prod vía Management API
-// con SUPABASE_ACCESS_TOKEN (igual que scripts/diagnosticos/*): solo SELECT.
+// con SUPABASE_CSD_CONSTRUCTORA_TOKEN (igual que scripts/diagnosticos/*): solo SELECT.
 import '../lib/load-env.mjs';
 import { resolverEnv, dbQuery } from '../lib/entorno.mjs';
 

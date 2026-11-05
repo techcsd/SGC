@@ -1,6 +1,6 @@
 // scripts/diagnosticos/2026-10-14-co-diagnostico.mjs — PROMPT-98 FASE 0 (regla 18/19)
 // Diagnóstico de PROD, SOLO LECTURA (select/explain), vía Management API con
-// SUPABASE_ACCESS_TOKEN (service role NO se usa aquí — ver scripts/lib/entorno.mjs).
+// SUPABASE_CSD_CONSTRUCTORA_TOKEN (service role NO se usa aquí — ver scripts/lib/entorno.mjs).
 // Cubre CO1 (dispositivos/versiones), CO3 (echadas duplicadas L542136), CO5
 // (conduces CND- duplicados), CO6 (consultas de Compa no atendidas), CO7 (grupos
 // de error abiertos + outbox atascado).

@@ -41,8 +41,11 @@
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | compras/ordenes | - | 176 | 0 | 176 | 0% |
+| compras/ordenes-odoo | - | 176 | 0 | 176 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
+| compras/proveedores-odoo | - | 77 | 0 | 77 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
+| compras/solicitar-odoo | - | 55 | 0 | 55 | 0% |
 | dashboard | - | 143 | 0 | 143 | 0% |
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |

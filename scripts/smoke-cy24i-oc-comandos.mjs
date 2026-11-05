@@ -1,0 +1,105 @@
+// CY24 Fase C -- smoke transaccional (ROLLBACK) de sgc.oc_para_comando +
+// sgc.vincular_oc_odoo (identidad odoo_id fijada UNA sola vez).
+import './lib/load-env.mjs';
+import { resolverEnv, dbQuery } from './lib/entorno.mjs';
+
+const env = await resolverEnv(process.argv.slice(2));
+
+const sql = `
+begin;
+do $$
+declare
+  v_compras_id uuid;
+  v_proveedor_id uuid;
+  v_categoria_id integer;
+  v_instancia_id uuid;
+  v_orden_id uuid;
+  v_orden_prueba_id uuid;
+  v_resultado jsonb;
+begin
+  select ur.usuario_id into v_compras_id from sgc.usuarios_roles ur join sgc.roles r on r.id=ur.rol_id where 'compras'=any(r.modulos) or 'admin'=any(r.modulos) limit 1;
+  select id into v_categoria_id from sgc.categorias_inventario limit 1;
+  if v_compras_id is null or v_categoria_id is null then raise exception 'FALLO_SETUP'; end if;
+
+  insert into sgc.proveedores (nombre, activo) values ('SMOKE-CY24I proveedor', true) returning id into v_proveedor_id;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', v_compras_id::text, 'role','authenticated')::text, true);
+  set local role authenticated;
+
+  v_orden_id := sgc.crear_orden_compra(
+    v_proveedor_id, null, 'borrador', current_date, null, 100, 18, 118, 'smoke cy24i', v_compras_id,
+    jsonb_build_array(jsonb_build_object('articulo_id', null, 'descripcion', 'renglón smoke', 'cantidad', 1, 'precio_unitario', 100, 'total', 100)),
+    'oficina', true, false
+  );
+  v_orden_prueba_id := sgc.crear_orden_compra(
+    v_proveedor_id, null, 'borrador', current_date, null, 100, 18, 118, 'smoke cy24i prueba', v_compras_id,
+    jsonb_build_array(jsonb_build_object('articulo_id', null, 'descripcion', 'renglón smoke prueba', 'cantidad', 1, 'precio_unitario', 100, 'total', 100)),
+    'oficina', true, true -- es_prueba
+  );
+
+  -- odoo_instancias/odoo_id son columnas protegidas por F5 -- fuera de authenticated.
+  -- Se crea ANTES de los escenarios 1/2 para que su rechazo sea por "no publicada"/
+  -- "es_prueba", no por "sin instancia habilitada" (chequeo previo en oc_para_comando).
+  reset role;
+  -- Las RPC exigen EXACTAMENTE una instancia habilitada: se reutiliza la de dev y solo se crea una si no hay.
+  select id into v_instancia_id from sgc.odoo_instancias where habilitada;
+  if v_instancia_id is null then
+    insert into sgc.odoo_instancias (nombre, base_url, base_datos, entorno, habilitada)
+      values ('smoke-cy24i', 'https://smoke.test', 'db_smoke', 'dev', true)
+      returning id into v_instancia_id;
+  end if;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', v_compras_id::text, 'role','authenticated')::text, true);
+
+  -- 1. Nunca publicada (odoo_id null) -> oc_para_comando rechaza confirmar.
+  begin
+    perform sgc.oc_para_comando(v_orden_id, 'confirmar');
+    raise exception 'FALLO: confirmó sin publicar antes';
+  exception when others then
+    if sqlerrm like '%todavía no se ha publicado%' then raise notice 'OK: sin publicar antes, confirmar se rechaza'; else raise; end if;
+  end;
+
+  -- 2. es_prueba nunca se toca, ni para comandos de confirmar/cancelar (D-16/E10).
+  begin
+    perform sgc.oc_para_comando(v_orden_prueba_id, 'confirmar');
+    raise exception 'FALLO: confirmó una OC es_prueba';
+  exception when others then
+    if sqlerrm like '%prueba%' then raise notice 'OK: una OC es_prueba nunca se toca en Odoo (D-16/E10)'; else raise; end if;
+  end;
+
+  -- 3. Simula una publicación exitosa (lo que hace compras.crear vía vincular_oc_odoo).
+  perform sgc.vincular_oc_odoo(v_orden_id, v_instancia_id, 999002);
+  if (select odoo_id from sgc.ordenes_compra where id = v_orden_id) <> 999002 then
+    raise exception 'FALLO: vincular_oc_odoo no fijó odoo_id';
+  end if;
+
+  -- 4. Identidad se fija UNA sola vez: un segundo vínculo con odoo_id distinto NO la pisa.
+  perform sgc.vincular_oc_odoo(v_orden_id, v_instancia_id, 1);
+  if (select odoo_id from sgc.ordenes_compra where id = v_orden_id) <> 999002 then
+    raise exception 'FALLO: la identidad odoo_id se sobrescribió en un segundo vínculo';
+  end if;
+  raise notice 'OK: odoo_instancia_id/odoo_id se fijan una sola vez (identidad protegida)';
+
+  -- 5. Ya vinculada -> oc_para_comando confirmar/cancelar ensambla correctamente. El estado
+  --    (confirmada/cancelada/por aprobar/recibida) NO vive en SGC: lo valida el adaptador contra Odoo.
+  v_resultado := sgc.oc_para_comando(v_orden_id, 'confirmar');
+  if (v_resultado->>'odoo_id')::bigint <> 999002 then raise exception 'FALLO: oc_para_comando no devolvió el odoo_id correcto'; end if;
+  raise notice 'OK: oc_para_comando(confirmar) ensambla correctamente tras publicar: %', v_resultado;
+  v_resultado := sgc.oc_para_comando(v_orden_id, 'cancelar');
+  raise notice 'OK: oc_para_comando(cancelar) ensambla correctamente: %', v_resultado;
+
+  reset role;
+  raise exception 'ROLLBACK_SMOKE_OK';
+exception when others then
+  if sqlerrm <> 'ROLLBACK_SMOKE_OK' then raise; end if;
+end $$;
+rollback;
+`;
+
+try {
+  await dbQuery(env, sql);
+  console.log('✓ CY24 Fase C: oc_para_comando + identidad odoo_id de vincular_oc_odoo verificado (ROLLBACK limpio)');
+} catch (e) {
+  console.log('✗ CY24i smoke falló:', e.message.slice(0, 1500));
+  process.exit(1);
+}
