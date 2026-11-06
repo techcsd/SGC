@@ -41,8 +41,11 @@
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | compras/ordenes | - | 176 | 0 | 176 | 0% |
+| compras/ordenes-odoo | - | 176 | 0 | 176 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
+| compras/proveedores-odoo | - | 77 | 0 | 77 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
+| compras/solicitar-odoo | - | 55 | 0 | 55 | 0% |
 | dashboard | - | 143 | 0 | 143 | 0% |
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |
@@ -171,7 +174,7 @@
 | demo/escenarios | - | 27 | 14 | 13 | 52% |
 | admin/auditoria | - | 117 | 62 | 55 | 53% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
-| tecnologia/whatsapp | - | 72 | 39 | 33 | 54% |
+| tecnologia/whatsapp | - | 223 | 118 | 105 | 53% |
 | tecnologia/cotizaciones | - | 118 | 65 | 53 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |

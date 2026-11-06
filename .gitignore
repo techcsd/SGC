@@ -97,3 +97,6 @@ tutoriales/assets/musica/
 
 # CY21 punto 6 — lockfile de Deno, se regenera local (no aporta al repo)
 deno.lock
+
+# CodeGraph (indice local, nunca en git)
+.codegraph/

@@ -40,31 +40,33 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_solicitante_id::text, 'role','authenticated')::text, true);
   set local role authenticated;
 
-  -- Sin odoo_sync_estado (nunca se intento publicar) -> todo null (CY24-1: igual que hoy).
+  -- Sin vinculo (nunca se publico) -> todo null (CY24-1: igual que hoy).
   v_resultado := sgc.mi_solicitud_compra_odoo_estado(v_solicitud_compra_id);
-  if v_resultado->>'odoo_estado' is not null then raise exception 'FALLO: odoo_sync_estado null deberia dar odoo_estado null, dio %', v_resultado; end if;
+  if v_resultado->>'odoo_estado' is not null then raise exception 'FALLO: sin vinculo deberia dar odoo_estado null, dio %', v_resultado; end if;
   raise notice 'OK: sin intento de publicacion -> odoo_estado null (CY24-1)';
 
   reset role;
 
-  -- Cada valor REAL del CHECK de odoo_sync_estado debe mapear a texto, no a null
-  -- (el bug cy24f original solo cubria 'conflicto'/'publicada').
-  for v_n in 1..6 loop
-    update sgc.ordenes_compra set odoo_sync_estado = (array['pendiente','publicada','confirmada','cancelada','error','conflicto'])[v_n] where id = v_orden_id;
-    perform set_config('request.jwt.claims', json_build_object('sub', v_solicitante_id::text, 'role','authenticated')::text, true);
-    set local role authenticated;
-    v_resultado := sgc.mi_solicitud_compra_odoo_estado(v_solicitud_compra_id);
-    reset role;
-    if v_resultado->>'odoo_estado' is null then
-      raise exception 'FALLO: odoo_sync_estado=% no deberia mapear a null, dio %', (array['pendiente','publicada','confirmada','cancelada','error','conflicto'])[v_n], v_resultado;
-    end if;
-  end loop;
-  raise notice 'OK: los 6 valores reales de odoo_sync_estado mapean a un texto sin jerga (ninguno cae en null)';
+  -- Vinculada con Odoo (odoo_id) -> 'enviada a Odoo'. El estado vivo se lee de Odoo en la web,
+  -- no se guarda en SGC (CY24k).
+  -- vincular_oc_odoo necesita una instancia; dev puede no tener ninguna (todo se revierte con el ROLLBACK).
+  reset role;
+  insert into sgc.odoo_instancias (nombre, base_url, base_datos, entorno, habilitada)
+    select 'smoke-vinculo', 'https://smoke.test', 'db_smoke', 'dev', true
+    where not exists (select 1 from sgc.odoo_instancias);
+  perform sgc.vincular_oc_odoo(v_orden_id, (select id from sgc.odoo_instancias limit 1), 999001);
+  perform set_config('request.jwt.claims', json_build_object('sub', v_solicitante_id::text, 'role','authenticated')::text, true);
+  set local role authenticated;
+  v_resultado := sgc.mi_solicitud_compra_odoo_estado(v_solicitud_compra_id);
+  reset role;
+  if v_resultado->>'odoo_estado' is distinct from 'enviada a Odoo' then
+    raise exception 'FALLO: una OC vinculada deberia dar enviada a Odoo, dio %', v_resultado;
+  end if;
+  raise notice 'OK: OC vinculada -> enviada a Odoo';
 
   -- Alta de producto pendiente debe GANARLE al semaforo de sync (aunque ya
   -- diga 'publicada', si hay un renglon sin producto resuelto, eso es lo
   -- que realmente bloquea -- E3 de la issue #24).
-  update sgc.ordenes_compra set odoo_sync_estado = 'publicada' where id = v_orden_id;
   insert into sgc.orden_compra_items (orden_id, descripcion, cantidad, precio_unitario, total)
     values (v_orden_id, 'Material sin equivalente en Odoo', 5, 10, 50) returning id into v_item_id;
   insert into sgc.odoo_producto_solicitudes (orden_id, orden_item_id, descripcion_libre, busqueda_previa, solicitado_por)
@@ -75,9 +77,9 @@ begin
   set local role authenticated;
   v_resultado := sgc.mi_solicitud_compra_odoo_estado(v_solicitud_compra_id);
   reset role;
-  if v_resultado->>'odoo_estado' <> 'pendiente de producto' then raise exception 'FALLO: una alta pendiente deberia ganarle a odoo_sync_estado=publicada, dio %', v_resultado; end if;
+  if v_resultado->>'odoo_estado' <> 'pendiente de producto' then raise exception 'FALLO: una alta pendiente deberia ganarle al vinculo con Odoo, dio %', v_resultado; end if;
   if v_resultado->>'alta_producto_estado' <> 'pendiente' then raise exception 'FALLO: alta_producto_estado deberia ser pendiente, dio %', v_resultado; end if;
-  raise notice 'OK: alta de producto pendiente le gana al semaforo de sync (pendiente de producto)';
+  raise notice 'OK: alta de producto pendiente le gana al vinculo (pendiente de producto)';
 
   -- Rechazo con motivo -- el bug cy24e comparaba contra 'rechazada' (no existe);
   -- el valor real del CHECK es 'rechazado'.
@@ -96,8 +98,8 @@ begin
 
   -- Ya sin alta pendiente (la unica que habia quedo rechazada), vuelve a
   -- mandar el semaforo de sync.
-  if v_resultado->>'odoo_estado' <> 'publicada' then raise exception 'FALLO: sin alta pendiente deberia volver a mostrar el semaforo de sync (publicada), dio %', v_resultado; end if;
-  raise notice 'OK: sin alta pendiente, vuelve a mandar odoo_sync_estado';
+  if v_resultado->>'odoo_estado' <> 'enviada a Odoo' then raise exception 'FALLO: sin alta pendiente deberia volver a mostrar el vinculo (enviada a Odoo), dio %', v_resultado; end if;
+  raise notice 'OK: sin alta pendiente, vuelve a mandar el vinculo';
 
   -- Otra persona NO puede ver el estado de una solicitud ajena.
   perform set_config('request.jwt.claims', json_build_object('sub', v_resolutor_id::text, 'role','authenticated')::text, true);
@@ -129,7 +131,7 @@ rollback;
 
 try {
   await dbQuery(env, sql);
-  console.log('✓ CY24d: mi_solicitud_compra_odoo_estado -- 6 valores reales de odoo_sync_estado, prioridad de alta pendiente, enum de rechazo correcto, ajena/sin-sesion rechazadas (ROLLBACK limpio)');
+  console.log('✓ CY24d: mi_solicitud_compra_odoo_estado -- vinculo con Odoo, prioridad de alta pendiente, enum de rechazo correcto, ajena/sin-sesion rechazadas (ROLLBACK limpio)');
 } catch (e) {
   console.log('✗ CY24d smoke falló:', e.message.slice(0, 1500));
   process.exit(1);

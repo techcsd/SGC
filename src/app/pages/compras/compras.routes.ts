@@ -21,10 +21,24 @@ export const comprasRoutes: Routes = [
     title: 'Importar proveedores — Compras',
   },
   {
+    // CY24 — variante Odoo directo de «proveedores»: nombre, RNC y estado se leen/escriben en Odoo.
+    path: 'proveedores-odoo',
+    canActivate: [proveedoresGuard],
+    loadComponent: () => import('./proveedores-odoo/proveedores-odoo').then((m) => m.ProveedoresOdoo),
+    title: 'Proveedores (Odoo) — Compras',
+  },
+  {
     path: 'ordenes',
     canActivate: [submoduloGuard('compras.ordenes')], // AN2 — módulo o submódulo granular
     loadComponent: () => import('./ordenes/ordenes').then((m) => m.Ordenes),
     title: 'Órdenes de Compra — Compras',
+  },
+  {
+    // CY24 (#24) — camino Odoo: copia paralela de «ordenes» que publica/confirma/cancela en Odoo.
+    path: 'ordenes-odoo',
+    canActivate: [submoduloGuard('compras.ordenes')],
+    loadComponent: () => import('./ordenes-odoo/ordenes-odoo').then((m) => m.OrdenesOdoo),
+    title: 'Órdenes de Compra (Odoo) — Compras',
   },
   {
     // BH8 — MISMA pantalla que /bitacora/solicitudes-compra, ahora accesible desde
@@ -35,6 +49,13 @@ export const comprasRoutes: Routes = [
     loadComponent: () =>
       import('../bitacora/solicitudes-compra/solicitudes-compra').then((m) => m.SolicitudesCompra),
     title: 'Solicitar Compra — Compras',
+  },
+  {
+    // CY24 — variante Odoo directo de «solicitar»: el producto de cada renglón se elige de Odoo.
+    path: 'solicitar-odoo',
+    canActivate: [submoduloGuard('compras.solicitudes')],
+    loadComponent: () => import('./solicitar-odoo/solicitar-odoo').then((m) => m.SolicitarOdoo),
+    title: 'Solicitar Compra (Odoo) — Compras',
   },
   {
     path: 'reportes',

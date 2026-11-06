@@ -46,8 +46,8 @@ export async function resolverEnv(argv) {
   const entorno = flag(argv, '--env');
   if (entorno !== 'dev' && entorno !== 'prod') ayuda('falta --env dev|prod');
 
-  const token = process.env.SUPABASE_ACCESS_TOKEN;
-  if (!token) ayuda('falta SUPABASE_ACCESS_TOKEN en el entorno.');
+  const token = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
+  if (!token) ayuda('falta SUPABASE_CSD_CONSTRUCTORA_TOKEN en el entorno.');
 
   const SUF = entorno.toUpperCase();
   // El ref de prod es literal aquí (no cae por omisión: solo si --env prod explícito).

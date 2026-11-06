@@ -350,9 +350,153 @@ html.motion-reduced .wa__panel { animation: none; }
   white-space: nowrap;
 }
 
+// ── Listener (DB2) ───────────────────────────────────────────────────────
+.wa__listeners {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wa__listener {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.wa__listener-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+  background: var(--text-3);
+
+  &--success { background: var(--success); }
+  &--warning { background: var(--warning); }
+  &--danger { background: var(--danger); }
+}
+.wa__listener-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wa__listener-host {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+// ── Eventos (DB2) ────────────────────────────────────────────────────────
+.wa__eventos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.wa__evento {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.wa__evento-codigo {
+  flex: 1;
+  min-width: 0;
+  font-family: monospace;
+  color: var(--text-2);
+}
+.wa__evento-fecha {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+// ── Grupos (DB2) ─────────────────────────────────────────────────────────
+.wa__row-actions--col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 180px;
+}
+.wa__grupo-select {
+  gap: 4px;
+}
+
+// ── Hallazgos (DB2) ──────────────────────────────────────────────────────
+.wa__hallazgo-resumen {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.wa__hallazgo-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+
+  textarea.sgc-input { resize: vertical; }
+}
+.wa__confianza {
+  font-size: 11.5px;
+  font-weight: 600;
+
+  &--success { color: var(--success); }
+  &--warning { color: var(--warning); }
+  &--danger { color: var(--danger); }
+}
+.wa__ver-mensajes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--motion-fast, 150ms) ease;
+
+  &:hover { color: var(--brand); }
+}
+
+// ── Archivo / media chip (DB2) ───────────────────────────────────────────
+.wa__media-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+.wa__btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--brand);
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity var(--motion-fast, 150ms) ease;
+
+  &:disabled { opacity: 0.5; cursor: default; text-decoration: none; }
+  &:hover:not(:disabled) { opacity: 0.8; }
+}
+.wa__msg-texto mark {
+  background: color-mix(in srgb, var(--brand) 25%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.wa__import-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
 @media (max-width: 768px) {
   .wa__row { flex-direction: column; }
   .wa__row-actions { align-self: flex-end; }
+  .wa__row-actions--col { align-self: stretch; min-width: 0; }
   .wa__msg-row { flex-wrap: wrap; }
   .wa__msg-texto { width: 100%; order: 10; }
 }

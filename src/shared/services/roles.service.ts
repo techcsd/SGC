@@ -220,6 +220,12 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     // recibe por defecto. Server: sgc.puede_ver_claves_equipos() (gate propio).
     { key: 'tecnologia.claves_equipos', label: 'Claves de equipos', enforced: true,
       descripcion: 'Ver/guardar la clave de acceso cifrada de un equipo (ej. laptop en stock con clave compartida). Sensible: nadie lo recibe por defecto, ni con el módulo Tecnología completo — se otorga a propósito.' },
+    // DB2 — WhatsApp grupos (memoria/hallazgos): submódulo granular para que
+    // Xaviel pueda dar acceso a esta pantalla SIN abrir el resto de Tecnología
+    // (Odoo-sync, monitoreo, APIs, QA, Issues, Dev notes). Gateado end-to-end
+    // (ruta + RLS) — ver sql/2026-11-05-db2-whatsapp-grupos.sql.
+    { key: 'tecnologia.wa_grupos', label: 'WhatsApp — grupos (memoria/hallazgos)', enforced: true,
+      descripcion: 'Gestión de los grupos de WhatsApp con memoria IA: modo por grupo, hallazgos extraídos (acuerdos, pedidos, montos) y archivo de mensajes.' },
   ],
 };
 

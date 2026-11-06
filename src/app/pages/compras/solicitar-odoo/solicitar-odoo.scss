@@ -1,0 +1,117 @@
+// ── Drawer form ──────────────────────────────────────────
+.drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.save-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sgc-border);
+  margin-top: 4px;
+}
+
+.items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+}
+
+.sgc-btn--sm {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.item-row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  &--compra {
+    grid-template-columns: 1fr 70px 1fr auto;
+  }
+
+  select,
+  input {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  &__remove {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-surface);
+    color: var(--sgc-danger);
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--sgc-danger-light);
+      border-color: var(--sgc-danger);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .item-row--compra {
+    grid-template-columns: 1fr;
+  }
+}
+
+// QA-042 — nombre del atendedor debajo de la fecha
+.solicitud-atendido-por {
+  display: block;
+  font-size: 11px;
+  color: var(--sgc-text-secondary);
+}
+
+// QA-041 — fila expandible con renglones de la solicitud de compra.
+.sc-row { cursor: pointer; }
+.sc-row:hover { background: var(--sgc-surface-hover, rgba(0,0,0,0.02)); }
+.sc-chev { float: right; color: var(--sgc-text-secondary); font-size: 0.75rem; }
+.sc-detail { padding: 8px 4px 12px; }
+.sc-detail__title { margin: 0 0 8px; font-size: 0.85rem; color: var(--sgc-text); }
+.sc-detail__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sc-detail__items li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.85rem; }
+.sc-detail__desc { font-weight: 600; color: var(--sgc-text); }
+.sc-detail__cant { color: var(--sgc-text-secondary); }
+.sc-detail__prov { color: var(--sgc-text-secondary); }
+.sc-detail__notas, .sc-detail__meta { margin: 8px 0 0; font-size: 0.82rem; color: var(--sgc-text-secondary); }
