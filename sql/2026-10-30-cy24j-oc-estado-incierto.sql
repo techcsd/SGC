@@ -1,66 +1,23 @@
 -- CY24 Fase C [feature #24] -- cuarta pieza: el estado INCIERTO (D3 / #23).
 --
 -- Una escritura a Odoo que da timeout o encuentra Odoo caído NO se reintenta a ciegas:
--- Odoo pudo haber aplicado la acción. El edge deja el comando y la OC en 'incierto' y
--- la conciliación (buscar por origin) lo resuelve. Esto exige:
---   1. ordenes_compra.odoo_sync_estado acepte 'incierto' (hoy el check no lo incluye).
---   2. registrar_publicacion_oc lo acepte (misma firma: CREATE OR REPLACE, sin overload).
---   3. oc_comando_registrar_inicio NO reabra un comando 'incierto' ni uno 'pendiente'
---      (en vuelo o huérfano): reabrirlo volvería a llamar a Odoo = reintento a ciegas
---      o doble publicación concurrente. Solo un comando en 'error' (Odoo respondió que
---      no) puede reabrirse.
--- Archivo nuevo a propósito: no se edita uno ya aplicado (CD10 / regla 19). Dev primero (BU1).
+-- Odoo pudo haber aplicado la acción, así que oc_comando_registrar_inicio NO debe
+-- reabrir un comando 'incierto' ni uno 'pendiente' (en vuelo o huérfano) -- reabrirlo
+-- volvería a llamar a Odoo = reintento a ciegas o doble publicación concurrente. Solo
+-- un comando en 'error' (Odoo respondió que no) puede reabrirse.
+--
+-- Esta pieza originalmente también tocaba ordenes_compra.odoo_sync_estado y
+-- registrar_publicacion_oc (el "espejo" del estado de la OC) -- cy24k (2026-10-30,
+-- aplicada a dev 2026-11-01, posterior a este archivo) eliminó esas columnas por
+-- decisión del dueño: el estado de la OC se lee en vivo de Odoo, SGC solo guarda el
+-- vínculo. registrar_publicacion_oc quedó sin uso (odoo-api.test.ts lo confirma: "ya
+-- no se espeja estado en la OC"). Esta migración nunca se aplicó a dev -- se reescribe
+-- aquí a lo que sigue siendo real: solo oc_comando_registrar_inicio. Detectado y
+-- corregido al mergear dev -> main (regla 18 lo frenó en CI porque el archivo original
+-- rompía contra el esquema actual).
 begin;
 set local lock_timeout = '3s';
 set local statement_timeout = '90s';
-
-do $mig$
-declare
-  v_con text;
-begin
-  select c.conname into v_con
-    from pg_constraint c
-    join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
-   where c.conrelid = 'sgc.ordenes_compra'::regclass and c.contype = 'c' and a.attname = 'odoo_sync_estado';
-  if v_con is null then
-    raise exception 'No existe el check de ordenes_compra.odoo_sync_estado -- aplicar antes sql/2026-10-26-cy24-oc-odoo-a.sql';
-  end if;
-  execute format('alter table sgc.ordenes_compra drop constraint %I', v_con);
-  alter table sgc.ordenes_compra
-    add constraint ordenes_compra_odoo_sync_estado_check
-    check (odoo_sync_estado in ('pendiente', 'publicada', 'confirmada', 'cancelada', 'error', 'incierto', 'conflicto'));
-end;
-$mig$;
-
-create or replace function sgc.registrar_publicacion_oc(
-  p_orden_id uuid, p_odoo_sync_estado text, p_odoo_state text default null,
-  p_odoo_nombre text default null, p_odoo_total numeric default null, p_odoo_sync_error text default null,
-  p_odoo_instancia_id uuid default null, p_odoo_id bigint default null
-)
-returns boolean
-language plpgsql
-security definer
-set search_path to 'sgc', 'pg_temp'
-as $fn$
-begin
-  if not (sgc.is_admin() or sgc.tiene_modulo('compras') or auth.role() = 'service_role') then
-    raise exception 'Solo Compras o service_role puede registrar el resultado de una publicacion' using errcode = '42501';
-  end if;
-  if p_odoo_sync_estado not in ('pendiente', 'publicada', 'confirmada', 'cancelada', 'error', 'incierto', 'conflicto') then
-    raise exception 'p_odoo_sync_estado invalido: %', p_odoo_sync_estado;
-  end if;
-  update sgc.ordenes_compra
-     set odoo_sync_estado = p_odoo_sync_estado,
-         odoo_state = coalesce(p_odoo_state, odoo_state),
-         odoo_nombre = coalesce(p_odoo_nombre, odoo_nombre),
-         odoo_total = coalesce(p_odoo_total, odoo_total),
-         odoo_sync_error = p_odoo_sync_error,
-         odoo_instancia_id = coalesce(odoo_instancia_id, p_odoo_instancia_id),
-         odoo_id = coalesce(odoo_id, p_odoo_id)
-   where id = p_orden_id;
-  return found;
-end;
-$fn$;
 
 create or replace function sgc.oc_comando_registrar_inicio(
   p_odoo_instancia_id uuid, p_orden_id uuid, p_accion text, p_revision integer,
@@ -111,9 +68,7 @@ end;
 $fn$;
 comment on function sgc.oc_comando_registrar_inicio is 'CY24 Fase C -- abre un comando de sgc.odoo_comandos_oc; completado => devuelve su resultado (D3); incierto/pendiente => RECHAZA (nunca reintento a ciegas); solo error se reabre.';
 
--- Mismas firmas que antes: los grants previos siguen vigentes; se reafirman por claridad.
-revoke all on function sgc.registrar_publicacion_oc(uuid, text, text, text, numeric, text, uuid, bigint) from public, anon;
-grant execute on function sgc.registrar_publicacion_oc(uuid, text, text, text, numeric, text, uuid, bigint) to authenticated, service_role;
+-- Misma firma que antes: el grant previo sigue vigente; se reafirma por claridad.
 revoke all on function sgc.oc_comando_registrar_inicio(uuid, uuid, text, integer, uuid, boolean) from public, anon;
 grant execute on function sgc.oc_comando_registrar_inicio(uuid, uuid, text, integer, uuid, boolean) to authenticated, service_role;
 
