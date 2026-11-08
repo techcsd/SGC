@@ -72,7 +72,63 @@ export interface OdooStockFiltro {
 }
 
 /** Acciones permitidas del gateway (espejo de la allowlist del servidor). */
-export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra';
+export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra' | 'compras.obtener_varias' | 'proveedores.buscar' | 'proveedores.obtener_varios';
+
+/** CY24 Fase C — acciones de ESCRITURA del gateway (módulo `compras`; el cliente solo manda `orden_id`, D5). */
+export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar' | 'proveedores.crear' | 'proveedores.actualizar';
+
+/** Resultado de una escritura de OC; `repetido` = el comando ya estaba completado (idempotencia, D3). */
+export interface OdooComandoOcResultado {
+  modelo: string;
+  odoo_id: OdooId;
+  nombre?: string;
+  estado_odoo: string;
+  /** Total que armó Odoo (solo informativo: SGC no lo calcula ni lo compara). */
+  total?: number | null;
+  repetido: boolean;
+}
+
+/** Proveedor leído de Odoo (res.partner). Es la fuente de nombre, RNC, contacto fiscal y estado. */
+export interface OdooProveedor {
+  id: OdooId;
+  nombre: string;
+  rnc: string | null;
+  email: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  activo: boolean;
+  es_empresa: boolean;
+}
+
+export interface OdooProveedoresPagina {
+  proveedores: OdooProveedor[];
+  pagina: number;
+  tamano: number;
+  hay_mas: boolean;
+}
+
+/** Campos fiscales/maestros que se escriben en Odoo (el resto del proveedor es operativo y vive en SGC). */
+export interface OdooProveedorEscritura {
+  nombre?: string;
+  rnc?: string | null;
+  email?: string | null;
+  telefono?: string | null;
+  direccion?: string | null;
+  activo?: boolean;
+}
+
+/** Estado VIVO de una OC leído de Odoo (`compras.obtener_varias`). SGC no lo guarda: se pide cada vez. */
+export interface OdooOcVivo {
+  id: OdooId;
+  nombre: string;
+  /** state de purchase.order: draft | sent | to approve | purchase | done | cancel. */
+  estado: string;
+  total: number | null;
+  moneda: string | null;
+  recibida_en_odoo: boolean;
+  recepciones_hechas: number;
+  recepciones_total: number;
+}
 
 /** ¿Es un ID de Odoo válido? (entero positivo seguro). */
 export function esOdooId(v: unknown): v is OdooId {

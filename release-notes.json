@@ -1,5 +1,14 @@
 {
   "web": {
+    "1.211.0": {
+      "titulo": "WhatsApp: memoria de grupos y hallazgos con IA",
+      "cambios": [
+        { "t": "nuevo", "m": "Tecnología", "d": "Compa ahora puede leer los grupos de WhatsApp de la empresa (vía un número dedicado) y recordar lo que se acordó: pedidos de material, montos, fechas límite y acuerdos quedan como \"hallazgos\" revisables en Tecnología › Compa en WhatsApp." },
+        { "t": "nuevo", "m": "Compa", "d": "Desde el chat normal y desde Claude Desktop, Compa puede buscar en el archivo de un grupo de WhatsApp, listar los hallazgos detectados y dar el resumen del día o de la semana de un grupo — solo quien tenga el permiso puede verlo." },
+        { "t": "nuevo", "m": "Tecnología", "d": "Nuevas pestañas Grupos, Hallazgos y Archivo en la pantalla de WhatsApp: activar/desactivar memoria por grupo, revisar/descartar/convertir cada hallazgo en tarea o nota, y buscar en el historial de mensajes." },
+        { "t": "nuevo", "m": "Administración", "d": "Nuevo permiso granular \"WhatsApp — grupos\" para dar acceso a esta pantalla sin abrir el resto de Tecnología." }
+      ]
+    },
     "1.208.0": {
       "titulo": "Módulo Developer, buscador maestro (Ctrl+K), Compa flotante y módulo Demo",
       "cambios": [

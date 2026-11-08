@@ -77,6 +77,33 @@ tabla de horarios; el resto se queda en migraciones.
   sin aviso previo (`aviso_vencida_at is null`) → aviso `requisicion_vencida` al solicitante y al módulo
   Inventario, una sola vez. Declarado en `sql/2026-09-15-br-bo8-requisiciones-vencidas.sql`.
 
+## Crons nuevos (ronda DB — 05/11/2026) — WhatsApp: memoria de grupos
+
+Declarados en `sql/2026-11-05-db2-whatsapp-grupos.sql` §13. Los 4 llaman a la
+misma edge (`wa-extract`, `sgc.edge_url('wa-extract')`), distinguiendo tarea por
+el body — mismo criterio `net.http_post` + `x-sync-secret`/`infra_sync_secret`
+que el resto de esta tabla. Runbook: `docs/WHATSAPP-GRUPOS.md`.
+
+| jobname | schedule (UTC) | RD | qué hace |
+|---|---|---|---|
+| sgc-wa-extraccion | `*/4 * * * *` | cada 4 min | extrae hallazgos de mensajes de grupo pendientes (`wa-extract`, tarea por defecto) |
+| sgc-wa-revisar-latido | `*/5 * * * *` | cada 5 min | dead-man del listener externo (`wa-extract`, `tarea:"revisar_latido"`) — no gasta IA |
+| sgc-wa-resumenes-diarios | `0 9 * * *` | ver nota | resumen diario por grupo (`wa-extract`, `tarea:"resumenes_dia"`) |
+| sgc-wa-resumenes-semanales | `15 13 * * 1` | lun 9:15 AM | resumen semanal por grupo (`wa-extract`, `tarea:"resumenes_semana"`) |
+
+> **Nota de huso horario (sin resolver, ronda DB):** `sgc-wa-resumenes-diarios`
+> se declaró como `0 9 * * *` UTC con un comentario propio en la migración
+> admitiendo la ambigüedad (9 AM UTC ≈ 5 AM RD, no 9 AM RD) — **pendiente que
+> Xaviel confirme** si se quiere exactamente las 9 AM hora de Santo Domingo
+> (en cuyo caso el schedule correcto es `0 13 * * *` UTC, siguiendo la misma
+> convención UTC−4 sin horario de verano que el resto de esta tabla). No
+> bloquea el resto de la ronda — solo corre a otra hora de la pensada hasta que
+> se ajuste.
+
+Más dos crons de retención, mismo archivo: `sgc-wa-purgar-mensajes-grupo`
+(`20 8 * * *` → 4:20 AM RD, borra mensajes+media >180 días) y
+`sgc-wa-purgar-eventos` (`25 8 * * *` → 4:25 AM RD, borra eventos >60 días).
+
 ## BU1 — Crons por entorno (regla: ningún cron escribe ref ni secret)
 
 Desde BU1, ningún `cron.job.command` ni función lleva el ref del proyecto ni un secreto literal:

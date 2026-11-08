@@ -6,16 +6,16 @@
 // (create if not exists / or replace; errores "already exists" se ignoran).
 //
 // Uso:   node scripts/clone-schema-introspect.mjs
-// Env:   SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF_DEV
+// Env:   SUPABASE_CSD_CONSTRUCTORA_TOKEN, SUPABASE_PROJECT_REF_DEV
 //
 // NO toca prod. Esquemas de app: sgc, wa_agent, + public.n8n_* (memoria n8n).
 import './lib/load-env.mjs';
 import { writeFileSync } from 'node:fs';
 
-const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+const TOKEN = process.env.SUPABASE_CSD_CONSTRUCTORA_TOKEN;
 const PROD = 'jeeqhgccqefbqilntcpu';
 const DEV = process.env.SUPABASE_PROJECT_REF_DEV;
-if (!TOKEN || !DEV) { console.error('faltan SUPABASE_ACCESS_TOKEN / SUPABASE_PROJECT_REF_DEV'); process.exit(1); }
+if (!TOKEN || !DEV) { console.error('faltan SUPABASE_CSD_CONSTRUCTORA_TOKEN / SUPABASE_PROJECT_REF_DEV'); process.exit(1); }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -3,7 +3,13 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { edgeErrorDetail } from '../utils/edge.util';
 import {
   OdooAccion,
+  OdooAccionEscritura,
+  OdooComandoOcResultado,
+  OdooOcVivo,
   OdooProducto,
+  OdooProveedor,
+  OdooProveedoresPagina,
+  OdooProveedorEscritura,
   OdooProductoCompra,
   OdooRespuesta,
   OdooStockFiltro,
@@ -42,7 +48,45 @@ export class OdooApiService {
     return this.invocar<OdooStockPagina>('stock.consultar', { ...filtro });
   }
 
-  private async invocar<T>(accion: OdooAccion, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {
+  /** CY24 Fase C (D3/D5) — publica la OC en Odoo. Sin reintento automático: ante timeout la OC queda en `error` y el usuario pulsa Reintentar (es idempotente). */
+  async publicarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.crear', { orden_id: ordenId })).data;
+  }
+
+  async confirmarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.confirmar', { orden_id: ordenId })).data;
+  }
+
+  async cancelarOrden(ordenId: string): Promise<OdooComandoOcResultado> {
+    return (await this.invocar<OdooComandoOcResultado>('compras.cancelar', { orden_id: ordenId })).data;
+  }
+
+  /** Estado VIVO de varias OC en Odoo (una sola consulta, sin caché). SGC no lo guarda. */
+  async obtenerOrdenes(odooIds: number[]): Promise<OdooOcVivo[]> {
+    if (odooIds.length === 0) return [];
+    return (await this.invocar<{ ordenes: OdooOcVivo[] }>('compras.obtener_varias', { orden_ids: odooIds })).data.ordenes;
+  }
+
+  /** Proveedores de Odoo (res.partner), búsqueda paginada en el servidor. */
+  async buscarProveedores(filtro: { termino?: string; estado?: 'activos' | 'inactivos' | 'todos'; pagina?: number; tamano?: number }): Promise<OdooProveedoresPagina> {
+    return (await this.invocar<OdooProveedoresPagina>('proveedores.buscar', { ...filtro })).data;
+  }
+
+  async obtenerProveedores(ids: number[]): Promise<OdooProveedor[]> {
+    if (ids.length === 0) return [];
+    return (await this.invocar<{ proveedores: OdooProveedor[] }>('proveedores.obtener_varios', { proveedor_ids: ids })).data.proveedores;
+  }
+
+  /** Crea el proveedor en Odoo (idempotente por RNC: si ya existe devuelve ese). */
+  async crearProveedor(datos: OdooProveedorEscritura & { nombre: string }): Promise<{ proveedor: OdooProveedor; ya_existia: boolean }> {
+    return (await this.invocar<{ proveedor: OdooProveedor; ya_existia: boolean }>('proveedores.crear', { ...datos })).data;
+  }
+
+  async actualizarProveedor(id: number, datos: OdooProveedorEscritura): Promise<OdooProveedor> {
+    return (await this.invocar<{ proveedor: OdooProveedor }>('proveedores.actualizar', { proveedor_id: id, ...datos })).data.proveedor;
+  }
+
+  private async invocar<T>(accion: OdooAccion | OdooAccionEscritura, params: Record<string, unknown>): Promise<OdooRespuesta<T>> {
     const { data, error } = await this.supabase.client.functions.invoke('odoo-api', {
       body: { accion, params },
     });

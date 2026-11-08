@@ -32,11 +32,42 @@ export async function verificarFirmaMeta(
   return comparacionConstante(esperadaHex, recibida.toLowerCase());
 }
 
-function comparacionConstante(a: string, b: string): boolean {
+export function comparacionConstante(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
+}
+
+// ── DB2 — verificación del Contrato compartido con csd-wa-listener (wa-ingest).
+//    Firma = hex HMAC-SHA256(WA_SHARED_SECRET, timestamp + "." + rawBody), header
+//    x-wa-signature; x-wa-timestamp en segundos unix, ventana de 300s. A
+//    diferencia de verificarFirmaMeta (prefijo "sha256=", formato de Meta), este
+//    esquema es propio del Contrato DB-2/DB-1 — ver PROMPT-DB-1-LISTENER.md.
+export async function verificarFirmaCompartida(
+  cuerpoCrudo: string,
+  timestampHeader: string | null,
+  firmaHeader: string | null,
+  secreto: string,
+  ventanaSegundos = 300,
+): Promise<{ ok: boolean; motivo?: string }> {
+  if (!timestampHeader || !firmaHeader) return { ok: false, motivo: "faltan encabezados" };
+  const timestamp = Number(timestampHeader);
+  if (!Number.isFinite(timestamp)) return { ok: false, motivo: "timestamp inválido" };
+  const ahora = Math.floor(Date.now() / 1000);
+  if (Math.abs(ahora - timestamp) > ventanaSegundos) return { ok: false, motivo: "timestamp fuera de ventana (posible replay)" };
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secreto),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const firma = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${timestampHeader}.${cuerpoCrudo}`));
+  const esperadaHex = Array.from(new Uint8Array(firma)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const ok = comparacionConstante(esperadaHex, firmaHeader.toLowerCase());
+  return ok ? { ok: true } : { ok: false, motivo: "firma inválida" };
 }
 
 // ── Markdown (lo que escribe Compa) → texto plano que WhatsApp sabe mostrar.

@@ -2,15 +2,20 @@
 // `inventario` EN EL SERVIDOR, limita por usuario y despacha solo acciones de la
 // allowlist, con caché por tipo de dato. Nunca devuelve al cliente el texto crudo de Odoo
 // (BS2): el detalle técnico queda en el log del servidor.
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { OdooClient, OdooError } from "../_shared/odoo-client.ts";
 import type { CacheOdoo } from "../_shared/odoo-cache.ts";
 import type { LimitePorUsuario } from "../_shared/odoo-limite.ts";
 import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
-import { ACCIONES, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
+import { ACCIONES, ACCIONES_SIN_CACHE, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
+import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresEscritura, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
+export const MODULO_REQUERIDO_ESCRITURA = "compras"; // CY24 Fase C
+
+const LECTURAS_CATALOGO_COMPRA: string[] = ["productos.buscar_compra", "productos.obtener"];
 
 export interface Capacidades { usuario_id: string; es_admin: boolean; modulos: string[] }
 
@@ -26,12 +31,16 @@ export interface Deps {
   semaforo: SemaforoOdoo;
   /** Orígenes web permitidos (CORS). Vacío = solo sin cabecera Origin. */
   origenes: string[];
+  /** CY24 Fase C — cliente service role para acciones de ESCRITURA (D5: el edge relee todo, nunca confía en el cliente). */
+  admin(): SupabaseClient;
+  /** Adaptador hacia Odoo para las escrituras de OC (mock hoy, D-08). Inyectable en tests. */
+  adaptadorOc?: Partial<AdaptadoresEscritura>;
 }
 
 const CODIGOS_FALLO_INFRA = new Set(["odoo_timeout", "odoo_no_disponible"]);
 
 /** CY23 — envuelve una lectura a Odoo con circuito + semáforo + backoff. */
-async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>): Promise<T> {
+async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>, opts: { reintentar: boolean } = { reintentar: true }): Promise<T> {
   if (!deps.circuito.puedeIntentar()) {
     throw new OdooError("odoo_circuito_abierto", "Circuito abierto: demasiados fallos recientes hacia Odoo.");
   }
@@ -39,7 +48,8 @@ async function conResiliencia<T>(deps: Deps, fn: () => Promise<T>): Promise<T> {
     throw new OdooError("odoo_saturado", "Demasiadas consultas simultáneas a Odoo.");
   }
   try {
-    const resultado = await conReintentoLectura(fn);
+    // Las ESCRITURAS nunca se reintentan solas (D3 / #23): un timeout deja el comando en error y reintenta el usuario.
+    const resultado = opts.reintentar ? await conReintentoLectura(fn) : await fn();
     deps.circuito.registrarExito();
     return resultado;
   } catch (e) {
@@ -67,6 +77,9 @@ const MENSAJE_ODOO: Record<string, string> = {
   odoo_circuito_abierto: "Odoo está fallando seguido ahora mismo — espera un momento y vuelve a intentar.",
   odoo_saturado: "Hay demasiadas consultas a Odoo en este momento. Intenta de nuevo en unos segundos.",
 };
+// Escritura sin respuesta (timeout/caída): error estable `odoo_reintentar`. El reintento del usuario es seguro:
+// crear busca primero por origin y confirmar/cancelar leen el estado antes de actuar.
+const CODIGO_REINTENTAR = "odoo_reintentar";
 const STATUS_ODOO: Record<string, number> = {
   odoo_timeout: 504, odoo_no_disponible: 502, odoo_auth: 502, odoo_config: 500, odoo_error: 502,
   odoo_circuito_abierto: 503, odoo_saturado: 429,
@@ -92,9 +105,6 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
     return json({ error: "No se pudo verificar tu sesión. Intenta de nuevo.", error_code: "auth_no_disponible" }, 503);
   }
   if (!cap) return json({ error: "Sesión inválida." }, 401);
-  if (!(cap.es_admin || cap.modulos.includes(MODULO_REQUERIDO))) {
-    return json({ error: "Tu rol no tiene acceso a esta información." }, 403);
-  }
 
   const espera = deps.limite.intentar(cap.usuario_id);
   if (espera > 0) {
@@ -105,11 +115,53 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
   try { body = await req.json(); } catch { return json({ error: "Body inválido." }, 400); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Body inválido." }, 400);
   const { accion, params: rawParams } = body as { accion?: unknown; params?: unknown };
-  if (typeof accion !== "string" || !(ACCIONES as readonly string[]).includes(accion)) {
+  const esEscritura = typeof accion === "string" && (ACCIONES_ESCRITURA as readonly string[]).includes(accion);
+  const esLectura = typeof accion === "string" && (ACCIONES as readonly string[]).includes(accion);
+  if (typeof accion !== "string" || !(esEscritura || esLectura)) {
     return json({ error: "Acción no permitida." }, 400);
+  }
+  // Las lecturas de OC (`compras.*`) las ve también quien trabaja en Compras, no solo Inventario.
+  // Las lecturas de proveedores las ven también Flota e Inventario (igual que proveedoresGuard del cliente). El
+  // submódulo granular del cliente no llega al gateway: aquí solo existe la granularidad de módulo.
+  // Las ESCRITURAS (incluidas proveedores.*) exigen siempre `compras`.
+  // El catálogo de compra (productos.buscar_compra / productos.obtener) también lo usa Compras (solicitar-odoo).
+  const modulosPermitidos = esEscritura ? [MODULO_REQUERIDO_ESCRITURA]
+    : accion.startsWith("compras.") || LECTURAS_CATALOGO_COMPRA.includes(accion) ? [MODULO_REQUERIDO_ESCRITURA, MODULO_REQUERIDO]
+    : accion.startsWith("proveedores.") ? [MODULO_REQUERIDO_ESCRITURA, MODULO_REQUERIDO, "flota"] : [MODULO_REQUERIDO];
+  if (!(cap.es_admin || modulosPermitidos.some((m) => cap.modulos.includes(m)))) {
+    return json({ error: "Tu rol no tiene acceso a esta información." }, 403);
   }
   const { refrescar, ...params } = rawParams && typeof rawParams === "object" && !Array.isArray(rawParams)
     ? rawParams as Record<string, unknown> : {} as Record<string, unknown>;
+
+  // CY24 Fase C — acciones de ESCRITURA: nunca pasan por caché (D3 ya las hace
+  // idempotentes vía sgc.odoo_comandos_oc), siempre con service role (D5).
+  if (esEscritura) {
+    try {
+      const def = DEFINICIONES_ESCRITURA[accion as AccionEscritura] as unknown as {
+        normalizar(p: Record<string, unknown>): unknown;
+        ejecutar(ctx: { admin: SupabaseClient; usuarioId: string; adaptador?: Partial<AdaptadoresEscritura> }, p: unknown): Promise<unknown>;
+      };
+      const norm = def.normalizar(params);
+      const data = await conResiliencia(
+        deps,
+        () => def.ejecutar({ admin: deps.admin(), usuarioId: cap.usuario_id, adaptador: deps.adaptadorOc }, norm),
+        { reintentar: false },
+      );
+      return json({ data });
+    } catch (e) {
+      if (e instanceof ParamError) return json({ error: e.message }, 400);
+      if (e instanceof OdooError) {
+        console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
+        if (CODIGOS_REINTENTABLES.has(e.codigo)) {
+          return json({ error: MENSAJE_REINTENTAR, error_code: CODIGO_REINTENTAR }, STATUS_ODOO[e.codigo] ?? 502);
+        }
+        return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
+      }
+      console.error(`[odoo-api] ${accion}:`, e);
+      return json({ error: "Error interno del gateway.", error_code: "interno" }, 500);
+    }
+  }
 
   try {
     const def = DEFINICIONES[accion as Accion] as unknown as {
@@ -117,6 +169,11 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
       ejecutar(o: OdooClient, p: unknown): Promise<unknown>;
     };
     const norm = def.normalizar(params); // valida ANTES de tocar caché u Odoo
+    // Estado vivo (OCs): siempre a Odoo, sin caché SWR ni single-flight.
+    if (ACCIONES_SIN_CACHE.includes(accion as Accion)) {
+      const data = await conResiliencia(deps, () => def.ejecutar(deps.odoo(), norm));
+      return json({ data, consultado_en: new Date().toISOString(), cache: "miss" });
+    }
     const clave = `${accion}|${JSON.stringify(norm)}`;
     const { entrada, origen } = await deps.caches[accion as Accion].obtener(
       clave, () => conResiliencia(deps, () => def.ejecutar(deps.odoo(), norm)), refrescar === true,

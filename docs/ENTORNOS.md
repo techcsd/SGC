@@ -87,6 +87,8 @@ Vault (dev): `infra_sync_secret`, `weather_sync_secret`, `cronograma_sync_secret
 Los sync-secrets de dev son **distintos** a prod. En dev, `FCM_SERVICE_ACCOUNT_JSON` y `ASSISTANT_MODEL` no se setean (push apagado; assistant usa el fallback del código).
 **Ronda DC (29-oct-2026) — WhatsApp:** en dev, `WHATSAPP_ASSISTANT_SECRET`/`WHATSAPP_APP_SECRET`/`WHATSAPP_VERIFY_TOKEN` son valores de prueba generados por esta ronda (rotan el secret que usaba el puente n8n); `WHATSAPP_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID` son placeholders hasta que Xaviel conecte una app real de Meta. En prod, **ninguno de los 5 está seteado todavía** (el canal de WhatsApp sigue corriendo por n8n ahí). Detalle completo en [`docs/WHATSAPP-COMPA.md`](./WHATSAPP-COMPA.md).
 
+**Ronda DB (05-nov-2026) — WhatsApp: memoria de grupos (segundo canal, distinto del de arriba):** `WA_SHARED_SECRET` (**nuevo** — firma el Contrato con el listener externo `csd-wa-listener`, repo hermano; debe coincidir en ambos lados, ver rotación en `docs/WHATSAPP-GRUPOS.md` §3). Reusa sin cambios `WHATSAPP_ASSISTANT_SECRET` (el camino `dm` llama a `assistant` igual que el canal 1:1) y `ANTHROPIC_API_KEY`/`INFRA_SYNC_SECRET` (ya existían). Opcionales con default en código si no se setean: `WA_EXTRACT_MODEL`, `WA_CONSULTA_GRUPO_MODEL` (ambos caen a `ASSISTANT_MODEL` → el modelo fijo del repo), `WA_VISION_LIMITE_DIARIO` (default 200/día). `TELEGRAM_BOT_TOKEN`/`TELEGRAM_ALERT_CHAT_ID` opcionales (canal de alerta extra, no-op si faltan — mismos nombres que ya documenta `docs/SGC-CSI-MOD-01-monitoreo-infraestructura.md`). Detalle completo + troubleshooting en [`docs/WHATSAPP-GRUPOS.md`](./WHATSAPP-GRUPOS.md).
+
 **DC1 (29-oct-2026) — corrección de nombre:** este documento listaba `WHATSAPP_ASSISTANT_SYNC_SECRET`, pero el código de `assistant/index.ts` SIEMPRE leyó `WHATSAPP_ASSISTANT_SECRET` (BJ2, 04-sep-2026) — nunca existió el otro nombre en ningún entorno. Se corrige aquí el documento, no el código. Ver `docs/WHATSAPP-COMPA.md` para la lista completa de secrets del canal de WhatsApp (`WHATSAPP_ASSISTANT_SECRET`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_GRAPH_VERSION`).
 
 ## Crons por entorno
@@ -109,7 +111,7 @@ Ningún cron ni función escribe el ref del proyecto. La URL base de las edges s
 
 - **Vercel (web):** proyecto `sgc` → Git: marcar `dev` como *Preview branch* · Domains → añadir `dev.sgcconstructorasd.com` y asignarlo a la rama `dev` · Environment Variables → *Preview*: `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` = **dev** (para `registrar-version-web`).
 - **DNS:** `CNAME dev → cname.vercel-dns.com` (y `app-dev` para el hijo).
-- **GitHub → Settings → Secrets and variables → Actions:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
+- **GitHub → Settings → Secrets and variables → Actions:** `SUPABASE_CSD_CONSTRUCTORA_TOKEN`, `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
 - **Google Cloud:** restringir el referrer de `GOOGLE_MAPS_API_KEY` a `dev.`/`app-dev.` (o cuota separada).
 - **App (hijo):** ver PROMPT-59 (flavor `.dev`, `app-dev.`).
 
