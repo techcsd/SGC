@@ -439,11 +439,14 @@ export class TecWhatsapp implements OnInit {
     this.cargandoEstado.set(true);
     this.errorEstado.set(null);
     try {
+      // Cada llamada es independiente (best-effort): el canal 1:1 Cloud API
+      // (estadoEdge/resumenEstado, DC7) y la memoria de grupos (DB2) son dos
+      // features distintas que comparten esta pantalla -- que una falle (p.
+      // ej. el canal Cloud API nunca se terminó de configurar) no debe
+      // tumbar/ocultar los datos del otro, que sí pueden estar funcionando.
       const [edge, resumen, listeners, eventos, usoIa, config, waSecretos] = await Promise.all([
-        this.service.estadoEdge(),
-        this.service.resumenEstado(),
-        // DB2 — best-effort: si alguna de estas falla (p. ej. el listener nunca
-        // reportó aún), no debe tumbar el resto de la pestaña Estado.
+        this.service.estadoEdge().catch(() => null),
+        this.service.resumenEstado().catch(() => null),
         this.waService.listenerEstado().catch(() => []),
         this.waService.eventosRecientes(20).catch(() => []),
         this.waService.usoIaDiario(daysAgoIso(13), todayIso()).catch(() => []),
