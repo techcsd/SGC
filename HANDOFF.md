@@ -1,5 +1,23 @@
 # HANDOFF — SGC
 
+## ✅ Hotfix DJ (09-nov-2026) — trigger publicada-única en `sgc.app_versiones` — EN DEV y PROD (commit `11d697c0`)
+
+**Cierre del cabo suelto que dejó el hijo (csd-app) tras el incidente de crash 2.66.0/2.66.1**: el hijo dejó
+`sql-para-sgc/2026-11-05-dj-publicada-unica-trigger.sql` (trigger estructural) + un archivo de datos ya
+obsoleto (fijaba `publicada=true` en 2.66.2, superado porque prod ya corrió hasta 2.66.3).
+
+- `sql/2026-11-05-dj-publicada-unica-trigger.sql` aplicado y verificado (smoke: marcar una versión vieja
+  como publicada apaga automáticamente las demás) en **dev y prod**.
+- El archivo de datos del hijo (publicar 2.66.2) **no se aplicó tal cual** — habría revertido el dato real
+  (2.66.3 ya era la publicada vigente en prod). En su lugar, `scripts/data-fixes/2026-11-09-dj2-limpiar-duplicado-publicada.mjs`
+  reafirma la versión vigente (dispara el trigger) para colapsar cualquier duplicado.
+- **Encontrado al verificar (no solo el caso que reportó el hijo):** prod tenía un duplicado real pero
+  distinto al que describía el incidente — `2.66.3` (real) + `2.50.0` (stale, fuera de la ventana de las
+  últimas 10 filas) ambas `publicada=true`. Dev también tenía un duplicado viejo sin relación
+  (`2.58.1`+`2.62.0`). Ambos colapsados a 1 sola fila por plataforma.
+- Verificado por objeto en ambos entornos tras aplicar: `select version from sgc.app_versiones where plataforma='movil' and publicada` da **1 sola fila** (prod=`2.66.3`, dev=`2.62.0` — dev no tiene por qué reflejar la última versión real, no se tocó esa parte).
+- **Gotcha:** revisar solo las últimas N filas por fecha no basta para detectar un duplicado — el segundo `publicada=true` puede estar mucho más atrás en el historial. El diagnóstico correcto es `select ... where publicada` sin `limit`.
+
 ## 🧪 Ronda DB (05-nov-2026) — PROMPT DB-2: WhatsApp memoria de grupos + hallazgos IA — mergeada a `dev` — v1.211.0
 
 **Actualización al mergear a `dev` (mismo día, sesión separada):** esta ronda SÍ quedó commiteada
