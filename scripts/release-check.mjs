@@ -131,6 +131,18 @@ async function check2() {
   const ok = [];
   for (const archivo of archivos) {
     const archivoNorm = archivo.replace(/\\/g, '/');
+    // `git log --name-only` lista TODA ruta tocada en CUALQUIER commit de la
+    // ventana, incluida la ruta vieja de un archivo luego renombrado (un
+    // rename con cambios grandes no se detecta como "R" y queda como
+    // delete+add de rutas distintas). Esa ruta vieja ya no existe en el
+    // working tree y no hay nada que verificar -- se salta ANTES de
+    // consultar el ledger, no después, para no reportarla como un hueco
+    // real (bug real, encontrado en vivo: sql/2026-10-30-cy24k-oc-lee-odoo-
+    // directo.sql se renombró desde -oc-sin-incierto-por-aprobar.sql y el
+    // check seguía reclamando la ruta vieja aunque la nueva sí estaba en el
+    // ledger).
+    const full = join(ROOT, archivoNorm);
+    if (!existsSync(full)) continue;
     let fila;
     try {
       const rows = await dbQuery(env, `select checksum from sgc.migraciones_aplicadas where archivo='${archivoNorm.replace(/'/g, "''")}' limit 1`);
@@ -140,8 +152,6 @@ async function check2() {
       continue;
     }
     if (!fila) { faltantes.push(`${archivoNorm} — no está en sgc.migraciones_aplicadas de ${env.entorno}`); continue; }
-    const full = join(ROOT, archivoNorm);
-    if (!existsSync(full)) { faltantes.push(`${archivoNorm} — está en el ledger pero el archivo ya no existe en el working tree`); continue; }
     const checksum = createHash('sha256').update(readFileSync(full, 'utf8').replace(/\r\n/g, '\n')).digest('hex');
     if (fila.checksum !== checksum) { faltantes.push(`${archivoNorm} — en el ledger pero con OTRO contenido (checksum no coincide); reaplica con apply-migration.mjs --env ${env.entorno}`); continue; }
     ok.push(archivoNorm);
