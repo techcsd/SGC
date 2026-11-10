@@ -151,7 +151,7 @@
         </thead>
         <tbody appStagger>
           @for (r of paginated(); track r.id) {
-            <tr class="row--link" [routerLink]="['/inventario/salidas', r.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
+            <tr class="row--link" [routerLink]="['/inventario/salidas', r.id, 'conduce']" [state]="{ ids: idsPagina() }" role="button" tabindex="0" aria-label="Ver conduce">
               <td class="conduces__numero">
                 {{ numero(r.id) }}
                 @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
@@ -203,6 +203,7 @@
                 <a
                   class="sgc-btn sgc-btn--ghost sgc-btn--sm"
                   [routerLink]="['/inventario/salidas', r.id, 'conduce']"
+                  [state]="{ ids: idsPagina() }"
                   (click)="$event.stopPropagation()"
                 >Ver conduce</a>
               </td>

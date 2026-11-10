@@ -1307,6 +1307,26 @@ export const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: {}, additionalProperties: false },
     rpc: "wa_mis_pendientes", map: () => ({}),
   },
+  // DM4 (ronda DM) — conector de skills, FASE 2, APAGADO por defecto
+  // (parametro 'claude_skills_conector' = 'false'). Las dos RPC existen y
+  // respetan RLS (lo mío + publicado para mi rol/empresa), pero devuelven un
+  // error "apagado" hasta que Xaviel encienda el parámetro tras la auditoría
+  // N1c. Se registran ya (diseño completo) para no reabrir este archivo
+  // cuando llegue el momento de encenderlo — solo cambia el parámetro.
+  {
+    name: "mis_skills_claude",
+    description: "[Apagado por ahora] Lista las skills del módulo Claude del SGC que puedes ver (propias + publicadas para tu rol/empresa): slug, nombre, descripción y estado. Si la herramienta responde que está apagada, dile a la persona que esta función todavía no está activada.",
+    modulos: null, canales: ["mcp"],
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "mis_skills_claude", map: () => ({}),
+  },
+  {
+    name: "leer_skill_claude",
+    description: "[Apagado por ahora] Devuelve el texto completo de una skill del SGC por su slug (solo si la puedes ver). Los paquetes .zip no se pueden leer así — se descargan desde el módulo Claude. Si la herramienta responde que está apagada, dile a la persona que esta función todavía no está activada.",
+    modulos: null, canales: ["mcp"],
+    input_schema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"], additionalProperties: false },
+    rpc: "leer_skill_claude", map: (i) => ({ p_slug: String(i.slug ?? "") }),
+  },
 ];
 
 /** Herramientas visibles a este usuario (filtro por módulo/admin), opcionalmente

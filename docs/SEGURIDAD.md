@@ -340,3 +340,17 @@ definer`, nunca confiando en un parámetro del cliente) — cualquier usuario
 autenticado la puede llamar, pero solo ve lo suyo. Prueba de aislamiento: un
 usuario A no puede ver pendientes asignados a un usuario B aunque llame la
 misma RPC (ver `sql/2026-11-10-dl3-wa-seguimiento.sql`).
+
+### Bucket `claude-skills` (DM1, ronda DM) — mismo patrón que `wa-media`/`wa-recaps`
+
+Bucket **privado**. Las 3 edges (`claude-skill-validar`, `claude-skill-descargar`,
+`claude-pack-zip`) hacen el trabajo real con `service_role`, pero **antes** de
+leer cualquier archivo, `claude-skill-descargar`/`claude-pack-zip` corren un
+`select` contra `sgc.claude_skills`/`claude_pack_items` **con el JWT de quien
+llama** (no `service_role`) — si la RLS de esa tabla no deja ver la fila, la
+descarga se corta ahí, antes de tocar Storage. El archivo nunca sale al
+navegador por una URL firmada directa; sale ya empaquetado en el zip que arma
+el edge. Además hay una policy `storage.objects` por carpeta (`<uid>/...`) para
+`authenticated`, defensa en profundidad — hoy ningún cliente sube/baja directo
+al bucket (todo pasa por las 3 edges), así que esa policy no se usa en la
+práctica, pero tampoco permite nada fuera del propio usuario si algo cambiara.

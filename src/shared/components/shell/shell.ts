@@ -492,6 +492,14 @@ export class Shell implements OnInit {
       route: '/notas',
     },
     {
+      // DM2 — módulo Claude (biblioteca de skills, Setup, auditoría). Sin gate
+      // de módulo — el área de uso es para todo usuario autenticado (DM-03);
+      // lo administrativo se gatea por submódulo dentro de la pantalla.
+      label: 'Claude',
+      icon: 'claude',
+      route: '/claude',
+    },
+    {
       // F6 (DG5) — módulo "Demo" = práctica ampliada. Sin gate de módulo (como
       // Mensajes/Notas): visible para todo usuario autenticado. Insignia = misiones
       // del catálogo que el usuario todavía no completó (ver demoPendientes()).

@@ -171,6 +171,11 @@ verify_jwt = false
 [functions.agente-cronista]
 verify_jwt = false
 
+# DM2 — agente-pendientes: pg_cron (diario 7am RD, semanal lunes 7:15am RD) y
+# el botón "Probar ahora" (sgc.agente_pendientes_probar), ambos con x-sync-secret.
+[functions.agente-pendientes]
+verify_jwt = false
+
 # ── Ronda DB (05-nov-2026) — WhatsApp: memoria de grupos (PROMPT DB-2) ──
 # DB-S3 — wa-ingest: la llama csd-wa-listener (repo hermano, server-to-server);
 # la autenticación real es el HMAC del Contrato (x-wa-signature/x-wa-timestamp,

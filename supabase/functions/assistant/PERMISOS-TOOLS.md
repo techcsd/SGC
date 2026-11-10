@@ -342,3 +342,24 @@ preguntarle a Compa "¿qué me falta de los grupos?" y ver SOLO lo suyo.
 
 `que_puedo_consultar()` ganó la fila `wa_mis_pendientes` (siempre visible, como
 `notas`/`mensajes`/`tareas`) — `sql/2026-11-10-dl-f7b-que-puedo-consultar.sql`.
+
+## DM4 (ronda DM, 10-nov-2026) — conector de skills de Claude (apagado)
+
+Dos tools nuevas, canal `mcp` exclusivamente (no `compa` — son de uso técnico):
+`mis_skills_claude` (sin parámetros) y `leer_skill_claude(slug)`. `modulos: null`,
+sin `submodulos` — visibles para cualquier usuario autenticado (como
+`mis_notas`), porque el filtro real no es de rol sino el apagador
+`sgc.parametros.claude_skills_conector` ('false' por defecto): mientras esté
+apagado, ambas RPC lanzan una excepción con mensaje claro en vez de devolver
+datos. `que_puedo_consultar()` las lista siempre (fila `claude_skills`) con la
+etiqueta "DESACTIVADO hasta que Tecnología lo encienda" para que el
+descubrimiento no mienta sobre el estado.
+
+`leer_skill_claude` NO puede leer el contenido de una skill en `.zip` (una RPC
+en SQL puro no tiene acceso a Storage): devuelve un mensaje pidiendo descargarla
+desde el módulo Claude. Solo lee `claude_skill_versiones.contenido_texto`,
+poblado por `claude-skill-validar` para archivos `.md`/`.txt` sueltos.
+
+Encender el conector: `update sgc.parametros set valor='true' where clave='claude_skills_conector'`
+en el entorno que corresponda (regla 18 — probar en dev primero). Es decisión
+de Xaviel, después de revisar la auditoría N1c (`docs/CLAUDE-AUDITORIA.md`).

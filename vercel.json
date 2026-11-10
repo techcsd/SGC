@@ -1,5 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "angular",
-  "buildCommand": "node scripts/build-env.mjs"
+  "buildCommand": "node scripts/build-env.mjs",
+  "rewrites": [
+    { "source": "/:path((?!.*\\.[^/]+$).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    }
+  ]
 }

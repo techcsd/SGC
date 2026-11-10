@@ -1393,3 +1393,15 @@ Nueva herramienta de LECTURA de Compa (`rpc: wa_mis_pendientes`), **sin módulo 
 `mis_tareas`): cualquier usuario autenticado le puede preguntar a Compa "¿qué me falta de los
 grupos?" y ver solo lo suyo (`responsable_id = auth.uid()`). Disponible en el chat web y en MCP
 (Claude Desktop); sin equivalente de pantalla en la app — es una tool de Compa, no una pantalla.
+
+### DM1-DM4 — módulo Claude: web es padre, la app recibe solo lo que N1 pidió
+El módulo completo (`/claude`: biblioteca de skills, Setup, Crear, Auditoría) es **web-only** salvo
+lo que DM-00 marcó explícitamente para la app (PROMPT-141): ver/descargar/compartir skills, pantalla
+de Setup, crear skill sencilla, responder la encuesta (offline-aware vía outbox) y abrir la nota de
+pendientes. Administrar (aprobar/publicar, auditoría completa, config del agente de pendientes) es
+solo de escritorio — mismo patrón que Tecnología/Developer en rondas anteriores.
+
+### DM2 — Agente de pendientes: la nota es el contrato, no hay pantalla nueva en la app
+`sgc.agente_pendientes_config`/edge `agente-pendientes` son 100% backend. La app no necesita saber
+que existe: la nota "Pendientes" se ve y se abre desde **Notas** (ya existente) y el aviso usa
+`notifAppRoute` como cualquier otra notificación — sin pantalla ni contrato nuevo.

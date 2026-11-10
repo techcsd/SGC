@@ -407,3 +407,14 @@ Xaviel confirmó que no vale la pena todavía — detalle completo en
 `PERMISOS-TOOLS.md`. **Con esto, el "SGC Connector – Full Access Improvement
 Plan" de Xaviel queda completo: las 5 fases están construidas o decididas
 explícitamente en su contra — nada sigue abierto.**
+
+## DM4 (ronda DM, 10-nov-2026) — conector de skills (fase 2, apagado)
+
+El módulo Claude (`docs/CLAUDE-MODULO.md`) agrega una fase 2 al conector:
+`mis_skills_claude` y `leer_skill_claude(slug)` (solo lectura), diseñadas y
+probadas esta ronda pero **detrás de un apagador** (`sgc.parametros.claude_skills_conector`,
+`'false'`): mientras esté apagado, ambas RPC responden con un error claro en
+vez de datos. Encenderlo es decisión de Xaviel, después de revisar
+`docs/CLAUDE-AUDITORIA.md`. Detalle técnico (límite de tamaño, por qué un .zip
+no se puede leer así, patrón de `set_config` para la gate de permisos) en
+`PERMISOS-TOOLS.md` y `sql/2026-11-10-dm4-claude-skills-conector.sql`.

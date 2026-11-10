@@ -151,3 +151,32 @@ existía antes de esta ronda.
 - Sigue sin hacerse ninguna actualización a la Política de Privacidad ni a los
   formularios de tienda — mismo pendiente que el flag de arriba, ahora con un
   flujo más para cubrir cuando se resuelva.
+
+## DM1 (ronda DM, 10-nov-2026) — módulo Claude: skills subidas + encuesta
+
+**Dato nuevo (dentro de nuestro propio sistema, no un tercero nuevo):** el
+módulo Claude (`docs/CLAUDE-MODULO.md`) guarda, en el bucket privado
+`claude-skills`, **el contenido que cada persona sube como "skill"** (archivo
+`.md`/`.zip`/texto suelto) — puede ser cualquier texto que la persona escriba,
+escaneado por secretos antes de guardarse (DM-05) pero no revisado por un
+humano salvo que se proponga a rol/empresa (DM-06/07). `sgc.claude_skills` +
+`sgc.claude_skill_versiones` guardan metadatos (nombre, descripción, dueño,
+hash) — RLS: lo mío + lo publicado para mi rol/empresa.
+
+También nuevo: `sgc.claude_encuesta_respuestas` — respuestas (texto libre) de
+la encuesta corta de auditoría N1c, ligadas a `usuario_id` y a un snapshot de
+su rol. Visible para la propia persona y para `tecnologia.claude_auditoria`.
+
+**Anthropic sigue siendo el mismo tercero ya declarado arriba** — este módulo
+NO envía nada a la API de Anthropic desde el backend; la persona misma sube el
+archivo descargado a su cuenta de Claude, un paso manual fuera de SGC. El
+conector de **lectura** de skills (DM-14, `mis_skills_claude`/`leer_skill_claude`)
+sí sería un flujo nuevo hacia Claude **cuando se encienda** (hoy apagado,
+`claude_skills_conector='false'`) — se revisará este documento otra vez en ese
+momento, no antes.
+
+- 🔴 Pendiente de revisar: la Política de Privacidad y los formularios de
+  "Seguridad de datos"/"Privacidad de la app" no mencionan todavía que el SGC
+  guarda archivos que la persona sube voluntariamente como "skill". Bajo
+  riesgo (dato que la propia persona decide subir, con escaneo de secretos),
+  pero debe anotarse en la próxima revisión de esos documentos.

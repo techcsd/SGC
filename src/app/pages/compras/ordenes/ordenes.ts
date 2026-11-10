@@ -780,6 +780,12 @@ export class Ordenes implements OnInit {
   forzarRecibida = signal<{ orden: OrdenCompra; detalle: string } | null>(null);
   forzarMotivo = signal('');
 
+  // DM-20 — el reporte de Soporte 28e423b1 (Raykler) mostró que el bloqueo de
+  // "recibida" para quien NO es admin era un callejón sin salida: un toast con
+  // texto nada más, sin botón que llevara a la acción correcta. Ahora es un
+  // panel inline con el mismo detalle (DH14) y un botón que navega directo.
+  bloqueoRecibida = signal<{ orden: OrdenCompra; detalle: string } | null>(null);
+
   async cambiarEstado(orden: OrdenCompra, estado: OrdenEstado) {
     // CT3c — el servidor igual lo valida, pero si ya sabemos que va a pedir
     // motivo (admin + reconciliación incompleta) se lo pedimos aquí para no
@@ -787,7 +793,7 @@ export class Ordenes implements OnInit {
     if (estado === 'recibida' && this.reconciliacionIncompleta()) {
       const detalle = this.describirRenglonesPendientes();
       if (!this.esAdmin()) {
-        this.toast.error('No se puede marcar "recibida"', detalle);
+        this.bloqueoRecibida.set({ orden, detalle });
         return;
       }
       this.forzarMotivo.set('');
@@ -795,6 +801,15 @@ export class Ordenes implements OnInit {
       return;
     }
     await this.aplicarCambioEstado(orden, estado, null);
+  }
+
+  cancelarBloqueoRecibida() {
+    this.bloqueoRecibida.set(null);
+  }
+
+  irARegistrarEntradaDesdeBloqueo(orden: OrdenCompra) {
+    this.bloqueoRecibida.set(null);
+    this.irARegistrarEntrada(orden);
   }
 
   cancelarForzarRecibida() {
