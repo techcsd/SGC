@@ -207,7 +207,58 @@ async function procesarGrupo(sb: Any, grupoJid: string, mensajes: Any[], budgetT
     }
   }
 
-  // Documentos: sin IA, solo marcar procesados (no entran a extracción como "contenido legible" salvo que tengan texto propio).
+  // (c2) Documentos PDF o texto plano/markdown sin descripción — Claude lee
+  // PDFs nativamente (bloque "document") y texto plano se lee directo (sin
+  // IA de visión, solo se resume). Mismo cupo diario que visión (comparten
+  // visionUsados.n) para no abrir un gasto de IA sin tope aparte. Otros
+  // formatos de documento (docx, xlsx, etc.) no se leen — no vale la pena
+  // fingir lectura de lo que no se puede abrir.
+  const TEXTO_PLANO_MAX_CHARS = 8000; // ~2000 tokens, acota costo/tamaño de un .txt/.md grande
+  for (const m of restantes.filter((m) => {
+    if (m.tipo !== "documento" || m.descripcion_media) return false;
+    const mime = String(m.media_mime ?? "");
+    return mime.includes("pdf") || mime.startsWith("text/");
+  })) {
+    if (!ANTHROPIC_API_KEY || !m.media_ref) continue;
+    if (visionLimiteAlcanzado(visionUsados.n, VISION_LIMITE_DIARIO)) continue;
+    const esPdf = String(m.media_mime ?? "").includes("pdf");
+    try {
+      const { data: blob, error: dlErr } = await sb.storage.from("wa-media").download(m.media_ref);
+      if (dlErr || !blob) throw dlErr ?? new Error("sin datos");
+
+      const contenido = esPdf
+        ? await (async () => {
+            const buf = new Uint8Array(await blob.arrayBuffer());
+            let binario = "";
+            for (let i = 0; i < buf.length; i++) binario += String.fromCharCode(buf[i]);
+            return [{ type: "document" as const, source: { type: "base64" as const, media_type: "application/pdf", data: btoa(binario) } }];
+          })()
+        : [{ type: "text" as const, text: (await blob.text()).slice(0, TEXTO_PLANO_MAX_CHARS) }];
+
+      const resultado = await llamarClaude({
+        apiKey: ANTHROPIC_API_KEY!,
+        modelo: MODELO_EXTRACCION,
+        maxTokens: 300,
+        system: esPdf
+          ? "Describe de qué trata este documento PDF en 1-3 oraciones en español, para contexto de una constructora (ej. cotización, factura, contrato, plano, recibo). Si tiene montos, fechas, o nombres de proveedor/cliente legibles, inclúyelos. Si no puedes leer el contenido con claridad, dilo brevemente. No inventes datos que no se vean."
+          : "Resume de qué trata este archivo de texto en 1-3 oraciones en español, para contexto de una constructora. Si es código o configuración, di su propósito general, no lo repitas línea por línea. No inventes contenido que no esté en el texto.",
+        mensajes: [{ role: "user", content: contenido }],
+      });
+      await sb.from("wa_mensajes_grupo").update({ descripcion_media: resultado.texto }).eq("id", m.id).then(() => {}, () => {});
+      m.descripcion_media = resultado.texto;
+      visionUsados.n++;
+      await sb.rpc("wa_uso_ia_registrar", {
+        p_funcion: "wa_documento", p_modelo: resultado.modelo, p_tokens_in: resultado.tokensIn, p_tokens_out: resultado.tokensOut,
+      }).then(() => {}, () => {});
+    } catch (e) {
+      console.error("[wa-extract] descripción de documento falló:", e);
+      // sigue sin descripcion_media -- el bloque de abajo lo marca procesado igual (no se reintenta en bucle).
+    }
+  }
+
+  // Documentos: marcar procesados (PDF/texto plano ya intentaron descripción
+  // arriba; el resto de formatos no entra a extracción como "contenido
+  // legible" salvo que tengan texto propio).
   const documentos = restantes.filter((m) => m.tipo === "documento");
   await marcarProcesados(sb, documentos.map((m) => m.id));
   restantes = restantes.filter((m) => m.tipo !== "documento");

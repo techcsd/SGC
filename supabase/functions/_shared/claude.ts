@@ -14,7 +14,10 @@ type Any = any;
 
 export interface BloqueTexto { type: "text"; text: string }
 export interface BloqueImagen { type: "image"; source: { type: "base64"; media_type: string; data: string } }
-export type BloqueContenido = BloqueTexto | BloqueImagen;
+// Soporte nativo de Anthropic para PDFs (y algunos text/*) -- mismo shape que
+// BloqueImagen, media_type suele ser "application/pdf".
+export interface BloqueDocumento { type: "document"; source: { type: "base64"; media_type: string; data: string } }
+export type BloqueContenido = BloqueTexto | BloqueImagen | BloqueDocumento;
 
 export interface MensajeClaude { role: "user" | "assistant"; content: string | BloqueContenido[] }
 
