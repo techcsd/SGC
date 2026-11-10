@@ -138,14 +138,30 @@ export class AuthService {
    */
   async entrarComoUsuario(targetId: string): Promise<{ error: string | null }> {
     const actual = await this.getSession();
-    const { data, error } = await this.supabase.client.functions.invoke('admin-entrar-como', {
+    // DL-35 — token fresco antes de llamar (tolera que falle: el reintento de abajo decide).
+    try { await this.supabase.client.auth.refreshSession(); } catch { /* seguimos */ }
+
+    let invocacion = await this.supabase.client.functions.invoke('admin-entrar-como', {
       body: { userId: targetId },
     });
-    if (error) {
-      const detail = await edgeErrorDetail(error);
+    if (invocacion.error) {
+      const detail = await edgeErrorDetail(invocacion.error);
+      if (detail.code === 'transporte') {
+        // Un único reintento automático ante fallo de transporte (N6b).
+        try { await this.supabase.client.auth.refreshSession(); } catch { /* seguimos */ }
+        invocacion = await this.supabase.client.functions.invoke('admin-entrar-como', {
+          body: { userId: targetId },
+        });
+      }
+    }
+    if (invocacion.error) {
+      const detail = await edgeErrorDetail(invocacion.error);
+      if (detail.code === 'transporte') {
+        return { error: 'No se pudo iniciar la sesión como esa persona. Recarga la página y vuelve a intentar.' };
+      }
       return { error: detail.message };
     }
-    const res = data as { email: string; nombre?: string; token_hash: string; started_at: string; error?: string };
+    const res = invocacion.data as { email: string; nombre?: string; token_hash: string; started_at: string; error?: string };
     if (res?.error) return { error: res.error };
     // Guarda la sesión admin + metadatos para el banner, el límite de 1 h y el cierre.
     if (actual?.refresh_token) {

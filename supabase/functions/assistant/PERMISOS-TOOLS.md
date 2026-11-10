@@ -324,3 +324,21 @@ encontró `sgc.solicitudes_material_folio_seq` desincronizada en dev
 (`max(folio)=9001` por el seed demo de CK, secuencia en 11) — corregido con
 `scripts/data-fixes/2026-10-25-cy-resync-folio-seq-dev.mjs` (dev-only, `setval`
 idempotente; prod no tiene esa fila demo, no aplica).
+
+## DL3-DL6/F7 (10-nov-2026) — seguimiento, recap y "mis pendientes" (Compa + MCP)
+
+`hallazgos_whatsapp` y `resumen_grupo_whatsapp` ahora llaman `wa_hallazgos_listar_v2`
+y `wa_resumen_grupo_v2` (las v1 siguen vivas, sin tocar, por si algo externo las
+sigue llamando). Campos nuevos: `responsable_nombre`/`responsable_origen`/
+`seguimiento` por hallazgo; `desde`/`hasta`/`decisiones`/`pendientes` en el resumen.
+`hallazgos_whatsapp` gana el filtro opcional `seguimiento`.
+
+Nueva tool `mis_pendientes_de_grupos` (`rpc: wa_mis_pendientes`) — **`modulos: null`,
+sin `submodulos`**: a diferencia de las otras 4 (gate `tecnologia.wa_grupos`), esta
+es lectura de **lo propio** (`responsable_id = auth.uid()` dentro del RPC,
+`security definer`) — cualquier usuario autenticado la ve, igual que `mis_tareas`/
+`mis_proyectos`. Un ingeniero que nunca tendrá el submódulo de WhatsApp sí puede
+preguntarle a Compa "¿qué me falta de los grupos?" y ver SOLO lo suyo.
+
+`que_puedo_consultar()` ganó la fila `wa_mis_pendientes` (siempre visible, como
+`notas`/`mensajes`/`tareas`) — `sql/2026-11-10-dl-f7b-que-puedo-consultar.sql`.

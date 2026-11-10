@@ -25,7 +25,15 @@ export class StaggerDirective implements AfterViewInit {
     const children = Array.from(this.host.nativeElement.children) as HTMLElement[];
     children.forEach((el, i) => {
       const delay = Math.min(i, this.staggerMax) * this.staggerStep;
+      const duracionMs = 220;
       el.style.animation = `mv-stagger-in var(--motion-base, 220ms) var(--ease-out, ease) ${delay}ms both`;
+      const soltar = () => {
+        el.style.animation = '';
+        el.removeEventListener('animationend', soltar);
+      };
+      el.addEventListener('animationend', soltar, { once: true });
+      // DL-03: `animationend` no se dispara en pestaña oculta/nodo retirado; red de seguridad.
+      setTimeout(soltar, delay + duracionMs + 100);
     });
   }
 }

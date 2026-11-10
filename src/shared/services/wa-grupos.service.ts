@@ -25,6 +25,8 @@ export interface WaGrupo {
   ultimo_mensaje_en: string | null;
   creado_en: string;
   actualizado_en: string;
+  /** DL3 — a quién recordarle los hallazgos de este grupo cuando no hay mención única. */
+  responsables: string[];
   /** Calculado en el cliente (no es columna) a partir de wa_mensajes_grupo. */
   mensajes_24h: number;
   mensajes_7d: number;
@@ -41,6 +43,7 @@ interface WaGrupoRow {
   ultimo_mensaje_en: string | null;
   creado_en: string;
   actualizado_en: string;
+  responsables: string[] | null;
 }
 
 export type WaMensajeTipo =
@@ -109,13 +112,33 @@ export interface WaHallazgo {
   mensaje_ids?: string[];
 }
 
+/** DL3 — estado de seguimiento (recordatorios/cierre); `sin` = tipo sin
+ *  seguimiento o aún no resuelto a un responsable. */
+export type WaSeguimiento = 'sin' | 'activo' | 'resuelto_probable' | 'resuelto' | 'vencido' | 'pausado';
+
+export interface WaHallazgoV2 extends WaHallazgo {
+  responsable_id: string | null;
+  responsable_nombre: string | null;
+  responsable_origen: 'ia' | 'manual' | 'grupo' | 'tecnologia' | null;
+  seguimiento: WaSeguimiento;
+  seguimiento_desde: string | null;
+  recordatorios_enviados: number;
+  ultimo_recordatorio_en: string | null;
+  convertido_a: string | null;
+  convertido_ref_id: string | null;
+  total: number;
+}
+
 export interface WaHallazgosFiltro {
   grupo_jid?: string | null;
   tipo?: string | null;
   estado?: string | null;
+  seguimiento?: WaSeguimiento | null;
+  responsable_id?: string | null;
   desde?: string | null;
   hasta?: string | null;
   limite?: number;
+  offset?: number;
 }
 
 export interface WaListenerEstado {
@@ -148,6 +171,23 @@ export interface WaUsoIaDia {
   costo_estimado: number;
 }
 
+/** DL5 — recap diario/semanal por grupo (pestaña Resúmenes). */
+export interface WaResumen {
+  id: string;
+  grupo_jid: string;
+  grupo_nombre: string;
+  periodo: 'dia' | 'semana';
+  fecha: string;
+  desde: string | null;
+  hasta: string | null;
+  resumen: string | null;
+  decisiones: { resumen: string; responsable_nombre?: string | null }[];
+  pendientes: { resumen: string; responsable_nombre?: string | null; seguimiento?: string }[];
+  mensajes_cubiertos: number;
+  pdf_path: string | null;
+  creado_en: string;
+}
+
 export interface WaConfig {
   modo_por_defecto: WaGrupoModo;
   dm_habilitado: boolean;
@@ -155,6 +195,9 @@ export interface WaConfig {
   max_respuestas_grupo_hora: number;
   texto_aviso_grupo: string;
   budget_tokens_dia: number | null;
+  /** DL3/DL-27 */
+  recordatorio_whatsapp: boolean;
+  recap_minimo_mensajes: number;
   actualizado_en: string;
 }
 
@@ -191,29 +234,60 @@ export class WaGruposService {
     }
     return ((gruposRes.data ?? []) as WaGrupoRow[]).map((g) => ({
       ...g,
+      responsables: g.responsables ?? [],
       mensajes_24h: conteo24.get(g.jid) ?? 0,
       mensajes_7d: conteo7.get(g.jid) ?? 0,
     }));
   }
 
-  async actualizarGrupo(jid: string, patch: { modo?: WaGrupoModo; proyecto_id?: string | null }): Promise<void> {
+  async actualizarGrupo(jid: string, patch: { modo?: WaGrupoModo; proyecto_id?: string | null; responsables?: string[] }): Promise<void> {
     const { error } = await this.supabase.client.from('wa_grupos').update(patch).eq('jid', jid);
     if (error) throw error;
   }
 
-  // ── Hallazgos ────────────────────────────────────────────────────────────
-  async listarHallazgos(f: WaHallazgosFiltro): Promise<WaHallazgo[]> {
-    const { data, error } = await this.supabase.client.rpc('wa_hallazgos_listar', {
-      p_grupo_jid: f.grupo_jid || null,
-      p_tipo: f.tipo || null,
-      p_estado: f.estado || null,
-      p_desde: f.desde || null,
-      p_hasta: f.hasta || null,
-      p_limite: f.limite ?? 50,
-    });
+  /** Nombres de un lote de usuarios (chips de responsables/destinatarios en Grupos). */
+  async resolverNombres(ids: string[]): Promise<Record<string, string>> {
+    if (!ids.length) return {};
+    const { data, error } = await this.supabase.client.rpc('resolver_nombres_usuarios', { p_ids: [...new Set(ids)] });
     if (error) throw error;
-    return (data ?? []) as WaHallazgo[];
+    const out: Record<string, string> = {};
+    for (const row of (data ?? []) as { id: string; nombre: string }[]) out[row.id] = row.nombre;
+    return out;
   }
+
+  // ── DL5/F6.1 — destinatarios del recap por grupo ────────────────────────
+  async destinatariosRecap(jid: string): Promise<{ usuario_id: string; recap_dia: boolean; recap_semana: boolean }[]> {
+    const { data, error } = await this.supabase.client
+      .from('wa_grupo_destinatarios')
+      .select('usuario_id, recap_dia, recap_semana')
+      .eq('grupo_jid', jid);
+    if (error) throw error;
+    return (data ?? []) as { usuario_id: string; recap_dia: boolean; recap_semana: boolean }[];
+  }
+
+  async setDestinatariosRecap(jid: string, usuarios: { usuario_id: string; recap_dia: boolean; recap_semana: boolean }[]): Promise<void> {
+    const { error } = await this.supabase.client.rpc('wa_grupo_destinatarios_set', { p_grupo: jid, p_usuarios: usuarios });
+    if (error) throw error;
+  }
+
+  /** Último recap generado para un grupo (fecha, por pestaña Grupos — "Último recap: …"). */
+  async ultimoRecapPorGrupo(): Promise<Record<string, string>> {
+    const { data, error } = await this.supabase.client
+      .from('wa_resumenes')
+      .select('grupo_jid, creado_en')
+      .order('creado_en', { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    const out: Record<string, string> = {};
+    for (const row of (data ?? []) as { grupo_jid: string; creado_en: string }[]) {
+      if (!out[row.grupo_jid]) out[row.grupo_jid] = row.creado_en;
+    }
+    return out;
+  }
+
+  // ── Hallazgos ────────────────────────────────────────────────────────────
+  // (la web usa listarHallazgosV2 — wa_hallazgos_listar_v1 sigue viva para
+  // Compa/MCP, ver sql/2026-11-10-dl3-wa-seguimiento.sql)
 
   /** Detalle completo (personas + mensaje_ids), que el listado RPC no trae. */
   async detalleHallazgo(id: string): Promise<{ personas: { nombre?: string; telefono?: string }[]; mensaje_ids: string[] }> {
@@ -257,6 +331,93 @@ export class WaGruposService {
   ): Promise<void> {
     const { error } = await this.supabase.client.from('wa_hallazgos').update(patch).eq('id', id);
     if (error) throw error;
+  }
+
+  // ── DL3/F6.2 — seguimiento: responsable, estado, convertir real ────────────
+  async listarHallazgosV2(f: WaHallazgosFiltro): Promise<WaHallazgoV2[]> {
+    const { data, error } = await this.supabase.client.rpc('wa_hallazgos_listar_v2', {
+      p_grupo_jid: f.grupo_jid || null,
+      p_tipo: f.tipo || null,
+      p_estado: f.estado || null,
+      p_seguimiento: f.seguimiento || null,
+      p_responsable: f.responsable_id || null,
+      p_desde: f.desde || null,
+      p_hasta: f.hasta || null,
+      p_limite: f.limite ?? 30,
+      p_offset: f.offset ?? 0,
+    });
+    if (error) throw error;
+    return (data ?? []) as WaHallazgoV2[];
+  }
+
+  async asignarResponsable(id: string, responsableId: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('wa_hallazgo_asignar', { p_id: id, p_responsable: responsableId });
+    if (error) throw error;
+  }
+
+  async resolverHallazgo(id: string, motivo?: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('wa_hallazgo_resolver', { p_id: id, p_motivo: motivo ?? null });
+    if (error) throw error;
+  }
+
+  /** DL-05 — "Convertir" real: para 'tarea' crea la tarea y devuelve su id;
+   *  para 'requisicion'/'reunion' solo marca (manual) y devuelve null. */
+  async convertirHallazgo(
+    id: string, destino: 'tarea' | 'requisicion' | 'reunion', asignadoA?: string | null, fechaLimite?: string | null,
+  ): Promise<string | null> {
+    const { data, error } = await this.supabase.client.rpc('wa_hallazgo_convertir', {
+      p_id: id, p_destino: destino, p_asignado_a: asignadoA ?? null, p_fecha_limite: fechaLimite ?? null,
+    });
+    if (error) throw error;
+    return (data as string | null) ?? null;
+  }
+
+  // ── DL5/F6.3 — pestaña Resúmenes ────────────────────────────────────────
+  async listarResumenes(f: {
+    periodo?: 'dia' | 'semana' | null; grupo_jid?: string | null; desde?: string | null; hasta?: string | null;
+    limite?: number; offset?: number;
+  }): Promise<{ filas: WaResumen[]; total: number }> {
+    const { data, error } = await this.supabase.client.rpc('wa_recap_listar', {
+      p_periodo: f.periodo || null, p_grupo: f.grupo_jid || null,
+      p_desde: f.desde || null, p_hasta: f.hasta || null,
+      p_limit: f.limite ?? 50, p_offset: f.offset ?? 0,
+    });
+    if (error) throw error;
+    const filas = (data ?? []) as (WaResumen & { total: number })[];
+    return { filas, total: filas[0]?.total ?? 0 };
+  }
+
+  /** URL firmada (300s) para descargar el PDF de un recap — nunca acceso directo al bucket. */
+  private async invokeWaRecapGet(qs: string): Promise<Record<string, unknown>> {
+    const { data: sesion } = await this.supabase.client.auth.getSession();
+    const token = sesion.session?.access_token;
+    if (!token) throw new Error('Sesión inválida');
+    const res = await fetch(`${environment.supabaseUrl}/functions/v1/wa-recap?${qs}`, {
+      headers: { Authorization: `Bearer ${token}`, apikey: environment.supabaseAnonKey },
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error ?? 'No se pudo completar la solicitud.');
+    return json;
+  }
+
+  async descargarPdfRecap(path: string): Promise<string> {
+    const json = await this.invokeWaRecapGet(`modo=pdf&path=${encodeURIComponent(path)}`);
+    return json['url'] as string;
+  }
+
+  // ── DL-26 — "Probar envío": arma el recordatorio/recap SOLO para quien lo pide ─
+  async probarRecordatorio(): Promise<void> {
+    const { data, error } = await this.supabase.client.functions.invoke('wa-seguimiento', { body: { tarea: 'probar' } });
+    if (error) throw error;
+    const res = data as { error?: string } | null;
+    if (res?.error) throw new Error(res.error);
+  }
+
+  async probarRecap(grupoJid: string, periodo: 'dia' | 'semana' = 'dia'): Promise<void> {
+    const { data, error } = await this.supabase.client.functions.invoke('wa-recap', { body: { tarea: 'probar', grupo: grupoJid, periodo } });
+    if (error) throw error;
+    const res = data as { error?: string } | null;
+    if (res?.error) throw new Error(res.error);
   }
 
   // ── Archivo (búsqueda) ───────────────────────────────────────────────────
@@ -308,6 +469,22 @@ export class WaGruposService {
     const { data, error } = await this.supabase.client.from('wa_config').select('*').eq('id', true).maybeSingle();
     if (error) throw error;
     return data as WaConfig | null;
+  }
+
+  /** DL-27/F6.5 (P3) — admin-only, auditado (sgc.audit_log). Todos los campos
+   *  son requeridos a propósito: la pantalla manda el estado completo editado. */
+  async guardarConfigGlobal(cfg: {
+    modo_por_defecto: WaGrupoModo; max_respuestas_grupo_hora: number; budget_tokens_dia: number | null;
+    recordatorio_whatsapp: boolean; recap_minimo_mensajes: number;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.rpc('wa_config_set', {
+      p_modo_por_defecto: cfg.modo_por_defecto,
+      p_max_respuestas_grupo_hora: cfg.max_respuestas_grupo_hora,
+      p_budget_tokens_dia: cfg.budget_tokens_dia,
+      p_recordatorio_whatsapp: cfg.recordatorio_whatsapp,
+      p_recap_minimo_mensajes: cfg.recap_minimo_mensajes,
+    });
+    if (error) throw error;
   }
 
   /** `GET wa-ingest?modo=estado` — booleans de qué secretos están configurados

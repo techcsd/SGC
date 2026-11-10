@@ -6,12 +6,25 @@
     </div>
   </header>
 
-  <!-- Tabs -->
+  <!-- Tabs (DL6/F6.6 — orden por uso) -->
   <nav class="wa__tabs" role="tablist">
-    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'autorizados'" [attr.aria-selected]="tab() === 'autorizados'" (click)="irA('autorizados')">
-      <app-icon name="user" [size]="16" />
-      {{ 'Autorizados' | t }}
-      @if (autorizados().length) { <span class="wa__tab-count">{{ autorizados().length }}</span> }
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'hallazgos'" [attr.aria-selected]="tab() === 'hallazgos'" (click)="irA('hallazgos')">
+      <app-icon name="clipboard-check" [size]="16" />
+      {{ 'Hallazgos' | t }}
+      @if (hallazgosTotal()) { <span class="wa__tab-count">{{ hallazgosTotal() }}</span> }
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'resumenes'" [attr.aria-selected]="tab() === 'resumenes'" (click)="irA('resumenes')">
+      <app-icon name="file-text" [size]="16" />
+      {{ 'Resúmenes' | t }}
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'grupos'" [attr.aria-selected]="tab() === 'grupos'" (click)="irA('grupos')">
+      <app-icon name="users" [size]="16" />
+      {{ 'Grupos' | t }}
+      @if (grupos().length) { <span class="wa__tab-count">{{ grupos().length }}</span> }
+    </button>
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'archivo'" [attr.aria-selected]="tab() === 'archivo'" (click)="irA('archivo')">
+      <app-icon name="archive" [size]="16" />
+      {{ 'Archivo' | t }}
     </button>
     <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'actividad'" [attr.aria-selected]="tab() === 'actividad'" (click)="irA('actividad')">
       <app-icon name="message-circle" [size]="16" />
@@ -21,19 +34,10 @@
       <app-icon name="activity" [size]="16" />
       {{ 'Estado' | t }}
     </button>
-    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'grupos'" [attr.aria-selected]="tab() === 'grupos'" (click)="irA('grupos')">
-      <app-icon name="users" [size]="16" />
-      {{ 'Grupos' | t }}
-      @if (grupos().length) { <span class="wa__tab-count">{{ grupos().length }}</span> }
-    </button>
-    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'hallazgos'" [attr.aria-selected]="tab() === 'hallazgos'" (click)="irA('hallazgos')">
-      <app-icon name="clipboard-check" [size]="16" />
-      {{ 'Hallazgos' | t }}
-      @if (hallazgosVisibles().length) { <span class="wa__tab-count">{{ hallazgosVisibles().length }}</span> }
-    </button>
-    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'archivo'" [attr.aria-selected]="tab() === 'archivo'" (click)="irA('archivo')">
-      <app-icon name="archive" [size]="16" />
-      {{ 'Archivo' | t }}
+    <button type="button" role="tab" class="wa__tab" [class.active]="tab() === 'autorizados'" [attr.aria-selected]="tab() === 'autorizados'" (click)="irA('autorizados')">
+      <app-icon name="user" [size]="16" />
+      {{ 'Autorizados' | t }}
+      @if (autorizados().length) { <span class="wa__tab-count">{{ autorizados().length }}</span> }
     </button>
   </nav>
 
@@ -310,17 +314,83 @@
             }
           </div>
 
-          <!-- DB2 — configuración global, solo lectura (sin pantalla de edición esta ronda) -->
+          <!-- DL4/DL5 — familias de envíos automáticos de este módulo -->
+          <div class="wa__card">
+            <h3>{{ 'Recordatorios y recaps (envíos automáticos)' | t }}</h3>
+            @if (!familiasWa().length) {
+              <p class="wa__card-sub">{{ 'No se pudo consultar (requiere permiso de administración).' | t }}</p>
+            } @else {
+              <ul class="wa__kpis wa__kpis--col">
+                @for (f of familiasWa(); track f.familia) {
+                  <li>
+                    <span class="sgc-badge" [class.sgc-badge--success]="f.activo" [class.sgc-badge--neutral]="!f.activo">
+                      {{ (f.activo ? 'Encendida' : 'Apagada') | t }}
+                    </span>
+                    {{ f.nombre }}
+                    @if (f.ultimo_envio) { <span class="wa__card-sub">— {{ 'último: {fecha}' | t:{ fecha: fmtRelativa(f.ultimo_envio) } }}</span> }
+                    @else { <span class="wa__card-sub">— {{ 'sin envíos todavía' | t }}</span> }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <!-- DB2/DL-27 — configuración global del puente de grupos (editable, admin-only) -->
           @if (waConfig(); as cfg) {
             <div class="wa__card">
               <h3>{{ 'Configuración del puente de grupos' | t }}</h3>
-              <p class="wa__card-sub">{{ 'Modo por defecto: {m}' | t:{ m: (modoLabel[cfg.modo_por_defecto] | t) } }}</p>
-              <p class="wa__card-sub">{{ (cfg.dm_habilitado ? 'DM directo a Compa: habilitado' : 'DM directo a Compa: deshabilitado') | t }}</p>
-              <p class="wa__card-sub">{{ 'Máx. respuestas por grupo/hora: {n}' | t:{ n: cfg.max_respuestas_grupo_hora } }}</p>
-              @if (cfg.budget_tokens_dia) {
-                <p class="wa__card-sub">{{ 'Presupuesto diario de tokens: {n}' | t:{ n: cfg.budget_tokens_dia } }}</p>
-              } @else {
-                <p class="wa__card-sub">{{ 'Presupuesto diario de tokens: sin tope' | t }}</p>
+              @if (!configEditando()) {
+                <p class="wa__card-sub">{{ 'Modo por defecto: {m}' | t:{ m: (modoLabel[cfg.modo_por_defecto] | t) } }}</p>
+                <p class="wa__card-sub">{{ (cfg.dm_habilitado ? 'DM directo a Compa: habilitado' : 'DM directo a Compa: deshabilitado') | t }}</p>
+                <p class="wa__card-sub">{{ 'Máx. respuestas por grupo/hora: {n}' | t:{ n: cfg.max_respuestas_grupo_hora } }}</p>
+                @if (cfg.budget_tokens_dia) {
+                  <p class="wa__card-sub">{{ 'Presupuesto diario de tokens: {n}' | t:{ n: cfg.budget_tokens_dia } }}</p>
+                } @else {
+                  <p class="wa__card-sub">{{ 'Presupuesto diario de tokens: sin tope' | t }}</p>
+                }
+                <p class="wa__card-sub">{{ (cfg.recordatorio_whatsapp ? 'Recordatorio por WhatsApp privado: encendido' : 'Recordatorio por WhatsApp privado: apagado (sin plantilla aprobada)') | t }}</p>
+                <p class="wa__card-sub">{{ 'Mínimo de mensajes para el recap: {n}' | t:{ n: cfg.recap_minimo_mensajes } }}</p>
+                @if (esAdmin()) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEdicionConfig()">
+                    <app-icon name="edit" [size]="14" /> {{ 'Editar' | t }}
+                  </button>
+                }
+              } @else if (configBorrador(); as borrador) {
+                <label class="sgc-field">
+                  <span>{{ 'Modo por defecto' | t }}</span>
+                  <select class="sgc-input" [value]="borrador.modo_por_defecto"
+                          (change)="configBorrador.set({ ...borrador, modo_por_defecto: $any($event.target).value })">
+                    <option value="memoria">{{ modoLabel.memoria | t }}</option>
+                    <option value="consulta">{{ modoLabel.consulta | t }}</option>
+                    <option value="ignorar">{{ modoLabel.ignorar | t }}</option>
+                  </select>
+                </label>
+                <label class="sgc-field">
+                  <span>{{ 'Máx. respuestas por grupo/hora' | t }}</span>
+                  <input type="number" class="sgc-input" min="1" [ngModel]="borrador.max_respuestas_grupo_hora"
+                         (ngModelChange)="configBorrador.set({ ...borrador, max_respuestas_grupo_hora: +$event })" />
+                </label>
+                <label class="sgc-field">
+                  <span>{{ 'Presupuesto diario de tokens (vacío = sin tope)' | t }}</span>
+                  <input type="number" class="sgc-input" min="0" [ngModel]="borrador.budget_tokens_dia"
+                         (ngModelChange)="configBorrador.set({ ...borrador, budget_tokens_dia: $event === '' || $event === null ? null : +$event })" />
+                </label>
+                <label class="sgc-field">
+                  <span>{{ 'Mínimo de mensajes para generar el recap' | t }}</span>
+                  <input type="number" class="sgc-input" min="1" [ngModel]="borrador.recap_minimo_mensajes"
+                         (ngModelChange)="configBorrador.set({ ...borrador, recap_minimo_mensajes: +$event })" />
+                </label>
+                <label class="wa__check">
+                  <input type="checkbox" [checked]="borrador.recordatorio_whatsapp"
+                         (change)="configBorrador.set({ ...borrador, recordatorio_whatsapp: !borrador.recordatorio_whatsapp })" />
+                  {{ 'Recordatorio por WhatsApp privado (requiere plantilla aprobada de Meta)' | t }}
+                </label>
+                <div class="wa__form-actions">
+                  <button type="button" class="sgc-btn" (click)="cancelarEdicionConfig()">{{ 'Cancelar' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoConfig()" (click)="guardarConfig()">
+                    {{ (guardandoConfig() ? 'Guardando…' : 'Guardar') | t }}
+                  </button>
+                </div>
               }
             </div>
           }
@@ -332,12 +402,18 @@
   <!-- ═══════════════ GRUPOS (DB2) ═══════════════ -->
   @if (tab() === 'grupos') {
     <section class="wa__panel">
-      <p class="wa__hint">
-        {{ 'Modo por grupo —' | t }}
-        <strong>{{ 'Memoria' | t }}</strong>: {{ modoExplicacion.memoria | t }}
-        {{ 'Consulta' | t }}: {{ modoExplicacion.consulta | t }}
-        {{ 'Ignorar' | t }}: {{ modoExplicacion.ignorar | t }}
-      </p>
+      <div class="wa__panel-head">
+        <p class="wa__hint">
+          {{ 'Modo por grupo —' | t }}
+          <strong>{{ 'Memoria' | t }}</strong>: {{ modoExplicacion.memoria | t }}
+          {{ 'Consulta' | t }}: {{ modoExplicacion.consulta | t }}
+          {{ 'Ignorar' | t }}: {{ modoExplicacion.ignorar | t }}
+        </p>
+        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="probandoRecordatorio()" (click)="probarRecordatorio()">
+          <app-icon name="bell" [size]="14" />
+          {{ (probandoRecordatorio() ? 'Enviando…' : 'Probar mis recordatorios') | t }}
+        </button>
+      </div>
 
       @if (errorGrupos()) {
         <app-error-state [error]="errorGrupos()" pantalla="los grupos de WhatsApp" (retry)="cargarGrupos()" />
@@ -352,11 +428,7 @@
               <div class="wa__row-main">
                 <div class="wa__row-top">
                   <span class="wa__row-nombre">{{ g.nombre || g.jid }}</span>
-                  @if (g.aviso_enviado_en) {
-                    <span class="sgc-badge sgc-badge--success">{{ 'Aviso enviado' | t }}</span>
-                  } @else {
-                    <span class="sgc-badge sgc-badge--neutral">{{ 'Aviso pendiente' | t }}</span>
-                  }
+                  <span class="sgc-badge" [class]="avisoBadge(g).clase" [title]="avisoBadge(g).title">{{ avisoBadge(g).texto }}</span>
                 </div>
                 <div class="wa__row-meta">
                   @if (g.participantes) { <span>{{ 'Participantes: {n}' | t:{ n: g.participantes } }}</span> }
@@ -364,8 +436,23 @@
                   <span>{{ 'Últimos 7 días: {n}' | t:{ n: g.mensajes_7d } }}</span>
                   @if (g.ultimo_mensaje_en) { <span>{{ 'Último mensaje: {fecha}' | t:{ fecha: fmtRelativa(g.ultimo_mensaje_en) } }}</span> }
                   @else { <span>{{ 'Sin mensajes todavía' | t }}</span> }
+                  @if (ultimoRecapPorGrupo()[g.jid]; as fecha) {
+                    <span>{{ 'Último recap: {fecha}' | t:{ fecha: fmtRelativa(fecha) } }}</span>
+                  } @else {
+                    <span>{{ 'Sin recap todavía' | t }}</span>
+                  }
+                  @if (!g.proyecto_id) {
+                    <span class="sgc-badge sgc-badge--neutral">{{ 'Sin proyecto' | t }}</span>
+                  }
                 </div>
                 <p class="wa__card-sub">{{ modoExplicacion[g.modo] | t }}</p>
+                @if (g.responsables.length) {
+                  <div class="wa__chips">
+                    @for (id of g.responsables; track id) { <span class="sgc-badge sgc-badge--info">{{ nombreDe(id) }}</span> }
+                  </div>
+                } @else {
+                  <p class="wa__card-sub">{{ 'Sin responsables (los recordatorios caen a Tecnología).' | t }}</p>
+                }
               </div>
               <div class="wa__row-actions wa__row-actions--col">
                 <label class="sgc-field wa__grupo-select">
@@ -378,10 +465,66 @@
                 </label>
                 <app-filter-select [label]="'Proyecto' | t" [options]="proyectoOptions()" [value]="g.proyecto_id"
                                     [placeholder]="'Sin proyecto' | t" (valueChange)="cambiarProyectoGrupo(g, $event)" />
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirResponsables(g)">
+                  <app-icon name="users" [size]="14" /> {{ 'Responsables / recap' | t }}
+                </button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="probandoRecapJid() === g.jid" (click)="probarRecap(g)">
+                  <app-icon name="file-text" [size]="14" /> {{ (probandoRecapJid() === g.jid ? 'Enviando…' : 'Probar recap') | t }}
+                </button>
               </div>
             </article>
           }
         </div>
+      }
+    </section>
+  }
+
+  <!-- ═══════════════ RESÚMENES (DL5) ═══════════════ -->
+  @if (tab() === 'resumenes') {
+    <section class="wa__panel">
+      <p class="wa__hint">{{ 'Recap diario (6:00 p. m., L–S) y semanal (sábado 6:30 p. m.) por grupo, con PDF.' | t }}</p>
+
+      <div class="wa__filtros">
+        <app-filter-select [label]="'Periodo' | t" [options]="periodoOptions" [value]="filtroResumenPeriodo()" (valueChange)="setFiltroResumenPeriodo($event)" />
+        <app-filter-select [label]="'Grupo' | t" [options]="grupoOptions()" [value]="filtroResumenGrupo()" (valueChange)="setFiltroResumenGrupo($event)" />
+        <app-date-range-filter [desde]="filtroResumenDesde()" [hasta]="filtroResumenHasta()" (rangeChange)="setRangoResumen($event)" />
+      </div>
+
+      @if (errorResumenes()) {
+        <app-error-state [error]="errorResumenes()" pantalla="los resúmenes" (retry)="cargarResumenes()" />
+      } @else if (cargandoResumenes()) {
+        <app-skeleton variant="list" [rows]="4" />
+      } @else if (!resumenes().length) {
+        <p class="wa__empty">{{ 'Todavía no hay recaps generados. El diario corre L–S 6:00 p. m.; el semanal, sábado 6:30 p. m.' | t }}</p>
+      } @else {
+        <div class="wa__list" appStagger>
+          @for (r of resumenes(); track r.id) {
+            <article class="wa__row">
+              <div class="wa__row-main">
+                <div class="wa__row-top">
+                  <span class="wa__row-nombre">{{ r.grupo_nombre }}</span>
+                  <span class="sgc-badge sgc-badge--info">{{ (r.periodo === 'dia' ? 'Diario' : 'Semanal') | t }}</span>
+                  <span class="wa__card-sub">{{ fmtFecha(r.fecha) }}</span>
+                </div>
+                <p class="wa__hallazgo-resumen">{{ r.resumen || ('(sin resumen de IA)' | t) }}</p>
+                <div class="wa__row-meta">
+                  <span>{{ 'Mensajes cubiertos: {n}' | t:{ n: r.mensajes_cubiertos } }}</span>
+                  @if (r.decisiones.length) { <span>{{ '{n} decisión(es)/acuerdo(s)' | t:{ n: r.decisiones.length } }}</span> }
+                  @if (r.pendientes.length) { <span>{{ '{n} pendiente(s) abierto(s)' | t:{ n: r.pendientes.length } }}</span> }
+                </div>
+              </div>
+              <div class="wa__row-actions">
+                @if (r.pdf_path) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="descargandoPdfId() === r.id" (click)="descargarRecap(r)">
+                    <app-icon name="download" [size]="14" /> {{ (descargandoPdfId() === r.id ? 'Generando…' : 'Descargar PDF') | t }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+        <app-paginador id="wa.resumenes" [total]="resumenesTotal()" [page]="resumenesPagina()" (pageChange)="onResumenesPageChange($event)"
+                       [pageSize]="resumenesTamano()" (pageSizeChange)="onResumenesPageSizeChange($event)" />
       }
     </section>
   }
@@ -393,6 +536,7 @@
         <app-filter-select [label]="'Grupo' | t" [options]="grupoOptions()" [value]="filtroHallazgoGrupo()" (valueChange)="setFiltroHallazgoGrupo($event)" />
         <app-filter-select [label]="'Tipo' | t" [options]="hallazgoTipoOptions" [value]="filtroHallazgoTipo()" (valueChange)="setFiltroHallazgoTipo($event)" />
         <app-filter-select [label]="'Estado' | t" [options]="hallazgoEstadoOptions" [value]="filtroHallazgoEstado()" (valueChange)="setFiltroHallazgoEstado($event)" />
+        <app-filter-select [label]="'Seguimiento' | t" [options]="seguimientoOptions" [value]="filtroHallazgoSeguimiento()" (valueChange)="setFiltroHallazgoSeguimiento($event)" />
         <app-date-range-filter [desde]="filtroHallazgoDesde()" [hasta]="filtroHallazgoHasta()" (rangeChange)="setRangoHallazgo($event)" />
         <input class="sgc-input" type="search" [ngModel]="filtroHallazgoPersona()" (ngModelChange)="filtroHallazgoPersona.set($event)"
                [placeholder]="'Buscar por persona mencionada…' | t" />
@@ -425,7 +569,32 @@
                       {{ 'Confianza estimada: {pct}%' | t:{ pct: confianzaPct(h)! } }}
                     </span>
                   }
+                  @if (h.seguimiento !== 'sin') {
+                    <span class="sgc-badge" [class.sgc-badge--info]="seguimientoTono[h.seguimiento] === 'info'"
+                          [class.sgc-badge--success]="seguimientoTono[h.seguimiento] === 'success'"
+                          [class.sgc-badge--warning]="seguimientoTono[h.seguimiento] === 'warning'"
+                          [class.sgc-badge--danger]="seguimientoTono[h.seguimiento] === 'danger'"
+                          [class.sgc-badge--neutral]="seguimientoTono[h.seguimiento] === 'neutral'">
+                      {{ seguimientoLabel[h.seguimiento] | t }}
+                    </span>
+                    @if (h.recordatorios_enviados) {
+                      <span class="wa__card-sub">{{ '{n} recordatorio(s)' | t:{ n: h.recordatorios_enviados } }}</span>
+                    }
+                  }
                 </div>
+
+                <div class="wa__row-meta">
+                  <span>
+                    {{ 'Responsable:' | t }}
+                    @if (h.responsable_id) { <strong>{{ h.responsable_nombre }}</strong> } @else { {{ 'sin asignar' | t }} }
+                  </span>
+                  <button type="button" class="wa__btn-link" (click)="toggleEditarResponsable(h)">
+                    {{ (responsableEditando() === h.id ? 'Cancelar' : 'Cambiar') | t }}
+                  </button>
+                </div>
+                @if (responsableEditando() === h.id) {
+                  <app-user-picker [value]="h.responsable_id" [placeholder]="'Busca por nombre…' | t" (selected)="elegirResponsable(h, $event)" />
+                }
 
                 @if (editandoHallazgo() === h.id) {
                   <div class="wa__hallazgo-edit">
@@ -483,15 +652,25 @@
                     <app-icon name="x" [size]="14" /> {{ 'Descartar' | t }}
                   </button>
                 }
+                @if (h.seguimiento === 'activo' || h.seguimiento === 'vencido' || h.seguimiento === 'resuelto_probable') {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarResuelto(h)">
+                    <app-icon name="check-circle" [size]="14" /> {{ 'Ya está resuelto' | t }}
+                  </button>
+                }
                 @if (h.estado !== 'convertido' && h.estado !== 'descartado') {
                   <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" (click)="abrirConvertir(h)">
                     <app-icon name="external-link" [size]="14" /> {{ 'Convertir' | t }}
                   </button>
                 }
+                @if (h.convertido_a === 'tarea' && h.convertido_ref_id) {
+                  <a class="wa__btn-link" routerLink="/tareas" [attr.title]="'Tarea creada — revísala en Tareas' | t">{{ 'Ver en Tareas' | t }}</a>
+                }
               </div>
             </article>
           }
         </div>
+        <app-paginador id="wa.hallazgos" [total]="hallazgosTotal()" [page]="hallazgosPagina()" (pageChange)="onHallazgosPageChange($event)"
+                       [pageSize]="hallazgosTamano()" (pageSizeChange)="onHallazgosPageSizeChange($event)" />
       }
     </section>
   }
@@ -609,40 +788,113 @@
                      [confirmLabel]="'Quitar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
                      (confirmed)="confirmarEliminar()" (cancelled)="confirmEliminarAbierto.set(false)" />
 
-<!-- Drawer: convertir hallazgo (DB2) — manual a propósito, ver nota BS2 en whatsapp.ts -->
+<!-- Drawer: convertir hallazgo (DL-05) — 'tarea' crea de verdad; requisición/reunión siguen manual -->
 <app-form-drawer [open]="convertirOpen()" [title]="'Convertir hallazgo' | t" [dirty]="false" (closed)="convertirOpen.set(false)">
   @if (convertirHallazgoSel(); as h) {
     <div class="wa__form">
-      <p class="wa__hint">
-        {{ 'No hay un vínculo automático entre WhatsApp y Tareas/Requisiciones/Notas todavía: copia el texto, ábrelo donde corresponda, créalo ahí, y confirma aquí que ya quedó.' | t }}
-      </p>
       <label class="sgc-field">
-        <span>{{ 'Texto para pegar' | t }}</span>
-        <textarea class="sgc-input" rows="5" readonly [value]="textoParaConvertir()"></textarea>
-      </label>
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarTextoConvertir()">
-        <app-icon name="copy" [size]="14" />
-        {{ (convertirCopiado() ? 'Copiado' : 'Copiar texto') | t }}
-      </button>
-
-      <label class="sgc-field">
-        <span>{{ '¿Dónde lo vas a crear?' | t }}</span>
+        <span>{{ '¿En qué lo conviertes?' | t }}</span>
         <select class="sgc-input" [value]="convertirTipo()" (change)="convertirTipo.set($any($event.target).value)">
-          <option value="tarea">{{ 'Tarea' | t }}</option>
-          <option value="requisicion">{{ 'Requisición' | t }}</option>
-          <option value="nota">{{ 'Nota' | t }}</option>
+          <option value="tarea">{{ 'Tarea (se crea de verdad)' | t }}</option>
+          <option value="requisicion">{{ 'Requisición (manual)' | t }}</option>
+          <option value="reunion">{{ 'Reunión (manual)' | t }}</option>
         </select>
       </label>
-      <a class="sgc-btn sgc-btn--ghost" [routerLink]="convertirRuta[convertirTipo()]" target="_blank" rel="noopener">
-        <app-icon name="external-link" [size]="14" />
-        {{ 'Abrir ' | t }}{{ convertirLabel[convertirTipo()] | t }}
-      </a>
+
+      @if (convertirTipo() === 'tarea') {
+        @if (convertirTareaCreadaId()) {
+          <p class="wa__hint">{{ 'Tarea creada. Ya puedes cerrar y revisarla en Tareas.' | t }}</p>
+          <a class="sgc-btn sgc-btn--ghost" routerLink="/tareas">
+            <app-icon name="external-link" [size]="14" /> {{ 'Ver en Tareas' | t }}
+          </a>
+        } @else {
+          <p class="wa__hint">{{ 'Se crea una tarea real en sgc.tareas con este resumen.' | t }}</p>
+          <label class="sgc-field">
+            <span>{{ 'Asignar a (opcional — por defecto el responsable actual)' | t }}</span>
+            <app-user-picker [value]="convertirAsignadoA()?.usuario_id ?? null" [placeholder]="'Busca por nombre…' | t" (selected)="convertirAsignadoA.set($event)" />
+          </label>
+          <label class="sgc-field">
+            <span>{{ 'Fecha límite (opcional)' | t }}</span>
+            <input type="date" class="sgc-input" [ngModel]="convertirFechaLimite()" (ngModelChange)="convertirFechaLimite.set($event)" />
+          </label>
+        }
+      } @else {
+        <p class="wa__hint">
+          {{ 'No hay un vínculo automático entre WhatsApp y este módulo todavía: copia el texto, ábrelo, créalo ahí, y confirma aquí que ya quedó.' | t }}
+        </p>
+        <label class="sgc-field">
+          <span>{{ 'Texto para pegar' | t }}</span>
+          <textarea class="sgc-input" rows="5" readonly [value]="textoParaConvertir()"></textarea>
+        </label>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarTextoConvertir()">
+          <app-icon name="copy" [size]="14" />
+          {{ (convertirCopiado() ? 'Copiado' : 'Copiar texto') | t }}
+        </button>
+        <a class="sgc-btn sgc-btn--ghost" [routerLink]="convertirDestinoRuta[convertirTipo()]" target="_blank" rel="noopener">
+          <app-icon name="external-link" [size]="14" />
+          {{ 'Abrir ' | t }}{{ convertirDestinoLabel[convertirTipo()] | t }}
+        </a>
+      }
 
       <div class="wa__form-actions">
         <button type="button" class="sgc-btn" (click)="convertirOpen.set(false)">{{ 'Cerrar' | t }}</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarConvertido()">
-          <app-icon name="check" [size]="14" />
-          {{ 'Ya lo convertí' | t }}
+        @if (convertirTipo() !== 'tarea' || !convertirTareaCreadaId()) {
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="convertirGuardando()" (click)="confirmarConvertido()">
+            <app-icon name="check" [size]="14" />
+            {{ (convertirGuardando() ? 'Guardando…' : (convertirTipo() === 'tarea' ? 'Crear tarea' : 'Ya lo convertí')) | t }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+<!-- Drawer: responsables + destinatarios del recap de un grupo (DL3/DL5/F6.1) -->
+<app-form-drawer [open]="responsablesOpen()" [title]="'Responsables y destinatarios del recap' | t" [dirty]="false" (closed)="responsablesOpen.set(false)">
+  @if (grupoSel(); as g) {
+    <div class="wa__form">
+      <p class="wa__hint">{{ 'Grupo: {nombre}' | t:{ nombre: g.nombre || g.jid } }}</p>
+
+      <label class="sgc-field">
+        <span>{{ 'Responsables (a quién recordarle si no hay una mención única en el grupo)' | t }}</span>
+        <app-user-picker [value]="null" [placeholder]="'Agregar responsable…' | t" (selected)="agregarResponsable($event)" />
+      </label>
+      @if (responsablesBorrador().length) {
+        <div class="wa__chips">
+          @for (id of responsablesBorrador(); track id) {
+            <span class="sgc-badge sgc-badge--info">
+              {{ nombreDe(id) }}
+              <button type="button" class="wa__chip-quitar" [attr.aria-label]="'Quitar' | t" (click)="quitarResponsable(id)">×</button>
+            </span>
+          }
+        </div>
+      } @else {
+        <p class="wa__card-sub">{{ 'Sin responsables: cae a Tecnología.' | t }}</p>
+      }
+
+      <label class="sgc-field">
+        <span>{{ 'Destinatarios del recap (PDF por correo)' | t }}</span>
+        <app-user-picker [value]="null" [placeholder]="'Agregar destinatario…' | t" (selected)="agregarDestinatario($event)" />
+      </label>
+      @if (destinatariosBorrador().length) {
+        <div class="wa__destinatarios">
+          @for (d of destinatariosBorrador(); track d.usuario_id) {
+            <div class="wa__destinatario-row">
+              <span>{{ nombreDe(d.usuario_id) }}</span>
+              <label class="wa__check"><input type="checkbox" [checked]="d.recap_dia" (change)="toggleDestinatarioCampo(d.usuario_id, 'recap_dia')" /> {{ 'Diario' | t }}</label>
+              <label class="wa__check"><input type="checkbox" [checked]="d.recap_semana" (change)="toggleDestinatarioCampo(d.usuario_id, 'recap_semana')" /> {{ 'Semanal' | t }}</label>
+              <button type="button" class="wa__chip-quitar" [attr.aria-label]="'Quitar' | t" (click)="quitarDestinatario(d.usuario_id)">×</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="wa__card-sub">{{ 'Sin destinatarios: nadie recibe el PDF de este grupo todavía.' | t }}</p>
+      }
+
+      <div class="wa__form-actions">
+        <button type="button" class="sgc-btn" (click)="responsablesOpen.set(false)">{{ 'Cancelar' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoResponsables()" (click)="guardarResponsables()">
+          {{ (guardandoResponsables() ? 'Guardando…' : 'Guardar') | t }}
         </button>
       </div>
     </div>

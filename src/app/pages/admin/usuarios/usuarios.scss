@@ -111,6 +111,22 @@
     border-radius: var(--sgc-radius);
     padding: 12px 16px;
     font-size: 13px;
+
+    span { flex: 1; }
+  }
+
+  // DL-36 — descartar el aviso de una acción fallida sin esconder la tabla.
+  &__error-cerrar {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.7;
+
+    &:hover { opacity: 1; }
   }
 
   &__table-wrap {

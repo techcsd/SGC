@@ -331,8 +331,14 @@ export class RolesService {
     return (data ?? []) as unknown as Rol[];
   }
 
-  async update(id: number, payload: RolUpdatePayload): Promise<void> {
-    const { error } = await this.supabase.client
+  /**
+   * DL-34 — guardado VERIFICABLE: relee la fila con `.select().single()` (0
+   * filas afectadas por RLS → `.single()` falla, ya no queda en silencio) y
+   * compara lo guardado contra lo enviado. El editor debe reasignar su estado
+   * con el valor devuelto aquí, no asumir que lo que mostraba ya quedó guardado.
+   */
+  async update(id: number, payload: RolUpdatePayload): Promise<Pick<Rol, 'id' | 'modulos' | 'permisos'>> {
+    const { data, error } = await this.supabase.client
       .from('roles')
       .update({
         nombre: payload.nombre,
@@ -341,9 +347,22 @@ export class RolesService {
         descripcion: payload.descripcion ?? null,
         comparte_ubicacion: payload.comparte_ubicacion ?? false,
       })
-      .eq('id', id);
+      .eq('id', id)
+      .select('id, modulos, permisos')
+      .single();
 
-    if (error) throw new Error(error.message);
+    if (error || !data) {
+      throw new Error('No se guardó: revisa tus permisos de administrador.');
+    }
+
+    const mismosModulos =
+      JSON.stringify([...(data.modulos ?? [])].sort()) === JSON.stringify([...(payload.modulos ?? [])].sort());
+    const mismosPermisos = JSON.stringify(data.permisos ?? {}) === JSON.stringify(payload.permisos ?? {});
+    if (!mismosModulos || !mismosPermisos) {
+      throw new Error('No se guardó: revisa tus permisos de administrador.');
+    }
+
+    return data as Pick<Rol, 'id' | 'modulos' | 'permisos'>;
   }
 
   async create(payload: RolCreatePayload): Promise<Rol> {

@@ -58,13 +58,27 @@
   <app-skeleton variant="table" [rows]="8" />
 }
 
-<!-- Error -->
+<!-- Error de carga (esconde la tabla: no hay datos que mostrar) -->
 @if (error()) {
   <div class="admin-usuarios__error" role="alert">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
     </svg>
     {{ error() }}
+  </div>
+}
+
+<!-- DL-36 — Error de una ACCIÓN (entrar como/eliminar/marca de prueba): descartable,
+     NUNCA esconde la tabla (los datos ya cargados siguen ahí). -->
+@if (accionError()) {
+  <div class="admin-usuarios__error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    <span>{{ accionError() }}</span>
+    <button type="button" class="admin-usuarios__error-cerrar" aria-label="Cerrar aviso" (click)="accionError.set('')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
   </div>
 }
 
