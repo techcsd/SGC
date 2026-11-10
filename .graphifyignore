@@ -1,0 +1,29 @@
+# Secrets - never index
+.env
+.env.*
+*.env
+*.local
+*API-KEY*
+*api_key*
+*.pem
+*.key
+keystores/
+# Build / generated / noise
+node_modules/
+dist/
+dist-store/
+.angular/
+.vercel/
+test-results/
+playwright-report/
+scratchpad/
+android/
+ios-templates/
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.lock
+package-lock.json
+release-notes.json

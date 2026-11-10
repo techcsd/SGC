@@ -100,3 +100,6 @@ deno.lock
 
 # CodeGraph (indice local, nunca en git)
 .codegraph/
+
+# Graphify
+/graphify-out/
