@@ -1,5 +1,28 @@
 # HANDOFF — SGC
 
+## ✅ Graphify (09-nov-2026) — knowledge graph wired into Claude Code, SGC + csd-app — EN AMBOS REPOS (SGC `11e0d8a6`→`main`, csd-app `5468d72`→`dev`)
+
+**TL;DR:** Graphify (CLI de grafo de dependencias por AST) instalado y registrado con Claude Code en ambos repos — hooks git de auto-rebuild, strict mode ON, `graphify-out/` gitignored. Completo, commiteado y pusheado en ambos. Nada pendiente.
+
+**Hecho esta sesión:**
+- Arreglado el venv roto de `uv tool graphifyy` (shims en `~/.local/bin` apuntaban a un venv que había desaparecido de `~/.local/share/uv` — "uv trampoline failed to canonicalize script path" en todo comando). Fix: `uv tool install "graphifyy[sql]" --force` (solo toca el binario global, nada del repo).
+- `graphify claude install --project` + `graphify hook install` + `graphify install --project --strict` en ambos repos — `CLAUDE.md` (raíz + `.claude/`) con sección `## graphify` añadida (apéndice, nada sobrescrito — verificado con `git diff`), `.claude/settings.json` nuevo con hooks PreToolUse (Bash|Grep, Read|Glob) + SessionStart, git hooks post-commit/checkout/merge/rewrite instalados, merge driver para `graphify-out/graph.json` en `.gitattributes`. `.claude/settings.local.json` (883+ reglas de permisos en SGC) intacto — confirmado antes y después.
+- `/graphify-out/` añadido a `.gitignore` en ambos — nunca se commitea (se regenera en segundos; se reescribe completo en cada build → diff ruidoso si se commiteara).
+- Grafo reconstruido: SGC 16,653 nodos / 34,962 aristas / 946 comunidades; csd-app 9,911 nodos / 22,948 aristas / 644 comunidades. Grafo cruzado fusionado en `C:\Users\xavie\Desktop\X Dev\graphify-merged\merged-graph.json` (26,555 nodos / 57,909 aristas) — fuera de ambos repos, no versionado.
+- **Parche manual en los 4 git hooks de cada repo** (`export GRAPHIFY_VIZ_NODE_LIMIT=0` justo después de `export PYTHONHASHSEED=0`): los auto-rebuilds (commit/checkout/merge/rewrite) ya NO generan `graph.html` (el visual recargaba la GPU al explorar/zoom) — solo refrescan `graph.json`+`GRAPH_REPORT.md`. `graph.html` se sigue generando a mano con `graphify cluster-only .` cuando se quiera ver.
+- Commiteado y pusheado: SGC `11e0d8a6`→`origin/main` (junto con un commit preexistente no relacionado, `3ace692d` WhatsApp PDF extraction — confirmado con Xaviel antes de pushear, no es de esta sesión); csd-app `5468d72`→`origin/dev`.
+
+**Gotchas:**
+- El parche `GRAPHIFY_VIZ_NODE_LIMIT=0` vive SOLO en `.git/hooks/*` de cada repo (no está en el repo versionado, no sobrevive un clone fresco). Si en el futuro se vuelve a correr `graphify hook install` (p.ej. tras actualizar la versión de graphify), los hooks se regeneran desde la plantilla y el parche se pierde silenciosamente (`graph.html` volvería a generarse en cada commit). Reaplicar: insertar `export GRAPHIFY_VIZ_NODE_LIMIT=0` después de `export PYTHONHASHSEED=0` en los 4 hooks (`post-commit`, `post-checkout`, `post-merge`, `post-rewrite`) de cada repo.
+- `git pull` NO dispara ningún hook de graphify — tras un pull, correr `graphify update .` a mano para refrescar el grafo.
+- Strict mode activo en ambos repos: los hooks PreToolUse empujan a correr `graphify query/explain/path` antes del primer Read/Grep de la sesión (se dispara una vez por sesión, informativo no bloqueante tras la primera consulta).
+- csd-app: 21% de los archivos (sobre todo `.scss`/plantillas HTML) no tienen extractor → faltan del grafo por completo. Los `.md` de docs tampoco están en ningún repo (requeriría `/graphify ./docs --update`, extracción semántica con costo de LLM — no corrida).
+
+**Verificar al retomar:**
+- `graphify --version` (si falla con "trampoline failed to canonicalize script path" → repetir el fix de arriba)
+- `git log --oneline -1` en cada repo debe mostrar el commit de graphify ya aplicado
+- `graphify query "<algo del proyecto>"` debe devolver resultados reales (si no, correr `graphify update .` primero)
+
 ## ✅ Hotfix DJ (09-nov-2026) — trigger publicada-única en `sgc.app_versiones` — EN DEV y PROD (commit `11d697c0`)
 
 **Cierre del cabo suelto que dejó el hijo (csd-app) tras el incidente de crash 2.66.0/2.66.1**: el hijo dejó
