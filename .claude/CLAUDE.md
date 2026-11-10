@@ -69,3 +69,7 @@ Xaviel es el único dev, pero puede (o Claude Code puede, en una ronda larga) ab
 - **Al empezar cualquier ronda:** correr `git status` + `git worktree list` (y revisar las ramas `feature/*` recientes) antes de tocar nada.
 - Si `git status` muestra cambios sin commitear que **no son tuyos de esta sesión**, o el HANDOFF/otro indicio dice que hay otra sesión trabajando: **parar y avisarle a Xaviel**, no seguir ni intentar "arreglarlo" solo.
 - **Nunca `checkout`/`reset`/`clean` sobre una carpeta que tenga trabajo de otra sesión** sin confirmar primero qué es ese trabajo.
+
+# graphify
+- **graphify** (`.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
