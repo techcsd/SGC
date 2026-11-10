@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ajustarCorreoResend } from "../_shared/entorno.ts";
-import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
+import { construirPdfSecciones } from "../_shared/pdf-recap.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
 
@@ -43,42 +43,21 @@ function rend(n: unknown): string { return n == null ? "datos insuficientes" : `
 type Any = any;
 
 // ── PDF — cada sección es una tabla (título + columnas + filas). BB9: el PDF
-// trae el DETALLE (la matriz completa, la lista de pendientes con su edad). ──
+// trae el DETALLE (la matriz completa, la lista de pendientes con su edad).
+// La parte genérica (tablas/paginado) vive en ../_shared/pdf-recap.ts (DL5,
+// reusada también por wa-recap) — aquí solo se arma el encabezado propio. ──
 interface Seccion { titulo: string; cols: string[]; rows: string[][]; nota?: string }
 
 async function buildPdf(anio: number, semana: number, ini: string, fin: string, secciones: Seccion[]): Promise<Uint8Array> {
-  const doc = await PDFDocument.create();
-  const font = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const W = 842, H = 595, M = 40; // A4 apaisado
-  const primary = rgb(1, 0.37, 0), dark = rgb(0.12, 0.15, 0.18), muted = rgb(0.4, 0.45, 0.5);
-  let page = doc.addPage([W, H]);
-  let y = H - M;
-  const clip = (t: string, max: number) => (t.length > max ? t.slice(0, max - 1) + "…" : t);
-
-  page.drawText("Resumen semanal de operaciones", { x: M, y, size: 16, font: bold, color: primary }); y -= 20;
-  page.drawText(`Semana ${semana} / ${anio}  ·  ${fmtDate(ini)} – ${fmtDate(fin)}`, { x: M, y, size: 10, font, color: muted }); y -= 26;
-
-  for (const sec of secciones) {
-    if (y < M + 60) { page = doc.addPage([W, H]); y = H - M; }
-    page.drawText(sec.titulo, { x: M, y, size: 12, font: bold, color: dark }); y -= 16;
-    if (sec.nota) { page.drawText(clip(sec.nota, 150), { x: M, y, size: 8.5, font, color: muted }); y -= 13; }
-    const colW = (W - 2 * M) / Math.max(1, sec.cols.length);
-    const maxChars = Math.max(8, Math.floor(colW / 5.2));
-    const header = () => {
-      sec.cols.forEach((c, i) => page.drawText(clip(c, maxChars), { x: M + i * colW, y, size: 8.5, font: bold, color: dark }));
-      y -= 13;
-    };
-    header();
-    if (!sec.rows.length) { page.drawText("Sin datos esta semana.", { x: M, y, size: 8.5, font, color: muted }); y -= 12; }
-    for (const row of sec.rows) {
-      if (y < M + 20) { page = doc.addPage([W, H]); y = H - M; header(); }
-      row.forEach((cell, i) => page.drawText(clip(cell ?? "", maxChars), { x: M + i * colW, y, size: 8, font, color: dark }));
-      y -= 11;
-    }
-    y -= 16;
-  }
-  return await doc.save();
+  return construirPdfSecciones(
+    {
+      tituloPortada: "Resumen semanal de operaciones",
+      subtituloPortada: `Semana ${semana} / ${anio}  ·  ${fmtDate(ini)} – ${fmtDate(fin)}`,
+      vacioTexto: "Sin datos esta semana.",
+      piePagina: false, // preserva el PDF existente tal cual (sin cambio de comportamiento).
+    },
+    secciones,
+  );
 }
 
 // ── Estilos inline para el HTML del correo ──────────────────────────────────

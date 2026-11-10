@@ -21,13 +21,18 @@ import {
   WaMensajeBusqueda,
   WaMensajeTipo,
   WaHallazgo,
+  WaHallazgoV2,
   WaHallazgoTipo,
   WaHallazgoEstado,
+  WaSeguimiento,
+  WaResumen,
   WaListenerEstado,
   WaEvento,
   WaUsoIaDia,
   WaConfig,
 } from '../../../../shared/services/wa-grupos.service';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
+import { EnviosAutomaticosService, EnvioAutomatico } from '../../../../shared/services/envios-automaticos.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { parsearChatWhatsapp, WaChatImportResultado } from '../../../../shared/utils/wa-chat-import.util';
@@ -54,7 +59,8 @@ import {
   daysAgoIso,
 } from '../../../../shared/utils/fecha.util';
 
-type Tab = 'autorizados' | 'actividad' | 'estado' | 'grupos' | 'hallazgos' | 'archivo';
+// DL6 (F6.6) — orden por uso: Hallazgos · Resúmenes · Grupos · Archivo · Actividad · Estado · Autorizados.
+type Tab = 'hallazgos' | 'resumenes' | 'grupos' | 'archivo' | 'actividad' | 'estado' | 'autorizados';
 
 /** DB2 — etiquetas/explicaciones de los 3 modos de un grupo (AT11/BS2: nunca un
  *  valor crudo sin traducir al humano que lo va a tocar). */
@@ -86,6 +92,24 @@ const HALLAZGO_ESTADO_LABEL: Record<WaHallazgoEstado, string> = {
   convertido: 'Convertido',
 };
 
+/** DL3 — estado de seguimiento del hallazgo (recordatorios/cierre). */
+const SEGUIMIENTO_LABEL: Record<WaSeguimiento, string> = {
+  sin: 'Sin seguimiento',
+  activo: 'Activo (recordando)',
+  resuelto_probable: 'Probablemente resuelto',
+  resuelto: 'Resuelto',
+  vencido: 'Vencido',
+  pausado: 'Pausado',
+};
+const SEGUIMIENTO_TONO: Record<WaSeguimiento, 'success' | 'info' | 'warning' | 'danger' | 'neutral'> = {
+  sin: 'neutral',
+  activo: 'info',
+  resuelto_probable: 'warning',
+  resuelto: 'success',
+  vencido: 'danger',
+  pausado: 'neutral',
+};
+
 const LISTENER_ESTADO_LABEL: Record<WaListenerEstado['estado'], string> = {
   conectado: 'Conectado',
   esperando_qr: 'Esperando QR',
@@ -106,18 +130,6 @@ const MEDIA_ICON: Record<WaMensajeTipo, IconName> = {
   ubicacion: 'map',
   contacto: 'users',
   otro: 'paperclip',
-};
-
-type ConvertirTipo = 'tarea' | 'requisicion' | 'nota';
-const CONVERTIR_RUTA: Record<ConvertirTipo, string> = {
-  tarea: '/tareas/gestion',
-  requisicion: '/inventario/requisiciones',
-  nota: '/notas/nueva',
-};
-const CONVERTIR_LABEL: Record<ConvertirTipo, string> = {
-  tarea: 'Tareas',
-  requisicion: 'Requisiciones',
-  nota: 'Notas',
 };
 
 /** Resumen por estado, usado solo para los no-desarrolladores (BS2): nunca el
@@ -171,6 +183,7 @@ const ESTADO_TONO: Record<WhatsappMensajeEstado, 'success' | 'info' | 'warning' 
     FileUpload,
     BarChart,
     StaggerDirective,
+    Paginador,
   ],
   templateUrl: './whatsapp.html',
   styleUrl: './whatsapp.scss',
@@ -180,6 +193,7 @@ export class TecWhatsapp implements OnInit {
   private service = inject(WhatsappCompaService);
   private waService = inject(WaGruposService);
   private proyectosService = inject(ProyectosService);
+  private enviosService = inject(EnviosAutomaticosService);
   private toast = inject(ToastService);
   private users = inject(UserService);
   private i18n = inject(I18nService);
@@ -194,12 +208,37 @@ export class TecWhatsapp implements OnInit {
 
   readonly modoLabel = MODO_LABEL;
   readonly modoExplicacion = MODO_EXPLICACION;
+
+  /** DL-04 — texto/`title` de la insignia de aviso de privacidad (qué significa, quién lo publica). */
+  avisoBadge(g: WaGrupo): { clase: string; texto: string; title: string } {
+    if (g.modo === 'ignorar') {
+      return {
+        clase: 'sgc-badge--neutral',
+        texto: this.i18n.t('No aplica (grupo ignorado)'),
+        title: this.i18n.t('Este grupo está en modo Ignorar: no se guarda nada de lo que se escriba.'),
+      };
+    }
+    if (g.aviso_enviado_en) {
+      return {
+        clase: 'sgc-badge--success',
+        texto: this.i18n.t('Aviso de privacidad publicado'),
+        title: this.i18n.t('Publicado el {fecha}.', { fecha: this.fmtFechaHora(g.aviso_enviado_en) }),
+      };
+    }
+    return {
+      clase: 'sgc-badge--neutral',
+      texto: this.i18n.t('Aviso de privacidad sin confirmar'),
+      title: this.i18n.t(
+        'Compa todavía no ha confirmado que avisó al grupo de que guarda los mensajes. Lo publica el listener de WhatsApp.',
+      ),
+    };
+  }
   readonly hallazgoTipoLabel = HALLAZGO_TIPO_LABEL;
   readonly hallazgoEstadoLabel = HALLAZGO_ESTADO_LABEL;
+  readonly seguimientoLabel = SEGUIMIENTO_LABEL;
+  readonly seguimientoTono = SEGUIMIENTO_TONO;
   readonly listenerEstadoLabel = LISTENER_ESTADO_LABEL;
   readonly mediaIconMap = MEDIA_ICON;
-  readonly convertirRuta = CONVERTIR_RUTA;
-  readonly convertirLabel = CONVERTIR_LABEL;
   readonly LIMITE_IMPORT_BYTES = 20 * 1024 * 1024;
 
   esDesarrollador = this.users.esDesarrollador;
@@ -208,7 +247,7 @@ export class TecWhatsapp implements OnInit {
   // el componente (el perfil puede terminar de cargar después).
   esAdmin = computed(() => this.users.hasRole('admin'));
 
-  tab = signal<Tab>('autorizados');
+  tab = signal<Tab>('hallazgos');
 
   ngOnInit() {
     void this.cargarAutorizados();
@@ -216,6 +255,7 @@ export class TecWhatsapp implements OnInit {
     void this.cargarEstado();
     void this.cargarGrupos();
     void this.cargarHallazgos();
+    void this.cargarResumenes();
   }
 
   irA(t: Tab) {
@@ -431,9 +471,49 @@ export class TecWhatsapp implements OnInit {
   waEventos = signal<WaEvento[]>([]);
   waUsoIaDiario = signal<WaUsoIaDia[]>([]);
   waConfig = signal<WaConfig | null>(null);
+  // ── DL-27/F6.5 (P3) — config editable, admin-only ────────────────────────
+  configEditando = signal(false);
+  configBorrador = signal<{
+    modo_por_defecto: WaGrupoModo; max_respuestas_grupo_hora: number;
+    budget_tokens_dia: number | null; recordatorio_whatsapp: boolean; recap_minimo_mensajes: number;
+  } | null>(null);
+  guardandoConfig = signal(false);
+
+  abrirEdicionConfig() {
+    const c = this.waConfig();
+    if (!c) return;
+    this.configBorrador.set({
+      modo_por_defecto: c.modo_por_defecto, max_respuestas_grupo_hora: c.max_respuestas_grupo_hora,
+      budget_tokens_dia: c.budget_tokens_dia, recordatorio_whatsapp: c.recordatorio_whatsapp,
+      recap_minimo_mensajes: c.recap_minimo_mensajes,
+    });
+    this.configEditando.set(true);
+  }
+  cancelarEdicionConfig() {
+    this.configEditando.set(false);
+    this.configBorrador.set(null);
+  }
+  async guardarConfig() {
+    const borrador = this.configBorrador();
+    if (!borrador) return;
+    this.guardandoConfig.set(true);
+    try {
+      await this.waService.guardarConfigGlobal(borrador);
+      this.waConfig.update((c) => (c ? { ...c, ...borrador } : c));
+      this.toast.success(this.i18n.t('Listo'), this.i18n.t('Configuración guardada.'));
+      this.configEditando.set(false);
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar la configuración'));
+    } finally {
+      this.guardandoConfig.set(false);
+    }
+  }
   /** Secretos de `wa-ingest`/`wa-extract` (memoria de grupos) — DISTINTO del
    *  `estadoEdge()` de arriba, que es el de `whatsapp-webhook` (canal 1:1). */
   waSecretos = signal<Record<string, boolean> | null>(null);
+  /** DL4/DL5 — familias de envíos automáticos de este módulo (encendida/apagada + último envío). */
+  readonly FAMILIAS_WA = ['wa_recordatorios', 'wa_recap_diario', 'wa_recap_semanal'] as const;
+  familiasWa = signal<EnvioAutomatico[]>([]);
 
   async cargarEstado() {
     this.cargandoEstado.set(true);
@@ -444,7 +524,7 @@ export class TecWhatsapp implements OnInit {
       // features distintas que comparten esta pantalla -- que una falle (p.
       // ej. el canal Cloud API nunca se terminó de configurar) no debe
       // tumbar/ocultar los datos del otro, que sí pueden estar funcionando.
-      const [edge, resumen, listeners, eventos, usoIa, config, waSecretos] = await Promise.all([
+      const [edge, resumen, listeners, eventos, usoIa, config, waSecretos, familias] = await Promise.all([
         this.service.estadoEdge().catch(() => null),
         this.service.resumenEstado().catch(() => null),
         this.waService.listenerEstado().catch(() => []),
@@ -452,6 +532,7 @@ export class TecWhatsapp implements OnInit {
         this.waService.usoIaDiario(daysAgoIso(13), todayIso()).catch(() => []),
         this.waService.configGlobal().catch(() => null),
         this.waService.secretosEstado().catch(() => null),
+        this.enviosService.listar().catch(() => []),
       ]);
       this.estadoEdge.set(edge);
       this.estadoResumen.set(resumen);
@@ -460,6 +541,7 @@ export class TecWhatsapp implements OnInit {
       this.waUsoIaDiario.set(usoIa);
       this.waConfig.set(config);
       this.waSecretos.set(waSecretos);
+      this.familiasWa.set(familias.filter((f) => (this.FAMILIAS_WA as readonly string[]).includes(f.familia)));
     } catch (e) {
       this.errorEstado.set(e);
     } finally {
@@ -511,22 +593,125 @@ export class TecWhatsapp implements OnInit {
   cargandoGrupos = signal(true);
   errorGrupos = signal<unknown>(null);
   proyectos = signal<Proyecto[]>([]);
+  /** DL5/F6.1 — fecha del último recap por grupo ("Último recap: …"). */
+  ultimoRecapPorGrupo = signal<Record<string, string>>({});
 
   async cargarGrupos() {
     this.cargandoGrupos.set(true);
     this.errorGrupos.set(null);
     try {
-      const [grupos, proyectos] = await Promise.all([
+      const [grupos, proyectos, ultimoRecap] = await Promise.all([
         this.waService.listarGrupos(),
         // Best-effort: el picker de proyecto es un plus, no debe tumbar la lista de grupos.
         this.proyectosService.getAll().catch(() => []),
+        this.waService.ultimoRecapPorGrupo().catch(() => ({})),
       ]);
       this.grupos.set(grupos);
       this.proyectos.set(proyectos);
+      this.ultimoRecapPorGrupo.set(ultimoRecap);
+      const nombres = await this.waService
+        .resolverNombres(grupos.flatMap((g) => g.responsables))
+        .catch(() => ({}) as Record<string, string>);
+      this.nombresUsuarios.update((m) => ({ ...m, ...nombres }));
     } catch (e) {
       this.errorGrupos.set(e);
     } finally {
       this.cargandoGrupos.set(false);
+    }
+  }
+
+  /** Cache de id→nombre para chips de responsables/destinatarios (DL3/DL5). */
+  nombresUsuarios = signal<Record<string, string>>({});
+  nombreDe(id: string): string {
+    return this.nombresUsuarios()[id] ?? id;
+  }
+
+  // ── Responsables + destinatarios de recap del grupo (drawer, F6.1) ───────
+  responsablesOpen = signal(false);
+  grupoSel = signal<WaGrupo | null>(null);
+  responsablesBorrador = signal<string[]>([]);
+  destinatariosBorrador = signal<{ usuario_id: string; recap_dia: boolean; recap_semana: boolean }[]>([]);
+  guardandoResponsables = signal(false);
+
+  async abrirResponsables(g: WaGrupo) {
+    this.grupoSel.set(g);
+    this.responsablesBorrador.set([...g.responsables]);
+    this.destinatariosBorrador.set([]);
+    this.responsablesOpen.set(true);
+    try {
+      const dest = await this.waService.destinatariosRecap(g.jid);
+      this.destinatariosBorrador.set(dest);
+      const nombres = await this.waService.resolverNombres([...g.responsables, ...dest.map((d) => d.usuario_id)]);
+      this.nombresUsuarios.update((m) => ({ ...m, ...nombres }));
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudieron cargar los destinatarios del recap'));
+    }
+  }
+
+  agregarResponsable(sel: UserPickerSelection) {
+    if (!sel.usuario_id || this.responsablesBorrador().includes(sel.usuario_id)) return;
+    this.responsablesBorrador.update((ids) => [...ids, sel.usuario_id!]);
+    this.nombresUsuarios.update((m) => ({ ...m, [sel.usuario_id!]: sel.nombre }));
+  }
+  quitarResponsable(id: string) {
+    this.responsablesBorrador.update((ids) => ids.filter((x) => x !== id));
+  }
+
+  agregarDestinatario(sel: UserPickerSelection) {
+    if (!sel.usuario_id || this.destinatariosBorrador().some((d) => d.usuario_id === sel.usuario_id)) return;
+    this.destinatariosBorrador.update((ds) => [...ds, { usuario_id: sel.usuario_id!, recap_dia: true, recap_semana: true }]);
+    this.nombresUsuarios.update((m) => ({ ...m, [sel.usuario_id!]: sel.nombre }));
+  }
+  quitarDestinatario(id: string) {
+    this.destinatariosBorrador.update((ds) => ds.filter((d) => d.usuario_id !== id));
+  }
+  toggleDestinatarioCampo(id: string, campo: 'recap_dia' | 'recap_semana') {
+    this.destinatariosBorrador.update((ds) => ds.map((d) => (d.usuario_id === id ? { ...d, [campo]: !d[campo] } : d)));
+  }
+
+  async guardarResponsables() {
+    const g = this.grupoSel();
+    if (!g) return;
+    this.guardandoResponsables.set(true);
+    try {
+      await Promise.all([
+        this.waService.actualizarGrupo(g.jid, { responsables: this.responsablesBorrador() }),
+        this.waService.setDestinatariosRecap(g.jid, this.destinatariosBorrador()),
+      ]);
+      this.grupos.update((gs) => gs.map((x) => (x.jid === g.jid ? { ...x, responsables: this.responsablesBorrador() } : x)));
+      this.toast.success(this.i18n.t('Listo'), this.i18n.t('Responsables y destinatarios guardados.'));
+      this.responsablesOpen.set(false);
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar'));
+    } finally {
+      this.guardandoResponsables.set(false);
+    }
+  }
+
+  // ── DL-26 — "Probar envío" (recordatorio/recap SOLO para quien lo pide) ──
+  probandoRecordatorio = signal(false);
+  async probarRecordatorio() {
+    this.probandoRecordatorio.set(true);
+    try {
+      await this.waService.probarRecordatorio();
+      this.toast.success(this.i18n.t('Enviado'), this.i18n.t('Revisa tu correo: te llegó un recordatorio de prueba.'));
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo enviar la prueba'));
+    } finally {
+      this.probandoRecordatorio.set(false);
+    }
+  }
+
+  probandoRecapJid = signal<string | null>(null);
+  async probarRecap(g: WaGrupo) {
+    this.probandoRecapJid.set(g.jid);
+    try {
+      await this.waService.probarRecap(g.jid, 'dia');
+      this.toast.success(this.i18n.t('Enviado'), this.i18n.t('Revisa tu correo: te llegó un recap de prueba de este grupo.'));
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo enviar la prueba'));
+    } finally {
+      this.probandoRecapJid.set(null);
     }
   }
 
@@ -558,32 +743,43 @@ export class TecWhatsapp implements OnInit {
     }
   }
 
-  // ── Hallazgos (DB2) ──────────────────────────────────────────────────────
-  hallazgos = signal<WaHallazgo[]>([]);
+  // ── Hallazgos (DB2/DL3) ──────────────────────────────────────────────────
+  hallazgos = signal<WaHallazgoV2[]>([]);
   cargandoHallazgos = signal(true);
   errorHallazgos = signal<unknown>(null);
+  hallazgosTotal = signal(0);
 
   filtroHallazgoGrupo = signal<string | null>(null);
   filtroHallazgoTipo = signal<string | null>(null);
   filtroHallazgoEstado = signal<string | null>('nuevo');
+  filtroHallazgoSeguimiento = signal<string | null>(null);
+  filtroHallazgoResponsable = signal<string | null>(null);
   filtroHallazgoDesde = signal<string | null>(null);
   filtroHallazgoHasta = signal<string | null>(null);
   filtroHallazgoPersona = signal('');
+  hallazgosPagina = signal(1);
+  hallazgosTamano = signal(10);
 
   readonly hallazgoTipoOptions: FilterOption[] = Object.entries(HALLAZGO_TIPO_LABEL).map(([value, label]) => ({ value, label }));
   readonly hallazgoEstadoOptions: FilterOption[] = Object.entries(HALLAZGO_ESTADO_LABEL).map(([value, label]) => ({ value, label }));
+  readonly seguimientoOptions: FilterOption[] = Object.entries(SEGUIMIENTO_LABEL).map(([value, label]) => ({ value, label }));
 
   async cargarHallazgos() {
     this.cargandoHallazgos.set(true);
     this.errorHallazgos.set(null);
     try {
-      const base = await this.waService.listarHallazgos({
+      const base = await this.waService.listarHallazgosV2({
         grupo_jid: this.filtroHallazgoGrupo(),
         tipo: this.filtroHallazgoTipo(),
         estado: this.filtroHallazgoEstado(),
+        seguimiento: (this.filtroHallazgoSeguimiento() as WaSeguimiento) || null,
+        responsable_id: this.filtroHallazgoResponsable(),
         desde: this.filtroHallazgoDesde(),
         hasta: this.filtroHallazgoHasta(),
+        limite: this.hallazgosTamano(),
+        offset: (this.hallazgosPagina() - 1) * this.hallazgosTamano(),
       });
+      this.hallazgosTotal.set(base[0]?.total ?? 0);
       // Una sola consulta extra para traer `personas` de TODO el lote (no N+1):
       // el listado RPC no las incluye (está pensado también para Compa/MCP).
       const personasMap = base.length ? await this.waService.personasDeHallazgos(base.map((h) => h.id)) : {};
@@ -597,19 +793,37 @@ export class TecWhatsapp implements OnInit {
 
   setFiltroHallazgoGrupo(v: string) {
     this.filtroHallazgoGrupo.set(v || null);
+    this.hallazgosPagina.set(1);
     void this.cargarHallazgos();
   }
   setFiltroHallazgoTipo(v: string) {
     this.filtroHallazgoTipo.set(v || null);
+    this.hallazgosPagina.set(1);
     void this.cargarHallazgos();
   }
   setFiltroHallazgoEstado(v: string) {
     this.filtroHallazgoEstado.set(v || null);
+    this.hallazgosPagina.set(1);
+    void this.cargarHallazgos();
+  }
+  setFiltroHallazgoSeguimiento(v: string) {
+    this.filtroHallazgoSeguimiento.set(v || null);
+    this.hallazgosPagina.set(1);
     void this.cargarHallazgos();
   }
   setRangoHallazgo(r: RangoFecha) {
     this.filtroHallazgoDesde.set(r.desde);
     this.filtroHallazgoHasta.set(r.hasta);
+    this.hallazgosPagina.set(1);
+    void this.cargarHallazgos();
+  }
+  onHallazgosPageChange(p: number) {
+    this.hallazgosPagina.set(p);
+    void this.cargarHallazgos();
+  }
+  onHallazgosPageSizeChange(n: number) {
+    this.hallazgosTamano.set(n);
+    this.hallazgosPagina.set(1);
     void this.cargarHallazgos();
   }
 
@@ -621,6 +835,36 @@ export class TecWhatsapp implements OnInit {
       (h.personas ?? []).some((p) => (p.nombre ?? '').toLowerCase().includes(q) || (p.telefono ?? '').includes(q)),
     );
   });
+
+  // ── DL3 — responsable editable ───────────────────────────────────────────
+  responsableEditando = signal<string | null>(null);
+  toggleEditarResponsable(h: WaHallazgoV2) {
+    this.responsableEditando.set(this.responsableEditando() === h.id ? null : h.id);
+  }
+
+  async elegirResponsable(h: WaHallazgoV2, sel: UserPickerSelection) {
+    if (!sel.usuario_id) return;
+    try {
+      await this.waService.asignarResponsable(h.id, sel.usuario_id);
+      this.nombresUsuarios.update((m) => ({ ...m, [sel.usuario_id!]: sel.nombre }));
+      this.hallazgos.update((hs) => hs.map((x) =>
+        x.id === h.id ? { ...x, responsable_id: sel.usuario_id!, responsable_nombre: sel.nombre, responsable_origen: 'manual' } : x,
+      ));
+      this.responsableEditando.set(null);
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo asignar el responsable'));
+    }
+  }
+
+  async marcarResuelto(h: WaHallazgoV2) {
+    try {
+      await this.waService.resolverHallazgo(h.id);
+      this.hallazgos.update((hs) => hs.map((x) => (x.id === h.id ? { ...x, seguimiento: 'resuelto' as const } : x)));
+      this.toast.success(this.i18n.t('Listo'), this.i18n.t('Hallazgo marcado como resuelto.'));
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo marcar como resuelto'));
+    }
+  }
 
   /** Confianza como indicador, nunca como verdad absoluta (BS2) — de ahí "estimada". */
   confianzaPct(h: WaHallazgo): number | null {
@@ -692,24 +936,35 @@ export class TecWhatsapp implements OnInit {
     }
   }
 
-  // ── Convertir hallazgo → tarea/requisición/nota (manual, BS2) ───────────
-  // No existe en el repo un mecanismo de "crear X prefilled from Y" por query
-  // params/router state (se buscó: "crear issue desde reporte" en Jira llama
-  // directo a un RPC server-side con el id, no navega con datos prellenados).
-  // Como aquí NO hay un id de tarea/requisición/nota que crear por RPC (eso
-  // vive en otros módulos, cada uno con su propio flujo), la opción honesta es:
-  // copiar el texto armado, abrir el módulo destino en pestaña nueva, y dejar
-  // que la persona confirme ella misma que ya lo creó — nunca asumir que se
-  // creó solo porque se abrió la pantalla.
+  // ── DL-05 — Convertir hallazgo → acción real ────────────────────────────
+  // 'tarea' crea de verdad en sgc.tareas (RPC wa_hallazgo_convertir). Para
+  // 'requisicion'/'reunion' no hay en el repo un mecanismo de "crear X
+  // prefilled from Y" por query params/router state, así que se conserva el
+  // flujo manual honesto: copiar el texto armado, abrir el módulo destino, y
+  // dejar que la persona confirme ella misma que ya lo creó.
   convertirOpen = signal(false);
-  convertirHallazgoSel = signal<WaHallazgo | null>(null);
-  convertirTipo = signal<ConvertirTipo>('tarea');
+  convertirHallazgoSel = signal<WaHallazgoV2 | null>(null);
+  convertirTipo = signal<'tarea' | 'requisicion' | 'reunion'>('tarea');
+  convertirAsignadoA = signal<UserPickerSelection | null>(null);
+  convertirFechaLimite = signal<string | null>(null);
   convertirCopiado = signal(false);
+  convertirGuardando = signal(false);
+  convertirTareaCreadaId = signal<string | null>(null);
 
-  abrirConvertir(h: WaHallazgo) {
+  readonly convertirDestinoLabel: Record<'tarea' | 'requisicion' | 'reunion', string> = {
+    tarea: 'Tarea', requisicion: 'Requisición', reunion: 'Reunión',
+  };
+  readonly convertirDestinoRuta: Record<'tarea' | 'requisicion' | 'reunion', string> = {
+    tarea: '/tareas', requisicion: '/inventario/requisiciones', reunion: '/reuniones',
+  };
+
+  abrirConvertir(h: WaHallazgoV2) {
     this.convertirHallazgoSel.set(h);
     this.convertirTipo.set(h.tipo === 'pedido_material' ? 'requisicion' : 'tarea');
+    this.convertirAsignadoA.set(null);
+    this.convertirFechaLimite.set(h.fecha_mencionada);
     this.convertirCopiado.set(false);
+    this.convertirTareaCreadaId.set(null);
     this.convertirOpen.set(true);
   }
 
@@ -737,13 +992,104 @@ export class TecWhatsapp implements OnInit {
   async confirmarConvertido() {
     const h = this.convertirHallazgoSel();
     if (!h) return;
+    const destino = this.convertirTipo();
+    this.convertirGuardando.set(true);
     try {
-      await this.waService.actualizarHallazgo(h.id, { estado: 'convertido', convertido_a: this.convertirTipo() });
-      this.hallazgos.update((hs) => hs.map((x) => (x.id === h.id ? { ...x, estado: 'convertido' as const } : x)));
-      this.toast.success(this.i18n.t('Listo'), this.i18n.t('Hallazgo marcado como convertido.'));
-      this.convertirOpen.set(false);
+      if (destino === 'tarea') {
+        const asignadoA = this.convertirAsignadoA()?.usuario_id ?? h.responsable_id ?? null;
+        const tareaId = await this.waService.convertirHallazgo(h.id, 'tarea', asignadoA, this.convertirFechaLimite());
+        this.hallazgos.update((hs) => hs.map((x) =>
+          x.id === h.id ? { ...x, estado: 'convertido' as const, convertido_a: 'tarea', convertido_ref_id: tareaId, seguimiento: 'resuelto' as const } : x,
+        ));
+        this.convertirTareaCreadaId.set(tareaId);
+        this.toast.success(this.i18n.t('Tarea creada'), this.i18n.t('El hallazgo se convirtió en una tarea real.'));
+      } else {
+        await this.waService.convertirHallazgo(h.id, destino);
+        this.hallazgos.update((hs) => hs.map((x) => (x.id === h.id ? { ...x, estado: 'convertido' as const, convertido_a: destino } : x)));
+        this.toast.success(this.i18n.t('Listo'), this.i18n.t('Hallazgo marcado como convertido (manual).'));
+        this.convertirOpen.set(false);
+      }
     } catch (e) {
-      this.toast.errorFrom(e, this.i18n.t('No se pudo marcar como convertido'));
+      this.toast.errorFrom(e, this.i18n.t('No se pudo convertir el hallazgo'));
+    } finally {
+      this.convertirGuardando.set(false);
+    }
+  }
+
+  // ── Resúmenes (DL5/F6.3) ─────────────────────────────────────────────────
+  resumenes = signal<WaResumen[]>([]);
+  resumenesTotal = signal(0);
+  cargandoResumenes = signal(true);
+  errorResumenes = signal<unknown>(null);
+  filtroResumenPeriodo = signal<'dia' | 'semana' | null>(null);
+  filtroResumenGrupo = signal<string | null>(null);
+  filtroResumenDesde = signal<string | null>(null);
+  filtroResumenHasta = signal<string | null>(null);
+  resumenesPagina = signal(1);
+  resumenesTamano = signal(10);
+  readonly periodoOptions: FilterOption[] = [
+    { value: 'dia', label: this.i18n.t('Diario') },
+    { value: 'semana', label: this.i18n.t('Semanal') },
+  ];
+
+  async cargarResumenes() {
+    this.cargandoResumenes.set(true);
+    this.errorResumenes.set(null);
+    try {
+      const { filas, total } = await this.waService.listarResumenes({
+        periodo: this.filtroResumenPeriodo(),
+        grupo_jid: this.filtroResumenGrupo(),
+        desde: this.filtroResumenDesde(),
+        hasta: this.filtroResumenHasta(),
+        limite: this.resumenesTamano(),
+        offset: (this.resumenesPagina() - 1) * this.resumenesTamano(),
+      });
+      this.resumenes.set(filas);
+      this.resumenesTotal.set(total);
+    } catch (e) {
+      this.errorResumenes.set(e);
+    } finally {
+      this.cargandoResumenes.set(false);
+    }
+  }
+
+  setFiltroResumenPeriodo(v: string) {
+    this.filtroResumenPeriodo.set((v as 'dia' | 'semana') || null);
+    this.resumenesPagina.set(1);
+    void this.cargarResumenes();
+  }
+  setFiltroResumenGrupo(v: string) {
+    this.filtroResumenGrupo.set(v || null);
+    this.resumenesPagina.set(1);
+    void this.cargarResumenes();
+  }
+  setRangoResumen(r: RangoFecha) {
+    this.filtroResumenDesde.set(r.desde);
+    this.filtroResumenHasta.set(r.hasta);
+    this.resumenesPagina.set(1);
+    void this.cargarResumenes();
+  }
+  onResumenesPageChange(p: number) {
+    this.resumenesPagina.set(p);
+    void this.cargarResumenes();
+  }
+  onResumenesPageSizeChange(n: number) {
+    this.resumenesTamano.set(n);
+    this.resumenesPagina.set(1);
+    void this.cargarResumenes();
+  }
+
+  descargandoPdfId = signal<string | null>(null);
+  async descargarRecap(r: WaResumen) {
+    if (!r.pdf_path) return;
+    this.descargandoPdfId.set(r.id);
+    try {
+      const url = await this.waService.descargarPdfRecap(r.pdf_path);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo generar la descarga'));
+    } finally {
+      this.descargandoPdfId.set(null);
     }
   }
 

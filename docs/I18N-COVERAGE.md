@@ -29,7 +29,7 @@
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 236 | 0 | 236 | 0% |
+| admin/usuarios | - | 238 | 0 | 238 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | apoyo-transporte | - | 65 | 0 | 65 | 0% |
@@ -174,7 +174,7 @@
 | demo/escenarios | - | 27 | 14 | 13 | 52% |
 | admin/auditoria | - | 117 | 62 | 55 | 53% |
 | reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
-| tecnologia/whatsapp | - | 223 | 118 | 105 | 53% |
+| tecnologia/whatsapp | - | 308 | 164 | 144 | 53% |
 | tecnologia/cotizaciones | - | 118 | 65 | 53 | 55% |
 | borrador-claude | - | 41 | 23 | 18 | 56% |
 | compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |

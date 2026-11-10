@@ -1,5 +1,17 @@
 {
   "web": {
+    "1.212.0": {
+      "titulo": "WhatsApp: seguimiento, recordatorios y recap con PDF",
+      "cambios": [
+        { "t": "mejora", "m": "Tecnología", "d": "Los hallazgos de WhatsApp ahora tienen responsable y estado de seguimiento (activo, resuelto, vencido…); \"Convertir\" en tarea ya crea la tarea de verdad en vez de solo copiar el texto." },
+        { "t": "nuevo", "m": "Tecnología", "d": "Recordatorios automáticos por correo/bandeja/app si un pendiente de un grupo de WhatsApp no se cierra (escalera de 24h/48h/72h hasta 14 días). Botón \"Probar mis recordatorios\" para verlo antes de activarlo." },
+        { "t": "nuevo", "m": "Tecnología", "d": "Recap diario y semanal por grupo de WhatsApp, con PDF por correo (resumen, decisiones y pendientes abiertos) — nueva pestaña Resúmenes, con responsables y destinatarios configurables por grupo." },
+        { "t": "mejora", "m": "Compa", "d": "Compa ya detecta cuando un mensaje responde un pendiente anterior (lo cierra solo) y evita duplicar el mismo hallazgo si se repite con otras palabras. Cualquier usuario puede preguntarle \"¿qué me falta de los grupos?\" y ver solo lo suyo." },
+        { "t": "arreglo", "m": "Tecnología", "d": "El desplegable \"Proyecto\" de Grupos ya no queda tapado por las tarjetas de abajo; la insignia de aviso de privacidad ahora explica qué significa." },
+        { "t": "arreglo", "m": "Administración", "d": "\"Entrar como\" otro usuario es más confiable (reintenta solo si falla la conexión) y, si falla, ya no esconde la lista de usuarios. El rol Gerencia ahora ve el inventario tecnológico." },
+        { "t": "mejora", "m": "Tecnología", "d": "La configuración del puente de grupos (modo por defecto, tope de respuestas, presupuesto de IA, recordatorio por WhatsApp) ya se puede editar desde la pantalla, no solo verla." }
+      ]
+    },
     "1.211.0": {
       "titulo": "WhatsApp: memoria de grupos y hallazgos con IA",
       "cambios": [

@@ -319,3 +319,24 @@ El bucket `wa-media` es **privado**, sin ninguna policy para `authenticated`/
   (`sb.storage.from('wa-media').download(...)`, con `service_role`) para
   transcribir/describir — ese camino no necesita URL firmada porque nunca sale
   hacia un navegador.
+
+### URLs firmadas para `wa-recaps` (DL5) — mismo patrón que `wa-media`
+
+El bucket `wa-recaps` (PDFs de recap diario/semanal) es **privado**, sin policy
+para `authenticated`/`anon` — subida y lectura solo por `service_role` (la edge
+`wa-recap`). Descarga desde el front: `GET wa-recap?modo=pdf&path=...` valida
+una sesión real (`Authorization` + `getUser()`) y el gate
+`sgc.puede_ver_submodulo('tecnologia.wa_grupos')`, y emite una `createSignedUrl`
+de 300s — la pestaña Resúmenes lo usa (`WaGruposService.descargarPdfRecap()`),
+nunca accede al bucket directo. Retención 180 días (pendiente de cron de purga,
+ver `docs/DATOS-Y-TERCEROS.md`).
+
+### `wa_mis_pendientes()` — aislamiento por `auth.uid()`, sin gate de submódulo
+
+A diferencia de las demás RPCs de WhatsApp (gate `puede_ver_submodulo('tecnologia.wa_grupos')`),
+`sgc.wa_mis_pendientes()` es intencionalmente **sin** ese gate: devuelve SOLO
+los hallazgos donde `responsable_id = auth.uid()` (resuelto dentro del `security
+definer`, nunca confiando en un parámetro del cliente) — cualquier usuario
+autenticado la puede llamar, pero solo ve lo suyo. Prueba de aislamiento: un
+usuario A no puede ver pendientes asignados a un usuario B aunque llame la
+misma RPC (ver `sql/2026-11-10-dl3-wa-seguimiento.sql`).

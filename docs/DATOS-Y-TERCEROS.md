@@ -46,6 +46,8 @@
 | **Mensajes de grupos de WhatsApp de la empresa** (ronda DB, 05-nov-2026) — teléfono y nombre del AUTOR de cada mensaje, texto, transcripción de notas de voz, descripción de imágenes | `sgc.wa_mensajes_grupo` (archivo, retención 180 días — ver §3), `sgc.wa_grupos` (metadatos del grupo), bucket privado `wa-media` (la imagen/audio original, mismo plazo que el mensaje) | Memoria de grupos para no perder acuerdos/pedidos/montos mencionados en el chat de obra/logística; base de la extracción de hallazgos (fila siguiente) | Sí — el autor es casi siempre un empleado (chofer, encargado, ingeniero); puede incluir terceros (proveedores) que participan en el grupo sin ser empleados de la empresa |
 | **Hallazgos extraídos por IA de esos mensajes** (acuerdos, pedidos de material, montos, fechas límite, decisiones, incidentes) | `sgc.wa_hallazgos` | Que Tecnología/el área correspondiente pueda revisar y convertir en tarea/requisición/nota sin releer el chat completo | Indirectamente (cita nombres/personas mencionadas en `personas` jsonb) — ver nota de conservación distinta en §3 |
 | Heartbeat/estado del listener externo de WhatsApp (sin dato personal de terceros, solo salud del proceso) | `sgc.wa_listener_estado`, `sgc.wa_eventos` | Monitoreo operativo (dead-man, presupuesto de IA, errores) | No |
+| **Recap diario/semanal con PDF por correo** (ronda DL, 10-nov-2026) — resumen generado por IA + decisiones/acuerdos + lista de pendientes abiertos (con responsable) de un grupo de WhatsApp, adjunto como PDF a un correo | `sgc.wa_resumenes` (resumen/decisiones/pendientes), bucket privado `wa-recaps` (el PDF, retención 180 días), `sgc.wa_recap_envios` (log de a quién se le mandó) | Que los responsables/Tecnología tengan un resumen accionable sin tener que leer todo el chat; el PDF **no** incluye la transcripción cruda, solo lo derivado por IA | Sí — el PDF puede nombrar a empleados y, si participaron, a terceros (proveedores) del grupo, como responsables de un pendiente o autores de una decisión |
+| **Recordatorios de pendientes** (ronda DL) — a quién se le recuerda un hallazgo sin cerrar (correo/bandeja/push/WhatsApp privado) | `sgc.wa_recordatorios` (log, 1 fila por intento), `sgc.wa_hallazgos.responsable_id` | Que la persona a quien se le pidió algo en un grupo no se le olvide, sin que Tecnología tenga que perseguirlo a mano | Sí — el responsable es siempre un empleado (usuario SGC); el contenido recordado deriva del mismo dato de grupos ya declarado arriba |
 
 **No se recoge:** datos de publicidad, rastreo entre apps/sitios (sin App Tracking Transparency), ni datos de menores (app de empleados).
 
@@ -130,3 +132,22 @@ Por la regla de este documento (§4) y la regla CI13 del CLAUDE.md:
   de los grupos sigue siendo dato personal tratado por la empresa.
 - **No se ha hecho ninguna de las tres cosas de arriba todavía** — queda pendiente
   de la confirmación de Xaviel/Sonia, no de una decisión técnica de esta ronda.
+
+## 🔴 Flag pendiente — ronda DL (10-nov-2026), recap por correo con PDF
+
+Esta ronda agrega un **flujo de salida nuevo** sobre el mismo dato ya declarado en
+el flag de arriba (mensajes de grupos de WhatsApp): un **PDF generado por IA**
+(resumen + decisiones + pendientes, con nombres de responsables) que se manda
+**por correo** a quien Tecnología configure como destinatario del recap de cada
+grupo. Es el mismo dato personal de siempre, pero con un **canal de salida
+nuevo** (adjunto de correo, guardado 180 días en el bucket `wa-recaps`) que no
+existía antes de esta ronda.
+
+- Se mantiene la misma pregunta pendiente de arriba para Sonia/Legal — este
+  flujo la hace más urgente, porque ahora el dato derivado **sale** de SGC por
+  correo (antes solo vivía en la pantalla de Tecnología).
+- El PDF **nunca** incluye la transcripción cruda del chat, solo lo que la IA
+  resumió (DL-22) — mitiga pero no resuelve la pregunta de fondo.
+- Sigue sin hacerse ninguna actualización a la Política de Privacidad ni a los
+  formularios de tienda — mismo pendiente que el flag de arriba, ahora con un
+  flujo más para cubrir cuando se resuelva.

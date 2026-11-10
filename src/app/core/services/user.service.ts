@@ -224,6 +224,19 @@ export class UserService {
     }
   }
 
+  /**
+   * DL-33 — al volver a la pestaña (focus/visibilitychange) con el perfil más
+   * viejo que `minMs`, recarga roles/módulos sin esperar los 5 min de
+   * `ensureFreshProfile` (eso sigue gateando el guard de navegación). Así un
+   * cambio de rol hecho en Administración se nota sin cerrar sesión.
+   */
+  async refreshIfStale(minMs = 60_000): Promise<void> {
+    const userId = this._profile()?.id;
+    if (!userId) return;
+    const stale = this.loadedAt === null || Date.now() - this.loadedAt > minMs;
+    if (stale) await this.loadProfile(userId);
+  }
+
   clearProfile(): void {
     this._profile.set(null);
     this.loadedAt = null;

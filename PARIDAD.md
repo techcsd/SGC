@@ -1367,3 +1367,29 @@ esta ronda.
   comentario/mensaje de error desactualizado en `whatsapp.ts` ("falta un paso pequeño en el
   servidor") se corrigió — ahora usa `toast.errorFrom` como fallback honesto para cualquier
   otro motivo de fallo (permiso, red), ya no asume que el RPC no existe.
+
+## Ronda DL (Compa en WhatsApp — seguimiento/recordatorios/recap, 10-nov-2026) — SOLO web (administra); la app recibe (ver 139)
+
+### DL1-DL6 — seguimiento real de hallazgos, recordatorios y recap con PDF: SOLO web
+Extiende otra vez `Tecnología › Compa en WhatsApp` (sigue web-only, mismo motivo que DB2/DC): dos
+pestañas nuevas (**Resúmenes**) y cambios en **Grupos** (responsables + destinatarios del recap,
+botones "Probar recap"/"Probar mis recordatorios") y **Hallazgos** (responsable editable, estado de
+seguimiento, "Ya está resuelto", "Convertir" que ahora SÍ crea una tarea real en `sgc.tareas` vía
+`wa_hallazgo_convertir`). Dos edges nuevas (`wa-seguimiento`, `wa-recap`) reemplazan las tareas
+`resumenes_dia`/`resumenes_semana` de `wa-extract` (ventana fija en UTC, corregida con un cursor
+rodante en hora `America/Santo_Domingo`). Administrar quién es responsable de un grupo, a quién le
+llega el recap, y encender/apagar las 3 familias nuevas (`wa_recordatorios`, `wa_recap_diario`,
+`wa_recap_semanal`, sembradas **apagadas**) son tareas de Tecnología desde un escritorio — no hay
+pantalla equivalente en `csd-app` para administrar esto.
+
+**El lado receptor SÍ es de la app** (PROMPT-139, fuera de este repo): el recordatorio y el aviso de
+recap le llegan a la persona por correo (siempre), bandeja/push de SGC (`notif_tipo` nuevos
+`wa_recordatorio`/`wa_recap`, canal `in_app`/`push`/`email`) y, si `wa_config.recordatorio_whatsapp`
+se enciende con plantilla aprobada, por WhatsApp privado — csd-app ya tiene bandeja/push/Compa
+(infraestructura reusada, sin pantalla nueva en la app para este ítem).
+
+### F7/DL-24 — `mis_pendientes_de_grupos` (Compa/MCP): sin contrato para la app
+Nueva herramienta de LECTURA de Compa (`rpc: wa_mis_pendientes`), **sin módulo ni submódulo** (como
+`mis_tareas`): cualquier usuario autenticado le puede preguntar a Compa "¿qué me falta de los
+grupos?" y ver solo lo suyo (`responsable_id = auth.uid()`). Disponible en el chat web y en MCP
+(Claude Desktop); sin equivalente de pantalla en la app — es una tool de Compa, no una pantalla.

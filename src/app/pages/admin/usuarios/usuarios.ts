@@ -62,10 +62,10 @@ export class AdminUsuarios implements OnInit {
     this.entrandoComoId.set(u.id);
     try {
       const { error } = await this.auth.entrarComoUsuario(u.id);
-      if (error) { this.error.set(error); this.entrandoComoId.set(null); return; }
+      if (error) { this.accionError.set(error); this.entrandoComoId.set(null); return; }
       window.location.assign('/'); // recarga completa para cargar el perfil del objetivo
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo entrar como el usuario.');
+      this.accionError.set(e instanceof Error ? e.message : 'No se pudo entrar como el usuario.');
       this.entrandoComoId.set(null);
     }
   }
@@ -97,6 +97,11 @@ export class AdminUsuarios implements OnInit {
   saving = signal(false);
   error = signal('');
   saveError = signal('');
+  /** DL-36 — errores de ACCIONES (entrar como, eliminar, marca de prueba), separado
+   *  de `error` (solo carga): antes compartían la misma señal y un clic fallido
+   *  escondía la tabla entera + el filtro de búsqueda (`usuarios.html:72` dependía
+   *  de `error()`). */
+  accionError = signal('');
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -744,7 +749,7 @@ export class AdminUsuarios implements OnInit {
       await this.adminService.marcarUsuarioPrueba(usuario.id, marcar);
       this.usuarios.update((list) => list.map((u) => (u.id === usuario.id ? { ...u, es_prueba: marcar } : u)));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cambiar la marca de prueba.');
+      this.accionError.set(e instanceof Error ? e.message : 'No se pudo cambiar la marca de prueba.');
     } finally {
       this.marcandoId.set(null);
     }
@@ -799,12 +804,12 @@ export class AdminUsuarios implements OnInit {
     if (!confirm(`¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
 
     this.deletingId.set(usuario.id);
-    this.error.set('');
+    this.accionError.set('');
     try {
       await this.adminService.deleteUsuario(usuario.id);
       this.usuarios.update((list) => list.filter((u) => u.id !== usuario.id));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al eliminar el usuario.');
+      this.accionError.set(e instanceof Error ? e.message : 'Error al eliminar el usuario.');
     } finally {
       this.deletingId.set(null);
     }

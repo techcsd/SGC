@@ -88,17 +88,17 @@ que el resto de esta tabla. Runbook: `docs/WHATSAPP-GRUPOS.md`.
 |---|---|---|---|
 | sgc-wa-extraccion | `*/4 * * * *` | cada 4 min | extrae hallazgos de mensajes de grupo pendientes (`wa-extract`, tarea por defecto) |
 | sgc-wa-revisar-latido | `*/5 * * * *` | cada 5 min | dead-man del listener externo (`wa-extract`, `tarea:"revisar_latido"`) — no gasta IA |
-| sgc-wa-resumenes-diarios | `0 9 * * *` | ver nota | resumen diario por grupo (`wa-extract`, `tarea:"resumenes_dia"`) |
-| sgc-wa-resumenes-semanales | `15 13 * * 1` | lun 9:15 AM | resumen semanal por grupo (`wa-extract`, `tarea:"resumenes_semana"`) |
+| sgc-wa-seguimiento | `0 11 * * 1-6` | 7:00 AM L–S | escalera de recordatorios de hallazgos (`wa-seguimiento`) — DL4; gate `envio_automatico_activo('wa_recordatorios')`, sembrada **apagada** |
+| sgc-wa-recap-diario | `0 22 * * 1-6` | 6:00 PM L–S | recap diario por grupo con PDF por correo (`wa-recap`, `tarea:"dia"`) — DL5; gate `wa_recap_diario`, sembrada **apagada** |
+| sgc-wa-recap-semanal | `30 22 * * 6` | sábado 6:30 PM | recap semanal por grupo con PDF por correo (`wa-recap`, `tarea:"semana"`) — DL5; gate `wa_recap_semanal`, sembrada **apagada** |
 
-> **Nota de huso horario (sin resolver, ronda DB):** `sgc-wa-resumenes-diarios`
-> se declaró como `0 9 * * *` UTC con un comentario propio en la migración
-> admitiendo la ambigüedad (9 AM UTC ≈ 5 AM RD, no 9 AM RD) — **pendiente que
-> Xaviel confirme** si se quiere exactamente las 9 AM hora de Santo Domingo
-> (en cuyo caso el schedule correcto es `0 13 * * *` UTC, siguiendo la misma
-> convención UTC−4 sin horario de verano que el resto de esta tabla). No
-> bloquea el resto de la ronda — solo corre a otra hora de la pensada hasta que
-> se ajuste.
+> **DL5 (10-nov-2026) — resuelto el problema de huso horario de la ronda DB:**
+> `sgc-wa-resumenes-diarios`/`sgc-wa-resumenes-semanales` (ventana fija en UTC,
+> corría de madrugada en hora RD) se **retiraron** (`cron.unschedule`,
+> `sql/2026-11-10-dl5-wa-recap.sql`) y se reemplazan por los 3 crons de arriba.
+> `wa-extract` sigue respondiendo `{"tarea":"resumenes_dia"|"resumenes_semana"}`
+> con `{ok:true, deprecado:true}` un ciclo (no se borró el código, por si algo
+> externo lo sigue llamando) — se puede quitar ese código en la próxima ronda.
 
 Más dos crons de retención, mismo archivo: `sgc-wa-purgar-mensajes-grupo`
 (`20 8 * * *` → 4:20 AM RD, borra mensajes+media >180 días) y
