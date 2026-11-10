@@ -659,6 +659,22 @@ export class Shell implements OnInit {
       mq.addEventListener('change', onMq);
       this.destroyRef.onDestroy(() => mq.removeEventListener('change', onMq));
     }
+
+    // DL-33 — al volver a la pestaña con el perfil viejo (p. ej. un admin te
+    // cambió el rol mientras tenías la web abierta), recarga roles/módulos sin
+    // esperar los 5 min del guard ni forzar un logout.
+    if (typeof document !== 'undefined') {
+      const onFoco = () => void this.userService.refreshIfStale();
+      const onVisibilidad = () => {
+        if (document.visibilityState === 'visible') onFoco();
+      };
+      document.addEventListener('visibilitychange', onVisibilidad);
+      window.addEventListener('focus', onFoco);
+      this.destroyRef.onDestroy(() => {
+        document.removeEventListener('visibilitychange', onVisibilidad);
+        window.removeEventListener('focus', onFoco);
+      });
+    }
     this.notificaciones.refresh();
     this.realtimeNotificaciones.start();
 

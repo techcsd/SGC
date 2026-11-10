@@ -111,6 +111,28 @@ reporta aparece con su `modo`:
 También se puede vincular el grupo a un proyecto/obra desde la misma pestaña
 (`proyecto_id`), para que los hallazgos queden asociados a esa obra.
 
+### 4.1 — Aviso de privacidad del grupo (DL-04, 10-nov-2026)
+
+Cada tarjeta de grupo muestra una insignia de aviso:
+
+- **«Aviso de privacidad publicado»** (con la fecha en el `title`): `wa_grupos.aviso_enviado_en`
+  tiene valor. El **listener** (`csd-wa-listener`, repo hermano) publicó en el grupo un
+  mensaje avisando que Compa está presente y guarda lo que se escribe, y reportó
+  `aviso_enviado: true` a `wa-ingest` (`supabase/functions/wa-ingest/index.ts`).
+- **«Aviso de privacidad sin confirmar»**: `aviso_enviado_en` está vacío. SGC **no publica
+  el aviso** — no puede, quien escribe en el grupo es el listener — así que esto solo
+  significa que SGC no tiene constancia de que se haya publicado.
+- **«No aplica (grupo ignorado)»**: el grupo está en modo `ignorar`, no se guarda nada.
+
+**Estado conocido al 10-nov-2026**: los 4 grupos activos aparecen «sin confirmar»
+(incluso uno con días de actividad), igual que `participantes: 0` en todos. Dos
+causas posibles, ninguna verificable desde este repo: (a) el listener no está
+publicando el aviso en grupos (o falla al hacerlo — ver el bug conocido «No LID
+for user» al enviar a grupos, HANDOFF ronda DB), o (b) lo publica pero no lo
+reporta en `handleGrupos`. **Pendiente de revisión en `csd-wa-listener`** (fuera
+de este repo) — importa legalmente, es parte del inventario de
+`docs/DATOS-Y-TERCEROS.md` pendiente con Legal (Ley 172-13).
+
 ## 5. Leer hallazgos
 
 Pantalla **Tecnología › Compa en WhatsApp › Hallazgos**: inbox de lo que la IA

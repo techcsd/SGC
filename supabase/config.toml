@@ -88,10 +88,16 @@ verify_jwt = false
 verify_jwt = true
 [functions.admin-usuario-test-login]
 verify_jwt = true
+# DL-35 — mismo patrón CG5 (acceso-cedula, arriba): ambas funciones ya se
+# auto-autentican (getUser + is_admin dentro de admin-entrar-como/index.ts) y
+# responden con CORS. verify_jwt=false elimina el rechazo del gateway SIN
+# cabeceras CORS que el navegador reporta como «No se pudo contactar el
+# servicio» ante un token borde/vencido (causa confirmada de N6b). Seguridad
+# igual: sigue devolviendo 401/403 con CORS a quien no esté autenticado/sea admin.
 [functions.admin-entrar-como]
-verify_jwt = true
+verify_jwt = false
 [functions.admin-fin-impersonacion]
-verify_jwt = true
+verify_jwt = false
 [functions.transcribe-now]
 verify_jwt = true
 [functions.incentivo-diario]
@@ -175,4 +181,16 @@ verify_jwt = false
 # DB-S4 — wa-extract: solo la invoca pg_cron (x-sync-secret, mismo patrón que
 # check-domains/agente-vigia) — nunca manda un JWT de Supabase.
 [functions.wa-extract]
+verify_jwt = false
+
+# DL4/F4 — wa-seguimiento: la invoca pg_cron (x-sync-secret) para la corrida
+# real, Y la pantalla con el JWT de un usuario real para "Probar envío"
+# (DL-26) — por eso verify_jwt=false (el gateway rechazaría la llamada del
+# cron, que no trae JWT) y la función valida ambos caminos ella misma
+# (resolverLlamador en index.ts).
+[functions.wa-seguimiento]
+verify_jwt = false
+
+# DL5/F5 — wa-recap: mismo patrón (cron + "Probar envío" desde la pantalla).
+[functions.wa-recap]
 verify_jwt = false

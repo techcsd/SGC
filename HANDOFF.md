@@ -1,5 +1,81 @@
 # HANDOFF — SGC
 
+## ✅ Ronda DL (10-nov-2026) — PROMPT 138: Compa en WhatsApp — seguimiento, recordatorios y recap con PDF — EN PRODUCCIÓN — v1.212.0
+
+**Actualización al promover (misma sesión):** mergeada `feature/dl-compa-whatsapp-modulo → dev` (PR #122) y `dev → main` (PR #123, resuelto un conflicto real en `wa-extract/index.ts` contra el hotfix DJ de abajo — ver sección de reconciliación más abajo). Las 9 migraciones + 8 edges (incl. `admin-entrar-como`/`admin-fin-impersonacion` con `verify_jwt=false`) **ya están aplicadas/desplegadas en prod**, verificadas por objeto (familias apagadas, Gerencia con el permiso, crons activos). QA en vivo confirmado por Xaviel. El texto de abajo, escrito durante la sesión original (antes de promover), queda tal cual para el detalle técnico.
+
+**Worktree original:** `C:\Users\xavie\Desktop\X Dev\dev\SGC-dl`, rama `feature/dl-compa-whatsapp-modulo` desde `origin/dev` (`8737b3ae`). El árbol principal (`SGC`, rama `main`) tenía el WIP de Kapso de Xaviel sin tocar — verificado intacto durante toda la ronda.
+
+**Contexto:** `C:\developer\improvements\noviembre 2026\imp 10112026\CONTEXTO-ACTUALIZACION-68.md`. Build+tests verdes: `npm run build` OK, `npx ng test` 314/314, `deno test` (edge) 286/286, `evals-compa.mjs` 51 verificaciones OK, `release-check.mjs` 6/7 (1 fallo preexistente no relacionado, ver abajo).
+
+### Por ID (DL1-DL7)
+
+- **DL1 (hecho):** `StaggerDirective` suelta `el.style.animation=''` en `animationend` + temporizador de seguridad (220ms+delay+100ms). El desplegable "Proyecto" de Grupos ya no queda tapado. `src/shared/motion/stagger.directive.ts:23-36`, 3 tests.
+- **DL2 (hecho):** insignia de aviso con 3 estados (`avisoBadge()` en `whatsapp.ts:199-221`) + `docs/WHATSAPP-GRUPOS.md` §4.1.
+- **DL3/DL6 (hecho):** responsable + seguimiento en `wa_hallazgos` (`sql/2026-11-10-dl3-wa-seguimiento.sql`), dedupe semántico por `pg_trgm` (≥0.85, 72h), cierre automático por IA (DL-16), "Convertir" REAL a tarea (`wa_hallazgo_convertir`, crea de verdad en `sgc.tareas`). Pestaña Hallazgos con filtros de seguimiento/responsable, paginador, responsable editable.
+- **DL4 (hecho):** edge `wa-seguimiento` (escalera 24h/48h/72h→cada 3d→vencido a 14d; `fecha_mencionada` fuerza aviso víspera+mismo día; correo+bandeja+push; WhatsApp privado implementado pero apagado por defecto, `wa_config.recordatorio_whatsapp=false`). Smoke end-to-end verificado (`scripts/smoke-wa-seguimiento.mjs --env dev`).
+- **DL5 (hecho):** edge `wa-recap` (cursor rodante en hora RD, reemplaza la ventana fija en UTC de `wa-extract`; map-reduce de resumen; PDF con `_shared/pdf-recap.ts`, extraído de `resumen-semanal-operaciones` sin cambiarle el comportamiento — `piePagina:false` preserva el PDF existente). Smoke end-to-end verificado DOS VECES (sin destinatario → `sin_destinatarios`; con destinatario sembrado → `enviado` con PDF real adjunto por Resend).
+- **DL7/N6 (hecho):** H1/H3 confirmada por datos (ningún rol de Eduardo tenía `tecnologia.inventario`) → migración aplicada en dev; `UserService.refreshIfStale()` + listener de foco en `Shell`; `RolesService.update()` ahora verifica lo releído; `verify_jwt=false` en las 2 edges de impersonación (mismo patrón CG5) + `refreshSession`+reintento en `auth.service.ts`; `usuarios.ts` separa `accionError` de `error` (un "Entrar como" fallido ya no esconde la tabla).
+- **F7 (hecho):** tool `mis_pendientes_de_grupos` (`wa_mis_pendientes`, sin módulo — lectura de lo propio); `hallazgos_whatsapp`/`resumen_grupo_whatsapp` migradas a `_v2` (responsable/seguimiento/decisiones/pendientes); `que_puedo_consultar()` actualizado; evals-compa.mjs con 6 checks nuevos (47→51 total con F7b… en realidad 47 finales, contar en el log).
+
+### Continuación (misma sesión, tras "ok continue working")
+- **F6.5/DL-27 (P3) config editable — HECHO.** `sql/2026-11-10-dl-f6b-wa-config-editable.sql` (`wa_config_set`, admin-only, auditado en `sgc.audit_log`), smoke-probado (admin OK, no-admin rechazado). UI: tarjeta "Configuración del puente de grupos" en Estado gana modo "Editar" (solo admin) para modo por defecto, máx. respuestas/h, presupuesto de tokens, recordatorio por WhatsApp, mínimo de mensajes del recap.
+- **DL-37 (P3) "Accesos efectivos" — YA EXISTÍA (AN4, antes de esta ronda).** `Gestión de Usuarios → ⋯ → "Ver accesos efectivos"` (`usuarios.ts:537`) ya navega a `/admin/roles?usuario=<id>`, que `roles.ts:159-165` ya interpreta como deep-link y abre el panel de accesos efectivos. No hacía falta construir nada — confirmado funcionando por lectura de código.
+- **i18n en.json — HECHO.** Las 63 strings nuevas de `whatsapp.html`/`.ts` que faltaban ya tienen traducción al inglés (`verify-i18n`: 1247 con `t()`, en.json cubre 1069 — 0 faltantes de esta pantalla).
+- **`compa_chips` (sugerencia "¿qué me falta de los grupos?") — investigado, NO hecho.** Hallazgo: `sgc.compa_chips` está **vacía (0 filas) en dev** aunque las migraciones de seed existen en `sql/` — gap preexistente, no de esta ronda (ninguna persona tiene sugerencias en dev ahora mismo). No toqué la tabla sin entender por qué está vacía; investigar aparte.
+
+### No hecho (reportado, no a medias)
+- **F6.7 CSS tras OK** — correctamente diferido (regla DL-25, espera el tablero DL1).
+- **Tests de edge nivel-HTTP** para `admin-entrar-como`/`admin-fin-impersonacion` (401/403/400/200) — la arquitectura actual (`Deno.serve` inline, sin handler exportado) no tiene un patrón de test en este repo para probar el handler completo; se verificó por lectura de código que ya hace `getUser`+`is_admin` antes de togglear `verify_jwt`.
+
+### Migraciones aplicadas en DEV (verificadas por objeto)
+1. `sql/2026-11-10-dl7-gerencia-inventario-tecnologico.sql`
+2. `sql/2026-11-10-dl3-wa-seguimiento.sql`
+3. `sql/2026-11-10-dl5-wa-recap.sql`
+4. `sql/2026-11-10-dl3c-wa-hallazgo-insertar-v2.sql`
+5. `sql/2026-11-10-dl3d-wa-identidad-mensajes.sql`
+6. `sql/2026-11-10-dl4-wa-seguimiento-rpcs.sql`
+7. `sql/2026-11-10-dl-f7-compa-tools.sql`
+8. `sql/2026-11-10-dl-f7b-que-puedo-consultar.sql`
+9. `sql/2026-11-10-dl-f6b-wa-config-editable.sql`
+
+Edges desplegadas en dev: `wa-extract` (v8), `wa-seguimiento` (v1, nueva), `wa-recap` (v2, nueva), `resumen-semanal-operaciones` (v34, refactor sin cambio de comportamiento), `assistant` (v58), `mcp` (v34).
+
+### Ya aplicado/desplegado a prod (ejecutado tras QA + OK explícito de Xaviel)
+```
+node scripts/apply-migration.mjs sql/2026-11-10-dl7-gerencia-inventario-tecnologico.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl3-wa-seguimiento.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl5-wa-recap.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl3c-wa-hallazgo-insertar-v2.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl3d-wa-identidad-mensajes.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl4-wa-seguimiento-rpcs.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl-f7-compa-tools.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl-f7b-que-puedo-consultar.sql --env prod
+node scripts/apply-migration.mjs sql/2026-11-10-dl-f6b-wa-config-editable.sql --env prod --yes
+node scripts/deploy-edge.mjs --env prod --slug wa-extract --yes
+node scripts/deploy-edge.mjs --env prod --slug wa-seguimiento --yes
+node scripts/deploy-edge.mjs --env prod --slug wa-recap --yes
+node scripts/deploy-edge.mjs --env prod --slug resumen-semanal-operaciones --yes
+node scripts/deploy-edge.mjs --env prod --slug assistant --yes
+node scripts/deploy-edge.mjs --env prod --slug mcp --yes
+node scripts/deploy-edge.mjs --env prod --slug admin-entrar-como --yes
+node scripts/deploy-edge.mjs --env prod --slug admin-fin-impersonacion --yes
+```
+**Las 3 familias siguen apagadas en prod** (`wa_recordatorios`, `wa_recap_diario`, `wa_recap_semanal`) — enciéndelas tú, una por una, cuando quieras (recap primero, recordatorios después).
+
+### Gotchas de esta ronda
+- **`release-check.mjs` reporta 1 FAIL preexistente, no mío:** el chequeo de ledger señala un nombre de archivo SQL de la ronda CY24 (Odoo Fase C, ya superada por PR #108 según memoria) que el escaneo de "últimos 14 días" encuentra mencionado en un commit, pero ese archivo **ya no existe** en el árbol de trabajo ni en `HEAD` (parece un rename/delete de esa ronda). No lo toqué — investigar aparte si bloquea una promoción real (buscar el nombre exacto en la salida de `node scripts/release-check.mjs --env dev --version 1.212.0`).
+- **Dos migraciones "parche" (`dl3c`, `dl3d`, `dl4`, `dl-f7`, `dl-f7b`) en vez de reescribir `dl3`/`dl5`**: una vez una migración ya está en el ledger, no se reescribe (CD10) — así que RPCs que dependían de columnas de `dl3` (dedupe, responsable, cierre) salieron en archivos aparte, aplicados en orden.
+- **`wa-extract` conserva `procesarResumen()` muerta** (código, no la tarea): las tareas `resumenes_dia`/`resumenes_semana` ahora responden `{ok:true, deprecado:true}` un ciclo (DL5 lo pide así) en vez de borrar — limpiar en la próxima ronda.
+- **`csd-wa-listener`** (repo hermano) sigue fuera de este repo — los 4 grupos de dev llevan desde el 08-nov sin latido (`wa_eventos`); por eso `wa_grupos.participantes=0` y el aviso de privacidad nunca se confirma. No es nada de este código.
+
+### Próximos pasos para Xaviel (actualizado — ya en prod)
+1. ~~Revisar/probar/commit/push/PR a dev~~ — hecho, mergeado (PR #122 dev, #123 main).
+2. Encender `wa_recap_diario` primero (menor riesgo), confirmar un correo real, luego `wa_recordatorios`.
+3. Revisar `csd-wa-listener` (aviso de privacidad + participantes, bug "No LID for user" de la ronda DB) — sigue pendiente, fuera de este repo.
+4. Confirmar con Legal (Ley 172-13) el nuevo flujo de PDF por correo (`docs/DATOS-Y-TERCEROS.md`).
+
+---
 ## ✅ Graphify (09-nov-2026) — knowledge graph wired into Claude Code, SGC + csd-app — EN AMBOS REPOS (SGC `11e0d8a6`→`main`, csd-app `5468d72`→`dev`)
 
 **TL;DR:** Graphify (CLI de grafo de dependencias por AST) instalado y registrado con Claude Code en ambos repos — hooks git de auto-rebuild, strict mode ON, `graphify-out/` gitignored. Completo, commiteado y pusheado en ambos. Nada pendiente.

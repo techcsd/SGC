@@ -7,8 +7,8 @@ import { enviarAlerta } from "../_shared/alertas.ts";
 import { EXTRACCION_SYSTEM_PROMPT } from "./prompts/extraccion.ts";
 import { construirResumenSystemPrompt } from "./prompts/resumen.ts";
 import {
-  esMensajeBajoSenal, validarHallazgos, presupuestoExcedido, latidoCaido,
-  visionLimiteAlcanzado, construirPromptExtraccion, type MensajeParaPrompt,
+  esMensajeBajoSenal, validarHallazgos, validarCierres, presupuestoExcedido, latidoCaido,
+  visionLimiteAlcanzado, construirPromptExtraccion, type MensajeParaPrompt, type HallazgoAbiertoParaPrompt,
 } from "./logica.ts";
 
 // ============================================================================
@@ -286,10 +286,27 @@ async function procesarGrupo(sb: Any, grupoJid: string, mensajes: Any[], budgetT
   const batch = restantes.map(aMensajePrompt);
   const idsPermitidos = new Set(batch.map((m) => m.id));
 
-  const prompt = construirPromptExtraccion(contexto, batch);
-  let hallazgosCrudos: Any = null;
+  // DL-06/DL-16 — últimos 15 hallazgos abiertos del grupo, con id CORTO (nunca
+  // el uuid real) para que el modelo pueda referenciarlos en "cierres" sin
+  // poder inventar uno ni gastar tokens en uuids.
+  const { data: abiertosRows } = await sb.from("wa_hallazgos")
+    .select("id,tipo,resumen")
+    .eq("grupo_jid", grupoJid)
+    .in("estado", ["nuevo", "revisado"])
+    .neq("seguimiento", "resuelto")
+    .order("creado_en", { ascending: false })
+    .limit(15);
+  const mapaAbiertos = new Map<string, string>(); // idCorto -> uuid real
+  const abiertosPrompt: HallazgoAbiertoParaPrompt[] = ((abiertosRows ?? []) as Any[]).map((h, i) => {
+    const idCorto = `h${i + 1}`;
+    mapaAbiertos.set(idCorto, h.id);
+    return { idCorto, tipo: h.tipo, resumen: h.resumen };
+  });
+
+  const prompt = construirPromptExtraccion(contexto, batch, abiertosPrompt);
+  let parseado: { hallazgos?: Any[]; cierres?: Any[] } | null = null;
   let resultado: Awaited<ReturnType<typeof llamarClaude>> | null = null;
-  for (let intento = 0; intento < 2 && hallazgosCrudos === null; intento++) {
+  for (let intento = 0; intento < 2 && parseado === null; intento++) {
     try {
       resultado = await llamarClaude({
         apiKey: ANTHROPIC_API_KEY!,
@@ -298,7 +315,7 @@ async function procesarGrupo(sb: Any, grupoJid: string, mensajes: Any[], budgetT
         mensajes: [{ role: "user", content: prompt }],
         maxTokens: 2048,
       });
-      hallazgosCrudos = extraerJson<Any[]>(resultado.texto);
+      parseado = extraerJson<{ hallazgos?: Any[]; cierres?: Any[] }>(resultado.texto);
     } catch (e) {
       console.error(`[wa-extract] llamada a Claude falló (intento ${intento + 1}):`, e);
     }
@@ -310,18 +327,29 @@ async function procesarGrupo(sb: Any, grupoJid: string, mensajes: Any[], budgetT
     }).then(() => {}, () => {});
   }
 
-  const hallazgos = validarHallazgos(hallazgosCrudos, idsPermitidos);
+  const hallazgos = validarHallazgos(parseado?.hallazgos, idsPermitidos);
   for (const h of hallazgos) {
     let detalle = h.detalle;
     if (h.tipo === "pedido_material") {
       detalle = await anotarPosibleMatchMaterial(sb, h.resumen, h.detalle);
     }
-    await sb.rpc("wa_hallazgo_insertar", {
+    await sb.rpc("wa_hallazgo_insertar_v2", {
       p_grupo_jid: grupoJid, p_tipo: h.tipo, p_resumen: h.resumen, p_detalle: detalle,
       p_personas: JSON.stringify(h.personas), p_fecha_mencionada: h.fecha_mencionada,
       p_monto: h.monto, p_moneda: h.moneda, p_proyecto_id: proyectoId,
-      p_mensaje_ids: h.mensaje_ids, p_confianza: h.confianza,
-    }).then(() => {}, (e: Any) => console.error("[wa-extract] wa_hallazgo_insertar falló:", e));
+      p_mensaje_ids: h.mensaje_ids, p_confianza: h.confianza, p_responsable_hint: h.responsable_hint,
+    }).then(() => {}, (e: Any) => console.error("[wa-extract] wa_hallazgo_insertar_v2 falló:", e));
+  }
+
+  // DL-16 — cierres: el modelo detectó que un mensaje de este batch responde/
+  // cumple un hallazgo abierto que le pasamos como contexto.
+  const cierres = validarCierres(parseado?.cierres, new Set(mapaAbiertos.keys()), idsPermitidos);
+  for (const c of cierres) {
+    const hallazgoIdReal = mapaAbiertos.get(c.hallazgo_id_corto);
+    if (!hallazgoIdReal) continue;
+    await sb.rpc("wa_hallazgo_cerrar_por_mensaje", {
+      p_hallazgo_id: hallazgoIdReal, p_mensaje_id: c.mensaje_id, p_motivo: c.motivo, p_confianza: c.confianza,
+    }).then(() => {}, (e: Any) => console.error("[wa-extract] wa_hallazgo_cerrar_por_mensaje falló:", e));
   }
 
   await marcarProcesados(sb, idsTodos.filter((id) => restantes.some((m) => m.id === id)));
@@ -511,9 +539,12 @@ Deno.serve(async (req: Request) => {
       case "revisar_latido":
         return await handleRevisarLatido(sb);
       case "resumenes_dia":
-        return await procesarResumen(sb, "dia");
       case "resumenes_semana":
-        return await procesarResumen(sb, "semana");
+        // DL5 — reemplazadas por la edge `wa-recap` (cursor rodante en hora RD,
+        // en vez de la ventana fija en UTC de `procesarResumen`). Los crons
+        // viejos ya se desprogramaron (sql/2026-11-10-dl5-wa-recap.sql); esto
+        // solo cubre una llamada residual durante el ciclo de despliegue.
+        return json({ ok: true, deprecado: true, usar: "wa-recap" });
       case "":
         return await handleExtraccion(sb);
       default:

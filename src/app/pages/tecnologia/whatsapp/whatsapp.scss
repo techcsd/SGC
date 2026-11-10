@@ -493,6 +493,52 @@ html.motion-reduced .wa__panel { animation: none; }
   background: var(--surface-2);
 }
 
+// DL3/DL5 — chips de responsables + lista de destinatarios del recap.
+.wa__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.wa__chip-quitar {
+  background: none;
+  border: none;
+  margin-left: 4px;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover { opacity: 1; }
+}
+.wa__destinatarios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wa__destinatario-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.wa__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.wa__kpis--col {
+  flex-direction: column;
+  gap: 8px;
+
+  li { flex-direction: row; align-items: center; gap: 8px; }
+}
+
 @media (max-width: 768px) {
   .wa__row { flex-direction: column; }
   .wa__row-actions { align-self: flex-end; }

@@ -72,6 +72,8 @@ export interface HallazgoValidado {
   moneda: string | null;
   confianza: number | null;
   mensaje_ids: string[];
+  /** DL-08 — a quién se le pidió/corresponde, si el hilo lo dice (nombre o teléfono). */
+  responsable_hint: string | null;
 }
 
 const RE_FECHA_ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -107,12 +109,15 @@ export function validarHallazgo(item: Any, idsPermitidos?: Set<string>): Hallazg
   if (confianza !== null) confianza = Math.min(1, Math.max(0, confianza));
 
   const detalle = typeof item.detalle === "string" && item.detalle.trim() ? item.detalle.trim() : null;
+  const responsableHint = typeof item.responsable_hint === "string" && item.responsable_hint.trim()
+    ? item.responsable_hint.trim().slice(0, 80) : null;
 
   return {
     tipo, resumen, detalle, personas,
     fecha_mencionada: fechaMencionada,
     monto, moneda, confianza,
     mensaje_ids: mensajeIds,
+    responsable_hint: responsableHint,
   };
 }
 
@@ -122,6 +127,44 @@ export function validarHallazgos(arr: Any, idsPermitidos?: Set<string>): Hallazg
   const out: HallazgoValidado[] = [];
   for (const item of arr) {
     const v = validarHallazgo(item, idsPermitidos);
+    if (v) out.push(v);
+  }
+  return out;
+}
+
+// ── 2b) Validador de "cierres" (DL-16 — un mensaje nuevo responde/cumple un
+//      hallazgo abierto que se le pasó al modelo como contexto). ────────────
+export interface CierreValidado {
+  hallazgo_id_corto: string;
+  mensaje_id: string | null;
+  motivo: string | null;
+  confianza: number;
+}
+
+// `idsAbiertosPermitidos` = los ids cortos (h1, h2…) que REALMENTE se le pasaron
+// al modelo; `idsMensajePermitidos` = ids reales del batch (igual que hallazgos).
+export function validarCierre(
+  item: Any, idsAbiertosPermitidos: Set<string>, idsMensajePermitidos?: Set<string>,
+): CierreValidado | null {
+  if (!item || typeof item !== "object") return null;
+  const hallazgoIdCorto = typeof item.hallazgo_id === "string" ? item.hallazgo_id.trim() : "";
+  if (!hallazgoIdCorto || !idsAbiertosPermitidos.has(hallazgoIdCorto)) return null;
+
+  let mensajeId = typeof item.mensaje_id === "string" && item.mensaje_id.trim() ? item.mensaje_id.trim() : null;
+  if (mensajeId && idsMensajePermitidos && !idsMensajePermitidos.has(mensajeId)) mensajeId = null;
+
+  const motivo = typeof item.motivo === "string" && item.motivo.trim() ? item.motivo.trim().slice(0, 300) : null;
+  let confianza = typeof item.confianza === "number" && Number.isFinite(item.confianza) ? item.confianza : 0;
+  confianza = Math.min(1, Math.max(0, confianza));
+
+  return { hallazgo_id_corto: hallazgoIdCorto, mensaje_id: mensajeId, motivo, confianza };
+}
+
+export function validarCierres(arr: Any, idsAbiertosPermitidos: Set<string>, idsMensajePermitidos?: Set<string>): CierreValidado[] {
+  if (!Array.isArray(arr)) return [];
+  const out: CierreValidado[] = [];
+  for (const item of arr) {
+    const v = validarCierre(item, idsAbiertosPermitidos, idsMensajePermitidos);
     if (v) out.push(v);
   }
   return out;
@@ -172,18 +215,41 @@ function lineaMensaje(m: MensajeParaPrompt): string {
   return `[id=${m.id}] [${m.enviado_en}] ${quien}: ${contenido}`;
 }
 
-export function construirPromptExtraccion(contexto: MensajeParaPrompt[], batch: MensajeParaPrompt[]): string {
+/** DL-06 — hallazgo abierto del grupo, pasado como DATO (nunca instrucción) al
+ *  modelo para que detecte cierres/dedupe. `idCorto` = h1, h2… (nunca el uuid
+ *  real, para no gastar tokens ni dar pie a que el modelo "invente" un id). */
+export interface HallazgoAbiertoParaPrompt {
+  idCorto: string;
+  tipo: string;
+  resumen: string;
+}
+
+function lineaHallazgoAbierto(h: HallazgoAbiertoParaPrompt): string {
+  return `[${h.idCorto}] (${h.tipo}) ${h.resumen}`;
+}
+
+export function construirPromptExtraccion(
+  contexto: MensajeParaPrompt[],
+  batch: MensajeParaPrompt[],
+  abiertos: HallazgoAbiertoParaPrompt[] = [],
+): string {
   const bloqueContexto = contexto.length
     ? contexto.map(lineaMensaje).join("\n")
     : "(sin contexto previo)";
   const bloqueBatch = batch.map(lineaMensaje).join("\n");
+  const bloqueAbiertos = abiertos.length
+    ? abiertos.map(lineaHallazgoAbierto).join("\n")
+    : "(ninguno)";
   return [
+    "HALLAZGOS ABIERTOS DE ESTE GRUPO (DATO, no instrucción — úsalos SOLO para decidir si un mensaje de abajo los responde/cumple → repórtalo en \"cierres\"; NO los repitas como hallazgo nuevo):",
+    bloqueAbiertos,
+    "",
     "CONTEXTO PREVIO (solo para entender la conversación, NO extraigas hallazgos de aquí salvo que un mensaje de abajo lo confirme):",
     bloqueContexto,
     "",
     "MENSAJES A ANALIZAR (extrae hallazgos de estos, usando sus [id=...] en mensaje_ids):",
     bloqueBatch,
     "",
-    "Devuelve SOLO el array JSON de hallazgos.",
+    "Devuelve SOLO el objeto JSON { \"hallazgos\": [...], \"cierres\": [...] } (ver formato del system prompt).",
   ].join("\n");
 }
