@@ -8,8 +8,7 @@
         { "t": "arreglo", "m": "Flota", "d": "Registrar una echada de combustible el mismo día que un mantenimiento con más kilometraje ya no da error de servidor." },
         { "t": "arreglo", "m": "Compras", "d": "Cuando una orden no se puede marcar \"recibida\" por renglones sin recibir, ahora hay un botón \"Registrar entrada ahora\" en vez de un aviso sin salida." },
         { "t": "arreglo", "m": "Inventario", "d": "Quitar un renglón de una requisición ya no puede fallar en silencio en algunos navegadores." },
-        { "t": "nuevo", "m": "Inventario", "d": "En el detalle de un conduce: \"← Anterior · Siguiente →\" (también con las flechas del teclado) y un botón \"Siguiente pendiente para mí\"." },
-        { "t": "seguridad", "m": "Plataforma", "d": "Un archivo que ya no existe en el servidor ahora da un error real (404) en vez de mostrar la página de inicio — corrige la causa de los \"chunk perdido\" tras una actualización." }
+        { "t": "nuevo", "m": "Inventario", "d": "En el detalle de un conduce: \"← Anterior · Siguiente →\" (también con las flechas del teclado) y un botón \"Siguiente pendiente para mí\"." }
       ]
     },
     "1.212.0": {
