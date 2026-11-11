@@ -1,8 +1,16 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DM (10/11-nov-2026) — PROMPT 140: módulo Claude, agente de pendientes, 4 reportes — PR #125 MERGEADO a `dev`, release-check OK, falta QA humana para `main`
+## ✅ Ronda DM (10/11-nov-2026) — PROMPT 140: módulo Claude, agente de pendientes, 4 reportes — EN PRODUCCIÓN — v1.213.0
 
-**TL;DR:** Todo el alcance de PROMPT-140 (DM1-DM6) construido en el worktree `SGC-dm`. PR #125 **mergeado a `dev`** (91d6a0ed, 11-nov) tras re-verificar con un pase de smokes automatizados (edges, agente, conector apagador — todos OK). `release-check.mjs --env dev --version 1.213.0` **PASS** en los 7 checks. **Sigue faltando la prueba humana real de Xaviel** (`qa/release-1.213.0.md`, casillas sin marcar) — release-check solo comprueba que el archivo existe, no que alguien lo probó en el navegador. **No se abrió/mergeó PR a `main`** hasta que esa prueba quede registrada. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 10112026-2\` (CONTEXTO-69, PROMPT-140-SGC.md, PLAN.md, COBERTURA-NOTAS.md, extras/).
+**TL;DR:** PROMPT-140 (DM1-DM6) completo y **en prod**. Xaviel probó en dev (OK explícito, `qa/release-1.213.0.md`), PR #130 `dev → main` mergeado, v1.213.0 live. Migraciones DM1/DM2/DM4/DM4b/DM6 + DH2/DH23 aplicadas a prod; 4 edges nuevas desplegadas (`claude-skill-validar`, `claude-skill-descargar`, `claude-pack-zip`, `agente-pendientes`) y smoke-probadas contra prod real. Los 4 reportes de Raykler cerrados en prod. `claude_skills_conector` y la familia `agente_pendientes` quedan **apagados en prod** (default) — Xaviel los enciende cuando quiera. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 10112026-2\` (CONTEXTO-69, PROMPT-140-SGC.md, PLAN.md, COBERTURA-NOTAS.md, extras/).
+
+**Despliegue a prod (11-nov, con OK explícito de Xaviel por paso):**
+- Migraciones: `2026-11-10-dm1-claude-modulo.sql`, `dm2-agente-pendientes.sql`, `dm4-claude-skills-conector.sql`, `dm4b-que-puedo-consultar.sql`, `dm6-triaje-errores.sql`. Además `2026-11-03-dh2-combustible-km-mismo-dia.sql` y `dh23-error-regla-negocio.sql` — **un HANDOFF anterior decía que ya estaban en prod; estaba equivocado**, se aplicaron fresh recién ahora (11-nov). Si algo cita "DH2/DH23 ya en prod desde el 10-nov", es falso — confirma con el ledger antes de asumirlo.
+- Edges desplegadas vía `mcp__supabase__deploy_edge_function` (el Supabase CLI local no corrió — falla parseando `.env.local`; tampoco `apply-migration.mjs`-style para edges). Cada archivo `_shared` que importa una función se tuvo que inlinear a mano en el payload del deploy (la API no sigue imports relativos fuera del bundle que se le pasa).
+- `agente-pendientes` smoke-probado en prod real (`modo: prueba`, usuario Xaviel) — 200 OK, 57 pendientes encontrados, escrito en nota "Pendientes (PRUEBA)" (no toca la fija).
+- Los 4 reportes de Raykler cerrados en prod vía `scripts/data-fixes/2026-11-10-dm5-cerrar-reportes-raykler.mjs --env prod --yes` (se quitó el filtro que antes solo cerraba 1 de los 4 — ya no aplica, el código real está vivo).
+
+### Addendum 11-nov — DM-27 (chunk perdido) SIGUE SIN RESOLVERSE; 3 intentos, causa real no encontrada
 
 ### Addendum 11-nov — DM-27 (chunk perdido) SIGUE SIN RESOLVERSE; 3 intentos, causa real no encontrada
 

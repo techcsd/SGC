@@ -10,11 +10,8 @@ import { resolverEnv, dbQuery } from '../lib/entorno.mjs';
 
 const env = await resolverEnv(process.argv.slice(2));
 
-// En prod SOLO se cierra 1a91a8cd: su arreglo es 100% de servidor (DH2) y ya
-// está aplicado ahí. Los otros 3 dependen de código de esta rama
-// (feature/dm-modulo-claude) que todavía no llegó a main/prod — cerrarlos
-// ahora mentiría sobre el estado real. En dev, donde SÍ corre el código de la
-// rama, se cierran los 4.
+// 11-nov: v1.213.0 (PR #130) ya está en main/prod, con OK explícito de Xaviel
+// para cerrar los 4 reportes en prod — el código real ya está vivo ahí.
 const REPORTES_TODOS = [
   {
     id: '28e423b1-8ea9-41b7-9755-a6d9f4f62feb',
@@ -38,9 +35,7 @@ const REPORTES_TODOS = [
   },
 ];
 
-const REPORTES = env.entorno === 'prod'
-  ? REPORTES_TODOS.filter((r) => r.id === '1a91a8cd-942a-4179-ae42-db3a4ce37bbb')
-  : REPORTES_TODOS;
+const REPORTES = REPORTES_TODOS;
 
 const sql = `
 do $$
