@@ -1,46 +1,54 @@
 <div class="perfil-claude">
-  <a routerLink="/configuracion" class="perfil-claude__volver">← {{ 'Perfil' | t }}</a>
-  <h1>{{ 'Usar el SGC desde Claude' | t }}</h1>
+  @if (!embebido()) {
+    <a routerLink="/configuracion" class="perfil-claude__volver">← {{ 'Perfil' | t }}</a>
+    <h1>{{ 'Usar el SGC desde Claude' | t }}</h1>
+  }
   <p class="perfil-claude__sub">
     {{ 'Pregúntale a Claude Desktop sobre el SGC con tu cuenta, sin abrir Compa. Claude solo ve lo que tú ves.' | t }}
   </p>
 
   <div class="perfil-claude__layout">
     <div class="perfil-claude__pasos">
-      <span class="perfil-claude__titulo-card">{{ 'Conéctalo en 3 pasos' | t }}</span>
+      <span class="perfil-claude__titulo-card">{{ 'Conéctalo' | t }}</span>
 
+      <!-- DN-23: el SGC ya está en la organización como conector -- un solo
+           paso para quien se une, no 3. El enlace/"agregar conector" queda
+           para el owner que lo tenga que re-crear, en el desplegable de abajo. -->
       <div class="perfil-claude__paso">
         <span class="perfil-claude__num">1</span>
-        <div class="perfil-claude__paso-cuerpo">
-          <span>{{ 'Copia el enlace del conector del SGC.' | t }}</span>
-          <div class="perfil-claude__enlace">
-            <input type="text" readonly [value]="enlace" />
-            <button appButton variant="accent" type="button" (click)="copiarEnlace()">
-              {{ copiado() ? ('¡Copiado!' | t) : ('Copiar enlace' | t) }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="perfil-claude__paso">
-        <span class="perfil-claude__num">2</span>
         <span class="perfil-claude__paso-texto">
-          {{ 'En' | t }} <b>Claude Desktop</b>: <b>{{ 'Personalizar › Conectores › Agregar conector personalizado' | t }}</b>,
-          {{ 'pega el enlace y ponle de nombre' | t }} <b>SGC</b>.
-          <span class="perfil-claude__nota">({{ 'En una cuenta de equipo, el conector lo agrega primero un owner de la organización; luego cada persona lo conecta.' | t }})</span>
-        </span>
-      </div>
-
-      <div class="perfil-claude__paso">
-        <span class="perfil-claude__num">3</span>
-        <span class="perfil-claude__paso-texto">
-          {{ 'Pulsa' | t }} <b>Connect</b>. {{ 'Se abre el SGC, inicias sesión y tocas' | t }} <b>Permitir a Claude</b>. {{ '¡Listo!' | t }}
+          {{ 'En Claude:' | t }} <b>{{ 'Ajustes › Conectores › SGC › Conectar' | t }}</b>.
+          {{ 'Inicia sesión en el SGC y toca' | t }} <b>{{ 'Permitir' | t }}</b>. {{ '¡Listo!' | t }}
+          <span class="perfil-claude__nota">({{ 'El SGC ya está en la organización; cada persona debe pulsar Conectar una vez.' | t }})</span>
         </span>
       </div>
 
       <span class="perfil-claude__otro-dispositivo">
         {{ 'Si usas Claude en otro lugar (web o celular) también aparece, porque el conector queda en tu cuenta de Claude.' | t }}
       </span>
+
+      <details class="perfil-claude__owner">
+        <summary>{{ 'Soy owner / el conector no aparece' | t }}</summary>
+        <div class="perfil-claude__paso">
+          <span class="perfil-claude__num">A</span>
+          <div class="perfil-claude__paso-cuerpo">
+            <span>{{ 'Copia el enlace del conector del SGC.' | t }}</span>
+            <div class="perfil-claude__enlace">
+              <input type="text" readonly [value]="enlace" />
+              <button appButton variant="accent" type="button" (click)="copiarEnlace()">
+                {{ copiado() ? ('¡Copiado!' | t) : ('Copiar enlace' | t) }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="perfil-claude__paso">
+          <span class="perfil-claude__num">B</span>
+          <span class="perfil-claude__paso-texto">
+            {{ 'En' | t }} <b>Claude Desktop</b>: <b>{{ 'Personalizar › Conectores › Agregar conector personalizado' | t }}</b>,
+            {{ 'pega el enlace y ponle de nombre' | t }} <b>SGC</b>.
+          </span>
+        </div>
+      </details>
     </div>
 
     <div class="perfil-claude__lateral">

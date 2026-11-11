@@ -184,8 +184,8 @@
 | flota/transferencias | - | 16 | 10 | 6 | 63% |
 | ingenieria/pagos | - | 86 | 54 | 32 | 63% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
-| configuracion/claude | - | 37 | 24 | 13 | 65% |
 | flota/cupos-combustible | - | 61 | 40 | 21 | 66% |
-| claude | - | 86 | 60 | 26 | 70% |
+| configuracion/claude | - | 39 | 27 | 12 | 69% |
+| claude | - | 107 | 76 | 31 | 71% |
 | admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |
