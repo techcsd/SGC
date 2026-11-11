@@ -43,6 +43,12 @@ export const rrhhRoutes: Routes = [
     title: 'Organigrama — RRHH',
   },
   {
+    path: 'onboarding',
+    canActivate: [submoduloGuard('rrhh.onboarding')],
+    loadComponent: () => import('./onboarding/onboarding').then((m) => m.RrhhOnboarding),
+    title: 'Reclutamiento — RRHH',
+  },
+  {
     path: 'tramites',
     canActivate: [submoduloGuard('rrhh.tramites')],
     loadComponent: () => import('./tramites/tramites').then((m) => m.RrhhTramites),

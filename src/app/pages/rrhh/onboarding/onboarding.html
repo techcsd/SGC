@@ -1,0 +1,124 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Reclutamiento (onboarding)</h1>
+      <p class="page__sub">Vacantes abiertas y el pipeline de candidatos: aplicó → entrevista → oferta → contratado/rechazado.</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirFormVacante()">Nueva vacante</button>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    @if (mostrarFormVacante()) {
+      <form class="ob-add" (submit)="$event.preventDefault(); guardarVacante()">
+        <label class="ob-field"><span>Título</span>
+          <input type="text" [value]="fTitulo()" (input)="fTitulo.set($any($event.target).value)" placeholder="Ej: Ayudante de carpintero" />
+        </label>
+        <label class="ob-field"><span>Departamento</span>
+          <input type="text" [value]="fDepartamento()" (input)="fDepartamento.set($any($event.target).value)" />
+        </label>
+        <label class="ob-field ob-field--wide"><span>Descripción</span>
+          <textarea rows="2" [value]="fDescripcion()" (input)="fDescripcion.set($any($event.target).value)"></textarea>
+        </label>
+        <div class="ob-add__acciones">
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoVacante()">{{ guardandoVacante() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarFormVacante.set(false)">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    @if (!vacantes().length) {
+      <p class="text-muted">Aún no hay vacantes registradas.</p>
+    } @else {
+      <h2 class="ob-h">Vacantes abiertas</h2>
+      <ul class="ob-vacantes">
+        @for (v of vacantesAbiertas(); track v.id) {
+          <li class="ob-vacante" [class.ob-vacante--activa]="seleccionada()?.id === v.id"
+              tabindex="0" role="button" (click)="seleccionarVacante(v)" (keydown.enter)="seleccionarVacante(v)">
+            <span class="ob-vacante__titulo">{{ v.titulo }}</span>
+            @if (v.departamento) { <span class="text-muted">{{ v.departamento }}</span> }
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); cambiarEstadoVacante(v, 'cerrada')">Cerrar vacante</button>
+          </li>
+        }
+      </ul>
+
+      @if (vacantesNoAbiertas().length) {
+        <h2 class="ob-h">Pausadas / cerradas</h2>
+        <ul class="ob-vacantes">
+          @for (v of vacantesNoAbiertas(); track v.id) {
+            <li class="ob-vacante" tabindex="0" role="button" (click)="seleccionarVacante(v)" (keydown.enter)="seleccionarVacante(v)">
+              <span class="ob-vacante__titulo">{{ v.titulo }}</span>
+              <span class="sgc-badge sgc-badge--neutral">{{ v.estado }}</span>
+            </li>
+          }
+        </ul>
+      }
+    }
+
+    @if (seleccionada(); as v) {
+      <h2 class="ob-h">Candidatos — {{ v.titulo }}</h2>
+      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirFormCandidato()">Agregar candidato</button>
+
+      @if (mostrarFormCandidato()) {
+        <form class="ob-add" (submit)="$event.preventDefault(); guardarCandidato()">
+          <label class="ob-field"><span>Nombre</span>
+            <input type="text" [value]="fcNombre()" (input)="fcNombre.set($any($event.target).value)" />
+          </label>
+          <label class="ob-field"><span>Teléfono</span>
+            <input type="text" [value]="fcTelefono()" (input)="fcTelefono.set($any($event.target).value)" />
+          </label>
+          <label class="ob-field"><span>Email</span>
+            <input type="email" [value]="fcEmail()" (input)="fcEmail.set($any($event.target).value)" />
+          </label>
+          <label class="ob-field ob-field--wide"><span>Notas</span>
+            <textarea rows="2" [value]="fcNotas()" (input)="fcNotas.set($any($event.target).value)"></textarea>
+          </label>
+          <div class="ob-add__acciones">
+            <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoCandidato()">{{ guardandoCandidato() ? 'Guardando…' : 'Guardar' }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarFormCandidato.set(false)">Cancelar</button>
+          </div>
+        </form>
+      }
+
+      @if (cargandoCandidatos()) {
+        <p class="text-muted">Cargando candidatos…</p>
+      } @else if (!candidatos().length) {
+        <p class="text-muted">Esta vacante todavía no tiene candidatos.</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Nombre</th><th>Contacto</th><th>Etapa</th><th></th></tr></thead>
+            <tbody>
+              @for (c of candidatos(); track c.id) {
+                <tr>
+                  <td>{{ c.nombre }}</td>
+                  <td class="text-muted">{{ c.telefono || c.email || '—' }}</td>
+                  <td>
+                    <span class="sgc-badge" [class.sgc-badge--success]="c.etapa === 'contratado'" [class.sgc-badge--danger]="c.etapa === 'rechazado'" [class.sgc-badge--info]="c.etapa !== 'contratado' && c.etapa !== 'rechazado'">
+                      {{ etapaLabel[c.etapa] }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (c.etapa !== 'contratado' && c.etapa !== 'rechazado') {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="avanzarEtapa(c)">Avanzar</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="rechazar(c)">Rechazar</button>
+                    }
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminarCandidato(c)">Eliminar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarSeleccion()">Cerrar</button>
+    }
+  }
+</section>
+
+<app-confirm-dialog [open]="!!candidatoAEliminar()" title="¿Eliminar este candidato?"
+  [message]="candidatoAEliminar() ? ('«' + candidatoAEliminar()!.nombre + '»') : ''"
+  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminarCandidato()" (cancelled)="candidatoAEliminar.set(null)" />
