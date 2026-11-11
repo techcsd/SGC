@@ -46,6 +46,31 @@ export interface EmpleadoDocumento {
   tipo_mime: string | null;
   subido_por: string | null;
   created_at: string;
+  // DN-27 — vigencia/vencimiento (contratos, permisos, certificaciones).
+  vigencia_desde?: string | null;
+  vigencia_hasta?: string | null;
+  es_contrato?: boolean;
+}
+
+/** DN-27 — fila de sgc.rrhh_documentos_por_vencer(). */
+export interface RrhhDocumentoPorVencer {
+  empleado_id: string;
+  empleado_nombre: string;
+  documento_id: string;
+  tipo: string;
+  vigencia_hasta: string;
+  dias_restantes: number;
+}
+
+/** DN-27 — fila de sgc.rrhh_organigrama(). */
+export interface RrhhOrganigramaNodo {
+  id: string;
+  nombre: string;
+  apellido: string;
+  cargo: string | null;
+  departamento: string | null;
+  jefe_id: string | null;
+  activo: boolean;
 }
 
 export const TIPOS_CONTRATO = [

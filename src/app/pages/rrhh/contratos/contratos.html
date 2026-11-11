@@ -1,0 +1,105 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Contratos y documentos</h1>
+      <p class="page__sub">Vencimientos de contratos y documentos del personal. Para subir un documento nuevo, hazlo desde la ficha del empleado en Empleados — aquí se administra la vigencia y se ven los vencimientos.</p>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    <h2 class="ct-h">Por vencer (próximos 30 días)</h2>
+    @if (!porVencer().length) {
+      <p class="text-muted">Ningún documento con vigencia vence en los próximos 30 días.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Empleado</th><th>Documento</th><th>Vence</th><th>Días</th></tr></thead>
+          <tbody>
+            @for (d of porVencerUrgentes(); track d.documento_id) {
+              <tr class="ct-urgente">
+                <td>{{ d.empleado_nombre }}</td><td>{{ d.tipo }}</td><td>{{ formatFecha(d.vigencia_hasta) }}</td>
+                <td><span class="sgc-badge sgc-badge--danger">{{ d.dias_restantes }} día(s)</span></td>
+              </tr>
+            }
+            @for (d of porVencerPronto(); track d.documento_id) {
+              <tr>
+                <td>{{ d.empleado_nombre }}</td><td>{{ d.tipo }}</td><td>{{ formatFecha(d.vigencia_hasta) }}</td>
+                <td><span class="sgc-badge sgc-badge--warning">{{ d.dias_restantes }} día(s)</span></td>
+              </tr>
+            }
+            @for (d of porVencerEnCurso(); track d.documento_id) {
+              <tr>
+                <td>{{ d.empleado_nombre }}</td><td>{{ d.tipo }}</td><td>{{ formatFecha(d.vigencia_hasta) }}</td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ d.dias_restantes }} día(s)</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h2 class="ct-h">Documentos por empleado</h2>
+    <label class="ct-field">
+      <span>Empleado</span>
+      <select [value]="empleadoSeleccionadoId()" (change)="seleccionarEmpleado($any($event.target).value)">
+        <option value="">Elige un empleado…</option>
+        @for (e of empleados(); track e.id) { <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option> }
+      </select>
+    </label>
+
+    @if (cargandoDocumentos()) {
+      <p class="text-muted">Cargando documentos…</p>
+    } @else if (empleadoSeleccionadoId()) {
+      @if (!documentos().length) {
+        <p class="text-muted">Este empleado no tiene documentos subidos todavía.</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Documento</th><th>Tipo</th><th>Vigencia</th><th>Contrato</th><th></th></tr></thead>
+            <tbody>
+              @for (d of documentos(); track d.id) {
+                <tr>
+                  <td>{{ d.nombre }}</td>
+                  <td class="text-muted">{{ d.tipo }}</td>
+                  <td>
+                    @if (d.vigencia_hasta) {
+                      {{ formatFecha(d.vigencia_desde ?? '') }} — {{ formatFecha(d.vigencia_hasta) }}
+                    } @else { <span class="text-muted">sin vigencia</span> }
+                  </td>
+                  <td>@if (d.es_contrato) { <span class="sgc-badge sgc-badge--info">contrato</span> }</td>
+                  <td>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEdicion(d)">Editar vigencia</button>
+                  </td>
+                </tr>
+                @if (editandoId() === d.id) {
+                  <tr>
+                    <td colspan="5">
+                      <form class="ct-edit" (submit)="$event.preventDefault(); guardarEdicion()">
+                        <label class="ct-field">
+                          <span>Vigencia desde</span>
+                          <input type="date" [value]="editVigenciaDesde()" (input)="editVigenciaDesde.set($any($event.target).value)" />
+                        </label>
+                        <label class="ct-field">
+                          <span>Vigencia hasta</span>
+                          <input type="date" [value]="editVigenciaHasta()" (input)="editVigenciaHasta.set($any($event.target).value)" />
+                        </label>
+                        <label class="ct-check">
+                          <input type="checkbox" [checked]="editEsContrato()" (change)="editEsContrato.set($any($event.target).checked)" />
+                          <span>Es el contrato de trabajo</span>
+                        </label>
+                        <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarEdicion()">Cancelar</button>
+                      </form>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</section>

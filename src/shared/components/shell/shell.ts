@@ -221,9 +221,11 @@ export class Shell implements OnInit {
       modulo: 'rrhh',
       children: [
         { label: 'Empleados', route: '/rrhh/empleados' },
+        { label: 'Contratos y documentos', route: '/rrhh/contratos', submodulo: 'rrhh.contratos' },
+        { label: 'Organigrama', route: '/rrhh/organigrama', submodulo: 'rrhh.organigrama' },
         { label: 'Asistencia', route: '/rrhh/asistencia' },
         { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias', badgeKey: 'rrhh.ausencias' },
-        { label: 'Reportes', route: '/rrhh/reportes' },
+        { label: 'Reportes', route: '/rrhh/reportes', submodulo: 'rrhh.reportes' },
       ],
     },
     {
