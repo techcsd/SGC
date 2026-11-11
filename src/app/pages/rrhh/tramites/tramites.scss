@@ -1,0 +1,21 @@
+.page { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.page__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.page__title { margin: 0; font-size: 20px; font-weight: 700; color: var(--sgc-text); }
+.page__sub { margin: 4px 0 0; font-size: 13px; color: var(--sgc-text-muted); max-width: 680px; }
+
+.tr-h { margin: 10px 0 0; font-size: 15px; font-weight: 700; color: var(--sgc-text); }
+.tr-vencido { background: var(--sgc-danger-light); }
+
+.tr-add {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  padding: 14px 16px; border: 1px solid var(--sgc-border); border-radius: 12px; background: var(--sgc-surface);
+  &__acciones { display: flex; gap: 8px; align-items: flex-end; }
+}
+.tr-field {
+  display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--sgc-text-muted); flex: 1 1 200px;
+  &--wide { flex-basis: 100%; }
+  input, select, textarea { padding: 8px 10px; border: 1px solid var(--sgc-border); border-radius: 8px; font-size: 13.5px;
+    background: var(--sgc-bg); color: var(--sgc-text); font-family: inherit; }
+}
+
+@media (max-width: 768px) { .page { padding: 16px 14px; } .page__head { flex-direction: column; } }

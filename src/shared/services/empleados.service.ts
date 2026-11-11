@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
-import { Empleado, EmpleadoDocumento } from '../models/empleado.model';
+import { Empleado, EmpleadoDocumento, RrhhDocumentoPorVencer, RrhhOrganigramaNodo } from '../models/empleado.model';
+import { RrhhCapacitacion } from '../models/rrhh-capacitacion.model';
 
 /** AN1 — subconjunto seguro de un empleado para selects de referencia. */
 export interface EmpleadoDirectorio {
@@ -115,6 +116,67 @@ export class EmpleadosService {
       .update({ activo, updated_at: new Date().toISOString() })
       .eq('id', id);
 
+    if (error) throw new Error(error.message);
+  }
+
+  // ── DN-27 — Contratos y documentos (submódulo sensible, vía RPC auditada) ──
+  async documentosPorVencer(dias = 30): Promise<RrhhDocumentoPorVencer[]> {
+    const { data, error } = await this.supabase.client.rpc('rrhh_documentos_por_vencer', { p_dias: dias });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhDocumentoPorVencer[];
+  }
+
+  async contratosDeEmpleado(empleadoId: string): Promise<EmpleadoDocumento[]> {
+    const { data, error } = await this.supabase.client.rpc('rrhh_contratos_de_empleado', { p_empleado_id: empleadoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as EmpleadoDocumento[];
+  }
+
+  async guardarVigenciaDocumento(documentoId: string, vigenciaDesde: string | null, vigenciaHasta: string | null, esContrato: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('rrhh_guardar_vigencia_documento', {
+      p_documento_id: documentoId, p_vigencia_desde: vigenciaDesde, p_vigencia_hasta: vigenciaHasta, p_es_contrato: esContrato,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  // ── DN-27 — Organigrama (jefe_id/cargo ya existentes en sgc.empleados) ──
+  async organigrama(): Promise<RrhhOrganigramaNodo[]> {
+    const { data, error } = await this.supabase.client.rpc('rrhh_organigrama');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhOrganigramaNodo[];
+  }
+
+  // ── DN-27 P2 — Capacitación (no sensible, permiso estándar) ──────────────
+  async capacitacionesDeEmpleado(empleadoId: string): Promise<RrhhCapacitacion[]> {
+    const { data, error } = await this.supabase.client
+      .from('rrhh_capacitaciones').select('*').eq('empleado_id', empleadoId).order('fecha_vencimiento', { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhCapacitacion[];
+  }
+
+  async capacitacionesPorVencer(dias = 30): Promise<RrhhCapacitacion[]> {
+    const limite = new Date(); limite.setDate(limite.getDate() + dias);
+    const { data, error } = await this.supabase.client
+      .from('rrhh_capacitaciones')
+      .select('*')
+      .not('fecha_vencimiento', 'is', null)
+      .gte('fecha_vencimiento', new Date().toISOString().slice(0, 10))
+      .lte('fecha_vencimiento', limite.toISOString().slice(0, 10))
+      .order('fecha_vencimiento');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhCapacitacion[];
+  }
+
+  async crearCapacitacion(payload: {
+    empleado_id: string; curso: string; institucion: string | null;
+    fecha_obtencion: string | null; fecha_vencimiento: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.from('rrhh_capacitaciones').insert(payload);
+    if (error) throw new Error(error.message);
+  }
+
+  async eliminarCapacitacion(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('rrhh_capacitaciones').delete().eq('id', id);
     if (error) throw new Error(error.message);
   }
 }

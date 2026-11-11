@@ -184,6 +184,16 @@ export class PersonalObraService {
     if (error) throw new Error(error.message);
   }
 
+  /** DN-24 — cuántas personas de obra (visibles por RLS) tienen este cargo. */
+  async contarPersonalPorCargo(cargoId: string): Promise<number> {
+    const { count, error } = await this.client
+      .from('personal_obra')
+      .select('id', { count: 'exact', head: true })
+      .eq('cargo_id', cargoId);
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  }
+
   // ── Listado por obra (RLS filtra la visibilidad por obra) ───────────────────
   async listar(proyectoId?: string): Promise<PersonalObra[]> {
     // CE2 — el nombre de "quién registró" venía por un embed a usuarios bajo RLS que

@@ -8,6 +8,7 @@
 //   node scripts/release-check.mjs --env dev --version 1.191.0 --yes          (no interactivo)
 //   node scripts/release-check.mjs --env dev --version 1.191.0 --skip-build   (SOLO debugging local de este script — NUNCA para un release real)
 //   node scripts/release-check.mjs --env dev --version 1.191.0 --dias 21      (ventana del heurístico de "archivos tocados recientemente"; default 14)
+//   node scripts/release-check.mjs --env dev --version 1.191.0 --hotfix "sin tiempo para QA, arregla incidente en prod"  (DN-14: salta check3, motivo obligatorio y queda impreso)
 //
 // --env: el entorno CUYO ESTADO se audita (ledger de migraciones, etc.) — en el
 // flujo normal (feature/* → dev → main) siempre es `dev`, porque lo que se está
@@ -21,7 +22,10 @@
 //   2. Las migraciones sql/ tocadas recientemente (heurístico: desde el último tag
 //      de git, o si no hay tags, en los últimos --dias días) están en el ledger
 //      sgc.migraciones_aplicadas del entorno auditado, CON el mismo checksum.
-//   3. qa/release-<version>.md existe y no es un stub (registro humano de prueba).
+//   3. qa/release-<version>.md existe, no es un stub, Y (DN-14) tiene al menos
+//      una casilla "- [x]" marcada de verdad + una línea "Probado por: <nombre>
+//      · <fecha>" (antes aprobaba con el solo texto, sin que nadie probara).
+//      `--hotfix "<motivo>"` lo salta (motivo obligatorio, queda impreso).
 //   4. Si supabase/functions/assistant/index.ts cambió en la misma ventana: los
 //      evals de Compa (qa/compa-evals-<entorno>.json, generado por
 //      scripts/compa-evals.mjs) están frescos (<24h) y 100% verdes. Si NO cambió,
@@ -34,6 +38,7 @@
 import './lib/load-env.mjs';
 import { resolverEnv, dbQuery } from './lib/entorno.mjs';
 import { okLineaValida } from './lib/ok-linea.mjs';
+import { registroPruebaValido } from './lib/registro-prueba.mjs';
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -58,6 +63,15 @@ if (!VERSION || typeof VERSION !== 'string') {
 }
 const SKIP_BUILD = argv.includes('--skip-build');
 const DIAS = Number(flag('--dias')) || 14;
+// DN-14: `--hotfix <motivo>` se salta la exigencia de casilla marcada +
+// "Probado por" de check3 (QA humana real puede no ser viable en un hotfix
+// urgente) — pero exige un motivo no vacío, y queda impreso en el reporte
+// (nunca un bypass silencioso).
+const HOTFIX_MOTIVO = flag('--hotfix');
+if (argv.includes('--hotfix') && (HOTFIX_MOTIVO === true || !HOTFIX_MOTIVO.trim())) {
+  console.error('🔴 --hotfix exige un motivo: --hotfix "texto del motivo"');
+  process.exit(1);
+}
 
 const env = await resolverEnv(argv); // exige --env dev|prod; confirma banner si prod
 
@@ -187,7 +201,23 @@ function check3() {
   if (contenido.trim().length < 80 || lineas.length < 3) {
     return reportar('registro', 'Registro de prueba qa/release-<version>.md', 'FAIL', [`${path} existe pero parece un stub (${contenido.trim().length} caracteres, ${lineas.length} línea(s) no vacías) — completa el registro real de prueba.`]);
   }
-  return reportar('registro', 'Registro de prueba qa/release-<version>.md', 'PASS', [`${path} (${lineas.length} líneas) presente.`]);
+  // DN-14: un stub con texto ya no basta — exige al menos una casilla "- [x]"
+  // marcada de verdad y una línea "Probado por: <nombre> · <fecha>". El
+  // hallazgo real (ronda DM) fue un release-check que aprobaba con TODAS las
+  // casillas en "- [ ]" porque solo miraba longitud/cantidad de líneas.
+  if (HOTFIX_MOTIVO) {
+    return reportar('registro', 'Registro de prueba qa/release-<version>.md', 'PASS', [`${path} presente.`, `--hotfix: "${HOTFIX_MOTIVO}" — se salta la exigencia de casilla marcada + "Probado por" (queda registrado aquí, no es un bypass silencioso).`]);
+  }
+  const { ok, motivos } = registroPruebaValido(contenido);
+  if (!ok) {
+    return reportar('registro', 'Registro de prueba qa/release-<version>.md', 'FAIL', [
+      `${path} existe pero no tiene prueba humana real registrada:`,
+      ...motivos.map((m) => `- ${m}`),
+      'Marca al menos una casilla real tras probar, y agrega "Probado por: <nombre> · <fecha>".',
+      'Si es un hotfix sin tiempo para QA humana: --hotfix "<motivo>" (queda registrado, no es silencioso).',
+    ]);
+  }
+  return reportar('registro', 'Registro de prueba qa/release-<version>.md', 'PASS', [`${path} (${lineas.length} líneas) con casilla marcada y "Probado por" presentes.`]);
 }
 
 // ── Check 4 — evals de Compa, solo si la edge assistant cambió en la ventana ──

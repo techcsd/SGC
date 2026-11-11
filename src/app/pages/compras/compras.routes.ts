@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { moduleGuard } from '../../core/guards/module.guard';
+import { moduloOSubmoduloGuard } from '../../core/guards/modulo-o-submodulo.guard';
 import { proveedoresGuard } from '../../core/guards/proveedores.guard';
 import { submoduloGuard } from '../../core/guards/submodulo.guard';
 
@@ -65,8 +66,10 @@ export const comprasRoutes: Routes = [
   },
   {
     // DF-gastos — gastos directos del proyecto (AS14 ya tenía el backend, sin pantalla).
+    // DN-29 — RRHH › Administración reusa esta MISMA pantalla (sin duplicar):
+    // entra con el módulo compras completo O con rrhh.gastos.
     path: 'gastos',
-    canActivate: [moduleGuard('compras')],
+    canActivate: [moduloOSubmoduloGuard('compras', (u) => u.puedeVerSubmodulo('rrhh.gastos'))],
     loadComponent: () => import('./gastos/gastos').then((m) => m.Gastos),
     title: 'Gastos — Compras',
   },
