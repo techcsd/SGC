@@ -1,8 +1,18 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DM (10-nov-2026) — PROMPT 140: módulo Claude, agente de pendientes, 4 reportes — EN `feature/dm-modulo-claude`, PR #125 a `dev` abierto, NO mergeado
+## 🧪 Ronda DM (10/11-nov-2026) — PROMPT 140: módulo Claude, agente de pendientes, 4 reportes — PR #125 MERGEADO a `dev`, release-check OK, falta QA humana para `main`
 
-**TL;DR:** Todo el alcance de PROMPT-140 (DM1-DM6) construido y probado en el worktree `SGC-dm` (rama `feature/dm-modulo-claude` desde `origin/dev`). Build+tests verdes (314/314), 3 edges nuevas del módulo Claude + 1 del agente de pendientes, todas smoke-probadas end-to-end contra dev. PR #125 abierto a `dev` — **falta la prueba humana de Xaviel** (`qa/release-1.213.0.md`) antes de seguir a `main`. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 10112026-2\` (CONTEXTO-69, PROMPT-140-SGC.md, PLAN.md, COBERTURA-NOTAS.md, extras/).
+**TL;DR:** Todo el alcance de PROMPT-140 (DM1-DM6) construido en el worktree `SGC-dm`. PR #125 **mergeado a `dev`** (91d6a0ed, 11-nov) tras re-verificar con un pase de smokes automatizados (edges, agente, conector apagador — todos OK). `release-check.mjs --env dev --version 1.213.0` **PASS** en los 7 checks. **Sigue faltando la prueba humana real de Xaviel** (`qa/release-1.213.0.md`, casillas sin marcar) — release-check solo comprueba que el archivo existe, no que alguien lo probó en el navegador. **No se abrió/mergeó PR a `main`** hasta que esa prueba quede registrada. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 10112026-2\` (CONTEXTO-69, PROMPT-140-SGC.md, PLAN.md, COBERTURA-NOTAS.md, extras/).
+
+### Addendum 11-nov — el fix de `vercel.json` (DM-27, chunk perdido) NO funcionaba; causa real y arreglo
+
+Verificando el único punto que el HANDOFF original dejó marcado como "nunca se probó un deploy real" (línea de abajo), se confirmó en vivo que **seguía roto**: `GET /chunk-que-no-existe.js` contra `dev.sgcconstructorasd.com` devolvía `200` con el `index.html` de la SPA, no un `404` real (probado vía `web_fetch_vercel_url` del MCP de Vercel, que atraviesa el muro de Vercel Authentication con la cuenta autenticada).
+
+**Causa real (no era el regex):** se aisló con dos deploys desechables (proyecto Vercel nuevo `spa-rewrite-test-xt`, sin relación al repo). El rewrite con lookahead de `vercel.json` (`/:path((?!.*\.[^/]+$).*)→/index.html`) es **correcto** — en un proyecto sin Framework Preset, un `.js` inexistente da 404 real y una ruta SPA da el fallback, exactamente como se espera. Pero en cuanto el proyecto tiene **Framework Preset = Angular** (igual que el proyecto `sgc` real), Vercel **inyecta su propio rewrite SPA incondicional** (sin exclusión por extensión) que compite con el de `vercel.json` — reproducido a voluntad prendiendo/apagando ese único ajuste. El bug nunca fue el código: es un ajuste de **Project Settings** (dashboard), el mismo para dev y prod porque es **un solo proyecto Vercel** (`prj_qujtQToGkfTpsKTYKJ1mP5PBi9wA`) para ambos entornos.
+
+**Arreglo aplicado (con OK de Xaviel, 11-nov):** `update_project` → Framework Preset **Angular → (ninguno)**, Output Directory **→ `dist/SGC`** (el build ya es 100% manual vía `buildCommand` en `vercel.json`/`scripts/build-env.mjs`, no dependía del zero-config de Angular para nada más que el routing). Pendiente de este mismo commit: un deploy real de `dev` para confirmar que con el ajuste nuevo el `.js` inexistente ya da 404 — **verificar antes de dar DM-27 por cerrado** en el QA de Xaviel y en el reporte final.
+
+⚠️ Esto es un ajuste de **Project Settings compartido** entre dev y prod — no hay forma de "probarlo solo en dev" sin afectarlo también en prod (ya en efecto para cualquier build futuro, incluido el próximo deploy de `main`). Si algo más dependía del zero-config de Angular (no debería, pero verificar), se vería en el próximo deploy de producción.
 
 ### Hecho esta sesión
 
@@ -20,7 +30,7 @@
 1. Si Xaviel da el OK tras probar en dev: mergear PR #125 a `dev`, luego seguir el flujo normal (PR `dev→main`, `release-check.mjs`) para llegar a prod.
 2. Cuando el código llegue a prod: cerrar los otros 3 reportes de Raykler con `node scripts/data-fixes/2026-11-10-dm5-cerrar-reportes-raykler.mjs --env prod --yes` (hoy el script detecta `env==='prod'` y SOLO cierra `1a91a8cd`; quitar ese filtro o correrlo manual para los otros 3 una vez el código esté vivo ahí).
 3. Aplicar DM1/DM2/DM4/DM4b a prod (vía `apply-migration.mjs --env prod`, exige que ya estén en el ledger de dev con el mismo checksum — ya lo están) cuando el PR llegue a main.
-4. Probar el fix de `vercel.json` en un deploy de PREVIEW de Vercel antes de confiar en él en prod (nunca se probó un deploy real, solo el build local).
+4. ~~Probar el fix de `vercel.json` en un deploy de PREVIEW~~ → hecho, estaba roto, causa real = Framework Preset del proyecto Vercel (no el código); arreglado vía Project Settings (ver addendum arriba). **Falta**: push/commit que dispare un deploy real de `dev` y reconfirmar `curl`/`web_fetch_vercel_url` de un chunk inexistente → 404.
 
 ### Pendiente — Xaviel (físico)
 1. Probar en dev y llenar `qa/release-1.213.0.md` (las casillas están listas).
