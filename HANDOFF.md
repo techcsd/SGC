@@ -14,6 +14,8 @@ Verificando el único punto que el HANDOFF original dejó marcado como "nunca se
 
 ⚠️ Esto es un ajuste de **Project Settings compartido** entre dev y prod — no hay forma de "probarlo solo en dev" sin afectarlo también en prod (ya en efecto para cualquier build futuro, incluido el próximo deploy de `main`). Si algo más dependía del zero-config de Angular (no debería, pero verificar), se vería en el próximo deploy de producción.
 
+**Corrección 11-nov (mismo día):** el primer `Output Directory` que puse (`dist/SGC`) estaba mal — el build real de Angular (`@angular/build:application`, deja `prerendered-routes.json`) escribe en `dist/SGC/browser/` (con subcarpeta `browser/`, `index.html` incluido). Con el valor equivocado, Vercel no encontró NADA en el deploy de verificación → **`dev.sgcconstructorasd.com` completo en 404 por unos minutos** (incluida la raíz `/`). Corregido a `dist/SGC/browser`; este commit dispara el segundo deploy real para reconfirmar los tres casos (`/`, ruta SPA, `.js` inexistente) antes de dar DM-27 por cerrado — **verificar en el próximo retomar, no asumir OK solo por este texto.**
+
 ### Hecho esta sesión
 
 - **F0 (verificación):** ledger dev vs prod comparado por objeto → **hallazgo crítico**: `DH2` (combustible-km-mismo-día) y `DH23` (estado `regla_negocio` para errores) nunca habían llegado a prod, solo a dev (3-nov). Confirmado con la foto del reporte `1a91a8cd` (Raykler) que es EXACTAMENTE el caso que DH2 resuelve. Reproducido en vivo el bug de "chunk perdido": `curl -I https://sgcconstructorasd.com/chunk-que-no-existe.js` → 200 con el HTML de la app (debería ser 404 real).
