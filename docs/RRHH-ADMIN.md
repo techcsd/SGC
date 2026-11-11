@@ -104,7 +104,7 @@ F0/F0b → higiene/al-día → módulo Claude (DN-22/23) → Cargos (DN-24) → 
 |---|---|---|---|
 | `rrhh.contratos` | ✓ | ✓ | P1, sensible, con auditoría de lectura |
 | `rrhh.organigrama` | ✓ | ✓ | P1, usa `jefe_id`/`cargo` ya existentes |
-| `rrhh.onboarding` | ✓ | ✗ | P1 — vacantes/candidatos/pipeline, sin pantalla |
+| `rrhh.onboarding` | ✓ | ✓ | P1 completo — vacantes + pipeline de candidatos |
 | `rrhh.gastos` | *(reusa compras)* | ✓ | Administración prioridad 1 — enlace, no duplicado |
 | `rrhh.tramites` | ✓ | ✓ | Administración prioridad 2 |
 | `rrhh.proveedores` | ✓ | ✓ | Administración prioridad 3 |
