@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "angular",
+  "framework": null,
   "buildCommand": "node scripts/build-env.mjs",
+  "outputDirectory": "dist/SGC/browser",
   "rewrites": [
     { "source": "/:path((?!.*\\.[^/]+$).*)", "destination": "/index.html" }
   ],
