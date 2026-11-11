@@ -1,0 +1,99 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Nómina y pagos</h1>
+      <p class="page__sub">
+        Cálculo asistido y exportación — <strong>esta pantalla nunca mueve dinero</strong>.
+        Las fórmulas (TSS/AFP/ISR) son parámetros editables; valídalos con el contador antes de usarlos en un período real.
+      </p>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    <h2 class="nm-h">Parámetros (TSS / AFP / ISR)</h2>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Parámetro</th><th>Valor</th><th>Validado por contador</th><th></th></tr></thead>
+        <tbody>
+          @for (p of parametros(); track p.clave) {
+            <tr>
+              <td>
+                {{ p.clave }}
+                @if (p.descripcion) { <div class="text-muted nm-desc">{{ p.descripcion }}</div> }
+              </td>
+              <td>{{ p.valor }}</td>
+              <td>
+                @if (p.validado_por_contador) { <span class="sgc-badge sgc-badge--success">validado</span> }
+                @else { <span class="sgc-badge sgc-badge--warning">sin validar</span> }
+              </td>
+              <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEdicionParametro(p)">Editar</button></td>
+            </tr>
+            @if (editandoClave() === p.clave) {
+              <tr>
+                <td colspan="4">
+                  <form class="nm-edit" (submit)="$event.preventDefault(); guardarParametro()">
+                    <label class="nm-field"><span>Valor</span>
+                      <input type="number" step="0.01" [value]="editValor()" (input)="editValor.set($any($event.target).value)" />
+                    </label>
+                    <label class="nm-check">
+                      <input type="checkbox" [checked]="editValidado()" (change)="editValidado.set($any($event.target).checked)" />
+                      <span>El contador validó este valor</span>
+                    </label>
+                    <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoParametro()">{{ guardandoParametro() ? 'Guardando…' : 'Guardar' }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarEdicionParametro()">Cancelar</button>
+                  </form>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="nm-h">Períodos</h2>
+    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirFormPeriodo()">Nuevo período (borrador)</button>
+
+    @if (mostrarFormPeriodo()) {
+      <form class="nm-add" (submit)="$event.preventDefault(); guardarPeriodo()">
+        <label class="nm-field"><span>Nombre</span>
+          <input type="text" [value]="fNombre()" (input)="fNombre.set($any($event.target).value)" placeholder="Ej: Noviembre 2026 (1ra quincena)" />
+        </label>
+        <label class="nm-field"><span>Desde</span>
+          <input type="date" [value]="fDesde()" (input)="fDesde.set($any($event.target).value)" />
+        </label>
+        <label class="nm-field"><span>Hasta</span>
+          <input type="date" [value]="fHasta()" (input)="fHasta.set($any($event.target).value)" />
+        </label>
+        <div class="nm-add__acciones">
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoPeriodo()">{{ guardandoPeriodo() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarFormPeriodo.set(false)">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    @if (!periodos().length) {
+      <p class="text-muted">Aún no hay períodos creados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Desde</th><th>Hasta</th><th>Estado</th></tr></thead>
+          <tbody>
+            @for (per of periodos(); track per.id) {
+              <tr>
+                <td>{{ per.nombre }}</td><td>{{ formatFecha(per.fecha_desde) }}</td><td>{{ formatFecha(per.fecha_hasta) }}</td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ per.estado }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <p class="nm-aviso text-muted">
+      El cálculo asistido (aplicar los parámetros a cada empleado y generar los recibos) todavía no está construido —
+      espera que el contador valide las fórmulas de arriba.
+    </p>
+  }
+</section>

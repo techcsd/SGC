@@ -129,6 +129,7 @@
 | rrhh/contratos | - | 43 | 0 | 43 | 0% |
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
 | rrhh/evaluaciones | - | 26 | 0 | 26 | 0% |
+| rrhh/nomina | - | 39 | 0 | 39 | 0% |
 | rrhh/onboarding | - | 45 | 0 | 45 | 0% |
 | rrhh/organigrama | - | 12 | 0 | 12 | 0% |
 | rrhh/proveedores | - | 37 | 0 | 37 | 0% |
