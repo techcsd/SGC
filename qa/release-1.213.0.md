@@ -4,7 +4,9 @@
 - Qué se probó: ronda DM (PROMPT-140, DM1-DM6) — módulo Claude (biblioteca de
   skills, Setup, Crear, Auditoría), agente de pendientes (nota diaria/semanal),
   4 reportes de Soporte de Raykler resueltos/instrumentados, triaje de las 38+
-  firmas de error, fix de hosting (chunk perdido → 404 real).
+  firmas de error. **El intento de fix de hosting (chunk perdido → 404 real)
+  NO funcionó tras 3 intentos en dev real — ver HANDOFF "Addendum 11-nov";
+  queda como problema conocido, sin regresión, no bloquea esta ronda.**
 - Versión de origen: 1.212.0
 - Resultado: **pendiente de prueba de Xaviel** (todavía no se ha promovido a dev/main)
 - Fecha: 2026-11-10
@@ -34,7 +36,7 @@
 - [ ] Tecnología › Reportes de errores: las firmas reclasificadas (fecha pasada, GPS denegado, reglas de conduce, existencia insuficiente) aparecen como "regla de negocio", no como abiertas.
 
 ### Hosting
-- [ ] `curl -I https://sgcconstructorasd.com/algo-que-no-existe.js` da 404 real (no 200 con el HTML de la app) — **probar en un deploy de PREVIEW antes de promover a prod** (riesgo de romper el ruteo si algo depende del catch-all).
+- [x] ~~`curl -I .../algo-que-no-existe.js` da 404 real~~ → **NO logrado**: confirmado roto en 3 intentos reales contra `dev.sgcconstructorasd.com` (Project Settings, `vercel.json` framework/outputDirectory explícitos). Causa real sigue sin encontrarse (Build Output API de un deploy de git parece ignorar el rewrite con lookahead que sí funciona en un deploy de archivos planos). **No bloquea la ronda** — mismo comportamiento que ya existía antes; la app funciona con normalidad (verificado `/`, rutas SPA, assets reales), la mitigación del lado cliente (hard-reload en import fallido) sigue siendo la defensa real.
 
 ## Pendiente antes de promover a prod (ver reporte final / HANDOFF)
 
@@ -49,5 +51,7 @@
 - Decidir aprobadores de `tecnologia.claude_administrar` (default: admin/Tecnología).
 - Exportar manualmente de la consola de Claude la lista real de asientos/
   conectores/skills y confirmarla en Auditoría › Organización.
-- Probar el fix de `vercel.json` en un deploy de preview antes de confiar en él
-  en prod (regex de rewrite nueva).
+- DM-27 (chunk perdido) sigue sin resolverse a nivel de hosting pese a 3
+  intentos reales en dev — ver HANDOFF addendum. Pendiente real: alguien con
+  más contexto de Vercel Build Output API, o aceptar la mitigación de cliente
+  existente como la solución real y cerrar esto como "no viable por ahora".
