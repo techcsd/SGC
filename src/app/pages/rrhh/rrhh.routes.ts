@@ -48,4 +48,16 @@ export const rrhhRoutes: Routes = [
     loadComponent: () => import('./tramites/tramites').then((m) => m.RrhhTramites),
     title: 'Trámites y cumplimiento — RRHH',
   },
+  {
+    path: 'proveedores',
+    canActivate: [submoduloGuard('rrhh.proveedores')],
+    loadComponent: () => import('./proveedores/proveedores').then((m) => m.RrhhProveedores),
+    title: 'Proveedores — RRHH',
+  },
+  {
+    path: 'activos',
+    canActivate: [submoduloGuard('rrhh.activos')],
+    loadComponent: () => import('./activos/activos').then((m) => m.RrhhActivos),
+    title: 'Activos y oficina — RRHH',
+  },
 ];

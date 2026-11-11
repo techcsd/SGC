@@ -1,0 +1,101 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Activos y oficina</h1>
+      <p class="page__sub">Mobiliario, suministros y mantenimiento del local — distinto del inventario tecnológico (equipos de cómputo).</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirForm()">Agregar activo</button>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    @if (mostrarForm()) {
+      <form class="av-add" (submit)="$event.preventDefault(); guardar()">
+        <label class="av-field"><span>Nombre</span>
+          <input type="text" [value]="fNombre()" (input)="fNombre.set($any($event.target).value)" placeholder="Ej: Escritorio recepción" />
+        </label>
+        <label class="av-field"><span>Categoría</span>
+          <select [value]="fCategoria()" (change)="fCategoria.set($any($event.target).value)">
+            <option value="mobiliario">Mobiliario</option>
+            <option value="suministro">Suministro</option>
+            <option value="equipo_oficina">Equipo de oficina</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label class="av-field"><span>Ubicación</span>
+          <input type="text" [value]="fUbicacion()" (input)="fUbicacion.set($any($event.target).value)" placeholder="Ej: Oficina principal, 2do piso" />
+        </label>
+        <label class="av-field"><span>Fecha de adquisición</span>
+          <input type="date" [value]="fFechaAdquisicion()" (input)="fFechaAdquisicion.set($any($event.target).value)" />
+        </label>
+        <label class="av-field"><span>Valor (RD$)</span>
+          <input type="number" step="0.01" [value]="fValor()" (input)="fValor.set($any($event.target).value)" />
+        </label>
+        <label class="av-field"><span>Próximo mantenimiento</span>
+          <input type="date" [value]="fProximoMantenimiento()" (input)="fProximoMantenimiento.set($any($event.target).value)" />
+        </label>
+        <label class="av-field av-field--wide"><span>Notas</span>
+          <textarea rows="2" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
+        </label>
+        <div class="av-add__acciones">
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    @if (requierenAtencion().length) {
+      <h2 class="av-h">Requieren atención</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Categoría</th><th>Ubicación</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            @for (a of requierenAtencion(); track a.id) {
+              <tr class="av-atencion">
+                <td>{{ a.nombre }}</td><td class="text-muted">{{ a.categoria }}</td><td class="text-muted">{{ a.ubicacion || '—' }}</td>
+                <td><span class="sgc-badge" [class.sgc-badge--warning]="a.estado === 'mantenimiento'" [class.sgc-badge--danger]="a.estado === 'baja'">{{ a.estado }}</span></td>
+                <td>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarEstado(a, 'bueno')">Marcar reparado</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(a)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h2 class="av-h">Todos los activos</h2>
+    @if (!activos().length) {
+      <p class="text-muted">Aún no hay activos registrados.</p>
+    } @else if (!resto().length) {
+      <p class="text-muted">El resto ya aparece arriba (requieren atención).</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Categoría</th><th>Ubicación</th><th>Valor</th><th>Próx. mantenimiento</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            @for (a of resto(); track a.id) {
+              <tr>
+                <td>{{ a.nombre }}</td><td class="text-muted">{{ a.categoria }}</td><td class="text-muted">{{ a.ubicacion || '—' }}</td>
+                <td>{{ a.valor ? (a.valor | number:'1.0-2') : '—' }}</td>
+                <td>{{ a.proximo_mantenimiento ? formatFecha(a.proximo_mantenimiento) : '—' }}</td>
+                <td><span class="sgc-badge sgc-badge--success">{{ a.estado }}</span></td>
+                <td>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarEstado(a, 'mantenimiento')">Enviar a mantenimiento</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(a)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>
+
+<app-confirm-dialog [open]="!!aEliminar()" title="¿Eliminar este activo?"
+  [message]="aEliminar() ? ('«' + aEliminar()!.nombre + '»') : ''"
+  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />

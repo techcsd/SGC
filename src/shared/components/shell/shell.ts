@@ -229,6 +229,8 @@ export class Shell implements OnInit {
         // DN-29 — Administración de la empresa (Gastos reusa /compras/gastos, sin duplicar).
         { label: 'Gastos y caja chica', route: '/compras/gastos', submodulo: 'rrhh.gastos' },
         { label: 'Trámites y cumplimiento', route: '/rrhh/tramites', submodulo: 'rrhh.tramites' },
+        { label: 'Proveedores (administrativos)', route: '/rrhh/proveedores', submodulo: 'rrhh.proveedores' },
+        { label: 'Activos y oficina', route: '/rrhh/activos', submodulo: 'rrhh.activos' },
       ],
     },
     {
