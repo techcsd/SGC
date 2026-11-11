@@ -125,8 +125,10 @@
 | rrhh/activos | - | 45 | 0 | 45 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
+| rrhh/capacitacion | - | 38 | 0 | 38 | 0% |
 | rrhh/contratos | - | 43 | 0 | 43 | 0% |
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
+| rrhh/evaluaciones | - | 26 | 0 | 26 | 0% |
 | rrhh/onboarding | - | 45 | 0 | 45 | 0% |
 | rrhh/organigrama | - | 12 | 0 | 12 | 0% |
 | rrhh/proveedores | - | 37 | 0 | 37 | 0% |

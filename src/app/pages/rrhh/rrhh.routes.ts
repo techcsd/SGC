@@ -49,6 +49,18 @@ export const rrhhRoutes: Routes = [
     title: 'Reclutamiento — RRHH',
   },
   {
+    path: 'capacitacion',
+    canActivate: [submoduloGuard('rrhh.capacitacion')],
+    loadComponent: () => import('./capacitacion/capacitacion').then((m) => m.RrhhCapacitacionPage),
+    title: 'Capacitación — RRHH',
+  },
+  {
+    path: 'evaluaciones',
+    canActivate: [submoduloGuard('rrhh.evaluaciones')],
+    loadComponent: () => import('./evaluaciones/evaluaciones').then((m) => m.RrhhEvaluaciones),
+    title: 'Evaluaciones — RRHH',
+  },
+  {
     path: 'tramites',
     canActivate: [submoduloGuard('rrhh.tramites')],
     loadComponent: () => import('./tramites/tramites').then((m) => m.RrhhTramites),
