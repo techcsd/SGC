@@ -24,15 +24,29 @@
       <h2>{{ 'Empieza aquí' | t }}</h2>
       <p class="text-muted">{{ 'En Claude en Constructora SD, en 4 pasos estás listo.' | t }}</p>
       <ul class="claude-setup__lista">
+        <!-- DN-22: pasos automáticos se muestran como ESTADO, no como checkbox
+             deshabilitado -- nada los marcaba, se derivan solos. -->
         <li>
-          <label><input type="checkbox" [checked]="progreso()?.conecto_sgc" disabled /> {{ 'Conecté el SGC a Claude' | t }}</label>
+          <span class="sgc-badge" [class.sgc-badge--success]="progreso()?.conecto_sgc" [class.sgc-badge--neutral]="!progreso()?.conecto_sgc">
+            {{ progreso()?.conecto_sgc ? '✓' : ('Pendiente' | t) }}
+          </span>
+          <span>{{ 'Conecté el SGC a Claude' | t }}</span>
+          @if (!progreso()?.conecto_sgc) {
+            <span class="text-muted">— {{ 'se marca solo (mira «Mi conexión» abajo)' | t }}</span>
+          }
         </li>
         <li>
           <label><input type="checkbox" [checked]="progreso()?.descargo_setup" (change)="descargarSetup()" /> {{ 'Descargué el pack «Setup inicial»' | t }}</label>
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="descargarSetup()">{{ 'Descargar Setup inicial' | t }}</button>
         </li>
         <li>
-          <label><input type="checkbox" [checked]="progreso()?.subio_primera_skill" disabled /> {{ 'Subí mi primera skill' | t }}</label>
+          <span class="sgc-badge" [class.sgc-badge--success]="progreso()?.subio_primera_skill" [class.sgc-badge--neutral]="!progreso()?.subio_primera_skill">
+            {{ progreso()?.subio_primera_skill ? '✓' : ('Pendiente' | t) }}
+          </span>
+          <span>{{ 'Subí mi primera skill' | t }}</span>
+          @if (!progreso()?.subio_primera_skill) {
+            <span class="text-muted">— {{ 'se marca sola al crear o subir una (pestaña Skills/Crear)' | t }}</span>
+          }
         </li>
         <li>
           <label><input type="checkbox" [checked]="progreso()?.probo_pregunta" (change)="marcar('probo_pregunta')" /> {{ 'Probé una pregunta real de mi trabajo' | t }}</label>
@@ -46,17 +60,29 @@
 
     <div class="sgc-card">
       <h2>{{ 'Mi conexión' | t }}</h2>
-      <app-configuracion-claude />
+      <app-configuracion-claude [embebido]="true" (conectadoChange)="onConectadoChange($event)" />
     </div>
+
+    @if (recomendadas().length) {
+      <div class="sgc-card">
+        <h2>{{ 'Skills nuevas para tu rol' | t }}</h2>
+        <div class="claude-skills-grid">
+          @for (s of recomendadas(); track s.id) {
+            <div class="sgc-card claude-skill-card">
+              <h3>{{ s.nombre }}</h3>
+              <p class="text-muted">{{ s.descripcion }}</p>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="descargarSkill(s)">{{ 'Descargar' | t }}</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
   }
 
   <!-- ═══ Skills ═══ -->
   @if (pestana() === 'skills') {
     <div class="claude-skills-toolbar">
-      <label class="sgc-btn sgc-btn--secondary">
-        {{ 'Subir archivo (.md o .zip)' | t }}
-        <input type="file" accept=".md,.txt,.zip" style="display:none" (change)="subirArchivo($event)" />
-      </label>
+      <input class="sgc-input" type="search" [value]="filtroSkills()" (input)="filtroSkills.set($any($event.target).value)" placeholder="{{ 'Buscar skill por nombre o descripción…' | t }}" />
     </div>
 
     @if (recomendadas().length) {
@@ -96,6 +122,22 @@
           </div>
         </div>
       }
+    </div>
+
+    @if (packDeMiRol(); as pack) {
+      <div class="sgc-card">
+        <h2>{{ 'Pack de mi rol' | t }}</h2>
+        <p class="text-muted">{{ pack.descripcion }}</p>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="descargarPackDeMiRol()">{{ 'Descargar pack de mi rol' | t }}</button>
+      </div>
+    }
+
+    <div class="sgc-card">
+      <h2>{{ 'Subir' | t }}</h2>
+      <label class="sgc-btn sgc-btn--secondary">
+        {{ 'Subir archivo (.md o .zip)' | t }}
+        <input type="file" accept=".md,.txt,.zip" style="display:none" (change)="subirArchivo($event)" />
+      </label>
     </div>
   }
 
@@ -138,8 +180,23 @@
     @if (subAuditoria() === 'tecnica') {
       <div class="sgc-card">
         <h2>{{ 'Auditoría técnica' | t }}</h2>
-        <p class="text-muted">{{ 'Inventario de todo lo que usa Claude/IA en SGC y CSD App, con riesgos y huecos.' | t }}</p>
-        <p><code>docs/CLAUDE-AUDITORIA.md</code> {{ '(en el repo).' | t }}</p>
+        <p class="text-muted">{{ 'Inventario de todo lo que usa Claude/IA en SGC y CSD App (hecho 10-nov-2026), con riesgos y huecos.' | t }}</p>
+
+        <h3>{{ 'Resumen de huecos a cerrar' | t }}</h3>
+        <p class="text-muted">{{ '(ninguno bloquea el uso normal de Claude hoy)' | t }}</p>
+        <ul>
+          <li>{{ 'leer-documento-flota: sin gate de consentimiento personal explícito (SGC).' | t }}</li>
+          <li>{{ 'Sin vista consolidada de costo mensual total de IA (SGC).' | t }}</li>
+          <li>{{ 'GPS/tracking/realtime de csd-app: trabajo real pendiente (timeout adaptativo, causa de rechazo de lote, detenerRealtime sin await).' | t }}</li>
+        </ul>
+
+        <h3>{{ 'Riesgos confirmados (app)' | t }}</h3>
+        <ul>
+          <li>{{ 'tracking.service.ts: timeout de GPS fijo por punto de llamada (no adaptativo).' | t }}</li>
+          <li>{{ 'notificaciones.service.ts: detenerRealtime() llama removeChannel sin await; iniciarRealtime() no revisa getChannels() antes de re-suscribir.' | t }}</li>
+        </ul>
+
+        <p>{{ 'Detalle completo (archivo por archivo) en' | t }} <code>docs/CLAUDE-AUDITORIA.md</code> {{ '(en el repo).' | t }}</p>
       </div>
     }
 

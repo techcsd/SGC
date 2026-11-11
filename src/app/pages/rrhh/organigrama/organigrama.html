@@ -1,0 +1,27 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Organigrama</h1>
+      <p class="page__sub">Estructura de la empresa: quién reporta a quién, según el cargo y el jefe de cada empleado.</p>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else if (!nodos().length) {
+    <p class="text-muted">Aún no hay empleados cargados.</p>
+  } @else {
+    @if (sinJefeAsignado()) {
+      <p class="text-muted og-aviso">Algunos empleados no tienen jefe asignado (o su jefe no está activo) — aparecen como raíz.</p>
+    }
+    <ul class="og-arbol">
+      @for (n of arbol(); track n.id) {
+        <li class="og-nodo" [style.padding-left.px]="n.nivel * 24">
+          <span class="og-nombre">{{ n.nombre }} {{ n.apellido }}</span>
+          @if (n.cargo) { <span class="og-cargo">{{ n.cargo }}</span> }
+          @if (!n.activo) { <span class="sgc-badge sgc-badge--neutral">inactivo</span> }
+        </li>
+      }
+    </ul>
+  }
+</section>

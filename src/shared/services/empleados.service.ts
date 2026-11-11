@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
-import { Empleado, EmpleadoDocumento } from '../models/empleado.model';
+import { Empleado, EmpleadoDocumento, RrhhDocumentoPorVencer, RrhhOrganigramaNodo } from '../models/empleado.model';
 
 /** AN1 — subconjunto seguro de un empleado para selects de referencia. */
 export interface EmpleadoDirectorio {
@@ -116,5 +116,32 @@ export class EmpleadosService {
       .eq('id', id);
 
     if (error) throw new Error(error.message);
+  }
+
+  // ── DN-27 — Contratos y documentos (submódulo sensible, vía RPC auditada) ──
+  async documentosPorVencer(dias = 30): Promise<RrhhDocumentoPorVencer[]> {
+    const { data, error } = await this.supabase.client.rpc('rrhh_documentos_por_vencer', { p_dias: dias });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhDocumentoPorVencer[];
+  }
+
+  async contratosDeEmpleado(empleadoId: string): Promise<EmpleadoDocumento[]> {
+    const { data, error } = await this.supabase.client.rpc('rrhh_contratos_de_empleado', { p_empleado_id: empleadoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as EmpleadoDocumento[];
+  }
+
+  async guardarVigenciaDocumento(documentoId: string, vigenciaDesde: string | null, vigenciaHasta: string | null, esContrato: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('rrhh_guardar_vigencia_documento', {
+      p_documento_id: documentoId, p_vigencia_desde: vigenciaDesde, p_vigencia_hasta: vigenciaHasta, p_es_contrato: esContrato,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  // ── DN-27 — Organigrama (jefe_id/cargo ya existentes en sgc.empleados) ──
+  async organigrama(): Promise<RrhhOrganigramaNodo[]> {
+    const { data, error } = await this.supabase.client.rpc('rrhh_organigrama');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhOrganigramaNodo[];
   }
 }

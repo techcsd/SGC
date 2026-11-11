@@ -113,7 +113,7 @@
 | obra/subcontratistas | - | 104 | 0 | 104 | 0% |
 | politicas/eliminar-cuenta | - | 13 | 0 | 13 | 0% |
 | politicas | - | 21 | 0 | 21 | 0% |
-| proyectos/cargos | - | 31 | 0 | 31 | 0% |
+| proyectos/cargos | - | 54 | 0 | 54 | 0% |
 | proyectos/clima | - | 54 | 0 | 54 | 0% |
 | proyectos/compras | - | 40 | 0 | 40 | 0% |
 | proyectos/costos | - | 22 | 0 | 22 | 0% |
@@ -124,8 +124,11 @@
 | proyectos/lista | - | 321 | 0 | 321 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
+| rrhh/contratos | - | 43 | 0 | 43 | 0% |
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
+| rrhh/organigrama | - | 12 | 0 | 12 | 0% |
 | rrhh/reportes | - | 29 | 0 | 29 | 0% |
+| rrhh/tramites | - | 49 | 0 | 49 | 0% |
 | solicitudes-movimiento | - | 122 | 0 | 122 | 0% |
 | tareas/gestion | - | 55 | 0 | 55 | 0% |
 | tareas/historial | - | 33 | 0 | 33 | 0% |
@@ -184,8 +187,8 @@
 | flota/transferencias | - | 16 | 10 | 6 | 63% |
 | ingenieria/pagos | - | 86 | 54 | 32 | 63% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
-| configuracion/claude | - | 37 | 24 | 13 | 65% |
 | flota/cupos-combustible | - | 61 | 40 | 21 | 66% |
-| claude | - | 86 | 60 | 26 | 70% |
+| configuracion/claude | - | 39 | 27 | 12 | 69% |
+| claude | - | 107 | 76 | 31 | 71% |
 | admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |

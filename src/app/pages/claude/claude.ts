@@ -31,6 +31,10 @@ export class ClaudeModulo implements OnInit {
 
   pestana = signal<Pestana>('inicio');
   subAuditoria = signal<SubAuditoria>('tecnica');
+  // DN-22 — estado real de conexión, reportado por <app-configuracion-claude>
+  // embebido; deriva "Conecté el SGC a Claude" sin un checkbox deshabilitado.
+  conectado = signal(false);
+  filtroSkills = signal('');
 
   puedeAdministrar = computed(() => this.userService.puedeOperarSubmodulo('tecnologia.claude_administrar'));
   puedeAuditar = computed(() => this.userService.puedeVerSubmodulo('tecnologia.claude_auditoria'));
@@ -47,9 +51,18 @@ export class ClaudeModulo implements OnInit {
   });
   resto = computed(() => {
     const recomendadasIds = new Set(this.recomendadas().map((s) => s.id));
-    return this.skills().filter((s) => !recomendadasIds.has(s.id));
+    const filtro = this.filtroSkills().trim().toLowerCase();
+    const base = this.skills().filter((s) => !recomendadasIds.has(s.id));
+    if (!filtro) return base;
+    return base.filter((s) => s.nombre.toLowerCase().includes(filtro) || s.descripcion?.toLowerCase().includes(filtro));
   });
   misPropuestasPendientes = computed(() => this.skills().filter((s) => s.estado === 'propuesta' || s.estado === 'requiere_revision'));
+  // DN-21 — "Descargar pack de mi rol" (Skills): primer pack tipo='rol' que
+  // coincida con alguno de mis roles, si existe.
+  packDeMiRol = computed(() => {
+    const roles = this.misRoles();
+    return this.packs().find((p) => p.tipo === 'rol' && p.rol && roles.includes(p.rol)) ?? null;
+  });
 
   // ── Encuesta (DM-17) ────────────────────────────────────────────────────
   encuesta = signal<ClaudeEncuestaRespuesta | null>(null);
@@ -116,6 +129,14 @@ export class ClaudeModulo implements OnInit {
     if (s === 'organizacion') await this.cargarOrg();
   }
 
+  // DN-22 — "Conecté el SGC a Claude" se marca sola cuando la conexión real
+  // existe (RPC claude_mi_conexion, vía el child embebido); nunca por un
+  // checkbox deshabilitado que nadie puede marcar.
+  onConectadoChange(conectado: boolean) {
+    this.conectado.set(conectado);
+    if (conectado && !this.progreso()?.conecto_sgc) void this.marcar('conecto_sgc');
+  }
+
   async marcar(campo: 'conecto_sgc' | 'descargo_setup' | 'subio_primera_skill' | 'probo_pregunta') {
     try {
       await this.service.marcarProgreso(campo, true);
@@ -130,6 +151,17 @@ export class ClaudeModulo implements OnInit {
       const blob = await this.service.descargarPack(pack.id);
       this.descargarBlob(blob, `${pack.slug}.zip`);
       await this.marcar('descargo_setup');
+    } catch (e) {
+      this.toast.error('No se pudo descargar el paquete', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  async descargarPackDeMiRol() {
+    const pack = this.packDeMiRol();
+    if (!pack) return;
+    try {
+      const blob = await this.service.descargarPack(pack.id);
+      this.descargarBlob(blob, `${pack.slug}.zip`);
     } catch (e) {
       this.toast.error('No se pudo descargar el paquete', e instanceof Error ? e.message : undefined);
     }

@@ -7,7 +7,17 @@ import { envRequerido } from "../_shared/env.ts";
 // y registra el cierre en auditoría. Se llama YA restaurada la sesión admin (el que llama
 // vuelve a ser admin), así que el is_admin() pasa.
 
-Deno.serve(async (req: Request) => {
+// DN-18 (ronda DN) — fábricas de cliente inyectables (ver admin-entrar-como/index.ts).
+// deno-lint-ignore no-explicit-any
+export type FabricaCliente = (url: string, key: string, headers?: Record<string, string>) => any;
+
+export async function manejar(
+  req: Request,
+  fabricas: { crearAnon: FabricaCliente; crearAdmin: FabricaCliente } = {
+    crearAnon: (url, key, headers) => createClient(url, key, { global: { headers } }),
+    crearAdmin: (url, key) => createClient(url, key, { db: { schema: "sgc" } }),
+  },
+): Promise<Response> {
   const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
     return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -21,7 +31,7 @@ Deno.serve(async (req: Request) => {
     const anonKey = envRequerido("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const callerClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const callerClient = fabricas.crearAnon(supabaseUrl, anonKey, { Authorization: authHeader });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
     // CR1 (FASE 5) — las acciones admin-* rechazan tokens OAuth (Claude).
@@ -39,7 +49,7 @@ Deno.serve(async (req: Request) => {
     const { userId } = await req.json();
     if (typeof userId !== "string" || !userId) return json({ error: "userId requerido." }, 400);
 
-    const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
+    const admin = fabricas.crearAdmin(supabaseUrl, serviceRoleKey);
     // Limpia la marca de impersonación del objetivo.
     await admin.auth.admin.updateUserById(userId, { app_metadata: {} }).then(() => {}, () => {});
 
@@ -54,4 +64,8 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve((req: Request) => manejar(req));
+}

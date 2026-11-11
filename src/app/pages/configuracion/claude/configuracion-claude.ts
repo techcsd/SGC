@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, input, output, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from '../../../../shared/ui/button/button.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
@@ -32,6 +32,13 @@ export class ConfiguracionClaude implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
 
+  /** DN-21 — cuando se embebe dentro de /claude (pestaña Inicio), oculta su
+   *  propio "← Perfil" y su `h1` para no duplicar navegación/encabezado. */
+  embebido = input(false);
+  /** DN-22 — avisa al módulo Claude padre el estado real de conexión, para
+   *  derivar el checklist "Conecté el SGC a Claude" sin un checkbox deshabilitado. */
+  conectadoChange = output<boolean>();
+
   enlace = `${environment.supabaseUrl}/functions/v1/mcp`;
   cargando = signal(true);
   conexion = signal<MiConexion | null>(null);
@@ -48,7 +55,9 @@ export class ConfiguracionClaude implements OnInit {
     this.cargando.set(true);
     try {
       const { data } = await this.supabase.client.rpc('claude_mi_conexion');
-      this.conexion.set(data as MiConexion);
+      const conexion = data as MiConexion;
+      this.conexion.set(conexion);
+      this.conectadoChange.emit(!!conexion?.conectado);
     } catch {
       /* best-effort */
     } finally {

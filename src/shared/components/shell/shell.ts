@@ -221,9 +221,14 @@ export class Shell implements OnInit {
       modulo: 'rrhh',
       children: [
         { label: 'Empleados', route: '/rrhh/empleados' },
+        { label: 'Contratos y documentos', route: '/rrhh/contratos', submodulo: 'rrhh.contratos' },
+        { label: 'Organigrama', route: '/rrhh/organigrama', submodulo: 'rrhh.organigrama' },
         { label: 'Asistencia', route: '/rrhh/asistencia' },
         { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias', badgeKey: 'rrhh.ausencias' },
-        { label: 'Reportes', route: '/rrhh/reportes' },
+        { label: 'Reportes', route: '/rrhh/reportes', submodulo: 'rrhh.reportes' },
+        // DN-29 — Administración de la empresa (Gastos reusa /compras/gastos, sin duplicar).
+        { label: 'Gastos y caja chica', route: '/compras/gastos', submodulo: 'rrhh.gastos' },
+        { label: 'Trámites y cumplimiento', route: '/rrhh/tramites', submodulo: 'rrhh.tramites' },
       ],
     },
     {

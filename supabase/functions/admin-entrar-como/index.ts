@@ -18,7 +18,19 @@ import { envRequerido } from "../_shared/env.ts";
 //  - no se impersona a uno mismo;
 //  - no se toca contraseña ni correo del objetivo.
 
-Deno.serve(async (req: Request) => {
+// DN-18 (ronda DN) — fábricas de cliente inyectables para poder probar el
+// handler con HTTP real (401/403/400/200) sin red ni Supabase real; en
+// producción (Deno.serve abajo) se usan las fábricas por defecto (createClient).
+// deno-lint-ignore no-explicit-any
+export type FabricaCliente = (url: string, key: string, headers?: Record<string, string>) => any;
+
+export async function manejar(
+  req: Request,
+  fabricas: { crearAnon: FabricaCliente; crearAdmin: FabricaCliente } = {
+    crearAnon: (url, key, headers) => createClient(url, key, { global: { headers } }),
+    crearAdmin: (url, key) => createClient(url, key, { db: { schema: "sgc" } }),
+  },
+): Promise<Response> {
   const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
     return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -32,7 +44,7 @@ Deno.serve(async (req: Request) => {
     const anonKey = envRequerido("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const callerClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const callerClient = fabricas.crearAnon(supabaseUrl, anonKey, { Authorization: authHeader });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
     // CR1 (FASE 5) — las acciones admin-* rechazan tokens OAuth (Claude).
@@ -51,7 +63,7 @@ Deno.serve(async (req: Request) => {
     if (typeof userId !== "string" || !userId) return json({ error: "userId requerido." }, 400);
     if (userId === callerData.user.id) return json({ error: "Ya eres tú." }, 400);
 
-    const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
+    const admin = fabricas.crearAdmin(supabaseUrl, serviceRoleKey);
     const { data: target } = await admin
       .from("usuarios")
       .select("id, email, nombre, activo")
@@ -98,4 +110,8 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve((req: Request) => manejar(req));
+}
