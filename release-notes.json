@@ -1,5 +1,19 @@
 {
   "web": {
+    "1.214.0": {
+      "titulo": "RRHH ampliado (contratos, organigrama, reclutamiento, nómina) y administración de la empresa",
+      "cambios": [
+        { "t": "nuevo", "m": "RRHH", "d": "Contratos y documentos: ve los vencimientos de contratos y documentos del personal con 30 días de aviso, y administra la vigencia de cada uno." },
+        { "t": "nuevo", "m": "RRHH", "d": "Organigrama: estructura de la empresa, quién reporta a quién." },
+        { "t": "nuevo", "m": "RRHH", "d": "Reclutamiento: vacantes y candidatos con su proceso (aplicó, entrevista, oferta, contratado o rechazado)." },
+        { "t": "nuevo", "m": "RRHH", "d": "Capacitación: cursos y certificaciones del personal (ej. seguridad en obra) con aviso de vencimiento." },
+        { "t": "nuevo", "m": "RRHH", "d": "Evaluaciones de desempeño, visibles solo para RRHH y Gerencia." },
+        { "t": "nuevo", "m": "RRHH", "d": "Nómina: parámetros de ley (TSS/AFP/ISR) y períodos — por ahora sin calcular ni pagar, a la espera de que el contador valide las fórmulas." },
+        { "t": "nuevo", "m": "RRHH", "d": "Administración de la empresa: Gastos y caja chica (el mismo de Compras), Trámites y cumplimiento con vencimientos, Proveedores administrativos (internet, limpieza, seguros) y Activos de oficina." },
+        { "t": "mejora", "m": "Proyectos", "d": "En Cargos y alias, al hacer clic en un cargo ahora se abre su detalle: los alias que lo identifican y cuántas personas de obra lo tienen." },
+        { "t": "mejora", "m": "Claude", "d": "La casilla \"Conecté el SGC a Claude\" ya no se queda pegada — se marca sola en cuanto Claude está conectado de verdad. Conectarlo quedó en un solo paso." }
+      ]
+    },
     "1.213.0": {
       "titulo": "Módulo Claude, agente de pendientes y 4 reportes resueltos",
       "cambios": [
