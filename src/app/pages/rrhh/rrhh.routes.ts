@@ -42,4 +42,10 @@ export const rrhhRoutes: Routes = [
     loadComponent: () => import('./organigrama/organigrama').then((m) => m.RrhhOrganigrama),
     title: 'Organigrama — RRHH',
   },
+  {
+    path: 'tramites',
+    canActivate: [submoduloGuard('rrhh.tramites')],
+    loadComponent: () => import('./tramites/tramites').then((m) => m.RrhhTramites),
+    title: 'Trámites y cumplimiento — RRHH',
+  },
 ];

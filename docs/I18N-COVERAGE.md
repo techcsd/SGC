@@ -128,6 +128,7 @@
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
 | rrhh/organigrama | - | 12 | 0 | 12 | 0% |
 | rrhh/reportes | - | 29 | 0 | 29 | 0% |
+| rrhh/tramites | - | 49 | 0 | 49 | 0% |
 | solicitudes-movimiento | - | 122 | 0 | 122 | 0% |
 | tareas/gestion | - | 55 | 0 | 55 | 0% |
 | tareas/historial | - | 33 | 0 | 33 | 0% |

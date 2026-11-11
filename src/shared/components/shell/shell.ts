@@ -226,6 +226,9 @@ export class Shell implements OnInit {
         { label: 'Asistencia', route: '/rrhh/asistencia' },
         { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias', badgeKey: 'rrhh.ausencias' },
         { label: 'Reportes', route: '/rrhh/reportes', submodulo: 'rrhh.reportes' },
+        // DN-29 — Administración de la empresa (Gastos reusa /compras/gastos, sin duplicar).
+        { label: 'Gastos y caja chica', route: '/compras/gastos', submodulo: 'rrhh.gastos' },
+        { label: 'Trámites y cumplimiento', route: '/rrhh/tramites', submodulo: 'rrhh.tramites' },
       ],
     },
     {

@@ -1,0 +1,123 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Trámites y cumplimiento</h1>
+      <p class="page__sub">Permisos, licencias, seguros e impuestos de la empresa, con sus vencimientos.</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirForm()">Agregar trámite</button>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    @if (mostrarForm()) {
+      <form class="tr-add" (submit)="$event.preventDefault(); guardar()">
+        <label class="tr-field">
+          <span>Nombre</span>
+          <input type="text" [value]="fNombre()" (input)="fNombre.set($any($event.target).value)" placeholder="Ej: Póliza de incendio" />
+        </label>
+        <label class="tr-field">
+          <span>Tipo</span>
+          <select [value]="fTipo()" (change)="fTipo.set($any($event.target).value)">
+            <option value="permiso">Permiso</option>
+            <option value="licencia">Licencia</option>
+            <option value="seguro">Seguro</option>
+            <option value="impuesto">Impuesto</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label class="tr-field">
+          <span>Entidad responsable</span>
+          <input type="text" [value]="fEntidad()" (input)="fEntidad.set($any($event.target).value)" placeholder="Ej: Ayuntamiento, Seguros X" />
+        </label>
+        <label class="tr-field">
+          <span>Número / referencia</span>
+          <input type="text" [value]="fNumero()" (input)="fNumero.set($any($event.target).value)" />
+        </label>
+        <label class="tr-field">
+          <span>Fecha de emisión</span>
+          <input type="date" [value]="fEmision()" (input)="fEmision.set($any($event.target).value)" />
+        </label>
+        <label class="tr-field">
+          <span>Fecha de vencimiento</span>
+          <input type="date" [value]="fVencimiento()" (input)="fVencimiento.set($any($event.target).value)" />
+        </label>
+        <label class="tr-field tr-field--wide">
+          <span>Notas</span>
+          <textarea rows="2" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
+        </label>
+        <div class="tr-add__acciones">
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    @if (vencidos().length) {
+      <h2 class="tr-h">Vencidos</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Venció</th><th></th></tr></thead>
+          <tbody>
+            @for (t of vencidos(); track t.id) {
+              <tr class="tr-vencido">
+                <td>{{ t.nombre }}</td><td class="text-muted">{{ t.tipo }}</td>
+                <td>{{ t.fecha_vencimiento ? formatFecha(t.fecha_vencimiento) : '—' }}</td>
+                <td>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarRenovado(t)">Marcar renovado</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(t)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (porVencer30d().length) {
+      <h2 class="tr-h">Por vencer (próximos 30 días)</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Vence</th><th></th></tr></thead>
+          <tbody>
+            @for (t of porVencer30d(); track t.id) {
+              <tr>
+                <td>{{ t.nombre }}</td><td class="text-muted">{{ t.tipo }}</td>
+                <td>{{ t.fecha_vencimiento ? formatFecha(t.fecha_vencimiento) : '—' }}</td>
+                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(t)">Eliminar</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h2 class="tr-h">Todos los trámites</h2>
+    @if (!tramites().length) {
+      <p class="text-muted">Aún no hay trámites registrados.</p>
+    } @else if (!resto().length) {
+      <p class="text-muted">El resto ya aparece arriba (vencidos / por vencer).</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Vence</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            @for (t of resto(); track t.id) {
+              <tr>
+                <td>{{ t.nombre }}</td><td class="text-muted">{{ t.tipo }}</td>
+                <td>{{ t.fecha_vencimiento ? formatFecha(t.fecha_vencimiento) : '—' }}</td>
+                <td><span class="sgc-badge sgc-badge--success">{{ t.estado }}</span></td>
+                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(t)">Eliminar</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>
+
+<app-confirm-dialog [open]="!!aEliminar()" title="¿Eliminar este trámite?"
+  [message]="aEliminar() ? ('«' + aEliminar()!.nombre + '»') : ''"
+  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />
