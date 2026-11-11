@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Empleado, EmpleadoDocumento, RrhhDocumentoPorVencer, RrhhOrganigramaNodo } from '../models/empleado.model';
+import { RrhhCapacitacion } from '../models/rrhh-capacitacion.model';
 
 /** AN1 — subconjunto seguro de un empleado para selects de referencia. */
 export interface EmpleadoDirectorio {
@@ -143,5 +144,39 @@ export class EmpleadosService {
     const { data, error } = await this.supabase.client.rpc('rrhh_organigrama');
     if (error) throw new Error(error.message);
     return (data ?? []) as RrhhOrganigramaNodo[];
+  }
+
+  // ── DN-27 P2 — Capacitación (no sensible, permiso estándar) ──────────────
+  async capacitacionesDeEmpleado(empleadoId: string): Promise<RrhhCapacitacion[]> {
+    const { data, error } = await this.supabase.client
+      .from('rrhh_capacitaciones').select('*').eq('empleado_id', empleadoId).order('fecha_vencimiento', { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhCapacitacion[];
+  }
+
+  async capacitacionesPorVencer(dias = 30): Promise<RrhhCapacitacion[]> {
+    const limite = new Date(); limite.setDate(limite.getDate() + dias);
+    const { data, error } = await this.supabase.client
+      .from('rrhh_capacitaciones')
+      .select('*')
+      .not('fecha_vencimiento', 'is', null)
+      .gte('fecha_vencimiento', new Date().toISOString().slice(0, 10))
+      .lte('fecha_vencimiento', limite.toISOString().slice(0, 10))
+      .order('fecha_vencimiento');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RrhhCapacitacion[];
+  }
+
+  async crearCapacitacion(payload: {
+    empleado_id: string; curso: string; institucion: string | null;
+    fecha_obtencion: string | null; fecha_vencimiento: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.from('rrhh_capacitaciones').insert(payload);
+    if (error) throw new Error(error.message);
+  }
+
+  async eliminarCapacitacion(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('rrhh_capacitaciones').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   }
 }

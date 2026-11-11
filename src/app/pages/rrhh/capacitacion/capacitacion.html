@@ -1,0 +1,90 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Capacitación</h1>
+      <p class="page__sub">Cursos y certificaciones del personal (ej. seguridad en obra), con sus vencimientos.</p>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    <h2 class="cp-h">Por vencer (próximos 30 días)</h2>
+    @if (!porVencer().length) {
+      <p class="text-muted">Ninguna capacitación vence en los próximos 30 días.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Empleado</th><th>Curso</th><th>Vence</th></tr></thead>
+          <tbody>
+            @for (c of porVencer(); track c.id) {
+              <tr><td>{{ nombreDe(c.empleado_id) }}</td><td>{{ c.curso }}</td><td>{{ c.fecha_vencimiento ? formatFecha(c.fecha_vencimiento) : '—' }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h2 class="cp-h">Capacitaciones por empleado</h2>
+    <label class="cp-field">
+      <span>Empleado</span>
+      <select [value]="empleadoSeleccionadoId()" (change)="seleccionarEmpleado($any($event.target).value)">
+        <option value="">Elige un empleado…</option>
+        @for (e of empleados(); track e.id) { <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option> }
+      </select>
+    </label>
+
+    @if (empleadoSeleccionadoId()) {
+      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirForm()">Agregar capacitación</button>
+
+      @if (mostrarForm()) {
+        <form class="cp-add" (submit)="$event.preventDefault(); guardar()">
+          <label class="cp-field"><span>Curso / certificación</span>
+            <input type="text" [value]="fCurso()" (input)="fCurso.set($any($event.target).value)" placeholder="Ej: Seguridad en altura" />
+          </label>
+          <label class="cp-field"><span>Institución</span>
+            <input type="text" [value]="fInstitucion()" (input)="fInstitucion.set($any($event.target).value)" />
+          </label>
+          <label class="cp-field"><span>Fecha de obtención</span>
+            <input type="date" [value]="fFechaObtencion()" (input)="fFechaObtencion.set($any($event.target).value)" />
+          </label>
+          <label class="cp-field"><span>Fecha de vencimiento</span>
+            <input type="date" [value]="fFechaVencimiento()" (input)="fFechaVencimiento.set($any($event.target).value)" />
+          </label>
+          <div class="cp-add__acciones">
+            <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">Cancelar</button>
+          </div>
+        </form>
+      }
+
+      @if (cargandoCapacitaciones()) {
+        <p class="text-muted">Cargando…</p>
+      } @else if (!capacitaciones().length) {
+        <p class="text-muted">Este empleado no tiene capacitaciones registradas.</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Curso</th><th>Institución</th><th>Obtenido</th><th>Vence</th><th></th></tr></thead>
+            <tbody>
+              @for (c of capacitaciones(); track c.id) {
+                <tr>
+                  <td>{{ c.curso }}</td>
+                  <td class="text-muted">{{ c.institucion || '—' }}</td>
+                  <td>{{ c.fecha_obtencion ? formatFecha(c.fecha_obtencion) : '—' }}</td>
+                  <td>{{ c.fecha_vencimiento ? formatFecha(c.fecha_vencimiento) : '—' }}</td>
+                  <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(c)">Eliminar</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</section>
+
+<app-confirm-dialog [open]="!!aEliminar()" title="¿Eliminar esta capacitación?"
+  [message]="aEliminar() ? ('«' + aEliminar()!.curso + '»') : ''"
+  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />

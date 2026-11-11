@@ -109,9 +109,9 @@ F0/F0b → higiene/al-día → módulo Claude (DN-22/23) → Cargos (DN-24) → 
 | `rrhh.tramites` | ✓ | ✓ | Administración prioridad 2 |
 | `rrhh.proveedores` | ✓ | ✓ | Administración prioridad 3 |
 | `rrhh.activos` | ✓ | ✓ | Administración prioridad 4 |
-| `rrhh.nomina` | ✓ | ✗ | P2, sensible — solo tablas/parámetros, sin motor de cálculo ni pantalla |
-| `rrhh.evaluaciones` | ✓ | ✗ | P2, sensible |
-| `rrhh.capacitacion` | ✓ | ✗ | P2 |
+| `rrhh.nomina` | ✓ | ✗ | P2, sensible — solo tablas/parámetros, sin motor de cálculo ni pantalla (requiere validación del contador primero) |
+| `rrhh.evaluaciones` | ✓ | ✓ | P2, sensible — lectura/alta vía RPC auditada (`rrhh_evaluaciones_de_empleado`/`rrhh_crear_evaluacion`), sin eliminar (evaluaciones no se borran) |
+| `rrhh.capacitacion` | ✓ | ✓ | P2 — alertas de vencimiento + alta/baja por empleado |
 | `rrhh.disciplina`, `rrhh.beneficios`, `rrhh.dotacion`, `rrhh.comunicados`, `rrhh.tablero` | ✗ | ✗ | P3 — solo diseño (ver §0, nota N10); sin SQL esta ronda, el tiempo no alcanzó |
 
 Todos los submódulos de la tabla (construidos o no) ya están en `SUBMODULOS.rrhh` (`roles.service.ts`) — el editor de permisos de Administración ya los puede asignar a roles, listos para cuando se construya la pantalla que falta.
