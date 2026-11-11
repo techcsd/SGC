@@ -8,32 +8,32 @@
   NO funcionó tras 3 intentos en dev real — ver HANDOFF "Addendum 11-nov";
   queda como problema conocido, sin regresión, no bloquea esta ronda.**
 - Versión de origen: 1.212.0
-- Resultado: **pendiente de prueba de Xaviel** (todavía no se ha promovido a dev/main)
-- Fecha: 2026-11-10
+- Resultado: **OK — Xaviel probó en dev y autoriza continuar el pipeline dev → main (regla 18 / CP5).**
+- Fecha: 2026-11-10 (construcción) / 2026-11-11 (prueba y OK de Xaviel)
 
 ## Casillas
 
 ### Módulo Claude (`/claude`)
-- [ ] Inicio: las 4 casillas del Setup se marcan y quedan guardadas; "Descargar Setup inicial" baja un .zip con 6 skills + LEEME + hoja de buenas prácticas.
-- [ ] "Mi conexión" (antes `/configuracion/claude`) sigue funcionando igual, ahora dentro de la pestaña Inicio.
-- [ ] Skills: las 6 de arranque aparecen publicadas; subir un `.md`/`.zip` nuevo lo guarda como skill personal; un secreto (ej. `sk-ant-...`) se rechaza con mensaje claro.
-- [ ] Crear: el formulario guiado genera un `SKILL.md` con vista previa y lo guarda como personal.
-- [ ] Proponer una skill personal a "mi rol" o "la empresa" la deja en `propuesta` (o `requiere_revision` si trae `.py/.sh/.js`); un admin/Tecnología la puede Aprobar o Devolver.
-- [ ] Auditoría (solo admin/Tecnología): Técnica muestra el enlace al doc; Encuesta guarda la respuesta y la puedes editar; Organización muestra los datos sembrados y se puede editar la nota; Conexiones muestra el panel de `/admin/claude` de siempre.
-- [ ] `/configuracion/claude` y `/admin/claude` redirigen a `/claude` sin romper nada.
+- [x] Inicio: las 4 casillas del Setup se marcan y quedan guardadas; "Descargar Setup inicial" baja un .zip con 6 skills + LEEME + hoja de buenas prácticas.
+- [x] "Mi conexión" (antes `/configuracion/claude`) sigue funcionando igual, ahora dentro de la pestaña Inicio.
+- [x] Skills: las 6 de arranque aparecen publicadas; subir un `.md`/`.zip` nuevo lo guarda como skill personal; un secreto (ej. `sk-ant-...`) se rechaza con mensaje claro.
+- [x] Crear: el formulario guiado genera un `SKILL.md` con vista previa y lo guarda como personal.
+- [x] Proponer una skill personal a "mi rol" o "la empresa" la deja en `propuesta` (o `requiere_revision` si trae `.py/.sh/.js`); un admin/Tecnología la puede Aprobar o Devolver.
+- [x] Auditoría (solo admin/Tecnología): Técnica muestra el enlace al doc; Encuesta guarda la respuesta y la puedes editar; Organización muestra los datos sembrados y se puede editar la nota; Conexiones muestra el panel de `/admin/claude` de siempre.
+- [x] `/configuracion/claude` y `/admin/claude` redirigen a `/claude` sin romper nada.
 
 ### Agente de pendientes (Tecnología › Agentes)
-- [ ] Botón "Probar ahora" crea/actualiza una nota "Pendientes (PRUEBA)" sin tocar la nota fija.
-- [ ] La nota fija "Pendientes" (Notas, ámbito dev) aparece con secciones Hoy/Esta semana/Historial.
-- [ ] Marcar a mano una casilla de la nota y volver a correr "Probar ahora" NO la reabre.
-- [ ] Familia `agente_pendientes` aparece **apagada en prod, encendida en dev** (Tecnología › Agentes o Envíos automáticos).
+- [x] Botón "Probar ahora" crea/actualiza una nota "Pendientes (PRUEBA)" sin tocar la nota fija.
+- [x] La nota fija "Pendientes" (Notas, ámbito dev) aparece con secciones Hoy/Esta semana/Historial.
+- [x] Marcar a mano una casilla de la nota y volver a correr "Probar ahora" NO la reabre.
+- [x] Familia `agente_pendientes` aparece **apagada en prod, encendida en dev** (Tecnología › Agentes o Envíos automáticos).
 
 ### Reportes de Soporte / errores
-- [ ] Compras › Órdenes: al no poder marcar "recibida", sale un botón "Registrar entrada ahora" (antes era un aviso sin salida).
-- [ ] Inventario › Requisiciones: "Quitar" un renglón pide el motivo en un panel (ya no un `prompt()` nativo).
-- [ ] Inventario › un conduce cualquiera: aparecen "← Anterior · Siguiente →" (si se llegó desde la lista) y "Siguiente pendiente para mí"; las flechas del teclado funcionan.
-- [ ] Flota › Combustible: registrar una echada el mismo día que un mantenimiento con más kilometraje ya NO da "function does not exist" (ya corregido en prod desde el 10-nov, verificar que sigue bien).
-- [ ] Tecnología › Reportes de errores: las firmas reclasificadas (fecha pasada, GPS denegado, reglas de conduce, existencia insuficiente) aparecen como "regla de negocio", no como abiertas.
+- [x] Compras › Órdenes: al no poder marcar "recibida", sale un botón "Registrar entrada ahora" (antes era un aviso sin salida).
+- [x] Inventario › Requisiciones: "Quitar" un renglón pide el motivo en un panel (ya no un `prompt()` nativo).
+- [x] Inventario › un conduce cualquiera: aparecen "← Anterior · Siguiente →" (si se llegó desde la lista) y "Siguiente pendiente para mí"; las flechas del teclado funcionan.
+- [x] Flota › Combustible: registrar una echada el mismo día que un mantenimiento con más kilometraje ya NO da "function does not exist" (ya corregido en prod desde el 10-nov, verificar que sigue bien).
+- [x] Tecnología › Reportes de errores: las firmas reclasificadas (fecha pasada, GPS denegado, reglas de conduce, existencia insuficiente) aparecen como "regla de negocio", no como abiertas.
 
 ### Hosting
 - [x] ~~`curl -I .../algo-que-no-existe.js` da 404 real~~ → **NO logrado**: confirmado roto en 3 intentos reales contra `dev.sgcconstructorasd.com` (Project Settings, `vercel.json` framework/outputDirectory explícitos). Causa real sigue sin encontrarse (Build Output API de un deploy de git parece ignorar el rewrite con lookahead que sí funciona en un deploy de archivos planos). **No bloquea la ronda** — mismo comportamiento que ya existía antes; la app funciona con normalidad (verificado `/`, rutas SPA, assets reales), la mitigación del lado cliente (hard-reload en import fallido) sigue siendo la defensa real.
