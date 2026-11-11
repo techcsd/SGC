@@ -226,6 +226,7 @@ export class Shell implements OnInit {
         { label: 'Reclutamiento', route: '/rrhh/onboarding', submodulo: 'rrhh.onboarding' },
         { label: 'Asistencia', route: '/rrhh/asistencia' },
         { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias', badgeKey: 'rrhh.ausencias' },
+        { label: 'Nómina y pagos', route: '/rrhh/nomina', submodulo: 'rrhh.nomina' },
         { label: 'Capacitación', route: '/rrhh/capacitacion', submodulo: 'rrhh.capacitacion' },
         { label: 'Evaluaciones', route: '/rrhh/evaluaciones', submodulo: 'rrhh.evaluaciones' },
         { label: 'Reportes', route: '/rrhh/reportes', submodulo: 'rrhh.reportes' },
