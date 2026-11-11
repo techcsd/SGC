@@ -96,9 +96,25 @@ create table if not exists sgc.rrhh_accesos_log (
 
 **Cálculo asistido + exportación, NUNCA mueve dinero.** Fórmulas TSS/AFP/SFS/ISR parametrizables en una tabla `sgc.rrhh_nomina_parametros` (porcentajes, topes), marcadas explícitamente `-- validar con contador antes de usar en producción`. La pantalla genera un PDF/Excel del período; no hay integración bancaria ni de pago.
 
-## 5. Orden de entrega de esta ronda (DN-33)
+## 5. Orden de entrega de esta ronda (DN-33) — estado real al cierre
 
-F0/F0b → higiene/al-día → módulo Claude (DN-22/23) → Cargos (DN-24) → c1102070 (DN-25) → **este documento** → privacidad (función + auditoría) → **P1 completo: Contratos, Organigrama** (build real) → Onboarding (SQL únicamente) → Administración: Gastos (enlace) + Trámites (SQL) + Proveedores/Activos (SQL) → P2/P3 (diseño, sin SQL si no alcanza el tiempo).
+F0/F0b → higiene/al-día → módulo Claude (DN-22/23) → Cargos (DN-24) → c1102070 (DN-25) → este documento → privacidad (función + auditoría) → P1 → Administración → P2.
+
+| Submódulo | SQL+RLS en dev | UI | Notas |
+|---|---|---|---|
+| `rrhh.contratos` | ✓ | ✓ | P1, sensible, con auditoría de lectura |
+| `rrhh.organigrama` | ✓ | ✓ | P1, usa `jefe_id`/`cargo` ya existentes |
+| `rrhh.onboarding` | ✓ | ✗ | P1 — vacantes/candidatos/pipeline, sin pantalla |
+| `rrhh.gastos` | *(reusa compras)* | ✓ | Administración prioridad 1 — enlace, no duplicado |
+| `rrhh.tramites` | ✓ | ✓ | Administración prioridad 2 |
+| `rrhh.proveedores` | ✓ | ✗ | Administración prioridad 3 |
+| `rrhh.activos` | ✓ | ✗ | Administración prioridad 4 |
+| `rrhh.nomina` | ✓ | ✗ | P2, sensible — solo tablas/parámetros, sin motor de cálculo ni pantalla |
+| `rrhh.evaluaciones` | ✓ | ✗ | P2, sensible |
+| `rrhh.capacitacion` | ✓ | ✗ | P2 |
+| `rrhh.disciplina`, `rrhh.beneficios`, `rrhh.dotacion`, `rrhh.comunicados`, `rrhh.tablero` | ✗ | ✗ | P3 — solo diseño (ver §0, nota N10); sin SQL esta ronda, el tiempo no alcanzó |
+
+Todos los submódulos de la tabla (construidos o no) ya están en `SUBMODULOS.rrhh` (`roles.service.ts`) — el editor de permisos de Administración ya los puede asignar a roles, listos para cuando se construya la pantalla que falta.
 
 ## 6. Paridad app móvil (DN-31)
 
