@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, ElementRef, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
@@ -46,6 +46,7 @@ export class PersonalObraLista implements OnInit {
   private datosPrueba = inject(DatosPruebaViewService);
   private telemetry = inject(TelemetryService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private host = inject(ElementRef<HTMLElement>);
@@ -255,6 +256,10 @@ export class PersonalObraLista implements OnInit {
   async ngOnInit() {
     this.loading.set(true);
     this.error.set('');
+    // DN-24 — deep-link desde Proyectos › Cargos ("cuántas personas tienen
+    // este cargo"): /proyectos/personal?cargo=<id> precarga el filtro.
+    const cargoParam = this.route.snapshot.queryParamMap.get('cargo');
+    if (cargoParam) this.filCargo.set(cargoParam);
     try {
       const [personal, obras, cargos] = await Promise.all([
         this.service.listar(),

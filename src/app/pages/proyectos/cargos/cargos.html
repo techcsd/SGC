@@ -21,7 +21,8 @@
         </thead>
         <tbody>
           @for (c of cargos(); track c.id) {
-            <tr>
+            <tr class="cg-row" tabindex="0" role="button" [attr.aria-label]="'Ver detalle de ' + c.nombre"
+                (click)="abrirDetalle(c)" (keydown)="onFilaKeydown($event, c)">
               <td><code class="cg-code">{{ c.codigo }}</code></td>
               <td>{{ c.nombre }}</td>
               <td class="text-muted">{{ aliasPorCargo().get(c.id) ?? 0 }}</td>
@@ -83,3 +84,62 @@
     }
   }
 </section>
+
+<!-- DN-24 — panel de detalle de un cargo -->
+<app-form-drawer [title]="seleccionado()?.nombre ?? 'Cargo'" [open]="!!seleccionado()" (closed)="cerrarDetalle()">
+  @if (seleccionado(); as c) {
+    <div class="cg-detalle">
+      <div class="cg-detalle__meta">
+        <span><code class="cg-code">{{ c.codigo }}</code></span>
+        @if (c.activo) { <span class="cg-pill cg-pill--ok">Activo</span> }
+        @else { <span class="cg-pill cg-pill--off">Inactivo</span> }
+      </div>
+      @if (c.descripcion) { <p class="text-muted">{{ c.descripcion }}</p> }
+
+      <h3 class="cg-h">Personas de obra con este cargo</h3>
+      @if (cargandoPersonas()) {
+        <p class="text-muted">Contando…</p>
+      } @else {
+        <p>
+          {{ personasDelCargo() ?? 0 }} persona(s)
+          @if ((personasDelCargo() ?? 0) > 0) {
+            — <a [routerLink]="['/proyectos/personal']" [queryParams]="{ cargo: c.id }">verlas en Personal</a>
+          }
+        </p>
+      }
+
+      <h3 class="cg-h">Alias de este cargo ({{ aliasesDelSeleccionado().length }})</h3>
+      @if (aliasesDelSeleccionado().length) {
+        <ul class="cg-detalle__alias-lista">
+          @for (a of aliasesDelSeleccionado(); track a.id) {
+            <li>
+              <span>{{ a.alias_normalizado }}</span>
+              <span class="text-muted">agregado el {{ formatFecha(a.created_at) }}</span>
+              <button type="button" class="cg-del" title="Eliminar alias" (click)="pedirEliminarAlias(a)">
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted">Este cargo todavía no tiene alias.</p>
+      }
+
+      <form class="cg-add" (submit)="$event.preventDefault(); agregarAliasAlSeleccionado()">
+        <label class="cg-field">
+          <span>Agregar alias (texto del Excel)</span>
+          <input type="text" [value]="nuevoAliasDetalle()" (input)="nuevoAliasDetalle.set($any($event.target).value)"
+                 placeholder="Ej: AYUDANTE DE CARPINTERO" />
+        </label>
+        <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoDetalle() || !nuevoAliasDetalle().trim()">
+          <app-icon name="plus" [size]="15" /> {{ guardandoDetalle() ? 'Guardando…' : 'Agregar alias' }}
+        </button>
+      </form>
+    </div>
+  }
+</app-form-drawer>
+
+<app-confirm-dialog [open]="!!aliasAEliminar()" title="¿Eliminar este alias?"
+  [message]="aliasAEliminar() ? ('«' + aliasAEliminar()!.alias_normalizado + '» → ' + (aliasAEliminar()!.cargo_nombre ?? '')) : ''"
+  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminarAlias()" (cancelled)="aliasAEliminar.set(null)" />
