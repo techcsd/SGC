@@ -54,6 +54,18 @@ El fix de `vercel.json` que el HANDOFF original dejó marcado como "nunca se pro
 6. Encender `claude_skills_conector` y la familia `agente_pendientes` en prod cuando esté conforme.
 7. Confirmar con Raykler que "suministro anterior" = echada de combustible con fecha anterior (ya resuelto el caso técnico, falta la confirmación humana).
 
+### Addendum 11-nov (ronda DN, PROMPT-142) — estado real verificado en prod (SELECT directo)
+
+El CONTEXTO de la ronda DN llegó con una sección "LEER PRIMERO" que ya adelantaba que DM había llegado a prod; esto lo confirma con consultas reales (no solo lectura de HANDOFF):
+
+- `origin/main` = `2c175723` (PR #130 `dev→main` mergeado) — **v1.213.0 vive en prod.** `main` local estaba 13 commits atrás; se hizo fast-forward limpio (sin conflicto, árbol estaba limpio).
+- `sgc.migraciones_aplicadas` (prod, `entorno='prod'`): `dm1-claude-modulo`, `dm2-agente-pendientes`, `dm4-claude-skills-conector`, `dm4b-que-puedo-consultar`, `dm6-triaje-errores`, `dh2-combustible-km-mismo-dia` y `dh23-error-regla-negocio` — **las 7 aplicadas** el 2026-11-11 ~16:0x UTC.
+- `sgc.envios_automaticos` (prod): familia `agente_pendientes` → `activo=false` (apagada, como pedía DN-03).
+- `sgc.parametros` (prod): `claude_skills_conector` → `'false'` (apagado, como pedía DN-03).
+- `sgc.reportes_usuario` (prod): `28e423b1` y `1e56426e` → `resuelto`. `c1102070` → **sigue `en_progreso`** (ver F4c/DN-25 de esta misma ronda para el intento de reproducir/instrumentar).
+- DM-27 (chunk perdido): **sin tocar esta ronda** por orden explícita del CONTEXTO (no volver a tocar Vercel/`vercel.json` sin OK) — sigue exactamente como describe el addendum de arriba.
+- `qa/release-1.213.0.md`: ya trae el OK real de Xaviel (commit `b0aea4c9`, mergeado). DN-14 (release-check honesto — exigir casilla marcada + "Probado por") se implementó en `scripts/release-check.mjs`/`scripts/lib/registro-prueba.mjs`, pero **no se retocó este archivo ya shippeado** — la línea "Probado por" para que el check pase de aquí en adelante la debe dejar Xaviel (o confirmarla él) en el próximo release; no es correcto que Claude Code la escriba en su nombre.
+
 ### Gotchas de esta sesión
 - **El RPC `app_error_reports_grupos`/`es_tecnologia()` no se puede llamar desde un script de diagnóstico** (Management API, sin JWT) — su chequeo interno de `auth.uid()` devuelve null y bloquea todo. Para leer datos agregados desde un script hay que o (a) consultar las tablas crudas directo, o (b) simular un usuario con `set_config('request.jwt.claims', ...)` dentro de un `do $$ ... $$` o una función SECURITY DEFINER — **pero `set_config('role', 'authenticated', ...)` está PROHIBIDO dentro de una función SECURITY DEFINER** ("cannot set parameter \"role\" within security-definer function"), solo funciona en un bloque `do $$` de nivel superior.
 - **`sgc.error_firma()` normaliza el mensaje** (uuids→`<id>`, números→`<n>`, paréntesis→`(…)`) — agrupar por `message` crudo en vez de por esa función infla el conteo de firmas (ej. "sw_update (1ª vez)"/"(2ª vez)" contaban como 2 firmas distintas hasta que se replicó la normalización en TS).
