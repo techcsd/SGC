@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { Routes, Router } from '@angular/router';
+import { inject } from '@angular/core';
 import { rolAdminGuard } from '../../core/guards/rol-admin.guard';
 
 export const adminRoutes: Routes = [
@@ -127,10 +128,10 @@ export const adminRoutes: Routes = [
     title: 'Solicitudes de eliminación — Administración',
   },
   {
-    // CR1 — conector de Claude Desktop: interruptor, contadores, personas, revocar.
+    // DM2 — pasa a ser la pestaña "Conexiones" de Auditoría en el módulo Claude
+    // (/claude). El componente original (AdminClaude) sigue vivo, embebido allí.
     path: 'claude',
-    loadComponent: () => import('./claude/admin-claude').then((m) => m.AdminClaude),
-    title: 'Claude — Administración',
+    redirectTo: () => inject(Router).parseUrl('/claude?tab=auditoria'),
   },
   {
     // CL5 — catálogo de animaciones/movimiento (solo consulta; admin + tecnología).

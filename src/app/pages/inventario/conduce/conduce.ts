@@ -43,6 +43,10 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.arrowleft)': 'onArrowLeft($event)',
+    '(document:keydown.arrowright)': 'onArrowRight($event)',
+  },
 })
 export class Conduce implements OnInit {
   readonly idVehiculo = identificacionVehiculo;
@@ -229,9 +233,84 @@ export class Conduce implements OnInit {
   despachanteMotivo = signal('');
   despachanteBusy = signal(false);
 
+  // DM-23 — reporte de Soporte 1e56426e (Raykler): "anterior/siguiente" sobre la
+  // MISMA lista filtrada desde la que se abrió el conduce (ids recibidos por
+  // Router state desde Conduces/conduces.ts, que ya persiste filtros). Si se
+  // entra directo (notificación, URL), no hay lista → los botones no se muestran.
+  private readonly listaIds: string[] = (history.state?.['ids'] as string[] | undefined) ?? [];
+  readonly listaTotal = this.listaIds.length;
+  posicionActual = computed(() => this.listaIds.indexOf(this.route.snapshot.paramMap.get('id') ?? ''));
+  hayListaNav = computed(() => this.listaIds.length > 1 && this.posicionActual() !== -1);
+  idAnterior = computed(() => (this.posicionActual() > 0 ? this.listaIds[this.posicionActual() - 1] : null));
+  idSiguiente = computed(() =>
+    this.posicionActual() !== -1 && this.posicionActual() < this.listaIds.length - 1
+      ? this.listaIds[this.posicionActual() + 1]
+      : null,
+  );
+  buscandoPendiente = signal(false);
+
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.numeroConduce = conduceNumero(id);
+  }
+
+  /** DM-23 — navega a otro conduce preservando la lista (para que el siguiente
+   *  "anterior/siguiente" siga funcionando). Se redirige por `/dashboard` con
+   *  `skipLocationChange` porque este componente no reacciona a cambios de
+   *  `:id` en la misma ruta (solo lee `route.snapshot` una vez, en el
+   *  constructor) — forzar un ciclo de destrucción/creación es más simple y
+   *  seguro que convertir 20+ señales a una suscripción de `paramMap`. */
+  private async navegarAConduce(id: string) {
+    await this.router.navigateByUrl('/dashboard', { skipLocationChange: true });
+    await this.router.navigate(['/inventario/salidas', id, 'conduce'], { state: { ids: this.listaIds } });
+  }
+
+  irAnterior() {
+    const id = this.idAnterior();
+    if (id) void this.navegarAConduce(id);
+  }
+
+  irSiguiente() {
+    const id = this.idSiguiente();
+    if (id) void this.navegarAConduce(id);
+  }
+
+  onArrowLeft(ev: Event) {
+    if (this.mostrarCierre() || this.isTypingTarget(ev)) return;
+    this.irAnterior();
+  }
+
+  onArrowRight(ev: Event) {
+    if (this.mostrarCierre() || this.isTypingTarget(ev)) return;
+    this.irSiguiente();
+  }
+
+  private isTypingTarget(ev: Event): boolean {
+    const tag = (ev.target as HTMLElement | null)?.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  }
+
+  /** DM-23 — "Siguiente pendiente para mí": el próximo conduce, entre los que
+   *  esperan algo de esta persona (por firmar o por confirmar entrega), que no
+   *  sea el actual. Prioriza por firmar (acción más urgente) y luego por fecha. */
+  async irSiguientePendiente() {
+    this.buscandoPendiente.set(true);
+    try {
+      const actual = this.route.snapshot.paramMap.get('id');
+      const [porFirmar, pendEntrega] = await Promise.all([
+        this.salidasService.getConducesPorFirmar().catch(() => []),
+        this.salidasService.getPendientesEntrega().catch(() => []),
+      ]);
+      const candidato =
+        porFirmar.find((r) => r.id !== actual) ?? pendEntrega.find((r) => r.id !== actual);
+      if (!candidato) {
+        this.toast.success('Sin pendientes', 'No tienes otros conduces pendientes por firmar o confirmar.');
+        return;
+      }
+      await this.navegarAConduce(candidato.id);
+    } finally {
+      this.buscandoPendiente.set(false);
+    }
   }
 
   motivoLabel(motivo: string): string {

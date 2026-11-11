@@ -494,7 +494,7 @@
                       @if (puedeGestionarReq() && a.estado === 'pendiente' && a.pendiente > 0
                            && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
                         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                                [disabled]="saving()" (click)="quitarLinea(a)">Quitar</button>
+                                [disabled]="saving()" (click)="abrirQuitarLinea(a)">Quitar</button>
                       }
                     </td>
                   </tr>
@@ -502,6 +502,20 @@
               </tbody>
             </table>
           </div>
+
+          <!-- DM-22 — quitar línea: panel inline con motivo, nunca prompt() nativo. -->
+          @if (quitarLineaPendiente(); as ql) {
+            <div class="req-detail__vincular">
+              <p class="req-detail__hint">Motivo para quitar "{{ ql.descripcion }}" de la requisición:</p>
+              <textarea class="sgc-input" rows="2" [value]="quitarLineaMotivo()"
+                        (input)="quitarLineaMotivo.set($any($event.target).value)"
+                        placeholder="Motivo…"></textarea>
+              <div class="form-row" style="margin-top:.5rem">
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarQuitarLinea()">Cancelar</button>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!quitarLineaMotivo().trim()" (click)="confirmarQuitarLinea()">Quitar línea</button>
+              </div>
+            </div>
+          }
 
           @if (puedeGestionarReq() && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
             @if (actionError()) { <div class="page-error" role="alert">{{ actionError() }}</div> }

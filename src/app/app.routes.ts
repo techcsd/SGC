@@ -117,12 +117,17 @@ export const routes: Routes = [
         redirectTo: () => inject(Router).parseUrl('/configuracion#cuenta'),
       },
       {
-        // CR1 (FASE 6) — Perfil › Claude (mock Perfil-claude). Ruta propia (no
-        // una pestaña de Configuración: es una pantalla rica, como Mensajes/Notas).
+        // DM2 — "Usar el SGC desde Claude" se absorbió como sección "Mi conexión"
+        // dentro del módulo Claude (pestaña Inicio). Redirección interna; el
+        // componente original (ConfiguracionClaude) sigue vivo, embebido allí.
         path: 'configuracion/claude',
-        loadComponent: () =>
-          import('./pages/configuracion/claude/configuracion-claude').then((m) => m.ConfiguracionClaude),
-        title: 'Claude — Perfil',
+        redirectTo: () => inject(Router).parseUrl('/claude'),
+      },
+      {
+        // DM2 — módulo Claude: biblioteca de skills por rol, Setup, auditoría.
+        path: 'claude',
+        loadComponent: () => import('./pages/claude/claude').then((m) => m.ClaudeModulo),
+        title: 'Claude',
       },
       {
         // AT23/BS3 — Ajustes › Notificaciones vive ahora en Configuración › Notificaciones.

@@ -213,6 +213,10 @@ export class Conduces implements OnInit {
     return this.filtered().slice(start, start + this.PAGE_SIZE);
   });
 
+  // DM-23 — ids de la página actual (filtros ya aplicados), para que el detalle
+  // del conduce ofrezca "← Anterior · Siguiente →" sobre esta misma lista.
+  idsPagina = computed(() => this.paginated().map((r) => r.id));
+
   totalPages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.PAGE_SIZE)));
 
   hasActiveFilters = computed(
