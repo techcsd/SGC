@@ -805,11 +805,30 @@ export class Requisiciones implements OnInit {
 
   /** BJ4 — quitar (cancelar) una línea de la requisición, con motivo, dejando el
    *  resto despachable. Recarga el avance para reflejar el nuevo pendiente/estado. */
-  async quitarLinea(item: RequisicionAvanceItem) {
+  // DM-22 — reporte de Soporte c1102070 (Raykler): el prompt() nativo quedaba
+  // FUERA del try/catch — si el navegador lo bloquea o lanza (ocurre en ciertos
+  // navegadores/WebViews), la línea no se quitaba y no se mostraba ningún
+  // error: parecía que el botón no hacía nada. Panel inline, como el resto
+  // del módulo (nunca prompt() nativo).
+  quitarLineaPendiente = signal<RequisicionAvanceItem | null>(null);
+  quitarLineaMotivo = signal('');
+
+  abrirQuitarLinea(item: RequisicionAvanceItem) {
+    if (this.saving()) return;
+    this.quitarLineaMotivo.set('');
+    this.quitarLineaPendiente.set(item);
+  }
+
+  cancelarQuitarLinea() {
+    this.quitarLineaPendiente.set(null);
+  }
+
+  async confirmarQuitarLinea() {
+    const item = this.quitarLineaPendiente();
+    const motivo = this.quitarLineaMotivo().trim();
     const s = this.selected();
-    if (!s || this.saving()) return;
-    const motivo = (prompt(`Motivo para quitar "${item.descripcion}" de la requisición:`) ?? '').trim();
-    if (!motivo) return;
+    if (!item || !motivo || !s || this.saving()) return;
+    this.quitarLineaPendiente.set(null);
     this.saving.set(true);
     this.actionError.set('');
     try {

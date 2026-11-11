@@ -814,20 +814,69 @@ export class OrdenesOdoo implements OnInit {
   }
 
   // ── Estado ───────────────────────────────────────────────
+  // DM-20 — el reporte de Soporte 28e423b1 (Raykler) mostró que el bloqueo de
+  // "recibida" era un callejón sin salida: texto genérico + (para admin) un
+  // prompt() nativo. Ahora nombra el renglón pendiente (como la variante sin
+  // Odoo, DH14) y ofrece un botón de acción en vez de solo texto.
+  private describirRenglonesPendientes(): string {
+    const pendientes = this.reconciliacion().filter((r) => r.estado !== 'completo');
+    const sinArticulo = pendientes.filter((r) => r.estado === 'sin_articulo');
+    const resto = pendientes.filter((r) => r.estado !== 'sin_articulo');
+    const partes: string[] = [];
+    if (sinArticulo.length) {
+      const extra = sinArticulo.length > 1 ? ` (y ${sinArticulo.length - 1} más)` : '';
+      partes.push(`"${sinArticulo[0].descripcion}"${extra} no está vinculado a un artículo del catálogo — vincúlalo en la tabla de abajo ("Vincular artículo").`);
+    }
+    if (resto.length) {
+      const extra = resto.length > 1 ? ` (y ${resto.length - 1} más)` : '';
+      partes.push(`"${resto[0].descripcion}"${extra} todavía no tiene entrada registrada — usa "Registrar entrada de esta orden".`);
+    }
+    return partes.join(' ') || 'Hay renglones sin recibir en el inventario.';
+  }
+
+  bloqueoRecibida = signal<{ orden: OdooOrdenCompra; detalle: string } | null>(null);
+  forzarRecibida = signal<{ orden: OdooOrdenCompra; detalle: string } | null>(null);
+  forzarMotivo = signal('');
+
   async cambiarEstado(orden: OdooOrdenCompra, estado: OrdenEstado) {
     // CT3c — el servidor igual lo valida, pero si ya sabemos que va a pedir
     // motivo (admin + reconciliación incompleta) se lo pedimos aquí para no
     // hacer un viaje al servidor solo para recibir el error y reintentar.
-    let motivo: string | null = null;
     if (estado === 'recibida' && this.reconciliacionIncompleta()) {
+      const detalle = this.describirRenglonesPendientes();
       if (!this.esAdmin()) {
-        this.toast.error('No se puede marcar "recibida"', 'Hay renglones sin recibir en el inventario. Usa "Registrar entrada de esta orden".');
+        this.bloqueoRecibida.set({ orden, detalle });
         return;
       }
-      motivo = prompt('Hay renglones sin recibir en el inventario. Escribe el motivo para forzar "recibida" de todas formas:');
-      if (!motivo || !motivo.trim()) return;
+      this.forzarMotivo.set('');
+      this.forzarRecibida.set({ orden, detalle });
+      return;
     }
+    await this.aplicarCambioEstado(orden, estado, null);
+  }
 
+  cancelarBloqueoRecibida() {
+    this.bloqueoRecibida.set(null);
+  }
+
+  irARegistrarEntradaDesdeBloqueo(orden: OdooOrdenCompra) {
+    this.bloqueoRecibida.set(null);
+    this.irARegistrarEntrada(orden);
+  }
+
+  cancelarForzarRecibida() {
+    this.forzarRecibida.set(null);
+  }
+
+  async confirmarForzarRecibida() {
+    const pendiente = this.forzarRecibida();
+    const motivo = this.forzarMotivo().trim();
+    if (!pendiente || !motivo) return;
+    this.forzarRecibida.set(null);
+    await this.aplicarCambioEstado(pendiente.orden, 'recibida', motivo);
+  }
+
+  private async aplicarCambioEstado(orden: OdooOrdenCompra, estado: OrdenEstado, motivo: string | null) {
     const prev = orden.estado;
     this.ordenes.update((list) =>
       list.map((o) => (o.id === orden.id ? { ...o, estado } : o)),

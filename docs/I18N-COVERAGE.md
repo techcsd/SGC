@@ -3,13 +3,13 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 9%** (65/703 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 9%** (65/714 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
-| inventario/conduce | scope | 226 | 0 | 226 | 0% |
-| inventario/requisiciones | scope | 241 | 0 | 241 | 0% |
+| inventario/conduce | scope | 232 | 0 | 232 | 0% |
+| inventario/requisiciones | scope | 246 | 0 | 246 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 98 | 12 | 86 | 12% |
 | configuracion | scope | 82 | 53 | 29 | 65% |
@@ -40,8 +40,8 @@
 | bitacora/historial | - | 175 | 0 | 175 | 0% |
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| compras/ordenes | - | 176 | 0 | 176 | 0% |
-| compras/ordenes-odoo | - | 176 | 0 | 176 | 0% |
+| compras/ordenes | - | 180 | 0 | 180 | 0% |
+| compras/ordenes-odoo | - | 185 | 0 | 185 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/proveedores-odoo | - | 77 | 0 | 77 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
@@ -186,5 +186,6 @@
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | configuracion/claude | - | 37 | 24 | 13 | 65% |
 | flota/cupos-combustible | - | 61 | 40 | 21 | 66% |
+| claude | - | 86 | 60 | 26 | 70% |
 | admin/claude | - | 35 | 26 | 9 | 74% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |

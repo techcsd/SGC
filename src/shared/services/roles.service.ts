@@ -226,6 +226,13 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     // (ruta + RLS) — ver sql/2026-11-05-db2-whatsapp-grupos.sql.
     { key: 'tecnologia.wa_grupos', label: 'WhatsApp — grupos (memoria/hallazgos)', enforced: true,
       descripcion: 'Gestión de los grupos de WhatsApp con memoria IA: modo por grupo, hallazgos extraídos (acuerdos, pedidos, montos) y archivo de mensajes.' },
+    // DM-03 — módulo Claude: el área de uso (Inicio/Skills/Crear/Mi conexión) es
+    // para todo usuario autenticado, sin módulo; estos 2 submódulos gatean solo
+    // lo administrativo (aprobar/publicar skills, ver auditoría/conexiones).
+    { key: 'tecnologia.claude_administrar', label: 'Claude — administrar skills', enforced: true,
+      descripcion: 'Aprobar, publicar o archivar skills propuestas a un rol o a toda la empresa; editar la sección "Organización de Claude".' },
+    { key: 'tecnologia.claude_auditoria', label: 'Claude — auditoría', enforced: true,
+      descripcion: 'Ver resultados de la encuesta de uso de Claude y el panel de conexiones personales al SGC.' },
   ],
 };
 

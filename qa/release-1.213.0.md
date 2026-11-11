@@ -1,0 +1,57 @@
+# Release 1.213.0
+
+- Equipo/tester: Xaviel
+- Qué se probó: ronda DM (PROMPT-140, DM1-DM6) — módulo Claude (biblioteca de
+  skills, Setup, Crear, Auditoría), agente de pendientes (nota diaria/semanal),
+  4 reportes de Soporte de Raykler resueltos/instrumentados, triaje de las 38+
+  firmas de error. **El intento de fix de hosting (chunk perdido → 404 real)
+  NO funcionó tras 3 intentos en dev real — ver HANDOFF "Addendum 11-nov";
+  queda como problema conocido, sin regresión, no bloquea esta ronda.**
+- Versión de origen: 1.212.0
+- Resultado: **OK — Xaviel probó en dev y autoriza continuar el pipeline dev → main (regla 18 / CP5).**
+- Fecha: 2026-11-10 (construcción) / 2026-11-11 (prueba y OK de Xaviel)
+
+## Casillas
+
+### Módulo Claude (`/claude`)
+- [x] Inicio: las 4 casillas del Setup se marcan y quedan guardadas; "Descargar Setup inicial" baja un .zip con 6 skills + LEEME + hoja de buenas prácticas.
+- [x] "Mi conexión" (antes `/configuracion/claude`) sigue funcionando igual, ahora dentro de la pestaña Inicio.
+- [x] Skills: las 6 de arranque aparecen publicadas; subir un `.md`/`.zip` nuevo lo guarda como skill personal; un secreto (ej. `sk-ant-...`) se rechaza con mensaje claro.
+- [x] Crear: el formulario guiado genera un `SKILL.md` con vista previa y lo guarda como personal.
+- [x] Proponer una skill personal a "mi rol" o "la empresa" la deja en `propuesta` (o `requiere_revision` si trae `.py/.sh/.js`); un admin/Tecnología la puede Aprobar o Devolver.
+- [x] Auditoría (solo admin/Tecnología): Técnica muestra el enlace al doc; Encuesta guarda la respuesta y la puedes editar; Organización muestra los datos sembrados y se puede editar la nota; Conexiones muestra el panel de `/admin/claude` de siempre.
+- [x] `/configuracion/claude` y `/admin/claude` redirigen a `/claude` sin romper nada.
+
+### Agente de pendientes (Tecnología › Agentes)
+- [x] Botón "Probar ahora" crea/actualiza una nota "Pendientes (PRUEBA)" sin tocar la nota fija.
+- [x] La nota fija "Pendientes" (Notas, ámbito dev) aparece con secciones Hoy/Esta semana/Historial.
+- [x] Marcar a mano una casilla de la nota y volver a correr "Probar ahora" NO la reabre.
+- [x] Familia `agente_pendientes` aparece **apagada en prod, encendida en dev** (Tecnología › Agentes o Envíos automáticos).
+
+### Reportes de Soporte / errores
+- [x] Compras › Órdenes: al no poder marcar "recibida", sale un botón "Registrar entrada ahora" (antes era un aviso sin salida).
+- [x] Inventario › Requisiciones: "Quitar" un renglón pide el motivo en un panel (ya no un `prompt()` nativo).
+- [x] Inventario › un conduce cualquiera: aparecen "← Anterior · Siguiente →" (si se llegó desde la lista) y "Siguiente pendiente para mí"; las flechas del teclado funcionan.
+- [x] Flota › Combustible: registrar una echada el mismo día que un mantenimiento con más kilometraje ya NO da "function does not exist" (ya corregido en prod desde el 10-nov, verificar que sigue bien).
+- [x] Tecnología › Reportes de errores: las firmas reclasificadas (fecha pasada, GPS denegado, reglas de conduce, existencia insuficiente) aparecen como "regla de negocio", no como abiertas.
+
+### Hosting
+- [x] ~~`curl -I .../algo-que-no-existe.js` da 404 real~~ → **NO logrado**: confirmado roto en 3 intentos reales contra `dev.sgcconstructorasd.com` (Project Settings, `vercel.json` framework/outputDirectory explícitos). Causa real sigue sin encontrarse (Build Output API de un deploy de git parece ignorar el rewrite con lookahead que sí funciona en un deploy de archivos planos). **No bloquea la ronda** — mismo comportamiento que ya existía antes; la app funciona con normalidad (verificado `/`, rutas SPA, assets reales), la mitigación del lado cliente (hard-reload en import fallido) sigue siendo la defensa real.
+
+## Pendiente antes de promover a prod (ver reporte final / HANDOFF)
+
+- Migraciones DM1/DM2/DM4/DM4b (módulo Claude completo + agente de pendientes)
+  están SOLO en dev — faltan en prod hasta que este PR se mezcle.
+- Encender `claude_skills_conector` y la familia `agente_pendientes` en prod:
+  decisión de Xaviel, después de revisar la auditoría.
+- Cerrar en prod los reportes 28e423b1/c1102070/1e56426e
+  (`scripts/data-fixes/2026-11-10-dm5-cerrar-reportes-raykler.mjs --env prod --yes`)
+  una vez el código de esta rama llegue a prod — hoy solo se cerró 1a91a8cd
+  (arreglo 100% de servidor, ya vivo).
+- Decidir aprobadores de `tecnologia.claude_administrar` (default: admin/Tecnología).
+- Exportar manualmente de la consola de Claude la lista real de asientos/
+  conectores/skills y confirmarla en Auditoría › Organización.
+- DM-27 (chunk perdido) sigue sin resolverse a nivel de hosting pese a 3
+  intentos reales en dev — ver HANDOFF addendum. Pendiente real: alguien con
+  más contexto de Vercel Build Output API, o aceptar la mitigación de cliente
+  existente como la solución real y cerrar esto como "no viable por ahora".

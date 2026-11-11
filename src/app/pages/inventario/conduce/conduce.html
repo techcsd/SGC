@@ -1,5 +1,18 @@
 <div class="conduce-toolbar no-print">
   <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()">← Volver</button>
+  <!-- DM-23 — navegar entre conduces sin volver a la lista. -->
+  @if (hayListaNav()) {
+    <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="!idAnterior()" (click)="irAnterior()" title="Flecha izquierda">
+      ← Anterior
+    </button>
+    <span class="text-muted conduce-nav__contador">{{ posicionActual() + 1 }} de {{ listaTotal }}</span>
+    <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="!idSiguiente()" (click)="irSiguiente()" title="Flecha derecha">
+      Siguiente →
+    </button>
+  }
+  <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="buscandoPendiente()" (click)="irSiguientePendiente()">
+    {{ buscandoPendiente() ? 'Buscando…' : 'Siguiente pendiente para mí' }}
+  </button>
   @if (puedeCerrar() && !mostrarCierre()) {
     <!-- AV3 — gate: si falta la firma del despachante, el botón de entregar sale
          bloqueado con el motivo ANTES del esfuerzo, + atajo para recordarle. -->

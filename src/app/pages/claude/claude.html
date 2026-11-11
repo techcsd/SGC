@@ -1,0 +1,212 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1>{{ 'Claude' | t }}</h1>
+    <p>{{ 'Skills, Setup y auditoría de cómo usamos Claude en la empresa.' | t }}</p>
+  </div>
+</div>
+
+<nav class="claude-tabs" aria-label="Pestañas del módulo Claude">
+  <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'inicio'" [class.sgc-btn--ghost]="pestana() !== 'inicio'" (click)="cambiarPestana('inicio')">{{ 'Inicio' | t }}</button>
+  <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'skills'" [class.sgc-btn--ghost]="pestana() !== 'skills'" (click)="cambiarPestana('skills')">{{ 'Skills' | t }}</button>
+  <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'crear'" [class.sgc-btn--ghost]="pestana() !== 'crear'" (click)="cambiarPestana('crear')">{{ 'Crear' | t }}</button>
+  @if (puedeAuditar()) {
+    <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'auditoria'" [class.sgc-btn--ghost]="pestana() !== 'auditoria'" (click)="cambiarPestana('auditoria')">{{ 'Auditoría' | t }}</button>
+  }
+</nav>
+
+@if (cargando()) {
+  <p class="text-muted">{{ 'Cargando…' | t }}</p>
+} @else {
+
+  <!-- ═══ Inicio ═══ -->
+  @if (pestana() === 'inicio') {
+    <div class="sgc-card claude-setup">
+      <h2>{{ 'Empieza aquí' | t }}</h2>
+      <p class="text-muted">{{ 'En Claude en Constructora SD, en 4 pasos estás listo.' | t }}</p>
+      <ul class="claude-setup__lista">
+        <li>
+          <label><input type="checkbox" [checked]="progreso()?.conecto_sgc" disabled /> {{ 'Conecté el SGC a Claude' | t }}</label>
+        </li>
+        <li>
+          <label><input type="checkbox" [checked]="progreso()?.descargo_setup" (change)="descargarSetup()" /> {{ 'Descargué el pack «Setup inicial»' | t }}</label>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="descargarSetup()">{{ 'Descargar Setup inicial' | t }}</button>
+        </li>
+        <li>
+          <label><input type="checkbox" [checked]="progreso()?.subio_primera_skill" disabled /> {{ 'Subí mi primera skill' | t }}</label>
+        </li>
+        <li>
+          <label><input type="checkbox" [checked]="progreso()?.probo_pregunta" (change)="marcar('probo_pregunta')" /> {{ 'Probé una pregunta real de mi trabajo' | t }}</label>
+        </li>
+      </ul>
+      <p class="claude-setup__regla"><strong>{{ 'Regla de oro de datos:' | t }}</strong> {{ 'NO pegues en Claude cédulas, claves, contraseñas, datos de nómina ni contratos completos de terceros. Claude solo ve lo que tu usuario ya ve en el SGC.' | t }}</p>
+      @if (misPropuestasPendientes().length) {
+        <p class="text-muted">{{ misPropuestasPendientes().length }} {{ 'de tus skills están esperando revisión de Tecnología.' | t }}</p>
+      }
+    </div>
+
+    <div class="sgc-card">
+      <h2>{{ 'Mi conexión' | t }}</h2>
+      <app-configuracion-claude />
+    </div>
+  }
+
+  <!-- ═══ Skills ═══ -->
+  @if (pestana() === 'skills') {
+    <div class="claude-skills-toolbar">
+      <label class="sgc-btn sgc-btn--secondary">
+        {{ 'Subir archivo (.md o .zip)' | t }}
+        <input type="file" accept=".md,.txt,.zip" style="display:none" (change)="subirArchivo($event)" />
+      </label>
+    </div>
+
+    @if (recomendadas().length) {
+      <h2>{{ 'Recomendadas para tu rol' | t }}</h2>
+      <div class="claude-skills-grid">
+        @for (s of recomendadas(); track s.id) {
+          <div class="sgc-card claude-skill-card">
+            <h3>{{ s.nombre }}</h3>
+            <p class="text-muted">{{ s.descripcion }}</p>
+            <span class="sgc-badge sgc-badge--info">{{ s.ambito }}</span>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="descargarSkill(s)">{{ 'Descargar' | t }}</button>
+          </div>
+        }
+      </div>
+    }
+
+    <h2>{{ 'Biblioteca' | t }}</h2>
+    <div class="claude-skills-grid">
+      @for (s of resto(); track s.id) {
+        <div class="sgc-card claude-skill-card">
+          <h3>{{ s.nombre }}</h3>
+          <p class="text-muted">{{ s.descripcion }}</p>
+          <span class="sgc-badge" [class.sgc-badge--success]="s.estado === 'publicada'" [class.sgc-badge--warning]="s.estado === 'propuesta' || s.estado === 'requiere_revision'" [class.sgc-badge--neutral]="s.estado === 'borrador' || s.estado === 'archivada'">
+            {{ s.estado }}
+          </span>
+          @if (s.tiene_codigo_ejecutable) { <span class="sgc-badge sgc-badge--warning">{{ 'trae código' | t }}</span> }
+          <div class="claude-skill-card__acciones">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarSkill(s)">{{ 'Descargar' | t }}</button>
+            @if (s.estado === 'borrador') {
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="proponer(s, 'rol')">{{ 'Proponer a mi rol' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="proponer(s, 'empresa')">{{ 'Proponer a la empresa' | t }}</button>
+            }
+            @if (puedeAdministrar() && (s.estado === 'propuesta' || s.estado === 'requiere_revision')) {
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="decidir(s, 'publicada')">{{ 'Aprobar' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="decidir(s, 'borrador')">{{ 'Devolver' | t }}</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ Crear ═══ -->
+  @if (pestana() === 'crear') {
+    <div class="sgc-card claude-crear">
+      <h2>{{ 'Crear una skill' | t }}</h2>
+      <label>{{ 'Identificador (slug)' | t }}
+        <input class="sgc-input" [value]="crearSlug()" (input)="crearSlug.set($any($event.target).value)" placeholder="mi-skill-nueva" />
+      </label>
+      <label>{{ 'Qué hace' | t }}
+        <textarea class="sgc-input" rows="2" [value]="crearQueHace()" (input)="crearQueHace.set($any($event.target).value)"></textarea>
+      </label>
+      <label>{{ 'Cuándo usarla' | t }}
+        <textarea class="sgc-input" rows="2" [value]="crearCuandoUsarla()" (input)="crearCuandoUsarla.set($any($event.target).value)"></textarea>
+      </label>
+      <label>{{ 'Pasos' | t }}
+        <textarea class="sgc-input" rows="3" [value]="crearPasos()" (input)="crearPasos.set($any($event.target).value)"></textarea>
+      </label>
+      <label>{{ 'Ejemplo' | t }}
+        <textarea class="sgc-input" rows="2" [value]="crearEjemplo()" (input)="crearEjemplo.set($any($event.target).value)"></textarea>
+      </label>
+      <h3>{{ 'Vista previa' | t }}</h3>
+      <pre class="claude-crear__preview">{{ crearPreview() }}</pre>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoCreacion()" (click)="guardarCreacion()">
+        {{ guardandoCreacion() ? ('Guardando…' | t) : ('Guardar como personal' | t) }}
+      </button>
+    </div>
+  }
+
+  <!-- ═══ Auditoría ═══ -->
+  @if (pestana() === 'auditoria' && puedeAuditar()) {
+    <nav class="claude-tabs claude-tabs--sub" aria-label="Secciones de auditoría">
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'tecnica'" [class.sgc-btn--ghost]="subAuditoria() !== 'tecnica'" (click)="cambiarSubAuditoria('tecnica')">{{ 'Técnica' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'encuesta'" [class.sgc-btn--ghost]="subAuditoria() !== 'encuesta'" (click)="cambiarSubAuditoria('encuesta')">{{ 'Encuesta' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'organizacion'" [class.sgc-btn--ghost]="subAuditoria() !== 'organizacion'" (click)="cambiarSubAuditoria('organizacion')">{{ 'Organización' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'conexiones'" [class.sgc-btn--ghost]="subAuditoria() !== 'conexiones'" (click)="cambiarSubAuditoria('conexiones')">{{ 'Conexiones' | t }}</button>
+    </nav>
+
+    @if (subAuditoria() === 'tecnica') {
+      <div class="sgc-card">
+        <h2>{{ 'Auditoría técnica' | t }}</h2>
+        <p class="text-muted">{{ 'Inventario de todo lo que usa Claude/IA en SGC y CSD App, con riesgos y huecos.' | t }}</p>
+        <p><code>docs/CLAUDE-AUDITORIA.md</code> {{ '(en el repo).' | t }}</p>
+      </div>
+    }
+
+    @if (subAuditoria() === 'encuesta') {
+      <div class="sgc-card">
+        <h2>{{ 'Tu respuesta' | t }}</h2>
+        <label>{{ '¿Usas Claude hoy y dónde?' | t }}
+          <textarea class="sgc-input" rows="2" [value]="encuestaUsaHoy()" (input)="encuestaUsaHoy.set($any($event.target).value)"></textarea>
+        </label>
+        <label>{{ '¿Para qué tareas?' | t }}
+          <textarea class="sgc-input" rows="2" [value]="encuestaTareas()" (input)="encuestaTareas.set($any($event.target).value)"></textarea>
+        </label>
+        <label>{{ '¿Qué tarea repetida te quita más tiempo?' | t }}
+          <textarea class="sgc-input" rows="2" [value]="encuestaTareaRepetida()" (input)="encuestaTareaRepetida.set($any($event.target).value)"></textarea>
+        </label>
+        <label>{{ '¿Qué te frena (cuenta, no sé usarlo, desconfianza, datos)?' | t }}
+          <textarea class="sgc-input" rows="2" [value]="encuestaQueFrena()" (input)="encuestaQueFrena.set($any($event.target).value)"></textarea>
+        </label>
+        <label>{{ '¿Qué documento/reporte armas a mano cada semana?' | t }}
+          <textarea class="sgc-input" rows="2" [value]="encuestaDocSemanal()" (input)="encuestaDocSemanal.set($any($event.target).value)"></textarea>
+        </label>
+        <label>{{ '¿Qué te gustaría que Compa/Claude hiciera por ti?' | t }}
+          <textarea class="sgc-input" rows="2" [value]="encuestaQueDeberia()" (input)="encuestaQueDeberia.set($any($event.target).value)"></textarea>
+        </label>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoEncuesta()" (click)="guardarEncuestaResp()">
+          {{ guardandoEncuesta() ? ('Guardando…' | t) : ('Guardar respuesta' | t) }}
+        </button>
+      </div>
+
+      <div class="sgc-card">
+        <h2>{{ 'Resultados por rol' | t }}</h2>
+        <table class="data-table">
+          <thead><tr><th>{{ 'Rol' | t }}</th><th>{{ 'Respuestas' | t }}</th></tr></thead>
+          <tbody>
+            @for (r of resultadosEncuesta(); track r.rol_snapshot) {
+              <tr><td>{{ r.rol_snapshot ?? '—' }}</td><td>{{ r.respuestas }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (subAuditoria() === 'organizacion') {
+      <div class="sgc-card">
+        <h2>{{ 'Cómo está configurada nuestra organización' | t }}</h2>
+        @if (orgInfo(); as org) {
+          <p><strong>{{ 'Plan:' | t }}</strong> {{ org.plan ?? '—' }}</p>
+          <p><strong>{{ 'Asientos:' | t }}</strong> {{ org.asientos_ocupados ?? '—' }} / {{ org.asientos_totales ?? '—' }}</p>
+          <p><strong>{{ 'Owners:' | t }}</strong> {{ org.owners.join(', ') }}</p>
+          <p><strong>{{ 'Conectores:' | t }}</strong> {{ org.conectores.length }}</p>
+          @if (puedeAdministrar()) {
+            <label>{{ 'Notas' | t }}
+              <textarea class="sgc-input" rows="4" [value]="orgNotas()" (input)="orgNotas.set($any($event.target).value)"></textarea>
+            </label>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarOrg()">{{ 'Guardar' | t }}</button>
+          } @else {
+            <p class="text-muted">{{ org.notas }}</p>
+          }
+        }
+      </div>
+    }
+
+    @if (subAuditoria() === 'conexiones') {
+      <div class="sgc-card">
+        <h2>{{ 'Conexiones' | t }}</h2>
+        <app-admin-claude />
+      </div>
+    }
+  }
+}
