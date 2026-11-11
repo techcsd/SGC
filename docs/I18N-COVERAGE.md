@@ -122,11 +122,13 @@
 | proyectos/historial | - | 24 | 0 | 24 | 0% |
 | proyectos/kpi | - | 32 | 0 | 32 | 0% |
 | proyectos/lista | - | 321 | 0 | 321 | 0% |
+| rrhh/activos | - | 45 | 0 | 45 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
 | rrhh/contratos | - | 43 | 0 | 43 | 0% |
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
 | rrhh/organigrama | - | 12 | 0 | 12 | 0% |
+| rrhh/proveedores | - | 37 | 0 | 37 | 0% |
 | rrhh/reportes | - | 29 | 0 | 29 | 0% |
 | rrhh/tramites | - | 49 | 0 | 49 | 0% |
 | solicitudes-movimiento | - | 122 | 0 | 122 | 0% |

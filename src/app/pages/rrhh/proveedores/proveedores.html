@@ -1,0 +1,90 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Proveedores (administrativos)</h1>
+      <p class="page__sub">Internet, limpieza, seguros de oficina y otros servicios de la empresa — distinto de Compras › Proveedores (material y transporte).</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirForm()">Agregar proveedor</button>
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    @if (mostrarForm()) {
+      <form class="pv-add" (submit)="$event.preventDefault(); guardar()">
+        <label class="pv-field"><span>Nombre</span>
+          <input type="text" [value]="fNombre()" (input)="fNombre.set($any($event.target).value)" placeholder="Ej: Claro (internet)" />
+        </label>
+        <label class="pv-field"><span>Servicio</span>
+          <input type="text" [value]="fServicio()" (input)="fServicio.set($any($event.target).value)" placeholder="Ej: Internet oficina" />
+        </label>
+        <label class="pv-field"><span>Contacto</span>
+          <input type="text" [value]="fContactoNombre()" (input)="fContactoNombre.set($any($event.target).value)" />
+        </label>
+        <label class="pv-field"><span>Teléfono</span>
+          <input type="text" [value]="fContactoTelefono()" (input)="fContactoTelefono.set($any($event.target).value)" />
+        </label>
+        <label class="pv-field"><span>Email</span>
+          <input type="email" [value]="fContactoEmail()" (input)="fContactoEmail.set($any($event.target).value)" />
+        </label>
+        <label class="pv-field"><span>Contrato desde</span>
+          <input type="date" [value]="fContratoDesde()" (input)="fContratoDesde.set($any($event.target).value)" />
+        </label>
+        <label class="pv-field"><span>Contrato hasta</span>
+          <input type="date" [value]="fContratoHasta()" (input)="fContratoHasta.set($any($event.target).value)" />
+        </label>
+        <label class="pv-field"><span>Monto mensual (RD$)</span>
+          <input type="number" step="0.01" [value]="fMontoMensual()" (input)="fMontoMensual.set($any($event.target).value)" />
+        </label>
+        <label class="pv-field pv-field--wide"><span>Notas</span>
+          <textarea rows="2" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
+        </label>
+        <div class="pv-add__acciones">
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    <label class="pv-toggle">
+      <input type="checkbox" [checked]="mostrarInactivos()" (change)="mostrarInactivos.set($any($event.target).checked)" />
+      <span>Mostrar inactivos</span>
+    </label>
+
+    @if (!visibles().length) {
+      <p class="text-muted">No hay proveedores administrativos registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Servicio</th><th>Contacto</th><th>Contrato</th><th>Monto/mes</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            @for (p of visibles(); track p.id) {
+              <tr>
+                <td>{{ p.nombre }}</td>
+                <td class="text-muted">{{ p.servicio || '—' }}</td>
+                <td class="text-muted">{{ p.contacto_nombre || '—' }} @if (p.contacto_telefono) { · {{ p.contacto_telefono }} }</td>
+                <td>
+                  @if (p.contrato_hasta) { hasta {{ formatFecha(p.contrato_hasta) }} } @else { — }
+                </td>
+                <td>{{ p.monto_mensual ? (p.monto_mensual | number:'1.0-2') : '—' }}</td>
+                <td>
+                  @if (p.activo) { <span class="sgc-badge sgc-badge--success">activo</span> }
+                  @else { <span class="sgc-badge sgc-badge--neutral">inactivo</span> }
+                </td>
+                <td>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleActivo(p)">{{ p.activo ? 'Desactivar' : 'Activar' }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(p)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>
+
+<app-confirm-dialog [open]="!!aEliminar()" title="¿Eliminar este proveedor?"
+  [message]="aEliminar() ? ('«' + aEliminar()!.nombre + '»') : ''"
+  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />
