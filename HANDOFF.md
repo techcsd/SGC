@@ -36,7 +36,7 @@
 6. Kapso: los 2 scripts `dk-reprocesar-*-backlog.mjs` (backup `backup/main-local-2ba4d6d5-20261111`) dependen de una función de wa-extract (PDF/texto de documentos) que se perdió en el mismo reset que descartó Kapso — decidir si se restaura esa función aparte o se dejan los 2 scripts en el respaldo.
 7. Validar con el contador las fórmulas de `sgc.rrhh_nomina_parametros` antes de pedir el motor de cálculo real de Nómina.
 8. Aprobar el tablero visual (Claude Design) de módulo Claude y de RRHH+Administración antes de escribir CSS nuevo en esas áreas.
-9. Revisar los permisos de roles: los submódulos nuevos de RRHH (`rrhh.contratos`, `rrhh.nomina`, etc.) ya están en el editor de Administración pero **ningún rol los tiene asignados todavía** — decidir qué roles (RRHH, Gerencia) los reciben.
+9. ~~Revisar permisos de roles para los submódulos nuevos de RRHH~~ — hecho (11-nov, segundo pedido): se encontró y corrigió un bug real (`sql/2026-11-11-dn28-fix-rol-jefe-rrhh-sensible.sql`, aplicado a prod) — `puede_rrhh_sensible()` usaba el código de rol `'rrhh'`, que **no existe**; el rol real es `jefe_rrhh` ("Jefe de RRHH", id 5). Verificado en prod simulando sesiones reales: `jefe_rrhh` y `gerencia` ya ven los 10 submódulos nuevos (contratos, nómina, evaluaciones vía el fallback de rol; organigrama/onboarding/capacitación/trámites/proveedores/activos/gastos vía el bypass estándar de módulo padre `rrhh`, ya lo tenían). Nada que hacer de tu parte salvo que quieras permisos más finos por persona.
 8. Validar con el contador las fórmulas de `sgc.rrhh_nomina_parametros` antes de construir la pantalla de nómina.
 
 ## ✅ Ronda DM (10/11-nov-2026) — PROMPT 140: módulo Claude, agente de pendientes, 4 reportes — EN PRODUCCIÓN — v1.213.0
