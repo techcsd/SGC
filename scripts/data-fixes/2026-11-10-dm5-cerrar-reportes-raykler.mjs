@@ -24,9 +24,16 @@ const REPORTES_TODOS = [
     nota: 'Era un vehículo que el mismo día tenía un mantenimiento con más kilometraje que la echada que intentabas registrar — ya está corregido en el servidor (actualización 1.213.0). Si te vuelve a pasar con otro vehículo, dime cuál y el kilometraje que intentabas poner.',
   },
   {
+    // DN-25 (ronda DN, 11-nov): reproducido a nivel de servidor contra dev con
+    // los mismos datos del reporte (renglón "libre" sin artículo de catálogo,
+    // requisición ya en despacho) simulando la sesión real de Raykler —
+    // sgc.requisicion_cancelar_item() funcionó correctamente, sin error. La
+    // causa más probable sigue siendo la ya corregida en 1.213.0 (el
+    // `prompt()` nativo fuera del try/catch, que en ciertos navegadores fallaba
+    // en silencio sin mostrar ningún aviso). Se cierra como resuelto.
     id: 'c1102070-bae5-436d-bb62-6478e013788f',
-    estado: 'en_progreso',
-    nota: 'Revisé la pantalla pero la foto no mostraba el error exacto. Sí encontré y corregí un posible origen: el botón "Quitar" de un renglón podía fallar sin avisar en algunos navegadores (actualización 1.213.0). Si te vuelve a pasar, dime en qué requisición y qué renglón estabas reasignando.',
+    estado: 'resuelto',
+    nota: 'Probé de nuevo "Quitar" en un renglón sin artículo del catálogo (como el tuyo) en una requisición ya en despacho, y funcionó bien. Lo más probable es que el arreglo de la actualización 1.213.0 ya lo haya corregido: antes, en algunos navegadores, el cuadro de motivo podía fallar en silencio sin avisar nada. Si te vuelve a pasar, dime en qué requisición y qué renglón estabas quitando, y qué navegador usas (Chrome, el de la app, etc.).',
   },
   {
     id: '1e56426e-2f76-44c4-8548-d92f36b01b08',
