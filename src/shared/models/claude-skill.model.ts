@@ -5,7 +5,7 @@ export interface ClaudeSkill {
   nombre: string;
   descripcion: string;
   tipo: 'skill' | 'instrucciones' | 'plantilla' | 'documento';
-  ambito: 'personal' | 'rol' | 'empresa';
+  ambito: 'personal' | 'rol' | 'empresa' | 'equipo';
   estado: 'borrador' | 'propuesta' | 'publicada' | 'archivada' | 'requiere_revision';
   roles: string[];
   tags: string[];
@@ -15,6 +15,24 @@ export interface ClaudeSkill {
   motivo_devuelta: string | null;
   created_at: string;
   updated_at: string;
+  // DO-10 — ámbito "equipo" (departamento) + métricas simples.
+  equipo: string | null;
+  descargas: number;
+  rating_positivo: number;
+  rating_negativo: number;
+}
+
+/** DO-10 — una versión guardada de una skill (claude_skill_versiones). */
+export interface ClaudeSkillVersion {
+  id: string;
+  skill_id: string;
+  version: number;
+  storage_path: string;
+  tamano_bytes: number;
+  sha256: string;
+  notas: string | null;
+  creado_por: string | null;
+  creado_en: string;
 }
 
 export interface ClaudePack {

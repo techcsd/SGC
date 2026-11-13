@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { environment } from '../../environments/environment';
-import { ClaudeSkill, ClaudePack, ClaudeProgreso, ClaudeEncuestaRespuesta, ClaudeOrgInfo } from '../models/claude-skill.model';
+import {
+  ClaudeSkill, ClaudePack, ClaudeProgreso, ClaudeEncuestaRespuesta, ClaudeOrgInfo, ClaudeSkillVersion,
+} from '../models/claude-skill.model';
 
 /** DM1 — módulo Claude: biblioteca de skills, paquetes, progreso del Setup,
  *  encuesta de auditoría y organización. Escritura de archivos vía edges
@@ -19,9 +21,48 @@ export class ClaudeSkillsService {
     return (data ?? []) as ClaudeSkill[];
   }
 
-  async proponer(skillId: string, ambito: 'rol' | 'empresa'): Promise<void> {
-    const { error } = await this.supabase.client.rpc('claude_skill_proponer', { p_skill_id: skillId, p_ambito: ambito });
+  async proponer(skillId: string, ambito: 'rol' | 'empresa' | 'equipo', equipo?: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('claude_skill_proponer', {
+      p_skill_id: skillId, p_ambito: ambito, p_equipo: ambito === 'equipo' ? (equipo ?? null) : null,
+    });
     if (error) throw new Error(error.message);
+  }
+
+  /** DO-10 — métricas simples: contador de descargas + rating 👍/👎. */
+  async registrarDescarga(skillId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('claude_skill_registrar_descarga', { p_skill_id: skillId });
+    if (error) throw new Error(error.message);
+  }
+
+  async calificar(skillId: string, valor: 'positivo' | 'negativo'): Promise<void> {
+    const { error } = await this.supabase.client.rpc('claude_skill_calificar', { p_skill_id: skillId, p_valor: valor });
+    if (error) throw new Error(error.message);
+  }
+
+  /** DO-10 — historial de versiones (pantalla simple de solo lectura). */
+  async listarVersiones(skillId: string): Promise<ClaudeSkillVersion[]> {
+    const { data, error } = await this.supabase.client
+      .from('claude_skill_versiones').select('*').eq('skill_id', skillId).order('version', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ClaudeSkillVersion[];
+  }
+
+  /** DO-10(e) — "Sugerir con IA" en Crear: borrador editable de Pasos/Ejemplo,
+   *  consciente del rol del usuario y las skills ya publicadas para ese rol
+   *  (el edge solo lee lo que el propio usuario ya puede ver, vía RLS). */
+  async sugerirContenido(queHace: string, cuandoUsarla: string, roles: string[]): Promise<{ pasos: string; ejemplo: string }> {
+    const { data: session } = await this.supabase.client.auth.getSession();
+    const res = await fetch(`${environment.supabaseUrl}/functions/v1/claude-skill-sugerir`, {
+      method: 'POST',
+      headers: {
+        apikey: environment.supabaseAnonKey, Authorization: `Bearer ${session.session?.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ que_hace: queHace, cuando_usarla: cuandoUsarla, roles }),
+    });
+    const body = await res.json().catch(() => ({ error: 'Respuesta inválida.' }));
+    if (!res.ok || !body?.ok) throw new Error(body?.error || 'No se pudo generar la sugerencia.');
+    return { pasos: body.pasos ?? '', ejemplo: body.ejemplo ?? '' };
   }
 
   async decidir(skillId: string, decision: 'publicada' | 'borrador' | 'archivada', motivo?: string): Promise<void> {

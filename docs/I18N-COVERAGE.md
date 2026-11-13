@@ -32,7 +32,7 @@
 | admin/usuarios | - | 238 | 0 | 238 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
-| apoyo-transporte | - | 65 | 0 | 65 | 0% |
+| apoyo-transporte | - | 77 | 0 | 77 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
 | bitacora/cobertura | - | 25 | 0 | 25 | 0% |
 | bitacora/dashboard | - | 31 | 0 | 31 | 0% |
@@ -125,13 +125,14 @@
 | rrhh/activos | - | 45 | 0 | 45 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
+| rrhh/candidatos | - | 65 | 0 | 65 | 0% |
 | rrhh/capacitacion | - | 38 | 0 | 38 | 0% |
 | rrhh/contratos | - | 43 | 0 | 43 | 0% |
 | rrhh/empleados | - | 219 | 0 | 219 | 0% |
 | rrhh/evaluaciones | - | 26 | 0 | 26 | 0% |
 | rrhh/nomina | - | 39 | 0 | 39 | 0% |
 | rrhh/onboarding | - | 45 | 0 | 45 | 0% |
-| rrhh/organigrama | - | 12 | 0 | 12 | 0% |
+| rrhh/organigrama | - | 14 | 0 | 14 | 0% |
 | rrhh/proveedores | - | 37 | 0 | 37 | 0% |
 | rrhh/reportes | - | 29 | 0 | 29 | 0% |
 | rrhh/tramites | - | 49 | 0 | 49 | 0% |
@@ -194,7 +195,7 @@
 | ingenieria/pagos | - | 86 | 54 | 32 | 63% |
 | inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
 | flota/cupos-combustible | - | 61 | 40 | 21 | 66% |
+| claude | - | 134 | 91 | 43 | 68% |
 | configuracion/claude | - | 39 | 27 | 12 | 69% |
-| claude | - | 107 | 76 | 31 | 71% |
-| admin/claude | - | 35 | 26 | 9 | 74% |
+| admin/claude | - | 36 | 26 | 10 | 72% |
 | oauth-consent | - | 24 | 18 | 6 | 75% |

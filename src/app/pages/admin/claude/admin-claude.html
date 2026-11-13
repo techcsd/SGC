@@ -1,7 +1,7 @@
 <div class="admin-claude">
   <div class="admin-claude__header">
     <div>
-      <h1>{{ 'Claude conectado' | t }}</h1>
+      @if (!embebido()) { <h1>{{ 'Claude conectado' | t }}</h1> }
       <p>{{ 'Quién conectó Claude al SGC, qué consultó y qué dejó preparado.' | t }}</p>
       <!-- CS5 — "Lo que Claude no pudo contestar" ya vive en Tecnología › Consultas
            de Compa (mismo backlog: reportar_gap de MCP usa la misma tabla). -->

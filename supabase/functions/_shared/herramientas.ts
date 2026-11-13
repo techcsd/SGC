@@ -164,6 +164,17 @@ export const TOOLS: ToolDef[] = [
     rpc: "changelog_reciente", map: (i) => ({ p_limite: Math.min(Number(i.limite ?? 8), 30) }),
   },
   {
+    // DO-10(d) — Compa sugiere una skill publicada relevante a mitad de
+    // conversación (v1 por coincidencia de tags/título, no embeddings). Solo
+    // Compa (no MCP): es una sugerencia conversacional, no una consulta de datos.
+    // RPC invoker: la RLS de claude_skills filtra solo a lo que el usuario puede ver.
+    name: "sugerir_skill",
+    description: "Sugiere la skill de Claude (de la biblioteca del módulo Claude) más relevante para el tema de la conversación actual, si hay alguna publicada que encaje. Úsala cuando el usuario esté haciendo algo repetitivo (redactar, resumir, revisar una cotización, etc.) que ya podría tener un atajo guardado — no la fuerces si no hay nada relevante.",
+    modulos: null, canales: ["compa"],
+    input_schema: { type: "object", properties: { tema: { type: "string" } }, required: ["tema"], additionalProperties: false },
+    rpc: "claude_skills_sugerir", map: (i) => ({ p_texto: String(i.tema ?? ""), p_limite: 1 }),
+  },
+  {
     // AY C4 — memoria: recuerda una preferencia del usuario entre conversaciones.
     // CR1 §B1: NO se ofrece en MCP — "la memoria de Claude es la suya".
     name: "recordar",

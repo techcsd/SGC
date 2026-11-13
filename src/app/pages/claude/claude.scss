@@ -35,6 +35,16 @@
   margin-bottom: 1rem;
 }
 
+// DO-10(g) — tags visibles y filtrables (botones sobre .sgc-badge existente).
+.claude-tags-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+
+  button { cursor: pointer; border: none; }
+}
+
 .claude-skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -53,13 +63,49 @@
     gap: 0.5rem;
     margin-top: auto;
   }
+
+  // DO-10 — tags, métricas y el mini-formulario de "proponer a mi equipo".
+  &__tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  &__metrica { margin: 0; font-size: 0.8rem; }
+  &__equipo { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+}
+
+// DO-10(h) — historial de versiones.
+.claude-versiones {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .claude-crear {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-width: 640px;
+
+  // DN-21 — lado a lado (formulario | vista previa), ya aprobado en la ronda pasada.
+  &__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__preview-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: sticky;
+    top: 0.75rem;
+  }
 
   label {
     display: flex;
@@ -74,5 +120,9 @@
     border-radius: 8px;
     padding: 0.75rem;
     font-size: 0.85rem;
+  }
+
+  @media (max-width: 900px) {
+    &__layout { grid-template-columns: 1fr; }
   }
 }
