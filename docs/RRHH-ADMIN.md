@@ -47,11 +47,11 @@ returns boolean language sql stable security definer set search_path to 'sgc','p
       and coalesce(r.permisos->>p_key,'') in ('ver','operar')
   ) or exists (
     select 1 from sgc.usuarios_roles ur join sgc.roles r on r.id = ur.rol_id
-    where ur.usuario_id = auth.uid() and r.codigo in ('rrhh','gerencia','direccion')
+    where ur.usuario_id = auth.uid() and r.codigo in ('jefe_rrhh','gerencia','direccion')
   );
 $$;
 ```
-Nota: se deja `codigo in ('rrhh','gerencia','direccion')` como fallback por si todavía no existe un rol específico "RRHH" con permisos granulares asignados — **Xaviel decide** si ese fallback por código de rol se queda o se reemplaza 100% por permisos granulares una vez cree el rol RRHH real. Reportado explícitamente, no decidido en automático.
+**Corregido (DN-28, fix posterior):** la primera versión usaba el código `'rrhh'`, que no existe como rol — el rol real que ya existía en el sistema es `jefe_rrhh` ("Jefe de RRHH", id 5), y con el bug nadie (ni siquiera Jefe de RRHH) veía Contratos/Nómina/Evaluaciones sin permisos granulares explícitos. `sql/2026-11-11-dn28-fix-rol-jefe-rrhh-sensible.sql` lo corrige. Verificado contra dev simulando la sesión real de un usuario con `jefe_rrhh`: `puede_rrhh_sensible('rrhh.contratos')` → `true`.
 
 Toda lectura de un submódulo sensible (ver un salario, una evaluación, un expediente) se registra en `sgc.rrhh_accesos_log` (quién, qué, cuándo) — ver §3.
 

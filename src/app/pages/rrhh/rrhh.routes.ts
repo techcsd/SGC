@@ -49,6 +49,13 @@ export const rrhhRoutes: Routes = [
     title: 'Reclutamiento — RRHH',
   },
   {
+    // DO-05 — índice global de candidatos (todas las vacantes), mismo permiso que Reclutamiento.
+    path: 'candidatos',
+    canActivate: [submoduloGuard('rrhh.onboarding')],
+    loadComponent: () => import('./candidatos/candidatos').then((m) => m.RrhhCandidatos),
+    title: 'Candidatos — RRHH',
+  },
+  {
     path: 'nomina',
     canActivate: [submoduloGuard('rrhh.nomina')],
     loadComponent: () => import('./nomina/nomina').then((m) => m.RrhhNomina),

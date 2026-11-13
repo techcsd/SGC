@@ -32,7 +32,7 @@
           </span>
           <span>{{ 'Conecté el SGC a Claude' | t }}</span>
           @if (!progreso()?.conecto_sgc) {
-            <span class="text-muted">— {{ 'se marca solo (mira «Mi conexión» abajo)' | t }}</span>
+            <span class="text-muted">— <a href="#mi-conexion">{{ 'conéctala en «Mi conexión» abajo' | t }}</a></span>
           }
         </li>
         <li>
@@ -58,7 +58,7 @@
       }
     </div>
 
-    <div class="sgc-card">
+    <div class="sgc-card" id="mi-conexion">
       <h2>{{ 'Mi conexión' | t }}</h2>
       <app-configuracion-claude [embebido]="true" (conectadoChange)="onConectadoChange($event)" />
     </div>
@@ -85,6 +85,16 @@
       <input class="sgc-input" type="search" [value]="filtroSkills()" (input)="filtroSkills.set($any($event.target).value)" placeholder="{{ 'Buscar skill por nombre o descripción…' | t }}" />
     </div>
 
+    <!-- DO-10(g) — tags visibles y filtrables. -->
+    @if (tagsDisponibles().length) {
+      <div class="claude-tags-bar">
+        <button type="button" class="sgc-badge" [class.sgc-badge--info]="!filtroTag()" (click)="filtroTag.set('')">{{ 'Todas' | t }}</button>
+        @for (tag of tagsDisponibles(); track tag) {
+          <button type="button" class="sgc-badge" [class.sgc-badge--info]="filtroTag() === tag" (click)="filtroTag.set(filtroTag() === tag ? '' : tag)">{{ tag }}</button>
+        }
+      </div>
+    }
+
     @if (recomendadas().length) {
       <h2>{{ 'Recomendadas para tu rol' | t }}</h2>
       <div class="claude-skills-grid">
@@ -109,10 +119,23 @@
             {{ s.estado }}
           </span>
           @if (s.tiene_codigo_ejecutable) { <span class="sgc-badge sgc-badge--warning">{{ 'trae código' | t }}</span> }
+          @if (s.tags.length) {
+            <div class="claude-skill-card__tags">
+              @for (tag of s.tags; track tag) { <span class="sgc-badge sgc-badge--neutral">{{ tag }}</span> }
+            </div>
+          }
+          <!-- DO-10(c) — métricas simples. AW12: sin emojis como icono, texto plano. -->
+          <p class="text-muted claude-skill-card__metrica">
+            {{ s.descargas }} {{ 'descarga(s)' | t }} · {{ 'Útil' | t }} {{ s.rating_positivo }} · {{ 'No útil' | t }} {{ s.rating_negativo }}
+          </p>
           <div class="claude-skill-card__acciones">
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarSkill(s)">{{ 'Descargar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="calificar(s, 'positivo')">{{ 'Me sirvió' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="calificar(s, 'negativo')">{{ 'No me sirvió' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirHistorial(s)">{{ 'Historial' | t }}</button>
             @if (s.estado === 'borrador') {
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="proponer(s, 'rol')">{{ 'Proponer a mi rol' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirProponerEquipo(s)">{{ 'Proponer a mi equipo' | t }}</button>
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="proponer(s, 'empresa')">{{ 'Proponer a la empresa' | t }}</button>
             }
             @if (puedeAdministrar() && (s.estado === 'propuesta' || s.estado === 'requiere_revision')) {
@@ -120,9 +143,42 @@
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="decidir(s, 'borrador')">{{ 'Devolver' | t }}</button>
             }
           </div>
+
+          <!-- DO-10(b) — proponer a mi equipo (pide el nombre del equipo/departamento). -->
+          @if (proponiendoEquipo()?.id === s.id) {
+            <div class="claude-skill-card__equipo">
+              <input class="sgc-input" type="text" placeholder="{{ 'Nombre del equipo/departamento' | t }}"
+                [value]="equipoProponer()" (input)="equipoProponer.set($any($event.target).value)" />
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="proponiendoEquipo.set(null)">{{ 'Cancelar' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="confirmarProponerEquipo()">{{ 'Proponer' | t }}</button>
+            </div>
+          }
         </div>
       }
     </div>
+
+    <!-- DO-10(h) — historial de versiones (pantalla simple de solo lectura). -->
+    @if (verHistorialDe(); as s) {
+      <div class="sgc-card">
+        <h2>{{ 'Historial de versiones' | t }} — {{ s.nombre }}</h2>
+        @if (cargandoVersiones()) {
+          <p class="text-muted">{{ 'Cargando…' | t }}</p>
+        } @else if (!versiones().length) {
+          <p class="text-muted">{{ 'Sin versiones registradas.' | t }}</p>
+        } @else {
+          <ul class="claude-versiones">
+            @for (v of versiones(); track v.id) {
+              <li>
+                <b>v{{ v.version }}</b>
+                <span class="text-muted">{{ v.creado_en | date: 'd MMM, HH:mm' }}</span>
+                @if (v.notas) { <span class="text-muted">— {{ v.notas }}</span> }
+              </li>
+            }
+          </ul>
+        }
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarHistorial()">{{ 'Cerrar' | t }}</button>
+      </div>
+    }
 
     @if (packDeMiRol(); as pack) {
       <div class="sgc-card">
@@ -145,26 +201,44 @@
   @if (pestana() === 'crear') {
     <div class="sgc-card claude-crear">
       <h2>{{ 'Crear una skill' | t }}</h2>
-      <label>{{ 'Identificador (slug)' | t }}
-        <input class="sgc-input" [value]="crearSlug()" (input)="crearSlug.set($any($event.target).value)" placeholder="mi-skill-nueva" />
-      </label>
-      <label>{{ 'Qué hace' | t }}
-        <textarea class="sgc-input" rows="2" [value]="crearQueHace()" (input)="crearQueHace.set($any($event.target).value)"></textarea>
-      </label>
-      <label>{{ 'Cuándo usarla' | t }}
-        <textarea class="sgc-input" rows="2" [value]="crearCuandoUsarla()" (input)="crearCuandoUsarla.set($any($event.target).value)"></textarea>
-      </label>
-      <label>{{ 'Pasos' | t }}
-        <textarea class="sgc-input" rows="3" [value]="crearPasos()" (input)="crearPasos.set($any($event.target).value)"></textarea>
-      </label>
-      <label>{{ 'Ejemplo' | t }}
-        <textarea class="sgc-input" rows="2" [value]="crearEjemplo()" (input)="crearEjemplo.set($any($event.target).value)"></textarea>
-      </label>
-      <h3>{{ 'Vista previa' | t }}</h3>
-      <pre class="claude-crear__preview">{{ crearPreview() }}</pre>
-      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoCreacion()" (click)="guardarCreacion()">
-        {{ guardandoCreacion() ? ('Guardando…' | t) : ('Guardar como personal' | t) }}
-      </button>
+      <!-- DN-21 — lado a lado: formulario a la izquierda, vista previa en vivo a la derecha. -->
+      <div class="claude-crear__layout">
+        <div class="claude-crear__form">
+          <!-- DO-10(f) — plantillas guiadas por tipo de skill. -->
+          <label>{{ 'Plantilla (opcional)' | t }}
+            <select class="sgc-input" (change)="aplicarPlantilla($any($event.target).value); $any($event.target).value = ''">
+              <option value="">{{ 'Elige una plantilla para precargar Pasos/Ejemplo…' | t }}</option>
+              @for (p of plantillas; track p.id) { <option [value]="p.id">{{ p.label }}</option> }
+            </select>
+          </label>
+          <label>{{ 'Identificador (slug)' | t }}
+            <input class="sgc-input" [value]="crearSlug()" (input)="crearSlug.set($any($event.target).value)" placeholder="mi-skill-nueva" />
+          </label>
+          <label>{{ 'Qué hace' | t }}
+            <textarea class="sgc-input" rows="2" [value]="crearQueHace()" (input)="crearQueHace.set($any($event.target).value)"></textarea>
+          </label>
+          <label>{{ 'Cuándo usarla' | t }}
+            <textarea class="sgc-input" rows="2" [value]="crearCuandoUsarla()" (input)="crearCuandoUsarla.set($any($event.target).value)"></textarea>
+          </label>
+          <!-- DO-10(e) — "Sugerir con IA": borrador editable, consciente del rol. -->
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="sugiriendoConIa()" (click)="sugerirConIa()">
+            {{ sugiriendoConIa() ? ('Pensando…' | t) : ('Sugerir con IA' | t) }}
+          </button>
+          <label>{{ 'Pasos' | t }}
+            <textarea class="sgc-input" rows="3" [value]="crearPasos()" (input)="crearPasos.set($any($event.target).value)"></textarea>
+          </label>
+          <label>{{ 'Ejemplo' | t }}
+            <textarea class="sgc-input" rows="2" [value]="crearEjemplo()" (input)="crearEjemplo.set($any($event.target).value)"></textarea>
+          </label>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoCreacion()" (click)="guardarCreacion()">
+            {{ guardandoCreacion() ? ('Guardando…' | t) : ('Guardar como personal' | t) }}
+          </button>
+        </div>
+        <div class="claude-crear__preview-col">
+          <h3>{{ 'Vista previa' | t }}</h3>
+          <pre class="claude-crear__preview">{{ crearPreview() }}</pre>
+        </div>
+      </div>
     </div>
   }
 
@@ -262,7 +336,7 @@
     @if (subAuditoria() === 'conexiones') {
       <div class="sgc-card">
         <h2>{{ 'Conexiones' | t }}</h2>
-        <app-admin-claude />
+        <app-admin-claude [embebido]="true" />
       </div>
     }
   }

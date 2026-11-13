@@ -51,4 +51,43 @@ describe('RrhhOrganigrama', () => {
     await comp.ngOnInit();
     expect(comp.arbol().length).toBe(2); // termina, no se cuelga
   });
+
+  // DO-04 — raices() anida de verdad (nodo.hijos) para el marcado semántico del template.
+  it('raices() anida jerarquía profunda de 3+ niveles', async () => {
+    const comp = crear([
+      nodo({ id: 'nieto', nombre: 'Nieto', jefe_id: 'hijo' }),
+      nodo({ id: 'hijo', nombre: 'Hijo', jefe_id: 'jefe' }),
+      nodo({ id: 'jefe', nombre: 'Jefe' }),
+    ]);
+    await comp.ngOnInit();
+    const raices = comp.raices();
+    expect(raices.map((n) => n.id)).toEqual(['jefe']);
+    expect(raices[0].hijos.map((n) => n.id)).toEqual(['hijo']);
+    expect(raices[0].hijos[0].hijos.map((n) => n.id)).toEqual(['nieto']);
+    expect(raices[0].hijos[0].hijos[0].hijos).toEqual([]);
+  });
+
+  it('raices() pone huérfanos (jefe_id inexistente) como raíz propia, sin hijos sueltos', async () => {
+    const comp = crear([
+      nodo({ id: 'jefe', nombre: 'Jefe' }),
+      nodo({ id: 'reporta', nombre: 'Reporta', jefe_id: 'jefe' }),
+      nodo({ id: 'huerfano', nombre: 'Huérfano', jefe_id: 'no-existe' }),
+    ]);
+    await comp.ngOnInit();
+    const raices = comp.raices();
+    expect(raices.map((n) => n.id).sort()).toEqual(['huerfano', 'jefe']);
+    expect(raices.find((n) => n.id === 'huerfano')!.hijos).toEqual([]);
+    expect(raices.find((n) => n.id === 'jefe')!.hijos.map((n) => n.id)).toEqual(['reporta']);
+  });
+
+  it('raices() conserva empleados inactivos en su lugar en el árbol', async () => {
+    const comp = crear([
+      nodo({ id: 'jefe', nombre: 'Jefe' }),
+      nodo({ id: 'inactivo', nombre: 'Inactivo', jefe_id: 'jefe', activo: false }),
+    ]);
+    await comp.ngOnInit();
+    const raices = comp.raices();
+    expect(raices[0].hijos[0].id).toBe('inactivo');
+    expect(raices[0].hijos[0].activo).toBe(false);
+  });
 });

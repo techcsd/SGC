@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, input, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
@@ -46,6 +46,11 @@ interface FiltrosDisponibles {
 export class AdminClaude implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+
+  /** DO-09 — igual que `ConfiguracionClaude.embebido`: cuando vive embebido en
+   *  Claude › Auditoría › Conexiones, ese `<h2>Conexiones</h2>` ya es el
+   *  encabezado — oculta el `h1` propio para no duplicarlo. */
+  embebido = input(false);
 
   cargando = signal(true);
   activo = signal(true);

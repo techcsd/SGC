@@ -44,6 +44,16 @@ export class UserService {
     ['admin', 'direccion', 'gerencia', 'jefe_flota', 'logistica'].some((r) => this.roles().includes(r)),
   );
 
+  /**
+   * DO-03 — ¿es referente de movimiento (puede crear rutas y asignar un apoyo
+   * de transporte)? Espejo exacto de `sgc.es_referente_movimiento()` — fuente
+   * única para que Solicitudes de movimiento y Apoyo de transporte no diverjan.
+   */
+  esReferenteMovimiento = computed(() =>
+    ['admin', 'direccion', 'gerencia', 'jefe_flota', 'logistica', 'coord_compras', 'guarda_almacen']
+      .some((r) => this.roles().includes(r)),
+  );
+
   hasModulo(modulo: string): boolean {
     return this.modulos().includes(modulo);
   }

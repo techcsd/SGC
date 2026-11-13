@@ -2,6 +2,11 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApoyoTransporteService, ApoyoRow, ApoyoDetalle, EstadoApoyo, TipoApoyo } from '../../../shared/services/apoyo-transporte.service';
 import { ProyectosService, ObraRef } from '../../../shared/services/proyectos.service';
+import { SolicitudesMovimientoService } from '../../../shared/services/solicitudes-movimiento.service';
+import { VehiculosService } from '../../../shared/services/vehiculos.service';
+import { ConductoresService } from '../../../shared/services/conductores.service';
+import { Vehiculo } from '../../../shared/models/vehiculo.model';
+import { Conductor } from '../../../shared/models/conductor.model';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
@@ -35,6 +40,9 @@ const ESTADO_LABEL: Record<EstadoApoyo, string> = {
 export class ApoyoTransporte implements OnInit {
   private svc = inject(ApoyoTransporteService);
   private proyectosSvc = inject(ProyectosService);
+  private movimientoSvc = inject(SolicitudesMovimientoService);
+  private vehiculosSvc = inject(VehiculosService);
+  private conductoresSvc = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
 
@@ -46,10 +54,15 @@ export class ApoyoTransporte implements OnInit {
 
   esElevado = computed(() => this.userService.esFlotaElevado());
   private miId = computed(() => this.userService.profile()?.id ?? null);
+  // DO-03 — mismo permiso que decide quién puede crear ruta/asignar en Solicitudes de movimiento.
+  puedeAsignar = computed(() => this.userService.esReferenteMovimiento());
 
   loading = signal(true);
   rows = signal<ApoyoRow[]>([]);
   obras = signal<ObraRef[]>([]);
+  // DO-03 — catálogos para la acción "Aprobar" (crear ruta + asignar chofer).
+  vehiculos = signal<Vehiculo[]>([]);
+  conductores = signal<Conductor[]>([]);
 
   // Filtros
   filtroTipo = signal<string>('');
@@ -94,6 +107,15 @@ export class ApoyoTransporte implements OnInit {
   notaAccion = signal<string>('');
   pidiendoNota = signal<null | 'cancelar' | 'reabrir'>(null);
 
+  // DO-03 — "Aprobar" (asignar) un apoyo en estado pendiente: reutiliza la misma
+  // RPC/servicio (planificar_solicitud_con_ruta) que usa la bandeja de Solicitudes
+  // de movimiento, no una lógica nueva.
+  aprobando = signal(false);
+  aprobandoBusy = signal(false);
+  planVehiculo = signal<string | null>(null);
+  planConductor = signal<string | null>(null);
+  planFecha = signal<string | null>(null);
+
   // CO9 — "Cambiar estado" para transporte elevado/admin cuando el apoyo ya está
   // completada/cancelada (reabrir a cualquier estado válido, nota obligatoria).
   readonly REABRIR_DESTINOS: EstadoApoyo[] = ['pendiente', 'asignada', 'en_proceso', 'completada'];
@@ -107,6 +129,14 @@ export class ApoyoTransporte implements OnInit {
       await this.recargar();
     } finally {
       this.loading.set(false);
+    }
+    // DO-03 — catálogos de aprobar, best-effort (solo los necesita quien asigna).
+    if (this.puedeAsignar()) {
+      try {
+        const [vehs, conds] = await Promise.all([this.vehiculosSvc.getAll(), this.conductoresSvc.getAll()]);
+        this.vehiculos.set(vehs.filter((v) => v.activo && v.estado !== 'baja'));
+        this.conductores.set(conds.filter((c) => c.activo));
+      } catch { /* catálogos opcionales */ }
     }
   }
 
@@ -171,6 +201,10 @@ export class ApoyoTransporte implements OnInit {
     this.notaAccion.set('');
     this.reabrirDestino.set(null);
     this.notaReabrir.set('');
+    this.aprobando.set(false);
+    this.planVehiculo.set(null);
+    this.planConductor.set(null);
+    this.planFecha.set(null);
     try {
       const d = await this.svc.detalle(row.id);
       this.detalle.set(d);
@@ -220,5 +254,37 @@ export class ApoyoTransporte implements OnInit {
     if (!destino) { this.toast.error('Elige el estado', 'Toca a cuál estado quieres volver.'); return; }
     if (!nota) { this.toast.error('Escribe el motivo', '¿Por qué la reabres?'); return; }
     await this.cambiar(destino, nota);
+  }
+
+  // ── DO-03 — Aprobar (asignar chofer/vehículo) ──
+  abrirAprobar() {
+    this.planVehiculo.set(null);
+    this.planConductor.set(null);
+    this.planFecha.set(null);
+    this.aprobando.set(true);
+  }
+
+  async confirmarAprobar() {
+    const d = this.detalle();
+    const vehiculoId = this.planVehiculo();
+    const conductorId = this.planConductor();
+    if (!d || this.aprobandoBusy()) return;
+    if (!vehiculoId || !conductorId) {
+      this.toast.error('Faltan datos', 'Elige vehículo y chofer.');
+      return;
+    }
+    this.aprobandoBusy.set(true);
+    try {
+      // Misma RPC/servicio que usa la bandeja de Solicitudes de movimiento para asignar.
+      await this.movimientoSvc.planificarConRuta(d.id, vehiculoId, conductorId, this.planFecha() || undefined);
+      this.toast.success('Apoyo aprobado', 'Se creó la ruta y se notificó al chofer.');
+      this.aprobando.set(false);
+      await this.abrirDetalle(d);
+      await this.recargar();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo aprobar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.aprobandoBusy.set(false);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { RrhhOrganigramaNodo } from '../../../../shared/models/empleado.model';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -7,10 +8,17 @@ interface NodoConNivel extends RrhhOrganigramaNodo {
   nivel: number;
 }
 
+/** DO-04 — mismo nodo que `arbol()`, pero anidado (hijos de verdad) para el
+ *  marcado semántico del template; no reimplementa el agrupado por jefe_id. */
+interface NodoArbol extends NodoConNivel {
+  hijos: NodoArbol[];
+}
+
 /** DN-27 (P1) — Organigrama: usa jefe_id/cargo YA existentes en sgc.empleados
  *  (sgc.rrhh_organigrama(), no sensible — mismo permiso que Empleados/Asistencia). */
 @Component({
   selector: 'app-rrhh-organigrama',
+  imports: [NgTemplateOutlet],
   templateUrl: './organigrama.html',
   styleUrl: './organigrama.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +61,24 @@ export class RrhhOrganigrama implements OnInit {
   });
 
   sinJefeAsignado = computed(() => this.arbol().length < this.nodos().length);
+
+  /** DO-04 — reconstruye la jerarquía real (hijos anidados) a partir del
+   *  recorrido preorden de `arbol()` — no reimplementa el agrupado por jefe_id,
+   *  solo reacomoda la misma salida para el marcado anidado del template. */
+  raices = computed<NodoArbol[]>(() => {
+    const plano = this.arbol();
+    const raices: NodoArbol[] = [];
+    const pila: NodoArbol[] = [];
+    for (const n of plano) {
+      const nodo: NodoArbol = { ...n, hijos: [] };
+      pila.length = nodo.nivel;
+      const padre = pila[nodo.nivel - 1] ?? null;
+      if (padre) padre.hijos.push(nodo);
+      else raices.push(nodo);
+      pila[nodo.nivel] = nodo;
+    }
+    return raices;
+  });
 
   async ngOnInit() {
     this.cargando.set(true);

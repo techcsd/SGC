@@ -144,6 +144,40 @@
         </div>
       }
 
+      <!-- DO-03 — Aprobar (asignar chofer/vehículo), solo referentes de movimiento. -->
+      @if (puedeAsignar() && d.estado === 'pendiente') {
+        <div class="apoyo-acciones apoyo-aprobar">
+          @if (aprobando()) {
+            <div class="sgc-field">
+              <label for="ap-aprobar-veh">Vehículo</label>
+              <select id="ap-aprobar-veh" [value]="planVehiculo()" (change)="planVehiculo.set($any($event.target).value || null)">
+                <option value="">— Selecciona vehículo —</option>
+                @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
+              </select>
+            </div>
+            <div class="sgc-field">
+              <label for="ap-aprobar-cond">Chofer</label>
+              <select id="ap-aprobar-cond" [value]="planConductor()" (change)="planConductor.set($any($event.target).value || null)">
+                <option value="">— Selecciona chofer —</option>
+                @for (c of conductores(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+              </select>
+            </div>
+            <div class="sgc-field">
+              <label for="ap-aprobar-fecha">Fecha de la ruta</label>
+              <input id="ap-aprobar-fecha" type="date" [value]="planFecha()" (change)="planFecha.set($any($event.target).value)" />
+            </div>
+            <div class="apoyo-acciones__row">
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="aprobando.set(false)" [disabled]="aprobandoBusy()">Volver</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarAprobar()" [disabled]="aprobandoBusy()">
+                {{ aprobandoBusy() ? 'Aprobando…' : 'Aprobar y crear ruta' }}
+              </button>
+            </div>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirAprobar()">Aprobar</button>
+          }
+        </div>
+      }
+
       <!-- Acciones del solicitante / referente (CK13) -->
       @if (puedoGestionar() && d.estado !== 'completada' && d.estado !== 'cancelada') {
         <div class="apoyo-acciones">
