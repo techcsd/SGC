@@ -33,7 +33,13 @@
 - Cambiar la firma de un RPC con un parámetro nuevo (`claude_skill_proponer`) requiere `drop function` explícito del overload viejo — `create or replace` con una lista de argumentos distinta crea un overload ambiguo, no reemplaza (memoria `feedback_verificar-overloads-antes-de-dropear.md`).
 - Tests con `fixture.detectChanges()` + `ngOnInit` async en este proyecto (zoneless, sin zone.js): `fixture.whenStable()` no espera promesas "sueltas" disparadas por un `ngOnInit` no awaited — hay que llamar el método async del componente directamente y esperarlo (ver `claude.spec.ts`, test del ancla `#mi-conexion`).
 
-## ✅ Ronda DN (11-nov-2026) — PROMPT 142: cierre de DM, higiene, módulo Claude, RRHH + Administración — EN `dev` (5 PRs mergeados), NO main
+## ✅ Ronda DN (11-nov-2026) — PROMPT 142: cierre de DM, higiene, módulo Claude, RRHH + Administración — EN PRODUCCIÓN — v1.214.0
+
+**Shipped 11-nov** (con OK explícito de Xaviel: "ya probé en dev"): PR #138 `dev → main` mergeado, v1.214.0 registrada en prod (`sgc.app_versiones`), sitio verificado en vivo (200). 6 migraciones nuevas aplicadas a prod (`dn26`, `dn29`, `dn27-p1-onboarding`, `dn27-p2`, `dn27-evaluaciones-rpc`, `dn27-nomina-rpc`) + 2 edges redesplegadas (`admin-entrar-como`, `admin-fin-impersonacion` — DN-18, mismo comportamiento, solo refactor testeable). `sql/2026-11-11-dn17-resembrar-compa-chips-dev.sql` quedó **solo en dev a propósito** (reseed de datos de prueba, no aplica a prod). Advisors de seguridad revisados: sin RLS faltante en las 11 tablas `rrhh_*` nuevas; el aviso "SECURITY DEFINER ejecutable por anon" es un patrón genérico que ya existe en ~1000+ funciones de todo el proyecto (no es nuevo de esta ronda).
+
+**Gotcha real de este ciclo:** el CI (`build-and-ledger` en el PR a `main`) rechazó el primer intento — regla 18 detectó que el código de los 2 edges modificados (DN-18) nunca se había *desplegado* a dev (solo cambié el archivo y lo probé con Deno local). Desplegué a dev, el CI pasó, luego repetí el despliegue a prod. Lección: cambiar el código de una edge function no basta — hay que desplegarla explícitamente a cada entorno con `scripts/deploy-edge.mjs`.
+
+## 🧪 Ronda DN (11-nov-2026) — PROMPT 142: cierre de DM, higiene, módulo Claude, RRHH + Administración — EN `dev` (5 PRs mergeados), NO main (histórico, ya promovido arriba)
 
 **Estado al 11-nov (cierre de la ronda, tras "aprueba el PR y continúa trabajando"):**
 - **DM (prompt 140) ya estaba en prod** antes de empezar esta ronda (v1.213.0, PR #130) — confirmado por SELECT directo contra prod: las 7 migraciones DM/DH en el ledger, `agente_pendientes` y `claude_skills_conector` apagados, como pedía DN-03.
@@ -55,7 +61,7 @@
 **Ningún otro cambio llegó a prod esta ronda** — todo lo demás vive en `dev`, pendiente del siguiente ciclo `release-check` → PR `dev→main` cuando Xaviel pruebe.
 
 ### Pasos físicos para Xaviel
-1. Probar en `dev.sgcconstructorasd.com` (módulo Claude, Cargos, y las 10 pantallas nuevas de RRHH/Administración) antes de promover a `main` — `release-check.mjs` ahora lo exige (DN-14).
+1. ~~Probar en dev antes de promover a main~~ — hecho, ya está en prod (v1.214.0).
 2. Decidir sobre `c1102070` (dejarlo resuelto o revertir a en_progreso) — ver aviso arriba.
 3. `feature/cj-ronda`: 1 commit sin mergear (HANDOFF viejo, 5 semanas) — recomendación: descartar, pero la rama no se borró.
 4. Ramas remotas sin mergear a `dev` (`claude/entorno-local-colima-c6eacb`, `docs/plan-integracion-odoo`, `feature/agente-8cabcc4bcebb`, `feature/odoo-schema-handoff`) — trabajo de Alejandro Miranda y del agente-escriba; decidir con él qué sigue vivo.
@@ -63,7 +69,7 @@
 6. Kapso: los 2 scripts `dk-reprocesar-*-backlog.mjs` (backup `backup/main-local-2ba4d6d5-20261111`) dependen de una función de wa-extract (PDF/texto de documentos) que se perdió en el mismo reset que descartó Kapso — decidir si se restaura esa función aparte o se dejan los 2 scripts en el respaldo.
 7. Validar con el contador las fórmulas de `sgc.rrhh_nomina_parametros` antes de pedir el motor de cálculo real de Nómina.
 8. Aprobar el tablero visual (Claude Design) de módulo Claude y de RRHH+Administración antes de escribir CSS nuevo en esas áreas.
-7. Aprobar el tablero visual (Claude Design) de módulo Claude y de RRHH+Administración antes de escribir CSS nuevo en esas áreas.
+9. ~~Revisar permisos de roles para los submódulos nuevos de RRHH~~ — hecho (11-nov, segundo pedido): se encontró y corrigió un bug real (`sql/2026-11-11-dn28-fix-rol-jefe-rrhh-sensible.sql`, aplicado a prod) — `puede_rrhh_sensible()` usaba el código de rol `'rrhh'`, que **no existe**; el rol real es `jefe_rrhh` ("Jefe de RRHH", id 5). Verificado en prod simulando sesiones reales: `jefe_rrhh` y `gerencia` ya ven los 10 submódulos nuevos (contratos, nómina, evaluaciones vía el fallback de rol; organigrama/onboarding/capacitación/trámites/proveedores/activos/gastos vía el bypass estándar de módulo padre `rrhh`, ya lo tenían). Nada que hacer de tu parte salvo que quieras permisos más finos por persona.
 8. Validar con el contador las fórmulas de `sgc.rrhh_nomina_parametros` antes de construir la pantalla de nómina.
 
 ## ✅ Ronda DM (10/11-nov-2026) — PROMPT 140: módulo Claude, agente de pendientes, 4 reportes — EN PRODUCCIÓN — v1.213.0
