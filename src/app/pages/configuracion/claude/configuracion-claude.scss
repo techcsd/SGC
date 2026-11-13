@@ -7,6 +7,14 @@
   max-width: 1200px;
   margin: 0 auto;
 
+  // DP-03 — embebida dentro de Claude › Inicio (sgc-card ya da fondo/borde/padding);
+  // sin esto quedaba con doble padding y sangría de ~54px vs el borde de la tarjeta.
+  &--embebido {
+    padding: 0;
+    max-width: none;
+    margin: 0;
+  }
+
   &__volver {
     font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);

@@ -1,5 +1,27 @@
-// DM2 — sin CSS nuevo (DM-40): solo layout mínimo con tokens existentes.
-// Estilo definitivo queda en "CSS tras OK" (tablero visual pendiente).
+// DP-01..DP-04 (CONTEXTO-72) — contenedores del módulo Claude.
+// Excepción puntual a "sin CSS nuevo": solo tokens ya aprobados (--surface,
+// --border, --radius-lg, --space-*, --fs-*, --text-2…), cero valor nuevo.
+
+// DP-01 — .sgc-card del módulo necesita padding/margen propios; no se toca
+// .sgc-card global (styles.scss:201), la usan 100+ pantallas con su propio padding.
+.sgc-card {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+
+  > h2,
+  > h3 {
+    margin: 0 0 var(--space-3);
+  }
+}
+
+.claude-skills-grid .sgc-card,
+.claude-crear__layout .sgc-card {
+  margin-bottom: 0;
+}
+
+.claude-section-title {
+  margin-top: var(--space-4);
+}
 
 .claude-tabs {
   display: flex;
@@ -9,6 +31,7 @@
 
   &--sub {
     margin-top: 0.5rem;
+    margin-bottom: var(--space-3);
   }
 }
 
@@ -55,19 +78,52 @@
 .claude-skill-card {
   display: flex;
   flex-direction: column;
+  // DP-02 — align-items: flex-start evita que la insignia de estado
+  // (.sgc-badge, inline-flex) se estire a todo el ancho de la tarjeta.
+  align-items: flex-start;
   gap: 0.5rem;
+
+  h3 {
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0;
+  }
 
   &__acciones {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: auto;
+    align-self: stretch;
   }
 
   // DO-10 — tags, métricas y el mini-formulario de "proponer a mi equipo".
   &__tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
   &__metrica { margin: 0; font-size: 0.8rem; }
   &__equipo { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+}
+
+// DP-04 — viñetas de Auditoría (Resumen de huecos, Riesgos confirmados):
+// sin clase se salían de la tarjeta (sin padding-left).
+.claude-lista {
+  list-style: disc outside;
+  padding-left: var(--space-4);
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+// DP-04 — label en columna para formularios de Encuesta/Organización
+// (Crear ya lo tenía vía .claude-crear label, ver abajo).
+.claude-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
 }
 
 // DO-10(h) — historial de versiones.
@@ -111,6 +167,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
   }
 
   &__preview {

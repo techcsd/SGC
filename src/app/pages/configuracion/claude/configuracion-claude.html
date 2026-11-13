@@ -1,4 +1,4 @@
-<div class="perfil-claude">
+<div class="perfil-claude" [class.perfil-claude--embebido]="embebido()">
   @if (!embebido()) {
     <a routerLink="/configuracion" class="perfil-claude__volver">← {{ 'Perfil' | t }}</a>
     <h1>{{ 'Usar el SGC desde Claude' | t }}</h1>

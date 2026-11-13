@@ -1,4 +1,4 @@
-<div class="admin-claude">
+<div class="admin-claude" [class.admin-claude--embebido]="embebido()">
   <div class="admin-claude__header">
     <div>
       @if (!embebido()) { <h1>{{ 'Claude conectado' | t }}</h1> }

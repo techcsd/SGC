@@ -96,7 +96,7 @@
     }
 
     @if (recomendadas().length) {
-      <h2>{{ 'Recomendadas para tu rol' | t }}</h2>
+      <h2 class="claude-section-title">{{ 'Recomendadas para tu rol' | t }}</h2>
       <div class="claude-skills-grid">
         @for (s of recomendadas(); track s.id) {
           <div class="sgc-card claude-skill-card">
@@ -109,7 +109,7 @@
       </div>
     }
 
-    <h2>{{ 'Biblioteca' | t }}</h2>
+    <h2 class="claude-section-title">{{ 'Biblioteca' | t }}</h2>
     <div class="claude-skills-grid">
       @for (s of resto(); track s.id) {
         <div class="sgc-card claude-skill-card">
@@ -258,14 +258,14 @@
 
         <h3>{{ 'Resumen de huecos a cerrar' | t }}</h3>
         <p class="text-muted">{{ '(ninguno bloquea el uso normal de Claude hoy)' | t }}</p>
-        <ul>
+        <ul class="claude-lista">
           <li>{{ 'leer-documento-flota: sin gate de consentimiento personal explícito (SGC).' | t }}</li>
           <li>{{ 'Sin vista consolidada de costo mensual total de IA (SGC).' | t }}</li>
           <li>{{ 'GPS/tracking/realtime de csd-app: trabajo real pendiente (timeout adaptativo, causa de rechazo de lote, detenerRealtime sin await).' | t }}</li>
         </ul>
 
         <h3>{{ 'Riesgos confirmados (app)' | t }}</h3>
-        <ul>
+        <ul class="claude-lista">
           <li>{{ 'tracking.service.ts: timeout de GPS fijo por punto de llamada (no adaptativo).' | t }}</li>
           <li>{{ 'notificaciones.service.ts: detenerRealtime() llama removeChannel sin await; iniciarRealtime() no revisa getChannels() antes de re-suscribir.' | t }}</li>
         </ul>
@@ -277,22 +277,22 @@
     @if (subAuditoria() === 'encuesta') {
       <div class="sgc-card">
         <h2>{{ 'Tu respuesta' | t }}</h2>
-        <label>{{ '¿Usas Claude hoy y dónde?' | t }}
+        <label class="claude-form-label">{{ '¿Usas Claude hoy y dónde?' | t }}
           <textarea class="sgc-input" rows="2" [value]="encuestaUsaHoy()" (input)="encuestaUsaHoy.set($any($event.target).value)"></textarea>
         </label>
-        <label>{{ '¿Para qué tareas?' | t }}
+        <label class="claude-form-label">{{ '¿Para qué tareas?' | t }}
           <textarea class="sgc-input" rows="2" [value]="encuestaTareas()" (input)="encuestaTareas.set($any($event.target).value)"></textarea>
         </label>
-        <label>{{ '¿Qué tarea repetida te quita más tiempo?' | t }}
+        <label class="claude-form-label">{{ '¿Qué tarea repetida te quita más tiempo?' | t }}
           <textarea class="sgc-input" rows="2" [value]="encuestaTareaRepetida()" (input)="encuestaTareaRepetida.set($any($event.target).value)"></textarea>
         </label>
-        <label>{{ '¿Qué te frena (cuenta, no sé usarlo, desconfianza, datos)?' | t }}
+        <label class="claude-form-label">{{ '¿Qué te frena (cuenta, no sé usarlo, desconfianza, datos)?' | t }}
           <textarea class="sgc-input" rows="2" [value]="encuestaQueFrena()" (input)="encuestaQueFrena.set($any($event.target).value)"></textarea>
         </label>
-        <label>{{ '¿Qué documento/reporte armas a mano cada semana?' | t }}
+        <label class="claude-form-label">{{ '¿Qué documento/reporte armas a mano cada semana?' | t }}
           <textarea class="sgc-input" rows="2" [value]="encuestaDocSemanal()" (input)="encuestaDocSemanal.set($any($event.target).value)"></textarea>
         </label>
-        <label>{{ '¿Qué te gustaría que Compa/Claude hiciera por ti?' | t }}
+        <label class="claude-form-label">{{ '¿Qué te gustaría que Compa/Claude hiciera por ti?' | t }}
           <textarea class="sgc-input" rows="2" [value]="encuestaQueDeberia()" (input)="encuestaQueDeberia.set($any($event.target).value)"></textarea>
         </label>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoEncuesta()" (click)="guardarEncuestaResp()">
@@ -322,7 +322,7 @@
           <p><strong>{{ 'Owners:' | t }}</strong> {{ org.owners.join(', ') }}</p>
           <p><strong>{{ 'Conectores:' | t }}</strong> {{ org.conectores.length }}</p>
           @if (puedeAdministrar()) {
-            <label>{{ 'Notas' | t }}
+            <label class="claude-form-label">{{ 'Notas' | t }}
               <textarea class="sgc-input" rows="4" [value]="orgNotas()" (input)="orgNotas.set($any($event.target).value)"></textarea>
             </label>
             <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarOrg()">{{ 'Guardar' | t }}</button>
