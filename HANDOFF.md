@@ -1,10 +1,14 @@
 # HANDOFF — SGC
 
-## ✅ Ronda DO (12-nov-2026) — PROMPT 144: Transporte, Organigrama, Reclutamiento+Candidatos, módulo Claude, Skills — EN `feature/do-ronda-12nov`, NO dev/main todavía
+## ✅ Ronda DO (12/13-nov-2026) — PROMPT 144: Transporte, Organigrama, Reclutamiento+Candidatos, módulo Claude, Skills — EN PRODUCCIÓN — v1.215.0
 
-**Estado al 12-nov:** worktree `SGC-do` (rama `feature/do-ronda-12nov` desde `origin/main`, commit base `9459113f`). **F0–F7 completos** (código + 2 migraciones aplicadas a dev + 3 edge functions nuevas desplegadas a dev + 1 edge function existente extendida y redesplegada), build verde (`npm run build` sin errores nuevos), **368 tests unitarios en verde** (354 Angular/vitest + lo anterior ya en verde, más 9+6 tests nuevos de edge functions Deno) y **316 tests de edge functions Deno en verde**. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 12112026\CONTEXTO-ACTUALIZACION-71.md`. Este prompt (144) cubre **solo** DO2/DO3/DO4/DO4b/DO6/DO7/DO8 — DO1/DO1b (Compa arrastrable/reposicionamiento, csd-app) y DO5 (paridad de Demos) son del companion PROMPT-145 (csd-app), no tocados aquí.
+**Shipped 13-nov** (OK explícito de Xaviel: "i test it" + "i aprove all these stuff" en dev.sgcconstructorasd.com, `qa/release-1.215.0.md`). PR #142 `feature/do-ronda-12nov → dev`, PR #143 (bump 1.215.0) `→ dev`, PR #144 `dev → main` — los 3 mergeados. `release-check.mjs --env dev --version 1.215.0` en PASS (7/7) antes del PR a `main`.
 
-**No mergeado a `dev` todavía** (el prompt pide explícitamente no mergear a `main`; dejo el PR a `dev` abierto para que Xaviel decida cuándo probarlo en `dev.sgcconstructorasd.com`).
+**Despliegue a prod (13-nov):** 3 migraciones aplicadas (`do5-rrhh-candidatos-ampliado`, `do6-rrhh-leer-cv`, `do10-claude-skills-features`) + 5 edge functions (`rrhh-leer-cv` y `claude-skill-sugerir` nuevas; `assistant`/`claude-borrador`/`mcp` redesplegadas por el tool nuevo de Compa `sugerir_skill`). Verificado por objeto en prod (columnas, funciones incluido el `claude_skill_proponer` de 3 argumentos sin overload ambiguo, y las 4 policies de `rrhh_candidatos` incluida la de DELETE que faltaba desde DN-27).
+
+**Gotcha real de este ciclo:** el CI (`build-and-ledger`) rechazó el primer intento del PR `dev → main` — el checksum de `rrhh-leer-cv`/`claude-skill-sugerir` registrado en el ledger de dev no coincidía con el del PR (probable normalización CRLF de Windows al mezclar `origin/dev`). Redesplegué ambas edges a dev (mismo código, checksum nuevo), re-corrí el CI, pasó. Lección: tras un merge de rama que toque archivos ya desplegados como edge function, redesplegar a dev antes de abrir el PR a `main`, no asumir que el deploy anterior sigue siendo válido byte a byte.
+
+**Pendiente, no bloquea lo de arriba:** aprobar el tablero visual "Organigrama v2" en Claude Design (`docs/ORGANIGRAMA-V2-FICHA.md`) antes de escribir CSS nuevo ahí; revisar si faltan campos de intake de candidato; el rating 👍/👎 de skills es un contador simple sin dedupe por persona (ver detalle abajo).
 
 ### Tabla DO-xx → hecho/no-hecho/por qué
 
@@ -20,13 +24,12 @@
 | DO-11 / DO8 | "Incluir Claude en RRHH y Skills" | ✅ Ya cubierta | Confirmado sin trabajo adicional — es exactamente DO-06 (CV+IA) y DO-10 (Skills), como decía el CONTEXTO. |
 
 ### Lo que falta (pasos físicos de Xaviel, del CONTEXTO §7 + nuevos de esta ronda)
-1. Probar `feature/do-ronda-12nov` en un entorno real (o pedir que se mergee a `dev` primero) antes de decidir el paso a `dev.sgcconstructorasd.com`.
-2. Aprobar (o pedirle a Cowork) el tablero **"Organigrama v2"** en Claude Design usando `docs/ORGANIGRAMA-V2-FICHA.md` — el marcado ya quedó listo para recibirlo sin tocar el template de nuevo.
-3. Revisar los campos de intake de candidato nuevos (`experiencia_resumen`, `educacion`, `expectativa_salarial`, `fuente`, `telefono_alterno`) y decir si falta alguno importante para RRHH.
-4. Confirmar si el APK/versión publicada de csd-app ya incluye las 5 misiones de demo que faltaban (DO-08/DO5) — **no tocado en esta ronda** (es del companion PROMPT-145).
-5. Pendientes que siguen abiertos de la ronda anterior (DN, no se repiten en detalle aquí): probar v1.213.0+DN en dev, decidir paso a `main`, aprobar el tablero del módulo Claude y de RRHH+Administración (el de la ronda DN, distinto del de Organigrama de esta ronda), decidir `c1102070`, validar fórmulas de nómina con el contador.
-6. **Gap conocido, fuera de alcance de este prompt:** DO1b menciona un problema de UI en SGC web (`solicitudes/detalle/detalle.html:165-176` — la burbuja de Compa tapando la lista sin `padding-bottom`), pero el CONTEXTO solo lo asigna a PROMPT-145 (csd-app). Si la intención era que el lado SGC web también se corrigiera aquí, avísame — no estaba en mis F0-F8.
-7. El rating 👍/👎 de skills (DO-10c) es un contador simple sin dedupe por persona — alguien podría votar varias veces. Documentado como simplificación consciente ("P2 bajo costo"); si hace falta 1-voto-por-persona, es una ronda aparte (tabla `claude_skill_votos` + RLS).
+1. Aprobar (o pedirle a Cowork) el tablero **"Organigrama v2"** en Claude Design usando `docs/ORGANIGRAMA-V2-FICHA.md` — el marcado ya quedó listo para recibirlo sin tocar el template de nuevo.
+2. Revisar los campos de intake de candidato nuevos (`experiencia_resumen`, `educacion`, `expectativa_salarial`, `fuente`, `telefono_alterno`) y decir si falta alguno importante para RRHH.
+3. Confirmar si el APK/versión publicada de csd-app ya incluye las 5 misiones de demo que faltaban (DO-08/DO5) — **no tocado en esta ronda** (es del companion PROMPT-145).
+4. Pendientes que siguen abiertos de la ronda anterior (DN, no se repiten en detalle aquí): aprobar el tablero del módulo Claude y de RRHH+Administración (el de la ronda DN, distinto del de Organigrama de esta ronda), decidir `c1102070`, validar fórmulas de nómina con el contador.
+5. **Gap conocido, fuera de alcance de este prompt:** DO1b menciona un problema de UI en SGC web (`solicitudes/detalle/detalle.html:165-176` — la burbuja de Compa tapando la lista sin `padding-bottom`), pero el CONTEXTO solo lo asigna a PROMPT-145 (csd-app). Si la intención era que el lado SGC web también se corrigiera aquí, avísame — no estaba en mis F0-F8.
+6. El rating 👍/👎 de skills (DO-10c) es un contador simple sin dedupe por persona — alguien podría votar varias veces. Documentado como simplificación consciente ("P2 bajo costo"); si hace falta 1-voto-por-persona, es una ronda aparte (tabla `claude_skill_votos` + RLS).
 
 ### Gotchas de esta ronda (para la próxima sesión)
 - `sgc.rrhh_candidatos` nunca tuvo policy/grant de DELETE desde que se creó (DN-27, 11-nov) — `eliminarCandidato()` llevaba toda su vida fallando en silencio por RLS. Verificar SIEMPRE que una tabla nueva tenga sus 4 políticas (select/insert/update/delete) si el código la va a necesitar, no solo las que el primer caso de uso tocó.
