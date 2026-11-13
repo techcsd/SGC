@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, input, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
@@ -39,7 +39,7 @@ interface FiltrosDisponibles {
 /** CR1 (FASE 6) — Admin › Claude (mock `Admin-claude`). */
 @Component({
   selector: 'app-admin-claude',
-  imports: [TranslatePipe, DatePipe, RouterLink],
+  imports: [TranslatePipe, FechaPipe, RouterLink],
   templateUrl: './admin-claude.html',
   styleUrl: './admin-claude.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

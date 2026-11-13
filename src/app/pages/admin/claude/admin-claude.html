@@ -56,8 +56,8 @@
     @for (c of conexiones(); track c.usuario_id) {
       <div class="admin-claude__fila">
         <b>{{ c.nombre }}</b>
-        <span>{{ c.conectado_desde | date: 'd MMM' }}</span>
-        <span>{{ c.ultima_actividad | date: 'd MMM, HH:mm' }}</span>
+        <span>{{ c.conectado_desde | fecha: 'd MMM' }}</span>
+        <span>{{ c.ultima_actividad | fecha: 'd MMM, HH:mm' }}</span>
         <span>{{ c.consultas_7d }}</span>
         <button type="button" class="admin-claude__revocar" [disabled]="revocando() === c.usuario_id"
                 (click)="revocar(c.usuario_id, c.nombre)">
@@ -103,7 +103,7 @@
     </div>
     @for (l of llamadas(); track l.hora + l.herramienta + l.usuario_id) {
       <div class="admin-claude__fila admin-claude__fila--log" [class.admin-claude__fila--con-error]="!l.ok">
-        <span>{{ l.hora | date: 'd MMM, HH:mm' }}</span>
+        <span>{{ l.hora | fecha: 'd MMM, HH:mm' }}</span>
         <span>{{ l.nombre }}</span>
         <span>{{ l.herramienta }}</span>
         <div>

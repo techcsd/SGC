@@ -85,6 +85,41 @@ Admin, resto.
 | 16 | Admin | — | — | — | ⏳ pendiente | — | false |
 | 17 | Resto | — | — | — | ⏳ pendiente | — | false |
 
+## F6 — pipe `fecha` + `localeActual()` (13-nov-2026)
+
+- `src/shared/i18n/fecha.pipe.ts` (reemplaza `| date`) + `src/shared/i18n/locale.util.ts`
+  (`localeActual()`, tablas `MESES_HT`/`MESES_HT_ABR`/`DIAS_HT`). Test unitario
+  en `fecha.pipe.spec.ts` (es/en/ht + patrón numérico puro + valor nulo).
+- **Hallazgo importante:** ni Angular (`@angular/common/locales/ht.js`) ni
+  `Intl.DateTimeFormat` (Node, probado en esta sesión) tienen datos CLDR
+  reales para Kreyòl ayisyen — ambos devuelven nombres de mes en **francés**
+  (`enero` → `janvier`/`janv.`) aunque acepten el locale `ht` sin error. Por
+  eso `fecha.pipe.ts` **nunca** le pasa `'ht'` a `DatePipe`/`Intl`: para
+  patrones con `MMM`/`MMMM` usa la tabla propia del prompt; para patrones
+  solo numéricos usa `es-DO` (orden día/mes, igual que el resto de la app).
+- Aplicado a `claude.html`/`admin-claude.html` (4 usos de `| date` → `| fecha`,
+  `DatePipe` → `FechaPipe` en `imports`) — módulo ya a 100%, sirve de prueba
+  de concepto verificada (build + 368 tests verdes).
+- **Pendiente (30 archivos, fuera de esta sesión):** el resto de `| date` en
+  el repo sigue sin tocar — mismo patrón mecánico (buscar/reemplazar `| date`
+  por `| fecha`, cambiar `DatePipe` por `FechaPipe` en `imports` del
+  componente). Lista completa:
+  `admin/compa-conversaciones`, `admin/conduces-huerfanos`, `admin/jira`,
+  `admin/roles`, `admin/solicitudes-eliminacion`,
+  `bitacora/orden-trabajo/orden-trabajo-ficha`, `bitacora/orden-trabajo/orden-trabajo-lista`,
+  `compras/productos-por-dar-de-alta`, `documentos/plantillas`,
+  `flota/reporte-semanal`, `flota/responsabilidad/registrar-entrega`,
+  `inventario/bodegas`, `inventario/conduce-externo-ficha`,
+  `inventario/conduces-externos`, `inventario/conduces-por-implementar`,
+  `inventario/lugares-por-registrar`, `inventario/proveedores-transporte`,
+  `inventario/reportes`, `inventario/retiros`, `legal/aprobaciones`,
+  `legal/contratos`, `legal/expedientes`, `mensajes`, `notas`, `perfil`,
+  `proyectos/clima`, `solicitudes-movimiento`, `tareas/historial`,
+  `tecnologia/consultas-compa`, `tecnologia/odoo-sync`,
+  `tecnologia/outbox-atascados`, `tecnologia/resumen-operaciones`.
+- También pendiente: localizar los `toLocale*String('es…')`/`Intl.*('es…')`
+  directos (DP3f estimaba 14+2 en SGC) para pasarlos por `localeActual()`.
+
 ## Casos que el codemod (`scripts/i18n-wrap-html.mjs`) deja para revisión manual
 
 (se llena cuando F3 corra el codemod por primera vez — lista de archivo:línea

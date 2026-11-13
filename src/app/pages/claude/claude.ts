@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { FechaPipe } from '../../../shared/i18n/fecha.pipe';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClaudeSkillsService } from '../../../shared/services/claude-skills.service';
 import { UserService } from '../../core/services/user.service';
@@ -48,7 +48,7 @@ const PLANTILLAS_SKILL: PlantillaSkill[] = [
  *  conexiones (Auditoría › Conexiones) por composición — ningún componente se borra. */
 @Component({
   selector: 'app-claude',
-  imports: [ConfiguracionClaude, AdminClaude, TranslatePipe, DatePipe],
+  imports: [ConfiguracionClaude, AdminClaude, TranslatePipe, FechaPipe],
   templateUrl: './claude.html',
   styleUrl: './claude.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

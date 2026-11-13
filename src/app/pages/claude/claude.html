@@ -170,7 +170,7 @@
             @for (v of versiones(); track v.id) {
               <li>
                 <b>v{{ v.version }}</b>
-                <span class="text-muted">{{ v.creado_en | date: 'd MMM, HH:mm' }}</span>
+                <span class="text-muted">{{ v.creado_en | fecha: 'd MMM, HH:mm' }}</span>
                 @if (v.notas) { <span class="text-muted">— {{ v.notas }}</span> }
               </li>
             }
