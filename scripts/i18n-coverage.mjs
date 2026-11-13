@@ -316,11 +316,11 @@ if (tsFilasConPendientes.length) {
 writeFileSync(join(ROOT, 'docs', 'I18N-COVERAGE.md'), md.join('\n') + '\n');
 writeFileSync(join(ROOT, 'docs', 'i18n-coverage.json'), JSON.stringify({ pctScopeEn, pctHt, filas }, null, 2));
 
-// Constante para el selector honesto (umbrales 95/90).
+// Constante para el selector honesto (DP-12: umbral 100/100, nunca "ok" a mano).
 const gen =
   `// Generado por scripts/i18n-coverage.mjs — NO editar a mano (BT2, regla 17).\n` +
   `export const I18N_COVERAGE = { en: ${pctScopeEn}, ht: ${pctHt} } as const;\n` +
-  `export const I18N_UMBRAL = { en: 95, ht: 90 } as const;\n`;
+  `export const I18N_UMBRAL = { en: 100, ht: 100 } as const;\n`;
 writeFileSync(join(SRC, 'shared', 'i18n', 'i18n-coverage.generated.ts'), gen);
 
 // DP-07d — alcance.json pasa a TODAS las pantallas detectadas (generado por el

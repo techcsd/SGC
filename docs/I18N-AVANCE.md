@@ -85,6 +85,49 @@ Admin, resto.
 | 16 | Admin | — | — | — | ⏳ pendiente | — | false |
 | 17 | Resto | — | — | — | ⏳ pendiente | — | false |
 
+## F7 — selector honesto + guardias estrictas (13-nov-2026)
+
+- `I18N_UMBRAL` pasa de `{en:95, ht:90}` a **`{en:100, ht:100}`** (generado por
+  `scripts/i18n-coverage.mjs`, DP-12: nunca se pone `ok` a mano). `estado()`
+  en `language-selector.ts`/`language-onboarding.ts` ya derivaba del número
+  medido (sin cambios de lógica), solo cambió el umbral.
+- Tooltip, nombres de idioma y badges (`beta`/`próximamente`) del selector y
+  del diálogo de primer ingreso ahora pasan por `t()` (antes texto fijo en
+  español, hablaba solo de "Inglés"). Texto de Configuración › Idioma
+  actualizado para listar TODO lo que sigue en español (de `I18N-ALCANCE.md`):
+  catálogos, nombres de obra/proyecto/proveedor, mensajes de negocio del
+  servidor, notificaciones, PDFs, respuestas de Compa/Claude.
+- **`verify-i18n.mjs` reescrito — ahora SÍ puede fallar (exit 1), con alcance
+  acotado al enforce por lote** (no global, para no romper el build antes de
+  que todos los módulos lleguen a 100%): para cada pantalla `enforce:true` en
+  `alcance.json`, toda clave usada en sus archivos debe existir en `en.json`
+  **y** `ht.json`; si falta, el build falla y dice exactamente cuál pantalla/
+  clave/idioma. El resto del repo (191/192 pantallas aún sin enforce) sigue
+  en modo aviso, igual que antes — así el guard es real HOY (ya corre en
+  `prebuild`) sin bloquear el trabajo pendiente.
+- `scripts/i18n-smoke.mjs` (Playwright, nuevo, `npm run i18n:smoke`): inicia
+  sesión real, cambia de idioma **por la UI** (Configuración › Idioma — un
+  `localStorage` a secas no alcanza: `adoptFromServer()` lo pisa de vuelta
+  con el idioma guardado en `usuarios.idioma`), recorre las pantallas
+  `enforce:true`, falla si `<html lang>` no coincide o si `t()` registró
+  dev-miss (consola) en `en`/`ht`.
+  **Corriéndolo de verdad encontró un hallazgo real:** la pantalla "claude"
+  está a 100% en su propio alcance, pero el **shell/sidebar global** (menú de
+  navegación, buscador maestro, widget flotante de Compa) — visible en TODAS
+  las pantallas pero fuera del escaneo por `pages/` — tenía ~165 claves sin
+  traducir en `ht` y 22 en `en`. Se tradujeron todas (shell.ts: ~162 labels
+  de menú + 3 del buscador; compa-flotante: 7 cadenas). `npm run i18n:smoke`
+  ahora pasa limpio para `claude`/`en`/`ht`.
+- `public/i18n/en.json`: 1.452 → **1.608** claves. `public/i18n/ht.json`: 0 →
+  **~370** claves (lote Claude 123 + shell/nav 159+5 + Compa 7 + ajustes).
+  **Sin revisión humana** (ver `docs/I18N-REVISAR-HT.md`).
+- Build + 368 tests verdes en todo momento durante este lote.
+- **Pendiente para el F7 "final":** `alcance.json` con TODAS las pantallas en
+  `enforce:true` (DP-13b) solo tiene sentido cuando los 16 módulos restantes
+  lleguen a 100% — hacerlo ahora rompería el build (191 pantallas fallarían).
+  Mismo razonamiento para correr `i18n:smoke` sobre TODAS las rutas (hoy solo
+  cubre las `enforce:true`).
+
 ## F6 — pipe `fecha` + `localeActual()` (13-nov-2026)
 
 - `src/shared/i18n/fecha.pipe.ts` (reemplaza `| date`) + `src/shared/i18n/locale.util.ts`

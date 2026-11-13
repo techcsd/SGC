@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 12%** (1386/11724 literales de 192 pantallas en alcance). **`ht`: 8%**.
+**Alcance `en`: 12%** (1386/11724 literales de 192 pantallas en alcance). **`ht`: 22%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
