@@ -1,14 +1,584 @@
 {
-  "_doc": "BT2 / regla 17 — pantallas en ALCANCE de i18n (es/en). `enforce:true` rompe el build si la pantalla tiene literales sin t() (guard i18n-coverage). El alcance crece por tandas; el selector marca `en` beta hasta ≥95% del alcance. Orden de tandas: Configuración, shell/launcher, Flota, Inventario, Bitácora; el resto (Admin, Tecnología, Proyectos, RRHH, Compa) se mide pero aún no está en alcance (PROMPT-58+).",
+  "_doc": "DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).",
   "pantallas": {
-    "configuracion": { "enforce": false },
-    "perfil": { "enforce": false },
-    "ajustes-notificaciones": { "enforce": false },
-    "flota": { "enforce": false },
-    "inventario": { "enforce": false },
-    "inventario/requisiciones": { "enforce": false },
-    "inventario/conduce": { "enforce": false },
-    "inventario/conduce-externo-form": { "enforce": false },
-    "bitacora": { "enforce": false }
+    "admin/almacenes-duplicados": {
+      "enforce": false
+    },
+    "admin/animaciones": {
+      "enforce": false
+    },
+    "admin/app-versiones": {
+      "enforce": false
+    },
+    "admin/bitacora-catalogos": {
+      "enforce": false
+    },
+    "admin/conduces-huerfanos": {
+      "enforce": false
+    },
+    "admin/historial-versiones": {
+      "enforce": false
+    },
+    "admin/importar": {
+      "enforce": false
+    },
+    "admin/jira": {
+      "enforce": false
+    },
+    "admin/matriz-notificaciones": {
+      "enforce": false
+    },
+    "admin/orden-modulos": {
+      "enforce": false
+    },
+    "admin/otros-valores": {
+      "enforce": false
+    },
+    "admin/parametros": {
+      "enforce": false
+    },
+    "admin/reportes": {
+      "enforce": false
+    },
+    "admin/roles": {
+      "enforce": false
+    },
+    "admin/solicitudes-eliminacion": {
+      "enforce": false
+    },
+    "admin/unidades": {
+      "enforce": false
+    },
+    "admin/usuarios": {
+      "enforce": false
+    },
+    "admin/usuarios-duplicados": {
+      "enforce": false
+    },
+    "admin/usuarios-test": {
+      "enforce": false
+    },
+    "ajustes-notificaciones": {
+      "enforce": false
+    },
+    "apoyo-transporte": {
+      "enforce": false
+    },
+    "auth/set-password": {
+      "enforce": false
+    },
+    "bitacora/cobertura": {
+      "enforce": false
+    },
+    "bitacora/dashboard": {
+      "enforce": false
+    },
+    "bitacora/entregas": {
+      "enforce": false
+    },
+    "bitacora/historial": {
+      "enforce": false
+    },
+    "bitacora/mi-proyecto": {
+      "enforce": false
+    },
+    "bitacora/solicitudes-compra": {
+      "enforce": false
+    },
+    "compras/ordenes": {
+      "enforce": false
+    },
+    "compras/ordenes-odoo": {
+      "enforce": false
+    },
+    "compras/proveedores": {
+      "enforce": false
+    },
+    "compras/proveedores-odoo": {
+      "enforce": false
+    },
+    "compras/reportes": {
+      "enforce": false
+    },
+    "compras/solicitar-odoo": {
+      "enforce": false
+    },
+    "dashboard": {
+      "enforce": false
+    },
+    "direccion": {
+      "enforce": false
+    },
+    "documentos/generar": {
+      "enforce": false
+    },
+    "documentos/historial": {
+      "enforce": false
+    },
+    "documentos/plantillas": {
+      "enforce": false
+    },
+    "documentos/ver": {
+      "enforce": false
+    },
+    "dudas": {
+      "enforce": false
+    },
+    "flota/accidentes": {
+      "enforce": false
+    },
+    "flota/avisos": {
+      "enforce": false
+    },
+    "flota/choferes-privados": {
+      "enforce": false
+    },
+    "flota/combustible": {
+      "enforce": false
+    },
+    "flota/combustible-dashboard": {
+      "enforce": false
+    },
+    "flota/combustible-log": {
+      "enforce": false
+    },
+    "flota/conciliacion-combustible": {
+      "enforce": false
+    },
+    "flota/conductores": {
+      "enforce": false
+    },
+    "flota/conductores-estado": {
+      "enforce": false
+    },
+    "flota/panel-dia": {
+      "enforce": false
+    },
+    "flota/recorrido-diario": {
+      "enforce": false
+    },
+    "flota/rendimiento-vehiculos": {
+      "enforce": false
+    },
+    "flota/reporte-semanal": {
+      "enforce": false
+    },
+    "flota/reportes": {
+      "enforce": false
+    },
+    "flota/responsabilidad": {
+      "enforce": false
+    },
+    "flota/rutas": {
+      "enforce": false
+    },
+    "flota/rutas-activas": {
+      "enforce": false
+    },
+    "flota/seguimiento": {
+      "enforce": false
+    },
+    "forbidden": {
+      "enforce": false
+    },
+    "incentivos": {
+      "enforce": false
+    },
+    "inventario/activos": {
+      "enforce": false
+    },
+    "inventario/ajuste-real": {
+      "enforce": false
+    },
+    "inventario/almacen-inventario": {
+      "enforce": false
+    },
+    "inventario/apertura": {
+      "enforce": false
+    },
+    "inventario/articulos": {
+      "enforce": false
+    },
+    "inventario/bodegas": {
+      "enforce": false
+    },
+    "inventario/categorias": {
+      "enforce": false
+    },
+    "inventario/conduce": {
+      "enforce": false
+    },
+    "inventario/conduces": {
+      "enforce": false
+    },
+    "inventario/conduces-por-implementar": {
+      "enforce": false
+    },
+    "inventario/confirmaciones": {
+      "enforce": false
+    },
+    "inventario/conteos": {
+      "enforce": false
+    },
+    "inventario/entradas": {
+      "enforce": false
+    },
+    "inventario/kardex-modal": {
+      "enforce": false
+    },
+    "inventario/lugares-por-registrar": {
+      "enforce": false
+    },
+    "inventario/material-no-catalogado": {
+      "enforce": false
+    },
+    "inventario/movimientos": {
+      "enforce": false
+    },
+    "inventario/por-firmar": {
+      "enforce": false
+    },
+    "inventario/proveedores-transporte": {
+      "enforce": false
+    },
+    "inventario/reportes": {
+      "enforce": false
+    },
+    "inventario/reposicion": {
+      "enforce": false
+    },
+    "inventario/requisiciones": {
+      "enforce": false
+    },
+    "inventario/retiros": {
+      "enforce": false
+    },
+    "inventario/salidas": {
+      "enforce": false
+    },
+    "legal/aprobaciones": {
+      "enforce": false
+    },
+    "legal/configuracion": {
+      "enforce": false
+    },
+    "legal/contratos": {
+      "enforce": false
+    },
+    "legal/firmas-pendientes": {
+      "enforce": false
+    },
+    "mensajes/grupo-info": {
+      "enforce": false
+    },
+    "mensajes": {
+      "enforce": false
+    },
+    "mi-rendimiento": {
+      "enforce": false
+    },
+    "mis-choferes": {
+      "enforce": false
+    },
+    "notas/editor": {
+      "enforce": false
+    },
+    "notas": {
+      "enforce": false
+    },
+    "obra/avance": {
+      "enforce": false
+    },
+    "obra/checklists": {
+      "enforce": false
+    },
+    "obra/informes": {
+      "enforce": false
+    },
+    "obra/no-conformidades": {
+      "enforce": false
+    },
+    "obra/plan-dia": {
+      "enforce": false
+    },
+    "obra/subcontratistas": {
+      "enforce": false
+    },
+    "perfil": {
+      "enforce": false
+    },
+    "politicas/eliminar-cuenta": {
+      "enforce": false
+    },
+    "politicas": {
+      "enforce": false
+    },
+    "proyectos/cargos": {
+      "enforce": false
+    },
+    "proyectos/clima": {
+      "enforce": false
+    },
+    "proyectos/compras": {
+      "enforce": false
+    },
+    "proyectos/costos": {
+      "enforce": false
+    },
+    "proyectos/cronograma": {
+      "enforce": false
+    },
+    "proyectos/cronograma-import": {
+      "enforce": false
+    },
+    "proyectos/historial": {
+      "enforce": false
+    },
+    "proyectos/kpi": {
+      "enforce": false
+    },
+    "proyectos/lista": {
+      "enforce": false
+    },
+    "rrhh/activos": {
+      "enforce": false
+    },
+    "rrhh/asistencia": {
+      "enforce": false
+    },
+    "rrhh/ausencias": {
+      "enforce": false
+    },
+    "rrhh/candidatos": {
+      "enforce": false
+    },
+    "rrhh/capacitacion": {
+      "enforce": false
+    },
+    "rrhh/contratos": {
+      "enforce": false
+    },
+    "rrhh/empleados": {
+      "enforce": false
+    },
+    "rrhh/evaluaciones": {
+      "enforce": false
+    },
+    "rrhh/nomina": {
+      "enforce": false
+    },
+    "rrhh/onboarding": {
+      "enforce": false
+    },
+    "rrhh/organigrama": {
+      "enforce": false
+    },
+    "rrhh/proveedores": {
+      "enforce": false
+    },
+    "rrhh/reportes": {
+      "enforce": false
+    },
+    "rrhh/tramites": {
+      "enforce": false
+    },
+    "solicitudes-movimiento": {
+      "enforce": false
+    },
+    "tareas/gestion": {
+      "enforce": false
+    },
+    "tareas/historial": {
+      "enforce": false
+    },
+    "tareas/mis-tareas": {
+      "enforce": false
+    },
+    "tecnologia/apis-consumo": {
+      "enforce": false
+    },
+    "tecnologia/compras": {
+      "enforce": false
+    },
+    "tecnologia/consultas-compa": {
+      "enforce": false
+    },
+    "tecnologia/design-system": {
+      "enforce": false
+    },
+    "tecnologia/estadisticas": {
+      "enforce": false
+    },
+    "tecnologia/guia": {
+      "enforce": false
+    },
+    "tecnologia/homologacion": {
+      "enforce": false
+    },
+    "tecnologia/inventario": {
+      "enforce": false
+    },
+    "tecnologia/matriz": {
+      "enforce": false
+    },
+    "tecnologia/monitoreo": {
+      "enforce": false
+    },
+    "tecnologia/odoo-sync": {
+      "enforce": false
+    },
+    "tecnologia/outbox-atascados": {
+      "enforce": false
+    },
+    "tecnologia/qa": {
+      "enforce": false
+    },
+    "tecnologia/reportes-errores": {
+      "enforce": false
+    },
+    "tecnologia/resumen-operaciones": {
+      "enforce": false
+    },
+    "trabajos-transporte": {
+      "enforce": false
+    },
+    "verificar": {
+      "enforce": false
+    },
+    "flota/flota-subnav": {
+      "enforce": false
+    },
+    "soporte": {
+      "enforce": false
+    },
+    "admin/empresa": {
+      "enforce": false
+    },
+    "flota/checklists": {
+      "enforce": false
+    },
+    "inventario/conduce-externo-ficha": {
+      "enforce": false
+    },
+    "inventario/conduces-externos": {
+      "enforce": false
+    },
+    "legal/expedientes": {
+      "enforce": false
+    },
+    "bitacora/nueva": {
+      "enforce": false
+    },
+    "bitacora/solicitudes-material": {
+      "enforce": false
+    },
+    "flota/mantenimientos": {
+      "enforce": false
+    },
+    "tecnologia/dev-notes": {
+      "enforce": false
+    },
+    "flota/vehiculos": {
+      "enforce": false
+    },
+    "bitacora/cartillas": {
+      "enforce": false
+    },
+    "inventario/conduce-externo-form": {
+      "enforce": false
+    },
+    "bitacora/moldes": {
+      "enforce": false
+    },
+    "app-movil": {
+      "enforce": false
+    },
+    "proyectos/personal": {
+      "enforce": false
+    },
+    "bitacora/orden-trabajo": {
+      "enforce": false
+    },
+    "auth": {
+      "enforce": false
+    },
+    "practica": {
+      "enforce": false
+    },
+    "tecnologia/oficina-agentes": {
+      "enforce": false
+    },
+    "admin/compa-conversaciones": {
+      "enforce": false
+    },
+    "admin/pulso-sistema": {
+      "enforce": false
+    },
+    "demo/progreso": {
+      "enforce": false
+    },
+    "asistente": {
+      "enforce": false
+    },
+    "configuracion": {
+      "enforce": false
+    },
+    "flota/transferencias": {
+      "enforce": false
+    },
+    "tecnologia/envios-automaticos": {
+      "enforce": false
+    },
+    "admin/auditoria": {
+      "enforce": false
+    },
+    "reuniones/reuniones-lista": {
+      "enforce": false
+    },
+    "demo/escenarios": {
+      "enforce": false
+    },
+    "ingenieria/pagos": {
+      "enforce": false
+    },
+    "tecnologia/cotizaciones": {
+      "enforce": false
+    },
+    "borrador-claude": {
+      "enforce": false
+    },
+    "claude": {
+      "enforce": false
+    },
+    "compras/productos-por-dar-de-alta": {
+      "enforce": false
+    },
+    "tecnologia/whatsapp": {
+      "enforce": false
+    },
+    "flota/cupos-combustible": {
+      "enforce": false
+    },
+    "admin/vault": {
+      "enforce": false
+    },
+    "compras/gastos": {
+      "enforce": false
+    },
+    "inventario/stock-odoo": {
+      "enforce": false
+    },
+    "reuniones/reunion-ficha": {
+      "enforce": false
+    },
+    "configuracion/claude": {
+      "enforce": false
+    },
+    "admin/claude": {
+      "enforce": false
+    },
+    "oauth-consent": {
+      "enforce": false
+    }
   }
 }

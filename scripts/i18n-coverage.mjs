@@ -123,6 +123,46 @@ function extraerLiterales(htmlOriginal) {
   return items;
 }
 
+// ── DP-07c — literales dentro de `.ts` (toasts/confirm/alert/labels/placeholders
+// que NO pasan por el escáner de HTML porque no viven en un template). Mismo
+// criterio: cubierto = ya pasa por `t()`/`i18n.t()`; sin cubrir = literal crudo.
+const TS_LLAMADA_LITERAL_RE = /\b(?:this\.)?(?:toast|snackbar)\.(?:error|success|warning|info|errorFrom)\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_LLAMADA_T_RE = /\b(?:this\.)?(?:toast|snackbar)\.(?:error|success|warning|info|errorFrom)\(\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_CONFIRM_RE = /\b(?:window\.)?(?:confirm|alert)\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_PROP_LITERAL_RE = /\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_PROP_T_RE = /\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+
+function extraerLiteralesTs(ts) {
+  const items = [];
+  let m;
+  TS_LLAMADA_LITERAL_RE.lastIndex = 0;
+  while ((m = TS_LLAMADA_LITERAL_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
+  }
+  TS_LLAMADA_T_RE.lastIndex = 0;
+  while ((m = TS_LLAMADA_T_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: true });
+  }
+  TS_CONFIRM_RE.lastIndex = 0;
+  while ((m = TS_CONFIRM_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
+  }
+  TS_PROP_LITERAL_RE.lastIndex = 0;
+  while ((m = TS_PROP_LITERAL_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
+  }
+  TS_PROP_T_RE.lastIndex = 0;
+  while ((m = TS_PROP_T_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: true });
+  }
+  return items;
+}
+
 // ── Recorrido por pantalla ──────────────────────────────────────────────────
 function walkHtml(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -130,6 +170,16 @@ function walkHtml(dir, out = []) {
     const st = statSync(full);
     if (st.isDirectory()) walkHtml(full, out);
     else if (name.endsWith('.html')) out.push(full);
+  }
+  return out;
+}
+
+function walkTs(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    const st = statSync(full);
+    if (st.isDirectory()) walkTs(full, out);
+    else if (name.endsWith('.ts') && !name.endsWith('.spec.ts')) out.push(full);
   }
   return out;
 }
@@ -145,6 +195,7 @@ function pantallaDe(file) {
 
 const files = existsSync(PAGES) ? walkHtml(PAGES) : [];
 const porPantalla = new Map(); // pantalla → { total, cubiertos, sin: [] }
+const porArchivoTs = new Map(); // ruta .ts → { total, cubiertos, sin: [] } (DP-07c)
 
 for (const f of files) {
   const pant = pantallaDe(f);
@@ -156,6 +207,31 @@ for (const f of files) {
     if (it.cubierto) acc.cubiertos++;
     else acc.sin.push(it.texto);
   }
+}
+
+// DP-07c — literales en .ts, agregados a la MISMA pantalla (ajustes/errores/labels
+// no cableados porque viven en el componente, no en el template).
+const tsFiles = existsSync(PAGES) ? walkTs(PAGES) : [];
+for (const f of tsFiles) {
+  const pant = pantallaDe(f);
+  const items = extraerLiteralesTs(readFileSync(f, 'utf8'));
+  if (!items.length) continue;
+  if (!porPantalla.has(pant)) porPantalla.set(pant, { total: 0, cubiertos: 0, sin: [] });
+  const acc = porPantalla.get(pant);
+  const relF = relative(ROOT, f).split(sep).join('/');
+  const accTs = { total: 0, cubiertos: 0, sin: [] };
+  for (const it of items) {
+    acc.total++;
+    accTs.total++;
+    if (it.cubierto) {
+      acc.cubiertos++;
+      accTs.cubiertos++;
+    } else {
+      acc.sin.push(it.texto);
+      accTs.sin.push(it.texto);
+    }
+  }
+  porArchivoTs.set(relF, accTs);
 }
 
 // ── Alcance ─────────────────────────────────────────────────────────────────
@@ -207,6 +283,25 @@ for (const f of filas) {
   const marca = f.enScope ? (f.enforce ? 'enforce' : 'scope') : '-';
   md.push(`| ${f.pantalla} | ${marca} | ${f.total} | ${f.cubiertos} | ${f.sin} | ${f.pct}% |`);
 }
+
+// DP-07c — detalle por archivo .ts (toasts/confirm/alert/placeholder/label/
+// titulo/mensaje sin t()), solo los archivos con algo pendiente.
+const tsFilasConPendientes = [...porArchivoTs.entries()]
+  .map(([archivo, a]) => ({ archivo, total: a.total, cubiertos: a.cubiertos, sin: a.total - a.cubiertos, faltantes: a.sin }))
+  .filter((f) => f.sin > 0)
+  .sort((a, b) => b.sin - a.sin);
+if (tsFilasConPendientes.length) {
+  md.push('');
+  md.push('## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)');
+  md.push('');
+  md.push(`**${tsFilasConPendientes.reduce((s, f) => s + f.sin, 0)} literal(es) sin t()** en ${tsFilasConPendientes.length} archivo(s) (de ${porArchivoTs.size} archivo(s) .ts con algo detectado).`);
+  md.push('');
+  md.push('| Archivo | sin t() | ejemplos |');
+  md.push('|---|---:|---|');
+  for (const f of tsFilasConPendientes) {
+    md.push(`| ${f.archivo} | ${f.sin} | ${f.faltantes.slice(0, 3).join(' · ')}${f.faltantes.length > 3 ? ' …' : ''} |`);
+  }
+}
 writeFileSync(join(ROOT, 'docs', 'I18N-COVERAGE.md'), md.join('\n') + '\n');
 writeFileSync(join(ROOT, 'docs', 'i18n-coverage.json'), JSON.stringify({ pctScopeEn, pctHt, filas }, null, 2));
 
@@ -216,6 +311,17 @@ const gen =
   `export const I18N_COVERAGE = { en: ${pctScopeEn}, ht: ${pctHt} } as const;\n` +
   `export const I18N_UMBRAL = { en: 95, ht: 90 } as const;\n`;
 writeFileSync(join(SRC, 'shared', 'i18n', 'i18n-coverage.generated.ts'), gen);
+
+// DP-07d — alcance.json pasa a TODAS las pantallas detectadas (generado por el
+// escáner, no a mano). `enforce` de una pantalla ya existente se PRESERVA (lo
+// activa F3/F4 por lote); una pantalla nueva entra con `enforce:false`.
+const alcanceNuevo = {
+  _doc: 'DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).',
+  pantallas: Object.fromEntries(
+    filas.map((f) => [f.pantalla, { enforce: !!ALCANCE.pantallas?.[f.pantalla]?.enforce }]),
+  ),
+};
+writeFileSync(join(SRC, 'app', 'core', 'i18n', 'alcance.json'), JSON.stringify(alcanceNuevo, null, 2) + '\n');
 
 // ── Guard: pantallas enforce sin t() rompen (lo invoca verify-i18n) ─────────
 const rotas = filas.filter((f) => f.enforce && f.sin > 0);

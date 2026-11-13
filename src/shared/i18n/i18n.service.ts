@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { environment } from '../../environments/environment';
 
 /** BS4 — idiomas soportados. `es` es el idioma base (las CLAVES de traducción SON
  *  el texto en español, así que `es` nunca necesita catálogo). `en` y `ht` (kreyòl)
@@ -41,6 +42,8 @@ export class I18nService {
   private catalogos = signal<Partial<Record<Idioma, Record<string, string>>>>({});
 
   private cargando = new Set<Idioma>();
+  /** DP-07b — una sola advertencia por clave sin traducir (no inundar la consola). */
+  private clavesSinTraducirAvisadas = new Set<string>();
 
   constructor() {
     void this.init();
@@ -50,9 +53,22 @@ export class I18nService {
     try {
       const lang = (localStorage.getItem(LS_KEY) as Idioma) || this.idiomaNavegador();
       if (lang !== 'es') await this.cargarCatalogo(lang);
-      this._idioma.set(this.esValido(lang) ? lang : 'es');
+      const final = this.esValido(lang) ? lang : 'es';
+      this._idioma.set(final);
+      this.aplicarLangHtml(final);
     } catch {
       /* sin preferencia guardada → español */
+      this.aplicarLangHtml('es');
+    }
+  }
+
+  /** DP-07a — `document.documentElement.lang` sigue al idioma activo (afecta
+   *  lectores de pantalla, corrección ortográfica y el traductor del navegador). */
+  private aplicarLangHtml(lang: Idioma): void {
+    try {
+      document.documentElement.lang = lang;
+    } catch {
+      /* SSR/entornos sin document */
     }
   }
 
@@ -76,7 +92,16 @@ export class I18nService {
     if (lang !== 'es') {
       const dict = this.catalogos()[lang];
       const tr = dict?.[esText];
-      if (tr) out = tr;
+      if (tr) {
+        out = tr;
+      } else if (!environment.production) {
+        // DP-07b — clave sin traducir, solo en dev, una vez por clave+idioma.
+        const marca = `${lang}:${esText}`;
+        if (!this.clavesSinTraducirAvisadas.has(marca)) {
+          this.clavesSinTraducirAvisadas.add(marca);
+          console.warn(`[i18n] sin traducción (${lang}): "${esText}"`);
+        }
+      }
     }
     if (params) {
       for (const [k, v] of Object.entries(params)) {
@@ -91,6 +116,7 @@ export class I18nService {
     if (!this.esValido(lang)) return;
     if (lang !== 'es' && !this.catalogos()[lang]) await this.cargarCatalogo(lang);
     this._idioma.set(lang);
+    this.aplicarLangHtml(lang);
     try {
       localStorage.setItem(LS_KEY, lang);
     } catch {
@@ -112,6 +138,7 @@ export class I18nService {
     if (!lang || !this.esValido(lang) || this._idioma() === lang) return;
     if (lang !== 'es' && !this.catalogos()[lang]) await this.cargarCatalogo(lang);
     this._idioma.set(lang);
+    this.aplicarLangHtml(lang);
     try {
       localStorage.setItem(LS_KEY, lang);
     } catch {
