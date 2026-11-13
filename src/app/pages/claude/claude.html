@@ -5,7 +5,7 @@
   </div>
 </div>
 
-<nav class="claude-tabs" aria-label="Pestañas del módulo Claude">
+<nav class="claude-tabs" aria-label="{{ 'Pestañas del módulo Claude' | t }}">
   <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'inicio'" [class.sgc-btn--ghost]="pestana() !== 'inicio'" (click)="cambiarPestana('inicio')">{{ 'Inicio' | t }}</button>
   <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'skills'" [class.sgc-btn--ghost]="pestana() !== 'skills'" (click)="cambiarPestana('skills')">{{ 'Skills' | t }}</button>
   <button type="button" class="sgc-btn" [class.sgc-btn--primary]="pestana() === 'crear'" [class.sgc-btn--ghost]="pestana() !== 'crear'" (click)="cambiarPestana('crear')">{{ 'Crear' | t }}</button>
@@ -208,11 +208,11 @@
           <label>{{ 'Plantilla (opcional)' | t }}
             <select class="sgc-input" (change)="aplicarPlantilla($any($event.target).value); $any($event.target).value = ''">
               <option value="">{{ 'Elige una plantilla para precargar Pasos/Ejemplo…' | t }}</option>
-              @for (p of plantillas; track p.id) { <option [value]="p.id">{{ p.label }}</option> }
+              @for (p of plantillas; track p.id) { <option [value]="p.id">{{ p.label | t }}</option> }
             </select>
           </label>
           <label>{{ 'Identificador (slug)' | t }}
-            <input class="sgc-input" [value]="crearSlug()" (input)="crearSlug.set($any($event.target).value)" placeholder="mi-skill-nueva" />
+            <input class="sgc-input" [value]="crearSlug()" (input)="crearSlug.set($any($event.target).value)" placeholder="{{ 'mi-skill-nueva' | t }}" />
           </label>
           <label>{{ 'Qué hace' | t }}
             <textarea class="sgc-input" rows="2" [value]="crearQueHace()" (input)="crearQueHace.set($any($event.target).value)"></textarea>
@@ -244,7 +244,7 @@
 
   <!-- ═══ Auditoría ═══ -->
   @if (pestana() === 'auditoria' && puedeAuditar()) {
-    <nav class="claude-tabs claude-tabs--sub" aria-label="Secciones de auditoría">
+    <nav class="claude-tabs claude-tabs--sub" aria-label="{{ 'Secciones de auditoría' | t }}">
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'tecnica'" [class.sgc-btn--ghost]="subAuditoria() !== 'tecnica'" (click)="cambiarSubAuditoria('tecnica')">{{ 'Técnica' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'encuesta'" [class.sgc-btn--ghost]="subAuditoria() !== 'encuesta'" (click)="cambiarSubAuditoria('encuesta')">{{ 'Encuesta' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="subAuditoria() === 'organizacion'" [class.sgc-btn--ghost]="subAuditoria() !== 'organizacion'" (click)="cambiarSubAuditoria('organizacion')">{{ 'Organización' | t }}</button>

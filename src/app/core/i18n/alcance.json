@@ -445,9 +445,6 @@
     "verificar": {
       "enforce": false
     },
-    "flota/flota-subnav": {
-      "enforce": false
-    },
     "soporte": {
       "enforce": false
     },
@@ -463,10 +460,10 @@
     "inventario/conduces-externos": {
       "enforce": false
     },
-    "legal/expedientes": {
+    "bitacora/nueva": {
       "enforce": false
     },
-    "bitacora/nueva": {
+    "legal/expedientes": {
       "enforce": false
     },
     "bitacora/solicitudes-material": {
@@ -487,10 +484,10 @@
     "inventario/conduce-externo-form": {
       "enforce": false
     },
-    "bitacora/moldes": {
+    "app-movil": {
       "enforce": false
     },
-    "app-movil": {
+    "bitacora/moldes": {
       "enforce": false
     },
     "proyectos/personal": {
@@ -502,82 +499,82 @@
     "auth": {
       "enforce": false
     },
-    "practica": {
-      "enforce": false
-    },
-    "tecnologia/oficina-agentes": {
-      "enforce": false
-    },
-    "admin/compa-conversaciones": {
-      "enforce": false
-    },
-    "admin/pulso-sistema": {
-      "enforce": false
-    },
-    "demo/progreso": {
-      "enforce": false
-    },
-    "asistente": {
-      "enforce": false
-    },
     "configuracion": {
       "enforce": false
     },
     "flota/transferencias": {
       "enforce": false
     },
-    "tecnologia/envios-automaticos": {
+    "practica": {
       "enforce": false
     },
-    "admin/auditoria": {
-      "enforce": false
-    },
-    "reuniones/reuniones-lista": {
-      "enforce": false
-    },
-    "demo/escenarios": {
+    "tecnologia/oficina-agentes": {
       "enforce": false
     },
     "ingenieria/pagos": {
       "enforce": false
     },
+    "tecnologia/envios-automaticos": {
+      "enforce": false
+    },
+    "admin/compa-conversaciones": {
+      "enforce": false
+    },
     "tecnologia/cotizaciones": {
-      "enforce": false
-    },
-    "borrador-claude": {
-      "enforce": false
-    },
-    "claude": {
-      "enforce": false
-    },
-    "compras/productos-por-dar-de-alta": {
-      "enforce": false
-    },
-    "tecnologia/whatsapp": {
       "enforce": false
     },
     "flota/cupos-combustible": {
       "enforce": false
     },
+    "reuniones/reuniones-lista": {
+      "enforce": false
+    },
+    "compras/productos-por-dar-de-alta": {
+      "enforce": false
+    },
+    "admin/auditoria": {
+      "enforce": false
+    },
     "admin/vault": {
-      "enforce": false
-    },
-    "compras/gastos": {
-      "enforce": false
-    },
-    "inventario/stock-odoo": {
       "enforce": false
     },
     "reuniones/reunion-ficha": {
       "enforce": false
     },
-    "configuracion/claude": {
+    "asistente": {
       "enforce": false
     },
-    "admin/claude": {
+    "borrador-claude": {
       "enforce": false
     },
     "oauth-consent": {
+      "enforce": false
+    },
+    "compras/gastos": {
+      "enforce": false
+    },
+    "tecnologia/whatsapp": {
+      "enforce": false
+    },
+    "admin/claude": {
+      "enforce": true
+    },
+    "admin/pulso-sistema": {
+      "enforce": false
+    },
+    "claude": {
+      "enforce": true
+    },
+    "configuracion/claude": {
+      "enforce": true
+    },
+    "demo/escenarios": {
+      "enforce": false
+    },
+    "demo/progreso": {
+      "enforce": false
+    },
+    "inventario/stock-odoo": {
       "enforce": false
     }
   }

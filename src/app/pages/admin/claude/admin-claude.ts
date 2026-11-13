@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, input, On
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
@@ -46,6 +47,7 @@ interface FiltrosDisponibles {
 export class AdminClaude implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
 
   /** DO-09 — igual que `ConfiguracionClaude.embebido`: cuando vive embebido en
    *  Claude › Auditoría › Conexiones, ese `<h2>Conexiones</h2>` ya es el
@@ -166,14 +168,14 @@ export class AdminClaude implements OnInit {
   }
 
   async revocar(usuarioId: string, nombre: string) {
-    if (!confirm(`¿Revocar la conexión de Claude de ${nombre}?`)) return;
+    if (!confirm(this.i18n.t('¿Revocar la conexión de Claude de {nombre}?', { nombre }))) return;
     this.revocando.set(usuarioId);
     try {
       const { data, error } = await this.supabase.client.functions.invoke('claude-conexiones', {
         body: { accion: 'revocar', usuario_id: usuarioId },
       });
       if (error) throw new Error(await edgeErrorMessage(error));
-      this.toast.success(`Conexión de ${nombre} revocada.`);
+      this.toast.success(this.i18n.t('Conexión de {nombre} revocada.', { nombre }));
       await this.cargar();
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo revocar');

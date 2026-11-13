@@ -10,6 +10,7 @@ import {
 import { ConfiguracionClaude } from '../configuracion/claude/configuracion-claude';
 import { AdminClaude } from '../admin/claude/admin-claude';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 type Pestana = 'inicio' | 'skills' | 'crear' | 'auditoria';
 type SubAuditoria = 'tecnica' | 'encuesta' | 'organizacion' | 'conexiones';
@@ -56,6 +57,7 @@ export class ClaudeModulo implements OnInit {
   private service = inject(ClaudeSkillsService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -147,9 +149,9 @@ export class ClaudeModulo implements OnInit {
       const { pasos, ejemplo } = await this.service.sugerirContenido(this.crearQueHace(), this.crearCuandoUsarla(), this.misRoles());
       this.crearPasos.set(pasos);
       this.crearEjemplo.set(ejemplo);
-      this.toast.success('Borrador listo', 'Revísalo y edítalo antes de guardar.');
+      this.toast.success(this.i18n.t('Borrador listo'), 'Revísalo y edítalo antes de guardar.');
     } catch (e) {
-      this.toast.error('No se pudo generar la sugerencia', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo generar la sugerencia'), e instanceof Error ? e.message : undefined);
     } finally {
       this.sugiriendoConIa.set(false);
     }
@@ -165,14 +167,14 @@ export class ClaudeModulo implements OnInit {
   async confirmarProponerEquipo() {
     const s = this.proponiendoEquipo();
     const equipo = this.equipoProponer().trim();
-    if (!s || !equipo) { this.toast.warning('Falta el equipo', 'Escribe el nombre del equipo/departamento.'); return; }
+    if (!s || !equipo) { this.toast.warning(this.i18n.t('Falta el equipo'), 'Escribe el nombre del equipo/departamento.'); return; }
     try {
       await this.service.proponer(s.id, 'equipo', equipo);
-      this.toast.success('Propuesta enviada', 'Tecnología la revisará para aprobarla.');
+      this.toast.success(this.i18n.t('Propuesta enviada'), 'Tecnología la revisará para aprobarla.');
       this.proponiendoEquipo.set(null);
       await this.cargarTodo();
     } catch (e) {
-      this.toast.error('No se pudo proponer', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo proponer'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -184,7 +186,7 @@ export class ClaudeModulo implements OnInit {
         ? { ...x, rating_positivo: x.rating_positivo + (valor === 'positivo' ? 1 : 0), rating_negativo: x.rating_negativo + (valor === 'negativo' ? 1 : 0) }
         : x));
     } catch (e) {
-      this.toast.error('No se pudo calificar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo calificar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -198,7 +200,7 @@ export class ClaudeModulo implements OnInit {
     try {
       this.versiones.set(await this.service.listarVersiones(s.id));
     } catch (e) {
-      this.toast.error('No se pudo cargar el historial', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el historial'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoVersiones.set(false);
     }
@@ -230,7 +232,7 @@ export class ClaudeModulo implements OnInit {
       this.packs.set(packs);
       this.progreso.set(progreso);
     } catch (e) {
-      this.toast.error('No se pudo cargar el módulo Claude', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el módulo Claude'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -272,7 +274,7 @@ export class ClaudeModulo implements OnInit {
       this.descargarBlob(blob, `${pack.slug}.zip`);
       await this.marcar('descargo_setup');
     } catch (e) {
-      this.toast.error('No se pudo descargar el paquete', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo descargar el paquete'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -283,7 +285,7 @@ export class ClaudeModulo implements OnInit {
       const blob = await this.service.descargarPack(pack.id);
       this.descargarBlob(blob, `${pack.slug}.zip`);
     } catch (e) {
-      this.toast.error('No se pudo descargar el paquete', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo descargar el paquete'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -297,7 +299,7 @@ export class ClaudeModulo implements OnInit {
         () => { /* best-effort */ },
       );
     } catch (e) {
-      this.toast.error('No se pudo descargar la skill', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo descargar la skill'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -311,27 +313,27 @@ export class ClaudeModulo implements OnInit {
   async proponer(skill: ClaudeSkill, ambito: 'rol' | 'empresa') {
     try {
       await this.service.proponer(skill.id, ambito);
-      this.toast.success('Propuesta enviada', 'Tecnología la revisará para aprobarla.');
+      this.toast.success(this.i18n.t('Propuesta enviada'), 'Tecnología la revisará para aprobarla.');
       await this.cargarTodo();
     } catch (e) {
-      this.toast.error('No se pudo proponer', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo proponer'), e instanceof Error ? e.message : undefined);
     }
   }
 
   async decidir(skill: ClaudeSkill, decision: 'publicada' | 'borrador' | 'archivada') {
     try {
       await this.service.decidir(skill.id, decision);
-      this.toast.success('Listo', `Skill marcada como ${decision}.`);
+      this.toast.success(this.i18n.t('Listo'), `Skill marcada como ${decision}.`);
       await this.cargarTodo();
     } catch (e) {
-      this.toast.error('No se pudo decidir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo decidir'), e instanceof Error ? e.message : undefined);
     }
   }
 
   async guardarCreacion() {
     const slug = this.crearSlug().trim();
     if (!slug || !/^[a-z0-9-]{1,64}$/.test(slug)) {
-      this.toast.error('Slug inválido', 'Usa minúsculas y guiones (ej. mi-skill-nueva).');
+      this.toast.error(this.i18n.t('Slug inválido'), 'Usa minúsculas y guiones (ej. mi-skill-nueva).');
       return;
     }
     this.guardandoCreacion.set(true);
@@ -339,15 +341,15 @@ export class ClaudeModulo implements OnInit {
       const archivo = new File([this.crearPreview()], 'SKILL.md', { type: 'text/markdown' });
       const r = await this.service.validarYGuardar(archivo, slug, this.crearQueHace().slice(0, 60) || slug, this.crearCuandoUsarla());
       if (!r.ok) {
-        this.toast.error('No se pudo guardar', r.errores.join(' '));
+        this.toast.error(this.i18n.t('No se pudo guardar'), r.errores.join(' '));
         return;
       }
-      this.toast.success('Guardada', 'Tu skill quedó guardada como personal.');
+      this.toast.success(this.i18n.t('Guardada'), 'Tu skill quedó guardada como personal.');
       this.crearQueHace.set(''); this.crearCuandoUsarla.set(''); this.crearPasos.set(''); this.crearEjemplo.set(''); this.crearSlug.set('');
       await this.marcar('subio_primera_skill');
       await this.cargarTodo();
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoCreacion.set(false);
     }
@@ -360,12 +362,12 @@ export class ClaudeModulo implements OnInit {
     const slug = archivo.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 64);
     try {
       const r = await this.service.validarYGuardar(archivo, slug, archivo.name, 'Subida manual.');
-      if (!r.ok) { this.toast.error('No se pudo subir', r.errores.join(' ')); return; }
-      this.toast.success('Subida', 'Tu archivo quedó guardado como skill personal.');
+      if (!r.ok) { this.toast.error(this.i18n.t('No se pudo subir'), r.errores.join(' ')); return; }
+      this.toast.success(this.i18n.t('Subida'), 'Tu archivo quedó guardado como skill personal.');
       await this.marcar('subio_primera_skill');
       await this.cargarTodo();
     } catch (e) {
-      this.toast.error('No se pudo subir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir'), e instanceof Error ? e.message : undefined);
     } finally {
       input.value = '';
     }
@@ -389,9 +391,9 @@ export class ClaudeModulo implements OnInit {
         usa_hoy: this.encuestaUsaHoy(), tareas: this.encuestaTareas(), tarea_repetida: this.encuestaTareaRepetida(),
         que_frena: this.encuestaQueFrena(), documento_semanal: this.encuestaDocSemanal(), que_deberia_hacer: this.encuestaQueDeberia(),
       });
-      this.toast.success('Gracias', 'Tu respuesta quedó guardada (puedes editarla cuando quieras).');
+      this.toast.success(this.i18n.t('Gracias'), 'Tu respuesta quedó guardada (puedes editarla cuando quieras).');
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoEncuesta.set(false);
     }
@@ -406,11 +408,11 @@ export class ClaudeModulo implements OnInit {
   async guardarOrg() {
     try {
       await this.service.guardarOrgInfo({ notas: this.orgNotas() });
-      this.toast.success('Guardado', 'La sección de organización se actualizó.');
+      this.toast.success(this.i18n.t('Guardado'), 'La sección de organización se actualizó.');
       this.editandoOrg.set(false);
       await this.cargarOrg();
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     }
   }
 }

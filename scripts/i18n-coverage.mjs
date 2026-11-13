@@ -64,6 +64,10 @@ function esRuido(s) {
   if (/^(true|false|null|ngIf|ngFor|px|em|rem)$/i.test(t)) return true;
   // Un token que es claramente una expresión (camelCase con paréntesis) no es copy.
   if (/^[a-z][A-Za-z0-9]*\([^)]*\)$/.test(t)) return true;
+  // Bloques de control flow de Angular (@if/@for/@else/@switch/…) que el
+  // regex de nodos de texto atrapa como "texto" entre un '>' y un '<' porque
+  // no están envueltos en una etiqueta — no son copy, son sintaxis de plantilla.
+  if (/^[}\s]*@(if|else if|else|for|switch|case|default|empty)\b/.test(t)) return true;
   return false;
 }
 
@@ -135,6 +139,13 @@ const TS_PROP_T_RE = /\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(?:this
 function extraerLiteralesTs(ts) {
   const items = [];
   let m;
+  // DP-09 — catálogos constantes (arreglos/mapas module-level declarados ANTES
+  // de la clase, p. ej. `const OPCIONES = [{ label: '…' }]`) se declaran en
+  // español a propósito (no congelar el idioma de arranque) y se traducen al
+  // MOSTRAR (`| t` en la plantilla). Las props `label/placeholder/titulo/texto/
+  // mensaje` encontradas ahí no cuentan como "sin cubrir" — solo dentro de la clase.
+  const corteClase = ts.search(/\n\s*(export\s+)?(class\s+\w|@Component\b)/);
+  const tsClase = corteClase >= 0 ? ts.slice(corteClase) : ts;
   TS_LLAMADA_LITERAL_RE.lastIndex = 0;
   while ((m = TS_LLAMADA_LITERAL_RE.exec(ts))) {
     const lit = limpiar(m[2]);
@@ -151,12 +162,12 @@ function extraerLiteralesTs(ts) {
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
   }
   TS_PROP_LITERAL_RE.lastIndex = 0;
-  while ((m = TS_PROP_LITERAL_RE.exec(ts))) {
+  while ((m = TS_PROP_LITERAL_RE.exec(tsClase))) {
     const lit = limpiar(m[2]);
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
   }
   TS_PROP_T_RE.lastIndex = 0;
-  while ((m = TS_PROP_T_RE.exec(ts))) {
+  while ((m = TS_PROP_T_RE.exec(tsClase))) {
     const lit = limpiar(m[2]);
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: true });
   }

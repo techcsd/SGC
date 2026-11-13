@@ -28,6 +28,36 @@ lo mida.
   193 pantallas detectadas; el campo `enforce` de una pantalla existente se
   preserva, una pantalla nueva entra en `false`
 
+## Medición tras lote 1 (Claude, 13-nov-2026)
+
+- **`claude`: 100% (117/117)** · **`admin/claude`: 100% (27/27)** ·
+  **`configuracion/claude`: 100% (32/32)** — las 3 con `enforce:true`.
+- Se corrigieron 2 falsos positivos del escáner mismo (no específicos de
+  Claude, mejoran el % real de TODO el repo): (1) los bloques de control
+  flow de Angular (`@if`/`@for`/`@else`/…) se contaban como "texto sin
+  cubrir" por el regex de nodos; (2) los catálogos constantes module-level
+  (`label:`/`placeholder:`/… declarados ANTES de la clase, ver DP-09) se
+  contaban como ".ts sin t()" aunque su plantilla ya los traduce al mostrar
+  (`| t`). Con estos 2 fixes el **alcance global subió de 8% a 12%** (en) y
+  **0% a 8%** (ht) — ganancia real de precisión de medición, no de cableado.
+- `scripts/i18n-wrap-html.mjs` (codemod, nuevo) corrió dry-run y `--write`
+  sobre `--modulo claude`: envolvió 3 literales (2 `aria-label` + 1
+  `placeholder`); el resto del HTML de Claude ya venía cableado de rondas
+  anteriores (DM/DN/DO).
+- `claude.ts`: 26 toasts envueltos con `this.i18n.t(...)` (título only, el
+  detalle/subtítulo queda en español — mismo patrón que el resto del repo).
+  `configuracion-claude.ts`: 2 toasts. `admin-claude.ts`: 1 `confirm()` + 1
+  toast, ambos parametrizados (`{nombre}`).
+- `PLANTILLAS_SKILL` (catálogo constante en `claude.ts`): labels NO se
+  envuelven al declarar (DP-09); el `<option>` que los muestra pasa por
+  `{{ p.label | t }}`.
+- `public/i18n/en.json`: +123 claves (22 reutilizadas de `csd-app/public/i18n/en.json`,
+  101 traducidas nuevas) → 1.575 claves totales.
+  `public/i18n/ht.json`: +123 claves (0 reutilizables del app, su `ht.json`
+  apenas tiene ~132 claves sin solape) → 123 claves totales. **Sin revisión
+  humana** — ver `docs/I18N-REVISAR-HT.md`.
+- Build + 362 tests verdes. Commit: ver `git log` rama `feature/dp-ronda-13nov`.
+
 ## Tabla de lotes (F3 cablear HTML + F4 cablear `.ts`)
 
 Orden acordado en el prompt: Claude, Configuración/perfil/shell, Dashboard,
@@ -37,7 +67,7 @@ Admin, resto.
 
 | # | Módulo | Pantallas | Literales HTML | Literales `.ts` | Estado | Commit | `enforce` |
 |---|---|---:|---:|---:|---|---|---|
-| 1 | Claude | claude, configuracion/claude, admin/claude | — | 30 (`claude.ts`) | ⏳ pendiente (solo CSS hecho en F1) | — | false |
+| 1 | Claude | claude, configuracion/claude, admin/claude | 3 envueltos (resto ya venía) | 29 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 2 | Configuración/perfil/shell | — | — | — | ⏳ pendiente | — | false |
 | 3 | Dashboard | — | — | — | ⏳ pendiente | — | false |
 | 4 | Inventario | — | — | — | ⏳ pendiente | — | false |
