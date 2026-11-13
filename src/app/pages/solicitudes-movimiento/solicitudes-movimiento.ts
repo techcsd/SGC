@@ -24,8 +24,6 @@ import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../shared/ui/articulo-picker/articulo-picker';
 
-const ROLES_REFERENTE = ['admin', 'direccion', 'gerencia', 'jefe_flota', 'logistica', 'coord_compras', 'guarda_almacen'];
-
 /**
  * AY11 — Solicitud de movimiento. El ingeniero solicita mover material/equipo; los
  * referentes (jefe de flota, logística, guarda-almacén, coord. compras, gerencia)
@@ -50,7 +48,7 @@ export class SolicitudesMovimiento implements OnInit {
   private toast = inject(ToastService);
   private datosPruebaView = inject(DatosPruebaViewService);
 
-  esReferente = computed(() => ROLES_REFERENTE.some((r) => this.userService.hasRole(r)));
+  esReferente = computed(() => this.userService.esReferenteMovimiento());
 
   solicitudes = signal<SolicitudMovimiento[]>([]);
   proyectos = signal<Proyecto[]>([]);

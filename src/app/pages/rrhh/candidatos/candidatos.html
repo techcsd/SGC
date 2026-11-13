@@ -1,0 +1,177 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Candidatos</h1>
+      <p class="page__sub">Índice de todos los candidatos, de cualquier vacante. Busca, abre el detalle, sube el CV o archívalo si ya no sigue en proceso.</p>
+    </div>
+  </header>
+
+  <div class="cand-toolbar">
+    <input type="text" class="sgc-input cand-buscador" placeholder="Buscar por nombre, email, teléfono o vacante…"
+      [value]="query()" (input)="query.set($any($event.target).value)" />
+    <div class="cand-tabs">
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="tab() === 'activos'" [class.sgc-btn--ghost]="tab() !== 'activos'" (click)="tab.set('activos')">
+        Activos ({{ activosCount() }})
+      </button>
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="tab() === 'archivados'" [class.sgc-btn--ghost]="tab() !== 'archivados'" (click)="tab.set('archivados')">
+        Archivados ({{ archivadosCount() }})
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else if (!filtrados().length) {
+    <p class="text-muted">
+      @if (tab() === 'archivados') { No hay candidatos archivados. } @else { No hay candidatos que coincidan. }
+    </p>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr><th>Nombre</th><th>Vacante</th><th>Contacto</th><th>Etapa</th><th>CV</th></tr>
+        </thead>
+        <tbody>
+          @for (c of filtrados(); track c.id) {
+            <tr class="cand-row" tabindex="0" role="button" [attr.aria-label]="'Ver detalle de ' + c.nombre"
+                (click)="abrirDetalle(c)" (keydown.enter)="abrirDetalle(c)">
+              <td><b>{{ c.nombre }}</b></td>
+              <td class="text-muted">{{ c.vacante_titulo || '—' }}</td>
+              <td class="text-muted">{{ c.telefono || c.email || '—' }}</td>
+              <td>
+                <span class="sgc-badge" [class.sgc-badge--success]="c.etapa === 'contratado'" [class.sgc-badge--danger]="c.etapa === 'rechazado'" [class.sgc-badge--info]="c.etapa !== 'contratado' && c.etapa !== 'rechazado'">
+                  {{ etapaLabel[c.etapa] }}
+                </span>
+              </td>
+              <td>
+                @if (c.cv_path) { <app-icon name="file-text" [size]="16" /> } @else { <span class="text-muted">—</span> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- Panel de detalle -->
+<app-form-drawer [title]="seleccionado()?.nombre ?? 'Candidato'" [open]="!!seleccionado()" (closed)="cerrarDetalle()">
+  @if (seleccionado(); as c) {
+    <div class="cand-detalle">
+      <div class="cand-detalle__meta">
+        @if (c.vacante_titulo) { <span class="text-muted">Vacante: {{ c.vacante_titulo }}</span> }
+        <span class="sgc-badge" [class.sgc-badge--success]="c.etapa === 'contratado'" [class.sgc-badge--danger]="c.etapa === 'rechazado'" [class.sgc-badge--info]="c.etapa !== 'contratado' && c.etapa !== 'rechazado'">
+          {{ etapaLabel[c.etapa] }}
+        </span>
+        @if (c.archivado) { <span class="sgc-badge sgc-badge--neutral">Archivado</span> }
+        <span class="text-muted">Agregado el {{ fFecha(c.created_at) }}</span>
+      </div>
+
+      @if (c.etapa !== 'contratado' && c.etapa !== 'rechazado' && !c.archivado) {
+        <div class="cand-etapas">
+          @for (e of etapas; track e) {
+            <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="e === c.etapa" [class.sgc-btn--ghost]="e !== c.etapa"
+              (click)="avanzarEtapa(e)">{{ etapaLabel[e] }}</button>
+          }
+        </div>
+      }
+
+      <h3 class="cand-h">Datos de contacto</h3>
+      <div class="cand-grid">
+        <label class="sgc-field"><span>Nombre</span>
+          <input type="text" class="sgc-input" [value]="eNombre()" (input)="eNombre.set($any($event.target).value)" />
+        </label>
+        <label class="sgc-field"><span>Teléfono</span>
+          <input type="text" class="sgc-input" [value]="eTelefono()" (input)="eTelefono.set($any($event.target).value)" />
+        </label>
+        <label class="sgc-field"><span>Teléfono alterno</span>
+          <input type="text" class="sgc-input" [value]="eTelefonoAlterno()" (input)="eTelefonoAlterno.set($any($event.target).value)" />
+        </label>
+        <label class="sgc-field"><span>Email</span>
+          <input type="email" class="sgc-input" [value]="eEmail()" (input)="eEmail.set($any($event.target).value)" />
+        </label>
+        <label class="sgc-field"><span>Fuente (cómo llegó)</span>
+          <input type="text" class="sgc-input" placeholder="Referido, LinkedIn, volante…" [value]="eFuente()" (input)="eFuente.set($any($event.target).value)" />
+        </label>
+        <label class="sgc-field"><span>Expectativa salarial</span>
+          <input type="number" class="sgc-input" [value]="eExpectativa()" (input)="eExpectativa.set($any($event.target).value)" />
+        </label>
+      </div>
+
+      <h3 class="cand-h">Experiencia y educación</h3>
+      <label class="sgc-field"><span>Experiencia (resumen)</span>
+        <textarea class="sgc-input" rows="3" [value]="eExperiencia()" (input)="eExperiencia.set($any($event.target).value)"></textarea>
+      </label>
+      <label class="sgc-field"><span>Educación</span>
+        <textarea class="sgc-input" rows="2" [value]="eEducacion()" (input)="eEducacion.set($any($event.target).value)"></textarea>
+      </label>
+      <label class="sgc-field"><span>Notas</span>
+        <textarea class="sgc-input" rows="2" [value]="eNotas()" (input)="eNotas.set($any($event.target).value)"></textarea>
+      </label>
+      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoEdicion()" (click)="guardarEdicion()">
+        {{ guardandoEdicion() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
+
+      <h3 class="cand-h">CV</h3>
+      @if (c.cv_path) {
+        <div class="cand-cv">
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="verCv()">
+            <app-icon name="file-text" [size]="15" /> Ver CV
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="leyendoCv()" (click)="leerCvConIa()">
+            {{ leyendoCv() ? 'Leyendo…' : 'Leer con IA' }}
+          </button>
+          <label class="sgc-btn sgc-btn--ghost sgc-btn--sm">
+            {{ subiendoCv() ? 'Subiendo…' : 'Reemplazar' }}
+            <input type="file" accept=".pdf,.doc,.docx,image/*" style="display:none" [disabled]="subiendoCv()" (change)="onCvSeleccionado($event)" />
+          </label>
+        </div>
+      } @else {
+        <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
+          {{ subiendoCv() ? 'Subiendo…' : 'Subir CV' }}
+          <input type="file" accept=".pdf,.doc,.docx,image/*" style="display:none" [disabled]="subiendoCv()" (change)="onCvSeleccionado($event)" />
+        </label>
+      }
+
+      @if (c.cv_extraido; as ia) {
+        <h3 class="cand-h">Lo que la IA leyó del CV</h3>
+        <div class="cand-ia">
+          @if (ia.experiencia_resumen) { <p><b>Experiencia:</b> {{ ia.experiencia_resumen }}</p> }
+          @if (ia.educacion) { <p><b>Educación:</b> {{ ia.educacion }}</p> }
+          @if (ia.cargos_previos?.length) { <p><b>Cargos previos:</b> {{ ia.cargos_previos!.join(', ') }}</p> }
+          <p class="text-muted">Extracción automática — revisa antes de confiar en estos datos.</p>
+        </div>
+      }
+
+      <h3 class="cand-h">{{ c.archivado ? 'Restaurar' : 'Archivar' }}</h3>
+      @if (c.archivado) {
+        <p class="text-muted">Este candidato está archivado. Restaúralo si RRHH decide retomarlo.</p>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(c)">Restaurar</button>
+      } @else {
+        <p class="text-muted">Lo saca del pipeline activo, pero conserva toda su información.</p>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="pedirArchivar(c)">Archivar</button>
+      }
+
+      <!-- DO-07 — borrado físico real, siempre detrás de confirmación explícita. -->
+      <div class="cand-peligro">
+        <h3 class="cand-h">Eliminar para siempre</h3>
+        <p class="text-muted">Borra este candidato y su CV sin dejar rastro. Úsalo solo para limpiar registros de prueba — no se puede deshacer.</p>
+        <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="pedirEliminarFisico(c)">Eliminar para siempre</button>
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+@if (pdfOpen()) {
+  <app-pdf-viewer [open]="pdfOpen()" [src]="pdfSrc()" nombre="CV" (closed)="pdfOpen.set(false)" />
+}
+
+<app-confirm-dialog [open]="!!candidatoAArchivar()" title="¿Archivar este candidato?"
+  [message]="candidatoAArchivar() ? ('«' + candidatoAArchivar()!.nombre + '» se saca del pipeline activo, pero su información se conserva.') : ''"
+  confirmLabel="Archivar" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarArchivar()" (cancelled)="candidatoAArchivar.set(null)" />
+
+<app-confirm-dialog [open]="!!candidatoAEliminarFisico()" title="¿Eliminar para siempre?"
+  [message]="candidatoAEliminarFisico() ? ('«' + candidatoAEliminarFisico()!.nombre + '» y su CV se borran sin dejar rastro. Esto NO se puede deshacer.') : ''"
+  confirmLabel="Sí, eliminar para siempre" cancelLabel="Cancelar" tone="danger"
+  (confirmed)="confirmarEliminarFisico()" (cancelled)="candidatoAEliminarFisico.set(null)" />

@@ -1428,7 +1428,7 @@
   "No se pudo cargar el mensaje": "Couldn't load the message",
   "{nombre} ya no puede escribirle a Compa por WhatsApp.": "{nombre} can no longer message Compa on WhatsApp.",
   "Pendiente": "Pending",
-  "se marca solo (mira «Mi conexión» abajo)": "marks itself (see “My connection” below)",
+  "conéctala en «Mi conexión» abajo": "connect it in “My connection” below",
   "se marca sola al crear o subir una (pestaña Skills/Crear)": "marks itself when you create or upload one (Skills/Create tab)",
   "Skills nuevas para tu rol": "New skills for your role",
   "Buscar skill por nombre o descripción…": "Search skills by name or description…",

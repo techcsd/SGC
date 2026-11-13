@@ -4,6 +4,7 @@ import {
   CandidatoEtapa, ETAPAS_ORDEN, ETAPA_LABEL, RrhhCandidato, RrhhVacante, VacanteEstado,
 } from '../../../../shared/models/rrhh-onboarding.model';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 /** DN-27 P1 — Reclutamiento (onboarding): vacantes + pipeline de candidatos
@@ -19,6 +20,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 export class RrhhOnboarding implements OnInit {
   private svc = inject(RrhhOnboardingService);
   private toast = inject(ToastService);
+  private userService = inject(UserService);
 
   cargando = signal(true);
   vacantes = signal<RrhhVacante[]>([]);
@@ -156,6 +158,8 @@ export class RrhhOnboarding implements OnInit {
     }
   }
 
+  /** DO-07 — "eliminar" desde el pipeline por vacante archiva (conserva el
+   *  historial); el borrado físico real solo vive en la vista "Candidatos". */
   pedirEliminarCandidato(c: RrhhCandidato) {
     this.candidatoAEliminar.set(c);
   }
@@ -164,12 +168,12 @@ export class RrhhOnboarding implements OnInit {
     const c = this.candidatoAEliminar();
     if (!c) return;
     try {
-      await this.svc.eliminarCandidato(c.id);
-      this.toast.success('Candidato eliminado');
+      await this.svc.archivarCandidato(c.id, this.userService.profile()?.id ?? null);
+      this.toast.success('Candidato archivado', 'Puedes restaurarlo desde RRHH › Candidatos si se reconsidera.');
       const vacante = this.seleccionada();
       if (vacante) await this.seleccionarVacante(vacante);
     } catch (e) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error('No se pudo archivar', e instanceof Error ? e.message : undefined);
     } finally {
       this.candidatoAEliminar.set(null);
     }

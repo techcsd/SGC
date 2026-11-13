@@ -1,0 +1,24 @@
+.page { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.page__title { margin: 0; font-size: 20px; font-weight: 700; color: var(--sgc-text); }
+.page__sub { margin: 4px 0 0; font-size: 13px; color: var(--sgc-text-muted); max-width: 680px; }
+
+.cand-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
+.cand-buscador { flex: 1; min-width: 220px; }
+.cand-tabs { display: flex; gap: 6px; }
+
+.cand-row { cursor: pointer; }
+.cand-row:focus-visible { outline: 2px solid var(--Hub); outline-offset: -2px; }
+
+.cand-detalle { display: flex; flex-direction: column; gap: 10px; }
+.cand-detalle__meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cand-h { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: var(--sgc-text); }
+.cand-etapas { display: flex; flex-wrap: wrap; gap: 6px; }
+.cand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.cand-cv { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cand-ia { background: var(--surface); border: 1px solid var(--sgc-border); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.cand-peligro { border-top: 1px solid var(--sgc-border); padding-top: 10px; margin-top: 6px; }
+
+@media (max-width: 768px) {
+  .page { padding: 16px 14px; }
+  .cand-grid { grid-template-columns: 1fr; }
+}

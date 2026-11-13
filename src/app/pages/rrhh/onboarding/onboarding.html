@@ -104,7 +104,7 @@
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="avanzarEtapa(c)">Avanzar</button>
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="rechazar(c)">Rechazar</button>
                     }
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminarCandidato(c)">Eliminar</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminarCandidato(c)">Archivar</button>
                   </td>
                 </tr>
               }
@@ -118,7 +118,7 @@
   }
 </section>
 
-<app-confirm-dialog [open]="!!candidatoAEliminar()" title="¿Eliminar este candidato?"
-  [message]="candidatoAEliminar() ? ('«' + candidatoAEliminar()!.nombre + '»') : ''"
-  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+<app-confirm-dialog [open]="!!candidatoAEliminar()" title="¿Archivar este candidato?"
+  [message]="candidatoAEliminar() ? ('«' + candidatoAEliminar()!.nombre + '» se saca de este pipeline, pero su información se conserva — puedes restaurarlo desde RRHH › Candidatos.') : ''"
+  confirmLabel="Archivar" cancelLabel="Cancelar" tone="danger"
   (confirmed)="confirmarEliminarCandidato()" (cancelled)="candidatoAEliminar.set(null)" />

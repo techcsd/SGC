@@ -199,3 +199,7 @@ verify_jwt = false
 # DL5/F5 — wa-recap: mismo patrón (cron + "Probar envío" desde la pantalla).
 [functions.wa-recap]
 verify_jwt = false
+
+# DO-06 — server-to-server (pg_net + x-sync-secret, mismo patrón que leer-documento-flota).
+[functions.rrhh-leer-cv]
+verify_jwt = false

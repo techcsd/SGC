@@ -5,10 +5,14 @@
 .og-aviso { margin: 0; }
 
 .og-arbol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
-.og-nodo {
+.og-nodo { display: flex; flex-direction: column; }
+.og-nodo__conector { display: none; }
+.og-nodo__card {
   display: flex; align-items: center; gap: 10px; padding: 6px 10px;
   border-left: 2px solid var(--sgc-border);
 }
+// DO-04 — misma indentación por nivel que antes (24px), ahora vía anidado en vez de nivel*padding inline.
+.og-nodo__hijos { list-style: none; margin: 0; padding: 0 0 0 24px; display: flex; flex-direction: column; gap: 2px; }
 .og-nombre { font-weight: 600; color: var(--sgc-text); }
 .og-cargo { font-size: 12.5px; color: var(--sgc-text-muted); }
 
