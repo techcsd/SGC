@@ -88,12 +88,6 @@
     "compras/ordenes-odoo": {
       "enforce": false
     },
-    "compras/proveedores": {
-      "enforce": false
-    },
-    "compras/proveedores-odoo": {
-      "enforce": false
-    },
     "direccion": {
       "enforce": false
     },
@@ -467,6 +461,12 @@
       "enforce": true
     },
     "compras/productos-por-dar-de-alta": {
+      "enforce": true
+    },
+    "compras/proveedores": {
+      "enforce": true
+    },
+    "compras/proveedores-odoo": {
       "enforce": true
     },
     "compras/reportes": {

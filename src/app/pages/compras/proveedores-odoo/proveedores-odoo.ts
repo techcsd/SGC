@@ -24,13 +24,15 @@ import { LocationPicker } from '../../../../shared/context/location-picker/locat
 import { Icon } from '../../../../shared/ui/icon/icon';
 import type { UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 // RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
 const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 
 @Component({
   selector: 'app-proveedores-odoo',
-  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './proveedores-odoo.html',
   styleUrl: './proveedores-odoo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +41,7 @@ const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 export class ProveedoresOdoo implements OnInit {
   private proveedoresService = inject(ProveedoresOdooService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
@@ -101,7 +104,7 @@ export class ProveedoresOdoo implements OnInit {
   });
 
   drawerTitle = computed(() =>
-    this.editingId() ? 'Editar proveedor' : 'Nuevo proveedor',
+    this.i18n.t(this.editingId() ? 'Editar proveedor' : 'Nuevo proveedor'),
   );
 
   async ngOnInit() {
@@ -137,7 +140,7 @@ export class ProveedoresOdoo implements OnInit {
       this.pagina.set(siguiente);
       this.hayMas.set(r.hayMas);
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar más proveedores', humanizeError(e).mensaje);
+      this.toast.error(this.i18n.t('No se pudo cargar más proveedores'), humanizeError(e).mensaje);
     } finally {
       this.cargandoMas.set(false);
     }
@@ -223,7 +226,7 @@ export class ProveedoresOdoo implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && this.form.value.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('proveedores', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -233,7 +236,7 @@ export class ProveedoresOdoo implements OnInit {
       const id = this.editingId();
       if (id) {
         const actual = this.proveedores().find((p) => p.id === id);
-        if (!actual) throw new Error('El proveedor ya no está en la lista.');
+        if (!actual) throw new Error(this.i18n.t('El proveedor ya no está en la lista.'));
         const updated = await this.proveedoresService.update(actual, payload);
         this.proveedores.update((list) => list.map((p) => (p.id === id ? updated : p)));
       } else {
@@ -261,20 +264,20 @@ export class ProveedoresOdoo implements OnInit {
       this.proveedores.update((list) =>
         list.map((item) => (item.id === p.id ? { ...item, activo: !next } : item)),
       );
-      this.toast.error('No se pudo cambiar el estado del proveedor', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado del proveedor'), e instanceof Error ? e.message : undefined);
     }
   }
 
   /** Z5 — elimina definitivamente una fila de datos de prueba (solo admin). */
   async eliminarPrueba(p: Proveedor) {
     if (!this.esAdmin() || !p.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{nombre}"? Esta acción no se puede deshacer.', { nombre: p.nombre }))) return;
     try {
       await this.datosPrueba.eliminar('proveedores', p.id);
       this.proveedores.update((list) => list.filter((x) => x.id !== p.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${p.nombre}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), `Se eliminó "${p.nombre}".`);
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

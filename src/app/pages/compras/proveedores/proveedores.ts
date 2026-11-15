@@ -24,13 +24,15 @@ import { LocationPicker } from '../../../../shared/context/location-picker/locat
 import { Icon } from '../../../../shared/ui/icon/icon';
 import type { UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 // RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
 const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 
 @Component({
   selector: 'app-proveedores',
-  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon, RouterLink, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon, RouterLink, StaggerDirective, TranslatePipe],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +40,7 @@ const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 export class Proveedores implements OnInit {
   private proveedoresService = inject(ProveedoresService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
@@ -103,7 +106,7 @@ export class Proveedores implements OnInit {
   });
 
   drawerTitle = computed(() =>
-    this.editingId() ? 'Editar proveedor' : 'Nuevo proveedor',
+    this.i18n.t(this.editingId() ? 'Editar proveedor' : 'Nuevo proveedor'),
   );
 
   async ngOnInit() {
@@ -199,7 +202,7 @@ export class Proveedores implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && this.form.value.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('proveedores', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -235,20 +238,20 @@ export class Proveedores implements OnInit {
       this.proveedores.update((list) =>
         list.map((item) => (item.id === p.id ? { ...item, activo: !next } : item)),
       );
-      this.toast.error('No se pudo cambiar el estado del proveedor', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado del proveedor'), e instanceof Error ? e.message : undefined);
     }
   }
 
   /** Z5 — elimina definitivamente una fila de datos de prueba (solo admin). */
   async eliminarPrueba(p: Proveedor) {
     if (!this.esAdmin() || !p.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{nombre}"? Esta acción no se puede deshacer.', { nombre: p.nombre }))) return;
     try {
       await this.datosPrueba.eliminar('proveedores', p.id);
       this.proveedores.update((list) => list.filter((x) => x.id !== p.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${p.nombre}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), `Se eliminó "${p.nombre}".`);
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
@@ -327,7 +330,7 @@ export class Proveedores implements OnInit {
       const wb = XLSX.read(buf, { cellDates: false });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
-      if (!raw.length) { this.importError.set('El archivo no tiene filas.'); return; }
+      if (!raw.length) { this.importError.set(this.i18n.t('El archivo no tiene filas.')); return; }
 
       // Mapeo flexible de encabezados (normaliza acentos/mayúsculas).
       const norm = (s: string) => s.toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
@@ -398,7 +401,7 @@ export class Proveedores implements OnInit {
         if (filaRncPrevia || filaNombrePrevia) {
           return {
             fila: i + 2, payload, estado: 'error' as const,
-            detalle: `Repetido en el archivo (ya aparece en la fila ${filaRncPrevia ?? filaNombrePrevia})`,
+            detalle: this.i18n.t('Repetido en el archivo (ya aparece en la fila {fila})', { fila: (filaRncPrevia ?? filaNombrePrevia)! }),
             match: null,
           };
         }
@@ -407,17 +410,17 @@ export class Proveedores implements OnInit {
 
         const existente = byNombre.get(nombreKey) ?? (rncDigits ? byRnc.get(rncDigits) : undefined) ?? null;
         if (existente) {
-          return { fila: i + 2, payload, estado: 'duplicado' as const, detalle: `Ya existe: ${existente.nombre}`, match: existente };
+          return { fila: i + 2, payload, estado: 'duplicado' as const, detalle: this.i18n.t('Ya existe: {nombre}', { nombre: existente.nombre }), match: existente };
         }
         return { fila: i + 2, payload, estado: 'nuevo' as const, detalle: '', match: null };
       });
 
       this.importPreview.set(preview);
       if (!preview.some((r) => r.estado !== 'error')) {
-        this.importError.set('Ninguna fila es válida. Revisa que la columna "Nombre" esté presente.');
+        this.importError.set(this.i18n.t('Ninguna fila es válida. Revisa que la columna "Nombre" esté presente.'));
       }
     } catch (e: unknown) {
-      this.importError.set(e instanceof Error ? e.message : 'No se pudo leer el archivo.');
+      this.importError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo leer el archivo.'));
     }
   }
 
@@ -427,7 +430,7 @@ export class Proveedores implements OnInit {
     if (this.importing()) return;
     const rows = this.importPreview().filter((r) => r.estado !== 'error');
     if (!rows.length) {
-      this.importError.set('No hay filas para importar.');
+      this.importError.set(this.i18n.t('No hay filas para importar.'));
       return;
     }
     this.importing.set(true);
@@ -458,17 +461,22 @@ export class Proveedores implements OnInit {
       // Refrescar la lista con los cambios reales.
       this.proveedores.set(await this.proveedoresService.getAll());
 
-      const resumen = `${res.nuevos} nuevo(s), ${res.actualizados} actualizado(s), ${res.saltados} saltado(s)${res.errores.length ? `, ${res.errores.length} con error` : ''}.`;
+      const resumen = this.i18n.t('{nuevos} nuevo(s), {actualizados} actualizado(s), {saltados} saltado(s){errores}.', {
+        nuevos: res.nuevos,
+        actualizados: res.actualizados,
+        saltados: res.saltados,
+        errores: res.errores.length ? this.i18n.t(', {n} con error', { n: res.errores.length }) : '',
+      });
       if (res.errores.length > 0) {
         // Regla 8 — NO cantar éxito ni cerrar: el usuario ve los errores por fila.
         this.importError.set(resumen);
-        this.toast.warning('Importación con errores', resumen);
+        this.toast.warning(this.i18n.t('Importación con errores'), resumen);
       } else {
-        this.toast.success('Importación completada', resumen);
+        this.toast.success(this.i18n.t('Importación completada'), resumen);
         this.importOpen.set(false);
       }
     } catch (e: unknown) {
-      this.importError.set(e instanceof Error ? e.message : 'Error durante la importación.');
+      this.importError.set(e instanceof Error ? e.message : this.i18n.t('Error durante la importación.'));
     } finally {
       this.importing.set(false);
     }

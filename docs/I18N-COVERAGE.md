@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 27%** (3028/11051 literales de 192 pantallas en alcance). **`ht`: 64%**.
+**Alcance `en`: 29%** (3149/11027 literales de 192 pantallas en alcance). **`ht`: 65%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -36,8 +36,6 @@
 | bitacora/solicitudes-compra | scope | 34 | 0 | 34 | 0% |
 | compras/ordenes | scope | 134 | 0 | 134 | 0% |
 | compras/ordenes-odoo | scope | 140 | 0 | 140 | 0% |
-| compras/proveedores | scope | 86 | 0 | 86 | 0% |
-| compras/proveedores-odoo | scope | 59 | 0 | 59 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | documentos/generar | scope | 9 | 0 | 9 | 0% |
 | documentos/historial | scope | 10 | 0 | 10 | 0% |
@@ -163,6 +161,8 @@
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
+| compras/proveedores | enforce | 77 | 77 | 0 | 100% |
+| compras/proveedores-odoo | enforce | 44 | 44 | 0 | 100% |
 | compras/reportes | enforce | 19 | 19 | 0 | 100% |
 | compras/solicitar-odoo | enforce | 30 | 30 | 0 | 100% |
 | configuracion/claude | enforce | 32 | 32 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**762 literal(es) sin t()** en 101 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**749 literal(es) sin t()** en 99 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -247,7 +247,6 @@
 | src/app/pages/tecnologia/oficina-agentes/oficina-agentes.ts | 8 | Ejecutado · No se pudo ejecutar · Deshecho … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
-| src/app/pages/compras/proveedores/proveedores.ts | 7 | No se pudo cambiar el estado del proveedor · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/flota/cupos-combustible/cupos-combustible.ts | 7 | Cupo ampliado · No se pudo ampliar · Falta el motivo … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
@@ -258,7 +257,6 @@
 | src/app/pages/rrhh/proveedores/proveedores.ts | 7 | No se pudieron cargar los proveedores · Falta el nombre · Proveedor guardado … |
 | src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |
 | src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
-| src/app/pages/compras/proveedores-odoo/proveedores-odoo.ts | 6 | No se pudo cargar más proveedores · No se pudo cambiar el estado del proveedor · Dato de prueba eliminado … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
