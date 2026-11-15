@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Salidas de Inventario' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} salida{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'salidas' : 'salida') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -13,7 +13,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Registrar salida
+      {{ 'Registrar salida' | t }}
     </button>
   </div>
 </div>
@@ -23,7 +23,7 @@
 @if (solicitudesPendientes().length > 0) {
   <a class="solicitudes-banner sgc-card" routerLink="/inventario/requisiciones">
     <span class="solicitudes-banner__text">
-      <strong>{{ solicitudesPendientes().length }}</strong> requisición(es) pendiente(s) de aprobar
+      <strong>{{ solicitudesPendientes().length }}</strong> {{ 'requisición(es) pendiente(s) de aprobar' | t }}
     </span>
     <span class="solicitudes-banner__cta">{{ 'Aprobar en Requisiciones →' | t }}</span>
   </a>
@@ -47,7 +47,7 @@
       (change)="onBodegaChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por almacén' | t }}"
     >
-      <option value="">Todos los almacenes</option>
+      <option value="">{{ 'Todos los almacenes' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -60,9 +60,9 @@
       (change)="onMotivoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por motivo' | t }}"
     >
-      <option value="">Todos los motivos</option>
+      <option value="">{{ 'Todos los motivos' | t }}</option>
       @for (m of MOTIVOS_SALIDA; track m.value) {
-        <option [value]="m.value">{{ m.label }}</option>
+        <option [value]="m.value">{{ m.label | t }}</option>
       }
     </select>
   </div>
@@ -76,7 +76,7 @@
       [checked]="soloSinReceptor()"
       (change)="onSinReceptorToggle($any($event.target).checked)"
     />
-    Sin receptor
+    {{ 'Sin receptor' | t }}
     @if (sinReceptorCount()) {
       <span class="sgc-badge sgc-badge--warning">{{ sinReceptorCount() }}</span>
     }
@@ -89,13 +89,13 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -126,9 +126,9 @@
       </svg>
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron salidas con los filtros aplicados.
+          {{ 'No se encontraron salidas con los filtros aplicados.' | t }}
         } @else {
-          No hay salidas registradas. Registra la primera.
+          {{ 'No hay salidas registradas. Registra la primera.' | t }}
         }
       </p>
     </div>
@@ -162,12 +162,12 @@
               <td>{{ s.bodega?.nombre ?? '—' }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getMotivoModifier(s.motivo)">
-                  {{ getMotivoLabel(s.motivo) }}
+                  {{ getMotivoLabel(s.motivo) | t }}
                 </span>
               </td>
               <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
               <!-- CJ10 — responsable vacío = "Por asignar" (no un guion mudo). -->
-              <td class="text-muted">{{ s.responsable || 'Por asignar' }}</td>
+              <td class="text-muted">{{ s.responsable || i18n.t('Por asignar') }}</td>
               <!-- CJ10 — nombre de quien registró (resuelto por DEFINER si el embed vino vacío por RLS). -->
               <td class="text-muted">{{ nombreRegistrador(s) }}</td>
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
@@ -204,9 +204,9 @@
                   [class.sgc-badge--success]="s.estado === 'entregado'"
                   [class.sgc-badge--danger]="s.estado === 'entregado_incompleto'"
                   [attr.title]="s.estado === 'despachado'
-                    ? 'Falta que la obra confirme la recepción (foto y firma).'
-                    : (s.recibido?.nombre ? ('Confirmado por ' + s.recibido?.nombre) : null)"
-                >{{ ESTADO_LABELS[s.estado] }}</span>
+                    ? i18n.t('Falta que la obra confirme la recepción (foto y firma).')
+                    : (s.recibido?.nombre ? (i18n.t('Confirmado por') + ' ' + s.recibido?.nombre) : null)"
+                >{{ ESTADO_LABELS[s.estado] | t }}</span>
                 <!-- CK4 §5 — despachado a obra sin nadie que confirme la entrega -->
                 @if (sinReceptor(s)) {
                   <span class="sgc-badge sgc-badge--warning salidas__sin-receptor"
@@ -242,7 +242,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -300,13 +300,13 @@
       </div>
       <h3 class="exito-hoja__title">{{ 'Salida registrada con éxito' | t }}</h3>
       <p class="exito-hoja__sub">
-        Se registró la salida de {{ (c.detalle_salidas ?? []).length }} artículo(s) del almacén
+        {{ 'Se registró la salida de' | t }} {{ (c.detalle_salidas ?? []).length }} {{ 'artículo(s) del almacén' | t }}
         <strong>{{ c.bodega?.nombre ?? '—' }}</strong>.
       </p>
 
       <div class="exito-hoja__actions">
         <a class="sgc-btn sgc-btn--secondary" [routerLink]="['/inventario/salidas', c.id, 'conduce']">
-          Ver conduce
+          {{ 'Ver conduce' | t }}
         </a>
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="registrarOtra()">{{ 'Registrar otra' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDrawer()">{{ 'Cerrar' | t }}</button>
@@ -320,9 +320,9 @@
       <!-- A2: aprobación de requisición — mapea cada renglón al catálogo; el sistema divide -->
       <div class="req-approve-note">
         <p class="req-approve-note__lead">
-          Elige el <strong>{{ 'almacén' | t }}</strong> y confirma a qué artículo del catálogo corresponde cada renglón.
-          El sistema despachará lo que haya en stock (con su conduce) y generará automáticamente una
-          <strong>{{ 'solicitud de compra' | t }}</strong> por el faltante y por los renglones sin artículo del catálogo.
+          {{ 'Elige el' | t }} <strong>{{ 'almacén' | t }}</strong> {{ 'y confirma a qué artículo del catálogo corresponde cada renglón.' | t }}
+          {{ 'El sistema despachará lo que haya en stock (con su conduce) y generará automáticamente una' | t }}
+          <strong>{{ 'solicitud de compra' | t }}</strong> {{ 'por el faltante y por los renglones sin artículo del catálogo.' | t }}
         </p>
 
         <div class="sgc-field">
@@ -348,7 +348,7 @@
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option [ngValue]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">{{ 'Seleccionar almacén…' | t }}</option>
           @for (b of bodegasVisibles(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
@@ -382,9 +382,9 @@
           formControlName="motivo"
           [class.invalid]="f.motivo.invalid && f.motivo.touched"
         >
-          <option [ngValue]="null">Seleccionar motivo…</option>
+          <option [ngValue]="null">{{ 'Seleccionar motivo…' | t }}</option>
           @for (m of MOTIVOS_SALIDA; track m.value) {
-            <option [value]="m.value">{{ m.label }}</option>
+            <option [value]="m.value">{{ m.label | t }}</option>
           }
         </select>
         @if (f.motivo.invalid && f.motivo.touched) {
@@ -397,7 +397,7 @@
         <div class="sgc-field">
           <label for="proyecto_id">{{ 'Obra destino' | t }}</label>
           <select id="proyecto_id" formControlName="proyecto_id">
-            <option [ngValue]="null">Sin proyecto</option>
+            <option [ngValue]="null">{{ 'Sin proyecto' | t }}</option>
             @for (p of activeProyectos(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }
@@ -417,16 +417,16 @@
           <div class="sgc-field">
             <label for="receptor_usuario_id">{{ 'Receptor en la obra (opcional)' | t }}</label>
             <select id="receptor_usuario_id" formControlName="receptor_usuario_id">
-              <option [ngValue]="null">Sin designar (se confirma en la entrega)</option>
+              <option [ngValue]="null">{{ 'Sin designar (se confirma en la entrega)' | t }}</option>
               @for (r of receptores(); track r.id) {
                 <option [value]="r.id">{{ r.nombre }}{{ r.detalle ? ' · ' + r.detalle : '' }}</option>
               }
             </select>
             <span class="field-hint">
               @if (receptores().length === 0) {
-                No hay receptores vinculados a esta obra; se firmará al momento de entregar.
+                {{ 'No hay receptores vinculados a esta obra; se firmará al momento de entregar.' | t }}
               } @else {
-                Se le avisará para que confirme la recepción desde su dispositivo.
+                {{ 'Se le avisará para que confirme la recepción desde su dispositivo.' | t }}
               }
             </span>
           </div>
@@ -439,7 +439,7 @@
         <div class="sgc-field">
           <label for="despachante_usuario_id">{{ 'Despachante (opcional)' | t }}</label>
           <select id="despachante_usuario_id" formControlName="despachante_usuario_id">
-            <option [ngValue]="null">Sin designar (firma en mostrador al despachar)</option>
+            <option [ngValue]="null">{{ 'Sin designar (firma en mostrador al despachar)' | t }}</option>
             @for (d of despachantes(); track d.id) {
               @if (d.tipo === 'usuario') {
                 <option [value]="d.id">{{ d.nombre }}{{ d.detalle ? ' · ' + d.detalle : '' }}</option>
@@ -447,8 +447,8 @@
             }
           </select>
           <span class="field-hint">
-            Si eliges un despachante, se le avisará para que firme desde su bandeja
-            "Conduces por firmar"; el chofer podrá entregar recién después de esa firma.
+            {{ 'Si eliges un despachante, se le avisará para que firme desde su bandeja' | t }}
+            {{ '"Conduces por firmar"; el chofer podrá entregar recién después de esa firma.' | t }}
           </span>
         </div>
 
@@ -456,20 +456,20 @@
         <div class="sgc-field">
           <label for="conductor_id">{{ 'Chofer (opcional)' | t }}</label>
           <select id="conductor_id" formControlName="conductor_id">
-            <option [ngValue]="null">Sin asignar (se entrega en mostrador)</option>
+            <option [ngValue]="null">{{ 'Sin asignar (se entrega en mostrador)' | t }}</option>
             @for (c of conductores(); track c.id) {
               <option [value]="c.id">{{ c.nombre }}</option>
             }
           </select>
           <span class="field-hint">
-            Si eliges un chofer, el conduce entra en su ruta del día automáticamente.
+            {{ 'Si eliges un chofer, el conduce entra en su ruta del día automáticamente.' | t }}
           </span>
         </div>
 
         <div class="sgc-field">
           <label for="vehiculo_id">{{ 'Vehículo (opcional)' | t }}</label>
           <select id="vehiculo_id" formControlName="vehiculo_id">
-            <option [ngValue]="null">Sin asignar</option>
+            <option [ngValue]="null">{{ 'Sin asignar' | t }}</option>
             @for (ve of vehiculos(); track ve.id) {
               <option [value]="ve.id">{{ ve.label }}</option>
             }
@@ -482,9 +482,9 @@
         <div class="sgc-field">
           <label for="destino_almacen_id">{{ 'Almacén destino' | t }} <span class="required">*</span></label>
           <select id="destino_almacen_id" formControlName="destino_almacen_id">
-            <option [ngValue]="null">Seleccionar almacén…</option>
+            <option [ngValue]="null">{{ 'Seleccionar almacén…' | t }}</option>
             @for (a of almacenesDestino(); track a.id) {
-              <option [value]="a.id">{{ a.nombre }} · Central</option>
+              <option [value]="a.id">{{ a.nombre }} · {{ 'Central' | t }}</option>
             }
           </select>
           <span class="field-hint">{{ 'La entrada al almacén se genera al confirmarse la recepción.' | t }}</span>
@@ -516,7 +516,7 @@
       <div class="sgc-field">
         <label class="toggle-label">
           <input type="checkbox" [checked]="crearComoPrueba()" (change)="crearComoPrueba.set($any($event.target).checked)" />
-          Registrar como dato de prueba
+          {{ 'Registrar como dato de prueba' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Los movimientos de prueba no afectan el stock real ni los KPIs; se ocultan salvo que actives “ver datos de prueba”.' | t }}</small>
       </div>
@@ -532,7 +532,7 @@
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm salidas__foto-pick">
-          <app-icon name="camera" [size]="16" /> Adjuntar foto
+          <app-icon name="camera" [size]="16" /> {{ 'Adjuntar foto' | t }}
           <input type="file" accept="image/*" capture="environment" (change)="onFotoSelected($event)" hidden />
         </label>
       }
@@ -544,7 +544,7 @@
         <div class="items-header">
           <label>{{ 'Artículos' | t }} <span class="required">*</span></label>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
-            + Agregar artículo
+            {{ '+ Agregar artículo' | t }}
           </button>
         </div>
 
@@ -569,8 +569,8 @@
                   (change)="setItemCaptura($index, $any($event.target).value)"
                   aria-label="{{ 'Unidad de captura' | t }}"
                 >
-                  <option value="base">por unidad</option>
-                  <option value="paquete">por {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
+                  <option value="base">{{ 'por unidad' | t }}</option>
+                  <option value="paquete">{{ 'por' | t }} {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
                 </select>
               }
               <app-qty-stepper
@@ -578,7 +578,7 @@
                 [value]="capturedQty(item)"
                 [min]="0"
                 [step]="1"
-                ariaLabel="Cantidad"
+                [ariaLabel]="i18n.t('Cantidad')"
                 (valueChange)="updateItemCantidad($index, $event)"
               />
             </div>
@@ -618,7 +618,7 @@
 
       <dl class="resumen-hoja__meta">
         <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ bodegaNombre() }}</dd></div>
-        <div><dt>{{ 'Motivo' | t }}</dt><dd>{{ f.motivo.value ? getMotivoLabel(f.motivo.value) : '—' }}</dd></div>
+        <div><dt>{{ 'Motivo' | t }}</dt><dd>{{ f.motivo.value ? (getMotivoLabel(f.motivo.value) | t) : '—' }}</dd></div>
         @if (f.motivo.value === 'uso_proyecto') {
           <div><dt>{{ 'Proyecto' | t }}</dt><dd>{{ proyectoNombre() }}</dd></div>
         }
@@ -631,14 +631,14 @@
           <div class="resumen-row">
             <div class="resumen-row__info">
               <span class="resumen-row__nombre">{{ r.nombre }}</span>
-              <span class="resumen-row__cat">{{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.talla) { · Talla: {{ r.talla }} }@if (r.unidad_capturada && r.factor_aplicado > 1) { · {{ r.capturada | number:'1.0-2' }} {{ r.unidad_capturada }} = {{ r.cantidad | number:'1.0-2' }} {{ r.unidad_base }} }</span>
+              <span class="resumen-row__cat">{{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.talla) { · {{ 'Talla:' | t }} {{ r.talla }} }@if (r.unidad_capturada && r.factor_aplicado > 1) { · {{ r.capturada | number:'1.0-2' }} {{ r.unidad_capturada }} = {{ r.cantidad | number:'1.0-2' }} {{ r.unidad_base }} }</span>
             </div>
             <app-qty-stepper
               class="resumen-row__qty"
               [value]="r.capturada"
               [min]="0"
               [step]="1"
-              ariaLabel="Cantidad"
+              [ariaLabel]="i18n.t('Cantidad')"
               (valueChange)="updateItemCantidad(r.index, $event)"
             />
             <button
@@ -686,28 +686,28 @@
     <div class="drawer-actions">
       @if (step() === 'resumen') {
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="volverAForm()">
-          ← Volver
+          {{ '← Volver' | t }}
         </button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving() || !resumenValido()">
           @if (saving()) {
             <span class="spinner" aria-hidden="true"></span>
-            Confirmando…
+            {{ 'Confirmando…' | t }}
           } @else {
-            Confirmar salida
+            {{ 'Confirmar salida' | t }}
           }
         </button>
       } @else {
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-          Cancelar
+          {{ 'Cancelar' | t }}
         </button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
           @if (saving()) {
             <span class="spinner" aria-hidden="true"></span>
-            Guardando…
+            {{ 'Guardando…' | t }}
           } @else if (atendiendoRequisicion()) {
-            Aprobar y despachar
+            {{ 'Aprobar y despachar' | t }}
           } @else {
-            Revisar →
+            {{ 'Revisar →' | t }}
           }
         </button>
       }
@@ -722,15 +722,15 @@
   @if (detailSalida(); as s) {
     <div class="salida-detalle">
       <dl class="salida-detalle__meta">
-        <div><dt>Conduce</dt><dd><code class="code-tag">{{ conduceNumero(s.id) }}</code></dd></div>
+        <div><dt>{{ 'Conduce' | t }}</dt><dd><code class="code-tag">{{ conduceNumero(s.id) }}</code></dd></div>
         <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(s.fecha) }}</dd></div>
         <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ s.bodega?.nombre ?? '—' }}</dd></div>
-        <div><dt>{{ 'Motivo' | t }}</dt><dd>{{ getMotivoLabel(s.motivo) }}</dd></div>
+        <div><dt>{{ 'Motivo' | t }}</dt><dd>{{ getMotivoLabel(s.motivo) | t }}</dd></div>
         @if (s.proyecto?.nombre) { <div><dt>{{ 'Proyecto' | t }}</dt><dd>{{ s.proyecto?.nombre }}</dd></div> }
         <div><dt>{{ 'Responsable' | t }}</dt><dd>{{ s.responsable || '—' }}</dd></div>
         @if (s.conductor?.nombre) { <div><dt>{{ 'Conductor' | t }}</dt><dd>{{ s.conductor?.nombre }}</dd></div> }
         @if (s.vehiculo?.placa) { <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ idVehiculo(s.vehiculo) }}</dd></div> }
-        <div><dt>{{ 'Estado' | t }}</dt><dd>{{ ESTADO_LABELS[s.estado] }}</dd></div>
+        <div><dt>{{ 'Estado' | t }}</dt><dd>{{ ESTADO_LABELS[s.estado] | t }}</dd></div>
         @if (s.recibido?.nombre) { <div><dt>{{ 'Recibido por' | t }}</dt><dd>{{ s.recibido?.nombre }}</dd></div> }
         <div><dt>{{ 'Registrado por' | t }}</dt><dd>{{ nombreRegistrador(s) }}</dd></div>
       </dl>
@@ -760,7 +760,7 @@
         }
         @if (s.entrega_foto_path) {
           <div class="salida-detalle__evidencia">
-            <span class="salida-detalle__evidencia-label">Foto de entrega{{ s.entrega_receptor ? ' — ' + s.entrega_receptor : '' }}</span>
+            <span class="salida-detalle__evidencia-label">{{ 'Foto de entrega' | t }}{{ s.entrega_receptor ? ' — ' + s.entrega_receptor : '' }}</span>
             <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_foto_path!)" title="{{ 'Ver en grande' | t }}">
               @if (detailEntregaFotoThumb(); as t) { <img [src]="t" alt="{{ 'Foto de entrega' | t }}" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
             </button>
@@ -776,13 +776,13 @@
         }
       </div>
 
-      <h4 class="salida-detalle__title">Artículos ({{ (s.detalle_salidas ?? []).length }})</h4>
+      <h4 class="salida-detalle__title">{{ 'Artículos' | t }} ({{ (s.detalle_salidas ?? []).length }})</h4>
       <table class="data-table">
         <thead><tr><th>{{ 'Artículo' | t }}</th><th class="text-right">{{ 'Cantidad' | t }}</th><th class="text-right">{{ 'Recibida' | t }}</th></tr></thead>
         <tbody>
           @for (d of s.detalle_salidas ?? []; track d.id) {
             <tr>
-              <td>{{ d.articulo?.nombre ?? '—' }} <span class="text-muted">{{ d.articulo?.codigo }}</span>@if (d.talla) { <span class="sgc-badge sgc-badge--neutral">Talla {{ d.talla }}</span> }</td>
+              <td>{{ d.articulo?.nombre ?? '—' }} <span class="text-muted">{{ d.articulo?.codigo }}</span>@if (d.talla) { <span class="sgc-badge sgc-badge--neutral">{{ 'Talla' | t }} {{ d.talla }}</span> }</td>
               <td class="text-right">
                 {{ d.cantidad | number }} {{ d.articulo?.unidad }}
                 <!-- BM5d — cómo se pidió/despachó: "2 atado" (la cantidad de arriba sigue en unidad base). -->

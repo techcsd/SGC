@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 24%** (2650/11107 literales de 193 pantallas en alcance). **`ht`: 49%**.
+**Alcance `en`: 24%** (2710/11116 literales de 193 pantallas en alcance). **`ht`: 53%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -144,7 +144,6 @@
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/salidas | scope | 124 | 73 | 51 | 59% |
 | inventario/bodegas | scope | 70 | 42 | 28 | 60% |
 | inventario/activos | scope | 71 | 43 | 28 | 61% |
 | inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
@@ -186,7 +185,7 @@
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces | enforce | 34 | 34 | 0 | 100% |
-| inventario/conduces-externos | scope | 14 | 14 | 0 | 100% |
+| inventario/conduces-externos | enforce | 14 | 14 | 0 | 100% |
 | inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
 | inventario/confirmaciones | enforce | 27 | 27 | 0 | 100% |
 | inventario/conteos | enforce | 68 | 68 | 0 | 100% |
@@ -198,12 +197,13 @@
 | inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
 | inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
-| inventario/stock-odoo | scope | 27 | 27 | 0 | 100% |
+| inventario/salidas | enforce | 133 | 133 | 0 | 100% |
+| inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**918 literal(es) sin t()** en 120 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**906 literal(es) sin t()** en 119 archivo(s) (de 141 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -232,7 +232,6 @@
 | src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
 | src/app/pages/flota/flota-subnav/flota-subnav.ts | 12 | Mapa en vivo · Rutas activas · Recorrido diario … |
 | src/app/pages/inventario/requisiciones/requisiciones.ts | 12 | Fecha de necesidad actualizada · No se pudo cambiar la fecha · Cobertura deshecha … |
-| src/app/pages/inventario/salidas/salidas.ts | 12 | Salida registrada · Salida registrada · Conduce registrado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |

@@ -412,9 +412,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/salidas": {
-      "enforce": false
-    },
     "inventario/bodegas": {
       "enforce": false
     },
@@ -572,6 +569,9 @@
       "enforce": true
     },
     "inventario/reposicion": {
+      "enforce": true
+    },
+    "inventario/salidas": {
       "enforce": true
     },
     "inventario/stock-odoo": {

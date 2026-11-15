@@ -47,6 +47,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 // CX3.2 — snapshot de filtros/página recordado mientras la persona siga en
 // Inventario (ver ListaEstadoService).
@@ -78,6 +79,7 @@ export class Salidas implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private stockService = inject(StockService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
@@ -931,14 +933,14 @@ export class Salidas implements OnInit {
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
     if (this.form.invalid || items.length === 0) {
       if (items.length === 0) {
-        this.saveError.set('Agrega al menos un artículo con cantidad mayor a cero.');
+        this.saveError.set(this.i18n.t('Agrega al menos un artículo con cantidad mayor a cero.'));
       }
       return;
     }
 
     const articuloIds = items.map((i) => i.articulo_id);
     if (new Set(articuloIds).size !== articuloIds.length) {
-      this.saveError.set('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.');
+      this.saveError.set(this.i18n.t('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.'));
       return;
     }
 
@@ -952,11 +954,11 @@ export class Salidas implements OnInit {
 
     const v = this.form.value;
     if (v.motivo === 'uso_proyecto' && !v.proyecto_id) {
-      this.saveError.set('Selecciona el proyecto para una salida por uso en proyecto.');
+      this.saveError.set(this.i18n.t('Selecciona el proyecto para una salida por uso en proyecto.'));
       return;
     }
     if (v.motivo === 'traslado_almacen' && !v.destino_almacen_id) {
-      this.saveError.set('Selecciona el almacén destino (Bodega Central) para el traslado.');
+      this.saveError.set(this.i18n.t('Selecciona el almacén destino (Bodega Central) para el traslado.'));
       return;
     }
 
@@ -964,13 +966,13 @@ export class Salidas implements OnInit {
     // archivo: una laptop de almacén no tiene cámara de obra). Solo cuando el flujo
     // de conduce está activo y la salida es uso en proyecto; revertible apagando el flag.
     if (this.wizardConduceOn() && v.motivo === 'uso_proyecto' && !this.fotoFile()) {
-      this.saveError.set('Adjunta la foto de evidencia de la carga (obligatoria para el conduce a obra).');
+      this.saveError.set(this.i18n.t('Adjunta la foto de evidencia de la carga (obligatoria para el conduce a obra).'));
       return;
     }
 
     // CK6 — si se eligió chofer, debe ser un id válido (no el string "undefined"/vacío).
     if (this.wizardConduceOn() && v.conductor_id && !esUuid(v.conductor_id)) {
-      this.saveError.set('Elige un chofer de la lista.');
+      this.saveError.set(this.i18n.t('Elige un chofer de la lista.'));
       return;
     }
 
@@ -1021,7 +1023,7 @@ export class Salidas implements OnInit {
           created.foto_path = path;
         } catch {
           // La salida ya se registró; la foto es opcional y no debe revertirla.
-          this.toast.warning('Salida registrada', 'No se pudo adjuntar la foto; puedes reintentar luego.');
+          this.toast.warning(this.i18n.t('Salida registrada'), 'No se pudo adjuntar la foto; puedes reintentar luego.');
         }
       }
       // AA21 — crear como prueba (admin): devuelve el stock recién descontado para
@@ -1041,7 +1043,7 @@ export class Salidas implements OnInit {
             libres.map((l) => ({ nombre: l.nombre.trim(), cantidad: l.cantidad, unidad: l.unidad.trim() || null })),
           );
         } catch {
-          this.toast.warning('Salida registrada', 'No se pudo adjuntar el material no catalogado; reintenta desde el conduce.');
+          this.toast.warning(this.i18n.t('Salida registrada'), 'No se pudo adjuntar el material no catalogado; reintenta desde el conduce.');
         }
       }
       // AT16 — designa al receptor que confirmará la entrega en la obra (firma
@@ -1052,7 +1054,7 @@ export class Salidas implements OnInit {
         try {
           await this.salidasService.asignarFirmaPendiente(created.id, receptorId, receptor?.nombre ?? '');
         } catch {
-          this.toast.warning('Conduce registrado', 'No se pudo designar el receptor; puedes hacerlo desde el conduce.');
+          this.toast.warning(this.i18n.t('Conduce registrado'), 'No se pudo designar el receptor; puedes hacerlo desde el conduce.');
         }
       }
       // AV5 — designa el despachante (firma remota desde su bandeja "Por firmar").
@@ -1061,7 +1063,7 @@ export class Salidas implements OnInit {
         try {
           await this.salidasService.asignarDespachante(created.id, despachanteId);
         } catch (e) {
-          this.toast.warning('Conduce registrado', e instanceof Error ? e.message : 'No se pudo designar el despachante; puedes hacerlo desde el conduce.');
+          this.toast.warning(this.i18n.t('Conduce registrado'), e instanceof Error ? e.message : 'No se pudo designar el despachante; puedes hacerlo desde el conduce.');
         }
       }
       // BO7 — enlaza el conduce plano a la requisición de procedencia (despacho_marcar).
@@ -1074,7 +1076,7 @@ export class Salidas implements OnInit {
           this.solicitudesPendientes.update((l) => l.filter((x) => x.id !== solicitudPlano.id));
         } catch (e) {
           this.toast.warning(
-            'Conduce registrado',
+            this.i18n.t('Conduce registrado'),
             e instanceof Error ? e.message : 'No se pudo enlazar a la requisición; vincúlalo desde la bandeja.',
           );
         }
@@ -1105,20 +1107,20 @@ export class Salidas implements OnInit {
   private async aprobarRequisicion(solicitud: SolicitudMaterial) {
     this.form.markAllAsTouched();
     if (!this.form.controls.bodega_id.value) {
-      this.saveError.set('Selecciona el almacén desde el que se despachará.');
+      this.saveError.set(this.i18n.t('Selecciona el almacén desde el que se despachará.'));
       return;
     }
     if (this.saving()) return;
 
     const reqItems = this.reqItems().filter((i) => i.cantidad > 0);
     if (reqItems.length === 0) {
-      this.saveError.set('La requisición no tiene renglones válidos.');
+      this.saveError.set(this.i18n.t('La requisición no tiene renglones válidos.'));
       return;
     }
     // Un mismo artículo mapeado no puede repetirse (el despacho fallaría al sumar stock).
     const mapped = reqItems.map((i) => i.articulo_id).filter((x): x is string => !!x);
     if (new Set(mapped).size !== mapped.length) {
-      this.saveError.set('Un mismo artículo está mapeado en más de un renglón. Combínalos en uno solo.');
+      this.saveError.set(this.i18n.t('Un mismo artículo está mapeado en más de un renglón. Combínalos en uno solo.'));
       return;
     }
 
@@ -1143,16 +1145,16 @@ export class Salidas implements OnInit {
       // Resumen de la división para el aprobador.
       if (res.faltante_total > 0 && res.despachado_total > 0) {
         this.toast.success(
-          'Requisición aprobada',
+          this.i18n.t('Requisición aprobada'),
           `Se despachó lo disponible (${res.despachado_total}) y se generó una solicitud de compra por el faltante (${res.faltante_total}) en Compras.`,
         );
       } else if (res.faltante_total > 0) {
         this.toast.warning(
-          'Requisición aprobada — sin stock',
+          this.i18n.t('Requisición aprobada — sin stock'),
           `No había stock disponible. Se generó una solicitud de compra por ${res.faltante_total} en el módulo Compras.`,
         );
       } else {
-        this.toast.success('Requisición aprobada', 'Se despachó completa desde el almacén. Genera el conduce para la entrega.');
+        this.toast.success(this.i18n.t('Requisición aprobada'), 'Se despachó completa desde el almacén. Genera el conduce para la entrega.');
       }
 
       // CL2 — momento mediano "caja sale" cuando hubo despacho real.
@@ -1228,7 +1230,7 @@ export class Salidas implements OnInit {
       const url = await this.salidasService.getFotoUrl(s.foto_path);
       if (url) this.fotoLightbox.set(url);
     } catch {
-      this.fotoError.set('No se pudo abrir la foto.');
+      this.fotoError.set(this.i18n.t('No se pudo abrir la foto.'));
     }
   }
 
@@ -1294,24 +1296,24 @@ export class Salidas implements OnInit {
       await this.datosPrueba.marcarMovimiento('salidas_inventario', s.id, valor);
       this.salidas.update((list) => list.map((x) => (x.id === s.id ? { ...x, es_prueba: valor } : x)));
       this.toast.success(
-        valor ? 'Marcada como prueba' : 'Prueba quitada',
+        this.i18n.t(valor ? 'Marcada como prueba' : 'Prueba quitada'),
         valor ? 'La salida se ocultará del listado.' : 'La salida vuelve al listado normal.',
       );
     } catch (err: unknown) {
-      this.toast.error('Error', err instanceof Error ? err.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), err instanceof Error ? err.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente una salida marcada como prueba. */
   async eliminarPrueba(s: SalidaInventario) {
     if (!this.esAdmin() || !s.es_prueba) return;
-    if (!confirm(`¿Eliminar definitivamente la salida de prueba del ${this.formatFecha(s.fecha)}? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar definitivamente la salida de prueba del {f}? Esta acción no se puede deshacer.', { f: this.formatFecha(s.fecha) }))) return;
     try {
       await this.datosPrueba.eliminar(this.TABLA_PRUEBA, s.id);
       this.salidas.update((list) => list.filter((x) => x.id !== s.id));
-      this.toast.success('Dato de prueba eliminado', 'Se eliminó la salida.');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), 'Se eliminó la salida.');
     } catch (err: unknown) {
-      this.toast.error('Error al eliminar', err instanceof Error ? err.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), err instanceof Error ? err.message : 'Intenta de nuevo.');
     }
   }
 
