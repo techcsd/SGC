@@ -15,6 +15,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { MapLegend } from '../../../../shared/ui/map-legend/map-legend';
 import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * AT1 — Recorrido diario (tipo Google Maps Timeline): elegir chofer + fecha y ver
@@ -35,6 +36,7 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
   private svc = inject(SeguimientoService);
   private loader = inject(GoogleMapsLoader);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
   readonly hora = formatHoraTimestamp;
   readonly fechaMedia = formatFechaMedia;
 

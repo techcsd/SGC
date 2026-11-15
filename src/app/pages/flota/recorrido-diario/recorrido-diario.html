@@ -5,8 +5,7 @@
     <div>
       <h1 class="page__title">{{ 'Recorrido diario' | t }}</h1>
       <p class="page__sub">
-        Elige un chofer y una fecha para ver su recorrido del día — aunque no haya estado en
-        una ruta. Se dibuja a partir de las posiciones capturadas por su teléfono durante la jornada.
+        {{ 'Elige un chofer y una fecha para ver su recorrido del día — aunque no haya estado en una ruta. Se dibuja a partir de las posiciones capturadas por su teléfono durante la jornada.' | t }}
       </p>
     </div>
     <a class="page__link" routerLink="/flota/seguimiento">{{ 'Ver en vivo →' | t }}</a>
@@ -32,7 +31,7 @@
                   (click)="seleccionarChofer(c.usuario_id)"
                 >
                   <span class="rec-chofer__nombre">{{ c.nombre }}</span>
-                  <span class="rec-chofer__dias">{{ c.dias }} día{{ c.dias === 1 ? '' : 's' }}</span>
+                  <span class="rec-chofer__dias">{{ c.dias }} {{ (c.dias === 1 ? 'día' : 'días') | t }}</span>
                 </button>
               </li>
             }
@@ -55,7 +54,7 @@
             }
           </div>
           <label class="rec-jump">
-            Otra fecha
+            {{ 'Otra fecha' | t }}
             <input type="date" [ngModel]="fechaSel()" (ngModelChange)="verFecha($event)" />
           </label>
         }
@@ -66,11 +65,11 @@
         @if (recorrido(); as rec) {
           <div class="rec-resumen">
             <strong>{{ rec.nombre }}</strong>
-            <span>· {{ rec.puntos }} puntos</span>
-            @if (rec.km != null) { <span>· {{ rec.km | number:'1.0-1' }} km</span> }
+            <span>· {{ rec.puntos }} {{ 'puntos' | t }}</span>
+            @if (rec.km != null) { <span>· {{ rec.km | number:'1.0-1' }} {{ 'km' | t }}</span> }
             @if (rec.primer_at) { <span>· {{ hora(rec.primer_at) }} → {{ hora(rec.ultimo_at) }}</span> }
             <span class="rec-fuente" [class.rec-fuente--vivo]="rec.fuente === 'vivo'">
-              {{ rec.fuente === 'vivo' ? 'en vivo' : 'consolidado' }}
+              {{ (rec.fuente === 'vivo' ? 'en vivo' : 'consolidado') | t }}
             </span>
           </div>
         }
@@ -92,14 +91,14 @@
         <!-- AU7 — Paradas / visitas detectadas (estilo Google Timeline) -->
         @if (paradas().length) {
           <div class="rec-paradas">
-            <h3 class="rec-paradas__h">Paradas del día ({{ paradas().length }})</h3>
+            <h3 class="rec-paradas__h">{{ 'Paradas del día' | t }} ({{ paradas().length }})</h3>
             <ol class="rec-paradas__list">
               @for (p of paradas(); track $index) {
                 <li class="rec-parada" (click)="centrarParada(p)">
                   <span class="rec-parada__n">{{ $index + 1 }}</span>
                   <div class="rec-parada__info">
-                    <span class="rec-parada__lugar">{{ lugares()[$index] || 'Ubicando…' }}</span>
-                    <span class="rec-parada__t">{{ hora(p.inicio_at) }} → {{ hora(p.fin_at) }} · {{ p.minutos }} min</span>
+                    <span class="rec-parada__lugar">{{ lugares()[$index] || i18n.t('Ubicando…') }}</span>
+                    <span class="rec-parada__t">{{ hora(p.inicio_at) }} → {{ hora(p.fin_at) }} · {{ p.minutos }} {{ 'min' | t }}</span>
                   </div>
                 </li>
               }

@@ -3,7 +3,7 @@
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Estado de conductores' | t }}</h1>
     <span class="page-count">
-      {{ filtered().length }} de {{ conductores().length }} conductor{{ conductores().length !== 1 ? 'es' : '' }}
+      {{ filtered().length }} {{ 'de' | t }} {{ conductores().length }} {{ (conductores().length !== 1 ? 'conductores' : 'conductor') | t }}
     </span>
   </div>
 </div>
@@ -72,7 +72,7 @@
     </div>
     @if (filtroEstado() || search()) {
       <button type="button" class="sgc-btn sgc-btn--ghost filters-bar__clear" (click)="limpiarFiltros()">
-        Limpiar filtros
+        {{ 'Limpiar filtros' | t }}
       </button>
     }
   </div>
@@ -82,9 +82,9 @@
       <div class="table-empty">
         <p>
           @if (filtroEstado() || search()) {
-            No hay conductores que coincidan con los filtros.
+            {{ 'No hay conductores que coincidan con los filtros.' | t }}
           } @else {
-            No hay conductores registrados.
+            {{ 'No hay conductores registrados.' | t }}
           }
         </p>
       </div>
@@ -108,7 +108,7 @@
                 tabindex="0"
                 (click)="abrirConductor(c.conductor_id)"
                 (keyup.enter)="abrirConductor(c.conductor_id)"
-                [attr.aria-label]="'Ver perfil de ' + c.nombre"
+                [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + c.nombre"
               >
                 <td>
                   <div class="ce-conductor">
@@ -116,7 +116,7 @@
                     <div class="ce-conductor__text">
                       <span class="ce-conductor__name">{{ c.nombre }}</span>
                       @if (c.vehiculos_usados > 0) {
-                        <span class="ce-conductor__sub">{{ c.vehiculos_usados }} vehículo{{ c.vehiculos_usados !== 1 ? 's' : '' }} usado{{ c.vehiculos_usados !== 1 ? 's' : '' }}</span>
+                        <span class="ce-conductor__sub">{{ c.vehiculos_usados }} {{ (c.vehiculos_usados !== 1 ? 'vehículos usados' : 'vehículo usado') | t }}</span>
                       }
                     </div>
                   </div>
@@ -124,7 +124,7 @@
                 <td>{{ c.licencia_vencimiento ? formatFecha(c.licencia_vencimiento) : '—' }}</td>
                 <td>
                   <span class="sgc-badge sgc-badge--{{ estadoBadge[c.estado_licencia] }}">
-                    {{ estadoLabel[c.estado_licencia] }}
+                    {{ estadoLabel[c.estado_licencia] | t }}
                   </span>
                 </td>
                 <td class="text-right">{{ c.checklists_total }}</td>

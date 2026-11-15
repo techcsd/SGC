@@ -13,6 +13,7 @@ import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/u
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * S25 — Dashboard "Estado de conductores": KPIs clicables (filtran la tabla),
@@ -32,6 +33,7 @@ export class ConductoresEstado implements OnInit {
   private router = inject(Router);
   private userService = inject(UserService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  protected i18n = inject(I18nService);
 
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
   readonly estadoBadge = ESTADO_LICENCIA_BADGE;

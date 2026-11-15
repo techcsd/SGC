@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 42%** (4456/10684 literales de 192 pantallas en alcance). **`ht`: 66%**.
+**Alcance `en`: 42%** (4490/10684 literales de 192 pantallas en alcance). **`ht`: 68%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -117,7 +117,6 @@
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | flota/choferes-privados | scope | 44 | 22 | 22 | 50% |
-| flota/recorrido-diario | scope | 14 | 7 | 7 | 50% |
 | flota/avisos | scope | 46 | 25 | 21 | 54% |
 | flota/mantenimientos | scope | 93 | 54 | 39 | 58% |
 | flota/checklists | scope | 99 | 60 | 39 | 61% |
@@ -125,21 +124,16 @@
 | flota/rutas | scope | 98 | 61 | 37 | 62% |
 | flota/reporte-semanal | scope | 54 | 35 | 19 | 65% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
-| flota/seguimiento | scope | 22 | 15 | 7 | 68% |
 | flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
 | flota/conductores | scope | 165 | 115 | 50 | 70% |
 | flota/responsabilidad | scope | 56 | 39 | 17 | 70% |
 | flota/rutas-activas | scope | 37 | 26 | 11 | 70% |
 | flota/combustible-dashboard | scope | 41 | 29 | 12 | 71% |
-| flota/conductores-estado | scope | 14 | 10 | 4 | 71% |
-| flota/rendimiento-vehiculos | scope | 21 | 15 | 6 | 71% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | flota/accidentes | scope | 46 | 33 | 13 | 72% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| flota/transferencias | scope | 13 | 10 | 3 | 77% |
-| flota/panel-dia | scope | 23 | 18 | 5 | 78% |
 | flota/combustible-log | scope | 120 | 95 | 25 | 79% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
@@ -149,7 +143,6 @@
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
-| flota/reportes | scope | 35 | 33 | 2 | 94% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
@@ -170,6 +163,13 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
+| flota/panel-dia | enforce | 26 | 26 | 0 | 100% |
+| flota/recorrido-diario | enforce | 12 | 12 | 0 | 100% |
+| flota/rendimiento-vehiculos | enforce | 19 | 19 | 0 | 100% |
+| flota/reportes | enforce | 35 | 35 | 0 | 100% |
+| flota/seguimiento | enforce | 23 | 23 | 0 | 100% |
+| flota/transferencias | enforce | 12 | 12 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
 | inventario/almacen-inventario | enforce | 50 | 50 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**721 literal(es) sin t()** en 97 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**718 literal(es) sin t()** en 96 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -278,7 +278,6 @@
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
-| src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
 | src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
 | src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
 | src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |

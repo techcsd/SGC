@@ -4,6 +4,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 
 interface TransferenciaPendiente {
@@ -35,6 +36,7 @@ interface TransferenciaPendiente {
 export class FlotaTransferencias implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   filas = signal<TransferenciaPendiente[]>([]);
   loading = signal(true);
@@ -66,15 +68,16 @@ export class FlotaTransferencias implements OnInit {
   }
 
   async cancelar(f: TransferenciaPendiente) {
-    if (!confirm(`¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}?`)) return;
+    const nombre = f.a_nombre ?? this.i18n.t('este chofer');
+    if (!confirm(this.i18n.t('¿Cancelar la transferencia hacia {nombre}?', { nombre }))) return;
     this.cancelando.set(f.id);
     try {
       const { error } = await this.supabase.client.rpc('cancelar_transferencia_conduce', { p_id: f.id });
       if (error) throw new Error(error.message);
       this.filas.update((fs) => fs.filter((x) => x.id !== f.id));
-      this.toast.success('Transferencia cancelada', '');
+      this.toast.success(this.i18n.t('Transferencia cancelada'), '');
     } catch (e) {
-      this.toast.error('No se pudo cancelar', e instanceof Error ? humanizeError(e).mensaje : '');
+      this.toast.error(this.i18n.t('No se pudo cancelar'), e instanceof Error ? humanizeError(e).mensaje : '');
     } finally {
       this.cancelando.set(null);
     }

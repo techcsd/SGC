@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 42,
-  "pctHt": 66,
+  "pctHt": 68,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -6773,24 +6773,6 @@
       ]
     },
     {
-      "pantalla": "flota/recorrido-diario",
-      "total": 14,
-      "cubiertos": 7,
-      "sin": 7,
-      "pct": 50,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Elige un chofer y una fecha para ver su recorrido del día — aunque no haya estado en una ruta. Se dibuja a partir de las posiciones capturadas por su teléfono durante la jornada.",
-        "día",
-        "Otra fecha",
-        "· puntos",
-        "· km",
-        "Paradas del día ( )",
-        "→ · min"
-      ]
-    },
-    {
       "pantalla": "flota/avisos",
       "total": 46,
       "cubiertos": 25,
@@ -7224,24 +7206,6 @@
       ]
     },
     {
-      "pantalla": "flota/seguimiento",
-      "total": 22,
-      "cubiertos": 15,
-      "sin": 7,
-      "pct": 68,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "chofer · en ruta · ruta activa · con ubicación",
-        "Ver todos",
-        "Posición &lt; 2 min",
-        "· punto @if (t.km != null) { · km }",
-        "Paradas: /",
-        "Inicio",
-        "tramos"
-      ]
-    },
-    {
       "pantalla": "flota/conciliacion-combustible",
       "total": 165,
       "cubiertos": 116,
@@ -7436,38 +7400,6 @@
       ]
     },
     {
-      "pantalla": "flota/conductores-estado",
-      "total": 14,
-      "cubiertos": 10,
-      "sin": 4,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "de conductor",
-        "Limpiar filtros",
-        "vehículo usado",
-        "Ver perfil de"
-      ]
-    },
-    {
-      "pantalla": "flota/rendimiento-vehiculos",
-      "total": 21,
-      "cubiertos": 15,
-      "sin": 6,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "vehículo",
-        "Aproximado: el sistema nunca registra \"tanque lleno\", así que el rendimiento se calcula entre echadas (sin contar la primera del período) y no es exacto. Mientras más echadas y más distancia recorrida, más confiable el número — por eso cada fila trae su confianza.",
-        "Vehículo",
-        "Todos",
-        "de {",
-        "( duplicada excluida )"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -7565,36 +7497,6 @@
         "No se pudo guardar",
         "Enviado",
         "No se pudo enviar"
-      ]
-    },
-    {
-      "pantalla": "flota/transferencias",
-      "total": 13,
-      "cubiertos": 10,
-      "sin": 3,
-      "pct": 77,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Transferencia cancelada",
-        "No se pudo cancelar",
-        "¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}?"
-      ]
-    },
-    {
-      "pantalla": "flota/panel-dia",
-      "total": 23,
-      "cubiertos": 18,
-      "sin": 5,
-      "pct": 78,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Ver más ( restantes)",
-        "Choferes sin reportar ( )",
-        "Ver más ( restantes)",
-        "Alertas activas ( )",
-        "Ver más ( restantes)"
       ]
     },
     {
@@ -7784,19 +7686,6 @@
       "faltantes": [
         "Lote procesado",
         "Borrador descartado."
-      ]
-    },
-    {
-      "pantalla": "flota/reportes",
-      "total": 35,
-      "cubiertos": 33,
-      "sin": 2,
-      "pct": 94,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Ver perfil de",
-        "Ver perfil de"
       ]
     },
     {
@@ -8004,6 +7893,76 @@
       "pct": 100,
       "enScope": true,
       "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/conductores-estado",
+      "total": 15,
+      "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/panel-dia",
+      "total": 26,
+      "cubiertos": 26,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/recorrido-diario",
+      "total": 12,
+      "cubiertos": 12,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/rendimiento-vehiculos",
+      "total": 19,
+      "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/reportes",
+      "total": 35,
+      "cubiertos": 35,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/seguimiento",
+      "total": 23,
+      "cubiertos": 23,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/transferencias",
+      "total": 12,
+      "cubiertos": 12,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
       "faltantes": []
     },
     {

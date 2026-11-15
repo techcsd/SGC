@@ -63,7 +63,7 @@
         </div>
         @if (restantesInsp() > 0) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm pd-vermas" (click)="verMasInsp()">
-            Ver más ({{ restantesInsp() }} restantes)
+            {{ 'Ver más' | t }} ({{ restantesInsp() }} {{ 'restantes' | t }})
           </button>
         }
       }
@@ -71,7 +71,7 @@
 
     <!-- Choferes sin reportar -->
     <div class="sgc-card pd-col-side">
-      <div class="pd-card-title">Choferes sin reportar ({{ choferesSinReportar().length }})</div>
+      <div class="pd-card-title">{{ 'Choferes sin reportar' | t }} ({{ choferesSinReportar().length }})</div>
       @if (choferesSinReportar().length === 0) {
         <p class="pd-muted">{{ 'Todos los choferes activos reportaron.' | t }} <app-icon name="check" [size]="14" /></p>
       } @else {
@@ -82,7 +82,7 @@
         </ul>
         @if (restantesChoferes() > 0) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm pd-vermas" (click)="verMasChoferes()">
-            Ver más ({{ restantesChoferes() }} restantes)
+            {{ 'Ver más' | t }} ({{ restantesChoferes() }} {{ 'restantes' | t }})
           </button>
         }
       }
@@ -95,19 +95,19 @@
 
     <!-- Alertas activas -->
     <div class="sgc-card pd-col-side">
-      <div class="pd-card-title">Alertas activas ({{ alertasActivas().length }})</div>
+      <div class="pd-card-title">{{ 'Alertas activas' | t }} ({{ alertasActivas().length }})</div>
       @if (alertasActivas().length === 0) {
         <p class="pd-muted">{{ 'Sin alertas activas.' | t }} <app-icon name="check" [size]="14" /></p>
       } @else {
         @for (a of alertasVisibles(); track a.id) {
           <div class="pd-alert">
-            <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span>
+            <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] | t }}</span>
             <span class="pd-alert__msg">{{ a.mensaje }}</span>
           </div>
         }
         @if (restantesAlertas() > 0) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm pd-vermas" (click)="verMasAlertas()">
-            Ver más ({{ restantesAlertas() }} restantes)
+            {{ 'Ver más' | t }} ({{ restantesAlertas() }} {{ 'restantes' | t }})
           </button>
         }
       }

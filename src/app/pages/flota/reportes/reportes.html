@@ -70,7 +70,7 @@
             @for (v of flotaOrdenada(); track v.id) {
               <tr class="flota-reportes__row--link" [class.flota-reportes__row--inactive]="!v.activo"
                   (click)="irAVehiculo(v.id)" role="button" tabindex="0" (keydown.enter)="irAVehiculo(v.id)"
-                  [attr.aria-label]="'Ver perfil de ' + v.placa">
+                  [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + v.placa">
                 <td class="flota-reportes__placa">{{ v.placa }}</td>
                 <td>{{ v.marca }} {{ v.modelo }} {{ v.anio }}</td>
                 <td>{{ getTipoLabel(v.tipo) }}</td>
@@ -155,7 +155,7 @@
             @for (r of combustiblePorVehiculo(); track r.vehiculo_id) {
               <tr class="flota-reportes__row--link" (click)="irAVehiculo(r.vehiculo_id)"
                   role="button" tabindex="0" (keydown.enter)="irAVehiculo(r.vehiculo_id)"
-                  [attr.aria-label]="'Ver perfil de ' + r.placa">
+                  [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + r.placa">
                 <td class="flota-reportes__placa">{{ r.placa }} <span class="flota-reportes__sub">{{ r.marca }}</span></td>
                 <td>{{ r.litros | number:'1.1-1' }} L</td>
                 <td>RD$ {{ r.gasto | number:'1.0-0' }}</td>

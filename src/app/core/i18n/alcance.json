@@ -331,9 +331,6 @@
     "flota/choferes-privados": {
       "enforce": false
     },
-    "flota/recorrido-diario": {
-      "enforce": false
-    },
     "flota/avisos": {
       "enforce": false
     },
@@ -355,9 +352,6 @@
     "flota/vehiculos": {
       "enforce": false
     },
-    "flota/seguimiento": {
-      "enforce": false
-    },
     "flota/conciliacion-combustible": {
       "enforce": false
     },
@@ -373,12 +367,6 @@
     "flota/combustible-dashboard": {
       "enforce": false
     },
-    "flota/conductores-estado": {
-      "enforce": false
-    },
-    "flota/rendimiento-vehiculos": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -392,12 +380,6 @@
       "enforce": false
     },
     "admin/compa-conversaciones": {
-      "enforce": false
-    },
-    "flota/transferencias": {
-      "enforce": false
-    },
-    "flota/panel-dia": {
       "enforce": false
     },
     "flota/combustible-log": {
@@ -425,9 +407,6 @@
       "enforce": false
     },
     "borrador-claude": {
-      "enforce": false
-    },
-    "flota/reportes": {
       "enforce": false
     },
     "oauth-consent": {
@@ -489,6 +468,27 @@
     },
     "demo/progreso": {
       "enforce": false
+    },
+    "flota/conductores-estado": {
+      "enforce": true
+    },
+    "flota/panel-dia": {
+      "enforce": true
+    },
+    "flota/recorrido-diario": {
+      "enforce": true
+    },
+    "flota/rendimiento-vehiculos": {
+      "enforce": true
+    },
+    "flota/reportes": {
+      "enforce": true
+    },
+    "flota/seguimiento": {
+      "enforce": true
+    },
+    "flota/transferencias": {
+      "enforce": true
     },
     "inventario/activos": {
       "enforce": true
