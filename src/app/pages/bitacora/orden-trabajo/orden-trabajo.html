@@ -24,7 +24,7 @@
           <label for="proyecto_id">{{ 'Obra / Proyecto' | t }} <span class="required">*</span></label>
           <select id="proyecto_id" formControlName="proyecto_id"
                   [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-            <option [ngValue]="null">Seleccionar obra…</option>
+            <option [ngValue]="null">{{ 'Seleccionar obra…' | t }}</option>
             @for (p of proyectosVisibles(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }
@@ -107,7 +107,7 @@
           </div>
           <div class="sgc-field">
             <label>{{ 'Firma del ingeniero' | t }}</label>
-            <app-signature-pad #firmaIng ariaLabel="Firma del ingeniero"></app-signature-pad>
+            <app-signature-pad #firmaIng [ariaLabel]="'Firma del ingeniero' | t"></app-signature-pad>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('ing')">{{ 'Limpiar firma' | t }}</button>
           </div>
         </div>
@@ -135,7 +135,7 @@
           </div>
           <div class="sgc-field">
             <label>{{ 'Firma del cliente' | t }}</label>
-            <app-signature-pad #firmaCli ariaLabel="Firma del cliente"></app-signature-pad>
+            <app-signature-pad #firmaCli [ariaLabel]="'Firma del cliente' | t"></app-signature-pad>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('cli')">{{ 'Limpiar firma' | t }}</button>
           </div>
         </div>
@@ -143,7 +143,7 @@
 
       @if (esAdmin()) {
         <label class="ot-check">
-          <input type="checkbox" formControlName="es_prueba" /> Marcar como dato de prueba
+          <input type="checkbox" formControlName="es_prueba" /> {{ 'Marcar como dato de prueba' | t }}
         </label>
       }
     </section>
@@ -153,7 +153,7 @@
     <div class="ot-actions">
       <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost">{{ 'Cancelar' | t }}</a>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        {{ saving() ? 'Guardando…' : 'Registrar orden de trabajo' }}
+        {{ (saving() ? 'Guardando…' : 'Registrar orden de trabajo') | t }}
       </button>
     </div>
   </form>

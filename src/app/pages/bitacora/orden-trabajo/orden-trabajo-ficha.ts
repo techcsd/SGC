@@ -7,6 +7,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { OrdenTrabajoDetalle } from '../../../../shared/models/bitacora.model';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * BN1/BW1 — Ficha de una orden de trabajo: detalle + las dos firmas (ingeniero y
@@ -27,6 +28,7 @@ export class OrdenTrabajoFicha implements OnInit {
   private bitacoraService = inject(BitacoraService);
   private pdf = inject(OrdenTrabajoPdfService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   error = signal('');
@@ -91,9 +93,9 @@ export class OrdenTrabajoFicha implements OnInit {
   async copiarEnlace() {
     try {
       await navigator.clipboard.writeText(this.enlace());
-      this.toast.success('Enlace copiado.', 'Pégalo donde quieras compartir esta orden.');
+      this.toast.success(this.i18n.t('Enlace copiado.'), 'Pégalo donde quieras compartir esta orden.');
     } catch {
-      this.toast.error('No se pudo copiar el enlace.');
+      this.toast.error(this.i18n.t('No se pudo copiar el enlace.'));
     }
   }
 
@@ -131,11 +133,11 @@ export class OrdenTrabajoFicha implements OnInit {
     this.enviando.set(true);
     try {
       await this.bitacoraService.compartirOrdenTrabajo(this.bitacoraId(), ids);
-      this.toast.success('Orden compartida.', `Se avisó a ${ids.length} ${ids.length === 1 ? 'persona' : 'personas'} con el enlace.`);
+      this.toast.success(this.i18n.t('Orden compartida.'), `Se avisó a ${ids.length} ${ids.length === 1 ? 'persona' : 'personas'} con el enlace.`);
       this.destinatarios.set([]);
       this.enviarAbierto.set(false);
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo compartir.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo compartir.'));
     } finally {
       this.enviando.set(false);
     }

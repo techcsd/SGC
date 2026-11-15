@@ -295,19 +295,7 @@
     "auth": {
       "enforce": false
     },
-    "bitacora/dashboard": {
-      "enforce": false
-    },
-    "bitacora/entregas": {
-      "enforce": false
-    },
     "bitacora/historial": {
-      "enforce": false
-    },
-    "bitacora/moldes": {
-      "enforce": false
-    },
-    "bitacora/solicitudes-compra": {
       "enforce": false
     },
     "bitacora/solicitudes-material": {
@@ -328,13 +316,7 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "bitacora/cobertura": {
-      "enforce": false
-    },
     "ingenieria/pagos": {
-      "enforce": false
-    },
-    "bitacora/mi-proyecto": {
       "enforce": false
     },
     "bitacora/nueva": {
@@ -347,9 +329,6 @@
       "enforce": false
     },
     "admin/vault": {
-      "enforce": false
-    },
-    "bitacora/orden-trabajo": {
       "enforce": false
     },
     "reuniones/reunion-ficha": {
@@ -377,6 +356,27 @@
       "enforce": false
     },
     "ajustes-notificaciones": {
+      "enforce": true
+    },
+    "bitacora/cobertura": {
+      "enforce": true
+    },
+    "bitacora/dashboard": {
+      "enforce": true
+    },
+    "bitacora/entregas": {
+      "enforce": true
+    },
+    "bitacora/mi-proyecto": {
+      "enforce": true
+    },
+    "bitacora/moldes": {
+      "enforce": true
+    },
+    "bitacora/orden-trabajo": {
+      "enforce": true
+    },
+    "bitacora/solicitudes-compra": {
       "enforce": true
     },
     "claude": {

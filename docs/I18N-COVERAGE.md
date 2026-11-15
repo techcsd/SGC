@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 51%** (5457/10615 literales de 192 pantallas en alcance). **`ht`: 80%**.
+**Alcance `en`: 52%** (5500/10611 literales de 192 pantallas en alcance). **`ht`: 80%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -105,25 +105,18 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| bitacora/dashboard | scope | 18 | 10 | 8 | 56% |
-| bitacora/entregas | scope | 22 | 13 | 9 | 59% |
 | bitacora/historial | scope | 85 | 54 | 31 | 64% |
-| bitacora/moldes | scope | 20 | 13 | 7 | 65% |
-| bitacora/solicitudes-compra | scope | 28 | 19 | 9 | 68% |
 | bitacora/solicitudes-material | scope | 73 | 52 | 21 | 71% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | bitacora/cartillas | scope | 75 | 57 | 18 | 76% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| bitacora/cobertura | scope | 19 | 15 | 4 | 79% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
-| bitacora/mi-proyecto | scope | 5 | 4 | 1 | 80% |
 | bitacora/nueva | scope | 164 | 132 | 32 | 80% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
-| bitacora/orden-trabajo | scope | 81 | 72 | 9 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -133,6 +126,13 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
+| bitacora/cobertura | enforce | 20 | 20 | 0 | 100% |
+| bitacora/dashboard | enforce | 14 | 14 | 0 | 100% |
+| bitacora/entregas | enforce | 24 | 24 | 0 | 100% |
+| bitacora/mi-proyecto | enforce | 5 | 5 | 0 | 100% |
+| bitacora/moldes | enforce | 19 | 19 | 0 | 100% |
+| bitacora/orden-trabajo | enforce | 81 | 81 | 0 | 100% |
+| bitacora/solicitudes-compra | enforce | 26 | 26 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/ordenes | enforce | 111 | 111 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**543 literal(es) sin t()** en 80 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**537 literal(es) sin t()** en 77 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -262,7 +262,6 @@
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
-| src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
 | src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
 | src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
 | src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |
@@ -271,7 +270,6 @@
 | src/app/pages/admin/solicitudes-eliminacion/solicitudes-eliminacion.ts | 2 | Listo · ¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible. |
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
-| src/app/pages/bitacora/cobertura/cobertura.ts | 2 | Sin bitácoras · Al día |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
 | src/app/pages/legal/expedientes/expedientes.ts | 2 | No se pudo cambiar el estado del expediente · No se pudo fijar la fecha límite |
 | src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
@@ -280,7 +278,6 @@
 | src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
-| src/app/pages/bitacora/orden-trabajo/orden-trabajo.ts | 1 | Orden de trabajo registrada. |
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
 | src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |

@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 51,
+  "pctScopeEn": 52,
   "pctHt": 80,
   "filas": [
     {
@@ -5996,45 +5996,6 @@
       ]
     },
     {
-      "pantalla": "bitacora/dashboard",
-      "total": 18,
-      "cubiertos": 10,
-      "sin": 8,
-      "pct": 56,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "registro",
-        "Todas las obras",
-        "Incidentes",
-        "Días sin actividad",
-        "Obreros por migración",
-        "Ver incidentes",
-        "Ver días sin actividad",
-        "Ver bitácoras del día (migración)"
-      ]
-    },
-    {
-      "pantalla": "bitacora/entregas",
-      "total": 22,
-      "cubiertos": 13,
-      "sin": 9,
-      "pct": 59,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Ver conduce",
-        "Confirmar recepción",
-        "Origen:",
-        "Hay artículos con menos cantidad de la enviada — la entrega se marcará como",
-        "e Inventario será notificado.",
-        "Foto de la recepción",
-        "Adjunta:",
-        "Firma del receptor",
-        "Cantidad recibida de"
-      ]
-    },
-    {
       "pantalla": "bitacora/historial",
       "total": 85,
       "cubiertos": 54,
@@ -6074,44 +6035,6 @@
         "Dato de prueba eliminado",
         "Error al eliminar",
         "¿Eliminar esta bitácora de prueba? Esta acción no se puede deshacer."
-      ]
-    },
-    {
-      "pantalla": "bitacora/moldes",
-      "total": 20,
-      "cubiertos": 13,
-      "sin": 7,
-      "pct": 65,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "molde",
-        "Todas las estructuras",
-        "Limpiar filtros",
-        "cm",
-        "Real:",
-        "Plano:",
-        "cm"
-      ]
-    },
-    {
-      "pantalla": "bitacora/solicitudes-compra",
-      "total": 28,
-      "cubiertos": 19,
-      "sin": 9,
-      "pct": 68,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "solicitud",
-        "Nueva solicitud",
-        "artículo",
-        "por",
-        "Proveedor sugerido:",
-        "Ver foto",
-        "Categoría:",
-        "Orden de compra :",
-        "Seleccionar obra…"
       ]
     },
     {
@@ -6252,21 +6175,6 @@
       ]
     },
     {
-      "pantalla": "bitacora/cobertura",
-      "total": 19,
-      "cubiertos": 15,
-      "sin": 4,
-      "pct": 79,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Desde",
-        "Hasta",
-        "Sin bitácoras",
-        "Al día"
-      ]
-    },
-    {
       "pantalla": "ingenieria/pagos",
       "total": 68,
       "cubiertos": 54,
@@ -6289,18 +6197,6 @@
         "No se pudo crear el complemento",
         "No se pudo reabrir",
         "No se pudo abrir el PDF"
-      ]
-    },
-    {
-      "pantalla": "bitacora/mi-proyecto",
-      "total": 5,
-      "cubiertos": 4,
-      "sin": 1,
-      "pct": 80,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Presupuesto: RD$"
       ]
     },
     {
@@ -6414,26 +6310,6 @@
       ]
     },
     {
-      "pantalla": "bitacora/orden-trabajo",
-      "total": 81,
-      "cubiertos": 72,
-      "sin": 9,
-      "pct": 89,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Cédula:",
-        "Cédula:",
-        "Registrado por",
-        "Seleccionar obra…",
-        "Marcar como dato de prueba",
-        "Enlace copiado.",
-        "No se pudo copiar el enlace.",
-        "Orden compartida.",
-        "Orden de trabajo registrada."
-      ]
-    },
-    {
       "pantalla": "reuniones/reunion-ficha",
       "total": 54,
       "cubiertos": 49,
@@ -6537,6 +6413,76 @@
       "pantalla": "ajustes-notificaciones",
       "total": 16,
       "cubiertos": 16,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/cobertura",
+      "total": 20,
+      "cubiertos": 20,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/dashboard",
+      "total": 14,
+      "cubiertos": 14,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/entregas",
+      "total": 24,
+      "cubiertos": 24,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/mi-proyecto",
+      "total": 5,
+      "cubiertos": 5,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/moldes",
+      "total": 19,
+      "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/orden-trabajo",
+      "total": 81,
+      "cubiertos": 81,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/solicitudes-compra",
+      "total": 26,
+      "cubiertos": 26,
       "sin": 0,
       "pct": 100,
       "enScope": true,

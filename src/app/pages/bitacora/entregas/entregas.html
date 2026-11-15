@@ -42,10 +42,10 @@
           }
           <div class="entregas__card-actions">
             <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/bitacora/entregas', s.id, 'conduce']">
-              Ver conduce
+              {{ 'Ver conduce' | t }}
             </a>
             <button class="sgc-btn sgc-btn--primary" type="button" (click)="openConfirm(s)">
-              Confirmar recepción
+              {{ 'Confirmar recepción' | t }}
             </button>
           </div>
         </li>
@@ -62,7 +62,7 @@
       <span>{{ formatFecha(s.fecha) }}</span>
       <span>{{ s.destino_almacen?.nombre ?? s.proyecto?.nombre ?? '—' }}</span>
       @if (s.bodega?.nombre) {
-        <span>Origen: {{ s.bodega!.nombre }}</span>
+        <span>{{ 'Origen:' | t }} {{ s.bodega!.nombre }}</span>
       }
       @if (s.conductor?.nombre || s.vehiculo?.placa) {
         <span>
@@ -98,7 +98,7 @@
                 [value]="item.cantidad_recibida"
                 (input)="updateCantidadRecibida(i, $any($event.target).value)"
                 class="entregas__qty-input"
-                [attr.aria-label]="'Cantidad recibida de ' + item.articulo_nombre"
+                [attr.aria-label]="i18n.t('Cantidad recibida de') + ' ' + item.articulo_nombre"
               />
             </td>
             <td>
@@ -113,12 +113,12 @@
 
     @if (hayFaltante()) {
       <p class="entregas__warning">
-        Hay artículos con menos cantidad de la enviada — la entrega se marcará como <strong>{{ 'incompleta' | t }}</strong> e Inventario será notificado.
+        {{ 'Hay artículos con menos cantidad de la enviada — la entrega se marcará como' | t }} <strong>{{ 'incompleta' | t }}</strong> {{ 'e Inventario será notificado.' | t }}
       </p>
     }
 
     <div class="sgc-field">
-      <label for="foto-recepcion">Foto de la recepción{{ esAdmin() ? ' (opcional)' : '' }}</label>
+      <label for="foto-recepcion">{{ 'Foto de la recepción' | t }}{{ esAdmin() ? ' ' + i18n.t('(opcional)') : '' }}</label>
       <input
         id="foto-recepcion"
         type="file"
@@ -127,15 +127,15 @@
         (change)="onFotoChange($event)"
       />
       @if (foto(); as f) {
-        <p class="entregas__foto-ok">Adjunta: {{ f.name }}</p>
+        <p class="entregas__foto-ok">{{ 'Adjunta:' | t }} {{ f.name }}</p>
       } @else if (!esAdmin()) {
         <p class="sgc-hint">{{ 'Toma una foto del material recibido. Si no puedes, explica por qué en las notas.' | t }}</p>
       }
     </div>
 
     <div class="sgc-field">
-      <label>Firma del receptor{{ esAdmin() ? ' (opcional)' : '' }}</label>
-      <app-signature-pad #firmaPad ariaLabel="Firma del receptor"></app-signature-pad>
+      <label>{{ 'Firma del receptor' | t }}{{ esAdmin() ? ' ' + i18n.t('(opcional)') : '' }}</label>
+      <app-signature-pad #firmaPad [ariaLabel]="'Firma del receptor' | t"></app-signature-pad>
     </div>
 
     <div class="sgc-field">
@@ -156,7 +156,7 @@
     <div class="entregas__drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="onConfirm()">
-        @if (saving()) { Confirmando... } @else { Confirmar recepción }
+        @if (saving()) { {{ 'Confirmando...' | t }} } @else { {{ 'Confirmar recepción' | t }} }
       </button>
     </div>
   }

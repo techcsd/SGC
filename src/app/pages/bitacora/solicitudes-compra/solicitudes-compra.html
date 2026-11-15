@@ -1,13 +1,13 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Solicitar Compra' | t }}</h1>
-    <span class="page-count">{{ solicitudes().length }} solicitud{{ solicitudes().length !== 1 ? 'es' : '' }}</span>
+    <span class="page-count">{{ solicitudes().length }} {{ (solicitudes().length !== 1 ? 'solicitudes' : 'solicitud') | t }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Nueva solicitud
+    {{ 'Nueva solicitud' | t }}
   </button>
 </div>
 
@@ -42,14 +42,14 @@
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
             <td>{{ s.solicitante?.nombre ?? '—' }}</td>
             <td class="text-muted">
-              {{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}
+              {{ (s.items ?? []).length }} {{ ((s.items ?? []).length !== 1 ? 'artículos' : 'artículo') | t }}
               <span class="sc-chev"><app-icon [name]="expandedId() === s.id ? 'chevron-down' : 'chevron-right'" [size]="14" /></span>
             </td>
-            <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
+            <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) | t }}</span></td>
             <td class="text-muted">
               @if (s.atendido_en) {
                 {{ formatTimestamp(s.atendido_en) }}
-                @if (s.atendido?.nombre) { <span class="solicitud-atendido-por">por {{ s.atendido!.nombre }}</span> }
+                @if (s.atendido?.nombre) { <span class="solicitud-atendido-por">{{ 'por' | t }} {{ s.atendido!.nombre }}</span> }
               } @else {
                 —
               }
@@ -66,12 +66,12 @@
                         <span class="sc-detail__desc">{{ it.descripcion }}</span>
                         <span class="sc-detail__cant">× {{ it.cantidad }}</span>
                         @if (it.proveedor_sugerido) {
-                          <span class="sc-detail__prov">Proveedor sugerido: {{ it.proveedor_sugerido }}</span>
+                          <span class="sc-detail__prov">{{ 'Proveedor sugerido:' | t }} {{ it.proveedor_sugerido }}</span>
                         }
                         @if (it.foto_path) {
                           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verFoto(it.foto_path!); $event.stopPropagation()">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                            Ver foto
+                            {{ 'Ver foto' | t }}
                           </button>
                         }
                       </li>
@@ -80,12 +80,12 @@
                     }
                   </ul>
                   @if (s.notas) { <p class="sc-detail__notas"><strong>{{ 'Notas:' | t }}</strong> {{ s.notas }}</p> }
-                  @if (s.categoria) { <p class="sc-detail__meta">Categoría: {{ s.categoria }}</p> }
+                  @if (s.categoria) { <p class="sc-detail__meta">{{ 'Categoría:' | t }} {{ s.categoria }}</p> }
                   @if (s.orden_compra_id) {
                     @if (ordenDe(s.id); as oc) {
                       <p class="sc-detail__meta">
-                        Orden de compra{{ oc.numero ? ' ' + oc.numero : '' }}:
-                        <span class="sgc-badge sgc-badge--{{ ordenEstadoBadge(oc.orden_estado) }}">{{ ordenEstadoLabel(oc.orden_estado) }}</span>
+                        {{ 'Orden de compra' | t }}{{ oc.numero ? ' ' + oc.numero : '' }}:
+                        <span class="sgc-badge sgc-badge--{{ ordenEstadoBadge(oc.orden_estado) }}">{{ ordenEstadoLabel(oc.orden_estado) | t }}</span>
                       </p>
                     } @else {
                       <p class="sc-detail__meta">{{ 'Convertida en orden de compra.' | t }}</p>
@@ -111,7 +111,7 @@
     <div class="sgc-field">
       <label for="proyecto_id">{{ 'Obra' | t }} <span class="required">*</span></label>
       <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-        <option [ngValue]="null">Seleccionar obra…</option>
+        <option [ngValue]="null">{{ 'Seleccionar obra…' | t }}</option>
         @for (p of activeProyectos(); track p.id) {
           <option [value]="p.id">{{ p.nombre }}</option>
         }

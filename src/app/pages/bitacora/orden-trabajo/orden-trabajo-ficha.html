@@ -47,7 +47,7 @@
           } @else { <div class="otf-firma__empty">{{ 'Sin firma' | t }}</div> }
           <span class="otf-firma__nom">{{ firmaIng()?.nombre ?? '—' }}</span>
           @if (firmaIng()?.rol_desc) { <span class="otf-firma__desc">{{ firmaIng()?.rol_desc }}</span> }
-          @if (firmaIng()?.cedula) { <span class="otf-firma__ced">Cédula: {{ firmaIng()?.cedula }}</span> }
+          @if (firmaIng()?.cedula) { <span class="otf-firma__ced">{{ 'Cédula:' | t }} {{ firmaIng()?.cedula }}</span> }
         </div>
         <div class="otf-firma">
           <span class="otf-firma__rol">{{ 'Cliente' | t }}</span>
@@ -56,13 +56,13 @@
           } @else { <div class="otf-firma__empty">{{ 'Sin firma' | t }}</div> }
           <span class="otf-firma__nom">{{ firmaCli()?.nombre ?? '—' }}</span>
           @if (firmaCli()?.rol_desc) { <span class="otf-firma__desc">{{ firmaCli()?.rol_desc }}</span> }
-          @if (firmaCli()?.cedula) { <span class="otf-firma__ced">Cédula: {{ firmaCli()?.cedula }}</span> }
+          @if (firmaCli()?.cedula) { <span class="otf-firma__ced">{{ 'Cédula:' | t }} {{ firmaCli()?.cedula }}</span> }
         </div>
       </div>
     </div>
 
     <div class="otf-meta">
-      @if (o.bitacora?.autor) { <span>Registrado por {{ o.bitacora?.autor }}</span> }
+      @if (o.bitacora?.autor) { <span>{{ 'Registrado por' | t }} {{ o.bitacora?.autor }}</span> }
       @if (o.bitacora?.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }
     </div>
 

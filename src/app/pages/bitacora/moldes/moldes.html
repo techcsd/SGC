@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Medidas de moldes' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} molde{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'moldes' : 'molde') | t }}</span>
   </div>
   <div class="page-header__actions">
     <!-- DI2 — toggle de vista tarjetas/tabla -->
@@ -27,7 +27,7 @@
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedEstructura()" (change)="onEstructuraChange($any($event.target).value)"
             aria-label="{{ 'Filtrar por estructura' | t }}">
-      <option value="">Todas las estructuras</option>
+      <option value="">{{ 'Todas las estructuras' | t }}</option>
       @for (e of estructuras(); track e) {
         <option [value]="e">{{ e }}</option>
       }
@@ -38,7 +38,7 @@
 
   @if (hasActiveFilters()) {
     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -81,7 +81,7 @@
           <span>{{ 'Desviación máx.' | t }}:</span>
           @if (m.desviacion_max_cm != null) {
             <span [class.moldes-table__desv--alerta]="fueraTolerancia(m)">
-              {{ m.desviacion_max_cm | number:'1.0-1' }} cm
+              {{ m.desviacion_max_cm | number:'1.0-1' }} {{ 'cm' | t }}
             </span>
           } @else {
             —
@@ -121,9 +121,9 @@
             <td>
               <span class="moldes-table__titulo">{{ moldeTitulo(m) }}</span>
               <span class="moldes-table__forma">{{ m.forma }}</span>
-              <span class="moldes-table__medidas">Real: {{ medidasReal(m) }}</span>
+              <span class="moldes-table__medidas">{{ 'Real:' | t }} {{ medidasReal(m) }}</span>
               @if (medidasPlano(m) !== '—') {
-                <span class="moldes-table__medidas">Plano: {{ medidasPlano(m) }}</span>
+                <span class="moldes-table__medidas">{{ 'Plano:' | t }} {{ medidasPlano(m) }}</span>
               }
             </td>
             <td class="moldes-table__esquema" (click)="abrirVisor(m)">
@@ -133,7 +133,7 @@
             <td class="num">
               @if (m.desviacion_max_cm != null) {
                 <span [class.moldes-table__desv--alerta]="fueraTolerancia(m)">
-                  {{ m.desviacion_max_cm | number:'1.0-1' }} cm
+                  {{ m.desviacion_max_cm | number:'1.0-1' }} {{ 'cm' | t }}
                 </span>
               } @else {
                 —

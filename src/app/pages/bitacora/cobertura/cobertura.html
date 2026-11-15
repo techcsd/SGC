@@ -4,15 +4,15 @@
     <p>{{ 'Cuántas bitácoras hay por obra y por fecha — para ver qué obras están al día y cuáles faltan.' | t }}</p>
   </div>
   <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="exportando() || loading()">
-    {{ exportando() ? 'Exportando…' : 'Exportar a Excel' }}
+    {{ (exportando() ? 'Exportando…' : 'Exportar a Excel') | t }}
   </button>
 </div>
 
 <div class="cob-filtros">
-  <label>Desde
+  <label>{{ 'Desde' | t }}
     <input type="date" [value]="desde()" (change)="onDesde($any($event.target).value)" />
   </label>
-  <label>Hasta
+  <label>{{ 'Hasta' | t }}
     <input type="date" [value]="hasta()" (change)="onHasta($any($event.target).value)" />
   </label>
   <button type="button" class="sgc-btn sgc-btn--primary" (click)="cargar()" [disabled]="loading()">{{ 'Aplicar' | t }}</button>

@@ -30,7 +30,7 @@
           <p class="mi-proyecto-card__desc">{{ p.descripcion }}</p>
         }
         @if (p.presupuesto) {
-          <p class="mi-proyecto-card__meta">Presupuesto: RD$ {{ p.presupuesto | number:'1.0-0' }}</p>
+          <p class="mi-proyecto-card__meta">{{ 'Presupuesto: RD$' | t }} {{ p.presupuesto | number:'1.0-0' }}</p>
         }
 
         @if (p.latitud != null && p.longitud != null) {

@@ -14,6 +14,7 @@ import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad'
 import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * BN1 — Alta de una orden de trabajo (bitácora tipo `orden_trabajo`): trabajo
@@ -31,6 +32,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 })
 export class OrdenTrabajo implements OnInit {
   private bitacoraService = inject(BitacoraService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private proyectosService = inject(ProyectosService);
   private datosPruebaView = inject(DatosPruebaViewService);
@@ -145,7 +147,7 @@ export class OrdenTrabajo implements OnInit {
         es_prueba: this.esAdmin() ? (v.es_prueba ?? false) : false,
       });
 
-      this.toast.success('Orden de trabajo registrada.', 'Con las dos firmas capturadas.');
+      this.toast.success(this.i18n.t('Orden de trabajo registrada.'), 'Con las dos firmas capturadas.');
       this.motion.momento('firma');
       this.router.navigate(['/bitacora/orden-trabajo', id]);
     } catch (e: unknown) {
