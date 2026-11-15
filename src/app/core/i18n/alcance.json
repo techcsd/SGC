@@ -361,9 +361,6 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "flota/combustible-log": {
-      "enforce": false
-    },
     "ingenieria/pagos": {
       "enforce": false
     },
@@ -455,6 +452,9 @@
       "enforce": true
     },
     "flota/combustible-dashboard": {
+      "enforce": true
+    },
+    "flota/combustible-log": {
       "enforce": true
     },
     "flota/conductores-estado": {

@@ -8,7 +8,7 @@
   <div class="page-header__actions">
     @if (esFlotaElevado()) {
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePermisos()">
-        {{ mostrarPermisos() ? 'Ocultar permisos retroactivos' : 'Permisos retroactivos' }}
+        {{ (mostrarPermisos() ? 'Ocultar permisos retroactivos' : 'Permisos retroactivos') | t }}
       </button>
     }
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="!rows().length">{{ 'Exportar a Excel' | t }}</button>
@@ -27,7 +27,7 @@
       <div class="sgc-field">
         <label for="pr-usr">{{ 'Usuario' | t }}</label>
         <select id="pr-usr" [value]="permisoUsuario()" (change)="permisoUsuario.set($any($event.target).value)">
-          <option value="">Elegir usuario…</option>
+          <option value="">{{ 'Elegir usuario…' | t }}</option>
           @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
         </select>
       </div>
@@ -76,21 +76,21 @@
   <div class="cl-chips" role="group" aria-label="{{ 'Periodo rápido' | t }}">
     @for (c of CHIPS; track c.dias) {
       <button type="button" class="cl-chip" [class.cl-chip--activo]="chipActivo() === c.dias"
-              (click)="aplicarChip(c)">{{ c.label }}</button>
+              (click)="aplicarChip(c)">{{ c.label | t }}</button>
     }
   </div>
   <app-date-range-filter [desde]="desde()" [hasta]="hasta()" (rangeChange)="onRango($event)" />
   <div class="sgc-field cl-filtros__f">
     <label for="cl-veh">{{ 'Vehículo' | t }}</label>
     <select id="cl-veh" [value]="vehiculoId()" (change)="onVehiculo($any($event.target).value)">
-      <option value="">Todos</option>
+      <option value="">{{ 'Todos' | t }}</option>
       @for (v of vehiculosVisibles(); track v.id) { <option [value]="v.id">{{ idVehiculo(v) }}</option> }
     </select>
   </div>
   <div class="sgc-field cl-filtros__f">
     <label for="cl-user">{{ 'Registrado por' | t }}</label>
     <select id="cl-user" [value]="usuarioId()" (change)="onUsuario($any($event.target).value)">
-      <option value="">Todos</option>
+      <option value="">{{ 'Todos' | t }}</option>
       @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
     </select>
   </div>
@@ -104,14 +104,14 @@
   <div class="cl-tabs" role="tablist">
     <button type="button" class="cl-tab" [class.cl-tab--active]="vista() === 'registro'" (click)="setVista('registro')">{{ 'Registro' | t }}</button>
     <button type="button" class="cl-tab" [class.cl-tab--active]="vista() === 'aprobar'" (click)="setVista('aprobar')">
-      Por aprobar @if (porAprobar().length) { <span class="sgc-badge sgc-badge--warning">{{ porAprobar().length }}</span> }
+      {{ 'Por aprobar' | t }} @if (porAprobar().length) { <span class="sgc-badge sgc-badge--warning">{{ porAprobar().length }}</span> }
     </button>
   </div>
 }
 
 @if (vista() === 'registro') {
 @if (saltos() > 0) {
-  <div class="cl-alerta" role="status"><app-icon name="alert-triangle" [size]="16" /> {{ saltos() }} echada(s) con salto de kilometraje fuera de umbral.</div>
+  <div class="cl-alerta" role="status"><app-icon name="alert-triangle" [size]="16" /> {{ saltos() }} {{ 'echada(s) con salto de kilometraje fuera de umbral.' | t }}</div>
 }
 
 @if (loading()) {
@@ -184,11 +184,11 @@
             <div><dt>{{ 'Registró' | t }}</dt><dd>{{ e.registrado_nombre || e.conductor_nombre || '—' }}</dd></div>
             <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(e.fecha) }}</dd></div>
             <div><dt>{{ 'Km ant. → actual' | t }}</dt><dd>{{ e.km_anterior ?? '—' }} → {{ e.kilometraje ?? '—' }} @if (e.km_recorridos != null) { <span [class.cl-delta--alerta]="e.km_alerta">(Δ {{ e.km_recorridos | number }})</span> }</dd></div>
-            <div><dt>{{ 'Galones / Monto' | t }}</dt><dd>{{ e.galones != null ? (e.galones | number:'1.0-2') : '—' }} gal · {{ e.monto != null ? ('RD$ ' + (e.monto | number:'1.0-2')) : '—' }}</dd></div>
+            <div><dt>{{ 'Galones / Monto' | t }}</dt><dd>{{ e.galones != null ? (e.galones | number:'1.0-2') : '—' }} {{ 'gal' | t }} · {{ e.monto != null ? ('RD$ ' + (e.monto | number:'1.0-2')) : '—' }}</dd></div>
           </dl>
           <div class="cl-aprobar__acciones">
             <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="aprobandoId() === e.id" (click)="aprobar(e.id)">
-              {{ aprobandoId() === e.id ? 'Aprobando…' : 'Aprobar' }}
+              {{ (aprobandoId() === e.id ? 'Aprobando…' : 'Aprobar') | t }}
             </button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetallePorId(e.id)">{{ 'Aprobar con corrección' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="abrirRechazo(e.id)">{{ 'Rechazar' | t }}</button>
@@ -220,7 +220,7 @@
             <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="abrirRechazo(r.id)">{{ 'Rechazar' | t }}</button>
           } @else {
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(r)">
-              <app-icon name="edit" [size]="15" /> Editar
+              <app-icon name="edit" [size]="15" /> {{ 'Editar' | t }}
             </button>
           }
         </div>
@@ -242,7 +242,7 @@
       </dl>
 
       @if (rendimientoMeta(r); as m) {
-        <p><span class="sgc-badge" [class]="'sgc-badge--' + m.badge">{{ m.label }}</span>
+        <p><span class="sgc-badge" [class]="'sgc-badge--' + m.badge">{{ m.label | t }}</span>
           @if (r.motivo_alerta) { <span class="text-muted">{{ r.motivo_alerta }}</span> }
         </p>
       }
@@ -292,7 +292,7 @@
 }
 
 <!-- ── BQ5 — Editar echada (solo flota-elevado) ── -->
-<app-form-drawer [title]="modoAprobar() ? 'Aprobar con corrección' : 'Editar echada'" [open]="editOpen()" (closed)="cerrarEditar()">
+<app-form-drawer [title]="modoAprobar() ? i18n.t('Aprobar con corrección') : i18n.t('Editar echada')" [open]="editOpen()" (closed)="cerrarEditar()">
   <form class="cl-edit" [formGroup]="editForm" (ngSubmit)="guardarEdicion()">
     @if (editError()) { <div class="page-error" role="alert">{{ editError() }}</div> }
 
@@ -300,7 +300,7 @@
       <div class="sgc-field">
         <label for="ed-veh">{{ 'Vehículo' | t }}</label>
         <select id="ed-veh" formControlName="vehiculo_id">
-          <option value="">— Sin vehículo —</option>
+          <option value="">{{ '— Sin vehículo —' | t }}</option>
           @for (v of vehiculosVisibles(); track v.id) { <option [value]="v.id">{{ idVehiculo(v) }}</option> }
         </select>
       </div>
@@ -331,8 +331,8 @@
       <div class="sgc-field">
         <label for="ed-prod">{{ 'Combustible' | t }}</label>
         <select id="ed-prod" formControlName="producto">
-          <option value="">— Sin especificar —</option>
-          @for (p of PRODUCTO_OPCIONES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+          <option value="">{{ '— Sin especificar —' | t }}</option>
+          @for (p of PRODUCTO_OPCIONES; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
         </select>
       </div>
 
@@ -407,7 +407,7 @@
             @if (esDesarrollador() && detalleTecnico(h); as tec) {
               @if (tec.length) {
                 <details class="cl-hist__tecnico">
-                  <summary>Detalle técnico ({{ tec.length }} campos)</summary>
+                  <summary>{{ 'Detalle técnico' | t }} ({{ tec.length }} {{ 'campos' | t }})</summary>
                   <ul class="cl-hist__diff">
                     @for (d of tec; track d.campo) {
                       <li>

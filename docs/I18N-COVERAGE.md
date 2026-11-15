@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 43%** (4625/10697 literales de 192 pantallas en alcance). **`ht`: 71%**.
+**Alcance `en`: 43%** (4650/10697 literales de 192 pantallas en alcance). **`ht`: 72%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -127,7 +127,6 @@
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| flota/combustible-log | scope | 120 | 95 | 25 | 79% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
@@ -159,6 +158,7 @@
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
+| flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
 | flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
 | flota/panel-dia | enforce | 26 | 26 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**690 literal(es) sin t()** en 91 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**676 literal(es) sin t()** en 90 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -215,7 +215,6 @@
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
 | src/app/pages/flota/mantenimientos/mantenimientos.ts | 15 | No se pudo cambiar el tipo · No se pudo abrir el adjunto · Archivo no admitido … |
 | src/app/pages/flota/vehiculos/vehiculos.ts | 15 | Sin filas · Rendimientos importados · No se pudo importar … |
-| src/app/pages/flota/combustible-log/combustible-log.ts | 14 | Elige el usuario · Indica el vencimiento del permiso · Permiso otorgado … |
 | src/app/pages/ingenieria/pagos/pagos.ts | 14 | No se pudo crear la semana · No se pudo crear la semana · No se pudo guardar … |
 | src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
 | src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
