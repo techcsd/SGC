@@ -56,6 +56,7 @@ import { PrivacidadService } from '../../../../shared/services/privacidad.servic
 import { FormularioIaService } from '../../../../shared/services/formulario-ia.service';
 import { filtrarRespuestasChecklist } from '../../../../shared/utils/formulario-ia.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * Checklists digitales de flota (pre-uso e inspección de seguridad). Historial +
@@ -75,6 +76,7 @@ export class Checklists implements OnInit {
   private conductoresService = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
   private route = inject(ActivatedRoute);
@@ -465,6 +467,15 @@ export class Checklists implements OnInit {
     return this.confianzasIA()[itemId] ?? null;
   }
 
+  /** F2b — badge/texto de confianza de la IA, evita operadores < en el template (rompen el escáner de i18n). */
+  confianzaBadge(conf: number): string {
+    return conf < 0.70 ? 'warning' : 'success';
+  }
+
+  confianzaTexto(conf: number): string {
+    return conf < 0.70 ? this.i18n.t('¿seguro?') : this.i18n.t('entendido');
+  }
+
   // ── F2b — modo rápido (voz → ok/no por ítem) ──────────────
   abrirModoRapidoIA() {
     if (!this.selectedPlantilla() || !this.visibleItems().length) return;
@@ -504,11 +515,11 @@ export class Checklists implements OnInit {
       this.modoRapidoAbierto.set(false);
       if (validas.length) {
         this.toast.success(
-          'Listo',
+          this.i18n.t('Listo'),
           `Se propusieron ${validas.length} de ${items.length} ítems — revísalos antes de guardar.`,
         );
       } else {
-        this.toast.warning('Sin hallazgos claros', 'No se entendió ningún ítem en la nota de voz. Llénalo a mano.');
+        this.toast.warning(this.i18n.t('Sin hallazgos claros'), 'No se entendió ningún ítem en la nota de voz. Llénalo a mano.');
       }
     } catch (e: unknown) {
       this.iaError.set(e instanceof Error ? e.message : 'No se pudo leer la nota de voz.');
@@ -651,17 +662,17 @@ export class Checklists implements OnInit {
 
       if (created.resultado === 'bloqueado') {
         this.toast.error(
-          'Vehículo BLOQUEADO',
+          this.i18n.t('Vehículo BLOQUEADO'),
           `${criticosNo} ítem(s) crítico(s) en NO. El vehículo no puede salir. Se notificó a Flota.`,
         );
       } else if (created.resultado === 'con_hallazgos') {
         this.toast.warning(
-          'Aprobado con hallazgos',
+          this.i18n.t('Aprobado con hallazgos'),
           'Hay ítems no críticos en NO. Coordinar corrección.',
         );
       } else {
         this.motion.momento('checklist'); // CL2 — puntos tachados en cascada
-        this.toast.success('Checklist aprobado', 'El vehículo puede operar.');
+        this.toast.success(this.i18n.t('Checklist aprobado'), 'El vehículo puede operar.');
       }
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar el checklist.');
@@ -689,7 +700,7 @@ export class Checklists implements OnInit {
         this.firmaUrl.set(await this.checklistsService.getFotoUrl(full.firma_path));
       }
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
       this.detailOpen.set(false);
     } finally {
       this.loadingDetail.set(false);
@@ -781,23 +792,23 @@ export class Checklists implements OnInit {
       await this.datosPrueba.marcar('checklists_vehiculo', c.id, valor);
       this.checklists.update((list) => list.map((x) => (x.id === c.id ? { ...x, es_prueba: valor } : x)));
       this.selected.update((s) => (s && s.id === c.id ? { ...s, es_prueba: valor } : s));
-      this.toast.success(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba');
+      this.toast.success(this.i18n.t(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente un checklist de prueba (solo admin). */
   async eliminarPrueba(c: ChecklistVehiculo) {
     if (!this.esAdmin() || !c.es_prueba) return;
-    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    if (!confirm(this.i18n.t('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.'))) return;
     try {
       await this.datosPrueba.eliminar('checklists_vehiculo', c.id);
       this.checklists.update((list) => list.filter((x) => x.id !== c.id));
       this.detailOpen.set(false);
-      this.toast.success('Dato de prueba eliminado');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'));
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
@@ -822,9 +833,9 @@ export class Checklists implements OnInit {
       this.checklists.update((list) =>
         list.map((c) => (c.id === checklist.id ? { ...c, ...patch } : c)),
       );
-      this.toast.success('Checklist atendido', 'Se marcó como atendido.');
+      this.toast.success(this.i18n.t('Checklist atendido'), 'Se marcó como atendido.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo atender el checklist.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo atender el checklist.');
     } finally {
       this.atendiendo.set(false);
     }
@@ -866,6 +877,11 @@ export class Checklists implements OnInit {
 
   alertaMantMeta(a: AlertaMantenimiento | null): { label: string; badge: string } {
     return ALERTA_MANT_META[a ?? 'ok'];
+  }
+
+  /** Evita el operador > en el template (rompe el escáner de i18n). */
+  kmFaltanPositivo(c: ChecklistVehiculo): boolean {
+    return (c.km_faltan_mantenimiento ?? 0) > 0;
   }
 
   /** Hallazgos = respuestas en NO (crítico primero). */

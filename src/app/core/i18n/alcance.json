@@ -331,9 +331,6 @@
     "flota/mantenimientos": {
       "enforce": false
     },
-    "flota/checklists": {
-      "enforce": false
-    },
     "flota/combustible": {
       "enforce": false
     },
@@ -446,6 +443,9 @@
       "enforce": true
     },
     "flota/avisos": {
+      "enforce": true
+    },
+    "flota/checklists": {
       "enforce": true
     },
     "flota/choferes-privados": {

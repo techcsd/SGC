@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 43%** (4650/10697 literales de 192 pantallas en alcance). **`ht`: 72%**.
+**Alcance `en`: 44%** (4694/10702 literales de 192 pantallas en alcance). **`ht`: 73%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -117,7 +117,6 @@
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | flota/mantenimientos | scope | 93 | 54 | 39 | 58% |
-| flota/checklists | scope | 99 | 60 | 39 | 61% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
 | flota/rutas | scope | 98 | 61 | 37 | 62% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
@@ -156,6 +155,7 @@
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
+| flota/checklists | enforce | 104 | 104 | 0 | 100% |
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**676 literal(es) sin t()** en 90 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**664 literal(es) sin t()** en 89 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -222,7 +222,6 @@
 | src/app/pages/apoyo-transporte/apoyo-transporte.ts | 13 | Faltan datos · Falta la foto · Apoyo creado … |
 | src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
-| src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |
