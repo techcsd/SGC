@@ -1,27 +1,27 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Orden de trabajo</h1>
-    <span class="page-count">Trabajo pedido por el cliente, con firma del ingeniero y del cliente</span>
+    <h1 class="page-title">{{ 'Orden de trabajo' | t }}</h1>
+    <span class="page-count">{{ 'Trabajo pedido por el cliente, con firma del ingeniero y del cliente' | t }}</span>
   </div>
-  <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost sgc-btn--sm">← Bitácora</a>
+  <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost sgc-btn--sm">{{ '← Bitácora' | t }}</a>
 </div>
 
 @if (loading()) {
-  <p class="ot-loading">Cargando…</p>
+  <p class="ot-loading">{{ 'Cargando…' | t }}</p>
 } @else {
   <form class="ot-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
     <!-- 1. General -->
     <section class="ot-section sgc-card">
-      <h2 class="ot-section__title">1. Datos de la orden</h2>
+      <h2 class="ot-section__title">{{ '1. Datos de la orden' | t }}</h2>
       <div class="ot-row">
         <div class="sgc-field">
-          <label for="fecha">Fecha <span class="required">*</span></label>
+          <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
           <input id="fecha" type="date" formControlName="fecha" [max]="today"
                  [class.invalid]="f.fecha.invalid && f.fecha.touched" />
         </div>
         <div class="sgc-field">
-          <label for="proyecto_id">Obra / Proyecto <span class="required">*</span></label>
+          <label for="proyecto_id">{{ 'Obra / Proyecto' | t }} <span class="required">*</span></label>
           <select id="proyecto_id" formControlName="proyecto_id"
                   [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
             <option [ngValue]="null">Seleccionar obra…</option>
@@ -30,113 +30,113 @@
             }
           </select>
           @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
-            <span class="field-error">La obra es obligatoria.</span>
+            <span class="field-error">{{ 'La obra es obligatoria.' | t }}</span>
           }
         </div>
       </div>
 
       <div class="sgc-field">
-        <label for="descripcion">Descripción del trabajo <span class="required">*</span></label>
+        <label for="descripcion">{{ 'Descripción del trabajo' | t }} <span class="required">*</span></label>
         <textarea id="descripcion" rows="3" maxlength="1000" formControlName="descripcion"
-                  placeholder="¿Qué trabajo se pidió / se hizo?"
+                  placeholder="{{ '¿Qué trabajo se pidió / se hizo?' | t }}"
                   [class.invalid]="f.descripcion.invalid && f.descripcion.touched"></textarea>
         @if (f.descripcion.invalid && f.descripcion.touched) {
-          <span class="field-error">La descripción es obligatoria.</span>
+          <span class="field-error">{{ 'La descripción es obligatoria.' | t }}</span>
         }
       </div>
 
       <div class="ot-row">
         <div class="sgc-field">
-          <label for="ubicacion">Ubicación en la obra</label>
-          <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Torre, piso, área…" />
+          <label for="ubicacion">{{ 'Ubicación en la obra' | t }}</label>
+          <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="{{ 'Torre, piso, área…' | t }}" />
         </div>
         <div class="sgc-field">
-          <label for="solicitado_por">Solicitado por (cliente)</label>
-          <input id="solicitado_por" type="text" formControlName="solicitado_por" placeholder="Nombre de quien lo pidió" />
+          <label for="solicitado_por">{{ 'Solicitado por (cliente)' | t }}</label>
+          <input id="solicitado_por" type="text" formControlName="solicitado_por" placeholder="{{ 'Nombre de quien lo pidió' | t }}" />
         </div>
       </div>
 
       <div class="ot-row">
         <div class="sgc-field ot-field--sm">
-          <label for="cantidad">Cantidad</label>
+          <label for="cantidad">{{ 'Cantidad' | t }}</label>
           <input id="cantidad" type="number" min="0" step="any" formControlName="cantidad" />
         </div>
         <div class="sgc-field ot-field--sm">
-          <label for="unidad">Unidad</label>
-          <input id="unidad" type="text" list="ot-unidades" formControlName="unidad" placeholder="m², qq, ud…" />
+          <label for="unidad">{{ 'Unidad' | t }}</label>
+          <input id="unidad" type="text" list="ot-unidades" formControlName="unidad" placeholder="{{ 'm², qq, ud…' | t }}" />
           <datalist id="ot-unidades">
             @for (u of unidades(); track u.id) { <option [value]="u.codigo">{{ u.nombre }}</option> }
           </datalist>
         </div>
         <div class="sgc-field ot-field--sm">
-          <label for="monto_estimado">Monto estimado (RD$)</label>
+          <label for="monto_estimado">{{ 'Monto estimado (RD$)' | t }}</label>
           <input id="monto_estimado" type="number" min="0" step="any" formControlName="monto_estimado" />
         </div>
       </div>
-      <p class="sgc-hint">El monto queda registrado y exportable; el sistema no genera facturas.</p>
+      <p class="sgc-hint">{{ 'El monto queda registrado y exportable; el sistema no genera facturas.' | t }}</p>
 
       <div class="sgc-field">
-        <label for="comentarios">Comentarios (opcional)</label>
+        <label for="comentarios">{{ 'Comentarios (opcional)' | t }}</label>
         <textarea id="comentarios" rows="2" maxlength="500" formControlName="comentarios"></textarea>
       </div>
     </section>
 
     <!-- 2. Firmas -->
     <section class="ot-section sgc-card">
-      <h2 class="ot-section__title">2. Firmas <span class="required">*</span></h2>
-      <p class="sgc-hint">Se requiere la firma del ingeniero y la del cliente para registrar la orden.</p>
+      <h2 class="ot-section__title">{{ '2. Firmas' | t }} <span class="required">*</span></h2>
+      <p class="sgc-hint">{{ 'Se requiere la firma del ingeniero y la del cliente para registrar la orden.' | t }}</p>
 
       <div class="ot-firmas">
         <!-- Ingeniero -->
         <div class="ot-firma">
-          <h3 class="ot-firma__title">Ingeniero</h3>
+          <h3 class="ot-firma__title">{{ 'Ingeniero' | t }}</h3>
           <div class="ot-row">
             <div class="sgc-field">
-              <label for="ing_nombre">Nombre <span class="required">*</span></label>
+              <label for="ing_nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
               <input id="ing_nombre" type="text" formControlName="ing_nombre"
                      [class.invalid]="f.ing_nombre.invalid && f.ing_nombre.touched" />
             </div>
             <div class="sgc-field ot-field--sm">
-              <label for="ing_cedula">Cédula</label>
+              <label for="ing_cedula">{{ 'Cédula' | t }}</label>
               <input id="ing_cedula" type="text" appCedula formControlName="ing_cedula" placeholder="000-0000000-0" />
             </div>
           </div>
           <div class="sgc-field">
-            <label for="ing_rol_desc">Cargo / relación</label>
-            <input id="ing_rol_desc" type="text" formControlName="ing_rol_desc" placeholder="Ing. residente…" />
+            <label for="ing_rol_desc">{{ 'Cargo / relación' | t }}</label>
+            <input id="ing_rol_desc" type="text" formControlName="ing_rol_desc" placeholder="{{ 'Ing. residente…' | t }}" />
           </div>
           <div class="sgc-field">
-            <label>Firma del ingeniero</label>
+            <label>{{ 'Firma del ingeniero' | t }}</label>
             <app-signature-pad #firmaIng ariaLabel="Firma del ingeniero"></app-signature-pad>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('ing')">Limpiar firma</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('ing')">{{ 'Limpiar firma' | t }}</button>
           </div>
         </div>
 
         <!-- Cliente -->
         <div class="ot-firma">
-          <h3 class="ot-firma__title">Cliente</h3>
+          <h3 class="ot-firma__title">{{ 'Cliente' | t }}</h3>
           <div class="ot-row">
             <div class="sgc-field">
-              <label for="cli_nombre">Nombre <span class="required">*</span></label>
-              <input id="cli_nombre" type="text" formControlName="cli_nombre" placeholder="Nombre del cliente"
+              <label for="cli_nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
+              <input id="cli_nombre" type="text" formControlName="cli_nombre" placeholder="{{ 'Nombre del cliente' | t }}"
                      [class.invalid]="f.cli_nombre.invalid && f.cli_nombre.touched" />
               @if (f.cli_nombre.invalid && f.cli_nombre.touched) {
-                <span class="field-error">Requerido.</span>
+                <span class="field-error">{{ 'Requerido.' | t }}</span>
               }
             </div>
             <div class="sgc-field ot-field--sm">
-              <label for="cli_cedula">Cédula</label>
+              <label for="cli_cedula">{{ 'Cédula' | t }}</label>
               <input id="cli_cedula" type="text" appCedula formControlName="cli_cedula" placeholder="000-0000000-0" />
             </div>
           </div>
           <div class="sgc-field">
-            <label for="cli_rol_desc">Cargo / relación</label>
-            <input id="cli_rol_desc" type="text" formControlName="cli_rol_desc" placeholder="Propietario, representante…" />
+            <label for="cli_rol_desc">{{ 'Cargo / relación' | t }}</label>
+            <input id="cli_rol_desc" type="text" formControlName="cli_rol_desc" placeholder="{{ 'Propietario, representante…' | t }}" />
           </div>
           <div class="sgc-field">
-            <label>Firma del cliente</label>
+            <label>{{ 'Firma del cliente' | t }}</label>
             <app-signature-pad #firmaCli ariaLabel="Firma del cliente"></app-signature-pad>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('cli')">Limpiar firma</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('cli')">{{ 'Limpiar firma' | t }}</button>
           </div>
         </div>
       </div>
@@ -151,7 +151,7 @@
     @if (error()) { <p class="ot-error">{{ error() }}</p> }
 
     <div class="ot-actions">
-      <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost">Cancelar</a>
+      <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost">{{ 'Cancelar' | t }}</a>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : 'Registrar orden de trabajo' }}
       </button>

@@ -13,6 +13,7 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * BN1 — Alta de una orden de trabajo (bitácora tipo `orden_trabajo`): trabajo
@@ -23,7 +24,7 @@ import { todayIso } from '../../../../shared/utils/fecha.util';
  */
 @Component({
   selector: 'app-orden-trabajo',
-  imports: [ReactiveFormsModule, RouterLink, SignaturePad, CedulaMask],
+  imports: [ReactiveFormsModule, RouterLink, SignaturePad, CedulaMask, TranslatePipe],
   templateUrl: './orden-trabajo.html',
   styleUrl: './orden-trabajo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

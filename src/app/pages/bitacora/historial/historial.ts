@@ -18,10 +18,11 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
 import { MoldeVisor, MoldeVisorItem } from '../../../../shared/ui/molde-visor/molde-visor';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema, MoldeVisor, StaggerDirective],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema, MoldeVisor, StaggerDirective, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

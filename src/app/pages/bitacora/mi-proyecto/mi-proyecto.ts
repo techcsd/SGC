@@ -6,10 +6,11 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-bitacora-mi-proyecto',
-  imports: [DecimalPipe, DocumentosProyecto, WeatherCard, Skeleton],
+  imports: [DecimalPipe, DocumentosProyecto, WeatherCard, Skeleton, TranslatePipe],
   templateUrl: './mi-proyecto.html',
   styleUrl: './mi-proyecto.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

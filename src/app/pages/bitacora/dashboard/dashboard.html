@@ -1,12 +1,12 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Dashboard de bitácoras</h1>
+    <h1 class="page-title">{{ 'Dashboard de bitácoras' | t }}</h1>
     <span class="page-count">{{ total() | number }} registro{{ total() !== 1 ? 's' : '' }}</span>
   </div>
   <!-- Q9 — filtro por obra: recalcula todas las métricas -->
   <div class="page-header__actions">
     <select class="sgc-select" [value]="selectedProyecto()" (change)="onProyectoChange($any($event.target).value)"
-            aria-label="Filtrar métricas por obra">
+            aria-label="{{ 'Filtrar métricas por obra' | t }}">
       <option value="">Todas las obras</option>
       @for (o of obras(); track o.id) {
         <option [value]="o.id">{{ o.nombre }}</option>
@@ -21,22 +21,22 @@
   <app-skeleton variant="cards" [rows]="6" />
 } @else if (total() === 0) {
   <div class="table-empty sgc-card">
-    <p>Aún no hay bitácoras registradas.</p>
-    <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">Nueva bitácora</a>
+    <p>{{ 'Aún no hay bitácoras registradas.' | t }}</p>
+    <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">{{ 'Nueva bitácora' | t }}</a>
   </div>
 } @else {
   <!-- KPIs — Q3/regla del jefe: cada número abre el historial filtrado -->
   <div class="kpi-grid">
-    <div class="kpi-card kpi-card--primary kpi-card--link" role="button" tabindex="0" (click)="verHistorial()" (keydown.enter)="verHistorial()" aria-label="Ver todas las bitácoras"><span class="kpi-label">Bitácoras</span><span class="kpi-value">{{ total() | number }}</span></div>
-    <div class="kpi-card kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día"><span class="kpi-label">Bitácoras del día</span><span class="kpi-value">{{ partes() | number }}</span></div>
-    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irATipo('visita')" (keydown.enter)="irATipo('visita')" aria-label="Ver visitas"><span class="kpi-label">Visitas</span><span class="kpi-value">{{ visitas() | number }}</span></div>
+    <div class="kpi-card kpi-card--primary kpi-card--link" role="button" tabindex="0" (click)="verHistorial()" (keydown.enter)="verHistorial()" aria-label="{{ 'Ver todas las bitácoras' | t }}"><span class="kpi-label">{{ 'Bitácoras' | t }}</span><span class="kpi-value">{{ total() | number }}</span></div>
+    <div class="kpi-card kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="{{ 'Ver bitácoras del día' | t }}"><span class="kpi-label">{{ 'Bitácoras del día' | t }}</span><span class="kpi-value">{{ partes() | number }}</span></div>
+    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irATipo('visita')" (keydown.enter)="irATipo('visita')" aria-label="{{ 'Ver visitas' | t }}"><span class="kpi-label">{{ 'Visitas' | t }}</span><span class="kpi-value">{{ visitas() | number }}</span></div>
     <div class="kpi-card kpi-card--link" [class.kpi-card--danger]="incidentes() > 0" role="button" tabindex="0" (click)="irATipo('incidente')" (keydown.enter)="irATipo('incidente')" aria-label="Ver incidentes"><span class="kpi-label">Incidentes</span><span class="kpi-value">{{ incidentes() | number }}</span></div>
-    <div class="kpi-card kpi-card--warning kpi-card--link" role="button" tabindex="0" (click)="irATipo('orden_trabajo')" (keydown.enter)="irATipo('orden_trabajo')" aria-label="Ver órdenes de trabajo"><span class="kpi-label">Órdenes de trabajo</span><span class="kpi-value">{{ ordenes() | number }}</span></div>
-    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irALluvia()" (keydown.enter)="irALluvia()" aria-label="Ver días con lluvia"><span class="kpi-label">Días con lluvia</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
-    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irALluvia()" (keydown.enter)="irALluvia()" aria-label="Ver días con lluvia (horas)"><span class="kpi-label">Horas de lluvia</span><span class="kpi-value">{{ horasLluvia() | number:'1.0-1' }}</span></div>
+    <div class="kpi-card kpi-card--warning kpi-card--link" role="button" tabindex="0" (click)="irATipo('orden_trabajo')" (keydown.enter)="irATipo('orden_trabajo')" aria-label="{{ 'Ver órdenes de trabajo' | t }}"><span class="kpi-label">{{ 'Órdenes de trabajo' | t }}</span><span class="kpi-value">{{ ordenes() | number }}</span></div>
+    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irALluvia()" (keydown.enter)="irALluvia()" aria-label="{{ 'Ver días con lluvia' | t }}"><span class="kpi-label">{{ 'Días con lluvia' | t }}</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
+    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irALluvia()" (keydown.enter)="irALluvia()" aria-label="{{ 'Ver días con lluvia (horas)' | t }}"><span class="kpi-label">{{ 'Horas de lluvia' | t }}</span><span class="kpi-value">{{ horasLluvia() | number:'1.0-1' }}</span></div>
     <div class="kpi-card kpi-card--link" [class.kpi-card--warning]="diasSinActividad() > 0" role="button" tabindex="0" (click)="irASinActividad()" (keydown.enter)="irASinActividad()" aria-label="Ver días sin actividad"><span class="kpi-label">Días sin actividad</span><span class="kpi-value">{{ diasSinActividad() | number }}</span></div>
     <div class="kpi-card kpi-card--link" [class.kpi-card--warning]="obrerosMigracion() > 0" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día (migración)"><span class="kpi-label">Obreros por migración</span><span class="kpi-value">{{ obrerosMigracion() | number }}</span></div>
-    <div class="kpi-card kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día (equipos)"><span class="kpi-label">Días con equipos alquilados</span><span class="kpi-value">{{ diasEquipos() | number }}</span></div>
+    <div class="kpi-card kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="{{ 'Ver bitácoras del día (equipos)' | t }}"><span class="kpi-label">{{ 'Días con equipos alquilados' | t }}</span><span class="kpi-value">{{ diasEquipos() | number }}</span></div>
   </div>
 
   <!-- Charts — Q9: click en un segmento abre el historial filtrado -->

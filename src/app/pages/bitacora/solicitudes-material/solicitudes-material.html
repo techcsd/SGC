@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Requisiciones</h1>
+    <h1 class="page-title">{{ 'Requisiciones' | t }}</h1>
     <span class="page-count">{{ solicitudes().length }} {{ solicitudes().length !== 1 ? 'requisiciones' : 'requisición' }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -18,13 +18,13 @@
 <!-- CS1 — filtros mínimos (buscar, obra, estado, rango de fechas), igual a Inventario. -->
 <div class="filters-bar">
   <div class="sgc-field">
-    <label class="filters-bar__label">Buscar</label>
+    <label class="filters-bar__label">{{ 'Buscar' | t }}</label>
     <input type="search" [value]="search()" (input)="search.set($any($event.target).value)"
-           placeholder="Obra, artículo, nota…" aria-label="Buscar requisiciones" />
+           placeholder="{{ 'Obra, artículo, nota…' | t }}" aria-label="{{ 'Buscar requisiciones' | t }}" />
   </div>
   <div class="sgc-field filters-bar__select">
-    <label class="filters-bar__label">Obra</label>
-    <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="Filtrar por obra">
+    <label class="filters-bar__label">{{ 'Obra' | t }}</label>
+    <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
       <option value="">Todas las obras</option>
       @for (o of obrasDisponibles(); track o.id) {
         <option [value]="o.id">{{ o.nombre }}</option>
@@ -32,17 +32,17 @@
     </select>
   </div>
   <app-filter-select label="Estado" [options]="estadoOpt" [value]="fEstado()"
-    (valueChange)="fEstado.set($event)" placeholder="Todos" [searchable]="false" />
+    (valueChange)="fEstado.set($event)" placeholder="{{ 'Todos' | t }}" [searchable]="false" />
   <div class="sgc-field">
-    <label class="filters-bar__label">Desde</label>
-    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" />
+    <label class="filters-bar__label">{{ 'Desde' | t }}</label>
+    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="{{ 'Desde' | t }}" />
   </div>
   <div class="sgc-field">
-    <label class="filters-bar__label">Hasta</label>
-    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" />
+    <label class="filters-bar__label">{{ 'Hasta' | t }}</label>
+    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="{{ 'Hasta' | t }}" />
   </div>
   @if (hasActiveFilters()) {
-    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearFilters()">Limpiar filtros</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearFilters()">{{ 'Limpiar filtros' | t }}</button>
   }
 </div>
 
@@ -54,10 +54,10 @@
       <span class="mac-card__toggle">{{ verMaterialesACargo() ? 'Ocultar' : 'Ver' }}</span>
     </button>
     @if (verMaterialesACargo()) {
-      <p class="mac-card__hint">Material recibido en tus obras que aún no se ha devuelto. Es tu responsabilidad hasta que se consuma o devuelva.</p>
+      <p class="mac-card__hint">{{ 'Material recibido en tus obras que aún no se ha devuelto. Es tu responsabilidad hasta que se consuma o devuelva.' | t }}</p>
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th>Obra</th><th>Artículo</th><th class="text-right">Cantidad</th></tr></thead>
+          <thead><tr><th>{{ 'Obra' | t }}</th><th>{{ 'Artículo' | t }}</th><th class="text-right">{{ 'Cantidad' | t }}</th></tr></thead>
           <tbody>
             @for (m of materialesACargo(); track m.proyecto_id + m.articulo_id) {
               <tr>
@@ -78,7 +78,7 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (solicitudes().length === 0) {
     <div class="table-empty">
-      <p>No hay requisiciones.</p>
+      <p>{{ 'No hay requisiciones.' | t }}</p>
     </div>
   } @else {
     <!-- BY3 — Activas (por entrega más cercana) / Historial -->
@@ -93,20 +93,20 @@
       </button>
     </div>
     <div class="table-scroll">
-    <table class="data-table" aria-label="Requisiciones">
+    <table class="data-table" aria-label="{{ 'Requisiciones' | t }}">
       <thead>
         <tr>
           <!-- CS1 — Código/Fecha/Obra/Necesidad/Estado ordenables (▲▼), recordado por dispositivo. -->
           <th appOrdenTh label="Código" clave="folio" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
           <th appOrdenTh label="Fecha" clave="fecha" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
           <th appOrdenTh label="Obra" clave="obra" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
-          <th>Solicitante</th>
-          <th>Artículos</th>
-          <th>Urgencia</th>
+          <th>{{ 'Solicitante' | t }}</th>
+          <th>{{ 'Artículos' | t }}</th>
+          <th>{{ 'Urgencia' | t }}</th>
           <th appOrdenTh label="Necesidad" clave="necesidad" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
-          <th>Fase</th>
+          <th>{{ 'Fase' | t }}</th>
           <th appOrdenTh label="Estado" clave="estado" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
-          <th>Atendida</th>
+          <th>{{ 'Atendida' | t }}</th>
         </tr>
       </thead>
       <tbody appStagger>
@@ -129,9 +129,9 @@
             </td>
             <td>
               @if (s.urgencia === 'urgente') {
-                <span class="sgc-badge sgc-badge--danger">Urgente</span>
+                <span class="sgc-badge sgc-badge--danger">{{ 'Urgente' | t }}</span>
               } @else {
-                <span class="sgc-badge sgc-badge--neutral">Normal</span>
+                <span class="sgc-badge sgc-badge--neutral">{{ 'Normal' | t }}</span>
               }
             </td>
             <!-- BO8 — fecha de necesidad + chip de proximidad (faltan N días / vencida) -->
@@ -140,10 +140,10 @@
                 <!-- BV11 — edición inline de la fecha de necesidad -->
                 <div class="req-fecha-edit">
                   <input type="date" [value]="nuevaFecha()" [min]="hoyIso" (input)="nuevaFecha.set($any($event.target).value)" />
-                  <input type="text" placeholder="Motivo (opcional)" [value]="motivoFecha()" (input)="motivoFecha.set($any($event.target).value)" />
+                  <input type="text" placeholder="{{ 'Motivo (opcional)' | t }}" [value]="motivoFecha()" (input)="motivoFecha.set($any($event.target).value)" />
                   <div class="req-fecha-edit__acc">
-                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarNuevaFecha(s)">Guardar</button>
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoFechaId.set(null)">Cancelar</button>
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarNuevaFecha(s)">{{ 'Guardar' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoFechaId.set(null)">{{ 'Cancelar' | t }}</button>
                   </div>
                 </div>
               } @else {
@@ -154,7 +154,7 @@
                     @if (d < 0) {
                       <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
                     } @else if (d === 0) {
-                      <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                      <span class="sgc-badge sgc-badge--warning">{{ 'Es hoy' | t }}</span>
                     } @else if (d <= 3) {
                       <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
                     }
@@ -163,7 +163,7 @@
                   <span class="text-muted">—</span>
                 }
                 @if (puedeEditarFecha(s)) {
-                  <button type="button" class="req-fecha-editar" (click)="abrirEditarFecha(s)">Editar</button>
+                  <button type="button" class="req-fecha-editar" (click)="abrirEditarFecha(s)">{{ 'Editar' | t }}</button>
                 }
               }
             </td>
@@ -173,10 +173,10 @@
               @if (s.salida_id || s.solicitud_compra_id) {
                 <div class="solicitud-interco">
                   @if (s.salida_id) {
-                    <a class="solicitud-interco__link" [routerLink]="['/bitacora/entregas', s.salida_id, 'conduce']">Despachado (ver conduce)</a>
+                    <a class="solicitud-interco__link" [routerLink]="['/bitacora/entregas', s.salida_id, 'conduce']">{{ 'Despachado (ver conduce)' | t }}</a>
                   }
                   @if (s.solicitud_compra_id) {
-                    <span class="sgc-badge sgc-badge--info">Compra generada por faltante</span>
+                    <span class="sgc-badge sgc-badge--info">{{ 'Compra generada por faltante' | t }}</span>
                   }
                 </div>
               }
@@ -201,7 +201,7 @@
                           {{ it.descripcion }}
                         </a>
                       } @else {
-                        <span class="req-item__otro">{{ it.descripcion }} <span class="sgc-badge sgc-badge--neutral">Otro</span></span>
+                        <span class="req-item__otro">{{ it.descripcion }} <span class="sgc-badge sgc-badge--neutral">{{ 'Otro' | t }}</span></span>
                       }
                       <span class="req-item__qty">{{ it.cantidad }}@if (it.unidad) { {{ it.unidad }} }</span>
                       @if (it.talla) { <span class="req-item__talla">Talla: {{ it.talla }}</span> }
@@ -211,7 +211,7 @@
                 <!-- BF6 — motivo del rechazo, visible al autor para corregir. -->
                 @if (s.estado === 'rechazada' && s.motivo_rechazo) {
                   <div class="req-rechazo" role="note">
-                    <strong>Rechazada:</strong> {{ s.motivo_rechazo }}
+                    <strong>{{ 'Rechazada:' | t }}</strong> {{ s.motivo_rechazo }}
                   </div>
                 }
                 <!-- BB10 — el autor edita mientras pendiente; BF6 — corrige y reenvía si rechazada -->
@@ -285,7 +285,7 @@
       }
 
       <div class="sgc-field">
-        <label for="proyecto_id">Obra <span class="required">*</span></label>
+        <label for="proyecto_id">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
           <option [ngValue]="null">Seleccionar obra…</option>
           @for (p of activeProyectos(); track p.id) {
@@ -295,16 +295,16 @@
         @if (obraSinAlmacen()) {
           <div class="sm-warn" role="note">
 <app-icon name="alert-triangle" [size]="14" /> Esta obra no tiene almacén propio; lo que se reciba no se registrará en su inventario.
-            <a routerLink="/inventario/bodegas">Crear el almacén de la obra</a> (requiere permiso de Inventario).
+            <a routerLink="/inventario/bodegas">{{ 'Crear el almacén de la obra' | t }}</a> (requiere permiso de Inventario).
           </div>
         }
         @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
-          <span class="field-error">La obra es obligatoria.</span>
+          <span class="field-error">{{ 'La obra es obligatoria.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="urgencia">Urgencia</label>
+        <label for="urgencia">{{ 'Urgencia' | t }}</label>
         <select id="urgencia" formControlName="urgencia">
           <option value="normal">Normal</option>
           <option value="urgente">Urgente</option>
@@ -315,15 +315,15 @@
            [min]=hoy (no se pide para una fecha pasada). Solo al crear. -->
       @if (!editandoId()) {
         <div class="sgc-field">
-          <label for="fecha_necesidad">¿Para cuándo lo necesitas? <span class="text-muted">(opcional)</span></label>
+          <label for="fecha_necesidad">{{ '¿Para cuándo lo necesitas?' | t }} <span class="text-muted">{{ '(opcional)' | t }}</span></label>
           <input id="fecha_necesidad" type="date" formControlName="fecha_necesidad" [min]="hoyIso" />
-          <span class="field-hint">Ayuda a Raykler a priorizar por fecha de obra, no solo por urgencia.</span>
+          <span class="field-hint">{{ 'Ayuda a Raykler a priorizar por fecha de obra, no solo por urgencia.' | t }}</span>
         </div>
       }
 
       <div class="items-header">
-        <label>Artículos solicitados <span class="required">*</span></label>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">+ Agregar</button>
+        <label>{{ 'Artículos solicitados' | t }} <span class="required">*</span></label>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">{{ '+ Agregar' | t }}</button>
       </div>
 
       @for (item of formItems(); track $index; let i = $index) {
@@ -343,7 +343,7 @@
                 class="item-row__unidad"
                 [value]="item.unidad_capturada ? 'paquete' : 'base'"
                 (change)="setItemCaptura(i, $any($event.target).value)"
-                aria-label="Unidad de captura"
+                aria-label="{{ 'Unidad de captura' | t }}"
               >
                 <option value="base">por unidad</option>
                 <option value="paquete">por {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
@@ -363,7 +363,7 @@
             class="item-row__remove"
             (click)="removeItem(i)"
             [disabled]="formItems().length === 1"
-            aria-label="Quitar artículo"
+            aria-label="{{ 'Quitar artículo' | t }}"
           ><app-icon name="x" [size]="16" /></button>
         </div>
         @if (item.unidad_capturada && item.factor_aplicado > 1) {
@@ -375,14 +375,14 @@
           <div class="item-row__otro">
             <input
               type="text"
-              placeholder="Describe el artículo (Otro)…"
+              placeholder="{{ 'Describe el artículo (Otro)…' | t }}"
               [value]="item.descripcion"
               (input)="updateItem(i, 'descripcion', $any($event.target).value)"
             />
             <input
               type="text"
               class="item-row__otro-unidad"
-              placeholder="Unidad"
+              placeholder="{{ 'Unidad' | t }}"
               [value]="item.unidad"
               (input)="updateItem(i, 'unidad', $any($event.target).value)"
             />
@@ -396,8 +396,8 @@
               type="text"
               [value]="item.talla ?? ''"
               (input)="updateItem(i, 'talla', $any($event.target).value)"
-              placeholder="Talla (obligatoria) — ej. S, M, L, XL, 42…"
-              aria-label="Talla"
+              placeholder="{{ 'Talla (obligatoria) — ej. S, M, L, XL, 42…' | t }}"
+              aria-label="{{ 'Talla' | t }}"
             />
           </div>
         }
@@ -408,20 +408,20 @@
       }
 
       <div class="sgc-field">
-        <label for="notas">Notas</label>
+        <label for="notas">{{ 'Notas' | t }}</label>
         <textarea id="notas" rows="2" formControlName="notas"></textarea>
       </div>
     }
 
     @if (step() === 'resumen') {
       <!-- ── Hoja de resumen / review ── -->
-      <p class="resumen-hoja__lead">Revisa lo que vas a solicitar. Puedes ajustar cantidades o quitar renglones antes de enviar.</p>
+      <p class="resumen-hoja__lead">{{ 'Revisa lo que vas a solicitar. Puedes ajustar cantidades o quitar renglones antes de enviar.' | t }}</p>
 
       <dl class="resumen-hoja__meta">
-        <div><dt>Obra</dt><dd>{{ proyectoNombre() }}</dd></div>
-        <div><dt>Urgencia</dt><dd>{{ f.urgencia.value === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
+        <div><dt>{{ 'Obra' | t }}</dt><dd>{{ proyectoNombre() }}</dd></div>
+        <div><dt>{{ 'Urgencia' | t }}</dt><dd>{{ f.urgencia.value === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
         @if (f.fecha_necesidad.value) {
-          <div><dt>Necesidad</dt><dd>{{ formatFecha(f.fecha_necesidad.value) }}</dd></div>
+          <div><dt>{{ 'Necesidad' | t }}</dt><dd>{{ formatFecha(f.fecha_necesidad.value) }}</dd></div>
         }
       </dl>
 
@@ -442,7 +442,7 @@
               ariaLabel="Cantidad"
               (valueChange)="updateItemCantidad(r.index, $event)"
             />
-            <button type="button" class="item-row__remove" (click)="removeItem(r.index)" aria-label="Quitar artículo"><app-icon name="x" [size]="16" /></button>
+            <button type="button" class="item-row__remove" (click)="removeItem(r.index)" aria-label="{{ 'Quitar artículo' | t }}"><app-icon name="x" [size]="16" /></button>
           </div>
         }
       </div>
@@ -454,13 +454,13 @@
 
     <div class="drawer-actions">
       @if (step() === 'resumen') {
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAForm()">← Volver</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAForm()">{{ '← Volver' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving() || !resumenValido()">
           @if (saving()) { Enviando… } @else { Enviar requisición }
         </button>
       } @else {
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
-        <button type="submit" class="sgc-btn sgc-btn--primary">Revisar →</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary">{{ 'Revisar →' | t }}</button>
       }
     </div>
   </form>

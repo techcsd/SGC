@@ -1,13 +1,13 @@
 <div class="page">
   <header class="page-header">
     <div class="page-header__left">
-      <h1 class="page-title">Cartillas de acero</h1>
-      <p class="page-sub">Atados y piezas por obra. El ingeniero envía, oficina revisa/observa, se marca ejecutada.</p>
+      <h1 class="page-title">{{ 'Cartillas de acero' | t }}</h1>
+      <p class="page-sub">{{ 'Atados y piezas por obra. El ingeniero envía, oficina revisa/observa, se marca ejecutada.' | t }}</p>
     </div>
     <div class="page-header__actions">
-      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirCaptura()">Nueva cartilla</button>
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportar()">Exportar</button>
-      @if (esAdmin()) { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCatalogos()">Catálogos</button> }
+      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirCaptura()">{{ 'Nueva cartilla' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportar()">{{ 'Exportar' | t }}</button>
+      @if (esAdmin()) { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCatalogos()">{{ 'Catálogos' | t }}</button> }
     </div>
   </header>
 
@@ -45,8 +45,8 @@
   @if (resumen().length) {
     <div class="cart-acero sgc-card">
       <div class="cart-acero__head">
-        <h3>Acero por diámetro <span class="text-muted">· total {{ kgTotal() | number:'1.0-1' }} kg</span></h3>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarAcero()">Exportar acero</button>
+        <h3>{{ 'Acero por diámetro' | t }} <span class="text-muted">· total {{ kgTotal() | number:'1.0-1' }} kg</span></h3>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarAcero()">{{ 'Exportar acero' | t }}</button>
       </div>
       <div class="cart-acero__chips">
         @for (r of resumen(); track r.diametro_codigo) {
@@ -94,20 +94,20 @@
   } @else if (detalle(); as d) {
     <div class="cart-detalle">
       <dl class="cart-detalle__meta">
-        <div><dt>Obra</dt><dd>{{ d.proyecto ?? '—' }}</dd></div>
-        <div><dt>Ingeniero</dt><dd>{{ d.ingeniero ?? '—' }}</dd></div>
-        <div><dt>Fecha</dt><dd>{{ formatFecha(d.fecha) }}</dd></div>
-        <div><dt>Estado</dt><dd><span class="status-pill" [class]="'status-pill--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
-        <div><dt>Peso total</dt><dd>{{ d.peso_total_kg | number:'1.0-2' }} kg</dd></div>
+        <div><dt>{{ 'Obra' | t }}</dt><dd>{{ d.proyecto ?? '—' }}</dd></div>
+        <div><dt>{{ 'Ingeniero' | t }}</dt><dd>{{ d.ingeniero ?? '—' }}</dd></div>
+        <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(d.fecha) }}</dd></div>
+        <div><dt>{{ 'Estado' | t }}</dt><dd><span class="status-pill" [class]="'status-pill--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
+        <div><dt>{{ 'Peso total' | t }}</dt><dd>{{ d.peso_total_kg | number:'1.0-2' }} kg</dd></div>
       </dl>
-      @if (d.observacion) { <p class="cart-detalle__obs"><strong>Observación:</strong> {{ d.observacion }}</p> }
+      @if (d.observacion) { <p class="cart-detalle__obs"><strong>{{ 'Observación:' | t }}</strong> {{ d.observacion }}</p> }
       @if (d.notas) { <p class="text-muted">{{ d.notas }}</p> }
 
       @for (a of d.atados; track a.id) {
         <div class="cart-atado">
           <h4>{{ a.identificador || 'Atado' }} @if (a.elemento) { <span class="text-muted">· {{ a.elemento }}</span> }</h4>
           <table class="data-table cart-piezas">
-            <thead><tr><th>Marca</th><th>Ø</th><th>Figura</th><th>Tramos (cm)</th><th class="text-right">Long.</th><th class="text-right">Cant.</th><th class="text-right">kg</th></tr></thead>
+            <thead><tr><th>{{ 'Marca' | t }}</th><th>Ø</th><th>{{ 'Figura' | t }}</th><th>{{ 'Tramos (cm)' | t }}</th><th class="text-right">{{ 'Long.' | t }}</th><th class="text-right">{{ 'Cant.' | t }}</th><th class="text-right">{{ 'kg' | t }}</th></tr></thead>
             <tbody>
               @for (p of a.piezas; track p.id) {
                 <tr>
@@ -126,17 +126,17 @@
       }
 
       @if (d.fotos.length) {
-        <h4>Fotos</h4>
+        <h4>{{ 'Fotos' | t }}</h4>
         <div class="cart-fotos">
           @for (f of d.fotos; track f) {
-            @if (fotoUrls()[f]; as u) { <img [src]="u" alt="Foto de la cartilla" loading="lazy" /> }
+            @if (fotoUrls()[f]; as u) { <img [src]="u" alt="{{ 'Foto de la cartilla' | t }}" loading="lazy" /> }
           }
         </div>
       }
-      @if (planoUrl(); as pu) { <p><a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="pu" target="_blank" rel="noopener">Ver plano de referencia</a></p> }
+      @if (planoUrl(); as pu) { <p><a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="pu" target="_blank" rel="noopener">{{ 'Ver plano de referencia' | t }}</a></p> }
 
       <!-- Historial -->
-      <h4>Historial</h4>
+      <h4>{{ 'Historial' | t }}</h4>
       <ul class="cart-eventos">
         @for (e of d.eventos; track e.created_at) {
           <li>
@@ -154,26 +154,26 @@
         </div>
       }
       <div class="cart-detalle__acciones">
-        @if (puedeRevisar()) { <button type="button" class="sgc-btn sgc-btn--info sgc-btn--sm" [disabled]="estadoBusy()" (click)="cambiarEstado('revisada')">Revisar</button> }
-        @if (puedeObservar()) { <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="estadoBusy()" (click)="cambiarEstado('observada')">Observar</button> }
-        @if (puedeEjecutar()) { <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="estadoBusy()" (click)="cambiarEstado('ejecutada')">Marcar ejecutada</button> }
+        @if (puedeRevisar()) { <button type="button" class="sgc-btn sgc-btn--info sgc-btn--sm" [disabled]="estadoBusy()" (click)="cambiarEstado('revisada')">{{ 'Revisar' | t }}</button> }
+        @if (puedeObservar()) { <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="estadoBusy()" (click)="cambiarEstado('observada')">{{ 'Observar' | t }}</button> }
+        @if (puedeEjecutar()) { <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="estadoBusy()" (click)="cambiarEstado('ejecutada')">{{ 'Marcar ejecutada' | t }}</button> }
       </div>
     </div>
   }
 </app-form-drawer>
 
 <!-- ── Captura ── -->
-<app-form-drawer title="Nueva cartilla" [open]="capturaOpen()" (closed)="cerrarCaptura()">
+<app-form-drawer title="{{ 'Nueva cartilla' | t }}" [open]="capturaOpen()" (closed)="cerrarCaptura()">
   <div class="cart-captura">
     <div class="sgc-field">
-      <label>Obra</label>
+      <label>{{ 'Obra' | t }}</label>
       <select [value]="cObra()" (change)="cObra.set($any($event.target).value)">
         <option value="">Elige la obra…</option>
         @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
       </select>
     </div>
     <div class="sgc-field">
-      <label>Fecha</label>
+      <label>{{ 'Fecha' | t }}</label>
       <input type="date" [value]="cFecha()" (change)="cFecha.set($any($event.target).value)" />
     </div>
 
@@ -183,13 +183,13 @@
     @for (a of cAtados(); track $index) {
       <div class="cart-cap-atado">
         <div class="cart-cap-atado__head">
-          <input type="text" [value]="a.identificador ?? ''" (input)="setAtado($index, 'identificador', $any($event.target).value)" placeholder="Identificador (ej. A1)" />
-          <input type="text" [value]="a.elemento ?? ''" (input)="setAtado($index, 'elemento', $any($event.target).value)" placeholder="Elemento (ej. Viga)" />
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="removeAtado($index)" aria-label="Quitar atado">×</button>
+          <input type="text" [value]="a.identificador ?? ''" (input)="setAtado($index, 'identificador', $any($event.target).value)" placeholder="{{ 'Identificador (ej. A1)' | t }}" />
+          <input type="text" [value]="a.elemento ?? ''" (input)="setAtado($index, 'elemento', $any($event.target).value)" placeholder="{{ 'Elemento (ej. Viga)' | t }}" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="removeAtado($index)" aria-label="{{ 'Quitar atado' | t }}">×</button>
         </div>
         @for (p of a.piezas; track $index) {
           <div class="cart-cap-pieza">
-            <input type="text" [value]="p.marca ?? ''" (input)="setPieza(cAtados().indexOf(a), $index, 'marca', $any($event.target).value)" placeholder="Marca" class="cart-cap-pieza__marca" />
+            <input type="text" [value]="p.marca ?? ''" (input)="setPieza(cAtados().indexOf(a), $index, 'marca', $any($event.target).value)" placeholder="{{ 'Marca' | t }}" class="cart-cap-pieza__marca" />
             <select [value]="p.diametro_codigo ?? ''" (change)="setPieza(cAtados().indexOf(a), $index, 'diametro_codigo', $any($event.target).value)">
               @for (d of diametros(); track d.codigo) { <option [value]="d.codigo">{{ d.codigo }}</option> }
             </select>
@@ -199,50 +199,50 @@
             <span class="cart-fig"><app-cartilla-figura-icono [codigo]="p.figura_codigo" [size]="22" /></span>
             <div class="cart-cap-tramos">
               @for (t of p.tramos_cm ?? []; track $index) {
-                <input type="number" min="0" [value]="t.cm" (input)="setTramo(cAtados().indexOf(a), a.piezas.indexOf(p), $index, +$any($event.target).value)" placeholder="cm" />
+                <input type="number" min="0" [value]="t.cm" (input)="setTramo(cAtados().indexOf(a), a.piezas.indexOf(p), $index, +$any($event.target).value)" placeholder="{{ 'cm' | t }}" />
               }
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addTramo(cAtados().indexOf(a), a.piezas.indexOf(p))">+ lado</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addTramo(cAtados().indexOf(a), a.piezas.indexOf(p))">{{ '+ lado' | t }}</button>
             </div>
-            <input type="number" min="1" [value]="p.cantidad" (input)="setPieza(cAtados().indexOf(a), $index, 'cantidad', +$any($event.target).value)" placeholder="Cant." class="cart-cap-pieza__cant" />
+            <input type="number" min="1" [value]="p.cantidad" (input)="setPieza(cAtados().indexOf(a), $index, 'cantidad', +$any($event.target).value)" placeholder="{{ 'Cant.' | t }}" class="cart-cap-pieza__cant" />
             <span class="cart-cap-pieza__peso">{{ pesoPieza(p) | number:'1.0-2' }} kg</span>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="removePieza(cAtados().indexOf(a), $index)" aria-label="Quitar pieza">×</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="removePieza(cAtados().indexOf(a), $index)" aria-label="{{ 'Quitar pieza' | t }}">×</button>
           </div>
         }
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addPieza($index)">+ Pieza</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addPieza($index)">{{ '+ Pieza' | t }}</button>
       </div>
     }
-    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addAtado()">+ Atado</button>
+    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addAtado()">{{ '+ Atado' | t }}</button>
 
     <!-- F8 — fotos + plano de referencia (opcionales). -->
     <div class="sgc-field">
-      <label>Fotos (opcional)</label>
+      <label>{{ 'Fotos (opcional)' | t }}</label>
       <input type="file" accept="image/*" multiple (change)="onCFotos($event)" />
       @if (cFotos().length) {
         <div class="cart-fotos">
           @for (f of cFotos(); track f.preview) {
             <div class="cart-cap-foto">
-              <img [src]="f.preview" alt="Foto" />
-              <button type="button" (click)="quitarCFoto($index)" aria-label="Quitar">×</button>
+              <img [src]="f.preview" alt="{{ 'Foto' | t }}" />
+              <button type="button" (click)="quitarCFoto($index)" aria-label="{{ 'Quitar' | t }}">×</button>
             </div>
           }
         </div>
       }
     </div>
     <div class="sgc-field">
-      <label>Plano de referencia (opcional)</label>
+      <label>{{ 'Plano de referencia (opcional)' | t }}</label>
       <input type="file" accept="image/*,application/pdf" (change)="onCPlano($event)" />
       @if (cPlanoNombre()) { <span class="text-muted">{{ cPlanoNombre() }}</span> }
     </div>
 
     <div class="sgc-field">
-      <label>Notas</label>
+      <label>{{ 'Notas' | t }}</label>
       <textarea rows="2" [value]="cNotas()" (input)="cNotas.set($any($event.target).value)"></textarea>
     </div>
 
-    <p class="cart-captura__total">Peso total: <strong>{{ pesoTotalCaptura() | number:'1.0-2' }} kg</strong></p>
+    <p class="cart-captura__total">{{ 'Peso total:' | t }} <strong>{{ pesoTotalCaptura() | number:'1.0-2' }} kg</strong></p>
     @if (cError()) { <p class="page-error" role="alert">{{ cError() }}</p> }
     <div class="cart-captura__acciones">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarCaptura()" [disabled]="cGuardando()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarCaptura()" [disabled]="cGuardando()">{{ 'Cancelar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarCaptura()" [disabled]="cGuardando()">
         {{ cGuardando() ? 'Guardando…' : 'Enviar cartilla' }}
       </button>
@@ -251,33 +251,33 @@
 </app-form-drawer>
 
 <!-- ── F8 — Admin: catálogos de acero ── -->
-<app-form-drawer title="Catálogos de acero" [open]="catalogosOpen()" (closed)="cerrarCatalogos()">
+<app-form-drawer title="{{ 'Catálogos de acero' | t }}" [open]="catalogosOpen()" (closed)="cerrarCatalogos()">
   <!-- DI3 — tabla de catálogo con inputs numéricos estrechos por celda; dejar
        .sgc-input fuera por ahora (board DI3 definirá el look de tablas editables). -->
   <div class="cart-catalogos">
-    <h4>Diámetros (kg por metro)</h4>
+    <h4>{{ 'Diámetros (kg por metro)' | t }}</h4>
     <table class="data-table">
-      <thead><tr><th>Diámetro</th><th>kg/m</th><th></th></tr></thead>
+      <thead><tr><th>{{ 'Diámetro' | t }}</th><th>{{ 'kg/m' | t }}</th><th></th></tr></thead>
       <tbody>
         @for (d of diametros(); track d.codigo) {
           <tr>
             <td>{{ d.codigo }}</td>
             <td><input type="number" min="0" step="0.001" #kgm [value]="d.kg_por_m" [disabled]="catBusy()" /></td>
-            <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="catBusy()" (click)="guardarKgm(d.codigo, +kgm.value)">Guardar</button></td>
+            <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="catBusy()" (click)="guardarKgm(d.codigo, +kgm.value)">{{ 'Guardar' | t }}</button></td>
           </tr>
         }
       </tbody>
     </table>
-    <h4>Figuras</h4>
+    <h4>{{ 'Figuras' | t }}</h4>
     <ul class="cart-cat-figs">
       @for (f of figuras(); track f.codigo) {
         <li>
           <app-cartilla-figura-icono [codigo]="f.codigo" [size]="26" />
           <span>{{ f.nombre }}</span>
-          <label class="cart-cat-toggle"><input type="checkbox" [checked]="f.activo" [disabled]="catBusy()" (change)="toggleFigura(f.codigo, $any($event.target).checked)" /> activa</label>
+          <label class="cart-cat-toggle"><input type="checkbox" [checked]="f.activo" [disabled]="catBusy()" (change)="toggleFigura(f.codigo, $any($event.target).checked)" /> {{ 'activa' | t }}</label>
         </li>
       }
     </ul>
-    <p class="text-muted">Los diámetros están sembrados con los valores estándar; edita el kg/m si tu proveedor difiere.</p>
+    <p class="text-muted">{{ 'Los diámetros están sembrados con los valores estándar; edita el kg/m si tu proveedor difiere.' | t }}</p>
   </div>
 </app-form-drawer>

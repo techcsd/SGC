@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { BitacoraService, CoberturaObra } from '../../../../shared/services/bitacora.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * BJ1 — Cobertura de bitácoras por obra y fecha. Pedido de Eduardo NG: ver qué
@@ -10,7 +11,7 @@ import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util
  */
 @Component({
   selector: 'app-bitacora-cobertura',
-  imports: [Skeleton],
+  imports: [Skeleton, TranslatePipe],
   templateUrl: './cobertura.html',
   styleUrl: './cobertura.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

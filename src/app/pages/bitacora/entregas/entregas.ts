@@ -10,6 +10,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface RecepcionItem {
   detalle_id: string;
@@ -21,7 +22,7 @@ interface RecepcionItem {
 
 @Component({
   selector: 'app-bitacora-entregas',
-  imports: [FormDrawer, RouterLink, Skeleton, SignaturePad, StaggerDirective],
+  imports: [FormDrawer, RouterLink, Skeleton, SignaturePad, StaggerDirective, TranslatePipe],
   templateUrl: './entregas.html',
   styleUrl: './entregas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

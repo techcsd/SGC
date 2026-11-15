@@ -64,24 +64,6 @@
     "auth/set-password": {
       "enforce": false
     },
-    "bitacora/cobertura": {
-      "enforce": false
-    },
-    "bitacora/dashboard": {
-      "enforce": false
-    },
-    "bitacora/entregas": {
-      "enforce": false
-    },
-    "bitacora/historial": {
-      "enforce": false
-    },
-    "bitacora/mi-proyecto": {
-      "enforce": false
-    },
-    "bitacora/solicitudes-compra": {
-      "enforce": false
-    },
     "direccion": {
       "enforce": false
     },
@@ -298,34 +280,37 @@
     "admin/empresa": {
       "enforce": false
     },
-    "bitacora/nueva": {
-      "enforce": false
-    },
     "legal/expedientes": {
-      "enforce": false
-    },
-    "bitacora/solicitudes-material": {
       "enforce": false
     },
     "tecnologia/dev-notes": {
       "enforce": false
     },
-    "bitacora/cartillas": {
-      "enforce": false
-    },
     "app-movil": {
-      "enforce": false
-    },
-    "bitacora/moldes": {
       "enforce": false
     },
     "proyectos/personal": {
       "enforce": false
     },
-    "bitacora/orden-trabajo": {
+    "auth": {
       "enforce": false
     },
-    "auth": {
+    "bitacora/dashboard": {
+      "enforce": false
+    },
+    "bitacora/entregas": {
+      "enforce": false
+    },
+    "bitacora/historial": {
+      "enforce": false
+    },
+    "bitacora/moldes": {
+      "enforce": false
+    },
+    "bitacora/solicitudes-compra": {
+      "enforce": false
+    },
+    "bitacora/solicitudes-material": {
       "enforce": false
     },
     "practica": {
@@ -337,10 +322,22 @@
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
+    "bitacora/cartillas": {
+      "enforce": false
+    },
     "admin/compa-conversaciones": {
       "enforce": false
     },
+    "bitacora/cobertura": {
+      "enforce": false
+    },
     "ingenieria/pagos": {
+      "enforce": false
+    },
+    "bitacora/mi-proyecto": {
+      "enforce": false
+    },
+    "bitacora/nueva": {
       "enforce": false
     },
     "reuniones/reuniones-lista": {
@@ -350,6 +347,9 @@
       "enforce": false
     },
     "admin/vault": {
+      "enforce": false
+    },
+    "bitacora/orden-trabajo": {
       "enforce": false
     },
     "reuniones/reunion-ficha": {

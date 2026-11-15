@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 47%** (5089/10721 literales de 192 pantallas en alcance). **`ht`: 80%**.
+**Alcance `en`: 51%** (5457/10615 literales de 192 pantallas en alcance). **`ht`: 80%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -28,12 +28,6 @@
 | admin/usuarios-test | scope | 37 | 0 | 37 | 0% |
 | apoyo-transporte | scope | 57 | 0 | 57 | 0% |
 | auth/set-password | scope | 13 | 0 | 13 | 0% |
-| bitacora/cobertura | scope | 19 | 0 | 19 | 0% |
-| bitacora/dashboard | scope | 26 | 0 | 26 | 0% |
-| bitacora/entregas | scope | 25 | 0 | 25 | 0% |
-| bitacora/historial | scope | 97 | 0 | 97 | 0% |
-| bitacora/mi-proyecto | scope | 5 | 0 | 5 | 0% |
-| bitacora/solicitudes-compra | scope | 34 | 0 | 34 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | documentos/generar | scope | 9 | 0 | 9 | 0% |
 | documentos/historial | scope | 10 | 0 | 10 | 0% |
@@ -106,24 +100,30 @@
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
-| bitacora/nueva | scope | 201 | 17 | 184 | 8% |
 | legal/expedientes | scope | 89 | 7 | 82 | 8% |
-| bitacora/solicitudes-material | scope | 88 | 9 | 79 | 10% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
-| bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
-| bitacora/moldes | scope | 22 | 5 | 17 | 23% |
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
-| bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| bitacora/dashboard | scope | 18 | 10 | 8 | 56% |
+| bitacora/entregas | scope | 22 | 13 | 9 | 59% |
+| bitacora/historial | scope | 85 | 54 | 31 | 64% |
+| bitacora/moldes | scope | 20 | 13 | 7 | 65% |
+| bitacora/solicitudes-compra | scope | 28 | 19 | 9 | 68% |
+| bitacora/solicitudes-material | scope | 73 | 52 | 21 | 71% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
+| bitacora/cartillas | scope | 75 | 57 | 18 | 76% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
+| bitacora/cobertura | scope | 19 | 15 | 4 | 79% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
+| bitacora/mi-proyecto | scope | 5 | 4 | 1 | 80% |
+| bitacora/nueva | scope | 164 | 132 | 32 | 80% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
+| bitacora/orden-trabajo | scope | 81 | 72 | 9 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
