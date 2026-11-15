@@ -5276,21 +5276,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/compras",
-      "total": 28,
-      "cubiertos": 24,
-      "sin": 4,
-      "pct": 86,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Total del período ( compra(s))",
-        "Para gastos que no pasan por requisición (alimentación, transporte, misceláneos…). Suma al gasto real del proyecto, etiquetado aparte de las compras formales.",
-        "Misceláneos",
-        "Gasto registrado"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 73,
       "cubiertos": 65,
@@ -6213,6 +6198,16 @@
       "pantalla": "proyectos/clima",
       "total": 40,
       "cubiertos": 40,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/compras",
+      "total": 28,
+      "cubiertos": 28,
       "sin": 0,
       "pct": 100,
       "enScope": true,

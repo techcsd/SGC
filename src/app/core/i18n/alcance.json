@@ -283,9 +283,6 @@
     "tecnologia/cotizaciones": {
       "enforce": false
     },
-    "proyectos/compras": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -554,6 +551,9 @@
       "enforce": true
     },
     "proyectos/clima": {
+      "enforce": true
+    },
+    "proyectos/compras": {
       "enforce": true
     },
     "proyectos/costos": {

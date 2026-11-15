@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 60%** (6274/10539 literales de 192 pantallas en alcance). **`ht`: 83%**.
+**Alcance `en`: 60%** (6278/10539 literales de 192 pantallas en alcance). **`ht`: 83%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -101,7 +101,6 @@
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
-| proyectos/compras | scope | 28 | 24 | 4 | 86% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -192,6 +191,7 @@
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
+| proyectos/compras | enforce | 28 | 28 | 0 | 100% |
 | proyectos/costos | enforce | 13 | 13 | 0 | 100% |
 | proyectos/cronograma | enforce | 72 | 72 | 0 | 100% |
 | proyectos/cronograma-import | enforce | 39 | 39 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**475 literal(es) sin t()** en 68 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**474 literal(es) sin t()** en 67 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -272,5 +272,4 @@
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
-| src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |
 | src/app/pages/rrhh/organigrama/organigrama.ts | 1 | No se pudo cargar el organigrama |

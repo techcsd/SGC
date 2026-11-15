@@ -33,7 +33,7 @@
     <p class="compras__muted">{{ 'Cargando…' | t }}</p>
   } @else {
     <div class="compras__total sgc-card">
-      <span class="compras__total-label">Total del período ({{ visibles().length }} compra(s))</span>
+      <span class="compras__total-label">{{ 'Total del período' | t }} ({{ visibles().length }} {{ 'compra(s)' | t }})</span>
       <span class="compras__total-value">RD$ {{ totalPeriodo() | number:'1.2-2' }}</span>
     </div>
 
@@ -75,8 +75,7 @@
 <app-form-drawer title="{{ 'Registrar gasto directo' | t }}" [open]="gastoOpen()" (closed)="cerrarGasto()">
   <form class="drawer-form" (ngSubmit)="guardarGasto()" novalidate>
     <p class="sgc-field__hint">
-      Para gastos que no pasan por requisición (alimentación, transporte, misceláneos…).
-      Suma al gasto real del proyecto, etiquetado aparte de las compras formales.
+      {{ 'Para gastos que no pasan por requisición (alimentación, transporte, misceláneos…). Suma al gasto real del proyecto, etiquetado aparte de las compras formales.' | t }}
     </p>
 
     <div class="sgc-field">
@@ -91,7 +90,7 @@
         @for (c of categorias(); track c.clave) {
           <option [value]="c.clave">{{ c.label }}</option>
         }
-        @if (categorias().length === 0) { <option value="misc">Misceláneos</option> }
+        @if (categorias().length === 0) { <option value="misc">{{ 'Misceláneos' | t }}</option> }
       </select>
     </div>
 

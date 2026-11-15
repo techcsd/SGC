@@ -4225,5 +4225,16 @@
   "Residencial": "Rezidansyèl",
   "Comercial": "Komèsyal",
   "Industrial": "Endistriyèl",
-  "Infraestructura": "Enfrastrikti"
+  "Infraestructura": "Enfrastrikti",
+  "+ Registrar gasto": "+ Anrejistre depans",
+  "Ej. Desayuno a los obreros": "Pa egz. Dejene pou ouvriye yo",
+  "Gastos directos": "Depans dirèk",
+  "Incluye órdenes de compra, compras de ferretería y gastos directos ligados a esta obra. No incluye movimientos de prueba.": "Enkli lòd acha, acha nan katyè ak depans dirèk ki lye ak chantye sa a. Mouvman tès pa enkli.",
+  "Misceláneos": "Divès",
+  "No hay compras registradas para esta obra en el período seleccionado.": "Pa gen acha anrejistre pou chantye sa a nan peryòd chwazi a.",
+  "Para gastos que no pasan por requisición (alimentación, transporte, misceláneos…). Suma al gasto real del proyecto, etiquetado aparte de las compras formales.": "Pou depans ki pa pase pa demann (manje, transpò, divès…). Li ajoute nan depans reyèl pwojè a, make apa de acha fòmèl yo.",
+  "Registrar gasto directo": "Anrejistre depans dirèk",
+  "Total del período": "Total peryòd la",
+  "compra(s)": "acha",
+  "Órdenes de compra": "Lòd acha"
 }

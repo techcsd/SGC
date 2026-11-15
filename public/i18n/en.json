@@ -5080,5 +5080,15 @@
   "Residencial": "Residential",
   "Comercial": "Commercial",
   "Industrial": "Industrial",
-  "Infraestructura": "Infrastructure"
+  "Infraestructura": "Infrastructure",
+  "+ Registrar gasto": "+ Record expense",
+  "Ej. Desayuno a los obreros": "E.g. Breakfast for the workers",
+  "Gastos directos": "Direct expenses",
+  "Incluye órdenes de compra, compras de ferretería y gastos directos ligados a esta obra. No incluye movimientos de prueba.": "Includes purchase orders, hardware-store purchases, and direct expenses linked to this project. Test movements are not included.",
+  "Misceláneos": "Miscellaneous",
+  "No hay compras registradas para esta obra en el período seleccionado.": "No purchases registered for this project in the selected period.",
+  "Para gastos que no pasan por requisición (alimentación, transporte, misceláneos…). Suma al gasto real del proyecto, etiquetado aparte de las compras formales.": "For expenses that don't go through a requisition (food, transport, miscellaneous…). Adds to the project's actual spend, tagged separately from formal purchases.",
+  "Registrar gasto directo": "Record direct expense",
+  "Total del período": "Period total",
+  "Órdenes de compra": "Purchase orders"
 }
