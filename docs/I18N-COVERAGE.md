@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 43%** (4555/10689 literales de 192 pantallas en alcance). **`ht`: 70%**.
+**Alcance `en`: 43%** (4582/10695 literales de 192 pantallas en alcance). **`ht`: 71%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -117,7 +117,6 @@
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | flota/choferes-privados | scope | 44 | 22 | 22 | 50% |
-| flota/avisos | scope | 46 | 25 | 21 | 54% |
 | flota/mantenimientos | scope | 93 | 54 | 39 | 58% |
 | flota/checklists | scope | 99 | 60 | 39 | 61% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
@@ -159,6 +158,7 @@
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
+| flota/avisos | enforce | 52 | 52 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
 | flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**706 literal(es) sin t()** en 94 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**696 literal(es) sin t()** en 93 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -231,7 +231,6 @@
 | src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
 | src/app/pages/proyectos/cronograma/cronograma.ts | 11 | Tarea guardada. · Dependencia agregada. · Dependencia eliminada. … |
 | src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |
-| src/app/pages/flota/avisos/avisos.ts | 10 | Umbral inválido · Umbral actualizado · No se pudo guardar … |
 | src/app/pages/bitacora/cartillas/cartillas.ts | 9 | No se pudo abrir · Escribe la observación · Cartilla actualizada … |
 | src/app/pages/flota/conductores/conductores.ts | 9 | Acceso actualizado · Acceso por PIN sin resincronizar · Documentos … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |

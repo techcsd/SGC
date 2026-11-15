@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 43,
-  "pctHt": 70,
+  "pctHt": 71,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -6773,38 +6773,6 @@
       ]
     },
     {
-      "pantalla": "flota/avisos",
-      "total": 46,
-      "cubiertos": 25,
-      "sin": 21,
-      "pct": 54,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "pendiente",
-        "Bandeja de avisos operativos: bloqueos, hallazgos, pre-citas, mantenimiento vencido, consumo anormal y vencimientos de licencia / matrícula / seguro. Los vencimientos se evalúan al abrir esta página.",
-        "Avisos activos ( )",
-        "Historial de avisos ( )",
-        "Todos los tipos",
-        "Todos los vehículos",
-        "Crear cita",
-        "Ver documento",
-        "Gestionar placa",
-        "Ver documento del vencimiento",
-        "Marcar como aún pendiente / dejar nota",
-        "Umbral inválido",
-        "Umbral actualizado",
-        "No se pudo guardar",
-        "Vehículo reactivado",
-        "Error",
-        "Avisos atendidos",
-        "Error",
-        "Aviso atendido",
-        "Error",
-        "¿Marcar ${n} aviso(s) como atendidos?"
-      ]
-    },
-    {
       "pantalla": "flota/mantenimientos",
       "total": 93,
       "cubiertos": 54,
@@ -7784,6 +7752,16 @@
       "pantalla": "flota/accidentes",
       "total": 45,
       "cubiertos": 45,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/avisos",
+      "total": 52,
+      "cubiertos": 52,
       "sin": 0,
       "pct": 100,
       "enScope": true,

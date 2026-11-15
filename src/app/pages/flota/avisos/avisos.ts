@@ -23,6 +23,7 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-flota-avisos',
@@ -40,6 +41,7 @@ export class Avisos implements OnInit {
   private user = inject(UserService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   reactivando = signal<string | null>(null);
 
@@ -52,16 +54,16 @@ export class Avisos implements OnInit {
   async guardarUmbral() {
     const dias = Number(this.umbralInput());
     if (!Number.isFinite(dias) || dias < 1 || dias > 365) {
-      this.toast.error('Umbral inválido', 'Debe estar entre 1 y 365 días.');
+      this.toast.error(this.i18n.t('Umbral inválido'), 'Debe estar entre 1 y 365 días.');
       return;
     }
     this.guardandoUmbral.set(true);
     try {
       await this.flotaConfig.setUmbralPorVencer(dias);
-      this.toast.success('Umbral actualizado', `Ahora se avisa ${dias} días antes de vencer.`);
+      this.toast.success(this.i18n.t('Umbral actualizado'), `Ahora se avisa ${dias} días antes de vencer.`);
       await this.load(false);
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : '');
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : '');
     } finally {
       this.guardandoUmbral.set(false);
     }
@@ -191,9 +193,9 @@ export class Avisos implements OnInit {
       await this.vehiculosService.reactivar(a.vehiculo_id, 'Reactivado desde avisos');
       await this.load(false);
       this.notificaciones.refresh();
-      this.toast.success('Vehículo reactivado', 'El vehículo vuelve a estar disponible.');
+      this.toast.success(this.i18n.t('Vehículo reactivado'), 'El vehículo vuelve a estar disponible.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo reactivar el vehículo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo reactivar el vehículo.');
     } finally {
       this.reactivando.set(null);
     }
@@ -241,7 +243,7 @@ export class Avisos implements OnInit {
     if (this.vista() !== 'activos' || this.atendiendoTodos()) return;
     const n = this.filtered().length;
     if (n === 0) return;
-    if (!confirm(`¿Marcar ${n} aviso(s) como atendidos?`)) return;
+    if (!confirm(this.i18n.t('¿Marcar {n} aviso(s) como atendidos?', { n }))) return;
     this.atendiendoTodos.set(true);
     try {
       const tocados = await this.avisosService.atenderMasivo({
@@ -251,9 +253,9 @@ export class Avisos implements OnInit {
       });
       await this.load(false);
       this.notificaciones.refresh();
-      this.toast.success('Avisos atendidos', `Se marcaron ${tocados} aviso(s) como atendidos.`);
+      this.toast.success(this.i18n.t('Avisos atendidos'), `Se marcaron ${tocados} aviso(s) como atendidos.`);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudieron atender los avisos.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudieron atender los avisos.');
     } finally {
       this.atendiendoTodos.set(false);
     }
@@ -272,9 +274,9 @@ export class Avisos implements OnInit {
       this.avisos.update((list) => list.map((x) => (x.id === a.id ? { ...x, ...patch } : x)));
       this.drawerOpen.set(false);
       this.notificaciones.refresh();
-      this.toast.success('Aviso atendido', 'Se marcó como atendido.');
+      this.toast.success(this.i18n.t('Aviso atendido'), 'Se marcó como atendido.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo atender el aviso.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo atender el aviso.');
     } finally {
       this.atendiendo.set(false);
     }
