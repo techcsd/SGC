@@ -6975,36 +6975,6 @@
       ]
     },
     {
-      "pantalla": "flota/reporte-semanal",
-      "total": 54,
-      "cubiertos": 35,
-      "sin": 19,
-      "pct": 65,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Semana · –",
-        "Llenar inspección de vehículo",
-        "La",
-        "por su vehículo. Es distinto del",
-        "diario: solo las inspecciones semanales cuentan aquí. Si llenaste un checklist y no aparece, probablemente fue un uso de vehículo — usa «Llenar inspección de vehículo» para registrar el de esta semana.",
-        "Faltantes de esta semana ( )",
-        "por @if (f.km_reporte != null) { · km }",
-        "Semana /",
-        "/ reportados",
-        "por @if (f.km_reporte != null) { · km }",
-        "Día programado:",
-        "Llenar reporte",
-        "Ya reportado por",
-        "Rehacer",
-        "Detalle semana /",
-        "Reportado fuera del día programado (",
-        "Reportado fuera del día programado (",
-        "Reportado fuera del día programado (",
-        "Inspección vehículo"
-      ]
-    },
-    {
       "pantalla": "flota/vehiculos",
       "total": 361,
       "cubiertos": 236,
@@ -7799,6 +7769,16 @@
       "pantalla": "flota/rendimiento-vehiculos",
       "total": 19,
       "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/reporte-semanal",
+      "total": 56,
+      "cubiertos": 56,
       "sin": 0,
       "pct": 100,
       "enScope": true,

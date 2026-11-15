@@ -340,9 +340,6 @@
     "flota/rutas": {
       "enforce": false
     },
-    "flota/reporte-semanal": {
-      "enforce": false
-    },
     "flota/vehiculos": {
       "enforce": false
     },
@@ -473,6 +470,9 @@
       "enforce": true
     },
     "flota/rendimiento-vehiculos": {
+      "enforce": true
+    },
+    "flota/reporte-semanal": {
       "enforce": true
     },
     "flota/reportes": {

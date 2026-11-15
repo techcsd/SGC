@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 43%** (4604/10695 literales de 192 pantallas en alcance). **`ht`: 71%**.
+**Alcance `en`: 43%** (4625/10697 literales de 192 pantallas en alcance). **`ht`: 71%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -120,7 +120,6 @@
 | flota/checklists | scope | 99 | 60 | 39 | 61% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
 | flota/rutas | scope | 98 | 61 | 37 | 62% |
-| flota/reporte-semanal | scope | 54 | 35 | 19 | 65% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
 | flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
 | flota/conductores | scope | 165 | 115 | 50 | 70% |
@@ -165,6 +164,7 @@
 | flota/panel-dia | enforce | 26 | 26 | 0 | 100% |
 | flota/recorrido-diario | enforce | 12 | 12 | 0 | 100% |
 | flota/rendimiento-vehiculos | enforce | 19 | 19 | 0 | 100% |
+| flota/reporte-semanal | enforce | 56 | 56 | 0 | 100% |
 | flota/reportes | enforce | 35 | 35 | 0 | 100% |
 | flota/responsabilidad | enforce | 62 | 62 | 0 | 100% |
 | flota/rutas-activas | enforce | 37 | 37 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**691 literal(es) sin t()** en 92 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**690 literal(es) sin t()** en 91 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -292,7 +292,6 @@
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo.ts | 1 | Orden de trabajo registrada. |
-| src/app/pages/flota/reporte-semanal/reporte-semanal.ts | 1 | Inspección vehículo |
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
 | src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |

@@ -4,7 +4,7 @@
     <h1 class="page-title">{{ 'Inspección de vehículo' | t }}</h1>
     @if (semanaActual(); as g) {
       <span class="page-count">
-        Semana {{ g.semana }} · {{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }}
+        {{ 'Semana' | t }} {{ g.semana }} · {{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }}
       </span>
     }
   </div>
@@ -13,17 +13,16 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Llenar inspección de vehículo
+      {{ 'Llenar inspección de vehículo' | t }}
     </a>
   </div>
 </div>
 
 <!-- U8 — aclara la diferencia con el pre-uso (por qué el dashboard puede salir vacío) -->
 <div class="rs-note sgc-card" role="note">
-  La <strong>{{ 'inspección de vehículo' | t }}</strong> {{ 'es un chequeo que cada chofer envía' | t }} <strong>{{ 'una vez por semana' | t }}</strong>
-  por su vehículo. Es distinto del <strong>{{ 'uso de vehículo' | t }}</strong> diario: solo las inspecciones semanales cuentan aquí.
-  Si llenaste un checklist y no aparece, probablemente fue un uso de vehículo — usa
-  «Llenar inspección de vehículo» para registrar el de esta semana.
+  {{ 'La' | t }} <strong>{{ 'inspección de vehículo' | t }}</strong> {{ 'es un chequeo que cada chofer envía' | t }} <strong>{{ 'una vez por semana' | t }}</strong>
+  {{ 'por su vehículo. Es distinto del' | t }} <strong>{{ 'uso de vehículo' | t }}</strong> {{ 'diario: solo las inspecciones semanales cuentan aquí. Si llenaste un checklist y no aparece, probablemente fue un uso de vehículo — usa' | t }}
+  «{{ 'Llenar inspección de vehículo' | t }}» {{ 'para registrar el de esta semana.' | t }}
 </div>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
@@ -61,7 +60,7 @@
 
   <!-- ── Faltantes de esta semana ── -->
   <div class="sgc-card rs-block">
-    <div class="rs-card-title">Faltantes de esta semana ({{ faltantes().length }})</div>
+    <div class="rs-card-title">{{ 'Faltantes de esta semana' | t }} ({{ faltantes().length }})</div>
     @if (faltantes().length === 0) {
       <p class="rs-ok">{{ 'Todos los vehículos reportaron esta semana' | t }} <app-icon name="check" [size]="14" /></p>
     } @else {
@@ -69,7 +68,7 @@
         @for (f of faltantes(); track f.vehiculo_id) {
           <li>
             <span class="rs-placa">{{ f.placa }}</span>
-            <span class="rs-muted">· {{ f.chofer_nombre ?? 'sin chofer asignado' }}</span>
+            <span class="rs-muted">· {{ f.chofer_nombre ?? ('sin chofer asignado' | t) }}</span>
           </li>
         }
       </ul>
@@ -96,15 +95,15 @@
               <td>
                 @if (f.tiene_reporte) {
                   {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
-                  <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
+                  <span class="rs-muted rs-small">{{ 'por' | t }} {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} {{ 'km' | t }} }</span>
                   @if (f.reportado_fuera_de_dia) {
-                    <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">{{ 'Fuera de día' | t }}</span>
+                    <span class="sgc-badge sgc-badge--warning" [title]="i18n.t('Reportado fuera del día programado ({dia})', { dia: diaLabel(f.dia_reporte_dow) })">{{ 'Fuera de día' | t }}</span>
                   }
                 } @else { — }
               </td>
               <td>
                 @if (f.tiene_reporte) {
-                  <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
+                  <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) | t }}</span>
                 } @else {
                   <span class="rs-muted">—</span>
                 }
@@ -126,15 +125,15 @@
             <button type="button" class="rs-acc-head" [class.rs-acc-head--open]="expandida() === g.key"
                     (click)="toggle(g.key)" [attr.aria-expanded]="expandida() === g.key">
               <span class="rs-acc-title">
-                Semana {{ g.semana }}/{{ g.anio }}
+                {{ 'Semana' | t }} {{ g.semana }}/{{ g.anio }}
                 <span class="rs-muted">({{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }})</span>
               </span>
-              <span class="rs-acc-count">{{ g.reportados }}/{{ g.total }} reportados</span>
+              <span class="rs-acc-count">{{ g.reportados }}/{{ g.total }} {{ 'reportados' | t }}</span>
               <span class="rs-acc-chevron" aria-hidden="true">@if (expandida() === g.key) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> }</span>
             </button>
             @if (expandida() === g.key) {
               <div class="table-scroll rs-acc-body">
-                <table class="data-table" aria-label="Detalle semana {{ g.semana }}/{{ g.anio }}">
+                <table class="data-table" [attr.aria-label]="i18n.t('Detalle semana {semana}/{anio}', { semana: g.semana, anio: g.anio })">
                   <thead>
                     <tr><th>{{ 'Placa' | t }}</th><th>{{ 'Chofer' | t }}</th><th class="text-center">{{ '¿Reportó?' | t }}</th><th>{{ 'Reporte' | t }}</th><th>{{ 'Resultado' | t }}</th></tr>
                   </thead>
@@ -149,15 +148,15 @@
                         <td>
                 @if (f.tiene_reporte) {
                   {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
-                  <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
+                  <span class="rs-muted rs-small">{{ 'por' | t }} {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} {{ 'km' | t }} }</span>
                   @if (f.reportado_fuera_de_dia) {
-                    <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">{{ 'Fuera de día' | t }}</span>
+                    <span class="sgc-badge sgc-badge--warning" [title]="i18n.t('Reportado fuera del día programado ({dia})', { dia: diaLabel(f.dia_reporte_dow) })">{{ 'Fuera de día' | t }}</span>
                   }
                 } @else { — }
               </td>
                         <td>
                           @if (f.tiene_reporte) {
-                            <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
+                            <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) | t }}</span>
                           } @else {
                             <span class="rs-muted">—</span>
                           }
@@ -188,30 +187,30 @@
               @if (f.tiene_reporte) {
                 <span class="sgc-badge sgc-badge--success">{{ 'Reportado' | t }} <app-icon name="check" [size]="14" /></span>
                 @if (f.resultado) {
-                  <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
+                  <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) | t }}</span>
                 }
                 @if (f.reportado_fuera_de_dia) {
-                  <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">{{ 'Fuera de día' | t }}</span>
+                  <span class="sgc-badge sgc-badge--warning" [title]="i18n.t('Reportado fuera del día programado ({dia})', { dia: diaLabel(f.dia_reporte_dow) })">{{ 'Fuera de día' | t }}</span>
                 }
               } @else {
                 <span class="sgc-badge sgc-badge--warning">{{ 'Pendiente' | t }}</span>
               }
             </div>
             @if (f.dia_reporte_dow != null) {
-              <span class="rs-muted rs-small">Día programado: {{ diaLabel(f.dia_reporte_dow) }}</span>
+              <span class="rs-muted rs-small">{{ 'Día programado:' | t }} {{ diaLabel(f.dia_reporte_dow) }}</span>
             }
             @if (!f.tiene_reporte) {
               <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">
-                Llenar reporte
+                {{ 'Llenar reporte' | t }}
               </a>
             } @else {
               <span class="rs-reportado">
-                Ya reportado por <strong>{{ f.reportado_por ?? f.chofer_nombre ?? '—' }}</strong>
+                {{ 'Ya reportado por' | t }} <strong>{{ f.reportado_por ?? f.chofer_nombre ?? '—' }}</strong>
                 @if (f.reporte_fecha) { · {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }} }@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
-                @if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }
+                @if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} {{ 'km' | t }} }
               </span>
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">
-                Rehacer
+                {{ 'Rehacer' | t }}
               </a>
             }
           </li>
