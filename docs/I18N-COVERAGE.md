@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 60%** (6278/10539 literales de 192 pantallas en alcance). **`ht`: 83%**.
+**Alcance `en`: 60%** (6330/10532 literales de 192 pantallas en alcance). **`ht`: 84%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -92,7 +92,6 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| proyectos/lista | scope | 168 | 109 | 59 | 65% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
@@ -197,12 +196,13 @@
 | proyectos/cronograma-import | enforce | 39 | 39 | 0 | 100% |
 | proyectos/historial | enforce | 15 | 15 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
+| proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**474 literal(es) sin t()** en 67 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**462 literal(es) sin t()** en 66 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -218,7 +218,6 @@
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
-| src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |
 | src/app/pages/rrhh/onboarding/onboarding.ts | 12 | No se pudieron cargar las vacantes · Falta el título · Vacante creada … |
 | src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
 | src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |

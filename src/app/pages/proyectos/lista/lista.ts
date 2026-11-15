@@ -64,6 +64,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface UsuarioSimple {
   id: string;
@@ -102,6 +103,7 @@ export class Lista implements OnInit {
   private supabase = inject(SupabaseService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   // Z5(d) — datos de prueba (mismo patrón que Flota).
   private datosPrueba = inject(DatosPruebaService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
@@ -456,6 +458,10 @@ export class Lista implements OnInit {
     return contarEstrellas(this.readiness()[proyectoId]);
   }
 
+  estrellaSimbolo(proyectoId: string, index: number): string {
+    return index < this.estrellas(proyectoId) ? '★' : '☆';
+  }
+
   listoParaIniciar(proyectoId: string): boolean {
     return this.estrellas(proyectoId) === 4;
   }
@@ -666,7 +672,7 @@ export class Lista implements OnInit {
       this.sectores.set(await this.ubicacionRd.getSectores(municipioId));
       this.form.patchValue({ sector_id: id });
     } catch (e: unknown) {
-      this.toast.error('No se pudo agregar el sector', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo agregar el sector'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -789,7 +795,7 @@ export class Lista implements OnInit {
       if (
         n > 0 &&
         !confirm(
-          `Esto también marcará como prueba ${n} registro(s) relacionado(s) de esta obra. ¿Continuar?`,
+          this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s) de esta obra. ¿Continuar?', { n }),
         )
       ) {
         this.saving.set(false);
@@ -866,7 +872,7 @@ export class Lista implements OnInit {
             created.direccion_geo = dir;
           } catch (e: unknown) {
             this.toast.error(
-              'La obra se creó, pero no se pudo guardar la ubicación',
+              this.i18n.t('La obra se creó, pero no se pudo guardar la ubicación'),
               e instanceof Error ? e.message : undefined,
             );
           }
@@ -889,15 +895,15 @@ export class Lista implements OnInit {
   async eliminarPrueba(p: Proyecto, event: Event) {
     event.stopPropagation();
     if (!this.esAdmin() || !p.es_prueba) return;
-    if (!confirm(`¿Eliminar la obra de prueba "${p.nombre}" y todos sus datos derivados? Esta acción no se puede deshacer.`)) {
+    if (!confirm(this.i18n.t('¿Eliminar la obra de prueba "{nombre}" y todos sus datos derivados? Esta acción no se puede deshacer.', { nombre: p.nombre }))) {
       return;
     }
     try {
       await this.datosPrueba.eliminar('proyectos', p.id);
       this.proyectos.update((list) => list.filter((x) => x.id !== p.id));
-      this.toast.success('Obra de prueba eliminada');
+      this.toast.success(this.i18n.t('Obra de prueba eliminada'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -954,11 +960,11 @@ export class Lista implements OnInit {
         latitud: proy.latitud ?? null,
         longitud: proy.longitud ?? null,
       });
-      this.toast.success('Almacén creado', `Se creó "Almacén ${proy.nombre}" para la obra.`);
+      this.toast.success(this.i18n.t('Almacén creado'), `Se creó "Almacén ${proy.nombre}" para la obra.`);
       this.almacenPrompt.set(null);
       this.proyectosConAlmacen.update((s) => new Set(s).add(proy.id));
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear el almacén', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear el almacén'), e instanceof Error ? e.message : undefined);
     } finally {
       this.creandoAlmacen.set(false);
     }
@@ -974,17 +980,17 @@ export class Lista implements OnInit {
     if (this.cerrandoObra()) return;
     const cerrar = p.estado !== 'terminada';
     const msg = cerrar
-      ? `¿Cerrar «${p.nombre}»? Saldrá de los selectores de obra y dejará de contar como activa. Su historial queda intacto y puedes reabrirla luego.`
-      : `¿Reabrir «${p.nombre}»? Volverá a los selectores como obra en progreso.`;
+      ? this.i18n.t('¿Cerrar «{nombre}»? Saldrá de los selectores de obra y dejará de contar como activa. Su historial queda intacto y puedes reabrirla luego.', { nombre: p.nombre })
+      : this.i18n.t('¿Reabrir «{nombre}»? Volverá a los selectores como obra en progreso.', { nombre: p.nombre });
     if (!confirm(msg)) return;
     this.cerrandoObra.set(true);
     try {
       await this.proyectosService.cerrarProyecto(p.id, cerrar);
       this.selectedProyecto.update((s) => (s ? { ...s, estado: cerrar ? 'terminada' : 'en_progreso', activo: !cerrar } : s));
       await this.loadProyectos();
-      this.toast.success(cerrar ? 'Obra cerrada' : 'Obra reabierta', p.nombre);
+      this.toast.success(this.i18n.t(cerrar ? 'Obra cerrada' : 'Obra reabierta'), p.nombre);
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar el estado de la obra', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado de la obra'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cerrandoObra.set(false);
     }
@@ -1080,7 +1086,7 @@ export class Lista implements OnInit {
     if (!p || this.avanceSaving() || !this.puedeEditarPagado()) return;
     const val = this.pagadoInput();
     if (val != null && (val < 0 || val > 100)) {
-      this.toast.error('El % pagado debe estar entre 0 y 100.');
+      this.toast.error(this.i18n.t('El % pagado debe estar entre 0 y 100.'));
       return;
     }
     this.avanceSaving.set(true);
@@ -1089,9 +1095,9 @@ export class Lista implements OnInit {
       const fresh = await this.proyectosService.getAvanceById(p.id);
       this.avance.set(fresh);
       this.pagadoInput.set(fresh?.porcentaje_pagado ?? null);
-      this.toast.success('% pagado actualizado');
+      this.toast.success(this.i18n.t('% pagado actualizado'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar el % pagado', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar el % pagado'), e instanceof Error ? e.message : undefined);
     } finally {
       this.avanceSaving.set(false);
     }

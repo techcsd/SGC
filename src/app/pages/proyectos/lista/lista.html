@@ -48,7 +48,7 @@
                   <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z" />
                   <path d="M9 12h6" /><path d="M9 16h6" />
                 </svg>
-                Requisiciones
+                {{ 'Requisiciones' | t }}
               </a>
             }
             @if (puedeGestionarProyectos()) {
@@ -57,7 +57,7 @@
             <!-- AT19 — cerrar/reabrir obra (solo admin, reversible). Cerrada = sale de selectores, historial intacto. -->
             @if (esAdmin()) {
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="cerrandoObra()" (click)="toggleCerrarObra(p)">
-                {{ p.estado === 'terminada' ? 'Reabrir obra' : 'Cerrar obra' }}
+                {{ (p.estado === 'terminada' ? 'Reabrir obra' : 'Cerrar obra') | t }}
               </button>
             }
           </div>
@@ -72,7 +72,7 @@
             @if (puedeGestionarResponsables()) {
               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                       [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
-                Crear «Almacén {{ p.nombre }}»
+                {{ i18n.t('Crear «Almacén {nombre}»', { nombre: p.nombre }) }}
               </button>
             }
           </div>
@@ -107,7 +107,7 @@
             @if (p.tipo) {
               <div class="proyectos__detail-item">
                 <span class="proyectos__detail-key">{{ 'Tipo' | t }}</span>
-                <span class="proyectos__detail-val">{{ getTipoLabel(p.tipo) }}</span>
+                <span class="proyectos__detail-val">{{ getTipoLabel(p.tipo) | t }}</span>
               </div>
             }
             @if (p.fecha_inicio) {
@@ -131,7 +131,7 @@
             @if (p.presupuesto) {
               <div class="proyectos__detail-item">
                 <span class="proyectos__detail-key">{{ 'Presupuesto' | t }}</span>
-                <span class="proyectos__detail-val">RD${{ p.presupuesto | number:'1.0-0' }}</span>
+                <span class="proyectos__detail-val">{{ 'RD$' | t }}{{ p.presupuesto | number:'1.0-0' }}</span>
               </div>
             }
             <div class="proyectos__detail-item">
@@ -140,9 +140,9 @@
                 class="proyectos__detail-val"
                 [class.proyectos__detail-val--over]="p.presupuesto != null && gastoReal() > p.presupuesto"
               >
-                RD${{ gastoReal() | number:'1.0-0' }}
+                {{ 'RD$' | t }}{{ gastoReal() | number:'1.0-0' }}
                 @if (p.presupuesto) {
-                  ({{ (gastoReal() / p.presupuesto * 100) | number:'1.0-0' }}% del presupuesto)
+                  ({{ (gastoReal() / p.presupuesto * 100) | number:'1.0-0' }}{{ '% del presupuesto)' | t }}
                 }
               </span>
             </div>
@@ -222,7 +222,7 @@
 
             @if (avance()?.pago_excede) {
               <div class="proyectos__pagado-alert" role="alert">
-                <app-icon name="alert-triangle" [size]="14" /> El % pagado supera al % trabajado
+                <app-icon name="alert-triangle" [size]="14" /> {{ 'El % pagado supera al % trabajado' | t }}
               </div>
             }
 
@@ -302,17 +302,17 @@
                   [class.proyectos__readiness-item--ok]="readinessDe(p.id)?.[s.key]"
                 >
                   <span class="proyectos__readiness-mark"><app-icon [name]="readinessDe(p.id)?.[s.key] ? 'check' : 'circle'" [size]="13" /></span>
-                  <span>{{ s.label }}</span>
+                  <span>{{ s.label | t }}</span>
                 </li>
               }
             </ul>
             @if (listoParaIniciar(p.id)) {
               <p class="proyectos__readiness-note proyectos__readiness-note--ok">
-                <app-icon name="check" [size]="14" /> Lista para iniciar — puedes cambiar el estado a "En progreso".
+                <app-icon name="check" [size]="14" /> {{ 'Lista para iniciar — puedes cambiar el estado a "En progreso".' | t }}
               </p>
             } @else {
               <p class="proyectos__readiness-note">
-                Aún no se puede iniciar: completa los 4 parámetros para habilitar el estado "En progreso".
+                {{ 'Aún no se puede iniciar: completa los 4 parámetros para habilitar el estado "En progreso".' | t }}
               </p>
             }
           </div>
@@ -366,9 +366,8 @@
             } @else {
               @if (responsables().length === 0) {
                 <p class="proyectos__fases-empty">
-                  Sin ingenieros responsables vinculados. Una obra puede tener varios ingenieros;
-                  marca uno como <strong>{{ 'principal' | t }}</strong> (aparece como "ENC. OBRA" en encabezados y reportes).
-                  Todos comparten la visibilidad y los permisos de la obra.
+                  {{ 'Sin ingenieros responsables vinculados. Una obra puede tener varios ingenieros; marca uno como' | t }}
+                  <strong>{{ 'principal' | t }}</strong> {{ '(aparece como "ENC. OBRA" en encabezados y reportes). Todos comparten la visibilidad y los permisos de la obra.' | t }}
                 </p>
               } @else {
                 @for (r of responsables(); track r.id) {
@@ -419,7 +418,7 @@
                     aria-label="{{ 'Tipo de responsabilidad' | t }}"
                   >
                     @for (t of TIPOS_RESPONSABILIDAD; track t.value) {
-                      <option [value]="t.value">{{ t.label }}</option>
+                      <option [value]="t.value">{{ t.label | t }}</option>
                     }
                   </select>
                   <select
@@ -427,13 +426,13 @@
                     (change)="nuevoRespUsuarioId.set($any($event.target).value)"
                     aria-label="{{ 'Seleccionar ingeniero' | t }}"
                   >
-                    <option value="">Seleccionar ingeniero…</option>
+                    <option value="">{{ 'Seleccionar ingeniero…' | t }}</option>
                     @for (u of usuariosSinVincular(); track u.id) {
                       <option [value]="u.id">{{ u.nombre }}</option>
                     }
                   </select>
                   <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addResponsable()">
-                    + Vincular
+                    {{ '+ Vincular' | t }}
                   </button>
                 </div>
                 @if (responsableError()) {
@@ -461,7 +460,7 @@
                       <div>
                         <p class="proyectos__fase-nombre">
                           @if (m.rol) {
-                            <span class="sgc-badge sgc-badge--info">{{ rolObraLabel(m.rol) }}</span>
+                            <span class="sgc-badge sgc-badge--info">{{ rolObraLabel(m.rol) | t }}</span>
                           }
                           @if (m.empleado_id) {
                             {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
@@ -474,7 +473,7 @@
                           @if (m.empleado_id) {
                             {{ m.empleado?.cargo }}
                           } @else {
-                            {{ m.externo_tipo === 'topografia' ? 'Topografía subcontratada' : (m.externo_tipo === 'subcontratista' ? 'Subcontratista' : 'Entidad externa') }}
+                            {{ (m.externo_tipo === 'topografia' ? 'Topografía subcontratada' : (m.externo_tipo === 'subcontratista' ? 'Subcontratista' : 'Entidad externa')) | t }}
                           }
                           @if (m.desde) { · desde {{ formatFecha(m.desde) }} }
                           @if (m.hasta) { · hasta {{ formatFecha(m.hasta) }} }
@@ -488,7 +487,7 @@
                       type="button"
                       class="proyectos__btn-icon proyectos__btn-icon--danger"
                       (click)="removeMiembro(m.id)"
-                      [attr.aria-label]="'Quitar miembro del equipo'"
+                      [attr.aria-label]="i18n.t('Quitar miembro del equipo')"
                     ><app-icon name="x" [size]="14" /></button>
                   </div>
                 }
@@ -501,9 +500,9 @@
                   (change)="onNuevoMiembroRolChange($any($event.target).value)"
                   aria-label="{{ 'Rol en la obra' | t }}"
                 >
-                  <option value="">Rol en la obra…</option>
+                  <option value="">{{ 'Rol en la obra…' | t }}</option>
                   @for (r of ROLES_OBRA; track r.value) {
-                    <option [value]="r.value">{{ r.label }}</option>
+                    <option [value]="r.value">{{ r.label | t }}</option>
                   }
                 </select>
 
@@ -518,7 +517,7 @@
                     (change)="onNuevoMiembroChange($any($event.target).value)"
                     aria-label="{{ 'Seleccionar empleado' | t }}"
                   >
-                    <option value="">Seleccionar empleado…</option>
+                    <option value="">{{ 'Seleccionar empleado…' | t }}</option>
                     @for (e of empleadosDisponibles(); track e.id) {
                       <option [value]="e.id">{{ e.apellido }}, {{ e.nombre }} — {{ e.cargo }}</option>
                     }
@@ -542,7 +541,7 @@
                 />
 
                 <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()">
-                  + Agregar
+                  {{ '+ Agregar' | t }}
                 </button>
               </div>
               @if (miembroError()) {
@@ -640,7 +639,7 @@
                       <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z" />
                       <path d="M9 12h6" /><path d="M9 16h6" />
                     </svg>
-                    Requisiciones
+                    {{ 'Requisiciones' | t }}
                   </a>
                 }
                 <button class="proyectos__btn-add-fase" (click)="openNewFase()">{{ '+ Nueva fase' | t }}</button>
@@ -669,7 +668,7 @@
                   </div>
                   <div class="proyectos__fase-actions">
                     <span class="proyectos__badge proyectos__badge--{{ getFaseEstadoBadge(fase.estado) }}">
-                      {{ getFaseEstadoLabel(fase.estado) }}
+                      {{ getFaseEstadoLabel(fase.estado) | t }}
                     </span>
                     <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="{{ 'Editar fase' | t }}"><app-icon name="edit" [size]="15" /></button>
                     <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="{{ 'Eliminar fase' | t }}"><app-icon name="trash" [size]="15" /></button>
@@ -719,7 +718,7 @@
         </button>
         @if (puedeGestionarProyectos()) {
           <a class="proyectos__btn-new" routerLink="/proyectos/nuevo">
-            + Nuevo proyecto
+            {{ '+ Nuevo proyecto' | t }}
           </a>
         }
       </div>
@@ -750,7 +749,7 @@
       <div class="alm-faltantes" role="note">
         <button type="button" class="alm-faltantes__head" (click)="faltantesAlmacenAbierto.set(!faltantesAlmacenAbierto())"
                 [attr.aria-expanded]="faltantesAlmacenAbierto()">
-          <span><app-icon name="alert-triangle" [size]="15" /> {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
+          <span><app-icon name="alert-triangle" [size]="15" /> {{ i18n.t(obrasSinAlmacen().length !== 1 ? '{n} obras sin almacén asignado' : '{n} obra sin almacén asignado', { n: obrasSinAlmacen().length }) }}</span>
           <span aria-hidden="true"><app-icon [name]="faltantesAlmacenAbierto() ? 'chevron-down' : 'chevron-right'" [size]="14" /></span>
         </button>
         @if (faltantesAlmacenAbierto()) {
@@ -760,7 +759,7 @@
                 <span>{{ p.nombre }}</span>
                 <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                         [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
-                  Crear «Almacén {{ p.nombre }}»
+                  {{ i18n.t('Crear «Almacén {nombre}»', { nombre: p.nombre }) }}
                 </button>
               </li>
             }
@@ -785,9 +784,9 @@
         (change)="onEstadoChange($any($event.target).value)"
         aria-label="{{ 'Filtrar por estado' | t }}"
       >
-        <option value="">Todos los estados</option>
+        <option value="">{{ 'Todos los estados' | t }}</option>
         @for (e of PROYECTO_ESTADOS; track e.value) {
-          <option [value]="e.value">{{ e.label }}</option>
+          <option [value]="e.value">{{ e.label | t }}</option>
         }
       </select>
       <select
@@ -796,9 +795,9 @@
         (change)="onTipoChange($any($event.target).value)"
         aria-label="{{ 'Filtrar por tipo' | t }}"
       >
-        <option value="">Todos los tipos</option>
+        <option value="">{{ 'Todos los tipos' | t }}</option>
         @for (t of PROYECTO_TIPOS; track t.value) {
-          <option [value]="t.value">{{ t.label }}</option>
+          <option [value]="t.value">{{ t.label | t }}</option>
         }
       </select>
       <!-- AS23 — filtrar por zona/sector -->
@@ -809,7 +808,7 @@
           (change)="onZonaChange($any($event.target).value)"
           aria-label="{{ 'Filtrar por zona' | t }}"
         >
-          <option value="">Todas las zonas</option>
+          <option value="">{{ 'Todas las zonas' | t }}</option>
           @for (z of zonasDisponibles(); track z) {
             <option [value]="z">{{ z }}</option>
           }
@@ -823,7 +822,7 @@
           (change)="onFilterSector($any($event.target).value)"
           aria-label="{{ 'Filtrar por sector' | t }}"
         >
-          <option [value]="null">Todos los sectores</option>
+          <option [value]="null">{{ 'Todos los sectores' | t }}</option>
           @for (s of sectoresDisponibles(); track s.id) {
             <option [value]="s.id">{{ s.nombre }}</option>
           }
@@ -840,7 +839,7 @@
             [checked]="mostrarPrueba()"
             (change)="mostrarPrueba.set($any($event.target).checked)"
           />
-          Mostrar datos de prueba
+          {{ 'Mostrar datos de prueba' | t }}
         </label>
       }
     </div>
@@ -869,7 +868,7 @@
               role="button"
               tabindex="0"
               (keydown.enter)="verDetalle(p.id)"
-              [attr.aria-label]="'Ver detalle de ' + p.nombre"
+              [attr.aria-label]="i18n.t('Ver detalle de {nombre}', { nombre: p.nombre })"
             >
               <!-- Card Header -->
               <div class="proyectos__card-header">
@@ -877,7 +876,7 @@
                 <div class="proyectos__card-badges">
                   @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                   <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }}">
-                    {{ getEstadoLabel(p.estado) }}
+                    {{ getEstadoLabel(p.estado) | t }}
                   </span>
                 </div>
               </div>
@@ -885,11 +884,11 @@
               <!-- Estrellas de preparación -->
               <div
                 class="proyectos__stars"
-                [attr.title]="'Preparación para iniciar: ' + estrellas(p.id) + '/4'"
-                [attr.aria-label]="'Preparación para iniciar: ' + estrellas(p.id) + ' de 4'"
+                [attr.title]="i18n.t('Preparación para iniciar: {n}/4', { n: estrellas(p.id) })"
+                [attr.aria-label]="i18n.t('Preparación para iniciar: {n} de 4', { n: estrellas(p.id) })"
               >
                 @for (s of READINESS_ESTRELLAS; track s.key; let i = $index) {
-                  <span>{{ i < estrellas(p.id) ? '★' : '☆' }}</span>
+                  <span>{{ estrellaSimbolo(p.id, i) }}</span>
                 }
               </div>
 
@@ -900,14 +899,14 @@
                   <p class="proyectos__card-cliente">{{ p.cliente }}</p>
                 }
                 @if (p.tipo) {
-                  <p class="proyectos__card-tipo">{{ getTipoLabel(p.tipo) }}</p>
+                  <p class="proyectos__card-tipo">{{ getTipoLabel(p.tipo) | t }}</p>
                 }
 
                 @if (responsablesActivos(p).length > 0) {
                   <p class="proyectos__card-responsables">
                     @for (r of responsablesActivos(p); track r.key) {
                       <span class="sgc-badge sgc-badge--info">
-                        {{ rolesRespLabel(r.tipos) }}: {{ r.nombre }}
+                        {{ rolesRespLabel(r.tipos) | t }}: {{ r.nombre }}
                       </span>
                     }
                   </p>
@@ -916,10 +915,10 @@
                 @if (p.fecha_inicio || p.fecha_fin_estimada) {
                   <div class="proyectos__card-fechas">
                     @if (p.fecha_inicio) {
-                      <span>Inicio: {{ formatFecha(p.fecha_inicio) }}</span>
+                      <span>{{ 'Inicio:' | t }} {{ formatFecha(p.fecha_inicio) }}</span>
                     }
                     @if (p.fecha_fin_estimada) {
-                      <span>Fin est.: {{ formatFecha(p.fecha_fin_estimada) }}</span>
+                      <span>{{ 'Fin est.:' | t }} {{ formatFecha(p.fecha_fin_estimada) }}</span>
                     }
                   </div>
                 }
@@ -956,15 +955,15 @@
                       type="button"
                       (click)="eliminarPrueba(p, $event)"
                       title="{{ 'Eliminar dato de prueba' | t }}"
-                      [attr.aria-label]="'Eliminar dato de prueba ' + p.nombre"
+                      [attr.aria-label]="i18n.t('Eliminar dato de prueba {nombre}', { nombre: p.nombre })"
                     ><app-icon name="trash" [size]="15" /></button>
                   }
                   <button
                     class="proyectos__btn-edit"
                     (click)="openEdit(p, $event)"
-                    aria-label="Editar {{ p.nombre }}"
+                    aria-label="{{ 'Editar' | t }} {{ p.nombre }}"
                   >
-                    Editar
+                    {{ 'Editar' | t }}
                   </button>
                 </div>
               </div>
@@ -987,7 +986,7 @@
 
 <!-- ── Fase Drawer ─────────────────────────────────────────────── -->
 <app-form-drawer
-  [title]="editingFaseId() ? 'Editar fase' : 'Nueva fase'"
+  [title]="i18n.t(editingFaseId() ? 'Editar fase' : 'Nueva fase')"
   [open]="faseDrawerOpen()"
   (closed)="closeFaseDrawer()"
 >
@@ -1043,7 +1042,7 @@
       </div>
 
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="fase-progreso">Progreso: {{ ff['progreso'].value }}%</label>
+        <label class="proyectos__label" for="fase-progreso">{{ 'Progreso:' | t }} {{ ff['progreso'].value }}%</label>
         <input
           id="fase-progreso"
           class="proyectos__range"
@@ -1079,13 +1078,12 @@
         <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="{{ 'Cerrar' | t }}"><app-icon name="x" [size]="16" /></button>
       </div>
       <p class="alm-prompt__text">
-        Toda obra debe tener un almacén. ¿Crear <strong>«Almacén {{ proy.nombre }}»</strong> ahora?
-        Podrás vincular artículos y registrar entradas/salidas desde él.
+        {{ 'Toda obra debe tener un almacén. ¿Crear' | t }} <strong>{{ i18n.t('«Almacén {nombre}»', { nombre: proy.nombre }) }}</strong> {{ 'ahora? Podrás vincular artículos y registrar entradas/salidas desde él.' | t }}
       </p>
       <div class="drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descartarAlmacenPrompt()">{{ 'Ahora no' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra()">
-          @if (creandoAlmacen()) { Creando… } @else { Crear «Almacén {{ proy.nombre }}» }
+          @if (creandoAlmacen()) { {{ 'Creando…' | t }} } @else { {{ i18n.t('Crear «Almacén {nombre}»', { nombre: proy.nombre }) }} }
         </button>
       </div>
     </div>
@@ -1141,9 +1139,9 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="tipo">{{ 'Tipo' | t }}</label>
         <select id="tipo" class="proyectos__select proyectos__input" formControlName="tipo">
-          <option [ngValue]="null">Seleccionar tipo</option>
+          <option [ngValue]="null">{{ 'Seleccionar tipo' | t }}</option>
           @for (t of PROYECTO_TIPOS; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+            <option [value]="t.value">{{ t.label | t }}</option>
           }
         </select>
       </div>
@@ -1153,7 +1151,7 @@
         <label class="proyectos__label" for="estado">{{ 'Estado *' | t }}</label>
         <select id="estado" class="proyectos__select proyectos__input" formControlName="estado">
           @for (e of PROYECTO_ESTADOS; track e.value) {
-            <option [value]="e.value">{{ e.label }}</option>
+            <option [value]="e.value">{{ e.label | t }}</option>
           }
         </select>
       </div>
@@ -1162,7 +1160,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="responsable_id">{{ 'Ingeniero principal' | t }}</label>
         <select id="responsable_id" class="proyectos__select proyectos__input" formControlName="responsable_id">
-          <option [ngValue]="null">Sin responsable</option>
+          <option [ngValue]="null">{{ 'Sin responsable' | t }}</option>
           @for (u of usuarios(); track u.id) {
             <option [value]="u.id">{{ u.nombre }}</option>
           }
@@ -1250,7 +1248,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="zona">{{ 'Zona / región' | t }}</label>
         <select id="zona" class="proyectos__input" formControlName="zona">
-          <option [ngValue]="null">— Sin zona —</option>
+          <option [ngValue]="null">{{ '— Sin zona —' | t }}</option>
           @for (z of zonasRd; track z) { <option [value]="z">{{ z }}</option> }
         </select>
       </div>
@@ -1259,7 +1257,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="provincia_id">{{ 'Provincia' | t }}</label>
         <select id="provincia_id" class="proyectos__input" formControlName="provincia_id">
-          <option [ngValue]="null">— Seleccionar —</option>
+          <option [ngValue]="null">{{ '— Seleccionar —' | t }}</option>
           @for (pr of provincias(); track pr.id) { <option [ngValue]="pr.id">{{ pr.nombre }}</option> }
         </select>
       </div>
@@ -1267,7 +1265,7 @@
         <label class="proyectos__label" for="municipio_id">{{ 'Municipio' | t }}</label>
         <select id="municipio_id" class="proyectos__input" formControlName="municipio_id"
                 [attr.disabled]="form.get('provincia_id')?.value ? null : true">
-          <option [ngValue]="null">— Seleccionar —</option>
+          <option [ngValue]="null">{{ '— Seleccionar —' | t }}</option>
           @for (mu of municipios(); track mu.id) { <option [ngValue]="mu.id">{{ mu.nombre }}</option> }
         </select>
       </div>
@@ -1276,7 +1274,7 @@
         <div class="proyectos__sector-row">
           <select id="sector_id" class="proyectos__input" formControlName="sector_id"
                   [attr.disabled]="form.get('municipio_id')?.value ? null : true">
-            <option [ngValue]="null">— Seleccionar —</option>
+            <option [ngValue]="null">{{ '— Seleccionar —' | t }}</option>
             @for (se of sectores(); track se.id) { <option [ngValue]="se.id">{{ se.nombre }}</option> }
           </select>
           @if (puedeEditarLocacion() && form.get('municipio_id')?.value) {
@@ -1289,7 +1287,7 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="ingeniero_obra_id">{{ 'Ingeniero de obra' | t }}</label>
         <select id="ingeniero_obra_id" class="proyectos__input" formControlName="ingeniero_obra_id">
-          <option [ngValue]="null">— Seleccionar ingeniero —</option>
+          <option [ngValue]="null">{{ '— Seleccionar ingeniero —' | t }}</option>
           @for (i of ingenierosDisp(); track i.id) { <option [ngValue]="i.id">{{ i.nombre }}</option> }
         </select>
         <span class="proyectos__hint">{{ 'Se elige de los usuarios con rol Ingenieros. Para varios ingenieros/residentes usa "Responsables" en el detalle de la obra.' | t }}</span>
@@ -1298,9 +1296,9 @@
       <div class="proyectos__field">
         <label class="proyectos__label" for="maestro_ref">{{ 'Maestro encargado' | t }}</label>
         <select id="maestro_ref" class="proyectos__input" formControlName="maestro_ref">
-          <option [ngValue]="null">— Seleccionar maestro —</option>
+          <option [ngValue]="null">{{ '— Seleccionar maestro —' | t }}</option>
           @if (ingenierosDisp().length) {
-            <optgroup label="Usuarios del sistema">
+            <optgroup [label]="'Usuarios del sistema' | t">
               @for (u of ingenierosDisp(); track u.id) { <option [ngValue]="'u:' + u.id">{{ u.nombre }}</option> }
             </optgroup>
           }
@@ -1363,7 +1361,7 @@
           <label class="toggle-label" for="proy-es-prueba">
             <input id="proy-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
             <span class="toggle-switch" aria-hidden="true"></span>
-            Dato de prueba
+            {{ 'Dato de prueba' | t }}
           </label>
           <small class="proyectos__field-hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
         </div>
@@ -1376,10 +1374,10 @@
 
     <div class="proyectos__form-actions">
       <button type="button" class="proyectos__btn-cancel" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="proyectos__btn-save" [disabled]="saving()">
-        {{ saving() ? 'Guardando...' : (editingId() ? 'Actualizar' : 'Crear') }}
+        {{ (saving() ? 'Guardando...' : (editingId() ? 'Actualizar' : 'Crear')) | t }}
       </button>
     </div>
   </form>

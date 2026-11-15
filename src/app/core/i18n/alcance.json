@@ -256,9 +256,6 @@
     "auth": {
       "enforce": false
     },
-    "proyectos/lista": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "proyectos/kpi": {
+      "enforce": true
+    },
+    "proyectos/lista": {
       "enforce": true
     },
     "solicitudes-movimiento": {
