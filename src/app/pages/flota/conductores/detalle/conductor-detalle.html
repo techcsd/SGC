@@ -16,7 +16,7 @@
     <div class="cd-avatar-wrap">
       @if (avatarUrl()) {
         <img class="cd-avatar cd-avatar--img" [src]="avatarUrl()!"
-             [alt]="'Foto de ' + conductor()!.nombre" width="60" height="60"
+             [alt]="i18n.t('Foto de {nombre}', { nombre: conductor()!.nombre })" width="60" height="60"
              appVerFoto [verFotoNombre]="conductor()!.nombre" />
       } @else {
         <div class="cd-avatar" aria-hidden="true">{{ iniciales() }}</div>
@@ -33,8 +33,8 @@
     <div class="cd-header__main">
       <h1 class="cd-header__nombre">{{ conductor()!.nombre }}</h1>
       <div class="cd-header__meta">
-        <span>Cédula: {{ conductor()!.cedula }}</span>
-        @if (conductor()!.telefono) { <span>· Tel: {{ conductor()!.telefono }}</span> }
+        <span>{{ 'Cédula:' | t }} {{ conductor()!.cedula }}</span>
+        @if (conductor()!.telefono) { <span>· {{ 'Tel:' | t }} {{ conductor()!.telefono }}</span> }
         <span class="cd-chip">{{ conductor()!.tipo_vehiculo_autorizado }}</span>
         @if (conductor()!.vehiculo) {
           <span class="cd-chip cd-chip--veh">{{ idVehiculo(conductor()!.vehiculo) }}</span>
@@ -60,10 +60,10 @@
     @if (stats()) {
       <div class="cd-header__lic">
         <span class="sgc-badge sgc-badge--{{ estadoBadge[stats()!.estado_licencia] }} cd-lic-badge">
-          {{ estadoLabel[stats()!.estado_licencia] }}
+          {{ estadoLabel[stats()!.estado_licencia] | t }}
         </span>
         @if (stats()!.licencia_vencimiento) {
-          <span class="cd-lic-fecha">Vence: {{ formatFecha(stats()!.licencia_vencimiento) }}</span>
+          <span class="cd-lic-fecha">{{ 'Vence:' | t }} {{ formatFecha(stats()!.licencia_vencimiento) }}</span>
         }
       </div>
     }
@@ -81,7 +81,7 @@
                [disabled]="savingIncentivo()"
                (change)="toggleParticipaIncentivo($any($event.target).checked)" />
         <span class="cd-switch__track" aria-hidden="true"></span>
-        <span class="cd-switch__label">{{ conductor()!.participa_incentivo !== false ? 'Sí' : 'No' }}</span>
+        <span class="cd-switch__label">{{ (conductor()!.participa_incentivo !== false ? 'Sí' : 'No') | t }}</span>
       </label>
     </section>
   }
@@ -95,7 +95,7 @@
         <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
         <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
-      <span>La licencia vence en {{ diasParaVencer() }} día(s) — gestiona la renovación.</span>
+      <span>{{ i18n.t('La licencia vence en {n} día(s) — gestiona la renovación.', { n: diasParaVencer() ?? 0 }) }}</span>
     </div>
   }
 
@@ -136,7 +136,7 @@
     <select class="sgc-select cd-periodo" [value]="periodo()" (change)="onPeriodo($any($event.target).value)"
       aria-label="{{ 'Periodo de actividad' | t }}">
       @for (op of PERIODO_OPCIONES; track op.value) {
-        <option [value]="op.value">{{ op.label }}</option>
+        <option [value]="op.value">{{ op.label | t }}</option>
       }
     </select>
   </div>
@@ -159,7 +159,7 @@
         <span class="stat-card__label">{{ 'Inspecciones' | t }}</span>
         <span class="stat-card__value">{{ sp.inspecciones | number: '1.0-0' }}</span>
         @if (sp.pre_usos > 0) {
-          <span class="stat-card__hint">{{ sp.pre_usos | number: '1.0-0' }} usos de vehículo</span>
+          <span class="stat-card__hint">{{ sp.pre_usos | number: '1.0-0' }} {{ 'usos de vehículo' | t }}</span>
         }
       </div>
       <div class="stat-card" [class.stat-card--danger]="sp.multas > 0">
@@ -170,7 +170,7 @@
         <span class="stat-card__label">{{ 'Documentos' | t }}</span>
         <span class="stat-card__value">{{ (sp.documentos?.total ?? 0) | number: '1.0-0' }}</span>
         @if (stats()) {
-          <span class="stat-card__hint">Última actividad: {{ formatTs(stats()!.ultima_actividad) }}</span>
+          <span class="stat-card__hint">{{ 'Última actividad:' | t }} {{ formatTs(stats()!.ultima_actividad) }}</span>
         }
       </div>
     </div>
@@ -414,7 +414,7 @@
     <div class="sgc-field">
       <label for="multa_motivo">{{ 'Motivo' | t }}</label>
       <select id="multa_motivo" formControlName="motivo">
-        <option [value]="''" disabled>Selecciona un motivo…</option>
+        <option [value]="''" disabled>{{ 'Selecciona un motivo…' | t }}</option>
         @for (mo of motivosMulta(); track mo.id) {
           <option [value]="mo.nombre">{{ mo.nombre }}</option>
         }

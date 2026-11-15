@@ -3,7 +3,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Conductores' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} conductor{{ filtered().length !== 1 ? 'es' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'conductores' : 'conductor') | t }}</span>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="conductores" [rows]="filtered()" [allRows]="conductores()"
@@ -14,7 +14,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo conductor
+      {{ 'Nuevo conductor' | t }}
     </button>
   </div>
 </div>
@@ -33,7 +33,7 @@
 
   <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
   <app-filter-select
-    label="Estado"
+    [label]="'Estado' | t"
     [options]="estadoOpt"
     [value]="selectedActivo() === 'all' ? '' : selectedActivo()"
     (valueChange)="onActivoChange($event || 'all')"
@@ -50,12 +50,12 @@
     [attr.aria-pressed]="soloIncompletos()"
     title="{{ 'Mostrar solo conductores con cédula o licencia sin subir' | t }}"
   >
-    <app-icon name="alert-triangle" [size]="16" /> Documentos incompletos
+    <app-icon name="alert-triangle" [size]="16" /> {{ 'Documentos incompletos' | t }}
   </button>
 
   @if (searchQuery() || selectedActivo() !== 'all' || soloIncompletos()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
@@ -67,7 +67,7 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -94,9 +94,9 @@
       </svg>
       <p>
         @if (searchQuery() || selectedActivo() !== 'all') {
-          No se encontraron conductores con los filtros aplicados.
+          {{ 'No se encontraron conductores con los filtros aplicados.' | t }}
         } @else {
-          No hay conductores registrados. Crea el primero.
+          {{ 'No hay conductores registrados. Crea el primero.' | t }}
         }
       </p>
     </div>
@@ -119,7 +119,7 @@
         </thead>
         <tbody appStagger>
           @for (c of paginated(); track c.id) {
-            <tr class="row--link" [class.row--inactive]="!c.activo" [routerLink]="['/flota/conductores', c.id]" role="button" tabindex="0" [attr.aria-label]="'Ver perfil de ' + c.nombre">
+            <tr class="row--link" [class.row--inactive]="!c.activo" [routerLink]="['/flota/conductores', c.id]" role="button" tabindex="0" [attr.aria-label]="i18n.t('Ver perfil de {nombre}', { nombre: c.nombre })">
               <td>
                 <span class="conductores__nombre">{{ c.nombre }}</span>
                 @if (c.es_prueba) {
@@ -145,7 +145,7 @@
               </td>
               <td>{{ c.telefono ? formatTelefono(c.telefono) : '—' }}</td>
               <td>
-                <span class="conductores__licencia-tipo" [title]="categoriaLabel(c.licencia_tipo)">Cat. {{ c.licencia_tipo }}</span>
+                <span class="conductores__licencia-tipo" [title]="categoriaLabel(c.licencia_tipo)">{{ 'Cat.' | t }} {{ c.licencia_tipo }}</span>
               </td>
               <td>{{ c.licencia_numero ?? '—' }}</td>
               <td>
@@ -196,7 +196,7 @@
                     class="action-btn"
                     [routerLink]="['/flota/conductores', c.id]"
                     (click)="$event.stopPropagation()"
-                    [attr.aria-label]="'Ver perfil de ' + c.nombre"
+                    [attr.aria-label]="i18n.t('Ver perfil de {nombre}', { nombre: c.nombre })"
                     title="{{ 'Ver perfil' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -207,7 +207,7 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="$event.stopPropagation(); openEdit(c)"
-                    [attr.aria-label]="'Editar ' + c.nombre"
+                    [attr.aria-label]="i18n.t('Editar {nombre}', { nombre: c.nombre })"
                     title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -221,8 +221,8 @@
                       class="action-btn"
                       [class.action-btn--access]="c.usuario_id"
                       (click)="$event.stopPropagation(); openAcceso(c)"
-                      [attr.aria-label]="(c.usuario_id ? 'Restablecer PIN de ' : 'Generar acceso para ') + c.nombre"
-                      [title]="c.usuario_id ? 'Restablecer PIN' : 'Generar acceso (cédula + PIN)'"
+                      [attr.aria-label]="i18n.t(c.usuario_id ? 'Restablecer PIN de {nombre}' : 'Generar acceso para {nombre}', { nombre: c.nombre })"
+                      [title]="i18n.t(c.usuario_id ? 'Restablecer PIN' : 'Generar acceso (cédula + PIN)')"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
@@ -235,8 +235,8 @@
                     [class.action-btn--deactivate]="c.activo"
                     [class.action-btn--activate]="!c.activo"
                     (click)="$event.stopPropagation(); toggleActivo(c)"
-                    [attr.aria-label]="(c.activo ? 'Desactivar' : 'Activar') + ' ' + c.nombre"
-                    [title]="c.activo ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="i18n.t(c.activo ? 'Desactivar {nombre}' : 'Activar {nombre}', { nombre: c.nombre })"
+                    [title]="i18n.t(c.activo ? 'Desactivar' : 'Activar')"
                   >
                     @if (c.activo) {
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -255,8 +255,8 @@
                       type="button"
                       class="action-btn"
                       (click)="$event.stopPropagation(); marcarPrueba(c, !c.es_prueba)"
-                      [attr.aria-label]="(c.es_prueba ? 'Quitar de prueba ' : 'Marcar como prueba ') + c.nombre"
-                      [title]="c.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                      [attr.aria-label]="i18n.t(c.es_prueba ? 'Quitar de prueba {nombre}' : 'Marcar como prueba {nombre}', { nombre: c.nombre })"
+                      [title]="i18n.t(c.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba')"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6L12 2z"/>
@@ -267,7 +267,7 @@
                         type="button"
                         class="action-btn action-btn--deactivate"
                         (click)="$event.stopPropagation(); eliminarPrueba(c)"
-                        [attr.aria-label]="'Eliminar dato de prueba ' + c.nombre"
+                        [attr.aria-label]="i18n.t('Eliminar dato de prueba {nombre}', { nombre: c.nombre })"
                         title="{{ 'Eliminar (dato de prueba)' | t }}"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -290,7 +290,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -350,9 +350,7 @@
         (selected)="onPickerSelect($event)"
       />
       <small class="sgc-field__hint">
-        Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo.
-        Al vincular, se autocompletan nombre, cédula y teléfono desde su perfil (puedes editarlos).
-        Sin vincular, llena los datos a mano.
+        {{ 'Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo. Al vincular, se autocompletan nombre, cédula y teléfono desde su perfil (puedes editarlos). Sin vincular, llena los datos a mano.' | t }}
       </small>
     </div>
 
@@ -392,8 +390,8 @@
         />
         @if (f.cedula.invalid && f.cedula.touched) {
           <span class="field-error">
-            @if (f.cedula.errors?.['required']) { La cédula es obligatoria. }
-            @else { Formato inválido. Usa 000-0000000-0. }
+            @if (f.cedula.errors?.['required']) { {{ 'La cédula es obligatoria.' | t }} }
+            @else { {{ 'Formato inválido. Usa 000-0000000-0.' | t }} }
           </span>
         }
       </div>
@@ -412,7 +410,7 @@
         <label for="licencia_tipo">{{ 'Tipo de licencia' | t }} <span class="required">*</span></label>
         <select id="licencia_tipo" formControlName="licencia_tipo">
           @for (cat of categorias(); track cat.codigo) {
-            <option [value]="cat.codigo">Categoría {{ cat.codigo }} — {{ cat.nombre }}</option>
+            <option [value]="cat.codigo">{{ 'Categoría' | t }} {{ cat.codigo }} — {{ cat.nombre }}</option>
           }
         </select>
       </div>
@@ -432,7 +430,7 @@
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
-          La licencia está por vencer o ya venció.
+          {{ 'La licencia está por vencer o ya venció.' | t }}
         </span>
       }
     </div>
@@ -440,7 +438,7 @@
     <div class="sgc-field">
       <label for="tipo_vehiculo_autorizado">{{ 'Tipo de vehículo autorizado' | t }} <span class="required">*</span></label>
       <select id="tipo_vehiculo_autorizado" formControlName="tipo_vehiculo_autorizado">
-        @for (t of TIPOS_AUTORIZADOS; track t) { <option [value]="t">{{ t }}</option> }
+        @for (tipo of TIPOS_AUTORIZADOS; track tipo) { <option [value]="tipo">{{ tipo | t }}</option> }
       </select>
     </div>
 
@@ -460,7 +458,7 @@
     <div class="sgc-field">
       <label for="vehiculo_id">{{ 'Vehículo principal (opcional)' | t }}</label>
       <select id="vehiculo_id" formControlName="vehiculo_id">
-        <option [ngValue]="null">Sin vehículo principal</option>
+        <option [ngValue]="null">{{ 'Sin vehículo principal' | t }}</option>
         @for (v of availableVehiculos(); track v.id) {
           <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} {{ v.anio }}</option>
         }
@@ -483,7 +481,7 @@
           @for (t of tags(); track t) {
             <span class="cond-tag-chip">
               {{ t }}
-              <button type="button" (click)="removeTag(t)" [attr.aria-label]="'Quitar ' + t"><app-icon name="x" [size]="14" /></button>
+              <button type="button" (click)="removeTag(t)" [attr.aria-label]="i18n.t('Quitar {tag}', { tag: t })"><app-icon name="x" [size]="14" /></button>
             </span>
           }
         </div>
@@ -532,7 +530,7 @@
       <label class="toggle-label" for="activo">
         <input id="activo" type="checkbox" formControlName="activo" class="toggle-input" />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Conductor activo
+        {{ 'Conductor activo' | t }}
       </label>
     </div>
 
@@ -547,14 +545,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear conductor' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear conductor') | t }}
         }
       </button>
     </div>
@@ -567,13 +565,13 @@
   <div class="acceso-backdrop" (click)="closeAcceso()">
     <div class="acceso-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="acceso-title">
       <div class="acceso-modal__header">
-        <h2 id="acceso-title">{{ c.usuario_id ? 'Restablecer PIN' : 'Generar acceso' }}</h2>
+        <h2 id="acceso-title">{{ (c.usuario_id ? 'Restablecer PIN' : 'Generar acceso') | t }}</h2>
         <button type="button" class="acceso-modal__close" (click)="closeAcceso()" aria-label="{{ 'Cerrar' | t }}"><app-icon name="x" [size]="14" /></button>
       </div>
 
       <p class="acceso-modal__intro">
-        {{ c.nombre }} entrará a la app con su <strong>cédula ({{ c.cedula }})</strong> y este PIN.
-        Nunca se envía por correo; comunícaselo directamente.
+        {{ c.nombre }} {{ 'entrará a la app con su' | t }} <strong>{{ 'cédula' | t }} ({{ c.cedula }})</strong> {{ 'y este PIN.' | t }}
+        {{ 'Nunca se envía por correo; comunícaselo directamente.' | t }}
       </p>
 
       <div class="sgc-field">
@@ -601,9 +599,9 @@
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAcceso()">{{ 'Cerrar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="accesoSaving()" (click)="guardarAcceso()">
           @if (accesoSaving()) {
-            <span class="spinner" aria-hidden="true"></span> Guardando…
+            <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }}
           } @else {
-            {{ c.usuario_id ? 'Restablecer PIN' : 'Generar acceso' }}
+            {{ (c.usuario_id ? 'Restablecer PIN' : 'Generar acceso') | t }}
           }
         </button>
       </div>

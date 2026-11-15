@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 45%** (4764/10696 literales de 192 pantallas en alcance). **`ht`: 74%**.
+**Alcance `en`: 45%** (4814/10696 literales de 192 pantallas en alcance). **`ht`: 75%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -119,7 +119,6 @@
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
 | flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
-| flota/conductores | scope | 165 | 115 | 50 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
@@ -157,6 +156,7 @@
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
+| flota/conductores | enforce | 165 | 165 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
 | flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
 | flota/mantenimientos | enforce | 88 | 88 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**645 literal(es) sin t()** en 87 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**631 literal(es) sin t()** en 85 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -229,7 +229,6 @@
 | src/app/pages/proyectos/cronograma/cronograma.ts | 11 | Tarea guardada. · Dependencia agregada. · Dependencia eliminada. … |
 | src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |
 | src/app/pages/bitacora/cartillas/cartillas.ts | 9 | No se pudo abrir · Escribe la observación · Cartilla actualizada … |
-| src/app/pages/flota/conductores/conductores.ts | 9 | Acceso actualizado · Acceso por PIN sin resincronizar · Documentos … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
@@ -253,7 +252,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/flota/conductores/detalle/conductor-detalle.ts | 5 | Error · Foto actualizada · Multa registrada … |
 | src/app/pages/flota/vehiculos/cargar-documentos/cargar-documentos.ts | 5 | Un solo PDF · Formato no soportado · Demasiadas fotos … |
 | src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
