@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 29%** (3149/11027 literales de 192 pantallas en alcance). **`ht`: 65%**.
+**Alcance `en`: 30%** (3260/11004 literales de 192 pantallas en alcance). **`ht`: 66%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -34,7 +34,6 @@
 | bitacora/historial | scope | 97 | 0 | 97 | 0% |
 | bitacora/mi-proyecto | scope | 5 | 0 | 5 | 0% |
 | bitacora/solicitudes-compra | scope | 34 | 0 | 34 | 0% |
-| compras/ordenes | scope | 134 | 0 | 134 | 0% |
 | compras/ordenes-odoo | scope | 140 | 0 | 140 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | documentos/generar | scope | 9 | 0 | 9 | 0% |
@@ -160,6 +159,7 @@
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
+| compras/ordenes | enforce | 111 | 111 | 0 | 100% |
 | compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
 | compras/proveedores | enforce | 77 | 77 | 0 | 100% |
 | compras/proveedores-odoo | enforce | 44 | 44 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**749 literal(es) sin t()** en 99 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**737 literal(es) sin t()** en 98 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -224,7 +224,6 @@
 | src/app/pages/apoyo-transporte/apoyo-transporte.ts | 13 | Faltan datos · Falta la foto · Apoyo creado … |
 | src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
-| src/app/pages/compras/ordenes/ordenes.ts | 12 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
 | src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |

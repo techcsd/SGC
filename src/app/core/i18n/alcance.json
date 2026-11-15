@@ -82,9 +82,6 @@
     "bitacora/solicitudes-compra": {
       "enforce": false
     },
-    "compras/ordenes": {
-      "enforce": false
-    },
     "compras/ordenes-odoo": {
       "enforce": false
     },
@@ -458,6 +455,9 @@
       "enforce": true
     },
     "compras/gastos": {
+      "enforce": true
+    },
+    "compras/ordenes": {
       "enforce": true
     },
     "compras/productos-por-dar-de-alta": {
