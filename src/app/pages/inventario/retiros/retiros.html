@@ -3,8 +3,8 @@
     <div>
       <h1>{{ 'Retiro de material dañado' | t }}</h1>
       <p class="ret-sub">
-        Solicitud con evidencia → aprobación → conduce de retiro → cuarentena (no despachable) → disposición.
-        El material dañado NO vuelve al stock disponible; su único camino es este (no «Ajuste real»).
+        {{ 'Solicitud con evidencia → aprobación → conduce de retiro → cuarentena (no despachable) → disposición.' | t }}
+        {{ 'El material dañado NO vuelve al stock disponible; su único camino es este (no «Ajuste real»).' | t }}
       </p>
     </div>
     <button class="ret-btn" (click)="abrirCrear()">{{ '+ Nuevo retiro' | t }}</button>
@@ -21,7 +21,7 @@
     <div class="ret-filtros">
       @for (e of ['todos','pendiente','aprobada','en_retiro','en_cuarentena','dispuesta','rechazada','cancelada']; track e) {
         <button class="ret-chip" [class.active]="filtroEstado() === e" (click)="setFiltro($any(e))">
-          {{ e === 'todos' ? 'Todas' : estadoLabel(e) }}
+          {{ e === 'todos' ? ('Todas' | t) : (estadoLabel(e) | t) }}
         </button>
       }
     </div>
@@ -35,27 +35,27 @@
         @for (f of filasVisibles(); track f.id) {
           <article class="ret-item" (click)="abrirDetalle(f)">
             <div class="ret-item-top">
-              <span class="sgc-badge sgc-badge--{{ estadoBadge(f.estado) }}">{{ estadoLabel(f.estado) }}</span>
-              <span class="ret-folio">RET-{{ (f.folio ?? 0).toString().padStart(6, '0') }}</span>
+              <span class="sgc-badge sgc-badge--{{ estadoBadge(f.estado) }}">{{ estadoLabel(f.estado) | t }}</span>
+              <span class="ret-folio">{{ 'RET-' | t }}{{ (f.folio ?? 0).toString().padStart(6, '0') }}</span>
               @if (f.es_prueba) { <span class="ret-prueba">{{ 'PRUEBA' | t }}</span> }
               <!-- BP4 — origen: retiro creado desde un daño de bitácora (enlaza a la fuente). -->
               @if (f.bitacora_id) {
                 <a class="ret-origen" [routerLink]="['/bitacora/historial']" [queryParams]="{ item: f.bitacora_id }"
                    (click)="$event.stopPropagation()" title="{{ 'Ver la bitácora que originó este retiro' | t }}">
-                  desde bitácora
+                  {{ 'desde bitácora' | t }}
                 </a>
               }
               <span class="ret-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
             </div>
             <div class="ret-item-body">
               <strong>{{ f.proyecto_nombre || '—' }}</strong>
-              <span class="ret-motivo">{{ motivoLabel(f.motivo_dano) }}</span>
+              <span class="ret-motivo">{{ motivoLabel(f.motivo_dano) | t }}</span>
             </div>
             <div class="ret-meta">
               @if (f.solicitante_nombre) { <span>{{ f.solicitante_nombre }}</span> }
-              <span>{{ f.items_count }} artículo(s)</span>
-              <span>{{ f.fotos_count }} foto(s)</span>
-              @if (f.disposicion) { <span class="ret-disp">{{ disposicionLabel(f.disposicion) }}</span> }
+              <span>{{ f.items_count }} {{ 'artículo(s)' | t }}</span>
+              <span>{{ f.fotos_count }} {{ 'foto(s)' | t }}</span>
+              @if (f.disposicion) { <span class="ret-disp">{{ disposicionLabel(f.disposicion) | t }}</span> }
             </div>
           </article>
         }
@@ -91,12 +91,12 @@
 </div>
 
 <!-- ── Crear ────────────────────────────────────────────────────────────────── -->
-<app-form-drawer [title]="'Nuevo retiro de material dañado'" [open]="crearAbierto()" (closed)="crearAbierto.set(false)">
+<app-form-drawer [title]="i18n.t('Nuevo retiro de material dañado')" [open]="crearAbierto()" (closed)="crearAbierto.set(false)">
   <div class="drawer-form">
     <div class="sgc-field">
       <label>{{ 'Obra' | t }} <span class="required">*</span></label>
       <select [value]="fProyecto()" (change)="fProyecto.set($any($event.target).value)">
-        <option value="">Selecciona la obra…</option>
+        <option value="">{{ 'Selecciona la obra…' | t }}</option>
         @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
       </select>
     </div>
@@ -104,7 +104,7 @@
     <div class="sgc-field">
       <label>{{ 'Almacén destino (cuarentena)' | t }}</label>
       <select [value]="fAlmacen()" (change)="fAlmacen.set($any($event.target).value)">
-        <option value="">— (se asigna al aprobar)</option>
+        <option value="">{{ '— (se asigna al aprobar)' | t }}</option>
         @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
       </select>
     </div>
@@ -112,10 +112,10 @@
     <div class="sgc-field">
       <label>{{ 'Motivo del daño' | t }} <span class="required">*</span></label>
       <select [value]="fMotivo()" (change)="fMotivo.set($any($event.target).value)">
-        <option value="danado_obra">Dañado en obra</option>
-        <option value="defecto_fabrica">Defecto de fábrica</option>
-        <option value="vencido">Vencido</option>
-        <option value="otro">Otro</option>
+        <option value="danado_obra">{{ 'Dañado en obra' | t }}</option>
+        <option value="defecto_fabrica">{{ 'Defecto de fábrica' | t }}</option>
+        <option value="vencido">{{ 'Vencido' | t }}</option>
+        <option value="otro">{{ 'Otro' | t }}</option>
       </select>
     </div>
     @if (fMotivo() === 'otro') {
@@ -171,29 +171,29 @@
     <div class="drawer-actions">
       <button type="button" class="ret-btn ret-btn--ghost" (click)="crearAbierto.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="button" class="ret-btn" (click)="guardarCrear()" [disabled]="guardando()">
-        {{ guardando() ? 'Guardando…' : 'Solicitar retiro' }}
+        {{ (guardando() ? 'Guardando…' : 'Solicitar retiro') | t }}
       </button>
     </div>
   </div>
 </app-form-drawer>
 
 <!-- ── Detalle ──────────────────────────────────────────────────────────────── -->
-<app-form-drawer [title]="'Detalle del retiro'" [open]="detalleAbierto()" [wide]="true" (closed)="detalleAbierto.set(false)">
+<app-form-drawer [title]="i18n.t('Detalle del retiro')" [open]="detalleAbierto()" [wide]="true" (closed)="detalleAbierto.set(false)">
   @if (retiroActual; as r) {
     <div class="ret-detalle">
       <div class="ret-item-top">
-        <span class="sgc-badge sgc-badge--{{ estadoBadge($any(r['estado'])) }}">{{ estadoLabel($any(r['estado'])) }}</span>
-        <span class="ret-folio">RET-{{ ($any(r['folio']) ?? 0).toString().padStart(6, '0') }}</span>
+        <span class="sgc-badge sgc-badge--{{ estadoBadge($any(r['estado'])) }}">{{ estadoLabel($any(r['estado'])) | t }}</span>
+        <span class="ret-folio">{{ 'RET-' | t }}{{ ($any(r['folio']) ?? 0).toString().padStart(6, '0') }}</span>
       </div>
       <p class="ret-d-line"><strong>{{ 'Obra:' | t }}</strong> {{ r['proyecto_nombre'] }}</p>
       <p class="ret-d-line"><strong>{{ 'Solicitante:' | t }}</strong> {{ r['solicitante_nombre'] }}</p>
-      <p class="ret-d-line"><strong>{{ 'Motivo:' | t }}</strong> {{ motivoLabel($any(r['motivo_dano'])) }}
+      <p class="ret-d-line"><strong>{{ 'Motivo:' | t }}</strong> {{ motivoLabel($any(r['motivo_dano'])) | t }}
         @if (r['motivo_dano_detalle']) { — {{ r['motivo_dano_detalle'] }} }</p>
       @if (r['almacen_nombre']) { <p class="ret-d-line"><strong>{{ 'Almacén destino:' | t }}</strong> {{ r['almacen_nombre'] }}</p> }
       @if (r['notas']) { <p class="ret-d-line"><strong>{{ 'Notas:' | t }}</strong> {{ r['notas'] }}</p> }
       @if (r['rechazada_motivo']) { <p class="ret-d-line ret-danger"><strong>{{ 'Rechazo:' | t }}</strong> {{ r['rechazada_motivo'] }}</p> }
       @if (r['cancelada_motivo']) { <p class="ret-d-line"><strong>{{ 'Cancelación:' | t }}</strong> {{ r['cancelada_motivo'] }}</p> }
-      @if (r['disposicion']) { <p class="ret-d-line ret-success"><strong>{{ 'Disposición:' | t }}</strong> {{ disposicionLabel($any(r['disposicion'])) }}
+      @if (r['disposicion']) { <p class="ret-d-line ret-success"><strong>{{ 'Disposición:' | t }}</strong> {{ disposicionLabel($any(r['disposicion'])) | t }}
         @if (r['disposicion_nota']) { — {{ r['disposicion_nota'] }} }</p> }
 
       <h3 class="ret-d-h">{{ 'Artículos' | t }}</h3>
@@ -242,7 +242,7 @@
             <button class="ret-btn ret-btn--ghost" (click)="setAccion('ver')">{{ 'Volver' | t }}</button>
             <button class="ret-btn" [disabled]="procesando()"
               (click)="accion() === 'rechazar' ? confirmarRechazo() : confirmarCancelar()">
-              {{ accion() === 'rechazar' ? 'Rechazar' : 'Cancelar retiro' }}
+              {{ (accion() === 'rechazar' ? 'Rechazar' : 'Cancelar retiro') | t }}
             </button>
           </div>
         </div>
@@ -289,14 +289,14 @@
         <div class="ret-accion">
           <label>{{ 'Disposición final' | t }} <span class="required">*</span></label>
           <select [value]="aDisposicion()" (change)="aDisposicion.set($any($event.target).value)">
-            <option value="descarte">Descarte (merma)</option>
-            <option value="reparacion">Reparación (vuelve a disponible)</option>
-            <option value="devolucion">Devolución a proveedor</option>
+            <option value="descarte">{{ 'Descarte (merma)' | t }}</option>
+            <option value="reparacion">{{ 'Reparación (vuelve a disponible)' | t }}</option>
+            <option value="devolucion">{{ 'Devolución a proveedor' | t }}</option>
           </select>
           @if (aDisposicion() === 'devolucion') {
             <label>{{ 'Proveedor' | t }} <span class="required">*</span></label>
             <select [value]="aProveedor()" (change)="aProveedor.set($any($event.target).value)">
-              <option value="">Selecciona…</option>
+              <option value="">{{ 'Selecciona…' | t }}</option>
               @for (p of proveedores(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
             </select>
           }

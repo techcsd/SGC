@@ -409,9 +409,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/retiros": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "inventario/requisiciones": {
+      "enforce": true
+    },
+    "inventario/retiros": {
       "enforce": true
     },
     "inventario/salidas": {

@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 26%** (2900/11070 literales de 192 pantallas en alcance). **`ht`: 60%**.
+**Alcance `en`: 27%** (2935/11071 literales de 192 pantallas en alcance). **`ht`: 61%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -143,7 +143,6 @@
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/retiros | scope | 99 | 65 | 34 | 66% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | inventario/entradas | scope | 110 | 79 | 31 | 72% |
@@ -196,13 +195,14 @@
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
 | inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
 | inventario/requisiciones | enforce | 143 | 143 | 0 | 100% |
+| inventario/retiros | enforce | 100 | 100 | 0 | 100% |
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**806 literal(es) sin t()** en 109 archivo(s) (de 137 archivo(s) .ts con algo detectado).
+**789 literal(es) sin t()** en 108 archivo(s) (de 137 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -210,7 +210,6 @@
 | src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 30 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
 | src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
-| src/app/pages/inventario/retiros/retiros.ts | 17 | No se pudo subir la foto · Selecciona la obra. · Agrega al menos un artículo. … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/compras/ordenes-odoo/ordenes-odoo.ts | 16 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
 | src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 16 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
