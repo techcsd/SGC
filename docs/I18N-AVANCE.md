@@ -119,17 +119,73 @@ lo mida.
 
 ## Medición tras lote 4, parcial (Inventario, 14-nov-2026)
 
-Inventario es grande: **24 pantallas**, ~1700 literales. En progreso, **8/24
-a 100%** hasta ahora: `conduces-por-implementar`, `lugares-por-registrar`,
-`por-firmar`, `proveedores-transporte`, `reportes`, `conduce-externo-form`
-(+ `conduces-externos`/`stock-odoo` ya estaban al 100% de rondas previas).
-**16 pantallas restantes** (con su % tras el codemod, antes de la limpieza
+Inventario es grande: **28 pantallas reales** (no 24, corregido al medir con
+el escáner — incluye `conduces-externos`/`stock-odoo` que ya venían al 100%
+de rondas previas). En progreso, **8/28 a 100%** hasta ahora:
+`conduces-por-implementar`, `lugares-por-registrar`, `por-firmar`,
+`proveedores-transporte`, `reportes`, `conduce-externo-form`
+(+ `conduces-externos`/`stock-odoo`).
+**20 pantallas restantes** (con su % tras el codemod, antes de la limpieza
 a mano): `conteos` 45%, `apertura` 47%, `conduces` 52%, `reposicion` 52%,
 `ajuste-real` 55%, `articulos` 56%, `movimientos` 56%, `categorias` 57%,
 `salidas` 59%, `bodegas` 60%, `activos` 61%, `confirmaciones` 61%,
 `material-no-catalogado` 61%, `almacen-inventario` 63%, `conduce` 64%,
 `kardex-modal` 64%, `requisiciones` 64%, `retiros` 66%, `entradas` 72%,
 `conduce-externo-ficha` 73%.
+
+## Medición tras lotes 5-9 (Inventario, 14-nov-2026 — sigue la misma sesión)
+
+**21/28 pantallas de Inventario a 100% con `enforce:true`** (quedan 6:
+`almacen-inventario`, `conduce`, `requisiciones`, `retiros`, `entradas`,
+`conduce-externo-ficha`). Lotes y commits en `feature/dp-ronda-13nov`:
+
+- **Lote 4 cont.** (`46a3c9c5`): `categorias`, `movimientos`,
+  `confirmaciones`, `kardex-modal`, `material-no-catalogado`, `ajuste-real`,
+  `reposicion` → 100%. Gotchas: `[attr.aria-label]="'Seleccionar ' + x"` no
+  es alcanzable por `| t` (requiere `i18n.t()` directo + `protected i18n` en
+  el componente); catálogos tipo `MOTIVOS_DECLINAR` (`label:` en object
+  literal) pasan el guard de texto estático pero no un binding de variable
+  (`m.label` sin `| t`) — hay que envolver en la plantilla, no en la
+  declaración (DP-09).
+- **Lote 5** (`84b3edfb`): `apertura`, `conteos` → 100%. Noveno… digo quinto
+  fix de escáner: condición de `@if (a > b)` (sin comillas, control flow,
+  NO un binding de atributo) tiene el mismo problema que el fix anterior de
+  `[class.x]="a > b"` — el `>` se confunde con cierre de tag. Se neutraliza
+  igual. También se amplió `esRuido()` para tolerar un separador "·" pegado
+  justo antes de un `@if` cuando ambos caen en el mismo nodo de texto.
+- **Lote 6** (`426bda7c`): `conduces`, `articulos` → 100%.
+- **Enforce retro** (`57a81e08`): `conduces-externos`/`stock-odoo` ya
+  estaban al 100% de rondas previas pero nunca se habían flipeado a
+  `enforce:true` ni tenían sus 26 claves completas en ambos idiomas — se
+  tradujeron y activó el guard.
+- **Lote 7** (`f92fe158`): `salidas` → 100% (pantalla grande, 134
+  literales). Varios `saveError.set()`/`toast` con ternarias no eran
+  detectados por el escáner (no matchean sus patrones de `.ts`) — se
+  envolvieron igual por consistencia real, no solo para pasar la medición.
+- **Lote 8** (`df695e07`): `bodegas` → 100%. Séptimo fix de escáner:
+  `spansDeArreglos()` solo detectaba `campo = [...]` pero no
+  `campo = computed(() => [...])` (el arreglo sigue a un `=>`, no a un `=`
+  directo) — un catálogo sintético mezclado con datos reales
+  (`obrasFiltroOpt`) se contaba como ".ts sin t()" en vez de quedar exento
+  por DP-09. `reArreglo` ahora matchea `(?:=>|=)\s*\[`.
+- **Lote 9** (`33f874ed`): `activos` → 100%. Octavo fix, en **ambos**
+  escáneres (`i18n-coverage.mjs` y `verify-i18n.mjs` tienen cada uno su
+  propia copia del regex `PROP_RE`): un `label:` con TEMPLATE LITERAL de
+  datos (`` label: `${e.nombre} ${e.apellido}` ``) se contaba como copy sin
+  traducir — es interpolación de datos (nombre de empleado, placa de
+  vehículo), no texto de UI. Ambos `PROP_RE` ahora ignoran el match si usa
+  backtick y contiene `${`.
+- Cada lote verificado: build + 368 tests verdes; lote 6 además con smoke
+  (24 pantallas × 2 idiomas, sin fallos). Cada fix de escáner se verificó
+  que NO rompiera ninguna pantalla `enforce:true` previa antes de seguir.
+- `public/i18n/en.json`: 1.575 (tras lote 1) → **2.295** claves.
+  `public/i18n/ht.json`: → **1.357** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+
+**Pendiente Inventario** (6 pantallas, % medido a esta altura):
+`almacen-inventario` ~63%, `conduce` ~64%, `requisiciones` ~65%,
+`retiros` ~66%, `entradas` ~72%, `conduce-externo-ficha` ~73% (esta última
+es ruta dinámica `:id`, sin URL genérica para el smoke — igual que antes).
 
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
@@ -163,7 +219,7 @@ Admin, resto.
 | 1 | Claude | claude, configuracion/claude, admin/claude | 3 envueltos (resto ya venía) | 29 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
-| 4 | Inventario | 8/24 pantallas 100% (conduces-por-implementar, lugares-por-registrar, por-firmar, proveedores-transporte, reportes, conduce-externo-form, + conduces-externos/stock-odoo ya estaban) | ~1193 (codemod) + ~20 a mano | ~15 (toasts) | 🧪 **en progreso (8/24)** | (ver rama) | parcial |
+| 4 | Inventario | 21/28 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~200 a mano | ~80 (toasts/confirm/error) | 🧪 **en progreso (21/28)** | 46a3c9c5..33f874ed | parcial |
 | 5 | Compras | — | — | — | ⏳ pendiente | — | false |
 | 6 | Flota | — | — | — | ⏳ pendiente | — | false |
 | 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |
