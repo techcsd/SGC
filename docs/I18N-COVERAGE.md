@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 59%** (6210/10536 literales de 192 pantallas en alcance). **`ht`: 82%**.
+**Alcance `en`: 59%** (6223/10535 literales de 192 pantallas en alcance). **`ht`: 83%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -92,7 +92,6 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| proyectos/cargos | scope | 38 | 24 | 14 | 63% |
 | proyectos/lista | scope | 168 | 109 | 59 | 65% |
 | proyectos/cronograma-import | scope | 35 | 23 | 12 | 66% |
 | proyectos/clima | scope | 38 | 26 | 12 | 68% |
@@ -195,6 +194,7 @@
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
+| proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/costos | enforce | 13 | 13 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**494 literal(es) sin t()** en 71 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**487 literal(es) sin t()** en 70 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -235,7 +235,6 @@
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/proyectos/cargos/cargos.ts | 7 | Faltan datos · Alias agregado · No se pudo guardar … |
 | src/app/pages/rrhh/activos/activos.ts | 7 | No se pudieron cargar los activos · Falta el nombre · Activo guardado … |
 | src/app/pages/rrhh/capacitacion/capacitacion.ts | 7 | No se pudo cargar Capacitación · No se pudieron cargar las capacitaciones · Falta el curso … |
 | src/app/pages/rrhh/nomina/nomina.ts | 7 | No se pudo cargar Nómina · Valor inválido · Parámetro actualizado … |

@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 59,
-  "pctHt": 82,
+  "pctHt": 83,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -4986,31 +4986,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/cargos",
-      "total": 38,
-      "cubiertos": 24,
-      "sin": 14,
-      "pct": 63,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Alias reconocidos ( )",
-        "Elige un cargo…",
-        "persona(s) { —",
-        "Alias de este cargo ( )",
-        "agregado el",
-        "Ver detalle de",
-        "Cargo",
-        "Faltan datos",
-        "Alias agregado",
-        "No se pudo guardar",
-        "Alias eliminado",
-        "No se pudo eliminar",
-        "Alias agregado",
-        "No se pudo guardar"
-      ]
-    },
-    {
       "pantalla": "proyectos/lista",
       "total": 168,
       "cubiertos": 109,
@@ -6309,6 +6284,16 @@
       "pantalla": "perfil",
       "total": 24,
       "cubiertos": 24,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/cargos",
+      "total": 37,
+      "cubiertos": 37,
       "sin": 0,
       "pct": 100,
       "enScope": true,

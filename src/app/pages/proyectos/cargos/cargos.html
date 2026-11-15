@@ -21,7 +21,7 @@
         </thead>
         <tbody>
           @for (c of cargos(); track c.id) {
-            <tr class="cg-row" tabindex="0" role="button" [attr.aria-label]="'Ver detalle de ' + c.nombre"
+            <tr class="cg-row" tabindex="0" role="button" [attr.aria-label]="i18n.t('Ver detalle de') + ' ' + c.nombre"
                 (click)="abrirDetalle(c)" (keydown)="onFilaKeydown($event, c)">
               <td><code class="cg-code">{{ c.codigo }}</code></td>
               <td>{{ c.nombre }}</td>
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Gestor de alias -->
-    <h2 class="cg-h">Alias reconocidos ({{ aliases().length }})</h2>
+    <h2 class="cg-h">{{ 'Alias reconocidos' | t }} ({{ aliases().length }})</h2>
     <p class="page__sub">{{ 'Un alias es un texto tal como aparece en el Excel que se traduce a un cargo del catálogo.' | t }}</p>
 
     <form class="cg-add" (submit)="$event.preventDefault(); agregarAlias()">
@@ -49,7 +49,7 @@
       <label class="cg-field">
         <span>{{ 'Se mapea al cargo' | t }}</span>
         <select [value]="nuevoCargoId()" (change)="nuevoCargoId.set($any($event.target).value)">
-          <option value="">Elige un cargo…</option>
+          <option value="">{{ 'Elige un cargo…' | t }}</option>
           @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
         </select>
       </label>
@@ -86,7 +86,7 @@
 </section>
 
 <!-- DN-24 — panel de detalle de un cargo -->
-<app-form-drawer [title]="seleccionado()?.nombre ?? 'Cargo'" [open]="!!seleccionado()" (closed)="cerrarDetalle()">
+<app-form-drawer [title]="seleccionado()?.nombre ?? i18n.t('Cargo')" [open]="!!seleccionado()" (closed)="cerrarDetalle()">
   @if (seleccionado(); as c) {
     <div class="cg-detalle">
       <div class="cg-detalle__meta">
@@ -101,20 +101,20 @@
         <p class="text-muted">{{ 'Contando…' | t }}</p>
       } @else {
         <p>
-          {{ personasDelCargo() ?? 0 }} persona(s)
+          {{ personasDelCargo() ?? 0 }} {{ 'persona(s)' | t }}
           @if ((personasDelCargo() ?? 0) > 0) {
             — <a [routerLink]="['/proyectos/personal']" [queryParams]="{ cargo: c.id }">{{ 'verlas en Personal' | t }}</a>
           }
         </p>
       }
 
-      <h3 class="cg-h">Alias de este cargo ({{ aliasesDelSeleccionado().length }})</h3>
+      <h3 class="cg-h">{{ 'Alias de este cargo' | t }} ({{ aliasesDelSeleccionado().length }})</h3>
       @if (aliasesDelSeleccionado().length) {
         <ul class="cg-detalle__alias-lista">
           @for (a of aliasesDelSeleccionado(); track a.id) {
             <li>
               <span>{{ a.alias_normalizado }}</span>
-              <span class="text-muted">agregado el {{ formatFecha(a.created_at) }}</span>
+              <span class="text-muted">{{ 'agregado el' | t }} {{ formatFecha(a.created_at) }}</span>
               <button type="button" class="cg-del" title="{{ 'Eliminar alias' | t }}" (click)="pedirEliminarAlias(a)">
                 <app-icon name="trash" [size]="15" />
               </button>
@@ -141,5 +141,5 @@
 
 <app-confirm-dialog [open]="!!aliasAEliminar()" title="{{ '¿Eliminar este alias?' | t }}"
   [message]="aliasAEliminar() ? ('«' + aliasAEliminar()!.alias_normalizado + '» → ' + (aliasAEliminar()!.cargo_nombre ?? '')) : ''"
-  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Eliminar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminarAlias()" (cancelled)="aliasAEliminar.set(null)" />

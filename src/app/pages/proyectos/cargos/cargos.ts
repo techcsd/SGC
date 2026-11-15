@@ -8,6 +8,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * CG2 — Proyectos › Cargos. Catálogo de cargos (lectura) + gestor de alias:
@@ -27,6 +28,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class ProyectosCargos implements OnInit {
   private svc = inject(PersonalObraService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargos = signal<Cargo[]>([]);
   aliases = signal<CargoAlias[]>([]);
@@ -83,7 +85,7 @@ export class ProyectosCargos implements OnInit {
     const alias = this.nuevoAlias().trim();
     const cargoId = this.nuevoCargoId();
     if (!alias || !cargoId) {
-      this.toast.warning('Faltan datos', 'Escribe el texto y elige a qué cargo se mapea.');
+      this.toast.warning(this.i18n.t('Faltan datos'), 'Escribe el texto y elige a qué cargo se mapea.');
       return;
     }
     this.guardando.set(true);
@@ -92,9 +94,9 @@ export class ProyectosCargos implements OnInit {
       this.nuevoAlias.set('');
       this.nuevoCargoId.set('');
       await this.cargar();
-      this.toast.success('Alias agregado', `«${alias}» ahora se reconoce al importar.`);
+      this.toast.success(this.i18n.t('Alias agregado'), `«${alias}» ahora se reconoce al importar.`);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -111,9 +113,9 @@ export class ProyectosCargos implements OnInit {
     try {
       await this.svc.eliminarCargoAlias(a.id);
       this.aliases.update((xs) => xs.filter((x) => x.id !== a.id));
-      this.toast.success('Alias eliminado');
+      this.toast.success(this.i18n.t('Alias eliminado'));
     } catch (e) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.aliasAEliminar.set(null);
     }
@@ -164,9 +166,9 @@ export class ProyectosCargos implements OnInit {
       await this.svc.registrarCargoAlias(alias, cargo.id);
       this.nuevoAliasDetalle.set('');
       await this.cargar();
-      this.toast.success('Alias agregado', `«${alias}» ahora se reconoce al importar.`);
+      this.toast.success(this.i18n.t('Alias agregado'), `«${alias}» ahora se reconoce al importar.`);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoDetalle.set(false);
     }

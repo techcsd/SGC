@@ -256,9 +256,6 @@
     "auth": {
       "enforce": false
     },
-    "proyectos/cargos": {
-      "enforce": false
-    },
     "proyectos/lista": {
       "enforce": false
     },
@@ -563,6 +560,9 @@
       "enforce": true
     },
     "perfil": {
+      "enforce": true
+    },
+    "proyectos/cargos": {
       "enforce": true
     },
     "proyectos/costos": {
