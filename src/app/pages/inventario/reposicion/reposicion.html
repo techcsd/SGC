@@ -1,13 +1,13 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Reposición de almacén' | t }}</h1>
-    <span class="page-count">{{ visibleRows().length }} por reponer</span>
+    <span class="page-count">{{ visibleRows().length }} {{ 'por reponer' | t }}</span>
   </div>
 </div>
 
 <p class="rep-lead">
-  Artículos que están en o por debajo de su <strong>{{ 'stock mínimo' | t }}</strong> en el almacén seleccionado.
-  Úsalo para reponer a tiempo el almacén de obra.
+  {{ 'Artículos que están en o por debajo de su' | t }} <strong>{{ 'stock mínimo' | t }}</strong> {{ 'en el almacén seleccionado.' | t }}
+  {{ 'Úsalo para reponer a tiempo el almacén de obra.' | t }}
 </p>
 
 <div class="filters-bar">
@@ -17,8 +17,8 @@
       (change)="onBodegaChange($any($event.target).value)"
       aria-label="{{ 'Seleccionar almacén' | t }}"
     >
-      <option value="">Seleccionar almacén…</option>
-      <option value="ALL">Todas las bodegas (global)</option>
+      <option value="">{{ 'Seleccionar almacén…' | t }}</option>
+      <option value="ALL">{{ 'Todas las bodegas (global)' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -30,7 +30,7 @@
   <div class="rep-toolbar">
     <span>{{ seleccionadas() }} seleccionado(s)</span>
     <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="generando()" (click)="generarSolicitud()">
-      Generar solicitud de compra
+      {{ 'Generar solicitud de compra' | t }}
     </button>
   </div>
 }
@@ -66,7 +66,7 @@
           @for (r of visibleRows(); track r.articulo_id) {
             <tr [class.rep-row--critico]="r.actual === 0">
               @if (puedeGestionar()) {
-                <td><input type="checkbox" [checked]="selected().has(r.articulo_id)" (change)="toggleSel(r.articulo_id)" [attr.aria-label]="'Seleccionar ' + r.nombre" /></td>
+                <td><input type="checkbox" [checked]="selected().has(r.articulo_id)" (change)="toggleSel(r.articulo_id)" [attr.aria-label]="i18n.t('Seleccionar') + ' ' + r.nombre" /></td>
               }
               <td>{{ r.nombre }}</td>
               <td class="text-muted">{{ r.codigo }}</td>

@@ -24,14 +24,14 @@
     <!-- Timeline del stock -->
     @if (timeline(); as tl) {
       <div class="kardex__timeline">
-        <span class="kardex__timeline-cap">Existencias en el tiempo (base = apertura {{ d.apertura | number:'1.0-2' }})</span>
+        <span class="kardex__timeline-cap">{{ 'Existencias en el tiempo (base = apertura' | t }} {{ d.apertura | number:'1.0-2' }})</span>
         <svg [attr.viewBox]="'0 0 ' + VW + ' ' + VH" class="kardex__svg" preserveAspectRatio="none" aria-hidden="true">
           <polyline [attr.points]="tl.base" class="kardex__svg-base" />
           <polyline [attr.points]="tl.points" class="kardex__svg-line" />
         </svg>
         <div class="kardex__timeline-scale">
-          <span>mín {{ tl.min | number:'1.0-2' }}</span>
-          <span>máx {{ tl.max | number:'1.0-2' }}</span>
+          <span>{{ 'mín' | t }} {{ tl.min | number:'1.0-2' }}</span>
+          <span>{{ 'máx' | t }} {{ tl.max | number:'1.0-2' }}</span>
         </div>
       </div>
     }
@@ -39,17 +39,17 @@
     <!-- Filtros -->
     <div class="kardex__filters">
       <select [value]="fTipo()" (change)="fTipo.set($any($event.target).value)" aria-label="{{ 'Tipo de movimiento' | t }}">
-        <option value="">Todos los movimientos</option>
-        <option value="entrada">Entradas</option>
-        <option value="salida">Salidas</option>
-        <option value="ajuste">Ajustes</option>
+        <option value="">{{ 'Todos los movimientos' | t }}</option>
+        <option value="entrada">{{ 'Entradas' | t }}</option>
+        <option value="salida">{{ 'Salidas' | t }}</option>
+        <option value="ajuste">{{ 'Ajustes' | t }}</option>
       </select>
       <select [value]="fTransportista()" (change)="fTransportista.set($any($event.target).value)" aria-label="{{ 'Transportista' | t }}">
-        <option value="">Todo transportista</option>
+        <option value="">{{ 'Todo transportista' | t }}</option>
         @for (t of transportistas(); track t) { <option [value]="t">{{ t }}</option> }
       </select>
       <select [value]="fEntrega()" (change)="fEntrega.set($any($event.target).value)" aria-label="{{ 'Quien entrega' | t }}">
-        <option value="">Todo el que entrega</option>
+        <option value="">{{ 'Todo el que entrega' | t }}</option>
         @for (e of entregadores(); track e) { <option [value]="e">{{ e }}</option> }
       </select>
       <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="{{ 'Desde' | t }}" title="{{ 'Desde' | t }}" />

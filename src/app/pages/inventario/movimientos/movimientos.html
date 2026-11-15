@@ -1,10 +1,10 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">
-      Movimientos de inventario
+      {{ 'Movimientos de inventario' | t }}
       @if (bodegaFiltradaNombre()) { <span class="mov-scope">· {{ bodegaFiltradaNombre() }}</span> }
     </h1>
-    <span class="page-count">{{ filtered().length }} movimiento{{ filtered().length !== 1 ? 's' : '' }} · {{ totalSalidas() }} salidas · {{ totalEntradas() }} entradas</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'movimientos' : 'movimiento') | t }} · {{ totalSalidas() }} {{ 'salidas' | t }} · {{ totalEntradas() }} {{ 'entradas' | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -18,15 +18,15 @@
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedBodega()" (change)="onBodega($any($event.target).value)" aria-label="{{ 'Almacén' | t }}">
-      <option value="">Todos los almacenes</option>
+      <option value="">{{ 'Todos los almacenes' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
     </select>
   </div>
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedTipo()" (change)="onTipo($any($event.target).value)" aria-label="{{ 'Tipo' | t }}">
-      <option value="">Entradas y salidas</option>
-      <option value="salida">Salidas</option>
-      <option value="entrada">Entradas</option>
+      <option value="">{{ 'Entradas y salidas' | t }}</option>
+      <option value="salida">{{ 'Salidas' | t }}</option>
+      <option value="entrada">{{ 'Entradas' | t }}</option>
     </select>
   </div>
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
@@ -62,7 +62,7 @@
               <td class="text-muted">
                 {{ m.concepto || '—' }}
                 @if (m.origen_tipo === 'devolucion_obra') {
-                  <span class="mov-origen"><app-icon name="rotate-ccw" [size]="14" /> Devolución de obra{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { · traspaso enlazado }</span>
+                  <span class="mov-origen"><app-icon name="rotate-ccw" [size]="14" /> {{ 'Devolución de obra' | t }}{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { {{ '· traspaso enlazado' | t }} }</span>
                 }
               </td>
               <td class="text-right">{{ m.items }}</td>

@@ -412,28 +412,16 @@
     "auth": {
       "enforce": false
     },
-    "inventario/conteos": {
+    "inventario/apertura": {
       "enforce": false
     },
-    "inventario/apertura": {
+    "inventario/conteos": {
       "enforce": false
     },
     "inventario/conduces": {
       "enforce": false
     },
-    "inventario/reposicion": {
-      "enforce": false
-    },
-    "inventario/ajuste-real": {
-      "enforce": false
-    },
     "inventario/articulos": {
-      "enforce": false
-    },
-    "inventario/movimientos": {
-      "enforce": false
-    },
-    "inventario/categorias": {
       "enforce": false
     },
     "inventario/salidas": {
@@ -445,19 +433,10 @@
     "inventario/activos": {
       "enforce": false
     },
-    "inventario/confirmaciones": {
-      "enforce": false
-    },
-    "inventario/material-no-catalogado": {
-      "enforce": false
-    },
     "inventario/almacen-inventario": {
       "enforce": false
     },
     "inventario/conduce": {
-      "enforce": false
-    },
-    "inventario/kardex-modal": {
       "enforce": false
     },
     "inventario/requisiciones": {
@@ -553,6 +532,12 @@
     "demo/progreso": {
       "enforce": false
     },
+    "inventario/ajuste-real": {
+      "enforce": true
+    },
+    "inventario/categorias": {
+      "enforce": true
+    },
     "inventario/conduce-externo-form": {
       "enforce": true
     },
@@ -562,7 +547,19 @@
     "inventario/conduces-por-implementar": {
       "enforce": true
     },
+    "inventario/confirmaciones": {
+      "enforce": true
+    },
+    "inventario/kardex-modal": {
+      "enforce": true
+    },
     "inventario/lugares-por-registrar": {
+      "enforce": true
+    },
+    "inventario/material-no-catalogado": {
+      "enforce": true
+    },
+    "inventario/movimientos": {
       "enforce": true
     },
     "inventario/por-firmar": {
@@ -572,6 +569,9 @@
       "enforce": true
     },
     "inventario/reportes": {
+      "enforce": true
+    },
+    "inventario/reposicion": {
       "enforce": true
     },
     "inventario/stock-odoo": {

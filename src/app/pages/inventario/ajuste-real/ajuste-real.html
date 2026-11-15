@@ -9,8 +9,8 @@
 
   <!-- BG4/AU1 — un solo camino: el material DAÑADO no se saca por aquí. -->
   <div class="ar-aviso-retiro">
-    ¿Vas a dar de baja material <strong>{{ 'dañado' | t }}</strong>? No uses «Ajuste real»: no deja traza ni evidencia.
-    Usa <a routerLink="/inventario/retiros">{{ 'Retiro de material dañado' | t }}</a> (solicitud con fotos → cuarentena → disposición auditada).
+    {{ '¿Vas a dar de baja material' | t }} <strong>{{ 'dañado' | t }}</strong>{{ '? No uses «Ajuste real»: no deja traza ni evidencia.' | t }}
+    {{ 'Usa' | t }} <a routerLink="/inventario/retiros">{{ 'Retiro de material dañado' | t }}</a> {{ '(solicitud con fotos → cuarentena → disposición auditada).' | t }}
   </div>
 
   @if (!esAdmin()) {
@@ -22,13 +22,13 @@
       <label class="ar-field">
         <span>{{ 'Almacén' | t }} <b>*</b></span>
         <select [value]="selBodega() ?? ''" (change)="onBodega($any($event.target).value)">
-          <option value="">Selecciona el almacén…</option>
+          <option value="">{{ 'Selecciona el almacén…' | t }}</option>
           @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
         </select>
       </label>
       @if (selBodega() && paso() === 'inicio') {
         <label class="sgc-btn sgc-btn--secondary ar-file">
-          Subir listado (Excel)
+          {{ 'Subir listado (Excel)' | t }}
           <input type="file" accept=".xlsx,.xls" hidden (change)="onFile($event)" />
         </label>
       }
@@ -37,9 +37,9 @@
     @if (paso() === 'preview') {
       <div class="ar-meta"><app-icon name="file-text" [size]="14" /> {{ archivoNombre() }}</div>
       <div class="ar-summary">
-        <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
-        <span class="pi-chip pi-chip--dup">{{ conCambio() }} con cambio</span>
-        @if (sinMatch()) { <span class="pi-chip pi-chip--err">{{ sinMatch() }} sin match</span> }
+        <span class="pi-chip pi-chip--ok">{{ okCount() }} {{ 'listas' | t }}</span>
+        <span class="pi-chip pi-chip--dup">{{ conCambio() }} {{ 'con cambio' | t }}</span>
+        @if (sinMatch()) { <span class="pi-chip pi-chip--err">{{ sinMatch() }} {{ 'sin match' | t }}</span> }
       </div>
       <div class="table-scroll">
         <table class="data-table">
@@ -70,7 +70,7 @@
     @if (paso() === 'hecho' && resultado(); as r) {
       <div class="ar-result">
         <h2>{{ 'Ajuste real aplicado' | t }}</h2>
-        <p><strong>{{ r.ok }}</strong> artículos ajustados sin escalón en la gráfica ni movimiento en el kardex. @if (r.errores.length) { {{ r.errores.length }} con error. }</p>
+        <p><strong>{{ r.ok }}</strong> {{ 'artículos ajustados sin escalón en la gráfica ni movimiento en el kardex.' | t }} @if (r.errores.length) { {{ r.errores.length }} {{ 'con error.' | t }} }</p>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">{{ 'Hacer otro ajuste' | t }}</button>
       </div>
     }

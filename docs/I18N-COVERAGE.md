@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 22%** (2445/11110 literales de 193 pantallas en alcance). **`ht`: 37%**.
+**Alcance `en`: 23%** (2532/11111 literales de 193 pantallas en alcance). **`ht`: 44%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -49,7 +49,7 @@
 | flota/accidentes | scope | 56 | 0 | 56 | 0% |
 | flota/avisos | scope | 55 | 0 | 55 | 0% |
 | flota/choferes-privados | scope | 56 | 0 | 56 | 0% |
-| flota/combustible | scope | 226 | 0 | 226 | 0% |
+| flota/combustible | scope | 225 | 0 | 225 | 0% |
 | flota/combustible-dashboard | scope | 54 | 0 | 54 | 0% |
 | flota/combustible-log | scope | 139 | 0 | 139 | 0% |
 | flota/conciliacion-combustible | scope | 186 | 0 | 186 | 0% |
@@ -69,7 +69,7 @@
 | legal/aprobaciones | scope | 34 | 0 | 34 | 0% |
 | legal/configuracion | scope | 20 | 0 | 20 | 0% |
 | legal/contratos | scope | 66 | 0 | 66 | 0% |
-| legal/firmas-pendientes | scope | 13 | 0 | 13 | 0% |
+| legal/firmas-pendientes | scope | 12 | 0 | 12 | 0% |
 | mensajes/grupo-info | scope | 44 | 0 | 44 | 0% |
 | mensajes | scope | 68 | 0 | 68 | 0% |
 | mi-rendimiento | scope | 17 | 0 | 17 | 0% |
@@ -85,7 +85,7 @@
 | politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
 | politicas | scope | 15 | 0 | 15 | 0% |
 | proyectos/cargos | scope | 42 | 0 | 42 | 0% |
-| proyectos/clima | scope | 41 | 0 | 41 | 0% |
+| proyectos/clima | scope | 40 | 0 | 40 | 0% |
 | proyectos/compras | scope | 30 | 0 | 30 | 0% |
 | proyectos/costos | scope | 13 | 0 | 13 | 0% |
 | proyectos/cronograma | scope | 81 | 0 | 81 | 0% |
@@ -137,29 +137,22 @@
 | bitacora/solicitudes-material | scope | 90 | 9 | 81 | 10% |
 | flota/mantenimientos | scope | 121 | 16 | 105 | 13% |
 | tecnologia/dev-notes | scope | 96 | 13 | 83 | 14% |
-| flota/vehiculos | scope | 427 | 66 | 361 | 15% |
+| flota/vehiculos | scope | 426 | 66 | 360 | 15% |
 | bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | bitacora/moldes | scope | 22 | 5 | 17 | 23% |
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/conteos | scope | 69 | 31 | 38 | 45% |
 | inventario/apertura | scope | 32 | 15 | 17 | 47% |
+| inventario/conteos | scope | 66 | 31 | 35 | 47% |
 | inventario/conduces | scope | 33 | 17 | 16 | 52% |
-| inventario/reposicion | scope | 31 | 16 | 15 | 52% |
-| inventario/ajuste-real | scope | 31 | 17 | 14 | 55% |
 | inventario/articulos | scope | 95 | 53 | 42 | 56% |
-| inventario/movimientos | scope | 16 | 9 | 7 | 56% |
-| inventario/categorias | scope | 23 | 13 | 10 | 57% |
 | inventario/salidas | scope | 124 | 73 | 51 | 59% |
 | inventario/bodegas | scope | 70 | 42 | 28 | 60% |
 | inventario/activos | scope | 71 | 43 | 28 | 61% |
-| inventario/confirmaciones | scope | 23 | 14 | 9 | 61% |
-| inventario/material-no-catalogado | scope | 38 | 23 | 15 | 61% |
 | inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
 | inventario/conduce | scope | 145 | 93 | 52 | 64% |
-| inventario/kardex-modal | scope | 25 | 16 | 9 | 64% |
 | inventario/requisiciones | scope | 146 | 93 | 53 | 64% |
 | inventario/retiros | scope | 99 | 65 | 34 | 66% |
 | practica | scope | 34 | 24 | 10 | 71% |
@@ -191,19 +184,26 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
+| inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces-externos | scope | 14 | 14 | 0 | 100% |
 | inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
+| inventario/confirmaciones | enforce | 27 | 27 | 0 | 100% |
+| inventario/kardex-modal | enforce | 25 | 25 | 0 | 100% |
 | inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
+| inventario/material-no-catalogado | enforce | 39 | 39 | 0 | 100% |
+| inventario/movimientos | enforce | 18 | 18 | 0 | 100% |
 | inventario/por-firmar | enforce | 25 | 25 | 0 | 100% |
 | inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
+| inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
 | inventario/stock-odoo | scope | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**969 literal(es) sin t()** en 128 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**945 literal(es) sin t()** en 124 archivo(s) (de 141 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -245,11 +245,9 @@
 | src/app/pages/bitacora/cartillas/cartillas.ts | 9 | No se pudo abrir · Escribe la observación · Cartilla actualizada … |
 | src/app/pages/flota/conductores/conductores.ts | 9 | Acceso actualizado · Acceso por PIN sin resincronizar · Documentos … |
 | src/app/pages/inventario/conduce-externo-ficha/conduce-externo-ficha.ts | 9 | Enlace copiado · No se pudo cambiar el estado de prueba · Conduce externo anulado … |
-| src/app/pages/inventario/material-no-catalogado/material-no-catalogado.ts | 9 | Indica cuál artículo del catálogo ya existe. · Escribe el motivo. · Material declinado. … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
 | src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
-| src/app/pages/inventario/reposicion/reposicion.ts | 8 | Elige un almacén ligado a una obra · Sesión inválida. · Solicitud de compra creada … |
 | src/app/pages/proyectos/personal/personal-import.ts | 8 | Aplicado · No se pudo generar la plantilla · Elige la obra … |
 | src/app/pages/rrhh/tramites/tramites.ts | 8 | No se pudieron cargar los trámites · Falta el nombre · Trámite guardado … |
 | src/app/pages/solicitudes-movimiento/solicitudes-movimiento.ts | 8 | Agrega al menos un renglón de lo que se va a mover. · Solicitud creada · Solicitud cancelada … |
@@ -291,7 +289,6 @@
 | src/app/pages/bitacora/solicitudes-material/solicitudes-material.ts | 4 | Elige una fecha de necesidad · Fecha de necesidad actualizada · Ya enviaste una igual hace poco … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/flota/rutas/rutas.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
-| src/app/pages/inventario/ajuste-real/ajuste-real.ts | 4 | Elige el almacén primero · Nada que ajustar · Ajuste real aplicado … |
 | src/app/pages/inventario/almacen-inventario/almacen-inventario.ts | 4 | Existencia ajustada. · Apertura actualizada. · Ajuste real aplicado. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/proyectos/personal/personal-levantamiento.ts | 4 | No se pudo marcar · Día cerrado · No se pudo cerrar … |
@@ -305,7 +302,6 @@
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
 | src/app/pages/compras/productos-por-dar-de-alta/productos-por-dar-de-alta.ts | 3 | Solicitud enviada. · Artículo creado. · Solicitud resuelta. |
 | src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
-| src/app/pages/inventario/categorias/categorias.ts | 3 | Categoría actualizada · Categoría creada · No se pudo cambiar el estado de la categoría. |
 | src/app/pages/proyectos/kpi/kpi.ts | 3 | Buen desempeño (80+) · Aceptable (60-79) · Necesita atención (<60) |
 | src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
 | src/app/pages/rrhh/reportes/reportes.ts | 3 | Indefinido · Temporal · Por obra |

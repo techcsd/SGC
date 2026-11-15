@@ -87,7 +87,13 @@ function extraerLiterales(htmlOriginal) {
   // "<!--" delimitan un falso "nodo" que es en realidad el comentario) —
   // se reemplazan por espacios ANTES de stripExprInterpolations.
   const sinComentarios = htmlOriginal.replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length));
-  const html = stripExprInterpolations(sinComentarios);
+  // Un binding `[attr]="...<..."` / `[attr]="...>..."` (comparaciones TS, p.
+  // ej. `[class.ar-up]="a > b"`) tiene un '<'/'>' DENTRO de un atributo, no
+  // delimitando una etiqueta real — confunde al regex de nodos de abajo
+  // igual que un comentario. Se neutraliza (mismo largo, para no desalinear
+  // columnas/posiciones) antes de escanear.
+  const sinBindingsComparacion = sinComentarios.replace(/\]="[^"]*[<>][^"]*"/g, (m) => ' '.repeat(m.length));
+  const html = stripExprInterpolations(sinBindingsComparacion);
   const items = []; // { texto, cubierto }
 
   // 1) Nodos de texto entre '>' y '<'

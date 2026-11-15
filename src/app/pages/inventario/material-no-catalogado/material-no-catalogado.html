@@ -5,8 +5,7 @@
       <a routerLink="/inventario/articulos" class="page__back">{{ '← Inventario' | t }}</a>
       <h1 class="page__title">{{ 'Material no catalogado' | t }}</h1>
       <p class="page__sub">
-        Materiales que los choferes escribieron a mano en un conduce porque no existían en
-        el catálogo. Crea el artículo (queda vinculado) o vincúlalo a uno existente.
+        {{ 'Materiales que los choferes escribieron a mano en un conduce porque no existían en el catálogo. Crea el artículo (queda vinculado) o vincúlalo a uno existente.' | t }}
       </p>
     </div>
   </header>
@@ -15,14 +14,14 @@
     @if (conduceFiltro()) {
       <!-- BZ2 — llegó desde "Implementar" de un conduce: solo sus materiales, con estado -->
       <span class="mnc-filter-chip">
-        Mostrando los materiales del conduce <strong>{{ conduceNumero() || 'seleccionado' }}</strong>
-        (incluye resueltos y declinados)
+        {{ 'Mostrando los materiales del conduce' | t }} <strong>{{ conduceNumero() || ('seleccionado' | t) }}</strong>
+        {{ '(incluye resueltos y declinados)' | t }}
       </span>
       <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/material-no-catalogado">{{ 'Ver toda la bandeja' | t }}</a>
     } @else {
       <label class="prueba-toggle">
         <input type="checkbox" [checked]="incluirResueltos()" (change)="toggleResueltos($any($event.target).checked)" />
-        Mostrar resueltos y declinados
+        {{ 'Mostrar resueltos y declinados' | t }}
       </label>
     }
   </div>
@@ -64,7 +63,7 @@
                 @if (f.articulo_vinculado_id) {
                   <span class="mnc-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> {{ f.articulo_vinculado }}</span>
                 } @else if (f.declinado_at) {
-                  <span class="mnc-tag mnc-tag--declinado" [title]="f.declinar_motivo || ''">Declinado{{ f.sugerido_articulo ? ' · ' + f.sugerido_articulo : '' }}</span>
+                  <span class="mnc-tag mnc-tag--declinado" [title]="f.declinar_motivo || ''">{{ 'Declinado' | t }}{{ f.sugerido_articulo ? ' · ' + f.sugerido_articulo : '' }}</span>
                   @if (puedeGestionar()) {
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="revertirDeclinacion(f)" [disabled]="guardando()">{{ 'Revertir' | t }}</button>
                   }
@@ -131,7 +130,7 @@
           <div class="sgc-field">
             <label for="dm">{{ 'Motivo del rechazo' | t }}</label>
             <select id="dm" [value]="declinarMotivo()" (change)="declinarMotivo.set($any($event.target).value)">
-              @for (m of MOTIVOS_DECLINAR; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+              @for (m of MOTIVOS_DECLINAR; track m.value) { <option [value]="m.value">{{ m.label | t }}</option> }
             </select>
           </div>
           @if (declinarMotivo() === 'ya_existe') {
@@ -158,7 +157,7 @@
           <input type="checkbox" [checked]="generarMovimiento()" (change)="generarMovimiento.set($any($event.target).checked)" />
           <span>
             <strong>{{ 'Generar movimiento de inventario' | t }}</strong>
-            <small>Registra la salida real desde la bodega de origen del conduce ({{ fila.cantidad }} {{ fila.unidad || 'u' }}). Si lo dejas sin marcar, solo se vincula el artículo (sin mover stock).</small>
+            <small>{{ 'Registra la salida real desde la bodega de origen del conduce' | t }} ({{ fila.cantidad }} {{ fila.unidad || ('u' | t) }}). {{ 'Si lo dejas sin marcar, solo se vincula el artículo (sin mover stock).' | t }}</small>
           </span>
         </label>
         }

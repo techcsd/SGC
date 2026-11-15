@@ -1,6 +1,6 @@
 {
-  "pctScopeEn": 22,
-  "pctHt": 37,
+  "pctScopeEn": 23,
+  "pctHt": 44,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -2358,9 +2358,9 @@
     },
     {
       "pantalla": "flota/combustible",
-      "total": 226,
+      "total": 225,
       "cubiertos": 0,
-      "sin": 226,
+      "sin": 225,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -2497,7 +2497,6 @@
         "Sin especificar",
         "Regular",
         "Premium / Óptimo",
-        "10 || desviacionPrecio()!",
         "Precio oficial MICM vigente:",
         "RD$ /gal",
         "10 || d",
@@ -4144,9 +4143,9 @@
     },
     {
       "pantalla": "legal/firmas-pendientes",
-      "total": 13,
+      "total": 12,
       "cubiertos": 0,
-      "sin": 13,
+      "sin": 12,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -4161,7 +4160,6 @@
         "Pendiente de",
         "Días",
         "Acción",
-        "= 3\" [class.sgc-badge--neutral]=\"f.dias",
         "Abrir expediente",
         "Firmas pendientes"
       ]
@@ -5076,9 +5074,9 @@
     },
     {
       "pantalla": "proyectos/clima",
-      "total": 41,
+      "total": 40,
       "cubiertos": 0,
-      "sin": 41,
+      "sin": 40,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -5113,7 +5111,6 @@
         "Días adversos",
         "% adverso",
         "Última lectura",
-        "= 25 && o.pctAdverso",
         "Bitácoras con lluvia —",
         "Cerrar",
         "Cargando…",
@@ -8704,9 +8701,9 @@
     },
     {
       "pantalla": "flota/vehiculos",
-      "total": 427,
+      "total": 426,
       "cubiertos": 66,
-      "sin": 361,
+      "sin": 360,
       "pct": 15,
       "enScope": true,
       "enforce": false,
@@ -8765,7 +8762,6 @@
         "Costo / km",
         "Checklists",
         "Mantenimientos",
-        "0 && kmFaltanMant()!",
         "Próximo mant.",
         "revisar dato",
         "pasado con",
@@ -9558,55 +9554,6 @@
       ]
     },
     {
-      "pantalla": "inventario/conteos",
-      "total": 69,
-      "cubiertos": 31,
-      "sin": 38,
-      "pct": 45,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "conteo",
-        "Conteo físico (stock real)",
-        "Chequeo semanal",
-        "Conteos físicos que ajustan el stock, hechos desde la app de campo o la web. Muestra qué se contó y cómo cambió cada material.",
-        "Todos los almacenes",
-        "Mostrar datos de prueba",
-        "· @if (c.motivo) { · }",
-        "ítems",
-        "ítem(s) ajustado(s)",
-        "0\" [class.cn-down]=\"totales(c).neto",
-        "it.cantidad_antes\" [class.cn-down]=\"it.cantidad_contada",
-        "it.cantidad_antes) {",
-        "it.cantidad_antes\" [class.cn-down]=\"it.cantidad_contada",
-        "Sobrante (contado &gt; sistema)",
-        "Faltante (contado &lt; sistema)",
-        "Cuenta físicamente el almacén y ajusta el sistema. Las diferencias se notifican automáticamente a Dirección.",
-        "Seleccionar almacén…",
-        "Solo con diferencia",
-        "de",
-        "Pon el stock",
-        "del almacén tras contarlo físicamente. Al aplicar, el sistema cuadra la existencia",
-        "(no crea movimientos). Puedes guardar el borrador y retomarlo luego. Se puede deshacer.",
-        "Seleccionar almacén…",
-        "Conteo ciego (no mostrar la cantidad del sistema)",
-        "Solo con diferencia",
-        "de",
-        "Guardar borrador",
-        "Error",
-        "Conteo de prueba eliminado",
-        "Error",
-        "Borrador guardado",
-        "El motivo es obligatorio.",
-        "Stock real aplicado",
-        "Conteo deshecho",
-        "No se pudo deshacer",
-        "Chequeo semanal registrado",
-        "¿Eliminar definitivamente el conteo de \"${nombre}\"? Esta acción no se puede deshacer.",
-        "¿Deshacer el conteo físico de \"${c.bodega?.nombre ?? 'este almacén'}\"? Restaura la existencia previa."
-      ]
-    },
-    {
       "pantalla": "inventario/apertura",
       "total": 32,
       "cubiertos": 15,
@@ -9635,6 +9582,52 @@
       ]
     },
     {
+      "pantalla": "inventario/conteos",
+      "total": 66,
+      "cubiertos": 31,
+      "sin": 35,
+      "pct": 47,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "conteo",
+        "Conteo físico (stock real)",
+        "Chequeo semanal",
+        "Conteos físicos que ajustan el stock, hechos desde la app de campo o la web. Muestra qué se contó y cómo cambió cada material.",
+        "Todos los almacenes",
+        "Mostrar datos de prueba",
+        "· @if (c.motivo) { · }",
+        "ítems",
+        "ítem(s) ajustado(s)",
+        "it.cantidad_antes) {",
+        "Sobrante (contado &gt; sistema)",
+        "Faltante (contado &lt; sistema)",
+        "Cuenta físicamente el almacén y ajusta el sistema. Las diferencias se notifican automáticamente a Dirección.",
+        "Seleccionar almacén…",
+        "Solo con diferencia",
+        "de",
+        "Pon el stock",
+        "del almacén tras contarlo físicamente. Al aplicar, el sistema cuadra la existencia",
+        "(no crea movimientos). Puedes guardar el borrador y retomarlo luego. Se puede deshacer.",
+        "Seleccionar almacén…",
+        "Conteo ciego (no mostrar la cantidad del sistema)",
+        "Solo con diferencia",
+        "de",
+        "Guardar borrador",
+        "Error",
+        "Conteo de prueba eliminado",
+        "Error",
+        "Borrador guardado",
+        "El motivo es obligatorio.",
+        "Stock real aplicado",
+        "Conteo deshecho",
+        "No se pudo deshacer",
+        "Chequeo semanal registrado",
+        "¿Eliminar definitivamente el conteo de \"${nombre}\"? Esta acción no se puede deshacer.",
+        "¿Deshacer el conteo físico de \"${c.bodega?.nombre ?? 'este almacén'}\"? Restaura la existencia previa."
+      ]
+    },
+    {
       "pantalla": "inventario/conduces",
       "total": 33,
       "cubiertos": 17,
@@ -9659,57 +9652,6 @@
         "– de",
         "Chofer asignado",
         "Chofer asignado a ${ok} de ${ids.length} conduce(s)"
-      ]
-    },
-    {
-      "pantalla": "inventario/reposicion",
-      "total": 31,
-      "cubiertos": 16,
-      "sin": 15,
-      "pct": 52,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "por reponer",
-        "Artículos que están en o por debajo de su",
-        "en el almacén seleccionado. Úsalo para reponer a tiempo el almacén de obra.",
-        "Seleccionar almacén…",
-        "Todas las bodegas (global)",
-        "Generar solicitud de compra",
-        "Seleccionar",
-        "Elige un almacén ligado a una obra",
-        "Sesión inválida.",
-        "Solicitud de compra creada",
-        "No se pudo crear la solicitud",
-        "Mínimo actualizado",
-        "No se pudo actualizar",
-        "Sugerencia pospuesta",
-        "No se pudo posponer"
-      ]
-    },
-    {
-      "pantalla": "inventario/ajuste-real",
-      "total": 31,
-      "cubiertos": 17,
-      "sin": 14,
-      "pct": 55,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "¿Vas a dar de baja material",
-        "? No uses «Ajuste real»: no deja traza ni evidencia. Usa",
-        "(solicitud con fotos → cuarentena → disposición auditada).",
-        "Selecciona el almacén…",
-        "Subir listado (Excel)",
-        "listas",
-        "con cambio",
-        "sin match",
-        "f.actual\" [class.ar-down]=\"f.real",
-        "artículos ajustados sin escalón en la gráfica ni movimiento en el kardex. @if (r.errores.length) { con error. }",
-        "Elige el almacén primero",
-        "Nada que ajustar",
-        "Ajuste real aplicado",
-        "¿Fijar el stock real de ${validas.length} artículos en este almacén? No genera movimiento ni escalón en la gráfica."
       ]
     },
     {
@@ -9763,45 +9705,6 @@
         "Esto también marcará como prueba ${n} registro(s) relacionado(s) (entradas/salidas de inventario). ¿Continuar?",
         "Ya existe un artículo llamado \"${dup.nombre}\" (${dup.codigo}). ¿Crear de todas formas?",
         "¿Eliminar el dato de prueba \"${article.nombre}\"? Esta acción no se puede deshacer."
-      ]
-    },
-    {
-      "pantalla": "inventario/movimientos",
-      "total": 16,
-      "cubiertos": 9,
-      "sin": 7,
-      "pct": 56,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Movimientos de inventario @if (bodegaFiltradaNombre()) {",
-        "movimiento · salidas · entradas",
-        "Todos los almacenes",
-        "Entradas y salidas",
-        "Salidas",
-        "Entradas",
-        "Devolución de obra @if (m.salida_id) { · traspaso enlazado }"
-      ]
-    },
-    {
-      "pantalla": "inventario/categorias",
-      "total": 23,
-      "cubiertos": 13,
-      "sin": 10,
-      "pct": 57,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Nueva categoría",
-        "Categoría destacada",
-        "Categoría activa",
-        "Cancelar",
-        "Guardando… } @else { }",
-        "Desactivar",
-        "Editar",
-        "Categoría actualizada",
-        "Categoría creada",
-        "No se pudo cambiar el estado de la categoría."
       ]
     },
     {
@@ -9945,52 +9848,6 @@
       ]
     },
     {
-      "pantalla": "inventario/confirmaciones",
-      "total": 23,
-      "cubiertos": 14,
-      "sin": 9,
-      "pct": 61,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "confirmación",
-        "confirmaste: quién entregó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo. } @else { Registro de las entregas de material que ya fueron confirmadas por el responsable de la obra: quién entregó, quién confirmó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo. }",
-        "Todas",
-        "Mis confirmaciones",
-        "Todos los destinos",
-        "Todas",
-        "Confirmada (completa)",
-        "Confirmada (incompleta)",
-        "Limpiar filtros"
-      ]
-    },
-    {
-      "pantalla": "inventario/material-no-catalogado",
-      "total": 38,
-      "cubiertos": 23,
-      "sin": 15,
-      "pct": 61,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Materiales que los choferes escribieron a mano en un conduce porque no existían en el catálogo. Crea el artículo (queda vinculado) o vincúlalo a uno existente.",
-        "Mostrando los materiales del conduce",
-        "(incluye resueltos y declinados)",
-        "Mostrar resueltos y declinados",
-        "Declinado",
-        "Registra la salida real desde la bodega de origen del conduce ( ). Si lo dejas sin marcar, solo se vincula el artículo (sin mover stock).",
-        "Indica cuál artículo del catálogo ya existe.",
-        "Escribe el motivo.",
-        "Material declinado.",
-        "Se revirtió el rechazo.",
-        "El nombre es obligatorio.",
-        "Elige una categoría.",
-        "Artículo creado y vinculado.",
-        "Selecciona un artículo del catálogo.",
-        "Item vinculado al artículo."
-      ]
-    },
-    {
       "pantalla": "inventario/almacen-inventario",
       "total": 40,
       "cubiertos": 25,
@@ -10077,26 +9934,6 @@
         "Confirmado",
         "Pendiente de firma",
         "Pendiente de firma del despachante"
-      ]
-    },
-    {
-      "pantalla": "inventario/kardex-modal",
-      "total": 25,
-      "cubiertos": 16,
-      "sin": 9,
-      "pct": 64,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Existencias en el tiempo (base = apertura )",
-        "mín",
-        "máx",
-        "Todos los movimientos",
-        "Entradas",
-        "Salidas",
-        "Ajustes",
-        "Todo transportista",
-        "Todo el que entrega"
       ]
     },
     {
@@ -10683,6 +10520,26 @@
       "faltantes": []
     },
     {
+      "pantalla": "inventario/ajuste-real",
+      "total": 31,
+      "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/categorias",
+      "total": 23,
+      "cubiertos": 23,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
       "pantalla": "inventario/conduce-externo-form",
       "total": 63,
       "cubiertos": 63,
@@ -10713,9 +10570,49 @@
       "faltantes": []
     },
     {
+      "pantalla": "inventario/confirmaciones",
+      "total": 27,
+      "cubiertos": 27,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/kardex-modal",
+      "total": 25,
+      "cubiertos": 25,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
       "pantalla": "inventario/lugares-por-registrar",
       "total": 10,
       "cubiertos": 10,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/material-no-catalogado",
+      "total": 39,
+      "cubiertos": 39,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/movimientos",
+      "total": 18,
+      "cubiertos": 18,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -10746,6 +10643,16 @@
       "pantalla": "inventario/reportes",
       "total": 44,
       "cubiertos": 44,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/reposicion",
+      "total": 32,
+      "cubiertos": 32,
       "sin": 0,
       "pct": 100,
       "enScope": true,
