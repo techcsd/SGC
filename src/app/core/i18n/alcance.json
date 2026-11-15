@@ -415,12 +415,6 @@
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
-    "inventario/entradas": {
-      "enforce": false
-    },
-    "inventario/conduce-externo-ficha": {
-      "enforce": false
-    },
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
@@ -520,6 +514,9 @@
     "inventario/conduce": {
       "enforce": true
     },
+    "inventario/conduce-externo-ficha": {
+      "enforce": true
+    },
     "inventario/conduce-externo-form": {
       "enforce": true
     },
@@ -536,6 +533,9 @@
       "enforce": true
     },
     "inventario/conteos": {
+      "enforce": true
+    },
+    "inventario/entradas": {
       "enforce": true
     },
     "inventario/kardex-modal": {

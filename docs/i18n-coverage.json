@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 27,
-  "pctHt": 61,
+  "pctHt": 63,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -5330,9 +5330,9 @@
     },
     {
       "pantalla": "proyectos/kpi",
-      "total": 29,
+      "total": 26,
       "cubiertos": 0,
-      "sin": 29,
+      "sin": 26,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -5362,10 +5362,7 @@
         "Escala de desempeño",
         "Página anterior",
         "Página siguiente",
-        "Ver detalle de",
-        "Buen desempeño (80+)",
-        "Aceptable (60-79)",
-        "Necesita atención (<60)"
+        "Ver detalle de"
       ]
     },
     {
@@ -6276,9 +6273,9 @@
     },
     {
       "pantalla": "rrhh/reportes",
-      "total": 23,
+      "total": 20,
       "cubiertos": 0,
-      "sin": 23,
+      "sin": 20,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -6302,10 +6299,7 @@
         "Activos",
         "Salario promedio",
         "Distribución por Contrato",
-        "Empleados por departamento",
-        "Indefinido",
-        "Temporal",
-        "Por obra"
+        "Empleados por departamento"
       ]
     },
     {
@@ -9522,70 +9516,6 @@
       ]
     },
     {
-      "pantalla": "inventario/entradas",
-      "total": 110,
-      "cubiertos": 79,
-      "sin": 31,
-      "pct": 72,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "entrada",
-        "Nueva entrada",
-        "Todos los almacenes",
-        "Mostrar datos de prueba",
-        "Limpiar filtros",
-        "Confirmar",
-        "– de",
-        "Se registró la entrada de artículo(s) al almacén",
-        "Seleccionar almacén…",
-        "Seleccionar obra…",
-        "Sin proveedor",
-        "Sin orden asociada",
-        "Registrar como dato de prueba",
-        "Adjuntar foto",
-        "+ Agregar artículo",
-        "De la orden: « »",
-        "← Volver",
-        "Confirmando… } @else { Confirmar entrada }",
-        "Cancelar",
-        "Guardando… } @else { Revisar → }",
-        "Confirmando… } @else { Confirmar recepción }",
-        "Artículos ( )",
-        "Quitar prueba",
-        "Eliminar definitivamente",
-        "Marcar como dato de prueba",
-        "Entrada rechazada",
-        "Recepción confirmada",
-        "Error",
-        "Dato de prueba eliminado",
-        "Error al eliminar",
-        "¿Eliminar definitivamente la entrada de prueba del ${this.formatFecha(e.fecha)}? Esta acción no se puede deshacer."
-      ]
-    },
-    {
-      "pantalla": "inventario/conduce-externo-ficha",
-      "total": 41,
-      "cubiertos": 30,
-      "sin": 11,
-      "pct": 73,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Anulado:",
-        "Estado del conduce",
-        "Enlace copiado",
-        "No se pudo cambiar el estado de prueba",
-        "Conduce externo anulado",
-        "No se pudo anular",
-        "¿Marcar este conduce externo como dato de prueba? Se revertirá su movimiento de stock y dejará de contar en inventario, KPIs y avisos (salvo con el toggle de datos de prueba).",
-        "Emitido",
-        "Anulado",
-        "Emitido",
-        "Recibido / firmado"
-      ]
-    },
-    {
       "pantalla": "tecnologia/envios-automaticos",
       "total": 27,
       "cubiertos": 20,
@@ -10025,6 +9955,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "inventario/conduce-externo-ficha",
+      "total": 36,
+      "cubiertos": 36,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
       "pantalla": "inventario/conduce-externo-form",
       "total": 63,
       "cubiertos": 63,
@@ -10078,6 +10018,16 @@
       "pantalla": "inventario/conteos",
       "total": 68,
       "cubiertos": 68,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/entradas",
+      "total": 114,
+      "cubiertos": 114,
       "sin": 0,
       "pct": 100,
       "enScope": true,

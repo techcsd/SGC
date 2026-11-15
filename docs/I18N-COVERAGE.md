@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 27%** (2935/11071 literales de 192 pantallas en alcance). **`ht`: 61%**.
+**Alcance `en`: 27%** (2976/11064 literales de 192 pantallas en alcance). **`ht`: 63%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -91,7 +91,7 @@
 | proyectos/cronograma | scope | 81 | 0 | 81 | 0% |
 | proyectos/cronograma-import | scope | 37 | 0 | 37 | 0% |
 | proyectos/historial | scope | 18 | 0 | 18 | 0% |
-| proyectos/kpi | scope | 29 | 0 | 29 | 0% |
+| proyectos/kpi | scope | 26 | 0 | 26 | 0% |
 | proyectos/lista | scope | 203 | 0 | 203 | 0% |
 | rrhh/activos | scope | 44 | 0 | 44 | 0% |
 | rrhh/asistencia | scope | 40 | 0 | 40 | 0% |
@@ -105,7 +105,7 @@
 | rrhh/onboarding | scope | 42 | 0 | 42 | 0% |
 | rrhh/organigrama | scope | 7 | 0 | 7 | 0% |
 | rrhh/proveedores | scope | 35 | 0 | 35 | 0% |
-| rrhh/reportes | scope | 23 | 0 | 23 | 0% |
+| rrhh/reportes | scope | 20 | 0 | 20 | 0% |
 | rrhh/tramites | scope | 47 | 0 | 47 | 0% |
 | solicitudes-movimiento | scope | 94 | 0 | 94 | 0% |
 | tareas/gestion | scope | 38 | 0 | 38 | 0% |
@@ -145,8 +145,6 @@
 | auth | scope | 42 | 15 | 27 | 36% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
-| inventario/entradas | scope | 110 | 79 | 31 | 72% |
-| inventario/conduce-externo-ficha | scope | 41 | 30 | 11 | 73% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | flota/transferencias | scope | 13 | 10 | 3 | 77% |
@@ -180,12 +178,14 @@
 | inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce | enforce | 151 | 151 | 0 | 100% |
+| inventario/conduce-externo-ficha | enforce | 36 | 36 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces | enforce | 34 | 34 | 0 | 100% |
 | inventario/conduces-externos | enforce | 14 | 14 | 0 | 100% |
 | inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
 | inventario/confirmaciones | enforce | 27 | 27 | 0 | 100% |
 | inventario/conteos | enforce | 68 | 68 | 0 | 100% |
+| inventario/entradas | enforce | 114 | 114 | 0 | 100% |
 | inventario/kardex-modal | enforce | 25 | 25 | 0 | 100% |
 | inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
 | inventario/material-no-catalogado | enforce | 39 | 39 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**789 literal(es) sin t()** en 108 archivo(s) (de 137 archivo(s) .ts con algo detectado).
+**768 literal(es) sin t()** en 104 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -236,7 +236,6 @@
 | src/app/pages/flota/avisos/avisos.ts | 10 | Umbral inválido · Umbral actualizado · No se pudo guardar … |
 | src/app/pages/bitacora/cartillas/cartillas.ts | 9 | No se pudo abrir · Escribe la observación · Cartilla actualizada … |
 | src/app/pages/flota/conductores/conductores.ts | 9 | Acceso actualizado · Acceso por PIN sin resincronizar · Documentos … |
-| src/app/pages/inventario/conduce-externo-ficha/conduce-externo-ficha.ts | 9 | Enlace copiado · No se pudo cambiar el estado de prueba · Conduce externo anulado … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
@@ -260,7 +259,6 @@
 | src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |
 | src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
 | src/app/pages/compras/proveedores-odoo/proveedores-odoo.ts | 6 | No se pudo cargar más proveedores · No se pudo cambiar el estado del proveedor · Dato de prueba eliminado … |
-| src/app/pages/inventario/entradas/entradas.ts | 6 | Entrada rechazada · Recepción confirmada · Error … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
@@ -286,9 +284,7 @@
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
 | src/app/pages/compras/productos-por-dar-de-alta/productos-por-dar-de-alta.ts | 3 | Solicitud enviada. · Artículo creado. · Solicitud resuelta. |
 | src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
-| src/app/pages/proyectos/kpi/kpi.ts | 3 | Buen desempeño (80+) · Aceptable (60-79) · Necesita atención (<60) |
 | src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
-| src/app/pages/rrhh/reportes/reportes.ts | 3 | Indefinido · Temporal · Por obra |
 | src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
 | src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |
 | src/app/pages/tecnologia/resumen-operaciones/resumen-operaciones.ts | 3 | Envío disparado · No se pudo reenviar · ¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora? |

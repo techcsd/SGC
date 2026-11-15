@@ -212,7 +212,10 @@ function spansDeArreglos(ts) {
   // `const x = [...]` / `campo = [...]` (arreglo literal completo) — también
   // `campo = computed(() => [...])`, donde el arreglo no sigue al `=`
   // directamente sino a un `=>` de la función flecha que lo envuelve.
-  const reArreglo = /(?:=>|=)\s*\[/g;
+  // también `return [...]` — un catálogo-arreglo construido y devuelto desde un
+  // computed()/método (ej. lineaVida() del conduce externo), no asignado con
+  // `=`/`=>` sino devuelto directo.
+  const reArreglo = /(?:=>|=|\breturn)\s*\[/g;
   let m;
   while ((m = reArreglo.exec(ts))) {
     const inicio = m.index + m[0].length - 1; // posición del '['

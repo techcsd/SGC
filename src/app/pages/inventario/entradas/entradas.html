@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Entradas de Inventario' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} entrada{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'entradas' : 'entrada') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -13,7 +13,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva entrada
+      {{ 'Nueva entrada' | t }}
     </button>
   </div>
 </div>
@@ -36,7 +36,7 @@
       (change)="onBodegaChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por almacén' | t }}"
     >
-      <option value="">Todos los almacenes</option>
+      <option value="">{{ 'Todos los almacenes' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -52,13 +52,13 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -86,9 +86,9 @@
       </svg>
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron entradas con los filtros aplicados.
+          {{ 'No se encontraron entradas con los filtros aplicados.' | t }}
         } @else {
-          No hay entradas registradas. Crea la primera.
+          {{ 'No hay entradas registradas. Crea la primera.' | t }}
         }
       </p>
     </div>
@@ -151,7 +151,7 @@
                 @if (e.pendiente_confirmacion) {
                   <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                     (click)="$event.stopPropagation(); openConfirmar(e)">
-                    Confirmar
+                    {{ 'Confirmar' | t }}
                   </button>
                 } @else {
                   <span class="entradas__cantidad">RD$ {{ entryTotal(e) | number:'1.0-2' }}</span>
@@ -168,7 +168,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -225,7 +225,7 @@
       </div>
       <h3 class="exito-hoja__title">{{ 'Entrada registrada con éxito' | t }}</h3>
       <p class="exito-hoja__sub">
-        Se registró la entrada de {{ (c.detalle_entradas ?? []).length }} artículo(s) al almacén
+        {{ 'Se registró la entrada de' | t }} {{ (c.detalle_entradas ?? []).length }} {{ 'artículo(s) al almacén' | t }}
         <strong>{{ c.bodega?.nombre ?? '—' }}</strong>.
       </p>
 
@@ -247,7 +247,7 @@
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option [ngValue]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">{{ 'Seleccionar almacén…' | t }}</option>
           @for (b of bodegasVisibles(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
@@ -279,7 +279,7 @@
       <select id="origen_tipo" formControlName="origen_tipo"
               (change)="onOrigenChange($any($event.target).value)">
         @for (o of ORIGENES; track o.value) {
-          <option [value]="o.value">{{ o.label }}</option>
+          <option [value]="o.value">{{ o.label | t }}</option>
         }
       </select>
     </div>
@@ -290,7 +290,7 @@
         <label for="origen_proyecto_id">{{ 'Obra de origen' | t }} <span class="required">*</span></label>
         <select id="origen_proyecto_id" formControlName="origen_proyecto_id"
                 (change)="onOrigenProyectoChange($any($event.target).value)">
-          <option [ngValue]="null">Seleccionar obra…</option>
+          <option [ngValue]="null">{{ 'Seleccionar obra…' | t }}</option>
           @for (p of obrasActivas(); track p.id) {
             <option [value]="p.id">{{ p.codigo ? p.codigo + ' — ' : '' }}{{ p.nombre }}</option>
           }
@@ -313,7 +313,7 @@
       <div class="sgc-field">
         <label for="proveedor_id">{{ 'Proveedor' | t }}</label>
         <select id="proveedor_id" formControlName="proveedor_id">
-          <option [ngValue]="null">Sin proveedor</option>
+          <option [ngValue]="null">{{ 'Sin proveedor' | t }}</option>
           @for (p of activeProveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -328,7 +328,7 @@
           formControlName="orden_compra_id"
           (change)="onOrdenCompraChange($any($event.target).value)"
         >
-          <option [ngValue]="null">Sin orden asociada</option>
+          <option [ngValue]="null">{{ 'Sin orden asociada' | t }}</option>
           @for (o of ordenesRecibibles(); track o.id) {
             <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
           }
@@ -366,7 +366,7 @@
       <div class="sgc-field">
         <label class="toggle-label">
           <input type="checkbox" [checked]="crearComoPrueba()" (change)="crearComoPrueba.set($any($event.target).checked)" />
-          Registrar como dato de prueba
+          {{ 'Registrar como dato de prueba' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Los movimientos de prueba no afectan el stock real ni los KPIs; se ocultan salvo que actives “ver datos de prueba”.' | t }}</small>
       </div>
@@ -382,7 +382,7 @@
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm entradas__foto-pick">
-          <app-icon name="camera" [size]="16" /> Adjuntar foto
+          <app-icon name="camera" [size]="16" /> {{ 'Adjuntar foto' | t }}
           <input type="file" accept="image/*" capture="environment" (change)="onFotoSelected($event)" hidden />
         </label>
       }
@@ -393,7 +393,7 @@
       <div class="items-header">
         <label>{{ 'Artículos' | t }} <span class="required">*</span></label>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
-          + Agregar artículo
+          {{ '+ Agregar artículo' | t }}
         </button>
       </div>
 
@@ -409,7 +409,7 @@
               (selectionChange)="onItemArticuloSelect($index, $event)"
             />
             @if (item.ocDescripcion) {
-              <small class="item-row__oc-hint">De la orden: «{{ item.ocDescripcion }}»</small>
+              <small class="item-row__oc-hint">{{ 'De la orden:' | t }} «{{ item.ocDescripcion }}»</small>
             }
           </div>
           <app-qty-stepper
@@ -417,7 +417,7 @@
             [value]="item.cantidad"
             [min]="0"
             [step]="1"
-            ariaLabel="Cantidad"
+            [ariaLabel]="i18n.t('Cantidad')"
             (valueChange)="updateItemCantidad($index, $event)"
           />
           <input
@@ -453,10 +453,10 @@
 
       <dl class="resumen-hoja__meta">
         <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ bodegaNombre() }}</dd></div>
-        <div><dt>{{ 'Origen' | t }}</dt><dd>{{ origenLabel() }}</dd></div>
+        <div><dt>{{ 'Origen' | t }}</dt><dd>{{ origenLabel() | t }}</dd></div>
         @if (esDevolucionObra()) {
           <div><dt>{{ 'Obra de origen' | t }}</dt><dd>{{ obraOrigenNombre() }}</dd></div>
-          <div><dt>{{ 'Almacén de la obra' | t }}</dt><dd>{{ f.descontar_origen.value ? 'Se descuenta (salida registrada)' : 'No se descuenta' }}</dd></div>
+          <div><dt>{{ 'Almacén de la obra' | t }}</dt><dd>{{ (f.descontar_origen.value ? 'Se descuenta (salida registrada)' : 'No se descuenta') | t }}</dd></div>
         } @else {
           <div><dt>{{ 'Proveedor' | t }}</dt><dd>{{ proveedorNombre() }}</dd></div>
         }
@@ -476,7 +476,7 @@
               [value]="r.cantidad"
               [min]="0"
               [step]="1"
-              ariaLabel="Cantidad"
+              [ariaLabel]="i18n.t('Cantidad')"
               (valueChange)="updateItemCantidad(r.index, $event)"
             />
             <span class="resumen-row__precio">
@@ -510,26 +510,26 @@
     <div class="drawer-actions">
       @if (step() === 'resumen') {
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="volverAForm()">
-          ← Volver
+          {{ '← Volver' | t }}
         </button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving() || !resumenValido()">
           @if (saving()) {
             <span class="spinner" aria-hidden="true"></span>
-            Confirmando…
+            {{ 'Confirmando…' | t }}
           } @else {
-            Confirmar entrada
+            {{ 'Confirmar entrada' | t }}
           }
         </button>
       } @else {
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-          Cancelar
+          {{ 'Cancelar' | t }}
         </button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
           @if (saving()) {
             <span class="spinner" aria-hidden="true"></span>
-            Guardando…
+            {{ 'Guardando…' | t }}
           } @else {
-            Revisar →
+            {{ 'Revisar →' | t }}
           }
         </button>
       }
@@ -611,7 +611,7 @@
         }
         @if (confirmStep() === 'confirmar') {
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="confirmSaving()" (click)="ejecutarConfirmacion()">
-            @if (confirmSaving()) { <span class="spinner" aria-hidden="true"></span> Confirmando… } @else { Confirmar recepción }
+            @if (confirmSaving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Confirmando…' | t }} } @else { {{ 'Confirmar recepción' | t }} }
           </button>
         } @else {
           <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmAvanzar()">{{ 'Continuar →' | t }}</button>
@@ -628,7 +628,7 @@
       <dl class="entrada-detalle__meta">
         <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(e.fecha) }}</dd></div>
         <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ e.bodega?.nombre ?? '—' }}</dd></div>
-        <div><dt>{{ 'Origen' | t }}</dt><dd>{{ e.origen_tipo === 'devolucion_obra' ? ('Devolución de obra' + (e.origen_proyecto?.nombre ? ': ' + e.origen_proyecto?.nombre : '')) : (e.proveedor?.nombre ?? 'Compra') }}</dd></div>
+        <div><dt>{{ 'Origen' | t }}</dt><dd>{{ e.origen_tipo === 'devolucion_obra' ? (i18n.t('Devolución de obra') + (e.origen_proyecto?.nombre ? ': ' + e.origen_proyecto?.nombre : '')) : (e.proveedor?.nombre ?? i18n.t('Compra')) }}</dd></div>
         @if (e.orden_compra?.numero) { <div><dt>{{ 'Orden de compra' | t }}</dt><dd>{{ e.orden_compra?.numero }}</dd></div> }
         @if (e.referencia) { <div><dt>{{ 'Referencia' | t }}</dt><dd>{{ e.referencia }}</dd></div> }
         <div><dt>{{ 'Registrado por' | t }}</dt><dd>{{ e.creado?.nombre ?? '—' }}</dd></div>
@@ -658,7 +658,7 @@
         </div>
       }
 
-      <h4 class="entrada-detalle__title">Artículos ({{ (e.detalle_entradas ?? []).length }})</h4>
+      <h4 class="entrada-detalle__title">{{ 'Artículos' | t }} ({{ (e.detalle_entradas ?? []).length }})</h4>
       <table class="data-table">
         <thead><tr><th>{{ 'Artículo' | t }}</th><th class="text-right">{{ 'Cantidad' | t }}</th><th class="text-right">{{ 'Precio unit.' | t }}</th><th class="text-right">{{ 'Subtotal' | t }}</th></tr></thead>
         <tbody>
@@ -693,7 +693,7 @@
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarRechazo()" [disabled]="rechazoSaving()">{{ 'Cancelar' | t }}</button>
               <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="confirmarRechazo(e)"
                 [disabled]="rechazoSaving() || !rechazoMotivo().trim()">
-                {{ rechazoSaving() ? 'Rechazando…' : 'Confirmar rechazo' }}
+                {{ (rechazoSaving() ? 'Rechazando…' : 'Confirmar rechazo') | t }}
               </button>
             </div>
           </div>
@@ -711,7 +711,7 @@
             <div class="conf-card__head">
               <strong>{{ c.confirmador?.nombre ?? '—' }}</strong>
               <span class="sgc-badge" [class.sgc-badge--info]="c.modo === 'remota'" [class.sgc-badge--success]="c.modo === 'presencial'">
-                {{ c.modo === 'remota' ? 'Remota' : 'Presencial' }}
+                {{ (c.modo === 'remota' ? 'Remota' : 'Presencial') | t }}
               </span>
               <span class="text-muted">{{ formatFecha(c.fecha) }}</span>
             </div>
@@ -736,15 +736,15 @@
             <span class="sgc-badge sgc-badge--neutral">{{ 'Dato de prueba' | t }}</span>
             <div class="entrada-detalle__prueba-actions">
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(e, false)">
-                Quitar prueba
+                {{ 'Quitar prueba' | t }}
               </button>
               <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="eliminarPrueba(e)">
-                Eliminar definitivamente
+                {{ 'Eliminar definitivamente' | t }}
               </button>
             </div>
           } @else {
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(e, true)">
-              Marcar como dato de prueba
+              {{ 'Marcar como dato de prueba' | t }}
             </button>
           }
         </div>
