@@ -330,6 +330,53 @@ literales totales. Lotes 20-33 (commits `a28cbf05`..`1a82044c`):
 **Módulo 6 (Flota) CERRADO: 23/23 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Bitácora (#7).
 
+## Bitácora — 100% COMPLETO (11/11 pantallas, 15-nov-2026)
+
+11 pantallas (13 archivos `.html` incl. sub-rutas `orden-trabajo-ficha/`,
+`orden-trabajo-lista/`), 706 literales totales. Lotes 34-39 (commits
+`8255e835`..`665235da`):
+
+- **Lote 34** (`8255e835`): codemod masivo sobre las 11 pantallas: 474
+  envueltos, 46 saltados a mano. Build limpio desde el primer intento —
+  a diferencia de Flota (lote 20), ningún `@if` numérico corrompido; se
+  revisó el diff completo buscando el mismo patrón, nada encontrado.
+- **Lote 35** (`d9da9e1a`): 7 pantallas pequeñas/medianas (dashboard,
+  entregas, moldes, solicitudes-compra, cobertura, mi-proyecto,
+  orden-trabajo) cerradas por un fork en un solo pase, verificado
+  independientemente antes de aceptar. Encontró el mismo patrón de bug
+  de "etiqueta de método sin `| t`" en `cobertura.ts` (`estado()`
+  devuelve `{label, tone}` sin pasar por `t()`) y el de `@Input()`
+  estático nunca traducido (`titulo="texto"` en `app-donut-chart`/
+  `app-bar-chart`, `ariaLabel="texto"` en `app-signature-pad` — ambos
+  necesitan convertirse a binding `[titulo]="'texto' | t"`).
+- **Lotes 36-39** (`6bab6bff`, `7a91af33`, `e6b201e0`, `665235da`):
+  historial, solicitudes-material, cartillas, nueva (la pantalla más
+  grande del módulo) — un segundo fork cerró los primeros 3 en un pase;
+  `nueva` se quedó sin presupuesto del fork justo antes de flipear
+  enforce/verificar/commitear (HTML/TS ya al 100% en el working tree) —
+  terminado a mano.
+- **Gotcha nuevo, encontrado en `nueva`:** un `&nbsp;` original en el
+  texto fuente se había decodificado en algún punto a un carácter
+  U+00A0 (espacio de no separación) real dentro del string de la
+  plantilla, en vez de un espacio normal U+0020. La clave guardada en
+  `en.json`/`ht.json` usaba espacio normal — `verify-i18n.mjs` hace
+  match EXACTO (no normaliza espacios ni caracteres Unicode
+  equivalentes), así que la traducción nunca calzaba aunque el texto
+  pareciera idéntico a simple vista. Mismo principio que el gotcha de
+  `&lt;`/`&gt;` ya documentado: cualquier carácter no-estándar dentro de
+  un string traducible rompe el match exacto en algún punto de la
+  cadena — hay que normalizarlo a su equivalente ASCII/espacio normal
+  en la plantilla, nunca dejarlo como entidad o carácter Unicode
+  "equivalente visualmente".
+- `public/i18n/en.json`/`ht.json`: crecieron de ~4200/~3469 a **~4551/
+  ~3859** claves.
+- `alcance.json`: 11 pantallas nuevas `enforce:true` (total **77**).
+  `verify-i18n.mjs`: 77 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 7 (Bitácora) CERRADO: 11/11 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Transporte/apoyo (#8).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -365,7 +412,7 @@ Admin, resto.
 | 4 | Inventario | 35/35 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~350 a mano | ~130 (toasts/confirm/error) | ✅ **100% — hecho** | 46a3c9c5..9e839268 | **true** |
 | 5 | Compras | 8/8 pantallas 100% (ver detalle arriba) | ~cablear HTML a mano (sin codemod) | toasts/confirm/error | ✅ **100% — hecho** | e61f8488..8eda4b89 | **true** |
 | 6 | Flota | 23/23 pantallas 100% (ver detalle arriba) | 1377 (codemod) + ~730 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | a28cbf05..1a82044c | **true** |
-| 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |
+| 7 | Bitácora | 11/11 pantallas 100% (ver detalle arriba) | 474 (codemod) + ~230 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 8255e835..665235da | **true** |
 | 8 | Transporte/apoyo | — | — | — | ⏳ pendiente | — | false |
 | 9 | Proyectos | — | — | — | ⏳ pendiente | — | false |
 | 10 | RRHH | — | — | — | ⏳ pendiente | — | false |
