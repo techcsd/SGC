@@ -259,9 +259,6 @@
     "proyectos/lista": {
       "enforce": false
     },
-    "proyectos/clima": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -560,6 +557,9 @@
       "enforce": true
     },
     "proyectos/cargos": {
+      "enforce": true
+    },
+    "proyectos/clima": {
       "enforce": true
     },
     "proyectos/costos": {

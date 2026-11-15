@@ -5056,29 +5056,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/clima",
-      "total": 38,
-      "cubiertos": 26,
-      "sin": 12,
-      "pct": 68,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Los indicadores de abajo son",
-        "lecturas automáticas de referencia",
-        "(una estimación del clima por ubicación cada 3&nbsp;h), no una confirmación. El",
-        "(“llovió de X a Y”) — eso es lo que cuenta como hecho para KPIs y restricciones. El",
-        "es una probabilidad y se muestra aparte, nunca como algo que definitivamente pasó.",
-        "Alertas activas ( )",
-        "El sistema registra el clima de cada obra activa con ubicación cada 3 horas. Los indicadores aparecerán a medida que se acumulen lecturas.",
-        "Bitácoras con lluvia —",
-        "· h lluvia",
-        "Un día se cuenta como",
-        "adverso",
-        "cuando hubo lluvia significativa (≥0.5&nbsp;mm) o viento alto (≥40&nbsp;km/h) en alguna lectura de ese día — condiciones que suelen afectar el vaciado, izajes y trabajos en altura."
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -6271,6 +6248,16 @@
       "pantalla": "proyectos/cargos",
       "total": 37,
       "cubiertos": 37,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/clima",
+      "total": 40,
+      "cubiertos": 40,
       "sin": 0,
       "pct": 100,
       "enScope": true,

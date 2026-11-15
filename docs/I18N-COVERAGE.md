@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 59%** (6239/10539 literales de 192 pantallas en alcance). **`ht`: 83%**.
+**Alcance `en`: 59%** (6253/10541 literales de 192 pantallas en alcance). **`ht`: 83%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -93,7 +93,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | proyectos/lista | scope | 168 | 109 | 59 | 65% |
-| proyectos/clima | scope | 38 | 26 | 12 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | proyectos/cronograma | scope | 73 | 53 | 20 | 73% |
@@ -194,6 +193,7 @@
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
+| proyectos/clima | enforce | 40 | 40 | 0 | 100% |
 | proyectos/costos | enforce | 13 | 13 | 0 | 100% |
 | proyectos/cronograma-import | enforce | 39 | 39 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |

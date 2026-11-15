@@ -14,9 +14,9 @@
 <div class="clima-aviso" role="note">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
   <span>
-    Los indicadores de abajo son <strong>lecturas automáticas de referencia</strong> (una estimación del clima por ubicación cada 3&nbsp;h), no una confirmación.
-    El <strong>{{ 'clima confirmado' | t }}</strong> {{ 'es lo que el personal reporta en la' | t }} <strong>{{ 'bitácora de obra' | t }}</strong> (“llovió de X a Y”) — eso es lo que cuenta como hecho para KPIs y restricciones.
-    El <strong>{{ 'pronóstico' | t }}</strong> es una probabilidad y se muestra aparte, nunca como algo que definitivamente pasó.
+    {{ 'Los indicadores de abajo son' | t }} <strong>{{ 'lecturas automáticas de referencia' | t }}</strong> {{ '(una estimación del clima por ubicación cada 3 h), no una confirmación.' | t }}
+    {{ 'El' | t }} <strong>{{ 'clima confirmado' | t }}</strong> {{ 'es lo que el personal reporta en la' | t }} <strong>{{ 'bitácora de obra' | t }}</strong> {{ '(“llovió de X a Y”) — eso es lo que cuenta como hecho para KPIs y restricciones.' | t }}
+    {{ 'El' | t }} <strong>{{ 'pronóstico' | t }}</strong> {{ 'es una probabilidad y se muestra aparte, nunca como algo que definitivamente pasó.' | t }}
   </span>
 </div>
 
@@ -25,7 +25,7 @@
   <section class="alertas-vigentes sgc-card">
     <h2 class="alertas-vigentes__title">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      Alertas activas ({{ alertas().length }})
+      {{ 'Alertas activas' | t }} ({{ alertas().length }})
     </h2>
     <div class="alertas-vigentes__list">
       @for (a of alertas(); track a.id) {
@@ -55,8 +55,7 @@
     <div class="clima-empty sgc-card">
       <p>{{ 'Aún no hay datos de clima en este período.' | t }}</p>
       <p class="clima-empty__hint">
-        El sistema registra el clima de cada obra activa con ubicación cada 3 horas.
-        Los indicadores aparecerán a medida que se acumulen lecturas.
+        {{ 'El sistema registra el clima de cada obra activa con ubicación cada 3 horas. Los indicadores aparecerán a medida que se acumulen lecturas.' | t }}
       </p>
     </div>
   } @else {
@@ -72,7 +71,7 @@
     <!-- Chart -->
     @if (diasAdversosBars().length > 0) {
       <div class="sgc-card clima-chart">
-        <app-bar-chart titulo="Días adversos por obra" [data]="diasAdversosBars()" />
+        <app-bar-chart [titulo]="'Días adversos por obra' | t" [data]="diasAdversosBars()" />
       </div>
     }
 
@@ -116,7 +115,7 @@
     @if (detalleObra(); as o) {
       <div class="sgc-card clima-detalle">
         <div class="clima-detalle__head">
-          <h3>Bitácoras con lluvia — {{ o.nombre }}</h3>
+          <h3>{{ 'Bitácoras con lluvia' | t }} — {{ o.nombre }}</h3>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarObra()">{{ 'Cerrar' | t }}</button>
         </div>
         @if (detalleLoading()) {
@@ -130,7 +129,7 @@
                 <a [routerLink]="['/bitacora/historial']" [queryParams]="{ item: b.id }">
                   {{ b.fecha | date:'dd/MM/yyyy' }} · {{ b.usuario?.nombre ?? b.ingeniero_responsable ?? '—' }}
                 </a>
-                @if (b.horas_lluvia) { <span class="text-muted"> · {{ b.horas_lluvia }}h lluvia</span> }
+                @if (b.horas_lluvia) { <span class="text-muted"> · {{ b.horas_lluvia }}{{ 'h lluvia' | t }}</span> }
                 @if (b.lluvia_detalle) { <span class="text-muted"> · {{ b.lluvia_detalle }}</span> }
               </li>
             }
@@ -140,9 +139,7 @@
     }
 
     <p class="clima-note">
-      Un día se cuenta como <strong>adverso</strong> cuando hubo lluvia significativa (≥0.5&nbsp;mm)
-      o viento alto (≥40&nbsp;km/h) en alguna lectura de ese día — condiciones que suelen afectar el vaciado,
-      izajes y trabajos en altura.
+      {{ 'Un día se cuenta como' | t }} <strong>{{ 'adverso' | t }}</strong> {{ 'cuando hubo lluvia significativa (≥0.5 mm) o viento alto (≥40 km/h) en alguna lectura de ese día — condiciones que suelen afectar el vaciado, izajes y trabajos en altura.' | t }}
     </p>
   }
 }

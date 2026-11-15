@@ -7,6 +7,7 @@ import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { daysAgoIso, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type RangoDias = 7 | 30 | 90;
 
@@ -20,6 +21,7 @@ type RangoDias = 7 | 30 | 90;
 export class ProyectosClima implements OnInit {
   private bi = inject(WeatherBiService);
   private alertsService = inject(WeatherAlertsService);
+  protected i18n = inject(I18nService);
 
   reporte = signal<ReporteClima | null>(null);
   alertas = signal<WeatherAlerta[]>([]);
