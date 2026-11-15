@@ -2,8 +2,8 @@
   <header class="page__head">
     <div>
       <a routerLink="/inventario/bodegas" class="page__back">{{ '← Almacenes' | t }}</a>
-      <h1 class="page__title">Inventario · {{ bodegaNombre() || 'Almacén' }}</h1>
-      <p class="page__sub">{{ totalArticulos() }} artículo(s)</p>
+      <h1 class="page__title">{{ 'Inventario' | t }} · {{ bodegaNombre() || i18n.t('Almacén') }}</h1>
+      <p class="page__sub">{{ totalArticulos() }} {{ 'artículo(s)' | t }}</p>
     </div>
     <!-- BN4 — contenedor de acciones (antes sólo estaba el botón suelto) -->
     <div class="page__head-actions">
@@ -18,15 +18,15 @@
   <!-- BV3 — Pendientes del almacén: entradas por confirmar + salidas sin recibir -->
   @if (pendientes().length) {
     <div class="ai-pendientes">
-      <h2 class="ai-pendientes__title">Pendientes del almacén ({{ pendientes().length }})</h2>
+      <h2 class="ai-pendientes__title">{{ 'Pendientes del almacén' | t }} ({{ pendientes().length }})</h2>
       <ul class="ai-pendientes__list">
         @for (p of pendientes(); track p.id) {
           <li class="ai-pend" [class.ai-pend--viejo]="p.dias >= 3">
             <span class="ai-pend__tipo" [class.ai-pend__tipo--in]="p.tipo === 'entrada'">
-              {{ p.tipo === 'entrada' ? 'Por recibir' : 'Despachada sin confirmar' }}
+              {{ (p.tipo === 'entrada' ? 'Por recibir' : 'Despachada sin confirmar') | t }}
             </span>
-            <span class="ai-pend__ref">{{ p.referencia }} · {{ p.renglones }} renglón(es)</span>
-            <span class="ai-pend__dias">hace {{ p.dias }} día(s)</span>
+            <span class="ai-pend__ref">{{ p.referencia }} · {{ p.renglones }} {{ 'renglón(es)' | t }}</span>
+            <span class="ai-pend__dias">{{ 'hace' | t }} {{ p.dias }} {{ 'día(s)' | t }}</span>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
                [routerLink]="p.tipo === 'entrada' ? '/inventario/confirmaciones' : '/inventario/conduces'">{{ 'Ver' | t }}</a>
           </li>
@@ -42,13 +42,13 @@
     </div>
     <div class="sgc-field filters-bar__select">
       <select [value]="categoria()" (change)="onCategoria($any($event.target).value)" aria-label="{{ 'Filtrar por categoría' | t }}">
-        <option value="">Todas las categorías</option>
+        <option value="">{{ 'Todas las categorías' | t }}</option>
         @for (c of categorias(); track c) { <option [value]="c">{{ c }}</option> }
       </select>
     </div>
     <label class="filters-bar__toggle">
       <input type="checkbox" [checked]="incluirCero()" (change)="toggleCero()" />
-      Mostrar en cero
+      {{ 'Mostrar en cero' | t }}
     </label>
   </div>
 
@@ -90,11 +90,11 @@
                 @if (puedeEditar()) {
                   <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="abrirAjusteExistencia(i)"
                           title="{{ 'Ajustar existencia: conteo/ajuste, apertura o ajuste real (con motivo)' | t }}">
-                    Ajustar existencia
+                    {{ 'Ajustar existencia' | t }}
                   </button>
                 }
                 <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="abrirKardex(i)">
-                  Histórico
+                  {{ 'Histórico' | t }}
                 </button>
               </td>
             </tr>
@@ -119,9 +119,9 @@
 <app-form-drawer title="{{ 'Agregar artículo al almacén' | t }}" [open]="addOpen()" (closed)="cerrarAgregar()">
   <form class="drawer-form" (ngSubmit)="guardarAgregar()" novalidate>
     <p class="sgc-field__hint">
-      Da de alta un artículo del catálogo en este almacén con una existencia inicial.
-      Queda registrado como ajuste en "Conteos y ajustes". Para el piso inicial (1,000)
-      usa la herramienta de Apertura de inventario.
+      {{ 'Da de alta un artículo del catálogo en este almacén con una existencia inicial.' | t }}
+      {{ 'Queda registrado como ajuste en "Conteos y ajustes". Para el piso inicial (1,000)' | t }}
+      {{ 'usa la herramienta de Apertura de inventario.' | t }}
     </p>
 
     <div class="sgc-field">
@@ -146,7 +146,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarAgregar()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="addSaving()">
-        @if (addSaving()) { Guardando… } @else { Agregar }
+        @if (addSaving()) { {{ 'Guardando…' | t }} } @else { {{ 'Agregar' | t }} }
       </button>
     </div>
   </form>
@@ -157,8 +157,8 @@
   <app-form-drawer title="{{ 'Ajustar existencia' | t }}" [open]="true" (closed)="cerrarAjusteExistencia()">
     <form class="drawer-form" (ngSubmit)="guardarAjusteExistencia()" novalidate>
       <p class="sgc-field__hint">
-        <strong>{{ item.nombre }}</strong> · existencia actual: {{ item.cantidad | number:'1.0-2' }}
-        @if (esAdmin()) { · apertura: {{ item.apertura | number:'1.0-2' }} }
+        <strong>{{ item.nombre }}</strong> · {{ 'existencia actual:' | t }} {{ item.cantidad | number:'1.0-2' }}
+        @if (esAdmin()) { · {{ 'apertura:' | t }} {{ item.apertura | number:'1.0-2' }} }
       </p>
 
       <div class="sgc-field">
@@ -189,7 +189,7 @@
 
       <div class="sgc-field">
         <label for="ajuste-valor">
-          @if (ajusteMecanismo() === 'apertura') { Dato de apertura } @else { Existencia real }
+          @if (ajusteMecanismo() === 'apertura') { {{ 'Dato de apertura' | t }} } @else { {{ 'Existencia real' | t }} }
           <span class="required">*</span>
         </label>
         <input id="ajuste-valor" type="number" step="any" min="0" [value]="ajusteValor()"
@@ -209,7 +209,7 @@
       <div class="drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarAjusteExistencia()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ajusteSaving()">
-          @if (ajusteSaving()) { Guardando… } @else { Aplicar ajuste }
+          @if (ajusteSaving()) { {{ 'Guardando…' | t }} } @else { {{ 'Aplicar ajuste' | t }} }
         </button>
       </div>
     </form>

@@ -18,6 +18,7 @@ import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** AU1 · P1 — los tres mecanismos que fijan/mueven stock, unificados en un solo modal. */
 type AjusteMecanismo = 'conteo' | 'apertura' | 'ajuste_real';
@@ -41,6 +42,7 @@ export class AlmacenInventario implements OnInit {
   private bodegasService = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
 
@@ -122,12 +124,12 @@ export class AlmacenInventario implements OnInit {
         const elegida = deObra.find((b) => b.activo !== false) ?? deObra[0];
         if (elegida) id = elegida.id;
         else {
-          this.error.set('Esta obra no tiene un almacén asignado.');
+          this.error.set(this.i18n.t('Esta obra no tiene un almacén asignado.'));
           this.loading.set(false);
           return;
         }
       } catch (e: unknown) {
-        this.error.set(e instanceof Error ? e.message : 'No se pudo resolver el almacén de la obra.');
+        this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo resolver el almacén de la obra.'));
         this.loading.set(false);
         return;
       }
@@ -152,7 +154,7 @@ export class AlmacenInventario implements OnInit {
       this.items.set(items);
       this.pendientes.set(pendientes);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar el inventario.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar el inventario.'));
     } finally {
       this.loading.set(false);
     }
@@ -211,15 +213,15 @@ export class AlmacenInventario implements OnInit {
     const valor = Number(this.ajusteValor());
     const motivo = this.ajusteMotivo().trim();
     if (!Number.isFinite(valor) || valor < 0) {
-      this.ajusteError.set('Indica un valor válido (mayor o igual a 0).');
+      this.ajusteError.set(this.i18n.t('Indica un valor válido (mayor o igual a 0).'));
       return;
     }
     if (!motivo) {
-      this.ajusteError.set('El motivo es obligatorio (queda en la auditoría).');
+      this.ajusteError.set(this.i18n.t('El motivo es obligatorio (queda en la auditoría).'));
       return;
     }
     if ((mecanismo === 'apertura' || mecanismo === 'ajuste_real') && !this.esAdmin()) {
-      this.ajusteError.set('Ese mecanismo es solo para administradores.');
+      this.ajusteError.set(this.i18n.t('Ese mecanismo es solo para administradores.'));
       return;
     }
     this.ajusteSaving.set(true);
@@ -229,18 +231,18 @@ export class AlmacenInventario implements OnInit {
       const bod = this.bodegaId();
       if (mecanismo === 'conteo') {
         await this.service.ajustarStock(art, bod, valor, motivo);
-        this.toast.success('Existencia ajustada.', 'Se registró en Conteos y ajustes.');
+        this.toast.success(this.i18n.t('Existencia ajustada.'), 'Se registró en Conteos y ajustes.');
       } else if (mecanismo === 'apertura') {
         await this.service.setApertura(art, bod, valor, motivo);
-        this.toast.success('Apertura actualizada.', 'Sin movimiento en el kardex.');
+        this.toast.success(this.i18n.t('Apertura actualizada.'), 'Sin movimiento en el kardex.');
       } else {
         await this.service.ajusteRealStock(art, bod, valor, motivo);
-        this.toast.success('Ajuste real aplicado.', 'El stock quedó en el valor real, sin escalón en la gráfica.');
+        this.toast.success(this.i18n.t('Ajuste real aplicado.'), 'El stock quedó en el valor real, sin escalón en la gráfica.');
       }
       this.ajusteItem.set(null);
       await this.load(bod);
     } catch (e: unknown) {
-      this.ajusteError.set(e instanceof Error ? e.message : 'No se pudo aplicar el ajuste.');
+      this.ajusteError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo aplicar el ajuste.'));
     } finally {
       this.ajusteSaving.set(false);
     }
@@ -285,11 +287,11 @@ export class AlmacenInventario implements OnInit {
     const artId = this.addArticuloId();
     const cant = Number(this.addCantidad());
     if (!artId) {
-      this.addError.set('Selecciona un artículo del catálogo.');
+      this.addError.set(this.i18n.t('Selecciona un artículo del catálogo.'));
       return;
     }
     if (!Number.isFinite(cant) || cant < 0) {
-      this.addError.set('Indica una cantidad válida.');
+      this.addError.set(this.i18n.t('Indica una cantidad válida.'));
       return;
     }
     this.addSaving.set(true);
@@ -297,10 +299,10 @@ export class AlmacenInventario implements OnInit {
     try {
       await this.service.ajustarStock(artId, this.bodegaId(), cant, 'Alta de artículo en el almacén');
       this.addOpen.set(false);
-      this.toast.success('Artículo agregado al almacén.');
+      this.toast.success(this.i18n.t('Artículo agregado al almacén.'));
       await this.load(this.bodegaId());
     } catch (e: unknown) {
-      this.addError.set(e instanceof Error ? e.message : 'No se pudo agregar el artículo.');
+      this.addError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo agregar el artículo.'));
     } finally {
       this.addSaving.set(false);
     }

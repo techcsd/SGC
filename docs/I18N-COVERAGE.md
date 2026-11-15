@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 25%** (2764/11107 literales de 193 pantallas en alcance). **`ht`: 55%**.
+**Alcance `en`: 25%** (2789/11117 literales de 193 pantallas en alcance). **`ht`: 56%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -144,7 +144,6 @@
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
 | inventario/conduce | scope | 145 | 93 | 52 | 64% |
 | inventario/requisiciones | scope | 144 | 93 | 51 | 65% |
 | inventario/retiros | scope | 99 | 65 | 34 | 66% |
@@ -179,6 +178,7 @@
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
+| inventario/almacen-inventario | enforce | 50 | 50 | 0 | 100% |
 | inventario/apertura | enforce | 38 | 38 | 0 | 100% |
 | inventario/articulos | enforce | 93 | 93 | 0 | 100% |
 | inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
@@ -203,7 +203,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**887 literal(es) sin t()** en 116 archivo(s) (de 140 archivo(s) .ts con algo detectado).
+**883 literal(es) sin t()** en 115 archivo(s) (de 140 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -282,7 +282,6 @@
 | src/app/pages/bitacora/solicitudes-material/solicitudes-material.ts | 4 | Elige una fecha de necesidad · Fecha de necesidad actualizada · Ya enviaste una igual hace poco … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/flota/rutas/rutas.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
-| src/app/pages/inventario/almacen-inventario/almacen-inventario.ts | 4 | Existencia ajustada. · Apertura actualizada. · Ajuste real aplicado. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/proyectos/personal/personal-levantamiento.ts | 4 | No se pudo marcar · Día cerrado · No se pudo cerrar … |

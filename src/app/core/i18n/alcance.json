@@ -412,9 +412,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/almacen-inventario": {
-      "enforce": false
-    },
     "inventario/conduce": {
       "enforce": false
     },
@@ -515,6 +512,9 @@
       "enforce": true
     },
     "inventario/ajuste-real": {
+      "enforce": true
+    },
+    "inventario/almacen-inventario": {
       "enforce": true
     },
     "inventario/apertura": {

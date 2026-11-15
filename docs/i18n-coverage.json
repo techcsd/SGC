@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 25,
-  "pctHt": 55,
+  "pctHt": 56,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -9542,32 +9542,6 @@
       ]
     },
     {
-      "pantalla": "inventario/almacen-inventario",
-      "total": 40,
-      "cubiertos": 25,
-      "sin": 15,
-      "pct": 63,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Inventario ·",
-        "artículo(s)",
-        "Pendientes del almacén ( )",
-        "· renglón(es)",
-        "hace día(s)",
-        "Todas las categorías",
-        "Mostrar en cero",
-        "Ajustar existencia",
-        "Histórico",
-        "Da de alta un artículo del catálogo en este almacén con una existencia inicial. Queda registrado como ajuste en \"Conteos y ajustes\". Para el piso inicial (1,000) usa la herramienta de Apertura de inventario.",
-        "· existencia actual: @if (esAdmin()) { · apertura: }",
-        "Existencia ajustada.",
-        "Apertura actualizada.",
-        "Ajuste real aplicado.",
-        "Artículo agregado al almacén."
-      ]
-    },
-    {
       "pantalla": "inventario/conduce",
       "total": 145,
       "cubiertos": 93,
@@ -10220,6 +10194,16 @@
       "pantalla": "inventario/ajuste-real",
       "total": 31,
       "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/almacen-inventario",
+      "total": 50,
+      "cubiertos": 50,
       "sin": 0,
       "pct": 100,
       "enScope": true,
