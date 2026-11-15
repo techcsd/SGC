@@ -9,10 +9,10 @@
 
   <div class="sgc-card apertura__intro">
     <p>
-      La <strong>{{ 'apertura' | t }}</strong> es el punto de partida del inventario mientras se levanta el stock real.
-      No genera movimientos, no aparece en el kardex y al ajustarla la existencia se re-basa
-      <strong>{{ 'sin caída' | t }}</strong> en las gráficas. Úsala para poner un piso (p. ej. 1,000) y luego
-      corrígela a la cantidad real desde aquí o desde el inventario del almacén.
+      {{ 'La' | t }} <strong>{{ 'apertura' | t }}</strong> {{ 'es el punto de partida del inventario mientras se levanta el stock real.' | t }}
+      {{ 'No genera movimientos, no aparece en el kardex y al ajustarla la existencia se re-basa' | t }}
+      <strong>{{ 'sin caída' | t }}</strong> {{ 'en las gráficas. Úsala para poner un piso (p. ej. 1,000) y luego' | t }}
+      {{ 'corrígela a la cantidad real desde aquí o desde el inventario del almacén.' | t }}
     </p>
   </div>
 
@@ -20,9 +20,9 @@
     <div class="sgc-field filters-bar__select">
       <label for="almacen">{{ 'Almacén' | t }}</label>
       <select id="almacen" [value]="bodegaId()" (change)="onAlmacen($any($event.target).value)">
-        <option value="">Selecciona un almacén…</option>
+        <option value="">{{ 'Selecciona un almacén…' | t }}</option>
         @for (a of almacenes(); track a.id) {
-          <option [value]="a.id">{{ a.nombre }}@if (a.es_central) { · Central }@if (a.es_prueba) { · PRUEBA }</option>
+          <option [value]="a.id">{{ a.nombre }}@if (a.es_central) { · {{ 'Central' | t }} }@if (a.es_prueba) { · {{ 'PRUEBA' | t }} }</option>
         }
       </select>
     </div>
@@ -30,7 +30,7 @@
     @if (esAdmin()) {
       <label class="prueba-toggle">
         <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
-        Mostrar datos de prueba
+        {{ 'Mostrar datos de prueba' | t }}
       </label>
     }
   </div>
@@ -46,24 +46,24 @@
         </div>
         <label class="apertura__toggle">
           <input type="checkbox" [checked]="soloFaltantes()" (change)="onSoloFaltantes($any($event.target).checked)" />
-          Solo artículos sin apertura ({{ sinApertura() }})
+          {{ 'Solo artículos sin apertura' | t }} ({{ sinApertura() }})
         </label>
         <label class="apertura__toggle">
           <input type="checkbox" [checked]="incluirCatalogo()" (change)="toggleCatalogo($any($event.target).checked)" />
-          Todo el catálogo del sistema
+          {{ 'Todo el catálogo del sistema' | t }}
         </label>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="aplicandoLote()" (click)="aplicarLote()">
-          @if (aplicandoLote()) { Aplicando… } @else { Aplicar apertura al almacén }
+          @if (aplicandoLote()) { {{ 'Aplicando…' | t }} } @else { {{ 'Aplicar apertura al almacén' | t }} }
         </button>
       </div>
       @if (previewCount() !== null) {
         <small class="sgc-field__hint">
-          Se dará apertura a <strong>{{ previewCount() }}</strong> artículo(s) con los filtros actuales.
+          {{ 'Se dará apertura a' | t }} <strong>{{ previewCount() }}</strong> {{ 'artículo(s) con los filtros actuales.' | t }}
         </small>
       }
       <small class="sgc-field__hint">
-        Piso inicial: pon 1,000 con "Todo el catálogo" para que TODOS los artículos del sistema
-        queden con 1,000 en este almacén. Deja "Solo sin apertura" para no pisar aperturas ya fijadas.
+        {{ 'Piso inicial: pon 1,000 con "Todo el catálogo" para que TODOS los artículos del sistema' | t }}
+        {{ 'queden con 1,000 en este almacén. Deja "Solo sin apertura" para no pisar aperturas ya fijadas.' | t }}
       </small>
     </div>
 

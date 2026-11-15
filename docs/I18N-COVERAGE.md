@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 23%** (2532/11111 literales de 193 pantallas en alcance). **`ht`: 44%**.
+**Alcance `en`: 23%** (2593/11108 literales de 193 pantallas en alcance). **`ht`: 47%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -48,8 +48,8 @@
 | dudas | scope | 15 | 0 | 15 | 0% |
 | flota/accidentes | scope | 56 | 0 | 56 | 0% |
 | flota/avisos | scope | 55 | 0 | 55 | 0% |
-| flota/choferes-privados | scope | 56 | 0 | 56 | 0% |
-| flota/combustible | scope | 225 | 0 | 225 | 0% |
+| flota/choferes-privados | scope | 55 | 0 | 55 | 0% |
+| flota/combustible | scope | 224 | 0 | 224 | 0% |
 | flota/combustible-dashboard | scope | 54 | 0 | 54 | 0% |
 | flota/combustible-log | scope | 139 | 0 | 139 | 0% |
 | flota/conciliacion-combustible | scope | 186 | 0 | 186 | 0% |
@@ -57,11 +57,11 @@
 | flota/conductores-estado | scope | 17 | 0 | 17 | 0% |
 | flota/panel-dia | scope | 24 | 0 | 24 | 0% |
 | flota/recorrido-diario | scope | 14 | 0 | 14 | 0% |
-| flota/rendimiento-vehiculos | scope | 20 | 0 | 20 | 0% |
+| flota/rendimiento-vehiculos | scope | 21 | 0 | 21 | 0% |
 | flota/reporte-semanal | scope | 55 | 0 | 55 | 0% |
 | flota/reportes | scope | 46 | 0 | 46 | 0% |
 | flota/responsabilidad | scope | 72 | 0 | 72 | 0% |
-| flota/rutas | scope | 129 | 0 | 129 | 0% |
+| flota/rutas | scope | 128 | 0 | 128 | 0% |
 | flota/rutas-activas | scope | 52 | 0 | 52 | 0% |
 | flota/seguimiento | scope | 29 | 0 | 29 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
@@ -115,7 +115,7 @@
 | tecnologia/compras | scope | 105 | 0 | 105 | 0% |
 | tecnologia/consultas-compa | scope | 24 | 0 | 24 | 0% |
 | tecnologia/design-system | scope | 131 | 0 | 131 | 0% |
-| tecnologia/estadisticas | scope | 42 | 0 | 42 | 0% |
+| tecnologia/estadisticas | scope | 41 | 0 | 41 | 0% |
 | tecnologia/guia | scope | 10 | 0 | 10 | 0% |
 | tecnologia/homologacion | scope | 37 | 0 | 37 | 0% |
 | tecnologia/inventario | scope | 240 | 0 | 240 | 0% |
@@ -131,21 +131,19 @@
 | flota/flota-subnav | scope | 12 | 0 | 12 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
-| flota/checklists | scope | 113 | 5 | 108 | 4% |
+| flota/checklists | scope | 112 | 5 | 107 | 4% |
 | bitacora/nueva | scope | 201 | 17 | 184 | 8% |
 | legal/expedientes | scope | 90 | 7 | 83 | 8% |
 | bitacora/solicitudes-material | scope | 90 | 9 | 81 | 10% |
 | flota/mantenimientos | scope | 121 | 16 | 105 | 13% |
 | tecnologia/dev-notes | scope | 96 | 13 | 83 | 14% |
-| flota/vehiculos | scope | 426 | 66 | 360 | 15% |
+| flota/vehiculos | scope | 424 | 66 | 358 | 16% |
 | bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | bitacora/moldes | scope | 22 | 5 | 17 | 23% |
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/apertura | scope | 32 | 15 | 17 | 47% |
-| inventario/conteos | scope | 66 | 31 | 35 | 47% |
 | inventario/conduces | scope | 33 | 17 | 16 | 52% |
 | inventario/articulos | scope | 95 | 53 | 42 | 56% |
 | inventario/salidas | scope | 124 | 73 | 51 | 59% |
@@ -153,14 +151,14 @@
 | inventario/activos | scope | 71 | 43 | 28 | 61% |
 | inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
 | inventario/conduce | scope | 145 | 93 | 52 | 64% |
-| inventario/requisiciones | scope | 146 | 93 | 53 | 64% |
+| inventario/requisiciones | scope | 144 | 93 | 51 | 65% |
 | inventario/retiros | scope | 99 | 65 | 34 | 66% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | inventario/entradas | scope | 110 | 79 | 31 | 72% |
 | inventario/conduce-externo-ficha | scope | 41 | 30 | 11 | 73% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
-| admin/compa-conversaciones | scope | 25 | 19 | 6 | 76% |
+| admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | flota/transferencias | scope | 13 | 10 | 3 | 77% |
 | ingenieria/pagos | scope | 69 | 54 | 15 | 78% |
 | tecnologia/cotizaciones | scope | 80 | 65 | 15 | 81% |
@@ -168,10 +166,10 @@
 | compras/productos-por-dar-de-alta | scope | 48 | 41 | 7 | 85% |
 | flota/cupos-combustible | scope | 47 | 40 | 7 | 85% |
 | admin/vault | scope | 74 | 65 | 9 | 88% |
-| reuniones/reunion-ficha | scope | 55 | 49 | 6 | 89% |
-| admin/auditoria | scope | 68 | 62 | 6 | 91% |
+| reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
+| admin/auditoria | scope | 65 | 62 | 3 | 95% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | compras/gastos | scope | 26 | 25 | 1 | 96% |
 | tecnologia/whatsapp | scope | 186 | 183 | 3 | 98% |
@@ -185,11 +183,13 @@
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
+| inventario/apertura | enforce | 38 | 38 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces-externos | scope | 14 | 14 | 0 | 100% |
 | inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
 | inventario/confirmaciones | enforce | 27 | 27 | 0 | 100% |
+| inventario/conteos | enforce | 68 | 68 | 0 | 100% |
 | inventario/kardex-modal | enforce | 25 | 25 | 0 | 100% |
 | inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
 | inventario/material-no-catalogado | enforce | 39 | 39 | 0 | 100% |
@@ -203,7 +203,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**945 literal(es) sin t()** en 124 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**927 literal(es) sin t()** en 122 archivo(s) (de 141 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -237,7 +237,6 @@
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |
 | src/app/pages/rrhh/onboarding/onboarding.ts | 12 | No se pudieron cargar las vacantes · Falta el título · Vacante creada … |
-| src/app/pages/inventario/conteos/conteos.ts | 11 | Error · Conteo de prueba eliminado · Error … |
 | src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
 | src/app/pages/proyectos/cronograma/cronograma.ts | 11 | Tarea guardada. · Dependencia agregada. · Dependencia eliminada. … |
 | src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |
@@ -257,7 +256,6 @@
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/compras/proveedores/proveedores.ts | 7 | No se pudo cambiar el estado del proveedor · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/flota/cupos-combustible/cupos-combustible.ts | 7 | Cupo ampliado · No se pudo ampliar · Falta el motivo … |
-| src/app/pages/inventario/apertura/apertura.ts | 7 | No se pudieron cargar los almacenes · No se pudo cargar el inventario · Cantidad inválida. … |
 | src/app/pages/inventario/articulos/articulos.ts | 7 | No se pudo agregar el apodo · No se pudo eliminar el apodo · Dato de prueba eliminado … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |

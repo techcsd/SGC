@@ -412,12 +412,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/apertura": {
-      "enforce": false
-    },
-    "inventario/conteos": {
-      "enforce": false
-    },
     "inventario/conduces": {
       "enforce": false
     },
@@ -487,13 +481,13 @@
     "reuniones/reunion-ficha": {
       "enforce": false
     },
-    "admin/auditoria": {
-      "enforce": false
-    },
     "asistente": {
       "enforce": false
     },
     "borrador-claude": {
+      "enforce": false
+    },
+    "admin/auditoria": {
       "enforce": false
     },
     "oauth-consent": {
@@ -535,6 +529,9 @@
     "inventario/ajuste-real": {
       "enforce": true
     },
+    "inventario/apertura": {
+      "enforce": true
+    },
     "inventario/categorias": {
       "enforce": true
     },
@@ -548,6 +545,9 @@
       "enforce": true
     },
     "inventario/confirmaciones": {
+      "enforce": true
+    },
+    "inventario/conteos": {
       "enforce": true
     },
     "inventario/kardex-modal": {

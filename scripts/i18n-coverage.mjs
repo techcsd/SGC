@@ -67,7 +67,9 @@ function esRuido(s) {
   // Bloques de control flow de Angular (@if/@for/@else/@switch/…) que el
   // regex de nodos de texto atrapa como "texto" entre un '>' y un '<' porque
   // no están envueltos en una etiqueta — no son copy, son sintaxis de plantilla.
-  if (/^[}\s(]*@(if|else if|else|for|switch|case|default|empty)\b/.test(t)) return true;
+  // Tolera un separador decorativo (p. ej. "·") pegado justo antes del @if
+  // cuando ambos quedan en el mismo nodo de texto (sin tag de por medio).
+  if (/^[}\s(·]*@(if|else if|else|for|switch|case|default|empty)\b/.test(t)) return true;
   return false;
 }
 
@@ -93,7 +95,14 @@ function extraerLiterales(htmlOriginal) {
   // igual que un comentario. Se neutraliza (mismo largo, para no desalinear
   // columnas/posiciones) antes de escanear.
   const sinBindingsComparacion = sinComentarios.replace(/\]="[^"]*[<>][^"]*"/g, (m) => ' '.repeat(m.length));
-  const html = stripExprInterpolations(sinBindingsComparacion);
+  // Mismo problema que arriba pero en la CONDICIÓN de un @if/@else if de
+  // control flow (no en un atributo): `@if (a > b) { ... }` tiene un '>' que
+  // no delimita ninguna etiqueta. Se neutraliza igual, solo dentro del `(...)`.
+  const sinCondicionesComparacion = sinBindingsComparacion.replace(
+    /@(?:if|else if)\s*\([^()]*[<>][^()]*\)/g,
+    (m) => ' '.repeat(m.length),
+  );
+  const html = stripExprInterpolations(sinCondicionesComparacion);
   const items = []; // { texto, cubierto }
 
   // 1) Nodos de texto entre '>' y '<'

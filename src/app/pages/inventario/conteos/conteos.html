@@ -1,25 +1,25 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Conteos y ajustes' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} conteo{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'conteos' : 'conteo') | t }}</span>
   </div>
   <div class="cn-head-actions">
     <!-- BL4 — conteo físico (stock real) sin tocar el kardex -->
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openConteoFisico()">
-      <app-icon name="clipboard-check" [size]="16" /> Conteo físico (stock real)
+      <app-icon name="clipboard-check" [size]="16" /> {{ 'Conteo físico (stock real)' | t }}
     </button>
     <button class="sgc-btn sgc-btn--secondary" type="button" (click)="openChequeo()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Chequeo semanal
+      {{ 'Chequeo semanal' | t }}
     </button>
   </div>
 </div>
 
 <p class="cn-lead">
-  Conteos físicos que ajustan el stock, hechos desde la app de campo o la web. Muestra qué se contó
-  y cómo cambió cada material.
+  {{ 'Conteos físicos que ajustan el stock, hechos desde la app de campo o la web. Muestra qué se contó' | t }}
+  {{ 'y cómo cambió cada material.' | t }}
 </p>
 
 <div class="filters-bar">
@@ -34,7 +34,7 @@
   </div>
   <div class="sgc-field filters-bar__select">
     <select [value]="filtroBodega()" (change)="onFiltroBodega($any($event.target).value)" aria-label="{{ 'Filtrar por almacén' | t }}">
-      <option value="">Todos los almacenes</option>
+      <option value="">{{ 'Todos los almacenes' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
     </select>
   </div>
@@ -42,7 +42,7 @@
   @if (esAdmin()) {
     <label class="cn-prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
   @if (hayFiltros()) {
@@ -61,7 +61,7 @@
         <button type="button" class="cn-card__row" (click)="toggle(c.id)">
           <div class="cn-card__info">
             <span class="cn-card__bodega">
-              {{ c.bodega?.nombre ?? 'Almacén' }}
+              {{ c.bodega?.nombre ?? i18n.t('Almacén') }}
               @if (esChequeo(c)) { <span class="sgc-badge sgc-badge--info">{{ 'Chequeo semanal' | t }}</span> }
               @if (esConteoFisico(c)) { <span class="sgc-badge sgc-badge--warning">{{ 'Conteo físico' | t }}</span> }
               @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
@@ -71,7 +71,7 @@
               @if (c.motivo) { · {{ c.motivo }} }
             </span>
           </div>
-          <span class="cn-card__count">{{ c.items?.length ?? 0 }} ítems <app-icon name="chevron-down" [size]="14" /></span>
+          <span class="cn-card__count">{{ c.items?.length ?? 0 }} {{ 'ítems' | t }} <app-icon name="chevron-down" [size]="14" /></span>
         </button>
         @if (esAdmin()) {
           <div class="cn-admin-actions">
@@ -79,7 +79,7 @@
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="deshacerConteoFisico(c)">{{ 'Deshacer conteo' | t }}</button>
             }
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(c, !c.es_prueba)">
-              {{ c.es_prueba ? 'Quitar prueba' : 'Marcar como prueba' }}
+              {{ (c.es_prueba ? 'Quitar prueba' : 'Marcar como prueba') | t }}
             </button>
             @if (c.es_prueba) {
               <button class="cn-delete-prueba" type="button" (click)="eliminarPrueba(c)" title="{{ 'Eliminar dato de prueba' | t }}" aria-label="{{ 'Eliminar dato de prueba' | t }}">
@@ -93,9 +93,9 @@
           <!-- Z7 — encabezado claro del conteo -->
           <div class="cn-detail-head">
             <span class="sgc-badge" [class.sgc-badge--info]="esChequeo(c)" [class.sgc-badge--neutral]="!esChequeo(c)">
-              {{ esChequeo(c) ? 'Chequeo semanal' : 'Ajuste de inventario' }}
+              {{ (esChequeo(c) ? 'Chequeo semanal' : 'Ajuste de inventario') | t }}
             </span>
-            <span class="cn-detail-head__meta"><app-icon name="building" [size]="14" /> {{ c.bodega?.nombre ?? 'Almacén' }}</span>
+            <span class="cn-detail-head__meta"><app-icon name="building" [size]="14" /> {{ c.bodega?.nombre ?? i18n.t('Almacén') }}</span>
             <span class="cn-detail-head__meta"><app-icon name="user" [size]="14" /> {{ c.creado?.nombre ?? '—' }}</span>
             <span class="cn-detail-head__meta"><app-icon name="calendar" [size]="14" /> {{ formatFechaHora(c.created_at) }}</span>
           </div>
@@ -103,9 +103,9 @@
           @if (c.observaciones) { <p class="cn-motivo">{{ c.observaciones }}</p> }
           <!-- R9 — totales del conteo -->
           <div class="cn-totales">
-            <span class="cn-totales__item">{{ totales(c).ajustados }} ítem(s) ajustado(s)</span>
+            <span class="cn-totales__item">{{ totales(c).ajustados }} {{ 'ítem(s) ajustado(s)' | t }}</span>
             <span class="cn-totales__item" [class.cn-up]="totales(c).neto > 0" [class.cn-down]="totales(c).neto < 0">
-              Ajuste neto: {{ totales(c).neto > 0 ? '+' : '' }}{{ totales(c).neto }}
+              {{ 'Ajuste neto:' | t }} {{ totales(c).neto > 0 ? '+' : '' }}{{ totales(c).neto }}
             </span>
           </div>
           <table class="cn-table cn-table--zebra">
@@ -132,8 +132,8 @@
           </table>
           @if (totales(c).ajustados > 0) {
             <div class="cn-leyenda">
-              <span class="cn-up"><app-icon name="arrow-up" [size]="14" /> Sobrante (contado &gt; sistema)</span>
-              <span class="cn-down"><app-icon name="arrow-down" [size]="14" /> Faltante (contado &lt; sistema)</span>
+              <span class="cn-up"><app-icon name="arrow-up" [size]="14" /> {{ 'Sobrante (contado &gt; sistema)' | t }}</span>
+              <span class="cn-down"><app-icon name="arrow-down" [size]="14" /> {{ 'Faltante (contado &lt; sistema)' | t }}</span>
             </div>
           }
           </div>
@@ -150,13 +150,13 @@
 <app-form-drawer title="{{ 'Chequeo semanal de almacén' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   <div class="drawer-form">
     <p class="cn-muted">
-      Cuenta físicamente el almacén y ajusta el sistema. Las diferencias se notifican automáticamente a Dirección.
+      {{ 'Cuenta físicamente el almacén y ajusta el sistema. Las diferencias se notifican automáticamente a Dirección.' | t }}
     </p>
 
     <div class="sgc-field">
       <label for="chq-bodega">{{ 'Almacén' | t }} <span class="required">*</span></label>
       <select id="chq-bodega" [value]="chequeoBodegaId()" (change)="onChequeoBodegaChange($any($event.target).value)">
-        <option [value]="''">Seleccionar almacén…</option>
+        <option [value]="''">{{ 'Seleccionar almacén…' | t }}</option>
         @for (b of bodegasVisibles(); track b.id) {
           <option [value]="b.id">{{ b.nombre }}</option>
         }
@@ -180,9 +180,9 @@
         />
         <label class="cn-count-toggle">
           <input type="checkbox" [checked]="chqSoloDif()" (change)="chqSoloDif.set($any($event.target).checked)" />
-          Solo con diferencia
+          {{ 'Solo con diferencia' | t }}
         </label>
-        <span class="cn-count-n">{{ chequeoRowsVisibles().length }} de {{ chequeoRows().length }}</span>
+        <span class="cn-count-n">{{ chequeoRowsVisibles().length }} {{ 'de' | t }} {{chequeoRows().length }}</span>
       </div>
       <table class="cn-table">
         <thead>
@@ -222,7 +222,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="onSaveChequeo()">
-        @if (saving()) { Guardando… } @else { Registrar chequeo }
+        @if (saving()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar chequeo' | t }} }
       </button>
     </div>
   </div>
@@ -232,15 +232,15 @@
 <app-form-drawer title="{{ 'Conteo físico — stock real' | t }}" [open]="cfDrawerOpen()" (closed)="closeCfDrawer()">
   <div class="drawer-form">
     <p class="cn-muted">
-      Pon el stock <strong>{{ 'real' | t }}</strong> del almacén tras contarlo físicamente. Al aplicar, el sistema
-      cuadra la existencia <strong>{{ 'sin tocar el kardex' | t }}</strong> (no crea movimientos). Puedes guardar el
-      borrador y retomarlo luego. Se puede deshacer.
+      {{ 'Pon el stock' | t }} <strong>{{ 'real' | t }}</strong> {{ 'del almacén tras contarlo físicamente. Al aplicar, el sistema' | t }}
+      {{ 'cuadra la existencia' | t }} <strong>{{ 'sin tocar el kardex' | t }}</strong> {{ '(no crea movimientos). Puedes guardar el' | t }}
+      {{ 'borrador y retomarlo luego. Se puede deshacer.' | t }}
     </p>
 
     <div class="sgc-field">
       <label for="cf-bodega">{{ 'Almacén' | t }} <span class="required">*</span></label>
       <select id="cf-bodega" [value]="cfBodegaId()" (change)="onCfBodegaChange($any($event.target).value)">
-        <option [value]="''">Seleccionar almacén…</option>
+        <option [value]="''">{{ 'Seleccionar almacén…' | t }}</option>
         @for (b of bodegasVisibles(); track b.id) {
           <option [value]="b.id">{{ b.nombre }}</option>
         }
@@ -249,7 +249,7 @@
 
     <label class="cn-ciego">
       <input type="checkbox" [checked]="cfCiego()" [disabled]="!!cfBodegaId()" (change)="cfCiego.set($any($event.target).checked)" />
-      Conteo ciego (no mostrar la cantidad del sistema)
+      {{ 'Conteo ciego (no mostrar la cantidad del sistema)' | t }}
     </label>
 
     @if (loadingStock()) {
@@ -267,9 +267,9 @@
         />
         <label class="cn-count-toggle">
           <input type="checkbox" [checked]="cfSoloDif()" (change)="cfSoloDif.set($any($event.target).checked)" />
-          Solo con diferencia
+          {{ 'Solo con diferencia' | t }}
         </label>
-        <span class="cn-count-n">{{ cfRowsVisibles().length }} de {{ cfRows().length }}</span>
+        <span class="cn-count-n">{{ cfRowsVisibles().length }} {{ 'de' | t }} {{cfRows().length }}</span>
       </div>
       <div class="cn-agregar">
         <span class="cn-agregar__label">{{ '¿Falta un artículo?' | t }}</span>
@@ -323,10 +323,10 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeCfDrawer()">{{ 'Cerrar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="cfSaving() || !cfConteoId()" (click)="guardarBorrador()">
-        Guardar borrador
+        {{ 'Guardar borrador' | t }}
       </button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="cfSaving() || !cfConteoId()" (click)="aplicarConteoFisico()">
-        @if (cfSaving()) { Aplicando… } @else { Aplicar stock real }
+        @if (cfSaving()) { {{ 'Aplicando…' | t }} } @else { {{ 'Aplicar stock real' | t }} }
       </button>
     </div>
   </div>
