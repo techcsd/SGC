@@ -16,6 +16,8 @@ import { OdooProductoCompra } from '../../../../shared/models/odoo.model';
 import { OdooProductoSolicitudesService } from '../../../../shared/services/odoo-producto-solicitudes.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface ItemRow {
   descripcion: string;
@@ -57,7 +59,7 @@ const ORDEN_ESTADO_BADGE: Record<string, string> = {
 
 @Component({
   selector: 'app-solicitar-odoo',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, StaggerDirective, OdooProductoPicker],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, StaggerDirective, OdooProductoPicker, TranslatePipe],
   templateUrl: './solicitar-odoo.html',
   styleUrl: './solicitar-odoo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +68,7 @@ const ORDEN_ESTADO_BADGE: Record<string, string> = {
 export class SolicitarOdoo implements OnInit {
   private odooSolicitudes = inject(OdooProductoSolicitudesService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private solicitudesService = inject(SolicitudesCompraService);
   private proyectosService = inject(ProyectosService);
   private datosPruebaView = inject(DatosPruebaViewService);
@@ -107,7 +110,7 @@ export class SolicitarOdoo implements OnInit {
       if (error) throw error;
       window.open(data.signedUrl, '_blank', 'noopener');
     } catch {
-      this.error.set('No se pudo abrir la foto.');
+      this.error.set(this.i18n.t('No se pudo abrir la foto.'));
     }
   }
 
@@ -137,7 +140,7 @@ export class SolicitarOdoo implements OnInit {
       this.proyectos.set(proyectos);
       this.ordenesMap.set(ordenes);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las solicitudes.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar las solicitudes.'));
     } finally {
       this.loading.set(false);
     }
@@ -173,9 +176,9 @@ export class SolicitarOdoo implements OnInit {
     const descripcion = this.formItems()[index].descripcion.trim() || terminoBuscado;
     try {
       await this.odooSolicitudes.crear(descripcion, terminoBuscado);
-      this.toast.success('Solicitud de alta enviada', 'Compras la resolverá en «Productos por dar de alta en Odoo».');
+      this.toast.success(this.i18n.t('Solicitud de alta enviada'), 'Compras la resolverá en «Productos por dar de alta en Odoo».');
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar la solicitud de alta', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar la solicitud de alta'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -195,7 +198,7 @@ export class SolicitarOdoo implements OnInit {
 
     try {
       const solicitanteId = this.userService.profile()?.id;
-      if (!solicitanteId) throw new Error('Sesión inválida.');
+      if (!solicitanteId) throw new Error(this.i18n.t('Sesión inválida.'));
 
       const v = this.form.value;
       const created = await this.solicitudesService.create({
@@ -214,7 +217,7 @@ export class SolicitarOdoo implements OnInit {
       this.solicitudes.update((list) => [created, ...list]);
       this.drawerOpen.set(false);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar.'));
     } finally {
       this.saving.set(false);
     }

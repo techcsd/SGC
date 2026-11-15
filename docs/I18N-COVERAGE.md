@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 27%** (2979/11059 literales de 192 pantallas en alcance). **`ht`: 64%**.
+**Alcance `en`: 27%** (3028/11051 literales de 192 pantallas en alcance). **`ht`: 64%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -38,8 +38,6 @@
 | compras/ordenes-odoo | scope | 140 | 0 | 140 | 0% |
 | compras/proveedores | scope | 86 | 0 | 86 | 0% |
 | compras/proveedores-odoo | scope | 59 | 0 | 59 | 0% |
-| compras/reportes | scope | 22 | 0 | 22 | 0% |
-| compras/solicitar-odoo | scope | 35 | 0 | 35 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | documentos/generar | scope | 9 | 0 | 9 | 0% |
 | documentos/historial | scope | 10 | 0 | 10 | 0% |
@@ -165,6 +163,8 @@
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
+| compras/reportes | enforce | 19 | 19 | 0 | 100% |
+| compras/solicitar-odoo | enforce | 30 | 30 | 0 | 100% |
 | configuracion/claude | enforce | 32 | 32 | 0 | 100% |
 | configuracion | enforce | 58 | 58 | 0 | 100% |
 | dashboard | enforce | 70 | 70 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**764 literal(es) sin t()** en 102 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**762 literal(es) sin t()** en 101 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -293,7 +293,6 @@
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/bitacora/cobertura/cobertura.ts | 2 | Sin bitácoras · Al día |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/compras/solicitar-odoo/solicitar-odoo.ts | 2 | Solicitud de alta enviada · No se pudo enviar la solicitud de alta |
 | src/app/pages/legal/expedientes/expedientes.ts | 2 | No se pudo cambiar el estado del expediente · No se pudo fijar la fecha límite |
 | src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
 | src/app/pages/tecnologia/odoo-sync/odoo-sync.ts | 2 | Reencolado · No se pudo reencolar |

@@ -94,12 +94,6 @@
     "compras/proveedores-odoo": {
       "enforce": false
     },
-    "compras/reportes": {
-      "enforce": false
-    },
-    "compras/solicitar-odoo": {
-      "enforce": false
-    },
     "direccion": {
       "enforce": false
     },
@@ -473,6 +467,12 @@
       "enforce": true
     },
     "compras/productos-por-dar-de-alta": {
+      "enforce": true
+    },
+    "compras/reportes": {
+      "enforce": true
+    },
+    "compras/solicitar-odoo": {
       "enforce": true
     },
     "configuracion/claude": {
