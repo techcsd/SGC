@@ -2,13 +2,13 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Almacenes' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} {{ filtered().length !== 1 ? 'almacenes' : 'almacén' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'almacenes' : 'almacén') | t }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Nuevo almacén
+    {{ 'Nuevo almacén' | t }}
   </button>
 </div>
 
@@ -26,7 +26,7 @@
 
   <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
   <app-filter-select
-    label="Estado"
+    [label]="i18n.t('Estado')"
     [options]="estadoOpt"
     [value]="selectedStatus() === 'all' ? '' : selectedStatus()"
     (valueChange)="onStatusChange($event || 'all')"
@@ -34,7 +34,7 @@
 
   <!-- BP6 — filtro de obra como chip + popover (filter-select). -->
   <app-filter-select
-    label="Obra"
+    [label]="i18n.t('Obra')"
     [options]="obrasFiltroOpt()"
     [value]="selectedObra()"
     (valueChange)="onObraChange($event)"
@@ -43,14 +43,14 @@
 
   @if (searchQuery() || selectedStatus() !== 'all' || selectedObra()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
   @if (esAdmin()) {
     <label class="prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -78,9 +78,9 @@
       </svg>
       <p>
         @if (searchQuery() || selectedStatus() !== 'all') {
-          No se encontraron almacenes con los filtros aplicados.
+          {{ 'No se encontraron almacenes con los filtros aplicados.' | t }}
         } @else {
-          No hay almacenes registrados. Crea el primero.
+          {{ 'No hay almacenes registrados. Crea el primero.' | t }}
         }
       </p>
     </div>
@@ -128,7 +128,7 @@
               <td class="text-muted">{{ bodega.ubicacion ?? '—' }}</td>
               <td class="text-muted">{{ bodega.descripcion ?? '—' }}</td>
               <td>
-                <label class="toggle-label toggle-label--inline" [attr.aria-label]="(bodega.activo ? 'Desactivar' : 'Activar') + ' ' + bodega.nombre">
+                <label class="toggle-label toggle-label--inline" [attr.aria-label]="i18n.t(bodega.activo ? 'Desactivar' : 'Activar') + ' ' + bodega.nombre">
                   <input
                     type="checkbox"
                     class="toggle-input"
@@ -136,7 +136,7 @@
                     (change)="toggleActivo(bodega)"
                   />
                   <span class="toggle-switch" aria-hidden="true"></span>
-                  <span class="toggle-text">{{ bodega.activo ? 'Activo' : 'Inactivo' }}</span>
+                  <span class="toggle-text">{{ (bodega.activo ? 'Activo' : 'Inactivo') | t }}</span>
                 </label>
               </td>
               <td class="text-muted">{{ bodega.created_at | date:'dd/MM/yyyy h:mm a' }}</td>
@@ -145,7 +145,7 @@
                   <a
                     class="action-btn"
                     [routerLink]="['/inventario/almacen', bodega.id]"
-                    [attr.aria-label]="'Ver inventario de ' + bodega.nombre"
+                    [attr.aria-label]="i18n.t('Ver inventario de') + ' ' + bodega.nombre"
                     title="{{ 'Ver inventario del almacén' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -156,7 +156,7 @@
                     class="action-btn"
                     routerLink="/inventario/movimientos"
                     [queryParams]="{ bodega: bodega.id }"
-                    [attr.aria-label]="'Ver movimientos de ' + bodega.nombre"
+                    [attr.aria-label]="i18n.t('Ver movimientos de') + ' ' + bodega.nombre"
                     title="{{ 'Ver movimientos' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -167,7 +167,7 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(bodega)"
-                    [attr.aria-label]="'Editar ' + bodega.nombre"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + bodega.nombre"
                     title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -181,7 +181,7 @@
                       class="action-btn action-btn--delete-prueba"
                       (click)="eliminarPrueba(bodega)"
                       title="{{ 'Eliminar dato de prueba' | t }}"
-                      [attr.aria-label]="'Eliminar dato de prueba ' + bodega.nombre"
+                      [attr.aria-label]="i18n.t('Eliminar dato de prueba') + ' ' + bodega.nombre"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -201,7 +201,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -290,7 +290,7 @@
     <div class="sgc-field">
       <label for="proyecto_id">{{ 'Obra (almacén de obra)' | t }}</label>
       <select id="proyecto_id" formControlName="proyecto_id">
-        <option [ngValue]="null">Almacén general (sin obra)</option>
+        <option [ngValue]="null">{{ 'Almacén general (sin obra)' | t }}</option>
         @for (proyecto of proyectosVisibles(); track proyecto.id) {
           <option [value]="proyecto.id">{{ proyecto.nombre }}</option>
         }
@@ -302,7 +302,7 @@
     <div class="sgc-field">
       <label for="encargado_id">{{ 'Encargado' | t }}</label>
       <select id="encargado_id" formControlName="encargado_id">
-        <option [ngValue]="null">Sin encargado</option>
+        <option [ngValue]="null">{{ 'Sin encargado' | t }}</option>
         @for (u of usuarios(); track u.id) {
           <option [ngValue]="u.id">{{ u.nombre }}</option>
         }
@@ -316,7 +316,7 @@
         <label class="toggle-label" for="heredar_ubicacion">
           <input id="heredar_ubicacion" type="checkbox" formControlName="heredar_ubicacion" class="toggle-input" />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Usar la ubicación de la obra (se mantiene sincronizada)
+          {{ 'Usar la ubicación de la obra (se mantiene sincronizada)' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Al activarlo, el almacén hereda las coordenadas de la obra y se actualiza si la obra cambia de ubicación.' | t }}</small>
       </div>
@@ -334,7 +334,7 @@
             class="toggle-input"
           />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Almacén principal de esta obra
+          {{ 'Almacén principal de esta obra' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Se usa como origen/destino por defecto de la obra. Solo uno por obra.' | t }}</small>
       </div>
@@ -348,7 +348,7 @@
             class="toggle-input"
           />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Almacén central (global)
+          {{ 'Almacén central (global)' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Central de la empresa: origen de material hacia las obras.' | t }}</small>
       </div>
@@ -363,7 +363,7 @@
           class="toggle-input"
         />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Almacén activo
+        {{ 'Almacén activo' | t }}
       </label>
     </div>
 
@@ -377,7 +377,7 @@
           (ubicacionChange)="onUbicacionPicked($event)"
         />
         @if (f.latitud.value != null) {
-          <small class="sgc-field__hint">Coordenadas: {{ f.latitud.value | number:'1.4-4' }}, {{ f.longitud.value | number:'1.4-4' }}</small>
+          <small class="sgc-field__hint">{{ 'Coordenadas:' | t }} {{ f.latitud.value | number:'1.4-4' }}, {{ f.longitud.value | number:'1.4-4' }}</small>
         }
       </div>
     } @else {
@@ -391,7 +391,7 @@
         <label class="toggle-label" for="bodega-es-prueba">
           <input id="bodega-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Dato de prueba
+          {{ 'Dato de prueba' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
       </div>
@@ -408,14 +408,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear almacén' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear almacén') | t }}
         }
       </button>
     </div>
@@ -425,17 +425,17 @@
 
 <!-- ── Z9 — Detalle de almacén ── -->
 <app-form-drawer
-  [title]="detailBodega()?.nombre ?? 'Almacén'"
+  [title]="detailBodega()?.nombre ?? i18n.t('Almacén')"
   [open]="detailOpen()"
   (closed)="closeDetail()"
 >
   @if (detailBodega(); as b) {
     <div class="bodega-detalle">
       <dl class="bodega-detalle__info">
-        <div><dt>{{ 'Obra vinculada' | t }}</dt><dd>{{ b.es_central ? 'Central (global)' : (b.proyecto?.nombre ? (b.proyecto?.nombre + (b.es_principal_obra ? ' · Principal de obra' : '')) : 'General') }}</dd></div>
+        <div><dt>{{ 'Obra vinculada' | t }}</dt><dd>{{ b.es_central ? i18n.t('Central (global)') : (b.proyecto?.nombre ? (b.proyecto?.nombre + (b.es_principal_obra ? (' · ' + i18n.t('Principal de obra')) : '')) : i18n.t('General')) }}</dd></div>
         <div><dt>{{ 'Ubicación' | t }}</dt><dd>{{ b.ubicacion ?? '—' }}</dd></div>
-        <div><dt>{{ 'Estado' | t }}</dt><dd>{{ b.activo ? 'Activo' : 'Inactivo' }}</dd></div>
-        <div><dt>{{ 'Stock total' | t }}</dt><dd>{{ detailStockTotal() | number:'1.0-2' }} uds.</dd></div>
+        <div><dt>{{ 'Estado' | t }}</dt><dd>{{ (b.activo ? 'Activo' : 'Inactivo') | t }}</dd></div>
+        <div><dt>{{ 'Stock total' | t }}</dt><dd>{{ detailStockTotal() | number:'1.0-2' }} {{ 'uds.' | t }}</dd></div>
       </dl>
 
       <div class="bodega-detalle__acciones">
@@ -471,9 +471,9 @@
         <ul class="bodega-detalle__movs">
           @for (m of detailMovs(); track $index) {
             <li>
-              <span class="sgc-badge sgc-badge--{{ m.tipo === 'entrada' ? 'success' : 'neutral' }}">{{ m.tipo === 'entrada' ? 'Entrada' : 'Salida' }}</span>
+              <span class="sgc-badge sgc-badge--{{ m.tipo === 'entrada' ? 'success' : 'neutral' }}">{{ (m.tipo === 'entrada' ? 'Entrada' : 'Salida') | t }}</span>
               <span class="text-muted">{{ m.concepto ?? '—' }}</span>
-              <span class="text-muted">{{ m.items }} ítem(s) · {{ m.fecha | date:'dd/MM/yyyy' }}</span>
+              <span class="text-muted">{{ m.items }} {{ 'ítem(s)' | t }} · {{ m.fecha | date:'dd/MM/yyyy' }}</span>
             </li>
           }
         </ul>

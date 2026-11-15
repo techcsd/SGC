@@ -1,6 +1,6 @@
 {
-  "pctScopeEn": 24,
-  "pctHt": 53,
+  "pctScopeEn": 25,
+  "pctHt": 54,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -9548,45 +9548,6 @@
       ]
     },
     {
-      "pantalla": "inventario/bodegas",
-      "total": 70,
-      "cubiertos": 42,
-      "sin": 28,
-      "pct": 60,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Nuevo almacén",
-        "Limpiar filtros",
-        "Mostrar datos de prueba",
-        "– de",
-        "Almacén general (sin obra)",
-        "Sin encargado",
-        "Usar la ubicación de la obra (se mantiene sincronizada)",
-        "Almacén principal de esta obra",
-        "Almacén central (global)",
-        "Almacén activo",
-        "Coordenadas: ,",
-        "Dato de prueba",
-        "Cancelar",
-        "Guardando… } @else { }",
-        "uds.",
-        "ítem(s) ·",
-        "Desactivar",
-        "Ver inventario de",
-        "Ver movimientos de",
-        "Editar",
-        "Eliminar dato de prueba",
-        "Almacén",
-        "Almacén guardado, pero la ubicación no se pudo fijar",
-        "Dato de prueba eliminado",
-        "Error al eliminar",
-        "Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?",
-        "¿Eliminar el dato de prueba \"${b.nombre}\"? Esta acción no se puede deshacer.",
-        "Almacén general (sin obra)"
-      ]
-    },
-    {
       "pantalla": "inventario/activos",
       "total": 71,
       "cubiertos": 43,
@@ -10315,6 +10276,16 @@
       "pantalla": "inventario/articulos",
       "total": 93,
       "cubiertos": 93,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/bodegas",
+      "total": 69,
+      "cubiertos": 69,
       "sin": 0,
       "pct": 100,
       "enScope": true,

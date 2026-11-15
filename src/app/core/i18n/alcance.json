@@ -412,9 +412,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/bodegas": {
-      "enforce": false
-    },
     "inventario/activos": {
       "enforce": false
     },
@@ -524,6 +521,9 @@
       "enforce": true
     },
     "inventario/articulos": {
+      "enforce": true
+    },
+    "inventario/bodegas": {
       "enforce": true
     },
     "inventario/categorias": {

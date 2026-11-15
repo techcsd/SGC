@@ -166,8 +166,10 @@ const TS_PROP_T_RE = /(?<!\.)\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*
 // para excluir sus props de la cuenta de ".ts sin t()".
 function spansDeArreglos(ts) {
   const spans = [];
-  // `const x = [...]` / `campo = [...]` (arreglo literal completo).
-  const reArreglo = /=\s*\[/g;
+  // `const x = [...]` / `campo = [...]` (arreglo literal completo) — también
+  // `campo = computed(() => [...])`, donde el arreglo no sigue al `=`
+  // directamente sino a un `=>` de la función flecha que lo envuelve.
+  const reArreglo = /(?:=>|=)\s*\[/g;
   let m;
   while ((m = reArreglo.exec(ts))) {
     const inicio = m.index + m[0].length - 1; // posición del '['

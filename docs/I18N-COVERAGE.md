@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 24%** (2710/11116 literales de 193 pantallas en alcance). **`ht`: 53%**.
+**Alcance `en`: 25%** (2737/11115 literales de 193 pantallas en alcance). **`ht`: 54%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -144,7 +144,6 @@
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/bodegas | scope | 70 | 42 | 28 | 60% |
 | inventario/activos | scope | 71 | 43 | 28 | 61% |
 | inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
 | inventario/conduce | scope | 145 | 93 | 52 | 64% |
@@ -182,6 +181,7 @@
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
 | inventario/apertura | enforce | 38 | 38 | 0 | 100% |
 | inventario/articulos | enforce | 93 | 93 | 0 | 100% |
+| inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces | enforce | 34 | 34 | 0 | 100% |
@@ -203,7 +203,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**906 literal(es) sin t()** en 119 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**900 literal(es) sin t()** en 118 archivo(s) (de 141 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -268,7 +268,6 @@
 | src/app/pages/flota/rutas-activas/rutas-activas.ts | 6 | Disponible · En ruta · Descanso … |
 | src/app/pages/flota/seguimiento/seguimiento.ts | 6 | Disponible · En ruta · Descanso … |
 | src/app/pages/inventario/activos/activos.ts | 6 | Dato de prueba eliminado · Error al eliminar · Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar? … |
-| src/app/pages/inventario/bodegas/bodegas.ts | 6 | Almacén guardado, pero la ubicación no se pudo fijar · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/inventario/entradas/entradas.ts | 6 | Entrada rechazada · Recepción confirmada · Error … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
