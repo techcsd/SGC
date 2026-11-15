@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { FechaPipe } from '../../../shared/i18n/fecha.pipe';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -16,6 +16,8 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { IconName } from '../../../shared/ui/icon/icons';
 import { ThemeService } from '../../../shared/services/theme.service';
 import { VerFotoDirective } from '../../../shared/ui/lightbox/ver-foto.directive';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 interface ActividadItem {
   fecha: string;
@@ -26,13 +28,14 @@ interface ActividadItem {
 
 @Component({
   selector: 'app-perfil',
-  imports: [DatePipe, RouterLink, DonutChart, BarChart, Skeleton, Icon, VerFotoDirective],
+  imports: [FechaPipe, RouterLink, DonutChart, BarChart, Skeleton, Icon, VerFotoDirective, TranslatePipe],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Perfil implements OnInit {
   protected theme = inject(ThemeService);
+  private i18n = inject(I18nService);
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private tareasService = inject(TareasService);
@@ -85,13 +88,13 @@ export class Perfil implements OnInit {
   actividad = computed<ActividadItem[]>(() => {
     const items: ActividadItem[] = [];
     for (const t of this.tareas()) {
-      items.push({ fecha: t.created_at, icono: 'clipboard', tipo: 'tarea', texto: `Tarea asignada: ${t.titulo}` });
+      items.push({ fecha: t.created_at, icono: 'clipboard', tipo: 'tarea', texto: this.i18n.t('Tarea asignada: {titulo}', { titulo: t.titulo }) });
       if (t.fecha_completada) {
-        items.push({ fecha: t.fecha_completada, icono: 'check-circle', tipo: 'tarea', texto: `Tarea completada: ${t.titulo}` });
+        items.push({ fecha: t.fecha_completada, icono: 'check-circle', tipo: 'tarea', texto: this.i18n.t('Tarea completada: {titulo}', { titulo: t.titulo }) });
       }
     }
     for (const r of this.reportes()) {
-      items.push({ fecha: r.created_at, icono: 'message-circle', tipo: 'reporte', texto: `Reporte enviado: ${r.asunto}` });
+      items.push({ fecha: r.created_at, icono: 'message-circle', tipo: 'reporte', texto: this.i18n.t('Reporte enviado: {asunto}', { asunto: r.asunto }) });
     }
     return items.sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 15);
   });
@@ -130,7 +133,7 @@ export class Perfil implements OnInit {
       await this.userService.uploadAvatar(file);
       this.avatarFailed.set(false); // BT3 — la nueva foto merece un intento limpio.
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'Error al subir la imagen.');
+      this.error.set(e instanceof Error ? humanizeError(e).mensaje : this.i18n.t('Error al subir la imagen.'));
     } finally {
       this.uploading.set(false);
       input.value = '';

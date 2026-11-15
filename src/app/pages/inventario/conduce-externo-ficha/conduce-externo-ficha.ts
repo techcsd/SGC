@@ -6,6 +6,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/services/transporte-v3.service';
 
@@ -27,6 +28,7 @@ export class ConduceExternoFicha implements OnInit {
   private supabase = inject(SupabaseService);
   private svc = inject(TransporteV3Service);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private user = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
 
@@ -45,13 +47,13 @@ export class ConduceExternoFicha implements OnInit {
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    if (!id) { this.error.set('Conduce no especificado.'); this.loading.set(false); return; }
+    if (!id) { this.error.set(this.i18n.t('Conduce no especificado.')); this.loading.set(false); return; }
     try {
       const d = await this.svc.conduceExternoDetalle(id);
       this.detalle.set(d);
       await this.cargarFotos(d);
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el conduce externo.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar el conduce externo.'));
     } finally {
       this.loading.set(false);
     }
@@ -115,7 +117,7 @@ export class ConduceExternoFicha implements OnInit {
     try {
       if (navigator.share) { await navigator.share({ title: d.codigo, text: texto, url }); return; }
       await navigator.clipboard.writeText(url);
-      this.toast.success('Enlace copiado');
+      this.toast.success(this.i18n.t('Enlace copiado'));
     } catch { /* cancelado */ }
   }
 
@@ -131,14 +133,14 @@ export class ConduceExternoFicha implements OnInit {
   async marcarPrueba(valor: boolean) {
     const d = this.detalle();
     if (!d || this.marcandoPrueba()) return;
-    if (valor && !confirm('¿Marcar este conduce externo como dato de prueba? Se revertirá su movimiento de stock y dejará de contar en inventario, KPIs y avisos (salvo con el toggle de datos de prueba).')) return;
+    if (valor && !confirm(this.i18n.t('¿Marcar este conduce externo como dato de prueba? Se revertirá su movimiento de stock y dejará de contar en inventario, KPIs y avisos (salvo con el toggle de datos de prueba).'))) return;
     this.marcandoPrueba.set(true);
     try {
       await this.datosPrueba.marcar('conduces_externos', d.id, valor);
       this.detalle.set({ ...d, es_prueba: valor });
-      this.toast.success(valor ? 'Marcado como prueba' : 'Vuelto a real', valor ? 'Se revirtió su movimiento de stock.' : 'Se re-aplicó su movimiento de stock.');
+      this.toast.success(this.i18n.t(valor ? 'Marcado como prueba' : 'Vuelto a real'), valor ? 'Se revirtió su movimiento de stock.' : 'Se re-aplicó su movimiento de stock.');
     } catch (e) {
-      this.toast.error('No se pudo cambiar el estado de prueba', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado de prueba'), e instanceof Error ? e.message : undefined);
     } finally {
       this.marcandoPrueba.set(false);
     }
@@ -147,14 +149,14 @@ export class ConduceExternoFicha implements OnInit {
   async anular() {
     const d = this.detalle();
     if (!d || d.anulado) return;
-    const motivo = window.prompt('Motivo de la anulación:');
+    const motivo = window.prompt(this.i18n.t('Motivo de la anulación:'));
     if (!motivo || !motivo.trim()) return;
     try {
       await this.svc.anularConduceExterno(d.id, motivo.trim());
       this.detalle.set({ ...d, anulado: true, estado: 'anulado', motivo_anulacion: motivo.trim() });
-      this.toast.success('Conduce externo anulado');
+      this.toast.success(this.i18n.t('Conduce externo anulado'));
     } catch (e) {
-      this.toast.error('No se pudo anular', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo anular'), e instanceof Error ? e.message : undefined);
     }
   }
 }

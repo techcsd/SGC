@@ -12,6 +12,8 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaMedia, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * AU1 — Bandeja "Conduces por firmar" del despachante (web, paridad con la app).
@@ -21,7 +23,7 @@ import { formatFechaMedia, formatHoraTimestamp } from '../../../../shared/utils/
  */
 @Component({
   selector: 'app-conduces-por-firmar',
-  imports: [RouterLink, UpperCasePipe, SignaturePad, Skeleton],
+  imports: [RouterLink, UpperCasePipe, SignaturePad, Skeleton, TranslatePipe],
   templateUrl: './por-firmar.html',
   styleUrl: './por-firmar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +33,7 @@ export class ConducesPorFirmar implements OnInit {
   private motion = inject(MotionService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
   readonly fechaMedia = formatFechaMedia;
   readonly hora = formatHoraTimestamp;
 
@@ -86,22 +89,22 @@ export class ConducesPorFirmar implements OnInit {
     const pad = this.pad();
     if (!det || !pad) return;
     if (pad.isEmpty()) {
-      this.toast.error('Dibuja tu firma antes de confirmar.');
+      this.toast.error(this.i18n.t('Dibuja tu firma antes de confirmar.'));
       return;
     }
     this.firmando.set(true);
     try {
       const blob = await pad.toBlob();
       if (!blob) {
-        this.toast.error('La firma está vacía.');
+        this.toast.error(this.i18n.t('La firma está vacía.'));
         return;
       }
       const path = await this.svc.subirEvidenciaConduce(det.id, 'firma-emisor', blob, 'png');
       const res = await this.svc.firmarComoDespachante(det.id, path);
       if (res === 'ya_firmado') {
-        this.toast.info('Este conduce ya estaba firmado.');
+        this.toast.info(this.i18n.t('Este conduce ya estaba firmado.'));
       } else {
-        this.toast.success('Conduce firmado. El chofer ya puede entregar.');
+        this.toast.success(this.i18n.t('Conduce firmado. El chofer ya puede entregar.'));
         this.motion.momento('firma');
       }
       this.seleccion.set(null);

@@ -13,6 +13,8 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * AU4 — Bandeja "Material no catalogado": items libres que los choferes escribieron
@@ -24,7 +26,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-material-no-catalogado',
-  imports: [RouterLink, ArticuloPicker, Skeleton],
+  imports: [RouterLink, ArticuloPicker, Skeleton, TranslatePipe],
   templateUrl: './material-no-catalogado.html',
   styleUrl: './material-no-catalogado.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +37,7 @@ export class MaterialNoCatalogado implements OnInit {
   private categoriasSvc = inject(CategoriasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   readonly unidades = UNIDADES;
 
@@ -162,18 +165,18 @@ export class MaterialNoCatalogado implements OnInit {
     let sugerido: string | null = null;
     if (motivoVal === 'ya_existe') {
       sugerido = this.declinarArticuloId();
-      if (!sugerido) { this.toast.error('Indica cuál artículo del catálogo ya existe.'); return; }
+      if (!sugerido) { this.toast.error(this.i18n.t('Indica cuál artículo del catálogo ya existe.')); return; }
       const art = this.catalogo().find((a) => a.id === sugerido);
       if (art) motivo = `Ya existe en el catálogo: ${art.nombre}`;
     } else if (motivoVal === 'otro') {
       const nota = this.declinarNota().trim();
-      if (!nota) { this.toast.error('Escribe el motivo.'); return; }
+      if (!nota) { this.toast.error(this.i18n.t('Escribe el motivo.')); return; }
       motivo = nota;
     }
     this.guardando.set(true);
     try {
       await this.svc.declinarItemLibre(fila.id, motivo, sugerido);
-      this.toast.success('Material declinado.', 'Pasó a historial y se notificó a quien lo reportó.');
+      this.toast.success(this.i18n.t('Material declinado.'), this.i18n.t('Pasó a historial y se notificó a quien lo reportó.'));
       this.cerrar();
       await this.cargar();
     } catch (e: unknown) {
@@ -188,7 +191,7 @@ export class MaterialNoCatalogado implements OnInit {
     this.guardando.set(true);
     try {
       await this.svc.revertirDeclinacionItemLibre(fila.id);
-      this.toast.success('Se revirtió el rechazo.', 'El material vuelve a la bandeja como pendiente.');
+      this.toast.success(this.i18n.t('Se revirtió el rechazo.'), this.i18n.t('El material vuelve a la bandeja como pendiente.'));
       await this.cargar();
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo revertir.');
@@ -202,13 +205,13 @@ export class MaterialNoCatalogado implements OnInit {
     if (!fila || this.guardando()) return;
     const nombre = this.nuevoNombre().trim();
     const catId = this.nuevaCategoria();
-    if (!nombre) { this.toast.error('El nombre es obligatorio.'); return; }
-    if (catId == null) { this.toast.error('Elige una categoría.'); return; }
+    if (!nombre) { this.toast.error(this.i18n.t('El nombre es obligatorio.')); return; }
+    if (catId == null) { this.toast.error(this.i18n.t('Elige una categoría.')); return; }
     this.guardando.set(true);
     try {
       // BW2 — un solo RPC atómico (crear + vincular + mov. opcional); mismo gate que la app.
       await this.svc.crearArticuloDesdeLibre(fila.id, nombre, catId, this.nuevaUnidad(), this.generarMovimiento());
-      this.toast.success('Artículo creado y vinculado.', 'Ya está en el catálogo para futuros conduces.');
+      this.toast.success(this.i18n.t('Artículo creado y vinculado.'), this.i18n.t('Ya está en el catálogo para futuros conduces.'));
       this.cerrar();
       await this.cargar();
     } catch (e: unknown) {
@@ -222,11 +225,11 @@ export class MaterialNoCatalogado implements OnInit {
     const fila = this.activo();
     const artId = this.vincularArticuloId();
     if (!fila || this.guardando()) return;
-    if (!artId) { this.toast.error('Selecciona un artículo del catálogo.'); return; }
+    if (!artId) { this.toast.error(this.i18n.t('Selecciona un artículo del catálogo.')); return; }
     this.guardando.set(true);
     try {
       await this.svc.vincularItemLibre(fila.id, artId, this.generarMovimiento());
-      this.toast.success('Item vinculado al artículo.');
+      this.toast.success(this.i18n.t('Item vinculado al artículo.'));
       this.cerrar();
       await this.cargar();
     } catch (e: unknown) {

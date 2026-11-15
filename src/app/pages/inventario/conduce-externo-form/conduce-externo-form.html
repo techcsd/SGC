@@ -1,17 +1,17 @@
 <div class="page cef">
   <header class="page-header">
     <div class="page-header__left">
-      <h1 class="page-title">Nuevo conduce externo</h1>
-      <p class="page-sub">Un proveedor mueve material con su camión. Se registra el viaje automáticamente.</p>
+      <h1 class="page-title">{{ 'Nuevo conduce externo' | t }}</h1>
+      <p class="page-sub">{{ 'Un proveedor mueve material con su camión. Se registra el viaje automáticamente.' | t }}</p>
     </div>
     <div class="page-header__actions">
       @if (esAdmin()) {
-        <label class="cef-prueba-toggle" title="No cuenta en inventario, KPIs ni avisos">
+        <label class="cef-prueba-toggle" title="{{ 'No cuenta en inventario, KPIs ni avisos' | t }}">
           <input type="checkbox" [checked]="esPrueba()" (change)="esPrueba.set($any($event.target).checked)" />
           <span>{{ 'Marcar como prueba · SOLO ADMIN' | t }}</span>
         </label>
       }
-      <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conduces-externos">Ver historial</a>
+      <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conduces-externos">{{ 'Ver historial' | t }}</a>
     </div>
   </header>
 
@@ -20,7 +20,7 @@
   }
 
   @if (origenRequisicionId()) {
-    <div class="sgc-badge sgc-badge--info">Procede de {{ reqCodigo() }} — compra en ferretería (cuenta en el avance al confirmarse)</div>
+    <div class="sgc-badge sgc-badge--info">{{ 'Procede de' | t }} {{ reqCodigo() }} {{ '— compra en ferretería (cuenta en el avance al confirmarse)' | t }}</div>
   }
   @if (formError()) {
     <div class="page-error" role="alert">{{ formError() }}</div>
@@ -32,7 +32,7 @@
 
       <!-- 1 · Quién transporta -->
       <section class="sgc-card cef-card cef-mv" style="--d:0ms">
-        <div class="cef-card__head"><span class="cef-num">1</span><h2 class="cef-h">¿Quién transporta?</h2></div>
+        <div class="cef-card__head"><span class="cef-num">1</span><h2 class="cef-h">{{ '¿Quién transporta?' | t }}</h2></div>
         @if (!usarTexto()) {
           @if (top3Proveedores().length) {
             <div class="cef-quick">
@@ -44,49 +44,49 @@
             </div>
           }
           <div class="sgc-field">
-            <label>Proveedor de transporte</label>
+            <label>{{ 'Proveedor de transporte' | t }}</label>
             <select class="sgc-select" [value]="proveedorId() ?? ''" (change)="proveedorId.set($any($event.target).value || null)">
-              <option value="">— Selecciona —</option>
+              <option value="">{{ '— Selecciona —' | t }}</option>
               @for (p of proveedores(); track p.id) {
-                <option [value]="p.id">{{ p.nombre }}@if (p.estado === 'sin_ratificar') { (sin ratificar) }</option>
+                <option [value]="p.id">{{ p.nombre }}@if (p.estado === 'sin_ratificar') { {{ '(sin ratificar)' | t }} }</option>
               }
             </select>
           </div>
           <div class="cef-row">
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="nuevoAbierto.set(!nuevoAbierto())">+ Nuevo proveedor</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">No está en la lista — escribir a mano</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="nuevoAbierto.set(!nuevoAbierto())">{{ '+ Nuevo proveedor' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">{{ 'No está en la lista — escribir a mano' | t }}</button>
           </div>
           @if (nuevoAbierto()) {
             <div class="cef-inline">
-              <input class="sgc-input" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
-              <input class="sgc-input" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="crearProveedorRapido()">Crear</button>
+              <input class="sgc-input" placeholder="{{ 'Nombre del proveedor' | t }}" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+              <input class="sgc-input" placeholder="{{ 'Teléfono (opcional)' | t }}" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="crearProveedorRapido()">{{ 'Crear' | t }}</button>
             </div>
           }
         } @else {
           <div class="sgc-field">
-            <label>Transporta (texto «Otro»)</label>
-            <input class="sgc-input" placeholder="Nombre del transportista" [value]="transportaTexto()" (input)="transportaTexto.set($any($event.target).value)" />
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">Elegir del catálogo</button>
+            <label>{{ 'Transporta (texto «Otro»)' | t }}</label>
+            <input class="sgc-input" placeholder="{{ 'Nombre del transportista' | t }}" [value]="transportaTexto()" (input)="transportaTexto.set($any($event.target).value)" />
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">{{ 'Elegir del catálogo' | t }}</button>
           </div>
         }
       </section>
 
       <!-- 2 · Fotos -->
       <section class="sgc-card cef-card cef-mv" style="--d:30ms">
-        <div class="cef-card__head"><span class="cef-num">2</span><h2 class="cef-h">Fotos del camión</h2></div>
+        <div class="cef-card__head"><span class="cef-num">2</span><h2 class="cef-h">{{ 'Fotos del camión' | t }}</h2></div>
         <div class="cef-fotos">
           <!-- Placa (obligatoria) -->
           <div class="cef-foto" [class.cef-foto--req]="!placaFile()" (dragover)="$event.preventDefault()" (drop)="onDropFoto('placa', $event)">
             <input type="file" accept="image/*" capture="environment" (change)="onFoto('placa', $event)" hidden #placaInput />
             @if (placaPreview()) {
-              <img [src]="placaPreview()" class="cef-foto__img" alt="Placa" />
-              <button type="button" class="cef-foto__change" (click)="placaInput.click()">Cambiar</button>
+              <img [src]="placaPreview()" class="cef-foto__img" alt="{{ 'Placa' | t }}" />
+              <button type="button" class="cef-foto__change" (click)="placaInput.click()">{{ 'Cambiar' | t }}</button>
             } @else {
               <button type="button" class="cef-foto__drop" (click)="placaInput.click()">
                 <app-icon name="camera" [size]="26" />
-                <strong>Foto de la placa *</strong>
-                <small>Toca o arrastra una imagen</small>
+                <strong>{{ 'Foto de la placa *' | t }}</strong>
+                <small>{{ 'Toca o arrastra una imagen' | t }}</small>
               </button>
             }
           </div>
@@ -94,13 +94,13 @@
           <div class="cef-foto" (dragover)="$event.preventDefault()" (drop)="onDropFoto('carga', $event)">
             <input type="file" accept="image/*" capture="environment" (change)="onFoto('carga', $event)" hidden #cargaInput />
             @if (cargaPreview()) {
-              <img [src]="cargaPreview()" class="cef-foto__img" alt="Carga" />
-              <button type="button" class="cef-foto__change" (click)="cargaInput.click()">Cambiar</button>
+              <img [src]="cargaPreview()" class="cef-foto__img" alt="{{ 'Carga' | t }}" />
+              <button type="button" class="cef-foto__change" (click)="cargaInput.click()">{{ 'Cambiar' | t }}</button>
             } @else {
               <button type="button" class="cef-foto__drop" (click)="cargaInput.click()">
                 <app-icon name="camera" [size]="26" />
-                <strong>Foto de la carga</strong>
-                <small>Opcional</small>
+                <strong>{{ 'Foto de la carga' | t }}</strong>
+                <small>{{ 'Opcional' | t }}</small>
               </button>
             }
           </div>
@@ -159,18 +159,18 @@
 
       <!-- 3 · Qué mueve -->
       <section class="sgc-card cef-card cef-mv" style="--d:60ms">
-        <div class="cef-card__head"><span class="cef-num">3</span><h2 class="cef-h">¿Qué mueve?</h2></div>
-        <textarea class="sgc-input" rows="2" placeholder="Descripción del material (ej. una nevera, 20 sacos de cemento…)"
+        <div class="cef-card__head"><span class="cef-num">3</span><h2 class="cef-h">{{ '¿Qué mueve?' | t }}</h2></div>
+        <textarea class="sgc-input" rows="2" placeholder="{{ 'Descripción del material (ej. una nevera, 20 sacos de cemento…)' | t }}"
                   [value]="material()" (input)="material.set($any($event.target).value)"></textarea>
       </section>
 
       <!-- 4 · Origen → destino -->
       <section class="sgc-card cef-card cef-mv" style="--d:90ms">
-        <div class="cef-card__head"><span class="cef-num">4</span><h2 class="cef-h">Origen → destino</h2></div>
+        <div class="cef-card__head"><span class="cef-num">4</span><h2 class="cef-h">{{ 'Origen → destino' | t }}</h2></div>
         <div class="cef-ruta">
           <div class="sgc-field cef-lugar">
-            <label>Origen</label>
-            <input class="sgc-input" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
+            <label>{{ 'Origen' | t }}</label>
+            <input class="sgc-input" placeholder="{{ 'Buscar obra / almacén / lugar, o escribe «Otros»' | t }}"
                    [value]="origenQuery()" (input)="buscarOrigen($any($event.target).value)" />
             @if (origenResultados().length) {
               <ul class="cef-results">
@@ -182,8 +182,8 @@
           </div>
           <div class="cef-route-line" aria-hidden="true"><span class="cef-route-line__dash"></span></div>
           <div class="sgc-field cef-lugar">
-            <label>Destino</label>
-            <input class="sgc-input" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
+            <label>{{ 'Destino' | t }}</label>
+            <input class="sgc-input" placeholder="{{ 'Buscar obra / almacén / lugar, o escribe «Otros»' | t }}"
                    [value]="destinoQuery()" (input)="buscarDestino($any($event.target).value)" />
             @if (destinoResultados().length) {
               <ul class="cef-results">
@@ -194,13 +194,13 @@
             }
           </div>
         </div>
-        <p class="cef-hint">Si el lugar no aparece, escríbelo igual: se registra como «Otros» y cae en la bandeja de Logística para agregarlo al sistema.</p>
+        <p class="cef-hint">{{ 'Si el lugar no aparece, escríbelo igual: se registra como «Otros» y cae en la bandeja de Logística para agregarlo al sistema.' | t }}</p>
 
         @if (reqsActivasDestino().length) {
           <div class="cef-reqaviso" role="status">
-            Esta obra tiene {{ reqsActivasDestino().length }} requisición(es) activa(s)
+            {{ 'Esta obra tiene' | t }} {{ reqsActivasDestino().length }} {{ 'requisición(es) activa(s)' | t }}
             (@for (r of reqsActivasDestino(); track r.id; let last = $last) {{{ reqCodigoDe(r.folio) }}{{ last ? '' : ', ' }}}).
-            Lo que coincida con sus renglones pendientes se marcará automáticamente al recibir; lo demás entra al inventario.
+            {{ 'Lo que coincida con sus renglones pendientes se marcará automáticamente al recibir; lo demás entra al inventario.' | t }}
           </div>
         }
       </section>
@@ -209,7 +209,7 @@
       <section class="sgc-card cef-card cef-mv" style="--d:120ms">
         <button type="button" class="cef-card__head cef-card__head--toggle" (click)="materialAbierto.set(!materialAbierto())">
           <span class="cef-num">5</span>
-          <h2 class="cef-h">Material del catálogo <span class="cef-opt">(opcional)</span></h2>
+          <h2 class="cef-h">{{ 'Material del catálogo' | t }} <span class="cef-opt">{{ '(opcional)' | t }}</span></h2>
           <app-icon [name]="materialAbierto() ? 'chevron-up' : 'chevron-down'" [size]="18" />
         </button>
         @if (materialAbierto()) {
@@ -217,25 +217,25 @@
             @if (afectaInventario()) {
               <p class="cef-hint cef-hint--info">
                 @if (sentidoInventario() === 'salida') {
-                  El origen es un almacén nuestro: estos renglones <strong>salen de su inventario</strong> al emitir.
+                  {{ 'El origen es un almacén nuestro: estos renglones' | t }} <strong>{{ 'salen de su inventario' | t }}</strong> {{ 'al emitir.' | t }}
                 } @else {
-                  El destino es un almacén nuestro: estos renglones <strong>entrarán al inventario cuando el receptor confirme</strong> la recepción.
+                  {{ 'El destino es un almacén nuestro: estos renglones' | t }} <strong>{{ 'entrarán al inventario cuando el receptor confirme' | t }}</strong> {{ 'la recepción.' | t }}
                 }
               </p>
             } @else {
-              <p class="cef-hint">Agrega renglones del catálogo solo si el conduce sale de, o llega a, un almacén nuestro.</p>
+              <p class="cef-hint">{{ 'Agrega renglones del catálogo solo si el conduce sale de, o llega a, un almacén nuestro.' | t }}</p>
             }
             @for (it of items(); track $index) {
               <div class="cef-item">
                 <app-articulo-picker class="cef-item__art" [articulos]="articulos()" [categorias]="categorias()"
-                  [value]="it.articuloId" [allowOtro]="false" placeholder="Elegir artículo…"
+                  [value]="it.articuloId" [allowOtro]="false" placeholder="{{ 'Elegir artículo…' | t }}"
                   (selectionChange)="onArticuloElegido($index, $event)" />
                 <input class="sgc-input cef-item__qty" type="number" min="0" step="any"
                        [value]="it.cantidad" (input)="setCantidad($index, $any($event.target).value)" />
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarItem($index)">Quitar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarItem($index)">{{ 'Quitar' | t }}</button>
               </div>
             }
-            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarItem()">+ Agregar material</button>
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarItem()">{{ '+ Agregar material' | t }}</button>
           </div>
         }
       </section>
@@ -244,22 +244,22 @@
     <!-- ── Columna derecha: vista previa fija ── -->
     <aside class="cef-preview">
       <div class="sgc-card cef-preview__card">
-        <h2 class="cef-preview__title">Vista previa del conduce</h2>
+        <h2 class="cef-preview__title">{{ 'Vista previa del conduce' | t }}</h2>
 
         <dl class="cef-preview__kv">
-          <div><dt>Transporta</dt><dd>{{ usarTexto() ? (transportaTexto() || '—') : (proveedorId() ? 'Proveedor elegido' : '—') }}</dd></div>
-          <div><dt>Origen</dt><dd>{{ origenQuery() || '—' }}</dd></div>
-          <div><dt>Destino</dt><dd>{{ destinoQuery() || '—' }}</dd></div>
-          <div><dt>Material</dt><dd>{{ material() || (items().length ? items().length + ' del catálogo' : '—') }}</dd></div>
-          <div><dt>Fotos</dt><dd>{{ placaFile() ? (cargaFile() ? '2' : '1') : '0' }} / 2</dd></div>
+          <div><dt>{{ 'Transporta' | t }}</dt><dd>{{ usarTexto() ? (transportaTexto() || '—') : (proveedorId() ? 'Proveedor elegido' : '—') }}</dd></div>
+          <div><dt>{{ 'Origen' | t }}</dt><dd>{{ origenQuery() || '—' }}</dd></div>
+          <div><dt>{{ 'Destino' | t }}</dt><dd>{{ destinoQuery() || '—' }}</dd></div>
+          <div><dt>{{ 'Material' | t }}</dt><dd>{{ material() || (items().length ? items().length + ' del catálogo' : '—') }}</dd></div>
+          <div><dt>{{ 'Fotos' | t }}</dt><dd>{{ placaFile() ? (cargaFile() ? '2' : '1') : '0' }} / 2</dd></div>
         </dl>
 
         <div class="cef-progress">
           <div class="cef-progress__bar"><span [style.width.%]="listos() * 25"></span></div>
-          <span class="cef-progress__txt">{{ listos() }}/4 listos</span>
+          <span class="cef-progress__txt">{{ listos() }}{{ '/4 listos' | t }}</span>
         </div>
         @if (faltan().length) {
-          <p class="cef-progress__falta">Falta: {{ faltan().join(', ') }}</p>
+          <p class="cef-progress__falta">{{ 'Falta:' | t }} {{ faltan().join(', ') }}</p>
         }
 
         <button type="button" class="sgc-btn sgc-btn--primary cef-emitir" [disabled]="!puedeEmitir()" (click)="guardar()">

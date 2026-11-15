@@ -5,6 +5,13 @@
   gap: var(--space-4);
   padding: var(--space-6);
 
+  // DP-03 — embebida dentro de Claude › Auditoría › Conexiones.
+  &--embebido {
+    padding: 0;
+    max-width: none;
+    margin: 0;
+  }
+
   &__header {
     display: flex;
     align-items: flex-end;

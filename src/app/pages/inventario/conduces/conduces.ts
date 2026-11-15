@@ -15,6 +15,8 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type Tab = 'activos' | 'pendientes_entrega' | 'por_confirmar' | 'historico';
 
@@ -46,7 +48,7 @@ const FASE_LABELS: Record<string, string> = {
 // obra/chofer/fecha y badges de conteo. Cada fila abre el detalle + PDF (AL4).
 @Component({
   selector: 'app-conduces',
-  imports: [RouterLink, Skeleton, Icon, StaggerDirective],
+  imports: [RouterLink, Skeleton, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './conduces.html',
   styleUrl: './conduces.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +59,7 @@ export class Conduces implements OnInit {
   private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private listaEstado = inject(ListaEstadoService);
+  private i18n = inject(I18nService);
   // CX3.2 — clave de pantalla para recordar filtros/pestaña/página mientras la
   // persona siga en Inventario (se limpia al cambiar de módulo o cerrar sesión).
   private readonly ESTADO_KEY = 'inventario.conduces';
@@ -266,7 +269,7 @@ export class Conduces implements OnInit {
       this.usuariosMap.set(Object.fromEntries(usuarios.map((u) => [u.id, u.nombre])));
       this.choferesDisponibles.set(choferes);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar los conduces.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los conduces.'));
     } finally {
       this.loading.set(false);
     }
@@ -308,12 +311,12 @@ export class Conduces implements OnInit {
     this.asignandoSaving.set(true);
     try {
       await this.salidasService.asignarChofer(id, chofer, null);
-      this.toast.success('Chofer asignado', 'El chofer verá el conduce en su ruta.');
+      this.toast.success(this.i18n.t('Chofer asignado'), 'El chofer verá el conduce en su ruta.');
       this.asignandoId.set(null);
       this.choferSel.set('');
       await this.ngOnInit();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo asignar el chofer');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo asignar el chofer'));
     } finally {
       this.asignandoSaving.set(false);
     }
@@ -329,7 +332,7 @@ export class Conduces implements OnInit {
     for (const id of ids) {
       try { await this.salidasService.asignarChofer(id, chofer, null); ok++; } catch { /* sigue con los demás */ }
     }
-    this.toast.success(`Chofer asignado a ${ok} de ${ids.length} conduce(s)`);
+    this.toast.success(this.i18n.t('Chofer asignado a {ok} de {total} conduce(s)', { ok, total: ids.length }));
     this.seleccionados.set(new Set());
     this.choferLote.set('');
     this.asignandoSaving.set(false);

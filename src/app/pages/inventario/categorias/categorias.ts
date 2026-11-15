@@ -14,10 +14,12 @@ import { Categoria, CategoriaFormData } from '../../../../shared/models/categori
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-inventario-categorias',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './categorias.html',
   styleUrl: './categorias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +27,7 @@ import { homologarTexto } from '../../../../shared/utils/texto.util';
 export class InventarioCategorias implements OnInit {
   private categoriasService = inject(CategoriasService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   // ── Data state ──────────────────────────────────────────
   categorias = signal<Categoria[]>([]);
@@ -45,7 +48,7 @@ export class InventarioCategorias implements OnInit {
   });
 
   // ── Computed ─────────────────────────────────────────────
-  drawerTitle = computed(() => (this.editingId() ? 'Editar categoría' : 'Nueva categoría'));
+  drawerTitle = computed(() => (this.editingId() ? this.i18n.t('Editar categoría') : this.i18n.t('Nueva categoría')));
 
   // R18 — vista previa de homologación del nombre (FormControl.value no es reactivo).
   private nombreValue = toSignal(this.form.controls.nombre.valueChanges, { initialValue: '' });
@@ -116,7 +119,7 @@ export class InventarioCategorias implements OnInit {
           activo: !!v.activo,
         });
         this.categorias.update((list) => list.map((c) => (c.id === id ? updated : c)));
-        this.toast.success('Categoría actualizada', updated.nombre);
+        this.toast.success(this.i18n.t('Categoría actualizada'), updated.nombre);
       } else {
         const payload: CategoriaFormData = {
           nombre: v.nombre!,
@@ -127,7 +130,7 @@ export class InventarioCategorias implements OnInit {
         };
         const created = await this.categoriasService.create(payload);
         this.categorias.update((list) => [created, ...list]);
-        this.toast.success('Categoría creada', created.nombre);
+        this.toast.success(this.i18n.t('Categoría creada'), created.nombre);
       }
       // Reload para reflejar el orden real (destacadas primero + orden) del servidor.
       await this.loadAll();
@@ -152,7 +155,7 @@ export class InventarioCategorias implements OnInit {
       this.categorias.update((list) =>
         list.map((c) => (c.id === categoria.id ? { ...c, activo: !next } : c)),
       );
-      this.toast.error('No se pudo cambiar el estado de la categoría.');
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado de la categoría.'));
     }
   }
 

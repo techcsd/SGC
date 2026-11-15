@@ -1,12 +1,12 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Confirmaciones de entrega</h1>
-    <span class="page-count">{{ filtered().length }} confirmación{{ filtered().length !== 1 ? 'es' : '' }}</span>
+    <h1 class="page-title">{{ 'Confirmaciones de entrega' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'confirmaciones' : 'confirmación') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -15,22 +15,20 @@
       </svg>
       Excel
     </button>
-    <a routerLink="/inventario/conduces" class="sgc-btn sgc-btn--ghost">Ir a Conduces</a>
+    <a routerLink="/inventario/conduces" class="sgc-btn sgc-btn--ghost">{{ 'Ir a Conduces' | t }}</a>
   </div>
 </div>
 
 <p class="confirmaciones__intro">
   @if (tab() === 'mias') {
-    Solo las entregas que <strong>tú</strong> confirmaste: quién entregó, cuándo, con foto y firma. Abre cualquiera para
-    ver el conduce completo.
+    {{ 'Solo las entregas que' | t }} <strong>{{ 'tú' | t }}</strong> {{ 'confirmaste: quién entregó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo.' | t }}
   } @else {
-    Registro de las entregas de material que ya fueron confirmadas por el responsable de la obra: quién entregó, quién
-    confirmó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo.
+    {{ 'Registro de las entregas de material que ya fueron confirmadas por el responsable de la obra: quién entregó, quién confirmó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo.' | t }}
   }
 </p>
 
 <!-- ── AL8 — segmentado: todas vs mis confirmaciones ── -->
-<div class="confirmaciones__scope" role="tablist" aria-label="Alcance de confirmaciones">
+<div class="confirmaciones__scope" role="tablist" aria-label="{{ 'Alcance de confirmaciones' | t }}">
   <button
     type="button"
     role="tab"
@@ -46,7 +44,7 @@
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
-    Todas
+    {{ 'Todas' | t }}
   </button>
   <button
     type="button"
@@ -61,24 +59,24 @@
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
-    Mis confirmaciones
+    {{ 'Mis confirmaciones' | t }}
   </button>
 </div>
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field">
-    <label class="filters-bar__label">Desde</label>
-    <input type="date" [value]="desde()" (change)="desde.set($any($event.target).value); recargar()" aria-label="Desde" />
+    <label class="filters-bar__label">{{ 'Desde' | t }}</label>
+    <input type="date" [value]="desde()" (change)="desde.set($any($event.target).value); recargar()" aria-label="{{ 'Desde' | t }}" />
   </div>
   <div class="sgc-field">
-    <label class="filters-bar__label">Hasta</label>
-    <input type="date" [value]="hasta()" (change)="hasta.set($any($event.target).value); recargar()" aria-label="Hasta" />
+    <label class="filters-bar__label">{{ 'Hasta' | t }}</label>
+    <input type="date" [value]="hasta()" (change)="hasta.set($any($event.target).value); recargar()" aria-label="{{ 'Hasta' | t }}" />
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="proyectoId()" (change)="proyectoId.set($any($event.target).value)" aria-label="Filtrar por destino">
-      <option value="">Todos los destinos</option>
+    <select [value]="proyectoId()" (change)="proyectoId.set($any($event.target).value)" aria-label="{{ 'Filtrar por destino' | t }}">
+      <option value="">{{ 'Todos los destinos' | t }}</option>
       @for (p of proyectos(); track p.id) {
         <option [value]="p.id">{{ p.nombre }}</option>
       }
@@ -86,16 +84,16 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="estado()" (change)="estado.set($any($event.target).value)" aria-label="Filtrar por estado">
-      <option value="">Todas</option>
-      <option value="completa">Confirmada (completa)</option>
-      <option value="incompleta">Confirmada (incompleta)</option>
+    <select [value]="estado()" (change)="estado.set($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
+      <option value="">{{ 'Todas' | t }}</option>
+      <option value="completa">{{ 'Confirmada (completa)' | t }}</option>
+      <option value="incompleta">{{ 'Confirmada (incompleta)' | t }}</option>
     </select>
   </div>
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -112,33 +110,33 @@
     <div class="table-empty">
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron confirmaciones con los filtros aplicados.
+          {{ 'No se encontraron confirmaciones con los filtros aplicados.' | t }}
         } @else if (tab() === 'mias') {
-          Todavía no has confirmado ninguna entrega. Aparecerán aquí las recepciones que tú confirmes.
+          {{ 'Todavía no has confirmado ninguna entrega. Aparecerán aquí las recepciones que tú confirmes.' | t }}
         } @else {
-          Aún no hay entregas confirmadas. Aparecen aquí cuando el responsable de la obra confirma la recepción.
+          {{ 'Aún no hay entregas confirmadas. Aparecen aquí cuando el responsable de la obra confirma la recepción.' | t }}
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Historial de confirmaciones de entrega">
+      <table class="data-table" aria-label="{{ 'Historial de confirmaciones de entrega' | t }}">
         <thead>
           <tr>
-            <th>No. Conduce</th>
-            <th>Obra / Destino</th>
-            <th>Almacén</th>
-            <th>Entregó</th>
-            <th>Confirmó</th>
-            <th>Confirmado</th>
-            <th>Evidencia</th>
-            <th>Estado</th>
+            <th>{{ 'No. Conduce' | t }}</th>
+            <th>{{ 'Obra / Destino' | t }}</th>
+            <th>{{ 'Almacén' | t }}</th>
+            <th>{{ 'Entregó' | t }}</th>
+            <th>{{ 'Confirmó' | t }}</th>
+            <th>{{ 'Confirmado' | t }}</th>
+            <th>{{ 'Evidencia' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
             <th></th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (f of filtered(); track f.id) {
-            <tr class="row--link" [routerLink]="['/inventario/salidas', f.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
+            <tr class="row--link" [routerLink]="['/inventario/salidas', f.id, 'conduce']" role="button" tabindex="0" aria-label="{{ 'Ver conduce' | t }}">
               <td class="confirmaciones__numero">{{ numero(f.id) }}</td>
               <td class="text-muted">{{ f.destino ?? f.proyecto ?? '—' }}</td>
               <td class="text-muted">{{ f.bodega ?? '—' }}</td>
@@ -146,14 +144,14 @@
               <td>{{ f.recibido_por_nombre ?? '—' }}</td>
               <td class="text-muted">{{ formatFechaHora(f.recibido_en) }}</td>
               <td>
-                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_foto" title="Foto de recepción" aria-label="Foto de recepción">
+                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_foto" title="{{ 'Foto de recepción' | t }}" aria-label="{{ 'Foto de recepción' | t }}">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                     <circle cx="12" cy="13" r="4" />
                   </svg>
                 </span>
-                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_firma" title="Firma del receptor" aria-label="Firma del receptor">
+                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_firma" title="{{ 'Firma del receptor' | t }}" aria-label="{{ 'Firma del receptor' | t }}">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 19l7-7 3 3-7 7-3-3z" />
@@ -169,7 +167,7 @@
               <td>
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
                    [routerLink]="['/inventario/salidas', f.id, 'conduce']"
-                   (click)="$event.stopPropagation()">Ver conduce</a>
+                   (click)="$event.stopPropagation()">{{ 'Ver conduce' | t }}</a>
               </td>
             </tr>
           }

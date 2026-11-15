@@ -22,7 +22,8 @@
     "test:edge": "deno test --no-check --allow-env --node-modules-dir=none supabase/functions",
     "test:unit": "ng test --no-watch",
     "test:e2e": "playwright test",
-    "test:mcp": "node evals/mcp/run.mjs"
+    "test:mcp": "node evals/mcp/run.mjs",
+    "i18n:smoke": "node scripts/i18n-smoke.mjs"
   },
   "private": true,
   "packageManager": "npm@10.9.8",

@@ -6,6 +6,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { I18nService, IDIOMAS, Idioma } from '../../i18n/i18n.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 import { I18N_COVERAGE, I18N_UMBRAL } from '../../i18n/i18n-coverage.generated';
 import { PreferenciasService } from '../../services/preferencias.service';
 
@@ -19,7 +20,7 @@ import { PreferenciasService } from '../../services/preferencias.service';
  */
 @Component({
   selector: 'app-language-onboarding',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './language-onboarding.html',
   styleUrl: './language-onboarding.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,7 +52,7 @@ export class LanguageOnboarding implements OnInit {
   estado(code: Idioma): 'ok' | 'beta' | 'proximamente' {
     if (code === 'es') return 'ok';
     const cov = I18N_COVERAGE[code as 'en' | 'ht'] ?? 0;
-    const umbral = I18N_UMBRAL[code as 'en' | 'ht'] ?? 95;
+    const umbral = I18N_UMBRAL[code as 'en' | 'ht'] ?? 100;
     if (cov >= umbral) return 'ok';
     return cov > 0 ? 'beta' : 'proximamente';
   }

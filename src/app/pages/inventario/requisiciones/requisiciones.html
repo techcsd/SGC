@@ -1,17 +1,17 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Requisiciones</h1>
+    <h1 class="page-title">{{ 'Requisiciones' | t }}</h1>
     <span class="page-count">
-      {{ filtered().length }} requisici{{ filtered().length !== 1 ? 'ones' : 'ón' }}
+      {{ filtered().length }} {{ (filtered().length !== 1 ? 'requisiciones' : 'requisición') | t }}
       @if (pendientesCount() > 0) {
-        · <strong>{{ pendientesCount() }}</strong> pendiente{{ pendientesCount() !== 1 ? 's' : '' }}
+        · <strong>{{ pendientesCount() }}</strong> {{ (pendientesCount() !== 1 ? 'pendientes' : 'pendiente') | t }}
       }
     </span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -24,22 +24,22 @@
 </div>
 
 <p class="requisiciones__intro">
-  Bandeja global de requisiciones de material de todas las obras. Abre cualquiera para ver el detalle
-  y, si puedes gestionarla, aprobarla (genera despacho y compra automática del faltante) o rechazarla.
+  {{ 'Bandeja global de requisiciones de material de todas las obras. Abre cualquiera para ver el detalle' | t }}
+  {{ 'y, si puedes gestionarla, aprobarla (genera despacho y compra automática del faltante) o rechazarla.' | t }}
 </p>
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field">
-    <label class="filters-bar__label">Buscar</label>
+    <label class="filters-bar__label">{{ 'Buscar' | t }}</label>
     <input type="search" [value]="search()" (input)="search.set($any($event.target).value)"
-           placeholder="Obra, solicitante, artículo, nota…" aria-label="Buscar requisiciones" />
+           placeholder="{{ 'Obra, solicitante, artículo, nota…' | t }}" aria-label="{{ 'Buscar requisiciones' | t }}" />
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <label class="filters-bar__label">Obra</label>
-    <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="Filtrar por obra">
-      <option value="">Todas las obras</option>
+    <label class="filters-bar__label">{{ 'Obra' | t }}</label>
+    <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
+      <option value="">{{ 'Todas las obras' | t }}</option>
       @for (o of obrasDisponibles(); track o.id) {
         <option [value]="o.id">{{ o.nombre }}</option>
       }
@@ -47,10 +47,10 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <label class="filters-bar__label">Solicitante</label>
+    <label class="filters-bar__label">{{ 'Solicitante' | t }}</label>
     <select [value]="fSolicitante()" (change)="fSolicitante.set($any($event.target).value)"
-            aria-label="Filtrar por solicitante">
-      <option value="">Todos</option>
+            aria-label="{{ 'Filtrar por solicitante' | t }}">
+      <option value="">{{ 'Todos' | t }}</option>
       @for (s of solicitantesDisponibles(); track s.id) {
         <option [value]="s.id">{{ s.nombre }}</option>
       }
@@ -58,8 +58,8 @@
   </div>
 
   <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
-  <app-filter-select label="Estado" [options]="estadoOpt" [value]="fEstado()"
-    (valueChange)="fEstado.set($event)" placeholder="Todos" [searchable]="false" />
+  <app-filter-select [label]="i18n.t('Estado')" [options]="estadoOpt" [value]="fEstado()"
+    (valueChange)="fEstado.set($event)" placeholder="{{ 'Todos' | t }}" [searchable]="false" />
 
   <!-- BY3 — las canceladas ahora viven en el Historial (pestaña arriba); ya no hace
        falta el checkbox "Ocultar canceladas". -->
@@ -68,36 +68,36 @@
   <label class="sgc-field filters-bar__check">
     <input type="checkbox" [checked]="soloConNecesidad()"
            (change)="soloConNecesidad.set($any($event.target).checked)" />
-    <span class="filters-bar__label">Con fecha de necesidad</span>
+    <span class="filters-bar__label">{{ 'Con fecha de necesidad' | t }}</span>
   </label>
 
   <div class="sgc-field filters-bar__select">
-    <label class="filters-bar__label">Urgencia</label>
-    <select [value]="fUrgencia()" (change)="fUrgencia.set($any($event.target).value)" aria-label="Filtrar por urgencia">
-      <option value="">Todas</option>
-      <option value="normal">Normal</option>
-      <option value="urgente">Urgente</option>
+    <label class="filters-bar__label">{{ 'Urgencia' | t }}</label>
+    <select [value]="fUrgencia()" (change)="fUrgencia.set($any($event.target).value)" aria-label="{{ 'Filtrar por urgencia' | t }}">
+      <option value="">{{ 'Todas' | t }}</option>
+      <option value="normal">{{ 'Normal' | t }}</option>
+      <option value="urgente">{{ 'Urgente' | t }}</option>
     </select>
   </div>
 
   <div class="sgc-field">
-    <label class="filters-bar__label">Desde</label>
-    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" />
+    <label class="filters-bar__label">{{ 'Desde' | t }}</label>
+    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="{{ 'Desde' | t }}" />
   </div>
   <div class="sgc-field">
-    <label class="filters-bar__label">Hasta</label>
-    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" />
+    <label class="filters-bar__label">{{ 'Hasta' | t }}</label>
+    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="{{ 'Hasta' | t }}" />
   </div>
 
   <div class="sgc-field">
-    <label class="filters-bar__label">Artículo</label>
+    <label class="filters-bar__label">{{ 'Artículo' | t }}</label>
     <input type="search" [value]="fArticulo()" (input)="fArticulo.set($any($event.target).value)"
-           placeholder="Nombre del artículo" aria-label="Filtrar por artículo" />
+           placeholder="{{ 'Nombre del artículo' | t }}" aria-label="{{ 'Filtrar por artículo' | t }}" />
   </div>
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -110,11 +110,11 @@
 <div class="req-fase-tabs">
   <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vistaTab() === 'activas'"
           [class.sgc-btn--ghost]="vistaTab() !== 'activas'" [attr.aria-pressed]="vistaTab() === 'activas'" (click)="setVistaTab('activas')">
-    Activas ({{ tabCount().activas }})
+    {{ 'Activas' | t }} ({{ tabCount().activas }})
   </button>
   <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vistaTab() === 'historial'"
           [class.sgc-btn--ghost]="vistaTab() !== 'historial'" [attr.aria-pressed]="vistaTab() === 'historial'" (click)="setVistaTab('historial')">
-    Historial ({{ tabCount().historial }})
+    {{ 'Historial' | t }} ({{ tabCount().historial }})
   </button>
 </div>
 @if (vistaTab() === 'historial') {
@@ -122,7 +122,7 @@
     @for (s of histSubs; track s.key) {
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="histSub() === s.key"
               [class.sgc-btn--ghost]="histSub() !== s.key" (click)="setHistSub(s.key)">
-        {{ s.label }}@if (s.key !== 'todas') { ({{ tabCount()[s.key] }}) }
+        {{ s.label | t }}@if (s.key !== 'todas') { ({{ tabCount()[s.key] }}) }
       </button>
     }
   </div>
@@ -130,9 +130,9 @@
 
 <!-- BO8 (§E-7) — alternar entre la lista clásica y la vista agrupada por semana de necesidad. -->
 <div class="req-vista-toggle">
-  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'lista'" [class.sgc-btn--ghost]="vista() !== 'lista'" (click)="vista.set('lista')">Lista</button>
-  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'semana'" [class.sgc-btn--ghost]="vista() !== 'semana'" (click)="vista.set('semana')">Por semana de necesidad</button>
-  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'mes'" [class.sgc-btn--ghost]="vista() !== 'mes'" (click)="vista.set('mes')">Mes</button>
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'lista'" [class.sgc-btn--ghost]="vista() !== 'lista'" (click)="vista.set('lista')">{{ 'Lista' | t }}</button>
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'semana'" [class.sgc-btn--ghost]="vista() !== 'semana'" (click)="vista.set('semana')">{{ 'Por semana de necesidad' | t }}</button>
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'mes'" [class.sgc-btn--ghost]="vista() !== 'mes'" (click)="vista.set('mes')">{{ 'Mes' | t }}</button>
 </div>
 
 <!-- ── Table ── -->
@@ -143,9 +143,9 @@
     <div class="table-empty">
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron requisiciones con los filtros aplicados.
+          {{ 'No se encontraron requisiciones con los filtros aplicados.' | t }}
         } @else {
-          Aún no hay requisiciones. Aparecen aquí las que crea el personal de obra.
+          {{ 'Aún no hay requisiciones. Aparecen aquí las que crea el personal de obra.' | t }}
         }
       </p>
     </div>
@@ -153,9 +153,9 @@
     <!-- BO8 (mes) — rejilla mensual con las requisiciones por fecha de necesidad. -->
     <div class="req-cal">
       <div class="req-cal__nav">
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarMes(-1)" aria-label="{{ 'Mes anterior' | t }}">‹</button>
         <span class="req-cal__mes">{{ mesLabel() }}</span>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarMes(1)" aria-label="Mes siguiente">›</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarMes(1)" aria-label="{{ 'Mes siguiente' | t }}">›</button>
       </div>
       <div class="req-cal__dow">
         @for (d of DIAS_ABREV; track d) { <span class="req-cal__dow-cell">{{ d }}</span> }
@@ -168,9 +168,9 @@
               @for (r of c.items; track r.id) {
                 <button type="button" class="req-cal__ficha"
                   [class.req-cal__ficha--urgente]="r.urgencia === 'urgente'"
-                  (click)="abrir(r)" [title]="(r.proyecto?.nombre ?? '') + ' · ' + itemsCount(r) + ' art.'">
+                  (click)="abrir(r)" [title]="(r.proyecto?.nombre ?? '') + ' · ' + itemsCount(r) + ' ' + i18n.t('art.')">
                   <span class="req-cal__ficha-obra">{{ r.proyecto?.nombre ?? '—' }}</span>
-                  <span class="req-cal__ficha-meta">{{ itemsCount(r) }} art. · {{ estadoLabel(r.estado) }}</span>
+                  <span class="req-cal__ficha-meta">{{ itemsCount(r) }} {{ 'art.' | t }} · {{ estadoLabel(r.estado) | t }}</span>
                 </button>
               }
             }
@@ -179,11 +179,11 @@
       </div>
       @if (sinFechaMes().length) {
         <div class="req-cal__sinfecha">
-          <h4>Sin fecha de necesidad ({{ sinFechaMes().length }})</h4>
+          <h4>{{ 'Sin fecha de necesidad' | t }} ({{ sinFechaMes().length }})</h4>
           <ul>
             @for (r of sinFechaMes(); track r.id) {
               <li role="button" tabindex="0" (click)="abrir(r)" (keydown.enter)="abrir(r)">
-                <code class="req-codigo">{{ codigo(r) }}</code> {{ r.proyecto?.nombre ?? '—' }} · {{ itemsCount(r) }} art.
+                <code class="req-codigo">{{ codigo(r) }}</code> {{ r.proyecto?.nombre ?? '—' }} · {{ itemsCount(r) }} {{ 'art.' | t }}
               </li>
             }
           </ul>
@@ -206,22 +206,22 @@
                 <div class="req-grupo__linea1">
                   <code class="req-codigo">{{ codigo(r) }}</code>
                   <span class="req-grupo__obra">{{ r.proyecto?.nombre ?? '—' }}</span>
-                  @if (r.urgencia === 'urgente') { <span class="sgc-badge sgc-badge--danger">Urgente</span> }
+                  @if (r.urgencia === 'urgente') { <span class="sgc-badge sgc-badge--danger">{{ 'Urgente' | t }}</span> }
                 </div>
                 <div class="req-grupo__linea2">
-                  <span class="text-muted">{{ solicitanteNombre(r) }} · {{ itemsCount(r) }} art.</span>
+                  <span class="text-muted">{{ solicitanteNombre(r) }} · {{ itemsCount(r) }} {{ 'art.' | t }}</span>
                   @if (r.fecha_necesidad; as fn) {
                     <span class="req-grupo__fecha">{{ formatFecha(fn) }}</span>
                     @let d = diasNecesidad(fn);
                     @if (d !== null) {
-                      @if (d < 0) { <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} d</span> }
-                      @else if (d === 0) { <span class="sgc-badge sgc-badge--warning">Es hoy</span> }
-                      @else if (d <= 3) { <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} d</span> }
+                      @if (d < 0) { <span class="sgc-badge sgc-badge--danger">{{ 'Vencida hace' | t }} {{ -d }} {{ 'd' | t }}</span> }
+                      @else if (d === 0) { <span class="sgc-badge sgc-badge--warning">{{ 'Es hoy' | t }}</span> }
+                      @else if (d <= 3) { <span class="sgc-badge sgc-badge--warning">{{ 'Faltan' | t }} {{ d }} {{ 'd' | t }}</span> }
                     }
                   }
-                  <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">{{ estadoLabel(r.estado) }}</span>
+                  <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">{{ estadoLabel(r.estado) | t }}</span>
                   @if (r.autoaprobada) {
-                    <span class="sgc-badge sgc-badge--info" title="El autor la aprobó con permiso explícito">Aprobada por su autor</span>
+                    <span class="sgc-badge sgc-badge--info" title="{{ 'El autor la aprobó con permiso explícito' | t }}">{{ 'Aprobada por su autor' | t }}</span>
                   }
                 </div>
               </li>
@@ -232,18 +232,18 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Requisiciones de material">
+      <table class="data-table" aria-label="{{ 'Requisiciones de material' | t }}">
         <thead>
           <tr>
             <!-- CS1 — Código/Fecha/Obra/Necesidad/Estado ordenables (▲▼), recordado por dispositivo. -->
-            <th appOrdenTh label="Código" clave="folio" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
-            <th appOrdenTh label="Fecha" clave="fecha" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
-            <th appOrdenTh label="Obra" clave="obra" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
-            <th>Solicitante</th>
-            <th>Urgencia</th>
-            <th appOrdenTh label="Necesidad" clave="necesidad" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
-            <th>Artículos</th>
-            <th appOrdenTh label="Estado" clave="estado" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
+            <th appOrdenTh [label]="i18n.t('Código')" clave="folio" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
+            <th appOrdenTh [label]="i18n.t('Fecha')" clave="fecha" [orden]="orden()" dirInicial="desc" (ordenChange)="setOrden($event)"></th>
+            <th appOrdenTh [label]="i18n.t('Obra')" clave="obra" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
+            <th>{{ 'Solicitante' | t }}</th>
+            <th>{{ 'Urgencia' | t }}</th>
+            <th appOrdenTh [label]="i18n.t('Necesidad')" clave="necesidad" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
+            <th>{{ 'Artículos' | t }}</th>
+            <th appOrdenTh [label]="i18n.t('Estado')" clave="estado" [orden]="orden()" dirInicial="asc" (ordenChange)="setOrden($event)"></th>
             <th></th>
           </tr>
         </thead>
@@ -251,16 +251,16 @@
           @for (r of ordenadas(); track r.id) {
             <tr class="row--link" (click)="abrir(r)" role="button" tabindex="0"
                 (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()"
-                aria-label="Ver requisición">
+                aria-label="{{ 'Ver requisición' | t }}">
               <td><code class="req-codigo">{{ codigo(r) }}</code></td>
               <td class="text-muted">{{ formatTimestamp(r.created_at) }}</td>
               <td>{{ r.proyecto?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ solicitanteNombre(r) }}</td>
               <td>
                 @if (r.urgencia === 'urgente') {
-                  <span class="sgc-badge sgc-badge--danger">Urgente</span>
+                  <span class="sgc-badge sgc-badge--danger">{{ 'Urgente' | t }}</span>
                 } @else {
-                  <span class="text-muted">Normal</span>
+                  <span class="text-muted">{{ 'Normal' | t }}</span>
                 }
               </td>
               <!-- BO8 — fecha de necesidad + chip de proximidad. -->
@@ -270,11 +270,11 @@
                   @let d = diasNecesidad(fn);
                   @if (d !== null) {
                     @if (d < 0) {
-                      <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
+                      <span class="sgc-badge sgc-badge--danger">{{ 'Vencida hace' | t }} {{ -d }} {{ (d === -1 ? 'día' : 'días') | t }}</span>
                     } @else if (d === 0) {
-                      <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                      <span class="sgc-badge sgc-badge--warning">{{ 'Es hoy' | t }}</span>
                     } @else if (d <= 3) {
-                      <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
+                      <span class="sgc-badge sgc-badge--warning">{{ 'Faltan' | t }} {{ d }} {{ (d === 1 ? 'día' : 'días') | t }}</span>
                     }
                   }
                 } @else {
@@ -284,12 +284,12 @@
               <td class="text-muted">{{ itemsCount(r) }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">
-                  {{ estadoLabel(r.estado) }}
+                  {{ estadoLabel(r.estado) | t }}
                 </span>
               </td>
               <td>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                        (click)="abrir(r); $event.stopPropagation()">Ver</button>
+                        (click)="abrir(r); $event.stopPropagation()">{{ 'Ver' | t }}</button>
               </td>
             </tr>
           }
@@ -300,15 +300,15 @@
 </div>
 
 <!-- ── Detalle / gestión ── -->
-<app-form-drawer [open]="drawerOpen()" [title]="'Requisición'" variant="modal" (closed)="cerrar()">
+<app-form-drawer [open]="drawerOpen()" [title]="i18n.t('Requisición')" variant="modal" (closed)="cerrar()">
   @if (selected(); as s) {
     <div class="req-detail">
       <!-- Cabecera -->
       <div class="req-detail__head">
         <span class="req-detail__codigo">{{ codigo(s) }}</span>
-        <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span>
+        <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) | t }}</span>
         @if (s.urgencia === 'urgente') {
-          <span class="sgc-badge sgc-badge--danger">Urgente</span>
+          <span class="sgc-badge sgc-badge--danger">{{ 'Urgente' | t }}</span>
         }
         <!-- BB10 — versión (sube en cada edición del autor). -->
         @if ((s.version ?? 1) > 1) {
@@ -316,14 +316,14 @@
         }
         <!-- CO4 — el autor se aprobó a sí mismo con permiso explícito. -->
         @if (s.autoaprobada) {
-          <span class="sgc-badge sgc-badge--info" title="Aprobada por su propio autor (permiso requisicion_autoaprobar)">Aprobada por su autor</span>
+          <span class="sgc-badge sgc-badge--info" title="{{ 'Aprobada por su propio autor (permiso requisicion_autoaprobar)' | t }}">{{ 'Aprobada por su autor' | t }}</span>
         }
       </div>
 
       <!-- BA6 — motivo de cancelación (quién / cuándo). -->
       @if (s.estado === 'cancelada' && s.cancelada_motivo) {
         <div class="req-detail__cancelada" role="note">
-          <strong>Cancelada:</strong> {{ s.cancelada_motivo }}
+          <strong>{{ 'Cancelada:' | t }}</strong> {{ s.cancelada_motivo }}
           @if (s.cerrada?.nombre || s.cerrada_en) {
             <span class="req-detail__cancelada-meta">
               · {{ s.cerrada?.nombre ? s.cerrada?.nombre : '' }}{{ s.cerrada?.nombre && s.cerrada_en ? ' · ' : '' }}{{ s.cerrada_en ? formatTimestamp(s.cerrada_en) : '' }}
@@ -334,67 +334,67 @@
 
       <dl class="req-detail__meta">
         <div>
-          <dt>Obra</dt>
+          <dt>{{ 'Obra' | t }}</dt>
           <dd>
             @if (s.proyecto_id) {
-              <a [routerLink]="['/proyectos', s.proyecto_id]">{{ s.proyecto?.nombre ?? 'Ver obra' }}</a>
+              <a [routerLink]="['/proyectos', s.proyecto_id]">{{ s.proyecto?.nombre ?? i18n.t('Ver obra') }}</a>
             } @else { {{ s.proyecto?.nombre ?? '—' }} }
           </dd>
         </div>
         <div>
-          <dt>Solicitante</dt>
+          <dt>{{ 'Solicitante' | t }}</dt>
           <dd>
             {{ solicitanteNombre(s) }}
             @if (rolSolicitante(s); as rol) { <span class="req-detail__rol">· {{ rol }}</span> }
           </dd>
         </div>
-        <div><dt>Urgencia</dt><dd>{{ s.urgencia === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
+        <div><dt>{{ 'Urgencia' | t }}</dt><dd>{{ (s.urgencia === 'urgente' ? 'Urgente' : 'Normal') | t }}</dd></div>
         <!-- BO8 — fecha de necesidad + chip de proximidad (igual que la fila de la lista). -->
         @if (s.fecha_necesidad; as fn) {
           <div>
-            <dt>Necesidad</dt>
+            <dt>{{ 'Necesidad' | t }}</dt>
             <dd>
               📅 {{ formatFecha(fn) }}
               @let dd = diasNecesidad(fn);
               @if (dd !== null) {
                 @if (dd < 0) {
-                  <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -dd }} día{{ dd === -1 ? '' : 's' }}</span>
+                  <span class="sgc-badge sgc-badge--danger">{{ 'Vencida hace' | t }} {{ -dd }} {{ (dd === -1 ? 'día' : 'días') | t }}</span>
                 } @else if (dd === 0) {
-                  <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                  <span class="sgc-badge sgc-badge--warning">{{ 'Es hoy' | t }}</span>
                 } @else if (dd <= 3) {
-                  <span class="sgc-badge sgc-badge--warning">Faltan {{ dd }} día{{ dd === 1 ? '' : 's' }}</span>
+                  <span class="sgc-badge sgc-badge--warning">{{ 'Faltan' | t }} {{ dd }} {{ (dd === 1 ? 'día' : 'días') | t }}</span>
                 }
               }
             </dd>
           </div>
         }
         <!-- BV9 — fase derivada. -->
-        <div><dt>Fase</dt><dd><span class="sgc-badge sgc-badge--info">{{ faseLabel(s.fase) }}</span></dd></div>
+        <div><dt>{{ 'Fase' | t }}</dt><dd><span class="sgc-badge sgc-badge--info">{{ faseLabel(s.fase) | t }}</span></dd></div>
         <!-- BV11 — editar la fecha de necesidad (solicitante / inventario / flota). -->
         @if (puedeEditarFecha(s)) {
           @if (!editandoFecha()) {
             @if (!s.fecha_necesidad) {
-              <div><dt>Fecha de necesidad</dt>
-                <dd>Sin fecha <button type="button" class="sgc-btn sgc-btn--sm" (click)="abrirEditarFecha()">Fijar fecha</button></dd>
+              <div><dt>{{ 'Fecha de necesidad' | t }}</dt>
+                <dd>{{ 'Sin fecha' | t }} <button type="button" class="sgc-btn sgc-btn--sm" (click)="abrirEditarFecha()">{{ 'Fijar fecha' | t }}</button></dd>
               </div>
             } @else {
-              <div><dt>&nbsp;</dt><dd><button type="button" class="sgc-btn sgc-btn--sm" (click)="abrirEditarFecha()">Cambiar fecha de necesidad</button></dd></div>
+              <div><dt>&nbsp;</dt><dd><button type="button" class="sgc-btn sgc-btn--sm" (click)="abrirEditarFecha()">{{ 'Cambiar fecha de necesidad' | t }}</button></dd></div>
             }
           } @else {
-            <div><dt>Nueva fecha</dt>
+            <div><dt>{{ 'Nueva fecha' | t }}</dt>
               <dd class="req-fecha-edit">
                 <input type="date" [value]="nuevaFecha()" (change)="nuevaFecha.set($any($event.target).value)" />
-                <input type="text" placeholder="Motivo (opcional)" [value]="motivoFecha()" (input)="motivoFecha.set($any($event.target).value)" />
-                <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="!nuevaFecha()" (click)="guardarNuevaFecha()">Guardar</button>
-                <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--ghost" (click)="editandoFecha.set(false)">Cancelar</button>
+                <input type="text" placeholder="{{ 'Motivo (opcional)' | t }}" [value]="motivoFecha()" (input)="motivoFecha.set($any($event.target).value)" />
+                <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="!nuevaFecha()" (click)="guardarNuevaFecha()">{{ 'Guardar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--ghost" (click)="editandoFecha.set(false)">{{ 'Cancelar' | t }}</button>
               </dd>
             </div>
           }
         }
-        <div><dt>Creada</dt><dd>{{ formatTimestamp(s.created_at) }}</dd></div>
+        <div><dt>{{ 'Creada' | t }}</dt><dd>{{ formatTimestamp(s.created_at) }}</dd></div>
         @if (s.atendido_en) {
           <div>
-            <dt>Atendida</dt>
+            <dt>{{ 'Atendida' | t }}</dt>
             <dd>{{ s.atendido?.nombre ? s.atendido?.nombre + ' · ' : '' }}{{ formatTimestamp(s.atendido_en) }}</dd>
           </div>
         }
@@ -402,21 +402,21 @@
 
       @if (s.notas) {
         <div class="req-detail__notas">
-          <span class="req-detail__label">Notas</span>
+          <span class="req-detail__label">{{ 'Notas' | t }}</span>
           <p>{{ s.notas }}</p>
         </div>
       }
 
       <!-- Renglones -->
       <div class="req-detail__items">
-        <span class="req-detail__label">Artículos ({{ itemsCount(s) }})</span>
-        <table class="data-table" aria-label="Artículos de la requisición">
+        <span class="req-detail__label">{{ 'Artículos' | t }} ({{ itemsCount(s) }})</span>
+        <table class="data-table" aria-label="{{ 'Artículos de la requisición' | t }}">
           <thead>
             <tr>
-              <th>Artículo</th>
-              <th>Cantidad</th>
-              <th>Unidad</th>
-              <th>Talla</th>
+              <th>{{ 'Artículo' | t }}</th>
+              <th>{{ 'Cantidad' | t }}</th>
+              <th>{{ 'Unidad' | t }}</th>
+              <th>{{ 'Talla' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -425,10 +425,10 @@
                 <td>
                   @if (articuloVinculado(i); as nombre) {
                     {{ nombre }}
-                    @if (pidioTexto(i); as pidio) { <span class="req-detail__pidio">pidió: {{ pidio }}</span> }
+                    @if (pidioTexto(i); as pidio) { <span class="req-detail__pidio">{{ 'pidió:' | t }} {{ pidio }}</span> }
                   } @else {
                     {{ i.descripcion }}
-                    @if (!i.articulo_id) { <span class="req-detail__free">libre</span> }
+                    @if (!i.articulo_id) { <span class="req-detail__free">{{ 'libre' | t }}</span> }
                   }
                 </td>
                 <td>{{ i.cantidad }}</td>
@@ -436,7 +436,7 @@
                 <td class="text-muted">{{ i.talla ?? '—' }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="4" class="text-muted">Sin renglones.</td></tr>
+              <tr><td colspan="4" class="text-muted">{{ 'Sin renglones.' | t }}</td></tr>
             }
           </tbody>
         </table>
@@ -445,15 +445,15 @@
       <!-- Vínculos (despacho / compra) -->
       @if (s.salida_id || s.solicitud_compra_id) {
         <div class="req-detail__links">
-          <span class="req-detail__label">Trazabilidad</span>
+          <span class="req-detail__label">{{ 'Trazabilidad' | t }}</span>
           @if (s.salida_id) {
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-               [routerLink]="['/inventario/salidas', s.salida_id, 'conduce']">Ver conduce / despacho</a>
+               [routerLink]="['/inventario/salidas', s.salida_id, 'conduce']">{{ 'Ver conduce / despacho' | t }}</a>
           }
           @if (s.solicitud_compra_id) {
             <!-- BH7 — enlace inverso a la solicitud de compra concreta, no a la lista entera -->
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-               [routerLink]="['/compras/ordenes']" [queryParams]="{ solicitud: s.solicitud_compra_id }">Ver compra del faltante</a>
+               [routerLink]="['/compras/ordenes']" [queryParams]="{ solicitud: s.solicitud_compra_id }">{{ 'Ver compra del faltante' | t }}</a>
           }
         </div>
       }
@@ -461,24 +461,24 @@
       <!-- BA / Transporte v3 — avance de despacho (solicitado vs despachado) -->
       @if (s.estado !== 'pendiente' && s.estado !== 'rechazada' && avanceItems().length) {
         <div class="req-detail__despachos">
-          <h3 class="req-detail__subtitle">Avance de despacho</h3>
+          <h3 class="req-detail__subtitle">{{ 'Avance de despacho' | t }}</h3>
           <div class="table-scroll">
             <table class="data-table">
-              <thead><tr><th>Renglón</th><th>Solicitado</th><th>Despachado</th><th>Cubierto</th><th>Pendiente</th><th></th></tr></thead>
+              <thead><tr><th>{{ 'Renglón' | t }}</th><th>{{ 'Solicitado' | t }}</th><th>{{ 'Despachado' | t }}</th><th>{{ 'Cubierto' | t }}</th><th>{{ 'Pendiente' | t }}</th><th></th></tr></thead>
               <tbody>
                 @for (a of avanceItems(); track a.item_id) {
                   <tr [class.req-line-cancelada]="a.estado === 'cancelada'"
                       [class.req-line-cubierta]="a.pendiente === 0 && a.cubierto > 0 && a.estado !== 'cancelada'">
                     <td>
                       {{ a.descripcion }}
-                      @if (a.estado === 'cancelada') { <span class="req-line-tag">quitada</span> }
+                      @if (a.estado === 'cancelada') { <span class="req-line-tag">{{ 'quitada' | t }}</span> }
                     </td>
                     <td>{{ a.solicitado }}</td>
                     <td>{{ a.despachado }}</td>
                     <!-- CD7 — cubierto por material llegado a la obra (chip con enlace al movimiento). -->
                     <td>
                       @if (a.cubierto > 0) {
-                        <span class="req-cubierto-chip" title="Cubierto por material llegado a la obra">
+                        <span class="req-cubierto-chip" title="{{ 'Cubierto por material llegado a la obra' | t }}">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                           {{ a.cubierto }}
                         </span>
@@ -494,7 +494,7 @@
                       @if (puedeGestionarReq() && a.estado === 'pendiente' && a.pendiente > 0
                            && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
                         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                                [disabled]="saving()" (click)="abrirQuitarLinea(a)">Quitar</button>
+                                [disabled]="saving()" (click)="abrirQuitarLinea(a)">{{ 'Quitar' | t }}</button>
                       }
                     </td>
                   </tr>
@@ -506,13 +506,13 @@
           <!-- DM-22 — quitar línea: panel inline con motivo, nunca prompt() nativo. -->
           @if (quitarLineaPendiente(); as ql) {
             <div class="req-detail__vincular">
-              <p class="req-detail__hint">Motivo para quitar "{{ ql.descripcion }}" de la requisición:</p>
+              <p class="req-detail__hint">{{ 'Motivo para quitar' | t }} "{{ ql.descripcion }}" {{ 'de la requisición:' | t }}</p>
               <textarea class="sgc-input" rows="2" [value]="quitarLineaMotivo()"
                         (input)="quitarLineaMotivo.set($any($event.target).value)"
-                        placeholder="Motivo…"></textarea>
+                        placeholder="{{ 'Motivo…' | t }}"></textarea>
               <div class="form-row" style="margin-top:.5rem">
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarQuitarLinea()">Cancelar</button>
-                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!quitarLineaMotivo().trim()" (click)="confirmarQuitarLinea()">Quitar línea</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarQuitarLinea()">{{ 'Cancelar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!quitarLineaMotivo().trim()" (click)="confirmarQuitarLinea()">{{ 'Quitar línea' | t }}</button>
               </div>
             </div>
           }
@@ -521,83 +521,83 @@
             @if (actionError()) { <div class="page-error" role="alert">{{ actionError() }}</div> }
             @if (!mostrarCancelar()) {
               <div class="req-detail__actions">
-                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="cerrarRequisicion()">Cerrar requisición</button>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="cerrarRequisicion()">{{ 'Cerrar requisición' | t }}</button>
                 <!-- BO7 — crear un conduce (despacho parcial) prellenado desde esta
                      requisición; queda enlazado (despacho_marcar) y cuenta en el avance. -->
                 <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
-                   [routerLink]="['/inventario/salidas']" [queryParams]="{ requisicion: s.id }">Crear conduce desde esta requisición</a>
+                   [routerLink]="['/inventario/salidas']" [queryParams]="{ requisicion: s.id }">{{ 'Crear conduce desde esta requisición' | t }}</a>
                 <!-- BR5 — para lo que no hay en stock: conduce externo de compra en ferretería,
                      enlazado a la requisición (cuenta en el avance al confirmarse la compra). -->
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
                    [routerLink]="['/inventario/conduce-externo/nuevo']"
-                   [queryParams]="{ requisicion: s.id, proyecto: s.proyecto_id, destino: s.proyecto?.nombre }">Comprar en ferretería</a>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular()">Vincular conduce suelto…</button>
+                   [queryParams]="{ requisicion: s.id, proyecto: s.proyecto_id, destino: s.proyecto?.nombre }">{{ 'Comprar en ferretería' | t }}</a>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular()">{{ 'Vincular conduce suelto…' | t }}</button>
                 <!-- CJ5 — asignar un conduce EXTERNO (transportista de tercero) a esta requisición. -->
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincularExterno()">Asignar conduce externo…</button>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">Cancelar…</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincularExterno()">{{ 'Asignar conduce externo…' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">{{ 'Cancelar…' | t }}</button>
               </div>
 
               @if (mostrarVincularExterno()) {
                 <div class="req-detail__vincular">
-                  <p class="req-detail__hint">Envía el material con un transportista externo o vincula un conduce externo ya emitido. Cuenta en el avance sin descontar dos veces.</p>
+                  <p class="req-detail__hint">{{ 'Envía el material con un transportista externo o vincula un conduce externo ya emitido. Cuenta en el avance sin descontar dos veces.' | t }}</p>
                   <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
                      [routerLink]="['/inventario/conduce-externo/nuevo']"
                      [queryParams]="{ requisicion: s.id, proyecto: s.proyecto_id, destino: s.proyecto?.nombre }">
-                    Nuevo conduce externo…
+                    {{ 'Nuevo conduce externo…' | t }}
                   </a>
                   @if (cargandoExternos()) {
-                    <p class="req-detail__hint">Cargando conduces externos…</p>
+                    <p class="req-detail__hint">{{ 'Cargando conduces externos…' | t }}</p>
                   } @else if (conducesExternosSueltos().length === 0) {
-                    <p class="req-detail__hint">No hay conduces externos emitidos sin requisición.</p>
+                    <p class="req-detail__hint">{{ 'No hay conduces externos emitidos sin requisición.' | t }}</p>
                   } @else {
-                    <p class="req-detail__hint">O vincula uno ya emitido:</p>
+                    <p class="req-detail__hint">{{ 'O vincula uno ya emitido:' | t }}</p>
                     <ul class="req-sueltos">
                       @for (c of conducesExternosSueltos(); track c.id) {
                         <li>
                           <span class="req-sueltos__info">
-                            CE-{{ (c.numero ?? 0).toString().padStart(6, '0') }} · {{ c.estado }}
+                            {{ 'CE-' | t }}{{ (c.numero ?? 0).toString().padStart(6, '0') }} · {{ c.estado }}
                             @if (c.destino) { · → {{ c.destino }} }
-                            @if (c.es_de_la_obra) { · <strong>de esta obra</strong> }
+                            @if (c.es_de_la_obra) { · <strong>{{ 'de esta obra' | t }}</strong> }
                           </span>
-                          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="vincularExterno(c.id)">Vincular</button>
+                          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="vincularExterno(c.id)">{{ 'Vincular' | t }}</button>
                         </li>
                       }
                     </ul>
                   }
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarVincularExterno.set(false)">Cerrar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarVincularExterno.set(false)">{{ 'Cerrar' | t }}</button>
                 </div>
               }
 
               @if (mostrarVincular()) {
                 <div class="req-detail__vincular">
-                  <p class="req-detail__hint">Vincula un conduce ya emitido a esta requisición para que su despacho cuente aquí (sin contar doble).</p>
+                  <p class="req-detail__hint">{{ 'Vincula un conduce ya emitido a esta requisición para que su despacho cuente aquí (sin contar doble).' | t }}</p>
                   @if (cargandoSueltos()) {
-                    <p class="req-detail__hint">Cargando conduces…</p>
+                    <p class="req-detail__hint">{{ 'Cargando conduces…' | t }}</p>
                   } @else if (conducesSueltos().length === 0) {
-                    <p class="req-detail__hint">No hay conduces sueltos para vincular.</p>
+                    <p class="req-detail__hint">{{ 'No hay conduces sueltos para vincular.' | t }}</p>
                   } @else {
                     <ul class="req-sueltos">
                       @for (c of conducesSueltos(); track c.id) {
                         <li>
                           <span class="req-sueltos__info">
-                            {{ formatFecha(c.fecha) }} · {{ c.motivo || 'conduce' }}
+                            {{ formatFecha(c.fecha) }} · {{ c.motivo || i18n.t('conduce') }}
                             @if (c.despachante_nombre) { · {{ c.despachante_nombre }} }
                           </span>
-                          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="vincular(c.id)">Vincular</button>
+                          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="vincular(c.id)">{{ 'Vincular' | t }}</button>
                         </li>
                       }
                     </ul>
                   }
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarVincular.set(false)">Cerrar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarVincular.set(false)">{{ 'Cerrar' | t }}</button>
                 </div>
               }
             } @else {
               <div class="req-detail__cancelar">
-                <input class="sgc-input" placeholder="Motivo de cancelación (obligatorio)"
+                <input class="sgc-input" placeholder="{{ 'Motivo de cancelación (obligatorio)' | t }}"
                        [value]="cancelarMotivo()" (input)="cancelarMotivo.set($any($event.target).value)" />
                 <div class="req-detail__actions">
-                  <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="saving()" (click)="confirmarCancelar()">Confirmar cancelación</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(false)">Volver</button>
+                  <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="saving()" (click)="confirmarCancelar()">{{ 'Confirmar cancelación' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(false)">{{ 'Volver' | t }}</button>
                 </div>
               </div>
             }
@@ -609,19 +609,19 @@
            ligados a este pedido y matcheó sus renglones (baja el pendiente). AT11. -->
       @if (coberturaReq().length) {
         <div class="req-detail__cobertura">
-          <h3 class="req-detail__subtitle">Cubierto por material llegado a la obra</h3>
-          <p class="req-detail__hint">Movimientos que no se emitieron para este pedido pero cuyo material coincide con sus renglones. Ya descuentan del pendiente.</p>
+          <h3 class="req-detail__subtitle">{{ 'Cubierto por material llegado a la obra' | t }}</h3>
+          <p class="req-detail__hint">{{ 'Movimientos que no se emitieron para este pedido pero cuyo material coincide con sus renglones. Ya descuentan del pendiente.' | t }}</p>
           <ul class="req-cobertura">
             @for (c of coberturaReq(); track c.id) {
               <li class="req-cobertura__row">
                 <span class="req-cobertura__info">
                   <strong>{{ c.renglon }}</strong> · {{ c.cantidad }}
-                  <span class="req-cobertura__via">{{ c.via === 'articulo' ? 'por artículo' : 'por nombre' }}@if (c.via === 'nombre' && c.score != null) { · {{ pctScore(c.score) }}%}</span>
-                  @if (c.revisar) { <span class="req-cobertura__flag">revisar</span> }
+                  <span class="req-cobertura__via">{{ (c.via === 'articulo' ? 'por artículo' : 'por nombre') | t }}@if (c.via === 'nombre' && c.score != null) { · {{ pctScore(c.score) }}%}</span>
+                  @if (c.revisar) { <span class="req-cobertura__flag">{{ 'revisar' | t }}</span> }
                 </span>
                 @if (puedeGestionarReq()) {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                          [disabled]="saving()" (click)="desvincularCobertura(c)">Deshacer</button>
+                          [disabled]="saving()" (click)="desvincularCobertura(c)">{{ 'Deshacer' | t }}</button>
                 }
               </li>
             }
@@ -638,24 +638,24 @@
         @switch (mode()) {
           @case ('ver') {
             <div class="req-detail__actions">
-              <button type="button" class="sgc-btn sgc-btn--primary" (click)="iniciarAprobar()">Aprobar</button>
-              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="iniciarRechazar()">Rechazar</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="iniciarAprobar()">{{ 'Aprobar' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="iniciarRechazar()">{{ 'Rechazar' | t }}</button>
             </div>
           }
 
           @case ('aprobar') {
             <div class="req-detail__form">
               <p class="req-detail__hint">
-                Confirma a qué artículo del catálogo corresponde cada renglón. Se despacha lo que haya
-                en stock del almacén (con su conduce) y se genera una solicitud de compra automática por
-                el faltante y por los renglones sin artículo del catálogo.
+                {{ 'Confirma a qué artículo del catálogo corresponde cada renglón. Se despacha lo que haya' | t }}
+                {{ 'en stock del almacén (con su conduce) y se genera una solicitud de compra automática por' | t }}
+                {{ 'el faltante y por los renglones sin artículo del catálogo.' | t }}
               </p>
               <div class="sgc-field">
-                <label class="filters-bar__label" for="req-bodega">Almacén de despacho</label>
+                <label class="filters-bar__label" for="req-bodega">{{ 'Almacén de despacho' | t }}</label>
                 <select id="req-bodega" [value]="bodegaId()"
                         (focus)="precargarCoberturas()"
                         (change)="onBodegaAprob($any($event.target).value)">
-                  <option [value]="''" disabled>Elige un almacén…</option>
+                  <option [value]="''" disabled>{{ 'Elige un almacén…' | t }}</option>
                   @for (b of bodegasDespacho(); track b.id) {
                     <option [value]="b.id">{{ b.nombre }}{{ coberturaLabel(b.id) }}</option>
                   }
@@ -664,7 +664,7 @@
 
               <!-- AT7 — mapeo de cada renglón al catálogo (componente compartido) -->
               <div class="sgc-field">
-                <label class="filters-bar__label">Renglones ({{ mappedItems().length }})</label>
+                <label class="filters-bar__label">{{ 'Renglones' | t }} ({{ mappedItems().length }})</label>
                 <app-requisicion-items-mapper
                   [solicitud]="s"
                   [articulos]="articulos()"
@@ -676,28 +676,28 @@
               </div>
 
               <div class="sgc-field">
-                <label class="filters-bar__label" for="req-fecha">Fecha</label>
+                <label class="filters-bar__label" for="req-fecha">{{ 'Fecha' | t }}</label>
                 <input id="req-fecha" type="date" [value]="fecha()" (change)="fecha.set($any($event.target).value)" />
               </div>
               <div class="sgc-field">
-                <label class="filters-bar__label">Responsable (opcional)</label>
+                <label class="filters-bar__label">{{ 'Responsable (opcional)' | t }}</label>
                 <!-- BR2 — buscar por usuario (antes texto libre "Rakler Feliz"). -->
                 <app-user-picker [value]="responsableId()" [nombreLibre]="responsable()"
-                  placeholder="Quién recibe / entrega — busca por usuario"
+                  placeholder="{{ 'Quién recibe / entrega — busca por usuario' | t }}"
                   (selected)="onResponsablePicked($event)" />
               </div>
               <div class="sgc-field">
-                <label class="filters-bar__label" for="req-obs">Observaciones (opcional)</label>
+                <label class="filters-bar__label" for="req-obs">{{ 'Observaciones (opcional)' | t }}</label>
                 <input id="req-obs" type="text" [value]="observaciones()"
                        (input)="observaciones.set($any($event.target).value)" />
               </div>
               <div class="req-detail__actions">
                 <button type="button" class="sgc-btn sgc-btn--primary"
                         [disabled]="saving()" (click)="confirmarAprobar()">
-                  {{ saving() ? 'Aprobando…' : 'Confirmar aprobación' }}
+                  {{ (saving() ? 'Aprobando…' : 'Confirmar aprobación') | t }}
                 </button>
                 <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="volverVer()">
-                  Cancelar
+                  {{ 'Cancelar' | t }}
                 </button>
               </div>
             </div>
@@ -706,18 +706,18 @@
           @case ('rechazar') {
             <div class="req-detail__form">
               <div class="sgc-field">
-                <label class="filters-bar__label" for="req-nota">Motivo del rechazo (opcional)</label>
+                <label class="filters-bar__label" for="req-nota">{{ 'Motivo del rechazo (opcional)' | t }}</label>
                 <textarea id="req-nota" rows="3" [value]="rechazoNota()"
                           (input)="rechazoNota.set($any($event.target).value)"
-                          placeholder="Explica por qué se rechaza…"></textarea>
+                          placeholder="{{ 'Explica por qué se rechaza…' | t }}"></textarea>
               </div>
               <div class="req-detail__actions">
                 <button type="button" class="sgc-btn sgc-btn--danger"
                         [disabled]="saving()" (click)="confirmarRechazar()">
-                  {{ saving() ? 'Rechazando…' : 'Confirmar rechazo' }}
+                  {{ (saving() ? 'Rechazando…' : 'Confirmar rechazo') | t }}
                 </button>
                 <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="volverVer()">
-                  Cancelar
+                  {{ 'Cancelar' | t }}
                 </button>
               </div>
             </div>
@@ -732,18 +732,18 @@
         }
         <div class="req-detail__cancelar">
           <p class="req-detail__hint">
-            Esta es tu requisición: no la apruebas ni la rechazas tú, pero puedes cancelarla si ya no la necesitas.
+            {{ 'Esta es tu requisición: no la apruebas ni la rechazas tú, pero puedes cancelarla si ya no la necesitas.' | t }}
           </p>
           @if (!mostrarCancelar()) {
             <div class="req-detail__actions">
-              <button type="button" class="sgc-btn sgc-btn--danger" (click)="mostrarCancelar.set(true)">Cancelar requisición…</button>
+              <button type="button" class="sgc-btn sgc-btn--danger" (click)="mostrarCancelar.set(true)">{{ 'Cancelar requisición…' | t }}</button>
             </div>
           } @else {
-            <input class="sgc-input" placeholder="Motivo de cancelación (obligatorio)"
+            <input class="sgc-input" placeholder="{{ 'Motivo de cancelación (obligatorio)' | t }}"
                    [value]="cancelarMotivo()" (input)="cancelarMotivo.set($any($event.target).value)" />
             <div class="req-detail__actions">
-              <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="saving()" (click)="confirmarCancelar()">Confirmar cancelación</button>
-              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="mostrarCancelar.set(false)">Volver</button>
+              <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="saving()" (click)="confirmarCancelar()">{{ 'Confirmar cancelación' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="mostrarCancelar.set(false)">{{ 'Volver' | t }}</button>
             </div>
           }
         </div>

@@ -19,6 +19,8 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
@@ -29,7 +31,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker],
+  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker, TranslatePipe],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +46,7 @@ export class Conteos implements OnInit {
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
+  protected i18n = inject(I18nService);
 
   // Z5(d) — datos de prueba (solo admin).
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -144,7 +147,7 @@ export class Conteos implements OnInit {
       this.catalogoArticulos.set(articulos);
       this.categorias.set(categorias);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar.'));
     } finally {
       this.loading.set(false);
     }
@@ -190,24 +193,24 @@ export class Conteos implements OnInit {
     try {
       await this.datosPrueba.marcar('conteos_inventario', item.id, valor);
       this.conteos.update((l) => l.map((x) => (x.id === item.id ? { ...x, es_prueba: valor } : x)));
-      this.toast.success(valor ? 'Marcado como prueba' : 'Desmarcado', '');
+      this.toast.success(this.i18n.t(valor ? 'Marcado como prueba' : 'Desmarcado'), '');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
   // Z5(d) — eliminar definitivamente un conteo marcado como prueba (solo admin).
   async eliminarPrueba(item: Conteo) {
     if (!this.esAdmin() || !item.es_prueba) return;
-    const nombre = item.bodega?.nombre ?? 'este almacén';
-    if (!confirm(`¿Eliminar definitivamente el conteo de "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    const nombre = item.bodega?.nombre ?? this.i18n.t('este almacén');
+    if (!confirm(this.i18n.t('¿Eliminar definitivamente el conteo de "{n}"? Esta acción no se puede deshacer.', { n: nombre }))) return;
     try {
       await this.datosPrueba.eliminar('conteos_inventario', item.id);
       this.conteos.update((l) => l.filter((x) => x.id !== item.id));
       if (this.expandedId() === item.id) this.expandedId.set(null);
-      this.toast.success('Conteo de prueba eliminado', '');
+      this.toast.success(this.i18n.t('Conteo de prueba eliminado'), '');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
@@ -236,7 +239,7 @@ export class Conteos implements OnInit {
       // physical count defaults to the system quantity; the user corrects it.
       this.chequeoRows.set(stock.map((s) => ({ ...s, contada: Number(s.cantidad) })));
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al cargar el stock del almacén.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar el stock del almacén.'));
     } finally {
       this.loadingStock.set(false);
     }
@@ -341,7 +344,7 @@ export class Conteos implements OnInit {
         });
       this.cfRows.set([...extra, ...rows]);
     } catch (e: unknown) {
-      this.cfError.set(e instanceof Error ? e.message : 'Error al abrir el conteo.');
+      this.cfError.set(e instanceof Error ? e.message : this.i18n.t('Error al abrir el conteo.'));
     } finally {
       this.loadingStock.set(false);
     }
@@ -363,9 +366,9 @@ export class Conteos implements OnInit {
     this.cfError.set('');
     try {
       await this.service.conteoFisicoGuardar(this.cfConteoId(), this.cfItemsPayload());
-      this.toast.success('Borrador guardado', 'Puedes cerrar y retomarlo luego.');
+      this.toast.success(this.i18n.t('Borrador guardado'), 'Puedes cerrar y retomarlo luego.');
     } catch (e: unknown) {
-      this.cfError.set(e instanceof Error ? e.message : 'No se pudo guardar el borrador.');
+      this.cfError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo guardar el borrador.'));
     } finally {
       this.cfSaving.set(false);
     }
@@ -374,22 +377,22 @@ export class Conteos implements OnInit {
   async aplicarConteoFisico() {
     if (!this.cfConteoId() || this.cfSaving()) return;
     const conCantidad = this.cfRows().some((r) => r.contada != null);
-    if (!conCantidad) { this.cfError.set('Registra al menos una cantidad contada.'); return; }
-    const motivo = prompt('Motivo del conteo físico (queda en la auditoría):');
+    if (!conCantidad) { this.cfError.set(this.i18n.t('Registra al menos una cantidad contada.')); return; }
+    const motivo = prompt(this.i18n.t('Motivo del conteo físico (queda en la auditoría):'));
     if (motivo === null) return;
-    if (!motivo.trim()) { this.toast.error('El motivo es obligatorio.'); return; }
+    if (!motivo.trim()) { this.toast.error(this.i18n.t('El motivo es obligatorio.')); return; }
     this.cfSaving.set(true);
     this.cfError.set('');
     try {
       await this.service.conteoFisicoGuardar(this.cfConteoId(), this.cfItemsPayload());
       await this.service.conteoFisicoCerrar(this.cfConteoId());
       const r = await this.service.conteoFisicoAplicar(this.cfConteoId(), motivo.trim());
-      this.toast.success('Stock real aplicado', `${r.ajustados} artículo(s) ajustado(s), sin mover el kardex.`);
+      this.toast.success(this.i18n.t('Stock real aplicado'), this.i18n.t('{n} artículo(s) ajustado(s), sin mover el kardex.', { n: r.ajustados }));
       this.motion.momento('checklist');
       this.conteos.set(await this.service.getAll());
       this.cfDrawerOpen.set(false);
     } catch (e: unknown) {
-      this.cfError.set(e instanceof Error ? e.message : 'No se pudo aplicar el conteo.');
+      this.cfError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo aplicar el conteo.'));
     } finally {
       this.cfSaving.set(false);
     }
@@ -398,25 +401,26 @@ export class Conteos implements OnInit {
   esConteoFisico(c: Conteo): boolean { return c.tipo === 'conteo_fisico'; }
 
   async deshacerConteoFisico(c: Conteo) {
-    if (!confirm(`¿Deshacer el conteo físico de "${c.bodega?.nombre ?? 'este almacén'}"? Restaura la existencia previa.`)) return;
+    const nombre = c.bodega?.nombre ?? this.i18n.t('este almacén');
+    if (!confirm(this.i18n.t('¿Deshacer el conteo físico de "{n}"? Restaura la existencia previa.', { n: nombre }))) return;
     try {
       await this.service.conteoFisicoDeshacer(c.id);
-      this.toast.success('Conteo deshecho', 'Se restauró la existencia previa.');
+      this.toast.success(this.i18n.t('Conteo deshecho'), 'Se restauró la existencia previa.');
       this.conteos.set(await this.service.getAll());
     } catch (e: unknown) {
-      this.toast.error('No se pudo deshacer', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo deshacer'), e instanceof Error ? e.message : undefined);
     }
   }
 
   async onSaveChequeo() {
     const bodegaId = this.chequeoBodegaId();
     if (!bodegaId) {
-      this.saveError.set('Selecciona el almacén.');
+      this.saveError.set(this.i18n.t('Selecciona el almacén.'));
       return;
     }
     const rows = this.chequeoRows();
     if (rows.length === 0) {
-      this.saveError.set('El almacén no tiene artículos con stock para chequear.');
+      this.saveError.set(this.i18n.t('El almacén no tiene artículos con stock para chequear.'));
       return;
     }
     if (this.saving()) return;
@@ -430,13 +434,13 @@ export class Conteos implements OnInit {
       );
       const dif = rows.filter((r) => r.contada !== Number(r.cantidad)).length;
       this.toast.success(
-        'Chequeo semanal registrado',
-        dif > 0 ? `${dif} diferencia(s) detectada(s) — se notificó a Dirección.` : 'Sin diferencias con el sistema.',
+        this.i18n.t('Chequeo semanal registrado'),
+        dif > 0 ? this.i18n.t('{n} diferencia(s) detectada(s) — se notificó a Dirección.', { n: dif }) : this.i18n.t('Sin diferencias con el sistema.'),
       );
       this.conteos.set(await this.service.getAll());
       this.drawerOpen.set(false);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar el chequeo.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar el chequeo.'));
     } finally {
       this.saving.set(false);
     }

@@ -1,28 +1,28 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Conduces</h1>
-    <span class="page-count">{{ filtered().length }} conduce{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Conduces' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'conduces' : 'conduce') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
-    <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">Ir a Salidas</a>
+    <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">{{ 'Ir a Salidas' | t }}</a>
     @if (esAdmin()) {
       <a routerLink="/admin/conduces-huerfanos" class="sgc-btn sgc-btn--ghost"
-         title="Conduces atascados en despachado sin confirmación">Conduces huérfanos</a>
+         title="{{ 'Conduces atascados en despachado sin confirmación' | t }}">{{ 'Conduces huérfanos' | t }}</a>
     }
   </div>
 </div>
 
 <p class="conduces__intro">
-  Cada salida de inventario genera un conduce. Aquí ves todos los conduces creados por estado, y puedes abrir, imprimir o descargar cualquiera en PDF.
+  {{ 'Cada salida de inventario genera un conduce. Aquí ves todos los conduces creados por estado, y puedes abrir, imprimir o descargar cualquiera en PDF.' | t }}
 </p>
 
 <!-- ── Tabs ── -->
-<div class="conduces__tabs" role="tablist" aria-label="Estado de conduces">
+<div class="conduces__tabs" role="tablist" aria-label="{{ 'Estado de conduces' | t }}">
   @for (t of TABS; track t.key) {
     <button
       type="button"
@@ -32,7 +32,7 @@
       [attr.aria-selected]="tab() === t.key"
       (click)="setTab(t.key)"
     >
-      {{ t.label }}
+      {{ t.label | t }}
       <span class="conduces__tab-badge">{{ counts()[t.key] }}</span>
     </button>
   }
@@ -43,34 +43,34 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por número, obra, chofer o responsable…"
+      placeholder="{{ 'Buscar por número, obra, chofer o responsable…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar conduces"
+      aria-label="{{ 'Buscar conduces' | t }}"
     />
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="origenFilter()" (change)="onOrigen($any($event.target).value)" aria-label="Filtrar por obra de origen">
-      <option value="">Origen: todas</option>
+    <select [value]="origenFilter()" (change)="onOrigen($any($event.target).value)" aria-label="{{ 'Filtrar por obra de origen' | t }}">
+      <option value="">{{ 'Origen: todas' | t }}</option>
       @for (o of obrasOrigen(); track o.id) {
-        <option [value]="o.id">Origen: {{ o.nombre }}</option>
+        <option [value]="o.id">{{ 'Origen:' | t }} {{ o.nombre }}</option>
       }
     </select>
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="obraFilter()" (change)="onObra($any($event.target).value)" aria-label="Filtrar por obra de destino">
-      <option value="">Destino: todas</option>
+    <select [value]="obraFilter()" (change)="onObra($any($event.target).value)" aria-label="{{ 'Filtrar por obra de destino' | t }}">
+      <option value="">{{ 'Destino: todas' | t }}</option>
       @for (o of obras(); track o.id) {
-        <option [value]="o.id">Destino: {{ o.nombre }}</option>
+        <option [value]="o.id">{{ 'Destino:' | t }} {{ o.nombre }}</option>
       }
     </select>
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="choferFilter()" (change)="onChofer($any($event.target).value)" aria-label="Filtrar por chofer">
-      <option value="">Todos los choferes</option>
+    <select [value]="choferFilter()" (change)="onChofer($any($event.target).value)" aria-label="{{ 'Filtrar por chofer' | t }}">
+      <option value="">{{ 'Todos los choferes' | t }}</option>
       @for (c of choferes(); track c) {
         <option [value]="c">{{ c }}</option>
       }
@@ -78,8 +78,8 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="responsableFilter()" (change)="onResponsable($any($event.target).value)" aria-label="Filtrar por responsable">
-      <option value="">Todos los responsables</option>
+    <select [value]="responsableFilter()" (change)="onResponsable($any($event.target).value)" aria-label="{{ 'Filtrar por responsable' | t }}">
+      <option value="">{{ 'Todos los responsables' | t }}</option>
       @for (u of responsables(); track u.id) {
         <option [value]="u.id">{{ u.nombre }}</option>
       }
@@ -87,15 +87,15 @@
   </div>
 
   <div class="sgc-field">
-    <input type="date" [value]="desde()" (change)="onDesde($any($event.target).value)" aria-label="Desde" title="Desde" />
+    <input type="date" [value]="desde()" (change)="onDesde($any($event.target).value)" aria-label="{{ 'Desde' | t }}" title="{{ 'Desde' | t }}" />
   </div>
   <div class="sgc-field">
-    <input type="date" [value]="hasta()" (change)="onHasta($any($event.target).value)" aria-label="Hasta" title="Hasta" />
+    <input type="date" [value]="hasta()" (change)="onHasta($any($event.target).value)" aria-label="{{ 'Hasta' | t }}" title="{{ 'Hasta' | t }}" />
   </div>
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -112,9 +112,9 @@
     <div class="table-empty">
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron conduces con los filtros aplicados.
+          {{ 'No se encontraron conduces con los filtros aplicados.' | t }}
         } @else {
-          No hay conduces en esta pestaña.
+          {{ 'No hay conduces en esta pestaña.' | t }}
         }
       </p>
     </div>
@@ -122,46 +122,46 @@
     <!-- BV7 — barra de asignación múltiple (aparece al seleccionar conduces sin chofer) -->
     @if (puedeAsignarChofer() && seleccionados().size > 0) {
       <div class="conduces__lote">
-        <span>{{ seleccionados().size }} conduce(s) seleccionado(s)</span>
+        <span>{{ seleccionados().size }} {{ 'conduce(s) seleccionado(s)' | t }}</span>
         <select class="sgc-select" [value]="choferLote()" (change)="choferLote.set($any($event.target).value)">
-          <option value="">Elegir chofer…</option>
+          <option value="">{{ 'Elegir chofer…' | t }}</option>
           @for (c of choferesDisponibles(); track c.conductor_id) {
             <option [value]="c.conductor_id">{{ c.nombre }}</option>
           }
         </select>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
-                [disabled]="!choferLote() || asignandoSaving()" (click)="asignarLote()">Asignar a los {{ seleccionados().size }}</button>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarSeleccion()">Limpiar</button>
+                [disabled]="!choferLote() || asignandoSaving()" (click)="asignarLote()">{{ 'Asignar a los' | t }} {{ seleccionados().size }}</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarSeleccion()">{{ 'Limpiar' | t }}</button>
       </div>
     }
     <div class="table-scroll">
-      <table class="data-table" aria-label="Listado de conduces">
+      <table class="data-table" aria-label="{{ 'Listado de conduces' | t }}">
         <thead>
           <tr>
-            <th>No. Conduce</th>
-            <th>Fecha</th>
-            <th>Obra origen</th>
-            <th>Obra / Destino</th>
-            <th>Almacén</th>
-            <th>Chofer</th>
-            <th class="text-right">Artículos</th>
-            <th>Estado</th>
+            <th>{{ 'No. Conduce' | t }}</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Obra origen' | t }}</th>
+            <th>{{ 'Obra / Destino' | t }}</th>
+            <th>{{ 'Almacén' | t }}</th>
+            <th>{{ 'Chofer' | t }}</th>
+            <th class="text-right">{{ 'Artículos' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
             <th></th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (r of paginated(); track r.id) {
-            <tr class="row--link" [routerLink]="['/inventario/salidas', r.id, 'conduce']" [state]="{ ids: idsPagina() }" role="button" tabindex="0" aria-label="Ver conduce">
+            <tr class="row--link" [routerLink]="['/inventario/salidas', r.id, 'conduce']" [state]="{ ids: idsPagina() }" role="button" tabindex="0" aria-label="{{ 'Ver conduce' | t }}">
               <td class="conduces__numero">
                 {{ numero(r.id) }}
-                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
+                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }
               </td>
               <td>{{ formatFecha(r.fecha) }}</td>
               <td class="text-muted">{{ r.origen_proyecto ?? '—' }}</td>
               <td class="text-muted">
                 {{ r.proyecto ?? r.destino_almacen ?? '—' }}
                 @for (m of responsableMatch(r); track m) {
-                  <span class="sgc-badge sgc-badge--info">{{ m }}</span>
+                  <span class="sgc-badge sgc-badge--info">{{ m | t }}</span>
                 }
               </td>
               <td class="text-muted">{{ r.bodega ?? '—' }}</td>
@@ -173,21 +173,21 @@
                     <!-- BV7 — picker inline para asignar chofer (no navega la fila) -->
                     <div class="conduces__asignar" (click)="$event.stopPropagation()">
                       <select class="sgc-select sgc-select--sm" [value]="choferSel()" (change)="choferSel.set($any($event.target).value)">
-                        <option value="">Elegir chofer…</option>
+                        <option value="">{{ 'Elegir chofer…' | t }}</option>
                         @for (c of choferesDisponibles(); track c.conductor_id) {
                           <option [value]="c.conductor_id">{{ c.nombre }}</option>
                         }
                       </select>
                       <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
-                              [disabled]="!choferSel() || asignandoSaving()" (click)="confirmarAsignar(r.id)">Asignar</button>
-                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarAsignar()">Cancelar</button>
+                              [disabled]="!choferSel() || asignandoSaving()" (click)="confirmarAsignar(r.id)">{{ 'Asignar' | t }}</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarAsignar()">{{ 'Cancelar' | t }}</button>
                     </div>
                   } @else {
                     <label class="conduces__sel" (click)="$event.stopPropagation()">
                       <input type="checkbox" [checked]="estaSeleccionado(r.id)" (change)="toggleSeleccion(r.id)" />
                     </label>
                     <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
-                            (click)="$event.stopPropagation(); abrirAsignar(r.id)">Asignar chofer</button>
+                            (click)="$event.stopPropagation(); abrirAsignar(r.id)">{{ 'Asignar chofer' | t }}</button>
                   }
                 } @else {
                   —
@@ -196,7 +196,7 @@
               <td class="text-right">{{ r.items }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + faseModifier(r.bucket)">
-                  {{ faseLabel(r.fase) }}
+                  {{ faseLabel(r.fase) | t }}
                 </span>
               </td>
               <td>
@@ -205,7 +205,7 @@
                   [routerLink]="['/inventario/salidas', r.id, 'conduce']"
                   [state]="{ ids: idsPagina() }"
                   (click)="$event.stopPropagation()"
-                >Ver conduce</a>
+                >{{ 'Ver conduce' | t }}</a>
               </td>
             </tr>
           }
@@ -218,14 +218,14 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
-          <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}">‹</button>
           @for (p of pages; track p) {
             <button class="page-btn" type="button" (click)="goToPage(p)" [class.page-btn--active]="p === currentPage()">{{ p }}</button>
           }
-          <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="{{ 'Página siguiente' | t }}">›</button>
         </div>
       </div>
     }

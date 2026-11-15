@@ -1,13 +1,13 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Reposición de almacén</h1>
-    <span class="page-count">{{ visibleRows().length }} por reponer</span>
+    <h1 class="page-title">{{ 'Reposición de almacén' | t }}</h1>
+    <span class="page-count">{{ visibleRows().length }} {{ 'por reponer' | t }}</span>
   </div>
 </div>
 
 <p class="rep-lead">
-  Artículos que están en o por debajo de su <strong>stock mínimo</strong> en el almacén seleccionado.
-  Úsalo para reponer a tiempo el almacén de obra.
+  {{ 'Artículos que están en o por debajo de su' | t }} <strong>{{ 'stock mínimo' | t }}</strong> {{ 'en el almacén seleccionado.' | t }}
+  {{ 'Úsalo para reponer a tiempo el almacén de obra.' | t }}
 </p>
 
 <div class="filters-bar">
@@ -15,10 +15,10 @@
     <select
       [value]="selectedBodega()"
       (change)="onBodegaChange($any($event.target).value)"
-      aria-label="Seleccionar almacén"
+      aria-label="{{ 'Seleccionar almacén' | t }}"
     >
-      <option value="">Seleccionar almacén…</option>
-      <option value="ALL">Todas las bodegas (global)</option>
+      <option value="">{{ 'Seleccionar almacén…' | t }}</option>
+      <option value="ALL">{{ 'Todas las bodegas (global)' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -30,7 +30,7 @@
   <div class="rep-toolbar">
     <span>{{ seleccionadas() }} seleccionado(s)</span>
     <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="generando()" (click)="generarSolicitud()">
-      Generar solicitud de compra
+      {{ 'Generar solicitud de compra' | t }}
     </button>
   </div>
 }
@@ -45,20 +45,20 @@
   <div class="table-wrapper sgc-card">
     @if (visibleRows().length === 0) {
       <div class="table-empty">
-        <p>No hay artículos por reponer en este momento. 👍</p>
-        <p class="text-muted">Configura el <strong>stock mínimo</strong> en Artículos, o usa “Todas las bodegas” para el stock crítico global. Las sugerencias pospuestas se ocultan hasta su fecha.</p>
+        <p>{{ 'No hay artículos por reponer en este momento. 👍' | t }}</p>
+        <p class="text-muted">{{ 'Configura el' | t }} <strong>{{ 'stock mínimo' | t }}</strong> {{ 'en Artículos, o usa “Todas las bodegas” para el stock crítico global. Las sugerencias pospuestas se ocultan hasta su fecha.' | t }}</p>
       </div>
     } @else {
       <div class="table-scroll">
-      <table class="data-table" aria-label="Artículos por reponer">
+      <table class="data-table" aria-label="{{ 'Artículos por reponer' | t }}">
         <thead>
           <tr>
             @if (puedeGestionar()) { <th></th> }
-            <th>Artículo</th>
-            <th>Código</th>
-            <th class="text-right">Mínimo</th>
-            <th class="text-right">Actual</th>
-            <th class="text-right">Faltante</th>
+            <th>{{ 'Artículo' | t }}</th>
+            <th>{{ 'Código' | t }}</th>
+            <th class="text-right">{{ 'Mínimo' | t }}</th>
+            <th class="text-right">{{ 'Actual' | t }}</th>
+            <th class="text-right">{{ 'Faltante' | t }}</th>
             @if (puedeGestionar()) { <th></th> }
           </tr>
         </thead>
@@ -66,7 +66,7 @@
           @for (r of visibleRows(); track r.articulo_id) {
             <tr [class.rep-row--critico]="r.actual === 0">
               @if (puedeGestionar()) {
-                <td><input type="checkbox" [checked]="selected().has(r.articulo_id)" (change)="toggleSel(r.articulo_id)" [attr.aria-label]="'Seleccionar ' + r.nombre" /></td>
+                <td><input type="checkbox" [checked]="selected().has(r.articulo_id)" (change)="toggleSel(r.articulo_id)" [attr.aria-label]="i18n.t('Seleccionar') + ' ' + r.nombre" /></td>
               }
               <td>{{ r.nombre }}</td>
               <td class="text-muted">{{ r.codigo }}</td>
@@ -84,16 +84,16 @@
               @if (puedeGestionar()) {
                 <td class="rep-actions">
                   @if (editMinId() === r.articulo_id) {
-                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="guardarMinimo(r)">Guardar</button>
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="guardarMinimo(r)">{{ 'Guardar' | t }}</button>
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editMinId.set(null)"><app-icon name="x" [size]="16" /></button>
                   } @else if (posponerId() === r.articulo_id) {
-                    <input class="rep-dias" type="number" min="1" [value]="posponerDias()" (input)="posponerDias.set($any($event.target).valueAsNumber)" title="Días" />
-                    <input class="rep-motivo" type="text" [value]="posponerMotivo()" (input)="posponerMotivo.set($any($event.target).value)" placeholder="Motivo" />
-                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="confirmarPosponer(r)">Posponer</button>
+                    <input class="rep-dias" type="number" min="1" [value]="posponerDias()" (input)="posponerDias.set($any($event.target).valueAsNumber)" title="{{ 'Días' | t }}" />
+                    <input class="rep-motivo" type="text" [value]="posponerMotivo()" (input)="posponerMotivo.set($any($event.target).value)" placeholder="{{ 'Motivo' | t }}" />
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="confirmarPosponer(r)">{{ 'Posponer' | t }}</button>
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="posponerId.set(null)"><app-icon name="x" [size]="16" /></button>
                   } @else {
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditMin(r)">Mínimo</button>
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPosponer(r)">Posponer</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditMin(r)">{{ 'Mínimo' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPosponer(r)">{{ 'Posponer' | t }}</button>
                   }
                 </td>
               }
@@ -105,5 +105,5 @@
     }
   </div>
 } @else {
-  <p class="text-muted">Elige un almacén para ver qué hay que reponer.</p>
+  <p class="text-muted">{{ 'Elige un almacén para ver qué hay que reponer.' | t }}</p>
 }

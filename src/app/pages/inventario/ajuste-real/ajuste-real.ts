@@ -8,6 +8,8 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface FilaAjuste {
   articulo_id: string | null;
@@ -25,7 +27,7 @@ function norm(s: unknown): string {
 
 @Component({
   selector: 'app-ajuste-real',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TranslatePipe],
   templateUrl: './ajuste-real.html',
   styleUrl: './ajuste-real.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +37,7 @@ export class AjusteReal implements OnInit {
   private bodegasSvc = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
   private datosPruebaView = inject(DatosPruebaViewService);
 
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -78,7 +81,7 @@ export class AjusteReal implements OnInit {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file || !this.selBodega()) { this.toast.warning('Elige el almacén primero'); return; }
+    if (!file || !this.selBodega()) { this.toast.warning(this.i18n.t('Elige el almacén primero')); return; }
     this.error.set('');
     this.archivoNombre.set(file.name);
     try {
@@ -142,14 +145,14 @@ export class AjusteReal implements OnInit {
   async aplicar() {
     const bodega = this.selBodega();
     const validas = this.filas().filter((f) => f.estado === 'ok' && f.articulo_id);
-    if (!bodega || !validas.length) { this.toast.warning('Nada que ajustar'); return; }
-    if (!confirm(`¿Fijar el stock real de ${validas.length} artículos en este almacén? No genera movimiento ni escalón en la gráfica.`)) return;
+    if (!bodega || !validas.length) { this.toast.warning(this.i18n.t('Nada que ajustar')); return; }
+    if (!confirm(this.i18n.t('¿Fijar el stock real de {n} artículos en este almacén? No genera movimiento ni escalón en la gráfica.', { n: validas.length }))) return;
     this.procesando.set(true);
     try {
       const res = await this.inv.ajusteRealLote(bodega, validas.map((f) => ({ articulo_id: f.articulo_id!, cantidad: f.real })));
       this.resultado.set(res);
       this.paso.set('hecho');
-      this.toast.success('Ajuste real aplicado', `${res.ok} artículos ajustados.`);
+      this.toast.success(this.i18n.t('Ajuste real aplicado'), this.i18n.t('{n} artículos ajustados.', { n: res.ok }));
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo aplicar el ajuste.');
     } finally {

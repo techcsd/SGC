@@ -3,199 +3,310 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 9%** (65/714 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 27%** (2976/11064 literales de 192 pantallas en alcance). **`ht`: 63%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
-| inventario/conduce | scope | 232 | 0 | 232 | 0% |
-| inventario/requisiciones | scope | 246 | 0 | 246 | 0% |
-| perfil | scope | 35 | 0 | 35 | 0% |
-| inventario/conduce-externo-form | scope | 98 | 12 | 86 | 12% |
-| configuracion | scope | 82 | 53 | 29 | 65% |
-| admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
-| admin/animaciones | - | 48 | 0 | 48 | 0% |
-| admin/app-versiones | - | 150 | 0 | 150 | 0% |
-| admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
-| admin/conduces-huerfanos | - | 22 | 0 | 22 | 0% |
-| admin/historial-versiones | - | 46 | 0 | 46 | 0% |
-| admin/importar | - | 2 | 0 | 2 | 0% |
-| admin/jira | - | 86 | 0 | 86 | 0% |
-| admin/matriz-notificaciones | - | 95 | 0 | 95 | 0% |
-| admin/orden-modulos | - | 11 | 0 | 11 | 0% |
-| admin/otros-valores | - | 17 | 0 | 17 | 0% |
-| admin/parametros | - | 20 | 0 | 20 | 0% |
-| admin/reportes | - | 63 | 0 | 63 | 0% |
-| admin/roles | - | 260 | 0 | 260 | 0% |
-| admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
-| admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 238 | 0 | 238 | 0% |
-| admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
-| admin/usuarios-test | - | 50 | 0 | 50 | 0% |
-| apoyo-transporte | - | 77 | 0 | 77 | 0% |
-| auth/set-password | - | 23 | 0 | 23 | 0% |
-| bitacora/cobertura | - | 25 | 0 | 25 | 0% |
-| bitacora/dashboard | - | 31 | 0 | 31 | 0% |
-| bitacora/entregas | - | 45 | 0 | 45 | 0% |
-| bitacora/historial | - | 175 | 0 | 175 | 0% |
-| bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
-| bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| compras/ordenes | - | 180 | 0 | 180 | 0% |
-| compras/ordenes-odoo | - | 185 | 0 | 185 | 0% |
-| compras/proveedores | - | 115 | 0 | 115 | 0% |
-| compras/proveedores-odoo | - | 77 | 0 | 77 | 0% |
-| compras/reportes | - | 35 | 0 | 35 | 0% |
-| compras/solicitar-odoo | - | 55 | 0 | 55 | 0% |
-| dashboard | - | 143 | 0 | 143 | 0% |
-| direccion | - | 27 | 0 | 27 | 0% |
-| documentos/generar | - | 21 | 0 | 21 | 0% |
-| documentos/historial | - | 15 | 0 | 15 | 0% |
-| documentos/plantillas | - | 70 | 0 | 70 | 0% |
-| documentos/ver | - | 19 | 0 | 19 | 0% |
-| dudas | - | 31 | 0 | 31 | 0% |
-| flota/accidentes | - | 84 | 0 | 84 | 0% |
-| flota/avisos | - | 83 | 0 | 83 | 0% |
-| flota/choferes-privados | - | 106 | 0 | 106 | 0% |
-| flota/combustible | - | 312 | 0 | 312 | 0% |
-| flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
-| flota/combustible-log | - | 195 | 0 | 195 | 0% |
-| flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
-| flota/conductores | - | 286 | 0 | 286 | 0% |
-| flota/conductores-estado | - | 25 | 0 | 25 | 0% |
-| flota/panel-dia | - | 36 | 0 | 36 | 0% |
-| flota/recorrido-diario | - | 32 | 0 | 32 | 0% |
-| flota/rendimiento-vehiculos | - | 27 | 0 | 27 | 0% |
-| flota/reporte-semanal | - | 94 | 0 | 94 | 0% |
-| flota/reportes | - | 64 | 0 | 64 | 0% |
-| flota/responsabilidad | - | 122 | 0 | 122 | 0% |
-| flota/rutas | - | 202 | 0 | 202 | 0% |
-| flota/rutas-activas | - | 69 | 0 | 69 | 0% |
-| flota/seguimiento | - | 43 | 0 | 43 | 0% |
-| forbidden | - | 4 | 0 | 4 | 0% |
-| incentivos | - | 238 | 0 | 238 | 0% |
-| inventario/activos | - | 117 | 0 | 117 | 0% |
-| inventario/ajuste-real | - | 39 | 0 | 39 | 0% |
-| inventario/almacen-inventario | - | 68 | 0 | 68 | 0% |
-| inventario/apertura | - | 39 | 0 | 39 | 0% |
-| inventario/articulos | - | 168 | 0 | 168 | 0% |
-| inventario/bodegas | - | 116 | 0 | 116 | 0% |
-| inventario/categorias | - | 34 | 0 | 34 | 0% |
-| inventario/conduces | - | 69 | 0 | 69 | 0% |
-| inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
-| inventario/confirmaciones | - | 44 | 0 | 44 | 0% |
-| inventario/conteos | - | 110 | 0 | 110 | 0% |
-| inventario/entradas | - | 229 | 0 | 229 | 0% |
-| inventario/kardex-modal | - | 47 | 0 | 47 | 0% |
-| inventario/lugares-por-registrar | - | 20 | 0 | 20 | 0% |
-| inventario/material-no-catalogado | - | 56 | 0 | 56 | 0% |
-| inventario/movimientos | - | 30 | 0 | 30 | 0% |
-| inventario/por-firmar | - | 42 | 0 | 42 | 0% |
-| inventario/proveedores-transporte | - | 37 | 0 | 37 | 0% |
-| inventario/reportes | - | 70 | 0 | 70 | 0% |
-| inventario/reposicion | - | 44 | 0 | 44 | 0% |
-| inventario/retiros | - | 141 | 0 | 141 | 0% |
-| inventario/salidas | - | 235 | 0 | 235 | 0% |
-| legal/aprobaciones | - | 60 | 0 | 60 | 0% |
-| legal/configuracion | - | 22 | 0 | 22 | 0% |
-| legal/contratos | - | 86 | 0 | 86 | 0% |
-| legal/firmas-pendientes | - | 18 | 0 | 18 | 0% |
-| mensajes/grupo-info | - | 55 | 0 | 55 | 0% |
-| mensajes | - | 118 | 0 | 118 | 0% |
-| mi-rendimiento | - | 34 | 0 | 34 | 0% |
-| mis-choferes | - | 16 | 0 | 16 | 0% |
-| notas/editor | - | 76 | 0 | 76 | 0% |
-| notas | - | 61 | 0 | 61 | 0% |
-| obra/avance | - | 108 | 0 | 108 | 0% |
-| obra/checklists | - | 72 | 0 | 72 | 0% |
-| obra/informes | - | 65 | 0 | 65 | 0% |
-| obra/no-conformidades | - | 149 | 0 | 149 | 0% |
-| obra/plan-dia | - | 55 | 0 | 55 | 0% |
-| obra/subcontratistas | - | 104 | 0 | 104 | 0% |
-| politicas/eliminar-cuenta | - | 13 | 0 | 13 | 0% |
-| politicas | - | 21 | 0 | 21 | 0% |
-| proyectos/cargos | - | 54 | 0 | 54 | 0% |
-| proyectos/clima | - | 54 | 0 | 54 | 0% |
-| proyectos/compras | - | 40 | 0 | 40 | 0% |
-| proyectos/costos | - | 22 | 0 | 22 | 0% |
-| proyectos/cronograma | - | 114 | 0 | 114 | 0% |
-| proyectos/cronograma-import | - | 47 | 0 | 47 | 0% |
-| proyectos/historial | - | 24 | 0 | 24 | 0% |
-| proyectos/kpi | - | 32 | 0 | 32 | 0% |
-| proyectos/lista | - | 321 | 0 | 321 | 0% |
-| rrhh/activos | - | 45 | 0 | 45 | 0% |
-| rrhh/asistencia | - | 57 | 0 | 57 | 0% |
-| rrhh/ausencias | - | 65 | 0 | 65 | 0% |
-| rrhh/candidatos | - | 65 | 0 | 65 | 0% |
-| rrhh/capacitacion | - | 38 | 0 | 38 | 0% |
-| rrhh/contratos | - | 43 | 0 | 43 | 0% |
-| rrhh/empleados | - | 219 | 0 | 219 | 0% |
-| rrhh/evaluaciones | - | 26 | 0 | 26 | 0% |
-| rrhh/nomina | - | 39 | 0 | 39 | 0% |
-| rrhh/onboarding | - | 45 | 0 | 45 | 0% |
-| rrhh/organigrama | - | 14 | 0 | 14 | 0% |
-| rrhh/proveedores | - | 37 | 0 | 37 | 0% |
-| rrhh/reportes | - | 29 | 0 | 29 | 0% |
-| rrhh/tramites | - | 49 | 0 | 49 | 0% |
-| solicitudes-movimiento | - | 122 | 0 | 122 | 0% |
-| tareas/gestion | - | 55 | 0 | 55 | 0% |
-| tareas/historial | - | 33 | 0 | 33 | 0% |
-| tareas/mis-tareas | - | 17 | 0 | 17 | 0% |
-| tecnologia/apis-consumo | - | 48 | 0 | 48 | 0% |
-| tecnologia/compras | - | 136 | 0 | 136 | 0% |
-| tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
-| tecnologia/design-system | - | 139 | 0 | 139 | 0% |
-| tecnologia/estadisticas | - | 72 | 0 | 72 | 0% |
-| tecnologia/guia | - | 19 | 0 | 19 | 0% |
-| tecnologia/homologacion | - | 44 | 0 | 44 | 0% |
-| tecnologia/inventario | - | 297 | 0 | 297 | 0% |
-| tecnologia/matriz | - | 39 | 0 | 39 | 0% |
-| tecnologia/monitoreo | - | 97 | 0 | 97 | 0% |
-| tecnologia/odoo-sync | - | 51 | 0 | 51 | 0% |
-| tecnologia/outbox-atascados | - | 90 | 0 | 90 | 0% |
-| tecnologia/qa | - | 114 | 0 | 114 | 0% |
-| tecnologia/reportes-errores | - | 92 | 0 | 92 | 0% |
-| tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
-| trabajos-transporte | - | 31 | 0 | 31 | 0% |
-| verificar | - | 13 | 0 | 13 | 0% |
-| legal/expedientes | - | 140 | 3 | 137 | 2% |
-| soporte | - | 52 | 1 | 51 | 2% |
-| admin/empresa | - | 62 | 2 | 60 | 3% |
-| flota/checklists | - | 175 | 5 | 170 | 3% |
-| inventario/conduce-externo-ficha | - | 62 | 2 | 60 | 3% |
-| inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
-| bitacora/nueva | - | 300 | 17 | 283 | 6% |
-| bitacora/solicitudes-material | - | 145 | 9 | 136 | 6% |
-| tecnologia/dev-notes | - | 137 | 10 | 127 | 7% |
-| flota/mantenimientos | - | 178 | 16 | 162 | 9% |
-| flota/vehiculos | - | 589 | 66 | 523 | 11% |
-| bitacora/cartillas | - | 118 | 15 | 103 | 13% |
-| bitacora/moldes | - | 40 | 5 | 35 | 13% |
-| app-movil | - | 55 | 8 | 47 | 15% |
-| proyectos/personal | - | 415 | 74 | 341 | 18% |
-| auth | - | 71 | 15 | 56 | 21% |
-| bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
-| practica | - | 69 | 24 | 45 | 35% |
-| admin/pulso-sistema | - | 7 | 3 | 4 | 43% |
-| demo/progreso | - | 19 | 9 | 10 | 47% |
-| reuniones/reuniones-lista | - | 101 | 47 | 54 | 47% |
-| tecnologia/oficina-agentes | - | 46 | 22 | 24 | 48% |
-| admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
-| asistente | - | 67 | 33 | 34 | 49% |
-| demo/escenarios | - | 27 | 14 | 13 | 52% |
-| admin/auditoria | - | 117 | 62 | 55 | 53% |
-| reuniones/reunion-ficha | - | 60 | 32 | 28 | 53% |
-| tecnologia/whatsapp | - | 308 | 164 | 144 | 53% |
-| tecnologia/cotizaciones | - | 118 | 65 | 53 | 55% |
-| borrador-claude | - | 41 | 23 | 18 | 56% |
-| compras/productos-por-dar-de-alta | - | 70 | 41 | 29 | 59% |
-| admin/vault | - | 108 | 65 | 43 | 60% |
-| tecnologia/envios-automaticos | - | 33 | 20 | 13 | 61% |
-| compras/gastos | - | 40 | 25 | 15 | 63% |
-| flota/transferencias | - | 16 | 10 | 6 | 63% |
-| ingenieria/pagos | - | 86 | 54 | 32 | 63% |
-| inventario/stock-odoo | - | 42 | 27 | 15 | 64% |
-| flota/cupos-combustible | - | 61 | 40 | 21 | 66% |
-| claude | - | 134 | 91 | 43 | 68% |
-| configuracion/claude | - | 39 | 27 | 12 | 69% |
-| admin/claude | - | 36 | 26 | 10 | 72% |
-| oauth-consent | - | 24 | 18 | 6 | 75% |
+| admin/almacenes-duplicados | scope | 14 | 0 | 14 | 0% |
+| admin/animaciones | scope | 35 | 0 | 35 | 0% |
+| admin/app-versiones | scope | 134 | 0 | 134 | 0% |
+| admin/bitacora-catalogos | scope | 13 | 0 | 13 | 0% |
+| admin/conduces-huerfanos | scope | 16 | 0 | 16 | 0% |
+| admin/historial-versiones | scope | 25 | 0 | 25 | 0% |
+| admin/importar | scope | 2 | 0 | 2 | 0% |
+| admin/jira | scope | 69 | 0 | 69 | 0% |
+| admin/matriz-notificaciones | scope | 77 | 0 | 77 | 0% |
+| admin/orden-modulos | scope | 7 | 0 | 7 | 0% |
+| admin/otros-valores | scope | 10 | 0 | 10 | 0% |
+| admin/parametros | scope | 12 | 0 | 12 | 0% |
+| admin/reportes | scope | 44 | 0 | 44 | 0% |
+| admin/roles | scope | 166 | 0 | 166 | 0% |
+| admin/solicitudes-eliminacion | scope | 8 | 0 | 8 | 0% |
+| admin/unidades | scope | 11 | 0 | 11 | 0% |
+| admin/usuarios | scope | 163 | 0 | 163 | 0% |
+| admin/usuarios-duplicados | scope | 18 | 0 | 18 | 0% |
+| admin/usuarios-test | scope | 37 | 0 | 37 | 0% |
+| apoyo-transporte | scope | 57 | 0 | 57 | 0% |
+| auth/set-password | scope | 13 | 0 | 13 | 0% |
+| bitacora/cobertura | scope | 19 | 0 | 19 | 0% |
+| bitacora/dashboard | scope | 26 | 0 | 26 | 0% |
+| bitacora/entregas | scope | 25 | 0 | 25 | 0% |
+| bitacora/historial | scope | 97 | 0 | 97 | 0% |
+| bitacora/mi-proyecto | scope | 5 | 0 | 5 | 0% |
+| bitacora/solicitudes-compra | scope | 34 | 0 | 34 | 0% |
+| compras/ordenes | scope | 134 | 0 | 134 | 0% |
+| compras/ordenes-odoo | scope | 140 | 0 | 140 | 0% |
+| compras/proveedores | scope | 86 | 0 | 86 | 0% |
+| compras/proveedores-odoo | scope | 59 | 0 | 59 | 0% |
+| compras/reportes | scope | 22 | 0 | 22 | 0% |
+| compras/solicitar-odoo | scope | 35 | 0 | 35 | 0% |
+| direccion | scope | 16 | 0 | 16 | 0% |
+| documentos/generar | scope | 9 | 0 | 9 | 0% |
+| documentos/historial | scope | 10 | 0 | 10 | 0% |
+| documentos/plantillas | scope | 49 | 0 | 49 | 0% |
+| documentos/ver | scope | 9 | 0 | 9 | 0% |
+| dudas | scope | 15 | 0 | 15 | 0% |
+| flota/accidentes | scope | 56 | 0 | 56 | 0% |
+| flota/avisos | scope | 55 | 0 | 55 | 0% |
+| flota/choferes-privados | scope | 54 | 0 | 54 | 0% |
+| flota/combustible | scope | 223 | 0 | 223 | 0% |
+| flota/combustible-dashboard | scope | 54 | 0 | 54 | 0% |
+| flota/combustible-log | scope | 138 | 0 | 138 | 0% |
+| flota/conciliacion-combustible | scope | 179 | 0 | 179 | 0% |
+| flota/conductores | scope | 195 | 0 | 195 | 0% |
+| flota/conductores-estado | scope | 17 | 0 | 17 | 0% |
+| flota/panel-dia | scope | 24 | 0 | 24 | 0% |
+| flota/recorrido-diario | scope | 14 | 0 | 14 | 0% |
+| flota/rendimiento-vehiculos | scope | 21 | 0 | 21 | 0% |
+| flota/reporte-semanal | scope | 55 | 0 | 55 | 0% |
+| flota/reportes | scope | 46 | 0 | 46 | 0% |
+| flota/responsabilidad | scope | 72 | 0 | 72 | 0% |
+| flota/rutas | scope | 125 | 0 | 125 | 0% |
+| flota/rutas-activas | scope | 46 | 0 | 46 | 0% |
+| flota/seguimiento | scope | 23 | 0 | 23 | 0% |
+| forbidden | scope | 4 | 0 | 4 | 0% |
+| incentivos | scope | 184 | 0 | 184 | 0% |
+| legal/aprobaciones | scope | 34 | 0 | 34 | 0% |
+| legal/configuracion | scope | 20 | 0 | 20 | 0% |
+| legal/contratos | scope | 66 | 0 | 66 | 0% |
+| legal/firmas-pendientes | scope | 12 | 0 | 12 | 0% |
+| mensajes/grupo-info | scope | 44 | 0 | 44 | 0% |
+| mensajes | scope | 68 | 0 | 68 | 0% |
+| mi-rendimiento | scope | 17 | 0 | 17 | 0% |
+| mis-choferes | scope | 9 | 0 | 9 | 0% |
+| notas/editor | scope | 54 | 0 | 54 | 0% |
+| notas | scope | 47 | 0 | 47 | 0% |
+| obra/avance | scope | 85 | 0 | 85 | 0% |
+| obra/checklists | scope | 57 | 0 | 57 | 0% |
+| obra/informes | scope | 49 | 0 | 49 | 0% |
+| obra/no-conformidades | scope | 117 | 0 | 117 | 0% |
+| obra/plan-dia | scope | 44 | 0 | 44 | 0% |
+| obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
+| politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
+| politicas | scope | 15 | 0 | 15 | 0% |
+| proyectos/cargos | scope | 43 | 0 | 43 | 0% |
+| proyectos/clima | scope | 40 | 0 | 40 | 0% |
+| proyectos/compras | scope | 30 | 0 | 30 | 0% |
+| proyectos/costos | scope | 13 | 0 | 13 | 0% |
+| proyectos/cronograma | scope | 81 | 0 | 81 | 0% |
+| proyectos/cronograma-import | scope | 37 | 0 | 37 | 0% |
+| proyectos/historial | scope | 18 | 0 | 18 | 0% |
+| proyectos/kpi | scope | 26 | 0 | 26 | 0% |
+| proyectos/lista | scope | 203 | 0 | 203 | 0% |
+| rrhh/activos | scope | 44 | 0 | 44 | 0% |
+| rrhh/asistencia | scope | 40 | 0 | 40 | 0% |
+| rrhh/ausencias | scope | 48 | 0 | 48 | 0% |
+| rrhh/candidatos | scope | 60 | 0 | 60 | 0% |
+| rrhh/capacitacion | scope | 33 | 0 | 33 | 0% |
+| rrhh/contratos | scope | 32 | 0 | 32 | 0% |
+| rrhh/empleados | scope | 162 | 0 | 162 | 0% |
+| rrhh/evaluaciones | scope | 22 | 0 | 22 | 0% |
+| rrhh/nomina | scope | 35 | 0 | 35 | 0% |
+| rrhh/onboarding | scope | 42 | 0 | 42 | 0% |
+| rrhh/organigrama | scope | 7 | 0 | 7 | 0% |
+| rrhh/proveedores | scope | 35 | 0 | 35 | 0% |
+| rrhh/reportes | scope | 20 | 0 | 20 | 0% |
+| rrhh/tramites | scope | 47 | 0 | 47 | 0% |
+| solicitudes-movimiento | scope | 94 | 0 | 94 | 0% |
+| tareas/gestion | scope | 38 | 0 | 38 | 0% |
+| tareas/historial | scope | 22 | 0 | 22 | 0% |
+| tareas/mis-tareas | scope | 7 | 0 | 7 | 0% |
+| tecnologia/apis-consumo | scope | 44 | 0 | 44 | 0% |
+| tecnologia/compras | scope | 98 | 0 | 98 | 0% |
+| tecnologia/consultas-compa | scope | 24 | 0 | 24 | 0% |
+| tecnologia/design-system | scope | 131 | 0 | 131 | 0% |
+| tecnologia/estadisticas | scope | 41 | 0 | 41 | 0% |
+| tecnologia/guia | scope | 10 | 0 | 10 | 0% |
+| tecnologia/homologacion | scope | 37 | 0 | 37 | 0% |
+| tecnologia/inventario | scope | 240 | 0 | 240 | 0% |
+| tecnologia/matriz | scope | 27 | 0 | 27 | 0% |
+| tecnologia/monitoreo | scope | 69 | 0 | 69 | 0% |
+| tecnologia/odoo-sync | scope | 33 | 0 | 33 | 0% |
+| tecnologia/outbox-atascados | scope | 57 | 0 | 57 | 0% |
+| tecnologia/qa | scope | 83 | 0 | 83 | 0% |
+| tecnologia/reportes-errores | scope | 66 | 0 | 66 | 0% |
+| tecnologia/resumen-operaciones | scope | 70 | 0 | 70 | 0% |
+| trabajos-transporte | scope | 24 | 0 | 24 | 0% |
+| verificar | scope | 9 | 0 | 9 | 0% |
+| soporte | scope | 39 | 1 | 38 | 3% |
+| admin/empresa | scope | 50 | 2 | 48 | 4% |
+| flota/checklists | scope | 112 | 5 | 107 | 4% |
+| bitacora/nueva | scope | 201 | 17 | 184 | 8% |
+| legal/expedientes | scope | 89 | 7 | 82 | 8% |
+| bitacora/solicitudes-material | scope | 88 | 9 | 79 | 10% |
+| flota/mantenimientos | scope | 120 | 16 | 104 | 13% |
+| tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
+| flota/vehiculos | scope | 420 | 66 | 354 | 16% |
+| bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
+| app-movil | scope | 42 | 8 | 34 | 19% |
+| bitacora/moldes | scope | 22 | 5 | 17 | 23% |
+| proyectos/personal | scope | 277 | 76 | 201 | 27% |
+| bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
+| auth | scope | 42 | 15 | 27 | 36% |
+| practica | scope | 34 | 24 | 10 | 71% |
+| tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
+| tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
+| admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
+| flota/transferencias | scope | 13 | 10 | 3 | 77% |
+| ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
+| reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
+| tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
+| compras/productos-por-dar-de-alta | scope | 48 | 41 | 7 | 85% |
+| flota/cupos-combustible | scope | 48 | 41 | 7 | 85% |
+| admin/vault | scope | 73 | 65 | 8 | 89% |
+| reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
+| asistente | scope | 36 | 33 | 3 | 92% |
+| borrador-claude | scope | 25 | 23 | 2 | 92% |
+| oauth-consent | scope | 19 | 18 | 1 | 95% |
+| compras/gastos | scope | 26 | 25 | 1 | 96% |
+| admin/auditoria | scope | 63 | 62 | 1 | 98% |
+| tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
+| admin/claude | enforce | 27 | 27 | 0 | 100% |
+| admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
+| ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
+| claude | enforce | 117 | 117 | 0 | 100% |
+| configuracion/claude | enforce | 32 | 32 | 0 | 100% |
+| configuracion | enforce | 58 | 58 | 0 | 100% |
+| dashboard | enforce | 70 | 70 | 0 | 100% |
+| demo/escenarios | scope | 14 | 14 | 0 | 100% |
+| demo/progreso | scope | 9 | 9 | 0 | 100% |
+| inventario/activos | enforce | 70 | 70 | 0 | 100% |
+| inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
+| inventario/almacen-inventario | enforce | 50 | 50 | 0 | 100% |
+| inventario/apertura | enforce | 38 | 38 | 0 | 100% |
+| inventario/articulos | enforce | 93 | 93 | 0 | 100% |
+| inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
+| inventario/categorias | enforce | 23 | 23 | 0 | 100% |
+| inventario/conduce | enforce | 151 | 151 | 0 | 100% |
+| inventario/conduce-externo-ficha | enforce | 36 | 36 | 0 | 100% |
+| inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
+| inventario/conduces | enforce | 34 | 34 | 0 | 100% |
+| inventario/conduces-externos | enforce | 14 | 14 | 0 | 100% |
+| inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
+| inventario/confirmaciones | enforce | 27 | 27 | 0 | 100% |
+| inventario/conteos | enforce | 68 | 68 | 0 | 100% |
+| inventario/entradas | enforce | 114 | 114 | 0 | 100% |
+| inventario/kardex-modal | enforce | 25 | 25 | 0 | 100% |
+| inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
+| inventario/material-no-catalogado | enforce | 39 | 39 | 0 | 100% |
+| inventario/movimientos | enforce | 18 | 18 | 0 | 100% |
+| inventario/por-firmar | enforce | 25 | 25 | 0 | 100% |
+| inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
+| inventario/reportes | enforce | 44 | 44 | 0 | 100% |
+| inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
+| inventario/requisiciones | enforce | 143 | 143 | 0 | 100% |
+| inventario/retiros | enforce | 100 | 100 | 0 | 100% |
+| inventario/salidas | enforce | 133 | 133 | 0 | 100% |
+| inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
+| perfil | enforce | 24 | 24 | 0 | 100% |
+
+## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
+
+**768 literal(es) sin t()** en 104 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+
+| Archivo | sin t() | ejemplos |
+|---|---:|---|
+| src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
+| src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 30 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
+| src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
+| src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
+| src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
+| src/app/pages/compras/ordenes-odoo/ordenes-odoo.ts | 16 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
+| src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 16 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
+| src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
+| src/app/pages/flota/mantenimientos/mantenimientos.ts | 15 | No se pudo cambiar el tipo · No se pudo abrir el adjunto · Archivo no admitido … |
+| src/app/pages/flota/vehiculos/vehiculos.ts | 15 | Sin filas · Rendimientos importados · No se pudo importar … |
+| src/app/pages/flota/combustible-log/combustible-log.ts | 14 | Elige el usuario · Indica el vencimiento del permiso · Permiso otorgado … |
+| src/app/pages/ingenieria/pagos/pagos.ts | 14 | No se pudo crear la semana · No se pudo crear la semana · No se pudo guardar … |
+| src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
+| src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
+| src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
+| src/app/pages/apoyo-transporte/apoyo-transporte.ts | 13 | Faltan datos · Falta la foto · Apoyo creado … |
+| src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
+| src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
+| src/app/pages/compras/ordenes/ordenes.ts | 12 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
+| src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
+| src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
+| src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
+| src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |
+| src/app/pages/rrhh/onboarding/onboarding.ts | 12 | No se pudieron cargar las vacantes · Falta el título · Vacante creada … |
+| src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
+| src/app/pages/proyectos/cronograma/cronograma.ts | 11 | Tarea guardada. · Dependencia agregada. · Dependencia eliminada. … |
+| src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |
+| src/app/pages/flota/avisos/avisos.ts | 10 | Umbral inválido · Umbral actualizado · No se pudo guardar … |
+| src/app/pages/bitacora/cartillas/cartillas.ts | 9 | No se pudo abrir · Escribe la observación · Cartilla actualizada … |
+| src/app/pages/flota/conductores/conductores.ts | 9 | Acceso actualizado · Acceso por PIN sin resincronizar · Documentos … |
+| src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
+| src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
+| src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
+| src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
+| src/app/pages/proyectos/personal/personal-import.ts | 8 | Aplicado · No se pudo generar la plantilla · Elige la obra … |
+| src/app/pages/rrhh/tramites/tramites.ts | 8 | No se pudieron cargar los trámites · Falta el nombre · Trámite guardado … |
+| src/app/pages/solicitudes-movimiento/solicitudes-movimiento.ts | 8 | Agrega al menos un renglón de lo que se va a mover. · Solicitud creada · Solicitud cancelada … |
+| src/app/pages/tecnologia/cotizaciones/cotizaciones.ts | 8 | El título es obligatorio · Cotización guardada · Renglones guardados … |
+| src/app/pages/tecnologia/oficina-agentes/oficina-agentes.ts | 8 | Ejecutado · No se pudo ejecutar · Deshecho … |
+| src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
+| src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
+| src/app/pages/compras/proveedores/proveedores.ts | 7 | No se pudo cambiar el estado del proveedor · Dato de prueba eliminado · Error al eliminar … |
+| src/app/pages/flota/cupos-combustible/cupos-combustible.ts | 7 | Cupo ampliado · No se pudo ampliar · Falta el motivo … |
+| src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
+| src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
+| src/app/pages/proyectos/cargos/cargos.ts | 7 | Faltan datos · Alias agregado · No se pudo guardar … |
+| src/app/pages/rrhh/activos/activos.ts | 7 | No se pudieron cargar los activos · Falta el nombre · Activo guardado … |
+| src/app/pages/rrhh/capacitacion/capacitacion.ts | 7 | No se pudo cargar Capacitación · No se pudieron cargar las capacitaciones · Falta el curso … |
+| src/app/pages/rrhh/nomina/nomina.ts | 7 | No se pudo cargar Nómina · Valor inválido · Parámetro actualizado … |
+| src/app/pages/rrhh/proveedores/proveedores.ts | 7 | No se pudieron cargar los proveedores · Falta el nombre · Proveedor guardado … |
+| src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |
+| src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
+| src/app/pages/compras/proveedores-odoo/proveedores-odoo.ts | 6 | No se pudo cargar más proveedores · No se pudo cambiar el estado del proveedor · Dato de prueba eliminado … |
+| src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
+| src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
+| src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
+| src/app/pages/flota/accidentes/accidentes.ts | 5 | Accidente registrado · No se pudo actualizar · Dato de prueba eliminado … |
+| src/app/pages/flota/choferes-privados/choferes-privados.ts | 5 | Listo · Retirada · Listo … |
+| src/app/pages/flota/conductores/detalle/conductor-detalle.ts | 5 | Error · Foto actualizada · Multa registrada … |
+| src/app/pages/flota/vehiculos/cargar-documentos/cargar-documentos.ts | 5 | Un solo PDF · Formato no soportado · Demasiadas fotos … |
+| src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
+| src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
+| src/app/pages/trabajos-transporte/trabajos-transporte.ts | 5 | Elige un chofer de la lista · Asignado · No se pudo asignar … |
+| src/app/pages/bitacora/historial/historial.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
+| src/app/pages/bitacora/solicitudes-material/solicitudes-material.ts | 4 | Elige una fecha de necesidad · Fecha de necesidad actualizada · Ya enviaste una igual hace poco … |
+| src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
+| src/app/pages/flota/rutas/rutas.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
+| src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
+| src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
+| src/app/pages/proyectos/personal/personal-levantamiento.ts | 4 | No se pudo marcar · Día cerrado · No se pudo cerrar … |
+| src/app/pages/rrhh/contratos/contratos.ts | 4 | No se pudo cargar Contratos y documentos · No se pudieron cargar los documentos · Guardado … |
+| src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
+| src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
+| src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
+| src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
+| src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
+| src/app/pages/compras/productos-por-dar-de-alta/productos-por-dar-de-alta.ts | 3 | Solicitud enviada. · Artículo creado. · Solicitud resuelta. |
+| src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
+| src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
+| src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
+| src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |
+| src/app/pages/tecnologia/resumen-operaciones/resumen-operaciones.ts | 3 | Envío disparado · No se pudo reenviar · ¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora? |
+| src/app/pages/admin/almacenes-duplicados/almacenes-duplicados.ts | 2 | Almacenes fusionados · Vas a FUSIONAR "${duplicadoNombre}" dentro de "${canonicoNombre}".\n\n |
+| src/app/pages/admin/solicitudes-eliminacion/solicitudes-eliminacion.ts | 2 | Listo · ¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible. |
+| src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
+| src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
+| src/app/pages/bitacora/cobertura/cobertura.ts | 2 | Sin bitácoras · Al día |
+| src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
+| src/app/pages/compras/solicitar-odoo/solicitar-odoo.ts | 2 | Solicitud de alta enviada · No se pudo enviar la solicitud de alta |
+| src/app/pages/legal/expedientes/expedientes.ts | 2 | No se pudo cambiar el estado del expediente · No se pudo fijar la fecha límite |
+| src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
+| src/app/pages/tecnologia/odoo-sync/odoo-sync.ts | 2 | Reencolado · No se pudo reencolar |
+| src/app/pages/admin/conduces-huerfanos/conduces-huerfanos.ts | 1 | Conduce anulado |
+| src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
+| src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
+| src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
+| src/app/pages/bitacora/orden-trabajo/orden-trabajo.ts | 1 | Orden de trabajo registrada. |
+| src/app/pages/compras/gastos/gastos.ts | 1 | Gasto registrado |
+| src/app/pages/flota/reporte-semanal/reporte-semanal.ts | 1 | Inspección vehículo |
+| src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
+| src/app/pages/politicas/politicas.ts | 1 | Documento |
+| src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |
+| src/app/pages/proyectos/cronograma-import/cronograma-import.ts | 1 | Cronograma importado |
+| src/app/pages/rrhh/organigrama/organigrama.ts | 1 | No se pudo cargar el organigrama |

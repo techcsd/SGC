@@ -8,6 +8,7 @@ import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
@@ -61,6 +62,7 @@ export class ConduceExternoForm {
   private articulosSvc = inject(ArticulosService);
   private categoriasSvc = inject(CategoriasService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
   private user = inject(UserService);
   private motion = inject(MotionService);
   private router = inject(Router);
@@ -83,10 +85,10 @@ export class ConduceExternoForm {
       .filter(Boolean).length);
   faltan = computed(() => {
     const f: string[] = [];
-    if (!this.placaFile()) f.push('foto de la placa');
-    if (!this.tieneTransporta()) f.push('quién transporta');
-    if (!this.tieneOrigen()) f.push('origen');
-    if (!this.tieneDestino()) f.push('destino');
+    if (!this.placaFile()) f.push(this.i18n.t('foto de la placa'));
+    if (!this.tieneTransporta()) f.push(this.i18n.t('quién transporta'));
+    if (!this.tieneOrigen()) f.push(this.i18n.t('origen'));
+    if (!this.tieneDestino()) f.push(this.i18n.t('destino'));
     return f;
   });
   puedeEmitir = computed(() => this.listos() === 4 && !this.guardando());
@@ -212,7 +214,7 @@ export class ConduceExternoForm {
 
   async crearProveedorRapido() {
     const nombre = this.nuevoNombre().trim();
-    if (!nombre) { this.toast.warning('Escribe el nombre del proveedor'); return; }
+    if (!nombre) { this.toast.warning(this.i18n.t('Escribe el nombre del proveedor')); return; }
     try {
       const id = await this.svc.crearProveedor({ nombre, telefono: this.nuevoTel().trim() || null });
       this.proveedores.set(await this.svc.proveedores());
@@ -221,7 +223,7 @@ export class ConduceExternoForm {
       this.nuevoAbierto.set(false);
       this.nuevoNombre.set('');
       this.nuevoTel.set('');
-      this.toast.success('Proveedor creado', 'Queda "sin ratificar" hasta que Logística lo oficialice.');
+      this.toast.success(this.i18n.t('Proveedor creado'), this.i18n.t('Queda "sin ratificar" hasta que Logística lo oficialice.'));
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo crear el proveedor');
     }
@@ -445,7 +447,7 @@ export class ConduceExternoForm {
         numero: 'CE', destino: d?.texto ?? null,
         verUrl: `/inventario/conduces-externos/${id}`, verLabel: 'Ver conduce',
       });
-      this.toast.success('Conduce externo emitido', 'El viaje quedó registrado (pendiente de pago).');
+      this.toast.success(this.i18n.t('Conduce externo emitido'), this.i18n.t('El viaje quedó registrado (pendiente de pago).'));
       const propuestaId = this.iaPropuesta()?.propuesta_id;
       if (propuestaId) void this.formularioIa.resolverPropuesta(propuestaId, 'aceptada', id);
       this.router.navigate(['/inventario/conduces-externos'], { queryParams: { nuevo: id } });

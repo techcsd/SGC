@@ -15,6 +15,8 @@ import { TableroVivoComponent } from '../../components/tablero-vivo/tablero-vivo
 import { PulsoObrasComponent } from '../../components/pulso-obras/pulso-obras';
 import { FlujoRequisicionComponent } from '../../components/flujo-requisicion/flujo-requisicion';
 import { identificacionVehiculo } from '../../../shared/models/vehiculo.model';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 interface ModuleCard {
   label: string;
@@ -47,12 +49,13 @@ interface BarItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton, CountUpDirective, TableroVivoComponent, PulsoObrasComponent, FlujoRequisicionComponent],
+  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton, CountUpDirective, TableroVivoComponent, PulsoObrasComponent, FlujoRequisicionComponent, TranslatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit {
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private proyectosService = inject(ProyectosService);
@@ -217,8 +220,8 @@ export class Dashboard implements OnInit {
   // guard real de /inventario/salidas no es por módulo (puedeCrearConduceGuard),
   // así que un compras-sin-inventario va a /compras/ordenes en su lugar.
   solicitudesDestino = computed<{ ruta: string; label: string } | null>(() => {
-    if (this.isAdmin() || this.canAccess('inventario')) return { ruta: '/inventario/salidas', label: 'Solicitudes pendientes' };
-    if (this.canAccess('compras')) return { ruta: '/compras/ordenes', label: 'Solicitudes pendientes' };
+    if (this.isAdmin() || this.canAccess('inventario')) return { ruta: '/inventario/salidas', label: this.i18n.t('Solicitudes pendientes') };
+    if (this.canAccess('compras')) return { ruta: '/compras/ordenes', label: this.i18n.t('Solicitudes pendientes') };
     return null;
   });
   // /bitacora/historial exige el módulo Bitácora exacto (moduleGuard('bitacora'));

@@ -7,7 +7,7 @@
 
   <div class="cfg__layout">
     <!-- Navegación lateral por secciones -->
-    <nav class="cfg__nav" aria-label="Secciones de configuración">
+    <nav class="cfg__nav" aria-label="{{ 'Secciones de configuración' | t }}">
       @for (s of secciones(); track s.id) {
         <button type="button" class="cfg__nav-item" [class.cfg__nav-item--on]="seccion() === s.id"
                 (click)="ir(s.id)">
@@ -41,7 +41,7 @@
           <div class="cfg__card">
             <h2>{{ 'Idioma' | t }}</h2>
             <p class="cfg__muted">
-              {{ 'Los catálogos, nombres de obras y mensajes del sistema siguen en español.' | t }}
+              {{ 'Siempre quedan en español: catálogos, nombres de obra/proyecto/proveedor, mensajes de negocio del servidor, notificaciones push/correo, documentos (PDFs) y las respuestas de Compa/Claude.' | t }}
             </p>
             <app-language-selector />
           </div>

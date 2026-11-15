@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Icon } from '../icon/icon';
 import { I18nService, IDIOMAS, Idioma } from '../../i18n/i18n.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 import { I18N_COVERAGE, I18N_UMBRAL } from '../../i18n/i18n-coverage.generated';
+
+const NOMBRE_IDIOMA: Record<Idioma, string> = { es: 'Español', en: 'Inglés', ht: 'Kreyòl ayisyen' };
 
 /**
  * BS4 — selector de idioma reutilizable (lista con el nombre NATIVO de cada
@@ -11,7 +14,7 @@ import { I18N_COVERAGE, I18N_UMBRAL } from '../../i18n/i18n-coverage.generated';
  */
 @Component({
   selector: 'app-language-selector',
-  imports: [Icon],
+  imports: [Icon, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './language-selector.html',
   styleUrl: './language-selector.scss',
@@ -21,14 +24,15 @@ export class LanguageSelector {
   idiomas = IDIOMAS;
   actual = this.i18n.idioma;
 
-  /** BT2/regla 17 — un idioma se OFRECE completo solo cuando cubre el alcance
-   *  (≥95% en, ≥90% ht). `es` es el canónico. `en` por debajo del umbral se ofrece
-   *  marcado *beta* (con la cobertura real en el tooltip). `ht` sin catálogo se
-   *  muestra "próximamente" y NO se puede elegir — nunca se ofrece a medias. */
+  /** DP-12 — un idioma se OFRECE completo solo cuando el escáner mide 100% de
+   *  TODAS las pantallas (`I18N_UMBRAL`, nunca se pone `ok` a mano — lo decide
+   *  el número generado por `scripts/i18n-coverage.mjs`). `es` es el canónico.
+   *  Por debajo del umbral se ofrece marcado *beta* (cobertura real en el
+   *  tooltip); en 0% se muestra "próximamente" y NO se puede elegir. */
   estado(code: Idioma): 'ok' | 'beta' | 'proximamente' {
     if (code === 'es') return 'ok';
     const cov = I18N_COVERAGE[code as 'en' | 'ht'] ?? 0;
-    const umbral = I18N_UMBRAL[code as 'en' | 'ht'] ?? 95;
+    const umbral = I18N_UMBRAL[code as 'en' | 'ht'] ?? 100;
     if (cov >= umbral) return 'ok';
     if (cov > 0) return 'beta';
     return 'proximamente';
@@ -41,8 +45,9 @@ export class LanguageSelector {
   }
   tooltip(code: Idioma): string {
     const e = this.estado(code);
-    if (e === 'beta') return `Inglés cubre ${this.cobertura(code)}% de las pantallas; lo que falta se ve en español.`;
-    if (e === 'proximamente') return 'Próximamente: aún no está traducido.';
+    const nombre = this.i18n.t(NOMBRE_IDIOMA[code] ?? code);
+    if (e === 'beta') return this.i18n.t('{nombre} cubre {cov}% de las pantallas; lo que falta se ve en español.', { nombre, cov: this.cobertura(code) });
+    if (e === 'proximamente') return this.i18n.t('Próximamente: aún no está traducido.');
     return '';
   }
 

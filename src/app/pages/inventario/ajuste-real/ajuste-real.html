@@ -1,34 +1,34 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <a routerLink="/inventario/articulos" class="page__back">← Inventario</a>
-      <h1 class="page__title">Ajuste real de almacén</h1>
-      <p class="page__sub">Fija el stock al valor real de tu listado, <strong>sin generar movimiento en el kardex ni escalón en la gráfica</strong> (rebasa la línea base). Solo administrador.</p>
+      <a routerLink="/inventario/articulos" class="page__back">{{ '← Inventario' | t }}</a>
+      <h1 class="page__title">{{ 'Ajuste real de almacén' | t }}</h1>
+      <p class="page__sub">{{ 'Fija el stock al valor real de tu listado,' | t }} <strong>{{ 'sin generar movimiento en el kardex ni escalón en la gráfica' | t }}</strong> {{ '(rebasa la línea base). Solo administrador.' | t }}</p>
     </div>
   </header>
 
   <!-- BG4/AU1 — un solo camino: el material DAÑADO no se saca por aquí. -->
   <div class="ar-aviso-retiro">
-    ¿Vas a dar de baja material <strong>dañado</strong>? No uses «Ajuste real»: no deja traza ni evidencia.
-    Usa <a routerLink="/inventario/retiros">Retiro de material dañado</a> (solicitud con fotos → cuarentena → disposición auditada).
+    {{ '¿Vas a dar de baja material' | t }} <strong>{{ 'dañado' | t }}</strong>{{ '? No uses «Ajuste real»: no deja traza ni evidencia.' | t }}
+    {{ 'Usa' | t }} <a routerLink="/inventario/retiros">{{ 'Retiro de material dañado' | t }}</a> {{ '(solicitud con fotos → cuarentena → disposición auditada).' | t }}
   </div>
 
   @if (!esAdmin()) {
-    <div class="save-error">Esta herramienta es solo para administradores.</div>
+    <div class="save-error">{{ 'Esta herramienta es solo para administradores.' | t }}</div>
   } @else {
     @if (error()) { <div class="save-error" role="alert">{{ error() }}</div> }
 
     <div class="ar-controls">
       <label class="ar-field">
-        <span>Almacén <b>*</b></span>
+        <span>{{ 'Almacén' | t }} <b>*</b></span>
         <select [value]="selBodega() ?? ''" (change)="onBodega($any($event.target).value)">
-          <option value="">Selecciona el almacén…</option>
+          <option value="">{{ 'Selecciona el almacén…' | t }}</option>
           @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
         </select>
       </label>
       @if (selBodega() && paso() === 'inicio') {
         <label class="sgc-btn sgc-btn--secondary ar-file">
-          Subir listado (Excel)
+          {{ 'Subir listado (Excel)' | t }}
           <input type="file" accept=".xlsx,.xls" hidden (change)="onFile($event)" />
         </label>
       }
@@ -37,17 +37,17 @@
     @if (paso() === 'preview') {
       <div class="ar-meta"><app-icon name="file-text" [size]="14" /> {{ archivoNombre() }}</div>
       <div class="ar-summary">
-        <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
-        <span class="pi-chip pi-chip--dup">{{ conCambio() }} con cambio</span>
-        @if (sinMatch()) { <span class="pi-chip pi-chip--err">{{ sinMatch() }} sin match</span> }
+        <span class="pi-chip pi-chip--ok">{{ okCount() }} {{ 'listas' | t }}</span>
+        <span class="pi-chip pi-chip--dup">{{ conCambio() }} {{ 'con cambio' | t }}</span>
+        @if (sinMatch()) { <span class="pi-chip pi-chip--err">{{ sinMatch() }} {{ 'sin match' | t }}</span> }
       </div>
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th></th><th>Código</th><th>Artículo</th><th class="text-right">Stock actual</th><th class="text-right">Stock real</th><th class="text-right">Δ</th></tr></thead>
+          <thead><tr><th></th><th>{{ 'Código' | t }}</th><th>{{ 'Artículo' | t }}</th><th class="text-right">{{ 'Stock actual' | t }}</th><th class="text-right">{{ 'Stock real' | t }}</th><th class="text-right">Δ</th></tr></thead>
           <tbody>
             @for (f of filas(); track $index) {
               <tr [class.pi-row--warn]="f.estado === 'warning'">
-                <td>@if (f.estado === 'ok') { <span class="pi-dot pi-dot--ok" title="Lista">●</span> } @else { <span class="pi-dot pi-dot--warn" [title]="f.motivo">▲</span> }</td>
+                <td>@if (f.estado === 'ok') { <span class="pi-dot pi-dot--ok" title="{{ 'Lista' | t }}">●</span> } @else { <span class="pi-dot pi-dot--warn" [title]="f.motivo">▲</span> }</td>
                 <td class="text-muted">{{ f.codigo }}</td>
                 <td>{{ f.nombre }}</td>
                 <td class="text-right text-muted">{{ f.actual }}</td>
@@ -59,8 +59,8 @@
         </table>
       </div>
       <div class="ar-actions">
-        @if (sinMatch()) { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarSinMatch()">Descargar sin match</button> }
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">Cambiar archivo</button>
+        @if (sinMatch()) { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarSinMatch()">{{ 'Descargar sin match' | t }}</button> }
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">{{ 'Cambiar archivo' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !okCount()" (click)="aplicar()">
           {{ procesando() ? 'Aplicando…' : 'Aplicar ajuste real (' + okCount() + ')' }}
         </button>
@@ -69,9 +69,9 @@
 
     @if (paso() === 'hecho' && resultado(); as r) {
       <div class="ar-result">
-        <h2>Ajuste real aplicado</h2>
-        <p><strong>{{ r.ok }}</strong> artículos ajustados sin escalón en la gráfica ni movimiento en el kardex. @if (r.errores.length) { {{ r.errores.length }} con error. }</p>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">Hacer otro ajuste</button>
+        <h2>{{ 'Ajuste real aplicado' | t }}</h2>
+        <p><strong>{{ r.ok }}</strong> {{ 'artículos ajustados sin escalón en la gráfica ni movimiento en el kardex.' | t }} @if (r.errores.length) { {{ r.errores.length }} {{ 'con error.' | t }} }</p>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">{{ 'Hacer otro ajuste' | t }}</button>
       </div>
     }
   }

@@ -1,8 +1,8 @@
 <!-- Page header -->
 <div class="inv-reportes__header">
   <div class="inv-reportes__header-left">
-    <h1 class="inv-reportes__title">Reportes de Inventario</h1>
-    <span class="inv-reportes__subtitle">Resumen general del estado del inventario</span>
+    <h1 class="inv-reportes__title">{{ 'Reportes de Inventario' | t }}</h1>
+    <span class="inv-reportes__subtitle">{{ 'Resumen general del estado del inventario' | t }}</span>
   </div>
 </div>
 
@@ -24,7 +24,7 @@
 @if (!loading() && !error()) {
   <!-- Summary cards -->
   <!-- R11 — KPIs clicables: cada número abre su lista filtrada -->
-  <div class="inv-reportes__cards" role="region" aria-label="Resumen del inventario">
+  <div class="inv-reportes__cards" role="region" aria-label="{{ 'Resumen del inventario' | t }}">
     <article class="inv-reportes__card inv-reportes__card--link" (click)="irAArticulos()" role="button" tabindex="0" (keydown.enter)="irAArticulos()">
       <div class="inv-reportes__card-icon inv-reportes__card-icon--primary" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -32,7 +32,7 @@
         </svg>
       </div>
       <div class="inv-reportes__card-body">
-        <span class="inv-reportes__card-label">Total artículos activos</span>
+        <span class="inv-reportes__card-label">{{ 'Total artículos activos' | t }}</span>
         <strong class="inv-reportes__card-value">{{ totalActivos() | number }}</strong>
       </div>
     </article>
@@ -45,7 +45,7 @@
         </svg>
       </div>
       <div class="inv-reportes__card-body">
-        <span class="inv-reportes__card-label">Stock bajo</span>
+        <span class="inv-reportes__card-label">{{ 'Stock bajo' | t }}</span>
         <strong class="inv-reportes__card-value inv-reportes__card-value--warning">{{ stockBajo() | number }}</strong>
       </div>
     </article>
@@ -58,7 +58,7 @@
         </svg>
       </div>
       <div class="inv-reportes__card-body">
-        <span class="inv-reportes__card-label">Sin stock</span>
+        <span class="inv-reportes__card-label">{{ 'Sin stock' | t }}</span>
         <strong class="inv-reportes__card-value inv-reportes__card-value--danger">{{ sinStock() | number }}</strong>
       </div>
     </article>
@@ -70,7 +70,7 @@
         </svg>
       </div>
       <div class="inv-reportes__card-body">
-        <span class="inv-reportes__card-label">Valor total inventario</span>
+        <span class="inv-reportes__card-label">{{ 'Valor total inventario' | t }}</span>
         <strong class="inv-reportes__card-value inv-reportes__card-value--success">{{ valorTotal() | currency:'DOP ':'symbol':'1.0-0' }}</strong>
       </div>
     </article>
@@ -78,22 +78,22 @@
 
   <!-- Section 1: Stock por categoría -->
   <section class="inv-reportes__section" aria-labelledby="sec-categorias">
-    <h2 class="inv-reportes__section-title" id="sec-categorias">Stock por categoría</h2>
+    <h2 class="inv-reportes__section-title" id="sec-categorias">{{ 'Stock por categoría' | t }}</h2>
     <div class="inv-reportes__table-wrap">
       @if (categoriaStats().length === 0) {
-        <p class="inv-reportes__empty">No hay categorías con artículos.</p>
+        <p class="inv-reportes__empty">{{ 'No hay categorías con artículos.' | t }}</p>
       } @else {
-        <table class="inv-reportes__table" aria-label="Stock por categoría">
+        <table class="inv-reportes__table" aria-label="{{ 'Stock por categoría' | t }}">
           <thead>
             <tr>
-              <th scope="col">Categoría</th>
-              <th scope="col" class="inv-reportes__table-num"># Artículos</th>
-              <th scope="col" class="inv-reportes__table-num">Stock total</th>
+              <th scope="col">{{ 'Categoría' | t }}</th>
+              <th scope="col" class="inv-reportes__table-num">{{ '# Artículos' | t }}</th>
+              <th scope="col" class="inv-reportes__table-num">{{ 'Stock total' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (cat of categoriaStats(); track cat.nombre) {
-              <tr class="inv-reportes__row--link" (click)="irACategoria(cat.catId)" role="button" tabindex="0" (keydown.enter)="irACategoria(cat.catId)" [attr.aria-label]="'Ver artículos de ' + cat.nombre">
+              <tr class="inv-reportes__row--link" (click)="irACategoria(cat.catId)" role="button" tabindex="0" (keydown.enter)="irACategoria(cat.catId)" [attr.aria-label]="i18n.t('Ver artículos de {n}', { n: cat.nombre })">
                 <td>{{ cat.nombre }}</td>
                 <td class="inv-reportes__table-num">{{ cat.articulosCount | number }}</td>
                 <td class="inv-reportes__table-num">{{ cat.stockTotal | number }}</td>
@@ -107,25 +107,25 @@
 
   <!-- Section 2: Artículos con stock crítico -->
   <section class="inv-reportes__section" aria-labelledby="sec-criticos">
-    <h2 class="inv-reportes__section-title" id="sec-criticos">Artículos con stock crítico</h2>
+    <h2 class="inv-reportes__section-title" id="sec-criticos">{{ 'Artículos con stock crítico' | t }}</h2>
     <div class="inv-reportes__table-wrap">
       @if (articulosCriticos().length === 0) {
-        <p class="inv-reportes__empty">Ningún artículo activo tiene stock crítico.</p>
+        <p class="inv-reportes__empty">{{ 'Ningún artículo activo tiene stock crítico.' | t }}</p>
       } @else {
         <div class="inv-reportes__table-scroll">
-          <table class="inv-reportes__table" aria-label="Artículos con stock crítico">
+          <table class="inv-reportes__table" aria-label="{{ 'Artículos con stock crítico' | t }}">
             <thead>
               <tr>
-                <th scope="col">Código</th>
-                <th scope="col">Nombre</th>
-                <th scope="col" class="inv-reportes__table-num">Stock mínimo</th>
-                <th scope="col" class="inv-reportes__table-num">Stock actual</th>
-                <th scope="col" class="inv-reportes__table-num">Diferencia</th>
+                <th scope="col">{{ 'Código' | t }}</th>
+                <th scope="col">{{ 'Nombre' | t }}</th>
+                <th scope="col" class="inv-reportes__table-num">{{ 'Stock mínimo' | t }}</th>
+                <th scope="col" class="inv-reportes__table-num">{{ 'Stock actual' | t }}</th>
+                <th scope="col" class="inv-reportes__table-num">{{ 'Diferencia' | t }}</th>
               </tr>
             </thead>
             <tbody>
               @for (art of criticosPaged(); track art.id) {
-                <tr class="inv-reportes__row--link" (click)="irAArticulo(art.id)" role="button" tabindex="0" (keydown.enter)="irAArticulo(art.id)" [attr.aria-label]="'Ver ' + art.nombre">
+                <tr class="inv-reportes__row--link" (click)="irAArticulo(art.id)" role="button" tabindex="0" (keydown.enter)="irAArticulo(art.id)" [attr.aria-label]="i18n.t('Ver {n}', { n: art.nombre })">
                   <td><span class="inv-reportes__code">{{ art.codigo }}</span></td>
                   <td>{{ art.nombre }}</td>
                   <td class="inv-reportes__table-num">{{ art.stockMinimo | number }}</td>
@@ -138,9 +138,9 @@
         </div>
         @if (criticosTotalPages() > 1) {
           <div class="inv-reportes__pager">
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === 1" (click)="criticoGoTo(criticoPage() - 1)">← Anterior</button>
-            <span class="inv-reportes__pager-info">Página {{ criticoPage() }} de {{ criticosTotalPages() }} · {{ articulosCriticos().length }} artículos</span>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === criticosTotalPages()" (click)="criticoGoTo(criticoPage() + 1)">Siguiente →</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === 1" (click)="criticoGoTo(criticoPage() - 1)">{{ '← Anterior' | t }}</button>
+            <span class="inv-reportes__pager-info">{{ 'Página' | t }} {{ criticoPage() }} {{ 'de' | t }} {{ criticosTotalPages() }} · {{ articulosCriticos().length }} {{ 'artículos' | t }}</span>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === criticosTotalPages()" (click)="criticoGoTo(criticoPage() + 1)">{{ 'Siguiente →' | t }}</button>
           </div>
         }
       }
@@ -149,7 +149,7 @@
 
   <!-- Section 3: Movimientos recientes -->
   <section class="inv-reportes__section" aria-labelledby="sec-movimientos">
-    <h2 class="inv-reportes__section-title" id="sec-movimientos">Movimientos recientes</h2>
+    <h2 class="inv-reportes__section-title" id="sec-movimientos">{{ 'Movimientos recientes' | t }}</h2>
     <div class="inv-reportes__movimientos">
       <!-- Entradas -->
       <div class="inv-reportes__mov-col">
@@ -157,19 +157,19 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
           </svg>
-          Últimas 10 entradas
+          {{ 'Últimas 10 entradas' | t }}
         </h3>
         <div class="inv-reportes__table-wrap">
           @if (entradasList().length === 0) {
-            <p class="inv-reportes__empty">Sin entradas recientes.</p>
+            <p class="inv-reportes__empty">{{ 'Sin entradas recientes.' | t }}</p>
           } @else {
-            <table class="inv-reportes__table" aria-label="Últimas entradas">
+            <table class="inv-reportes__table" aria-label="{{ 'Últimas entradas' | t }}">
               <thead>
                 <tr>
-                  <th scope="col">Fecha</th>
-                  <th scope="col">Artículo</th>
-                  <th scope="col" class="inv-reportes__table-num">Cantidad</th>
-                  <th scope="col">Almacén</th>
+                  <th scope="col">{{ 'Fecha' | t }}</th>
+                  <th scope="col">{{ 'Artículo' | t }}</th>
+                  <th scope="col" class="inv-reportes__table-num">{{ 'Cantidad' | t }}</th>
+                  <th scope="col">{{ 'Almacén' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -200,19 +200,19 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
           </svg>
-          Últimas 10 salidas
+          {{ 'Últimas 10 salidas' | t }}
         </h3>
         <div class="inv-reportes__table-wrap">
           @if (salidasList().length === 0) {
-            <p class="inv-reportes__empty">Sin salidas recientes.</p>
+            <p class="inv-reportes__empty">{{ 'Sin salidas recientes.' | t }}</p>
           } @else {
-            <table class="inv-reportes__table" aria-label="Últimas salidas">
+            <table class="inv-reportes__table" aria-label="{{ 'Últimas salidas' | t }}">
               <thead>
                 <tr>
-                  <th scope="col">Fecha</th>
-                  <th scope="col">Artículo</th>
-                  <th scope="col" class="inv-reportes__table-num">Cantidad</th>
-                  <th scope="col">Almacén</th>
+                  <th scope="col">{{ 'Fecha' | t }}</th>
+                  <th scope="col">{{ 'Artículo' | t }}</th>
+                  <th scope="col" class="inv-reportes__table-num">{{ 'Cantidad' | t }}</th>
+                  <th scope="col">{{ 'Almacén' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -241,20 +241,20 @@
 
   <!-- Section 4: Top 10 más movidos -->
   <section class="inv-reportes__section" aria-labelledby="sec-top">
-    <h2 class="inv-reportes__section-title" id="sec-top">Top 10 artículos más movidos</h2>
+    <h2 class="inv-reportes__section-title" id="sec-top">{{ 'Top 10 artículos más movidos' | t }}</h2>
     <div class="inv-reportes__table-wrap">
       @if (topArticulos().length === 0) {
-        <p class="inv-reportes__empty">Sin movimientos registrados.</p>
+        <p class="inv-reportes__empty">{{ 'Sin movimientos registrados.' | t }}</p>
       } @else {
         <div class="inv-reportes__table-scroll">
-          <table class="inv-reportes__table" aria-label="Top 10 artículos más movidos">
+          <table class="inv-reportes__table" aria-label="{{ 'Top 10 artículos más movidos' | t }}">
             <thead>
               <tr>
                 <th scope="col">#</th>
-                <th scope="col">Código</th>
-                <th scope="col">Artículo</th>
-                <th scope="col" class="inv-reportes__table-num">Total entradas</th>
-                <th scope="col" class="inv-reportes__table-num">Total salidas</th>
+                <th scope="col">{{ 'Código' | t }}</th>
+                <th scope="col">{{ 'Artículo' | t }}</th>
+                <th scope="col" class="inv-reportes__table-num">{{ 'Total entradas' | t }}</th>
+                <th scope="col" class="inv-reportes__table-num">{{ 'Total salidas' | t }}</th>
               </tr>
             </thead>
             <tbody>

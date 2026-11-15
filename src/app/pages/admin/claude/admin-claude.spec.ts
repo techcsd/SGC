@@ -64,3 +64,19 @@ describe('AdminClaude — DO-09 embebido', () => {
     expect(fixture.nativeElement.querySelector('.admin-claude__switch-box')).toBeTruthy();
   });
 });
+
+describe('AdminClaude — DP-03 embebido (clase modificadora de contenedor)', () => {
+  it('por default (no embebido) NO trae la clase --embebido', async () => {
+    const fixture = await crear();
+    const root = fixture.nativeElement.querySelector('.admin-claude');
+    expect(root.classList.contains('admin-claude--embebido')).toBe(false);
+  });
+
+  it('embebido=true agrega la clase --embebido (sin padding de página completa)', async () => {
+    const fixture = await crear();
+    fixture.componentRef.setInput('embebido', true);
+    await fixture.whenStable();
+    const root = fixture.nativeElement.querySelector('.admin-claude');
+    expect(root.classList.contains('admin-claude--embebido')).toBe(true);
+  });
+});

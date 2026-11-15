@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, input, output, signal, OnIn
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from '../../../../shared/ui/button/button.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { environment } from '../../../../environments/environment';
@@ -31,6 +32,7 @@ interface Llamada {
 export class ConfiguracionClaude implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
 
   /** DN-21 — cuando se embebe dentro de /claude (pestaña Inicio), oculta su
    *  propio "← Perfil" y su `h1` para no duplicar navegación/encabezado. */
@@ -82,7 +84,7 @@ export class ConfiguracionClaude implements OnInit {
       this.copiado.set(true);
       setTimeout(() => this.copiado.set(false), 2000);
     } catch {
-      this.toast.error('No se pudo copiar. Copia el enlace manualmente.');
+      this.toast.error(this.i18n.t('No se pudo copiar. Copia el enlace manualmente.'));
     }
   }
 
@@ -94,7 +96,7 @@ export class ConfiguracionClaude implements OnInit {
         body: { accion: 'desconectar' },
       });
       if (error) throw new Error(await edgeErrorMessage(error));
-      this.toast.success('Claude desconectado del SGC.');
+      this.toast.success(this.i18n.t('Claude desconectado del SGC.'));
       await this.cargar();
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo desconectar');

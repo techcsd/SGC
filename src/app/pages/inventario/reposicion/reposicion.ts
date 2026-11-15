@@ -9,6 +9,8 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * A3.1 / Z8 — Reposición por almacén: artículos en o bajo el stock mínimo.
@@ -17,7 +19,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-inventario-reposicion',
-  imports: [Skeleton, Icon],
+  imports: [Skeleton, Icon, TranslatePipe],
   templateUrl: './reposicion.html',
   styleUrl: './reposicion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +31,7 @@ export class Reposicion implements OnInit {
   private solicitudesService = inject(SolicitudesCompraService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private datosPruebaView = inject(DatosPruebaViewService);
 
   bodegas = signal<Bodega[]>([]);
@@ -119,11 +122,11 @@ export class Reposicion implements OnInit {
     const proyectoId = bodega?.proyecto_id ?? null;
     const solicitanteId = this.userService.profile()?.id ?? null;
     if (!proyectoId) {
-      this.toast.error('Elige un almacén ligado a una obra', 'La solicitud de compra necesita un proyecto; para oficina/global créala desde Compras.');
+      this.toast.error(this.i18n.t('Elige un almacén ligado a una obra'), this.i18n.t('La solicitud de compra necesita un proyecto; para oficina/global créala desde Compras.'));
       return;
     }
     if (!solicitanteId) {
-      this.toast.error('Sesión inválida.');
+      this.toast.error(this.i18n.t('Sesión inválida.'));
       return;
     }
     this.generando.set(true);
@@ -135,9 +138,9 @@ export class Reposicion implements OnInit {
         items,
       });
       this.selected.set(new Set());
-      this.toast.success('Solicitud de compra creada', `${items.length} artículo(s)`);
+      this.toast.success(this.i18n.t('Solicitud de compra creada'), this.i18n.t('{n} artículo(s)', { n: items.length }));
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear la solicitud', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear la solicitud'), e instanceof Error ? e.message : undefined);
     } finally {
       this.generando.set(false);
     }
@@ -156,9 +159,9 @@ export class Reposicion implements OnInit {
       await this.articulosService.update(r.articulo_id, { stock_minimo: val } as never);
       this.editMinId.set(null);
       await this.recargar();
-      this.toast.success('Mínimo actualizado');
+      this.toast.success(this.i18n.t('Mínimo actualizado'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -177,9 +180,9 @@ export class Reposicion implements OnInit {
       await this.stockService.posponerReposicion(r.articulo_id, bid, this.posponerDias(), this.posponerMotivo().trim() || null);
       this.posponerId.set(null);
       await this.recargar();
-      this.toast.success('Sugerencia pospuesta', `${this.posponerDias()} días`);
+      this.toast.success(this.i18n.t('Sugerencia pospuesta'), this.i18n.t('{n} días', { n: this.posponerDias() }));
     } catch (e: unknown) {
-      this.toast.error('No se pudo posponer', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo posponer'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }

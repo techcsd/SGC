@@ -14,6 +14,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 // CX3.2 — snapshot de filtros/página recordado mientras la persona siga en
 // Inventario (ver ListaEstadoService).
@@ -28,7 +29,7 @@ interface EstadoMovimientos {
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
   selector: 'app-inventario-movimientos',
-  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator, Icon, StaggerDirective],
+  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
