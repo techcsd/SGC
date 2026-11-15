@@ -1,11 +1,11 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Accidentes' | t }}</h1>
-    <span class="page-count">{{ visibles().length }} reportes</span>
+    <span class="page-count">{{ visibles().length }} {{ 'reportes' | t }}</span>
   </div>
   <div class="page-header__actions">
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="openCreate()">
-      + Registrar accidente
+      + {{ 'Registrar accidente' | t }}
     </button>
   </div>
 </div>
@@ -19,7 +19,7 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked); page.set(1)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   </div>
 }
@@ -75,7 +75,7 @@
     <div class="sgc-field">
       <label for="ac-veh">{{ 'Vehículo' | t }} <span class="required">*</span></label>
       <select id="ac-veh" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
-        <option [value]="''">Seleccionar vehículo…</option>
+        <option [value]="''">{{ 'Seleccionar vehículo…' | t }}</option>
         @for (v of vehiculosVisibles(); track v.id) {
           <option [value]="v.id">{{ idVehiculo(v) }}</option>
         }
@@ -84,7 +84,7 @@
     <div class="sgc-field">
       <label for="ac-cond">{{ 'Conductor' | t }}</label>
       <select id="ac-cond" formControlName="conductor_id">
-        <option [ngValue]="null">— Sin conductor —</option>
+        <option [ngValue]="null">{{ '— Sin conductor —' | t }}</option>
         @for (c of conductoresVisibles(); track c.id) {
           <option [value]="c.id">{{ c.nombre }}</option>
         }
@@ -204,14 +204,14 @@
       <div class="ac-detail__prueba">
         @if (!a.es_prueba) {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(a, true)">
-            <app-icon name="beaker" [size]="16" /> Marcar como dato de prueba
+            <app-icon name="beaker" [size]="16" /> {{ 'Marcar como dato de prueba' | t }}
           </button>
         } @else {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(a, false)">
-            <app-icon name="rotate-ccw" [size]="16" /> Quitar de datos de prueba
+            <app-icon name="rotate-ccw" [size]="16" /> {{ 'Quitar de datos de prueba' | t }}
           </button>
           <button type="button" class="sgc-btn sgc-btn--danger" (click)="eliminarPrueba(a)">
-            <app-icon name="trash" [size]="16" /> Eliminar dato de prueba
+            <app-icon name="trash" [size]="16" /> {{ 'Eliminar dato de prueba' | t }}
           </button>
         }
       </div>

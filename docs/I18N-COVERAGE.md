@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 42%** (4490/10684 literales de 192 pantallas en alcance). **`ht`: 68%**.
+**Alcance `en`: 43%** (4555/10689 literales de 192 pantallas en alcance). **`ht`: 70%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -126,19 +126,14 @@
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
 | flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
 | flota/conductores | scope | 165 | 115 | 50 | 70% |
-| flota/responsabilidad | scope | 56 | 39 | 17 | 70% |
-| flota/rutas-activas | scope | 37 | 26 | 11 | 70% |
-| flota/combustible-dashboard | scope | 41 | 29 | 12 | 71% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
-| flota/accidentes | scope | 46 | 33 | 13 | 72% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | flota/combustible-log | scope | 120 | 95 | 25 | 79% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
-| flota/cupos-combustible | scope | 48 | 41 | 7 | 85% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -163,11 +158,16 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| flota/accidentes | enforce | 45 | 45 | 0 | 100% |
+| flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
+| flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
 | flota/panel-dia | enforce | 26 | 26 | 0 | 100% |
 | flota/recorrido-diario | enforce | 12 | 12 | 0 | 100% |
 | flota/rendimiento-vehiculos | enforce | 19 | 19 | 0 | 100% |
 | flota/reportes | enforce | 35 | 35 | 0 | 100% |
+| flota/responsabilidad | enforce | 62 | 62 | 0 | 100% |
+| flota/rutas-activas | enforce | 37 | 37 | 0 | 100% |
 | flota/seguimiento | enforce | 23 | 23 | 0 | 100% |
 | flota/transferencias | enforce | 12 | 12 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**718 literal(es) sin t()** en 96 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**706 literal(es) sin t()** en 94 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -245,7 +245,6 @@
 | src/app/pages/tecnologia/oficina-agentes/oficina-agentes.ts | 8 | Ejecutado · No se pudo ejecutar · Deshecho … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
-| src/app/pages/flota/cupos-combustible/cupos-combustible.ts | 7 | Cupo ampliado · No se pudo ampliar · Falta el motivo … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
 | src/app/pages/proyectos/cargos/cargos.ts | 7 | Faltan datos · Alias agregado · No se pudo guardar … |
@@ -258,7 +257,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/flota/accidentes/accidentes.ts | 5 | Accidente registrado · No se pudo actualizar · Dato de prueba eliminado … |
 | src/app/pages/flota/choferes-privados/choferes-privados.ts | 5 | Listo · Retirada · Listo … |
 | src/app/pages/flota/conductores/detalle/conductor-detalle.ts | 5 | Error · Foto actualizada · Multa registrada … |
 | src/app/pages/flota/vehiculos/cargar-documentos/cargar-documentos.ts | 5 | Un solo PDF · Formato no soportado · Demasiadas fotos … |

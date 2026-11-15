@@ -1,6 +1,6 @@
 {
-  "pctScopeEn": 42,
-  "pctHt": 68,
+  "pctScopeEn": 43,
+  "pctHt": 70,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -7327,79 +7327,6 @@
       ]
     },
     {
-      "pantalla": "flota/responsabilidad",
-      "total": 56,
-      "cubiertos": 39,
-      "sin": 17,
-      "pct": 70,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "desde el ( km). @if (esFlotaElevado) { Puedes recibirlo igual: al guardar se cerrará la entrega anterior. } @else { Un responsable de flota debe cerrar la entrega anterior antes de que lo recibas. }",
-        "Seleccionar…",
-        "El vehículo tiene daños que reportar",
-        "Usar mi ubicación }",
-        "tiene este vehículo desde el ( km).",
-        "Quitar",
-        "en uso · en flota",
-        "Registrar entrega/recepción",
-        "En uso",
-        "Historial ( )",
-        "Quién tiene cada vehículo ahora mismo: custodia abierta (recepción sin devolver) o asignación de flota. Consulta el detalle de custodia en «Historial».",
-        "En uso por",
-        "Entregas y devoluciones de vehículos, registradas desde la app de campo o desde aquí con «Registrar entrega/recepción». Evidencia de quién tuvo cada vehículo y en qué estado.",
-        "Requieren revisión ( )",
-        "km ·",
-        "Registrada el",
-        "Firma de"
-      ]
-    },
-    {
-      "pantalla": "flota/rutas-activas",
-      "total": 37,
-      "cubiertos": 26,
-      "sin": 11,
-      "pct": 70,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "chofer(es) en ruta ahora",
-        "} Diagnóstico de rastreo",
-        "Paradas: /",
-        "Corriendo:",
-        "Todos los choferes",
-        "Todas las obras",
-        "Todos los estados",
-        "Planificada",
-        "En curso",
-        "Completada",
-        "Cancelada"
-      ]
-    },
-    {
-      "pantalla": "flota/combustible-dashboard",
-      "total": 41,
-      "cubiertos": 29,
-      "sin": 12,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Últimos meses",
-        "Registros",
-        "Últimos 3 meses",
-        "Últimos 6 meses",
-        "Últimos 12 meses",
-        "Las últimas 3 echadas rinden más de 20% por debajo del promedio del período. Revisar posible fuga o problema mecánico.",
-        "km/gal",
-        "fuera de banda } @else { dentro de RD$ – }",
-        "Alertas activas",
-        "Ver perfil del vehículo",
-        "Ver avisos de flota",
-        "Ver perfil de"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -7438,30 +7365,6 @@
         "No se pudo decidir",
         "Informe enviado",
         "No se pudo enviar"
-      ]
-    },
-    {
-      "pantalla": "flota/accidentes",
-      "total": 46,
-      "cubiertos": 33,
-      "sin": 13,
-      "pct": 72,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "reportes",
-        "+ Registrar accidente",
-        "Mostrar datos de prueba",
-        "Seleccionar vehículo…",
-        "— Sin conductor —",
-        "Marcar como dato de prueba",
-        "Quitar de datos de prueba",
-        "Eliminar dato de prueba",
-        "Accidente registrado",
-        "No se pudo actualizar",
-        "Dato de prueba eliminado",
-        "Error al eliminar",
-        "¿Eliminar este dato de prueba? Esta acción no se puede deshacer."
       ]
     },
     {
@@ -7606,24 +7509,6 @@
         "Cotización actualizada",
         "Cotización descartada",
         "Cotización restaurada"
-      ]
-    },
-    {
-      "pantalla": "flota/cupos-combustible",
-      "total": 48,
-      "cubiertos": 41,
-      "sin": 7,
-      "pct": 85,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Cupo ampliado",
-        "No se pudo ampliar",
-        "Falta el motivo",
-        "Solicitud rechazada",
-        "No se pudo rechazar",
-        "Cupo actualizado",
-        "No se pudo guardar"
       ]
     },
     {
@@ -7896,9 +7781,39 @@
       "faltantes": []
     },
     {
+      "pantalla": "flota/accidentes",
+      "total": 45,
+      "cubiertos": 45,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/combustible-dashboard",
+      "total": 41,
+      "cubiertos": 41,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
       "pantalla": "flota/conductores-estado",
       "total": 15,
       "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/cupos-combustible",
+      "total": 48,
+      "cubiertos": 48,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -7939,6 +7854,26 @@
       "pantalla": "flota/reportes",
       "total": 35,
       "cubiertos": 35,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/responsabilidad",
+      "total": 62,
+      "cubiertos": 62,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "flota/rutas-activas",
+      "total": 37,
+      "cubiertos": 37,
       "sin": 0,
       "pct": 100,
       "enScope": true,

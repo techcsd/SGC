@@ -16,6 +16,7 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type Vista = 'vehiculo' | 'flotilla';
 type EstadoVeh = 'NORMAL' | 'REVISAR' | 'ALERTA';
@@ -47,6 +48,7 @@ export class CombustibleDashboard implements OnInit {
   protected flotaConfig = inject(FlotaConfigService);
   private router = inject(Router);
   private datosPruebaView = inject(DatosPruebaViewService);
+  protected i18n = inject(I18nService);
 
   // Regla del jefe: toda tarjeta/fila abre su origen.
   irAVehiculo(vehiculoId: string | null | undefined) {

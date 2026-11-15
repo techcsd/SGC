@@ -358,22 +358,10 @@
     "flota/conductores": {
       "enforce": false
     },
-    "flota/responsabilidad": {
-      "enforce": false
-    },
-    "flota/rutas-activas": {
-      "enforce": false
-    },
-    "flota/combustible-dashboard": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
     "tecnologia/oficina-agentes": {
-      "enforce": false
-    },
-    "flota/accidentes": {
       "enforce": false
     },
     "tecnologia/envios-automaticos": {
@@ -392,9 +380,6 @@
       "enforce": false
     },
     "tecnologia/cotizaciones": {
-      "enforce": false
-    },
-    "flota/cupos-combustible": {
       "enforce": false
     },
     "admin/vault": {
@@ -469,7 +454,16 @@
     "demo/progreso": {
       "enforce": false
     },
+    "flota/accidentes": {
+      "enforce": true
+    },
+    "flota/combustible-dashboard": {
+      "enforce": true
+    },
     "flota/conductores-estado": {
+      "enforce": true
+    },
+    "flota/cupos-combustible": {
       "enforce": true
     },
     "flota/panel-dia": {
@@ -482,6 +476,12 @@
       "enforce": true
     },
     "flota/reportes": {
+      "enforce": true
+    },
+    "flota/responsabilidad": {
+      "enforce": true
+    },
+    "flota/rutas-activas": {
       "enforce": true
     },
     "flota/seguimiento": {

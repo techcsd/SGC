@@ -20,6 +20,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * S22 — Submódulo "Accidentes": los formularios de choque completos (no solo el
@@ -55,6 +56,7 @@ export class Accidentes implements OnInit {
   esAdmin = computed(() => this.userService.hasRole('admin'));
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  protected i18n = inject(I18nService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
   // AT14/AT26 — datos de prueba fuera de los selectores para no-admin.
   vehiculosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.vehiculos()));
@@ -193,7 +195,7 @@ export class Accidentes implements OnInit {
       this.accidentes.update((list) => [creado, ...list]);
       this.createOpen.set(false);
       this.limpiarFotos();
-      this.toast.success('Accidente registrado', 'El reporte se guardó correctamente.');
+      this.toast.success(this.i18n.t('Accidente registrado'), 'El reporte se guardó correctamente.');
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar el accidente.');
     } finally {
@@ -251,21 +253,21 @@ export class Accidentes implements OnInit {
         valor ? 'El accidente se ocultará del listado.' : 'El accidente vuelve al listado.',
       );
     } catch (e: unknown) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     }
   }
 
   /** Elimina definitivamente un accidente marcado como prueba. */
   async eliminarPrueba(a: VehiculoAccidente) {
     if (!this.esAdmin() || !a.es_prueba) return;
-    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    if (!confirm(this.i18n.t('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.'))) return;
     try {
       await this.datosPrueba.eliminar('vehiculo_accidentes', a.id);
       this.accidentes.update((list) => list.filter((x) => x.id !== a.id));
       this.closeDetail();
-      this.toast.success('Dato de prueba eliminado', 'El accidente se eliminó definitivamente.');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), 'El accidente se eliminó definitivamente.');
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 }

@@ -21,11 +21,11 @@
     @if (entregaAbierta(); as ea) {
       <div class="re-precheck" role="status">
         <app-icon name="alert-triangle" [size]="15" /> {{ 'Este vehículo figura entregado a' | t }} <strong>{{ ea.conductor }}</strong>
-        desde el {{ ea.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ ea.km | number: '1.0-0' }} km).
+        {{ 'desde el' | t }} {{ ea.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ ea.km | number: '1.0-0' }} {{ 'km).' | t }}
         @if (esFlotaElevado) {
-          Puedes recibirlo igual: al guardar se cerrará la entrega anterior.
+          {{ 'Puedes recibirlo igual: al guardar se cerrará la entrega anterior.' | t }}
         } @else {
-          Un responsable de flota debe cerrar la entrega anterior antes de que lo recibas.
+          {{ 'Un responsable de flota debe cerrar la entrega anterior antes de que lo recibas.' | t }}
         }
       </div>
     }
@@ -42,7 +42,7 @@
     <div class="sgc-field">
       <label for="re-comb">{{ 'Nivel de combustible' | t }} <span class="required">*</span></label>
       <select id="re-comb" formControlName="combustible">
-        <option [ngValue]="null">Seleccionar…</option>
+        <option [ngValue]="null">{{ 'Seleccionar…' | t }}</option>
         @for (n of NIVELES; track n) { <option [value]="n">{{ n }}</option> }
       </select>
       @if (form.controls.combustible.invalid && form.controls.combustible.touched) {
@@ -60,7 +60,7 @@
           @if (slotPreview(s.slot); as prev) {
             <img [src]="prev" [alt]="s.label" />
             <button type="button" class="re-foto-quitar" (click)="quitarSlotFoto(s.slot)"
-              [attr.aria-label]="'Quitar ' + s.label"><app-icon name="x" [size]="16" /></button>
+              [attr.aria-label]="i18n.t('Quitar') + ' ' + s.label"><app-icon name="x" [size]="16" /></button>
           } @else {
             <label class="re-slot-add">
               <span><app-icon name="camera" [size]="20" /></span>
@@ -78,7 +78,7 @@
   <div class="sgc-field">
     <label class="re-check">
       <input type="checkbox" [checked]="tieneDanos()" (change)="toggleDanos()" />
-      El vehículo tiene daños que reportar
+      {{ 'El vehículo tiene daños que reportar' | t }}
     </label>
     @if (tieneDanos()) {
       <div class="re-danos">
@@ -109,7 +109,7 @@
     <div class="re-gps">
       <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="capturandoGps()"
         (click)="capturarGps()">
-        @if (capturandoGps()) { Obteniendo… } @else { <app-icon name="map-pin" [size]="16" /> Usar mi ubicación }
+        @if (capturandoGps()) { {{ 'Obteniendo…' | t }} } @else { <app-icon name="map-pin" [size]="16" /> {{ 'Usar mi ubicación' | t }} }
       </button>
       @if (gps(); as g) {
         <span class="re-gps-ok">{{ g.lat | number: '1.4-5' }}, {{ g.lng | number: '1.4-5' }}</span>
@@ -137,8 +137,8 @@
   @if (handoverInfo(); as h) {
     <div class="re-handover" role="alertdialog">
       <p>
-        <app-icon name="refresh" [size]="16" /> <strong>{{ h.conductor }}</strong> tiene este vehículo desde el
-        {{ h.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} km).
+        <app-icon name="refresh" [size]="16" /> <strong>{{ h.conductor }}</strong> {{ 'tiene este vehículo desde el' | t }}
+        {{ h.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} {{ 'km).' | t }}
       </p>
       <!-- Z14 — el handover deja de ser un muro: quien recibe puede tomarlo, cerrando
            la entrega anterior y dejando la cadena registrada (quién lo tenía → quién recibe). -->

@@ -3,11 +3,11 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Dashboards de combustible' | t }}</h1>
-    <span class="page-count">Últimos {{ meses() }} meses</span>
+    <span class="page-count">{{ 'Últimos' | t }} {{ meses() }} {{ 'meses' | t }}</span>
   </div>
   <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/combustible">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-    Registros
+    {{ 'Registros' | t }}
   </a>
 </div>
 
@@ -27,9 +27,9 @@
     }
     <div class="sgc-field">
       <select [value]="meses()" (change)="onMesesChange($any($event.target).value)" aria-label="{{ 'Rango' | t }}">
-        <option value="3">Últimos 3 meses</option>
-        <option value="6">Últimos 6 meses</option>
-        <option value="12">Últimos 12 meses</option>
+        <option value="3">{{ 'Últimos 3 meses' | t }}</option>
+        <option value="6">{{ 'Últimos 6 meses' | t }}</option>
+        <option value="12">{{ 'Últimos 12 meses' | t }}</option>
       </select>
     </div>
   </div>
@@ -46,7 +46,7 @@
   } @else {
     @if (alertaVehiculo()) {
       <div class="dash-alert" role="alert">
-        <app-icon name="alert-triangle" [size]="16" /> Las últimas 3 echadas rinden más de 20% por debajo del promedio del período. Revisar posible fuga o problema mecánico.
+        <app-icon name="alert-triangle" [size]="16" /> {{ 'Las últimas 3 echadas rinden más de 20% por debajo del promedio del período. Revisar posible fuga o problema mecánico.' | t }}
       </div>
     }
     <div class="stat-grid">
@@ -56,9 +56,9 @@
       <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irAVehiculo(selectedVehiculoId())" (keydown.enter)="irAVehiculo(selectedVehiculoId())" aria-label="{{ 'Ver perfil del vehículo' | t }}"><span class="stat-card__label">{{ 'Costo / km' | t }}</span><span class="stat-card__value">{{ vehiculoStats().costoKm !== null ? ('RD$ ' + (vehiculoStats().costoKm | number:'1.2-2')) : '—' }}</span></div>
       <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irAVehiculo(selectedVehiculoId())" (keydown.enter)="irAVehiculo(selectedVehiculoId())" aria-label="{{ 'Ver perfil del vehículo' | t }}"><span class="stat-card__label">{{ 'Rendimiento prom.' | t }}</span><span class="stat-card__value">{{ vehiculoStats().rendimiento !== null ? ((vehiculoStats().rendimiento | number:'1.1-2') + ' km/gal') : '—' }}</span></div>
       @if (vehiculoEsperado() !== null) {
-        <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irAVehiculo(selectedVehiculoId())" (keydown.enter)="irAVehiculo(selectedVehiculoId())" aria-label="Ver perfil del vehículo" [class.stat-card--alerta]="vehiculoStats().rendimiento !== null && vehiculoStats().rendimiento! < vehiculoEsperado()!">
+        <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irAVehiculo(selectedVehiculoId())" (keydown.enter)="irAVehiculo(selectedVehiculoId())" aria-label="{{ 'Ver perfil del vehículo' | t }}" [class.stat-card--alerta]="vehiculoStats().rendimiento !== null && vehiculoStats().rendimiento! < vehiculoEsperado()!">
           <span class="stat-card__label">{{ 'Esperado (manual)' | t }}</span>
-          <span class="stat-card__value">{{ vehiculoEsperado() | number:'1.1-2' }} km/gal</span>
+          <span class="stat-card__value">{{ vehiculoEsperado() | number:'1.1-2' }} {{ 'km/gal' | t }}</span>
           @if (vehiculoStats().rendimiento !== null && vehiculoStats().rendimiento! < vehiculoEsperado()!) {
             <span class="stat-card__hint"><app-icon name="alert-triangle" [size]="14" /> {{ 'real por debajo del esperado' | t }}</span>
           }
@@ -70,8 +70,8 @@
           <span class="stat-card__label">{{ 'Precio prom. / gal' | t }}</span>
           <span class="stat-card__value">RD$ {{ precioPromedioVehiculo() | number:'1.2-2' }}</span>
           <span class="stat-card__hint">
-            @if (precioFueraDeBanda()) { <app-icon name="alert-triangle" [size]="14" /> fuera de banda }
-            @else { dentro de RD${{ flotaConfig.precioGalMin() }}–{{ flotaConfig.precioGalMax() }} }
+            @if (precioFueraDeBanda()) { <app-icon name="alert-triangle" [size]="14" /> {{ 'fuera de banda' | t }} }
+            @else { {{ 'dentro de' | t }} RD${{ flotaConfig.precioGalMin() }}–{{ flotaConfig.precioGalMax() }} }
           </span>
         </div>
       }
@@ -111,7 +111,7 @@
     <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irACombustible()" (keydown.enter)="irACombustible()" aria-label="{{ 'Ver registros de combustible' | t }}"><span class="stat-card__label">{{ 'Gasto total' | t }}</span><span class="stat-card__value">RD$ {{ flotaStats().gastado | number:'1.0-0' }}</span></div>
     <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irACombustible()" (keydown.enter)="irACombustible()" aria-label="{{ 'Ver registros de combustible' | t }}"><span class="stat-card__label">{{ 'Galones' | t }}</span><span class="stat-card__value">{{ flotaStats().galones | number:'1.1-1' }}</span></div>
     <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irACombustible()" (keydown.enter)="irACombustible()" aria-label="{{ 'Ver registros de combustible' | t }}"><span class="stat-card__label">{{ 'Costo/km ponderado' | t }}</span><span class="stat-card__value">{{ flotaStats().costoKm !== null ? ('RD$ ' + (flotaStats().costoKm | number:'1.2-2')) : '—' }}</span></div>
-    <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irAAvisos()" (keydown.enter)="irAAvisos()" aria-label="Ver avisos de flota" [class.stat-card--alerta]="flotaStats().alertas > 0"><span class="stat-card__label">Alertas activas</span><span class="stat-card__value">{{ flotaStats().alertas }}</span></div>
+    <div class="stat-card stat-card--link" role="button" tabindex="0" (click)="irAAvisos()" (keydown.enter)="irAAvisos()" aria-label="{{ 'Ver avisos de flota' | t }}" [class.stat-card--alerta]="flotaStats().alertas > 0"><span class="stat-card__label">{{ 'Alertas activas' | t }}</span><span class="stat-card__value">{{ flotaStats().alertas }}</span></div>
   </div>
 
   <div class="dash-charts">
@@ -121,7 +121,7 @@
         <h3 class="dash-alerts__title">{{ 'Alertas activas' | t }}</h3>
         @for (a of alertasActivas(); track a.id) {
           <div class="dash-alerts__item">
-            <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span>
+            <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] | t }}</span>
             <span class="dash-alerts__msg">{{ a.mensaje }}</span>
           </div>
         }
@@ -136,7 +136,7 @@
         <tbody>
           @for (r of resumenPorVehiculo(); track r.vehiculo.id) {
             <tr class="row--link" role="button" tabindex="0" (click)="irAVehiculo(r.vehiculo.id)" (keydown.enter)="irAVehiculo(r.vehiculo.id)"
-                [attr.aria-label]="'Ver perfil de ' + r.vehiculo.placa">
+                [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + r.vehiculo.placa">
               <td><span class="dash-placa">{{ r.vehiculo.placa }}</span> <span class="text-muted">{{ r.vehiculo.marca }}</span></td>
               <td class="text-right">{{ r.echadas }}</td>
               <td class="text-right">{{ r.galones | number:'1.1-1' }}</td>

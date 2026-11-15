@@ -3,12 +3,12 @@
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Vehículos en uso' | t }}</h1>
     <span class="page-count">
-      {{ enUsoCount() }} en uso · {{ totalCount() }} en flota
+      {{ enUsoCount() }} {{ 'en uso' | t }} · {{ totalCount() }} {{ 'en flota' | t }}
     </span>
   </div>
   <div class="page-header__actions">
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirRegistro()">
-      Registrar entrega/recepción
+      {{ 'Registrar entrega/recepción' | t }}
     </button>
   </div>
 </div>
@@ -23,7 +23,7 @@
     [attr.aria-selected]="tab() === 'uso'"
     (click)="setTab('uso')"
   >
-    En uso
+    {{ 'En uso' | t }}
   </button>
   <button
     type="button"
@@ -33,7 +33,7 @@
     [attr.aria-selected]="tab() === 'historial'"
     (click)="setTab('historial')"
   >
-    Historial ({{ entregas().length }})
+    {{ 'Historial' | t }} ({{ entregas().length }})
   </button>
 </div>
 
@@ -46,8 +46,7 @@
   <!-- ══════════════ TAB 1 — En uso ══════════════ -->
   @if (tab() === 'uso') {
     <p class="resp-lead">
-      Quién tiene cada vehículo ahora mismo: custodia abierta (recepción sin devolver) o
-      asignación de flota. Consulta el detalle de custodia en «Historial».
+      {{ 'Quién tiene cada vehículo ahora mismo: custodia abierta (recepción sin devolver) o asignación de flota. Consulta el detalle de custodia en «Historial».' | t }}
     </p>
 
     <!-- Resumen ── -->
@@ -105,7 +104,7 @@
               @switch (estadoUso(v).clave) {
                 @case ('uso') {
                   <span class="uso-pill uso-pill--uso">
-                    En uso por {{ estadoUso(v).nombre }}
+                    {{ 'En uso por' | t }} {{ estadoUso(v).nombre }}
                   </span>
                 }
                 @case ('mantenimiento') {
@@ -121,7 +120,7 @@
                 <p class="uso-card__meta">
                   {{ s.km_actual | number: '1.0-0' }} {{ unidad(v) }}
                   @if (s.ultima_actividad) {
-                    · Últ. actividad {{ fechaHora(s.ultima_actividad) }}
+                    · {{ 'Últ. actividad' | t }} {{ fechaHora(s.ultima_actividad) }}
                   }
                 </p>
               }
@@ -142,8 +141,7 @@
   <!-- ══════════════ TAB 2 — Historial ══════════════ -->
   @if (tab() === 'historial') {
     <p class="resp-lead">
-      Entregas y devoluciones de vehículos, registradas desde la app de campo o desde aquí con
-      «Registrar entrega/recepción». Evidencia de quién tuvo cada vehículo y en qué estado.
+      {{ 'Entregas y devoluciones de vehículos, registradas desde la app de campo o desde aquí con «Registrar entrega/recepción». Evidencia de quién tuvo cada vehículo y en qué estado.' | t }}
     </p>
 
     <!-- Filtros ── -->
@@ -163,7 +161,7 @@
         [class.sgc-btn--primary]="soloRevision()"
         (click)="toggleRevision()"
       >
-        <app-icon name="alert-triangle" [size]="16" /> Requieren revisión ({{ revisionCount() }})
+        <app-icon name="alert-triangle" [size]="16" /> {{ 'Requieren revisión' | t }} ({{ revisionCount() }})
       </button>
     </div>
 
@@ -181,7 +179,7 @@
                   [class.resp-badge--in]="e.tipo === 'recepcion'"
                   [class.resp-badge--out]="e.tipo === 'devolucion'"
                 >
-                  {{ e.tipo === 'recepcion' ? 'Recepción' : 'Devolución' }}
+                  {{ (e.tipo === 'recepcion' ? 'Recepción' : 'Devolución') | t }}
                 </span>
                 @if (e.estado === 'abierta') {
                   <span class="resp-badge resp-badge--open">{{ 'A cargo' | t }}</span>
@@ -192,7 +190,7 @@
               </div>
               <div class="resp-card__meta">
                 <span>{{ e.conductor?.nombre ?? '—' }}</span>
-                <span>{{ e.km | number: '1.0-0' }} km · <app-icon name="fuel" [size]="14" /> {{ e.combustible }}</span>
+                <span>{{ e.km | number: '1.0-0' }} {{ 'km' | t }} · <app-icon name="fuel" [size]="14" /> {{ e.combustible }}</span>
                 <span>{{ fechaHora(e.capturado_en) }}</span>
               </div>
               <span class="resp-card__chev"><app-icon [name]="isExpanded(e.id) ? 'chevron-down' : 'chevron-right'" [size]="14" /></span>
@@ -208,7 +206,7 @@
                 <h4 class="resp-detail-title">{{ 'Ubicación' | t }}</h4>
                 <app-mini-mapa [lat]="e.gps_lat" [lng]="e.gps_lng" />
                 @if (e.gps_lat != null) {
-                  <p class="resp-muted resp-gps-fecha">Registrada el {{ fechaHora(e.capturado_en) }}</p>
+                  <p class="resp-muted resp-gps-fecha">{{ 'Registrada el' | t }} {{ fechaHora(e.capturado_en) }}</p>
                 }
 
                 @if (e.danos?.length) {
@@ -238,7 +236,7 @@
                   <div class="resp-firma">
                     <a class="resp-foto resp-foto--firma" [href]="firma" target="_blank" rel="noopener">
                       <img [src]="firma" alt="{{ 'Firma de quien recibe' | t }}" loading="lazy" />
-                      <span class="resp-foto__cap">Firma de {{ e.conductor?.nombre ?? 'quien recibe' }}</span>
+                      <span class="resp-foto__cap">{{ 'Firma de' | t }} {{ e.conductor?.nombre ?? i18n.t('quien recibe') }}</span>
                     </a>
                   </div>
                 }

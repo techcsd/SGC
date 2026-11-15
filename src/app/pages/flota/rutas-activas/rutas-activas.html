@@ -3,7 +3,7 @@
   <header class="page__head">
     <div>
       <h1 class="page__title">{{ 'Rutas activas' | t }}</h1>
-      <p class="page__sub">{{ enRutaCount() }} chofer(es) en ruta ahora</p>
+      <p class="page__sub">{{ enRutaCount() }} {{ 'chofer(es) en ruta ahora' | t }}</p>
     </div>
     <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">{{ 'Ver en el mapa →' | t }}</a>
   </header>
@@ -21,7 +21,7 @@
     <!-- AS1 — Diagnóstico del pipeline de tracking (contadores AK13) -->
     <div class="diag">
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDiag()">
-        @if (diagOpen()) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> } Diagnóstico de rastreo
+        @if (diagOpen()) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> } {{ 'Diagnóstico de rastreo' | t }}
       </button>
       @if (diagOpen()) {
         @if (diagLoading()) {
@@ -47,7 +47,7 @@
                     <td class="text-right">{{ d.recibidos }}</td>
                     <td class="text-right">{{ d.insertados }}</td>
                     <td class="text-right">{{ d.desc_precision + d.desc_salto + d.desc_sin_coord }}</td>
-                    <td>{{ d.minutos_desde_posicion != null ? ('hace ' + d.minutos_desde_posicion + ' min') : 'sin señal' }}</td>
+                    <td>{{ d.minutos_desde_posicion != null ? (i18n.t('hace') + ' ' + d.minutos_desde_posicion + ' ' + i18n.t('min')) : i18n.t('sin señal') }}</td>
                   </tr>
                 }
               </tbody>
@@ -68,7 +68,7 @@
             <div class="chofer-card__head">
               <strong class="chofer-card__nombre">{{ c.nombre }}</strong>
               <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">
-                {{ estadoLabel(c.estado) }}@if (c.estado === 'otros' && c.otros_texto) { : {{ c.otros_texto }} }
+                {{ estadoLabel(c.estado) | t }}@if (c.estado === 'otros' && c.otros_texto) { : {{ c.otros_texto }} }
               </span>
             </div>
 
@@ -80,8 +80,8 @@
                   <span class="chofer-card__punto">{{ r.destino }}</span>
                 </div>
                 <div class="chofer-card__meta">
-                  <span>Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</span>
-                  <span>Corriendo: {{ duracion(r.iniciada_at) }}</span>
+                  <span>{{ 'Paradas:' | t }} {{ r.paradas_entregadas }}/{{ r.paradas_total }}</span>
+                  <span>{{ 'Corriendo:' | t }} {{ duracion(r.iniciada_at) }}</span>
                   @if (r.placa || r.marca) { <span>{{ idVehiculo(r) }}</span> }
                 </div>
               </div>
@@ -91,7 +91,7 @@
 
             <div class="chofer-card__foot">
               <span class="chofer-card__pos" [class.chofer-card__pos--off]="!c.posicion">
-                <app-icon name="map-pin" [size]="14" /> {{ c.posicion ? hace(c.posicion.capturado_en) : 'sin posición' }}
+                <app-icon name="map-pin" [size]="14" /> {{ c.posicion ? hace(c.posicion.capturado_en) : i18n.t('sin posición') }}
               </span>
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">{{ 'Ver trayecto' | t }}</a>
             </div>
@@ -103,19 +103,19 @@
     <!-- HISTÓRICO -->
     <div class="filters-bar">
       <select [value]="fChofer()" (change)="fChofer.set($any($event.target).value)" aria-label="{{ 'Chofer' | t }}">
-        <option value="">Todos los choferes</option>
+        <option value="">{{ 'Todos los choferes' | t }}</option>
         @for (c of choferesHist(); track c) { <option [value]="c">{{ c }}</option> }
       </select>
       <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="{{ 'Obra' | t }}">
-        <option value="">Todas las obras</option>
+        <option value="">{{ 'Todas las obras' | t }}</option>
         @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
       </select>
       <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="{{ 'Estado' | t }}">
-        <option value="">Todos los estados</option>
-        <option value="planificada">Planificada</option>
-        <option value="en_curso">En curso</option>
-        <option value="completada">Completada</option>
-        <option value="cancelada">Cancelada</option>
+        <option value="">{{ 'Todos los estados' | t }}</option>
+        <option value="planificada">{{ 'Planificada' | t }}</option>
+        <option value="en_curso">{{ 'En curso' | t }}</option>
+        <option value="completada">{{ 'Completada' | t }}</option>
+        <option value="cancelada">{{ 'Cancelada' | t }}</option>
       </select>
       <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="{{ 'Desde' | t }}" title="{{ 'Desde' | t }}" />
       <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="{{ 'Hasta' | t }}" title="{{ 'Hasta' | t }}" />
