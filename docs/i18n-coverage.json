@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 59,
+  "pctScopeEn": 60,
   "pctHt": 83,
   "filas": [
     {
@@ -5097,37 +5097,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/cronograma",
-      "total": 73,
-      "cubiertos": 53,
-      "sin": 20,
-      "pct": 73,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "· tareas · % completado",
-        "Sin fase",
-        "0 ? '+' : '' }} d)",
-        "Elegir predecesora…",
-        "Real",
-        "Justificar retraso de « »",
-        "Completar « »",
-        "0 ? '+' : '' }} d",
-        "Real:",
-        "Tarea guardada.",
-        "Dependencia agregada.",
-        "Dependencia eliminada.",
-        "Tarea eliminada.",
-        "Tarea iniciada.",
-        "Adjunta una foto de evidencia.",
-        "La tarea está atrasada: escribe una justificación.",
-        "Tarea completada.",
-        "Escribe la justificación del retraso.",
-        "Retraso justificado.",
-        "¿Eliminar la tarea «${t.nombre}»?"
-      ]
-    },
-    {
       "pantalla": "tecnologia/envios-automaticos",
       "total": 27,
       "cubiertos": 20,
@@ -6268,6 +6237,16 @@
       "pantalla": "proyectos/costos",
       "total": 13,
       "cubiertos": 13,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/cronograma",
+      "total": 72,
+      "cubiertos": 72,
       "sin": 0,
       "pct": 100,
       "enScope": true,

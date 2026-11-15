@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 59%** (6253/10541 literales de 192 pantallas en alcance). **`ht`: 83%**.
+**Alcance `en`: 60%** (6272/10540 literales de 192 pantallas en alcance). **`ht`: 83%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -95,7 +95,6 @@
 | proyectos/lista | scope | 168 | 109 | 59 | 65% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
-| proyectos/cronograma | scope | 73 | 53 | 20 | 73% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | proyectos/personal | scope | 263 | 203 | 60 | 77% |
@@ -195,6 +194,7 @@
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
 | proyectos/costos | enforce | 13 | 13 | 0 | 100% |
+| proyectos/cronograma | enforce | 72 | 72 | 0 | 100% |
 | proyectos/cronograma-import | enforce | 39 | 39 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**486 literal(es) sin t()** en 69 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**475 literal(es) sin t()** en 68 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -221,7 +221,6 @@
 | src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |
 | src/app/pages/rrhh/onboarding/onboarding.ts | 12 | No se pudieron cargar las vacantes · Falta el título · Vacante creada … |
 | src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
-| src/app/pages/proyectos/cronograma/cronograma.ts | 11 | Tarea guardada. · Dependencia agregada. · Dependencia eliminada. … |
 | src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |

@@ -265,9 +265,6 @@
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
-    "proyectos/cronograma": {
-      "enforce": false
-    },
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
@@ -563,6 +560,9 @@
       "enforce": true
     },
     "proyectos/costos": {
+      "enforce": true
+    },
+    "proyectos/cronograma": {
       "enforce": true
     },
     "proyectos/cronograma-import": {

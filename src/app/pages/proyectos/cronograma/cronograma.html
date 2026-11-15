@@ -3,7 +3,7 @@
     <div>
       <a class="cron__back" routerLink="/proyectos">{{ '← Proyectos' | t }}</a>
       <h1 class="cron__title">{{ 'Cronograma' | t }}</h1>
-      <p class="cron__sub">{{ proyectoNombre() || 'Proyecto' }} · {{ tareas().length }} tareas · {{ progreso() }}% completado</p>
+      <p class="cron__sub">{{ proyectoNombre() || ('Proyecto' | t) }} · {{ tareas().length }} {{ 'tareas' | t }} · {{ progreso() }}% {{ 'completado' | t }}</p>
     </div>
     <div class="cron__head-actions">
       <div class="cron__tabs">
@@ -20,7 +20,7 @@
   <!-- Panel nueva/editar tarea -->
   @if (panelTareaAbierto()) {
     <div class="cron__panel sgc-card">
-      <h3>{{ editandoId() ? 'Editar tarea' : 'Nueva tarea' }}</h3>
+      <h3>{{ (editandoId() ? 'Editar tarea' : 'Nueva tarea') | t }}</h3>
       <form [formGroup]="tareaForm" (ngSubmit)="guardarTarea()" class="cron__form">
         <label class="cron__field">
           <span>{{ 'Nombre' | t }}</span>
@@ -33,7 +33,7 @@
         <label class="cron__field">
           <span>{{ 'Tipo' | t }}</span>
           <select formControlName="tipo">
-            @for (t of tipos; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+            @for (t of tipos; track t.value) { <option [value]="t.value">{{ t.label | t }}</option> }
           </select>
         </label>
         <label class="cron__field">
@@ -44,7 +44,7 @@
           <label class="cron__field">
             <span>{{ 'Fase (contenedor)' | t }}</span>
             <select formControlName="fase_id">
-              <option [ngValue]="null">Sin fase</option>
+              <option [ngValue]="null">{{ 'Sin fase' | t }}</option>
               @for (f of fases(); track f.id) { <option [ngValue]="f.id">{{ f.nombre }}</option> }
             </select>
           </label>
@@ -75,7 +75,7 @@
                 <li>
                   <span class="cron__dep-badge" [attr.data-tipo]="item.dep.tipo">{{ item.dep.tipo }}</span>
                   {{ item.pred?.nombre ?? '—' }}
-                  @if (item.dep.lag_dias) { <em>({{ item.dep.lag_dias > 0 ? '+' : '' }}{{ item.dep.lag_dias }}d)</em> }
+                  @if (item.dep.lag_dias) { <em>({{ item.dep.lag_dias > 0 ? '+' : '' }}{{ item.dep.lag_dias }}{{ 'd)' | t }}</em> }
                   <button type="button" class="cron__dep-del" (click)="quitarDependencia(item.dep.id)" title="{{ 'Quitar dependencia' | t }}"><app-icon name="x" [size]="14" /></button>
                 </li>
               }
@@ -85,11 +85,11 @@
           }
           <div class="cron__dep-add">
             <select [value]="nuevaDepPredecesora() ?? ''" (change)="nuevaDepPredecesora.set($any($event.target).value || null)">
-              <option value="">Elegir predecesora…</option>
+              <option value="">{{ 'Elegir predecesora…' | t }}</option>
               @for (t of tareasComoPredecesora(); track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
             </select>
             <select [value]="nuevaDepTipo()" (change)="nuevaDepTipo.set($any($event.target).value)">
-              @for (dt of depTipos; track dt.value) { <option [value]="dt.value">{{ dt.label }}</option> }
+              @for (dt of depTipos; track dt.value) { <option [value]="dt.value">{{ dt.label | t }}</option> }
             </select>
             <input type="number" [value]="nuevaDepLag()" (input)="nuevaDepLag.set(+$any($event.target).value || 0)"
                    title="{{ 'Lag en días (negativo = adelanto)' | t }}" placeholder="{{ 'lag' | t }}" class="cron__dep-lag" />
@@ -185,7 +185,7 @@
                       @if (b.realWidth > 0) {
                         <div class="cron__bar cron__bar--real" [style.left.px]="b.realLeft" [style.width.px]="b.realWidth"
                              [class.cron__bar--done]="b.tarea.estado === 'completada'"
-                             [title]="'Real: ' + formatFecha(b.tarea.fecha_inicio_real) + ' → ' + (b.tarea.fecha_fin_real ? formatFecha(b.tarea.fecha_fin_real) : 'en curso')"></div>
+                             [title]="i18n.t('Real:') + ' ' + formatFecha(b.tarea.fecha_inicio_real) + ' → ' + (b.tarea.fecha_fin_real ? formatFecha(b.tarea.fecha_fin_real) : i18n.t('en curso'))"></div>
                       }
                     </div>
                   </div>
@@ -199,7 +199,7 @@
           <span><i class="cron__dot" data-tipo="ordinaria"></i> {{ 'Ordinaria' | t }}</span>
           <span><i class="cron__dot" data-tipo="importante"></i> {{ 'Importante' | t }}</span>
           <span><i class="cron__dot" data-tipo="critica"></i> {{ 'Crítica' | t }}</span>
-          <span class="cron__legend-real"></span> Real
+          <span class="cron__legend-real"></span> {{ 'Real' | t }}
           <span class="cron__legend-esperado"><i></i> {{ 'Avance esperado' | t }}</span>
           <span class="cron__legend-dep"><i></i> {{ 'Dependencia' | t }}</span>
         </div>
@@ -225,7 +225,7 @@
                   @if (t.descripcion) { <div class="cron__muted cron__desc">{{ t.descripcion }}</div> }
                   @if (t.justificacion_retraso) { <div class="cron__just"><app-icon name="alert-triangle" [size]="13" /> {{ t.justificacion_retraso }}</div> }
                 </td>
-                <td><span class="cron__badge" [attr.data-tipo]="t.tipo">{{ tipoLabel(t.tipo) }}</span></td>
+                <td><span class="cron__badge" [attr.data-tipo]="t.tipo">{{ tipoLabel(t.tipo) | t }}</span></td>
                 <td class="cron__ts">{{ formatFecha(t.fecha_inicio_plan) }} → {{ formatFecha(t.fecha_fin_plan) }}<br><small>{{ t.duracion_dias_plan }}d</small></td>
                 <td class="cron__ts">
                   @if (t.fecha_inicio_real) { {{ formatFecha(t.fecha_inicio_real) }} → {{ t.fecha_fin_real ? formatFecha(t.fecha_fin_real) : '…' }} }
@@ -273,7 +273,7 @@
                 <tr class="cron__completar-row">
                   <td colspan="7">
                     <div class="cron__completar">
-                      <strong>Justificar retraso de «{{ t.nombre }}»</strong>
+                      <strong>{{ 'Justificar retraso de' | t }} «{{ t.nombre }}»</strong>
                       <label class="cron__field cron__field--wide">
                         <span>{{ 'Justificación del retraso (obligatoria)' | t }}</span>
                         <textarea rows="2" [value]="justificacionTexto()" (input)="justificacionTexto.set($any($event.target).value)"></textarea>
@@ -290,7 +290,7 @@
                 <tr class="cron__completar-row">
                   <td colspan="7">
                     <div class="cron__completar">
-                      <strong>Completar «{{ t.nombre }}»</strong>
+                      <strong>{{ 'Completar' | t }} «{{ t.nombre }}»</strong>
                       <label class="cron__field">
                         <span>{{ 'Foto de evidencia (obligatoria)' | t }}</span>
                         <input type="file" accept="image/*" (change)="onFotoSelected($event)" />
@@ -323,9 +323,9 @@
           @for (r of recalculos(); track r.id) {
             <li>
               <span class="cron__recalc-dias" [class.cron__recalc-dias--neg]="r.dias_movidos < 0">
-                {{ r.dias_movidos > 0 ? '+' : '' }}{{ r.dias_movidos }}d
+                {{ r.dias_movidos > 0 ? '+' : '' }}{{ r.dias_movidos }}{{ 'd' | t }}
               </span>
-              <span>{{ motivos[r.motivo] }}</span>
+              <span>{{ motivos[r.motivo] | t }}</span>
               <span class="cron__muted">
                 {{ nombreTarea(r.tarea_origen_id) }}@if (r.tarea_destino_id) { → {{ nombreTarea(r.tarea_destino_id) }} }
                 · {{ formatFecha(r.created_at) }}
