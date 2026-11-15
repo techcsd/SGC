@@ -1,13 +1,13 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Requisiciones' | t }}</h1>
-    <span class="page-count">{{ solicitudes().length }} {{ solicitudes().length !== 1 ? 'requisiciones' : 'requisición' }}</span>
+    <span class="page-count">{{ solicitudes().length }} {{ (solicitudes().length !== 1 ? 'requisiciones' : 'requisición') | t }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Nueva requisición
+    {{ 'Nueva requisición' | t }}
   </button>
 </div>
 
@@ -25,7 +25,7 @@
   <div class="sgc-field filters-bar__select">
     <label class="filters-bar__label">{{ 'Obra' | t }}</label>
     <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
-      <option value="">Todas las obras</option>
+      <option value="">{{ 'Todas las obras' | t }}</option>
       @for (o of obrasDisponibles(); track o.id) {
         <option [value]="o.id">{{ o.nombre }}</option>
       }
@@ -50,8 +50,8 @@
 @if (materialesACargo().length) {
   <div class="sgc-card mac-card">
     <button type="button" class="mac-card__head" (click)="toggleMaterialesACargo()">
-      <span>Materiales a mi cargo ({{ materialesACargo().length }})</span>
-      <span class="mac-card__toggle">{{ verMaterialesACargo() ? 'Ocultar' : 'Ver' }}</span>
+      <span>{{ 'Materiales a mi cargo' | t }} ({{ materialesACargo().length }})</span>
+      <span class="mac-card__toggle">{{ (verMaterialesACargo() ? 'Ocultar' : 'Ver') | t }}</span>
     </button>
     @if (verMaterialesACargo()) {
       <p class="mac-card__hint">{{ 'Material recibido en tus obras que aún no se ha devuelto. Es tu responsabilidad hasta que se consuma o devuelva.' | t }}</p>
@@ -85,11 +85,11 @@
     <div class="req-fase-tabs" role="tablist">
       <button type="button" class="req-fase-tab" [class.req-fase-tab--activa]="vistaTab() === 'activas'"
               role="tab" [attr.aria-selected]="vistaTab() === 'activas'" (click)="setVistaTab('activas')">
-        Activas <span class="req-fase-tab__n">{{ tabCount().activas }}</span>
+        {{ 'Activas' | t }} <span class="req-fase-tab__n">{{ tabCount().activas }}</span>
       </button>
       <button type="button" class="req-fase-tab" [class.req-fase-tab--activa]="vistaTab() === 'historial'"
               role="tab" [attr.aria-selected]="vistaTab() === 'historial'" (click)="setVistaTab('historial')">
-        Historial <span class="req-fase-tab__n">{{ tabCount().historial }}</span>
+        {{ 'Historial' | t }} <span class="req-fase-tab__n">{{ tabCount().historial }}</span>
       </button>
     </div>
     <div class="table-scroll">
@@ -121,7 +121,7 @@
                 <button type="button" class="req-toggle" [attr.aria-expanded]="estaExpandida(s.id)"
                   (click)="toggleExpand(s.id)">
                   <span class="req-toggle__chevron" [class.req-toggle__chevron--open]="estaExpandida(s.id)" aria-hidden="true"><app-icon name="chevron-right" [size]="14" /></span>
-                  {{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}
+                  {{ (s.items ?? []).length }} {{ ((s.items ?? []).length !== 1 ? 'artículos' : 'artículo') | t }}
                 </button>
               } @else {
                 <span class="text-muted">—</span>
@@ -152,11 +152,11 @@
                   @let d = diasNecesidad(fn);
                   @if (d !== null) {
                     @if (d < 0) {
-                      <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
+                      <span class="sgc-badge sgc-badge--danger">{{ 'Vencida hace' | t }} {{ -d }} {{ (d === -1 ? 'día' : 'días') | t }}</span>
                     } @else if (d === 0) {
                       <span class="sgc-badge sgc-badge--warning">{{ 'Es hoy' | t }}</span>
                     } @else if (d <= 3) {
-                      <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
+                      <span class="sgc-badge sgc-badge--warning">{{ 'Faltan' | t }} {{ d }} {{ (d === 1 ? 'día' : 'días') | t }}</span>
                     }
                   }
                 } @else {
@@ -167,9 +167,9 @@
                 }
               }
             </td>
-            <td><span class="sgc-badge sgc-badge--neutral">{{ faseLabel(s.fase) }}</span></td>
+            <td><span class="sgc-badge sgc-badge--neutral">{{ faseLabel(s.fase) | t }}</span></td>
             <td>
-              <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span>
+              <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) | t }}</span>
               @if (s.salida_id || s.solicitud_compra_id) {
                 <div class="solicitud-interco">
                   @if (s.salida_id) {
@@ -184,7 +184,7 @@
             <td class="text-muted">
               @if (s.atendido_en) {
                 {{ formatTimestamp(s.atendido_en) }}
-                @if (s.atendido?.nombre) { <span class="solicitud-atendido-por">por {{ s.atendido!.nombre }}</span> }
+                @if (s.atendido?.nombre) { <span class="solicitud-atendido-por">{{ 'por' | t }} {{ s.atendido!.nombre }}</span> }
               } @else {
                 —
               }
@@ -204,7 +204,7 @@
                         <span class="req-item__otro">{{ it.descripcion }} <span class="sgc-badge sgc-badge--neutral">{{ 'Otro' | t }}</span></span>
                       }
                       <span class="req-item__qty">{{ it.cantidad }}@if (it.unidad) { {{ it.unidad }} }</span>
-                      @if (it.talla) { <span class="req-item__talla">Talla: {{ it.talla }}</span> }
+                      @if (it.talla) { <span class="req-item__talla">{{ 'Talla:' | t }} {{ it.talla }}</span> }
                     </li>
                   }
                 </ul>
@@ -219,7 +219,7 @@
                   <div class="req-detail-actions">
                     <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="openEdit(s)">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
-                      {{ esRechazadaPropia(s) ? 'Corregir y reenviar' : 'Editar requisición' }}
+                      {{ (esRechazadaPropia(s) ? 'Corregir y reenviar' : 'Editar requisición') | t }}
                     </button>
                   </div>
                 }
@@ -287,15 +287,15 @@
       <div class="sgc-field">
         <label for="proyecto_id">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-          <option [ngValue]="null">Seleccionar obra…</option>
+          <option [ngValue]="null">{{ 'Seleccionar obra…' | t }}</option>
           @for (p of activeProyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
         </select>
         @if (obraSinAlmacen()) {
           <div class="sm-warn" role="note">
-<app-icon name="alert-triangle" [size]="14" /> Esta obra no tiene almacén propio; lo que se reciba no se registrará en su inventario.
-            <a routerLink="/inventario/bodegas">{{ 'Crear el almacén de la obra' | t }}</a> (requiere permiso de Inventario).
+<app-icon name="alert-triangle" [size]="14" /> {{ 'Esta obra no tiene almacén propio; lo que se reciba no se registrará en su inventario.' | t }}
+            <a routerLink="/inventario/bodegas">{{ 'Crear el almacén de la obra' | t }}</a> {{ '(requiere permiso de Inventario).' | t }}
           </div>
         }
         @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
@@ -306,8 +306,8 @@
       <div class="sgc-field">
         <label for="urgencia">{{ 'Urgencia' | t }}</label>
         <select id="urgencia" formControlName="urgencia">
-          <option value="normal">Normal</option>
-          <option value="urgente">Urgente</option>
+          <option value="normal">{{ 'Normal' | t }}</option>
+          <option value="urgente">{{ 'Urgente' | t }}</option>
         </select>
       </div>
 
@@ -345,8 +345,8 @@
                 (change)="setItemCaptura(i, $any($event.target).value)"
                 aria-label="{{ 'Unidad de captura' | t }}"
               >
-                <option value="base">por unidad</option>
-                <option value="paquete">por {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
+                <option value="base">{{ 'por unidad' | t }}</option>
+                <option value="paquete">{{ 'por' | t }} {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
               </select>
             }
             <app-qty-stepper
@@ -419,7 +419,7 @@
 
       <dl class="resumen-hoja__meta">
         <div><dt>{{ 'Obra' | t }}</dt><dd>{{ proyectoNombre() }}</dd></div>
-        <div><dt>{{ 'Urgencia' | t }}</dt><dd>{{ f.urgencia.value === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
+        <div><dt>{{ 'Urgencia' | t }}</dt><dd>{{ (f.urgencia.value === 'urgente' ? 'Urgente' : 'Normal') | t }}</dd></div>
         @if (f.fecha_necesidad.value) {
           <div><dt>{{ 'Necesidad' | t }}</dt><dd>{{ formatFecha(f.fecha_necesidad.value) }}</dd></div>
         }
@@ -431,7 +431,7 @@
             <div class="resumen-row__info">
               <span class="resumen-row__nombre">{{ r.nombre }}</span>
               <span class="resumen-row__cat">
-                {{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.unidad) { · {{ r.unidad }} }@if (r.talla) { · Talla: {{ r.talla }} }@if (r.unidad_capturada && r.factor_aplicado > 1) { · {{ r.capturada | number:'1.0-2' }} {{ r.unidad_capturada }} = {{ r.cantidad | number:'1.0-2' }} {{ r.unidad }} }
+                {{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.unidad) { · {{ r.unidad }} }@if (r.talla) { · {{ 'Talla:' | t }} {{ r.talla }} }@if (r.unidad_capturada && r.factor_aplicado > 1) { · {{ r.capturada | number:'1.0-2' }} {{ r.unidad_capturada }} = {{ r.cantidad | number:'1.0-2' }} {{ r.unidad }} }
               </span>
             </div>
             <app-qty-stepper
@@ -456,7 +456,7 @@
       @if (step() === 'resumen') {
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAForm()">{{ '← Volver' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving() || !resumenValido()">
-          @if (saving()) { Enviando… } @else { Enviar requisición }
+          @if (saving()) { {{ 'Enviando…' | t }} } @else { {{ 'Enviar requisición' | t }} }
         </button>
       } @else {
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>

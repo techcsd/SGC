@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 52%** (5537/10617 literales de 192 pantallas en alcance). **`ht`: 81%**.
+**Alcance `en`: 52%** (5560/10619 literales de 192 pantallas en alcance). **`ht`: 81%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -105,7 +105,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| bitacora/solicitudes-material | scope | 73 | 52 | 21 | 71% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
@@ -133,6 +132,7 @@
 | bitacora/moldes | enforce | 19 | 19 | 0 | 100% |
 | bitacora/orden-trabajo | enforce | 81 | 81 | 0 | 100% |
 | bitacora/solicitudes-compra | enforce | 26 | 26 | 0 | 100% |
+| bitacora/solicitudes-material | enforce | 75 | 75 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/ordenes | enforce | 111 | 111 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**533 literal(es) sin t()** en 76 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**529 literal(es) sin t()** en 75 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -251,7 +251,6 @@
 | src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
 | src/app/pages/trabajos-transporte/trabajos-transporte.ts | 5 | Elige un chofer de la lista · Asignado · No se pudo asignar … |
-| src/app/pages/bitacora/solicitudes-material/solicitudes-material.ts | 4 | Elige una fecha de necesidad · Fecha de necesidad actualizada · Ya enviaste una igual hace poco … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |

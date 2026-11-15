@@ -295,9 +295,6 @@
     "auth": {
       "enforce": false
     },
-    "bitacora/solicitudes-material": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -377,6 +374,9 @@
       "enforce": true
     },
     "bitacora/solicitudes-compra": {
+      "enforce": true
+    },
+    "bitacora/solicitudes-material": {
       "enforce": true
     },
     "claude": {
