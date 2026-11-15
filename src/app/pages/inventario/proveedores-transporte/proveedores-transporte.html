@@ -37,8 +37,8 @@
               @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
             </div>
             <div class="pt-meta">
-              <span>{{ p.viajes_total }} viajes</span>
-              @if (p.viajes_pendientes_pago > 0) { <span class="pt-pend">{{ p.viajes_pendientes_pago }} por pagar</span> }
+              <span>{{ p.viajes_total }} {{ 'viajes' | t }}</span>
+              @if (p.viajes_pendientes_pago > 0) { <span class="pt-pend">{{ p.viajes_pendientes_pago }} {{ 'por pagar' | t }}</span> }
             </div>
           </div>
 

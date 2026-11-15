@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 13%** (1501/11388 literales de 193 pantallas en alcance). **`ht`: 30%**.
+**Alcance `en`: 22%** (2445/11110 literales de 193 pantallas en alcance). **`ht`: 37%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -61,35 +61,11 @@
 | flota/reporte-semanal | scope | 55 | 0 | 55 | 0% |
 | flota/reportes | scope | 46 | 0 | 46 | 0% |
 | flota/responsabilidad | scope | 72 | 0 | 72 | 0% |
-| flota/rutas | scope | 131 | 0 | 131 | 0% |
+| flota/rutas | scope | 129 | 0 | 129 | 0% |
 | flota/rutas-activas | scope | 52 | 0 | 52 | 0% |
 | flota/seguimiento | scope | 29 | 0 | 29 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
 | incentivos | scope | 184 | 0 | 184 | 0% |
-| inventario/activos | scope | 87 | 0 | 87 | 0% |
-| inventario/ajuste-real | scope | 32 | 0 | 32 | 0% |
-| inventario/almacen-inventario | scope | 48 | 0 | 48 | 0% |
-| inventario/apertura | scope | 35 | 0 | 35 | 0% |
-| inventario/articulos | scope | 119 | 0 | 119 | 0% |
-| inventario/bodegas | scope | 85 | 0 | 85 | 0% |
-| inventario/categorias | scope | 26 | 0 | 26 | 0% |
-| inventario/conduce | scope | 166 | 0 | 166 | 0% |
-| inventario/conduces | scope | 50 | 0 | 50 | 0% |
-| inventario/conduces-por-implementar | scope | 15 | 0 | 15 | 0% |
-| inventario/confirmaciones | scope | 35 | 0 | 35 | 0% |
-| inventario/conteos | scope | 83 | 0 | 83 | 0% |
-| inventario/entradas | scope | 140 | 0 | 140 | 0% |
-| inventario/kardex-modal | scope | 35 | 0 | 35 | 0% |
-| inventario/lugares-por-registrar | scope | 13 | 0 | 13 | 0% |
-| inventario/material-no-catalogado | scope | 41 | 0 | 41 | 0% |
-| inventario/movimientos | scope | 21 | 0 | 21 | 0% |
-| inventario/por-firmar | scope | 27 | 0 | 27 | 0% |
-| inventario/proveedores-transporte | scope | 24 | 0 | 24 | 0% |
-| inventario/reportes | scope | 48 | 0 | 48 | 0% |
-| inventario/reposicion | scope | 35 | 0 | 35 | 0% |
-| inventario/requisiciones | scope | 171 | 0 | 171 | 0% |
-| inventario/retiros | scope | 106 | 0 | 106 | 0% |
-| inventario/salidas | scope | 160 | 0 | 160 | 0% |
 | legal/aprobaciones | scope | 34 | 0 | 34 | 0% |
 | legal/configuracion | scope | 20 | 0 | 20 | 0% |
 | legal/contratos | scope | 66 | 0 | 66 | 0% |
@@ -156,8 +132,6 @@
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | flota/checklists | scope | 113 | 5 | 108 | 4% |
-| inventario/conduce-externo-ficha | scope | 46 | 2 | 44 | 4% |
-| inventario/conduces-externos | scope | 15 | 1 | 14 | 7% |
 | bitacora/nueva | scope | 201 | 17 | 184 | 8% |
 | legal/expedientes | scope | 90 | 7 | 83 | 8% |
 | bitacora/solicitudes-material | scope | 90 | 9 | 81 | 10% |
@@ -165,14 +139,33 @@
 | tecnologia/dev-notes | scope | 96 | 13 | 83 | 14% |
 | flota/vehiculos | scope | 427 | 66 | 361 | 15% |
 | bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
-| inventario/conduce-externo-form | scope | 67 | 12 | 55 | 18% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | bitacora/moldes | scope | 22 | 5 | 17 | 23% |
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| inventario/conteos | scope | 69 | 31 | 38 | 45% |
+| inventario/apertura | scope | 32 | 15 | 17 | 47% |
+| inventario/conduces | scope | 33 | 17 | 16 | 52% |
+| inventario/reposicion | scope | 31 | 16 | 15 | 52% |
+| inventario/ajuste-real | scope | 31 | 17 | 14 | 55% |
+| inventario/articulos | scope | 95 | 53 | 42 | 56% |
+| inventario/movimientos | scope | 16 | 9 | 7 | 56% |
+| inventario/categorias | scope | 23 | 13 | 10 | 57% |
+| inventario/salidas | scope | 124 | 73 | 51 | 59% |
+| inventario/bodegas | scope | 70 | 42 | 28 | 60% |
+| inventario/activos | scope | 71 | 43 | 28 | 61% |
+| inventario/confirmaciones | scope | 23 | 14 | 9 | 61% |
+| inventario/material-no-catalogado | scope | 38 | 23 | 15 | 61% |
+| inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
+| inventario/conduce | scope | 145 | 93 | 52 | 64% |
+| inventario/kardex-modal | scope | 25 | 16 | 9 | 64% |
+| inventario/requisiciones | scope | 146 | 93 | 53 | 64% |
+| inventario/retiros | scope | 99 | 65 | 34 | 66% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
+| inventario/entradas | scope | 110 | 79 | 31 | 72% |
+| inventario/conduce-externo-ficha | scope | 41 | 30 | 11 | 73% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 25 | 19 | 6 | 76% |
 | flota/transferencias | scope | 13 | 10 | 3 | 77% |
@@ -198,12 +191,19 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
+| inventario/conduces-externos | scope | 14 | 14 | 0 | 100% |
+| inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
+| inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
+| inventario/por-firmar | enforce | 25 | 25 | 0 | 100% |
+| inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
+| inventario/reportes | enforce | 44 | 44 | 0 | 100% |
 | inventario/stock-odoo | scope | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**980 literal(es) sin t()** en 132 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**969 literal(es) sin t()** en 128 archivo(s) (de 141 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -293,7 +293,6 @@
 | src/app/pages/flota/rutas/rutas.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/inventario/ajuste-real/ajuste-real.ts | 4 | Elige el almacén primero · Nada que ajustar · Ajuste real aplicado … |
 | src/app/pages/inventario/almacen-inventario/almacen-inventario.ts | 4 | Existencia ajustada. · Apertura actualizada. · Ajuste real aplicado. … |
-| src/app/pages/inventario/por-firmar/por-firmar.ts | 4 | Dibuja tu firma antes de confirmar. · La firma está vacía. · Este conduce ya estaba firmado. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/proyectos/personal/personal-levantamiento.ts | 4 | No se pudo marcar · Día cerrado · No se pudo cerrar … |
 | src/app/pages/rrhh/contratos/contratos.ts | 4 | No se pudo cargar Contratos y documentos · No se pudieron cargar los documentos · Guardado … |
@@ -307,8 +306,6 @@
 | src/app/pages/compras/productos-por-dar-de-alta/productos-por-dar-de-alta.ts | 3 | Solicitud enviada. · Artículo creado. · Solicitud resuelta. |
 | src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
 | src/app/pages/inventario/categorias/categorias.ts | 3 | Categoría actualizada · Categoría creada · No se pudo cambiar el estado de la categoría. |
-| src/app/pages/inventario/conduce-externo-form/conduce-externo-form.ts | 3 | Escribe el nombre del proveedor · Proveedor creado · Conduce externo emitido |
-| src/app/pages/inventario/proveedores-transporte/proveedores-transporte.ts | 3 | Escribe el nombre · Proveedor creado · Proveedor ratificado |
 | src/app/pages/proyectos/kpi/kpi.ts | 3 | Buen desempeño (80+) · Aceptable (60-79) · Necesita atención (<60) |
 | src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
 | src/app/pages/rrhh/reportes/reportes.ts | 3 | Indefinido · Temporal · Por obra |
@@ -332,7 +329,6 @@
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo.ts | 1 | Orden de trabajo registrada. |
 | src/app/pages/compras/gastos/gastos.ts | 1 | Gasto registrado |
 | src/app/pages/flota/reporte-semanal/reporte-semanal.ts | 1 | Inspección vehículo |
-| src/app/pages/inventario/lugares-por-registrar/lugares-por-registrar.ts | 1 | Lugar registrado |
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
 | src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |

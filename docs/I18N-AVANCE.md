@@ -117,6 +117,40 @@ lo mida.
   `"Bitácora"` que el guard atrapó al activar `enforce:true`). Build + 368
   tests + smoke (5 pantallas × 2 idiomas) verdes.
 
+## Medición tras lote 4, parcial (Inventario, 14-nov-2026)
+
+Inventario es grande: **24 pantallas**, ~1700 literales. En progreso, **8/24
+a 100%** hasta ahora: `conduces-por-implementar`, `lugares-por-registrar`,
+`por-firmar`, `proveedores-transporte`, `reportes`, `conduce-externo-form`
+(+ `conduces-externos`/`stock-odoo` ya estaban al 100% de rondas previas).
+**16 pantallas restantes** (con su % tras el codemod, antes de la limpieza
+a mano): `conteos` 45%, `apertura` 47%, `conduces` 52%, `reposicion` 52%,
+`ajuste-real` 55%, `articulos` 56%, `movimientos` 56%, `categorias` 57%,
+`salidas` 59%, `bodegas` 60%, `activos` 61%, `confirmaciones` 61%,
+`material-no-catalogado` 61%, `almacen-inventario` 63%, `conduce` 64%,
+`kardex-modal` 64%, `requisiciones` 64%, `retiros` 66%, `entradas` 72%,
+`conduce-externo-ficha` 73%.
+
+- `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
+  TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
+  **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
+  línea con una comparación TS dentro de un binding (`[class.cn-up]="a > b"`)
+  tiene un `<`/`>` que NO delimita una etiqueta — el regex de nodos de texto
+  no lo sabía y partió un atributo a la mitad en `conteos.html` (`npm run
+  build` lo atrapó: `NG5002` parser error). El codemod ahora salta toda la
+  línea si detecta ese patrón (`]="[^"]*[<>][^"]*"`) en vez de adivinar.
+- **Sexto fix de precisión al escáner:** el regex de `@if`/`@for` como ruido
+  no toleraba un `(` inmediatamente antes (`(@for (...) {...})`, un `@for`
+  envuelto en paréntesis de texto) — se amplió el patrón.
+- `public/i18n/en.json` +118, `ht.json` +173 (22 reutilizados de csd-app
+  para `en`, 0 para `ht`). `alcance.json`: 6 pantallas nuevas `enforce:true`
+  (total 13). Smoke: 11 pantallas × 2 idiomas, sin fallos — incluye 2 rutas
+  "especiales" agregadas al mapeo del smoke (`por-firmar` vive en
+  `/por-firmar`, no `/inventario/por-firmar` — AU8; `conduce-externo-form`
+  vive en `/inventario/conduce-externo/nuevo`; `conduce-externo-ficha` es
+  ruta dinámica `:id`, sin URL genérica — se excluye del smoke a propósito).
+  Build + 368 tests verdes.
+
 ## Tabla de lotes (F3 cablear HTML + F4 cablear `.ts`)
 
 Orden acordado en el prompt: Claude, Configuración/perfil/shell, Dashboard,
@@ -129,7 +163,7 @@ Admin, resto.
 | 1 | Claude | claude, configuracion/claude, admin/claude | 3 envueltos (resto ya venía) | 29 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
-| 4 | Inventario | — | — | — | ⏳ pendiente | — | false |
+| 4 | Inventario | 8/24 pantallas 100% (conduces-por-implementar, lugares-por-registrar, por-firmar, proveedores-transporte, reportes, conduce-externo-form, + conduces-externos/stock-odoo ya estaban) | ~1193 (codemod) + ~20 a mano | ~15 (toasts) | 🧪 **en progreso (8/24)** | (ver rama) | parcial |
 | 5 | Compras | — | — | — | ⏳ pendiente | — | false |
 | 6 | Flota | — | — | — | ⏳ pendiente | — | false |
 | 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |

@@ -67,7 +67,7 @@ function esRuido(s) {
   // Bloques de control flow de Angular (@if/@for/@else/@switch/…) que el
   // regex de nodos de texto atrapa como "texto" entre un '>' y un '<' porque
   // no están envueltos en una etiqueta — no son copy, son sintaxis de plantilla.
-  if (/^[}\s]*@(if|else if|else|for|switch|case|default|empty)\b/.test(t)) return true;
+  if (/^[}\s(]*@(if|else if|else|for|switch|case|default|empty)\b/.test(t)) return true;
   return false;
 }
 

@@ -178,78 +178,6 @@
     "incentivos": {
       "enforce": false
     },
-    "inventario/activos": {
-      "enforce": false
-    },
-    "inventario/ajuste-real": {
-      "enforce": false
-    },
-    "inventario/almacen-inventario": {
-      "enforce": false
-    },
-    "inventario/apertura": {
-      "enforce": false
-    },
-    "inventario/articulos": {
-      "enforce": false
-    },
-    "inventario/bodegas": {
-      "enforce": false
-    },
-    "inventario/categorias": {
-      "enforce": false
-    },
-    "inventario/conduce": {
-      "enforce": false
-    },
-    "inventario/conduces": {
-      "enforce": false
-    },
-    "inventario/conduces-por-implementar": {
-      "enforce": false
-    },
-    "inventario/confirmaciones": {
-      "enforce": false
-    },
-    "inventario/conteos": {
-      "enforce": false
-    },
-    "inventario/entradas": {
-      "enforce": false
-    },
-    "inventario/kardex-modal": {
-      "enforce": false
-    },
-    "inventario/lugares-por-registrar": {
-      "enforce": false
-    },
-    "inventario/material-no-catalogado": {
-      "enforce": false
-    },
-    "inventario/movimientos": {
-      "enforce": false
-    },
-    "inventario/por-firmar": {
-      "enforce": false
-    },
-    "inventario/proveedores-transporte": {
-      "enforce": false
-    },
-    "inventario/reportes": {
-      "enforce": false
-    },
-    "inventario/reposicion": {
-      "enforce": false
-    },
-    "inventario/requisiciones": {
-      "enforce": false
-    },
-    "inventario/retiros": {
-      "enforce": false
-    },
-    "inventario/salidas": {
-      "enforce": false
-    },
     "legal/aprobaciones": {
       "enforce": false
     },
@@ -448,12 +376,6 @@
     "flota/checklists": {
       "enforce": false
     },
-    "inventario/conduce-externo-ficha": {
-      "enforce": false
-    },
-    "inventario/conduces-externos": {
-      "enforce": false
-    },
     "bitacora/nueva": {
       "enforce": false
     },
@@ -475,9 +397,6 @@
     "bitacora/cartillas": {
       "enforce": false
     },
-    "inventario/conduce-externo-form": {
-      "enforce": false
-    },
     "app-movil": {
       "enforce": false
     },
@@ -493,10 +412,70 @@
     "auth": {
       "enforce": false
     },
+    "inventario/conteos": {
+      "enforce": false
+    },
+    "inventario/apertura": {
+      "enforce": false
+    },
+    "inventario/conduces": {
+      "enforce": false
+    },
+    "inventario/reposicion": {
+      "enforce": false
+    },
+    "inventario/ajuste-real": {
+      "enforce": false
+    },
+    "inventario/articulos": {
+      "enforce": false
+    },
+    "inventario/movimientos": {
+      "enforce": false
+    },
+    "inventario/categorias": {
+      "enforce": false
+    },
+    "inventario/salidas": {
+      "enforce": false
+    },
+    "inventario/bodegas": {
+      "enforce": false
+    },
+    "inventario/activos": {
+      "enforce": false
+    },
+    "inventario/confirmaciones": {
+      "enforce": false
+    },
+    "inventario/material-no-catalogado": {
+      "enforce": false
+    },
+    "inventario/almacen-inventario": {
+      "enforce": false
+    },
+    "inventario/conduce": {
+      "enforce": false
+    },
+    "inventario/kardex-modal": {
+      "enforce": false
+    },
+    "inventario/requisiciones": {
+      "enforce": false
+    },
+    "inventario/retiros": {
+      "enforce": false
+    },
     "practica": {
       "enforce": false
     },
     "tecnologia/oficina-agentes": {
+      "enforce": false
+    },
+    "inventario/entradas": {
+      "enforce": false
+    },
+    "inventario/conduce-externo-ficha": {
       "enforce": false
     },
     "tecnologia/envios-automaticos": {
@@ -573,6 +552,27 @@
     },
     "demo/progreso": {
       "enforce": false
+    },
+    "inventario/conduce-externo-form": {
+      "enforce": true
+    },
+    "inventario/conduces-externos": {
+      "enforce": false
+    },
+    "inventario/conduces-por-implementar": {
+      "enforce": true
+    },
+    "inventario/lugares-por-registrar": {
+      "enforce": true
+    },
+    "inventario/por-firmar": {
+      "enforce": true
+    },
+    "inventario/proveedores-transporte": {
+      "enforce": true
+    },
+    "inventario/reportes": {
+      "enforce": true
     },
     "inventario/stock-odoo": {
       "enforce": false

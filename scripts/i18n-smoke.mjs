@@ -27,10 +27,14 @@ const RUTA_REAL = {
   'configuracion/claude': 'claude', // embebida en Claude › Inicio
   'admin/claude': 'claude', // embebida en Claude › Auditoría › Conexiones
   'ajustes-notificaciones': 'configuracion#notificaciones', // embebida en Configuración
+  'inventario/por-firmar': 'por-firmar', // AU8 — ruta top-level, no /inventario/por-firmar
+  'inventario/conduce-externo-form': 'inventario/conduce-externo/nuevo',
+  'inventario/conduce-externo-ficha': null, // ruta dinámica (:id) — sin URL genérica, se salta
 };
 const RUTAS_ENFORCE = Object.entries(ALCANCE.pantallas ?? {})
   .filter(([, v]) => v?.enforce)
-  .map(([pant]) => pant);
+  .map(([pant]) => pant)
+  .filter((p) => RUTA_REAL[p] !== null); // null = ruta dinámica sin URL genérica, se salta
 const RUTAS = [...new Set(RUTAS_ENFORCE.map((p) => RUTA_REAL[p] ?? p))];
 
 async function dismissOverlays(page) {

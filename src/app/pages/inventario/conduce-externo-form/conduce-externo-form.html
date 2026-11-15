@@ -20,7 +20,7 @@
   }
 
   @if (origenRequisicionId()) {
-    <div class="sgc-badge sgc-badge--info">Procede de {{ reqCodigo() }} — compra en ferretería (cuenta en el avance al confirmarse)</div>
+    <div class="sgc-badge sgc-badge--info">{{ 'Procede de' | t }} {{ reqCodigo() }} {{ '— compra en ferretería (cuenta en el avance al confirmarse)' | t }}</div>
   }
   @if (formError()) {
     <div class="page-error" role="alert">{{ formError() }}</div>
@@ -46,9 +46,9 @@
           <div class="sgc-field">
             <label>{{ 'Proveedor de transporte' | t }}</label>
             <select class="sgc-select" [value]="proveedorId() ?? ''" (change)="proveedorId.set($any($event.target).value || null)">
-              <option value="">— Selecciona —</option>
+              <option value="">{{ '— Selecciona —' | t }}</option>
               @for (p of proveedores(); track p.id) {
-                <option [value]="p.id">{{ p.nombre }}@if (p.estado === 'sin_ratificar') { (sin ratificar) }</option>
+                <option [value]="p.id">{{ p.nombre }}@if (p.estado === 'sin_ratificar') { {{ '(sin ratificar)' | t }} }</option>
               }
             </select>
           </div>
@@ -198,9 +198,9 @@
 
         @if (reqsActivasDestino().length) {
           <div class="cef-reqaviso" role="status">
-            Esta obra tiene {{ reqsActivasDestino().length }} requisición(es) activa(s)
+            {{ 'Esta obra tiene' | t }} {{ reqsActivasDestino().length }} {{ 'requisición(es) activa(s)' | t }}
             (@for (r of reqsActivasDestino(); track r.id; let last = $last) {{{ reqCodigoDe(r.folio) }}{{ last ? '' : ', ' }}}).
-            Lo que coincida con sus renglones pendientes se marcará automáticamente al recibir; lo demás entra al inventario.
+            {{ 'Lo que coincida con sus renglones pendientes se marcará automáticamente al recibir; lo demás entra al inventario.' | t }}
           </div>
         }
       </section>
@@ -217,9 +217,9 @@
             @if (afectaInventario()) {
               <p class="cef-hint cef-hint--info">
                 @if (sentidoInventario() === 'salida') {
-                  El origen es un almacén nuestro: estos renglones <strong>{{ 'salen de su inventario' | t }}</strong> al emitir.
+                  {{ 'El origen es un almacén nuestro: estos renglones' | t }} <strong>{{ 'salen de su inventario' | t }}</strong> {{ 'al emitir.' | t }}
                 } @else {
-                  El destino es un almacén nuestro: estos renglones <strong>{{ 'entrarán al inventario cuando el receptor confirme' | t }}</strong> la recepción.
+                  {{ 'El destino es un almacén nuestro: estos renglones' | t }} <strong>{{ 'entrarán al inventario cuando el receptor confirme' | t }}</strong> {{ 'la recepción.' | t }}
                 }
               </p>
             } @else {
@@ -256,10 +256,10 @@
 
         <div class="cef-progress">
           <div class="cef-progress__bar"><span [style.width.%]="listos() * 25"></span></div>
-          <span class="cef-progress__txt">{{ listos() }}/4 listos</span>
+          <span class="cef-progress__txt">{{ listos() }}{{ '/4 listos' | t }}</span>
         </div>
         @if (faltan().length) {
-          <p class="cef-progress__falta">Falta: {{ faltan().join(', ') }}</p>
+          <p class="cef-progress__falta">{{ 'Falta:' | t }} {{ faltan().join(', ') }}</p>
         }
 
         <button type="button" class="sgc-btn sgc-btn--primary cef-emitir" [disabled]="!puedeEmitir()" (click)="guardar()">

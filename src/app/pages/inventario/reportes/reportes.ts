@@ -17,6 +17,7 @@ import { StockPorBodega } from '../../../../shared/models/stock.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface EntradaRow {
   id: string;
@@ -79,6 +80,7 @@ interface TopArticulo {
   imports: [DecimalPipe, DatePipe, CurrencyPipe, Skeleton, TranslatePipe],
 })
 export class Reportes implements OnInit {
+  protected i18n = inject(I18nService);
   private articulosService = inject(ArticulosService);
   private stockService = inject(StockService);
   private categoriasService = inject(CategoriasService);

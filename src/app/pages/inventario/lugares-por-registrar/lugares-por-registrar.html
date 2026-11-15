@@ -20,8 +20,8 @@
               <span class="lpr-texto">{{ l.texto }}</span>
               @if (l.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
               <div class="lpr-meta">
-                {{ l.contexto || '—' }} · {{ l.documento_tipo || 'documento' }} ·
-                por {{ l.usado_por_nombre || '—' }} · {{ l.created_at | date: 'dd/MM/yyyy' }}
+                {{ l.contexto || '—' }} · {{ l.documento_tipo || ('documento' | t) }} ·
+                {{ 'por' | t }} {{ l.usado_por_nombre || '—' }} · {{ l.created_at | fecha: 'dd/MM/yyyy' }}
               </div>
             </div>
             @if (esLogistica()) {

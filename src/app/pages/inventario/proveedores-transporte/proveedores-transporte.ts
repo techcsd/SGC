@@ -6,6 +6,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * BA / Transporte v3 — catálogo de proveedores de transporte + bandeja de
@@ -22,6 +23,7 @@ export class ProveedoresTransporte {
   private svc = inject(TransporteV3Service);
   private user = inject(UserService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
 
   // Mirror de sgc.es_logistica(): admin O rol logística.
   esLogistica = computed(() => this.user.hasRole('admin') || this.user.hasRole('logistica'));
@@ -62,11 +64,11 @@ export class ProveedoresTransporte {
 
   async crear() {
     const nombre = this.nuevoNombre().trim();
-    if (!nombre) { this.toast.warning('Escribe el nombre'); return; }
+    if (!nombre) { this.toast.warning(this.i18n.t('Escribe el nombre')); return; }
     try {
       await this.svc.crearProveedor({ nombre, telefono: this.nuevoTel().trim() || null });
       this.nuevoNombre.set(''); this.nuevoTel.set('');
-      this.toast.success('Proveedor creado');
+      this.toast.success(this.i18n.t('Proveedor creado'));
       await this.recargar();
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo crear');
@@ -76,7 +78,7 @@ export class ProveedoresTransporte {
   async ratificar(p: ProveedorTransporte) {
     try {
       await this.svc.ratificarProveedor(p.id);
-      this.toast.success('Proveedor ratificado');
+      this.toast.success(this.i18n.t('Proveedor ratificado'));
       await this.recargar();
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo ratificar');
@@ -103,7 +105,7 @@ export class ProveedoresTransporte {
       this.viajes.update((list) =>
         list.map((x) => (x.viaje_id === v.viaje_id ? { ...x, estado_pago: pagar ? 'pagado' : 'pendiente_pago' } : x)),
       );
-      this.toast.success(pagar ? 'Viaje marcado como pagado' : 'Viaje marcado como pendiente');
+      this.toast.success(pagar ? this.i18n.t('Viaje marcado como pagado') : this.i18n.t('Viaje marcado como pendiente'));
       await this.recargar();
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo actualizar el pago');

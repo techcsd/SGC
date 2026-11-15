@@ -5,12 +5,11 @@
       <a routerLink="/inventario/articulos" class="page__back">{{ '← Inventario' | t }}</a>
       <h1 class="page__title">{{ 'Conduces por implementar' | t }}</h1>
       <p class="page__sub">
-        Conduces que incluyen material escrito a mano (no catalogado) todavía sin vincular a
-        un artículo. Al vincular todos sus materiales, el conduce sale de esta lista.
+        {{ 'Conduces que incluyen material escrito a mano (no catalogado) todavía sin vincular a un artículo. Al vincular todos sus materiales, el conduce sale de esta lista.' | t }}
       </p>
     </div>
     <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/material-no-catalogado">
-      Ir a la bandeja de materiales
+      {{ 'Ir a la bandeja de materiales' | t }}
     </a>
   </header>
 
@@ -44,7 +43,7 @@
               <td class="text-muted">{{ f.bodega || '—' }}</td>
               <td class="text-muted">{{ f.creado_por || '—' }}</td>
               <td class="text-right">
-                <span class="cpi-badge">{{ f.pendientes }} de {{ f.total_libres }}</span>
+                <span class="cpi-badge">{{ f.pendientes }} {{ 'de' | t }} {{ f.total_libres }}</span>
               </td>
               <td class="text-right">
                 <a class="sgc-btn sgc-btn--primary sgc-btn--sm"

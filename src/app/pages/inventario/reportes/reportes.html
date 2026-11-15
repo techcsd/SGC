@@ -93,7 +93,7 @@
           </thead>
           <tbody>
             @for (cat of categoriaStats(); track cat.nombre) {
-              <tr class="inv-reportes__row--link" (click)="irACategoria(cat.catId)" role="button" tabindex="0" (keydown.enter)="irACategoria(cat.catId)" [attr.aria-label]="'Ver artículos de ' + cat.nombre">
+              <tr class="inv-reportes__row--link" (click)="irACategoria(cat.catId)" role="button" tabindex="0" (keydown.enter)="irACategoria(cat.catId)" [attr.aria-label]="i18n.t('Ver artículos de {n}', { n: cat.nombre })">
                 <td>{{ cat.nombre }}</td>
                 <td class="inv-reportes__table-num">{{ cat.articulosCount | number }}</td>
                 <td class="inv-reportes__table-num">{{ cat.stockTotal | number }}</td>
@@ -125,7 +125,7 @@
             </thead>
             <tbody>
               @for (art of criticosPaged(); track art.id) {
-                <tr class="inv-reportes__row--link" (click)="irAArticulo(art.id)" role="button" tabindex="0" (keydown.enter)="irAArticulo(art.id)" [attr.aria-label]="'Ver ' + art.nombre">
+                <tr class="inv-reportes__row--link" (click)="irAArticulo(art.id)" role="button" tabindex="0" (keydown.enter)="irAArticulo(art.id)" [attr.aria-label]="i18n.t('Ver {n}', { n: art.nombre })">
                   <td><span class="inv-reportes__code">{{ art.codigo }}</span></td>
                   <td>{{ art.nombre }}</td>
                   <td class="inv-reportes__table-num">{{ art.stockMinimo | number }}</td>
@@ -139,7 +139,7 @@
         @if (criticosTotalPages() > 1) {
           <div class="inv-reportes__pager">
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === 1" (click)="criticoGoTo(criticoPage() - 1)">{{ '← Anterior' | t }}</button>
-            <span class="inv-reportes__pager-info">Página {{ criticoPage() }} de {{ criticosTotalPages() }} · {{ articulosCriticos().length }} artículos</span>
+            <span class="inv-reportes__pager-info">{{ 'Página' | t }} {{ criticoPage() }} {{ 'de' | t }} {{ criticosTotalPages() }} · {{ articulosCriticos().length }} {{ 'artículos' | t }}</span>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === criticosTotalPages()" (click)="criticoGoTo(criticoPage() + 1)">{{ 'Siguiente →' | t }}</button>
           </div>
         }
@@ -157,7 +157,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
           </svg>
-          Últimas 10 entradas
+          {{ 'Últimas 10 entradas' | t }}
         </h3>
         <div class="inv-reportes__table-wrap">
           @if (entradasList().length === 0) {
@@ -200,7 +200,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
           </svg>
-          Últimas 10 salidas
+          {{ 'Últimas 10 salidas' | t }}
         </h3>
         <div class="inv-reportes__table-wrap">
           @if (salidasList().length === 0) {
