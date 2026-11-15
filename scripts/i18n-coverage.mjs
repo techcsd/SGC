@@ -223,6 +223,7 @@ function extraerLiteralesTs(ts) {
   TS_PROP_LITERAL_RE.lastIndex = 0;
   while ((m = TS_PROP_LITERAL_RE.exec(ts))) {
     if (dentroDeAlgunSpan(spansArreglos, m.index)) continue; // catálogo — se traduce al mostrar
+    if (m[1] === '`' && m[2].includes('${')) continue; // template literal con datos (`${x.nombre}`), no es copy
     const lit = limpiar(m[2]);
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
   }

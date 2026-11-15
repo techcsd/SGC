@@ -412,9 +412,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/activos": {
-      "enforce": false
-    },
     "inventario/almacen-inventario": {
       "enforce": false
     },
@@ -475,13 +472,13 @@
     "borrador-claude": {
       "enforce": false
     },
-    "admin/auditoria": {
-      "enforce": false
-    },
     "oauth-consent": {
       "enforce": false
     },
     "compras/gastos": {
+      "enforce": false
+    },
+    "admin/auditoria": {
       "enforce": false
     },
     "tecnologia/whatsapp": {
@@ -513,6 +510,9 @@
     },
     "demo/progreso": {
       "enforce": false
+    },
+    "inventario/activos": {
+      "enforce": true
     },
     "inventario/ajuste-real": {
       "enforce": true

@@ -75,6 +75,7 @@ function extraerClaves(txt) {
     re.lastIndex = 0;
     let m;
     while ((m = re.exec(txt))) {
+      if (m[1] === '`' && m[2].includes('${')) continue; // template literal con datos, no es copy
       const s = m[2].replace(/\\(['"])/g, '$1').trim();
       if (s) claves.add(s);
     }

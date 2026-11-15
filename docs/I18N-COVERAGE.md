@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 25%** (2737/11115 literales de 193 pantallas en alcance). **`ht`: 54%**.
+**Alcance `en`: 25%** (2764/11107 literales de 193 pantallas en alcance). **`ht`: 55%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -23,12 +23,12 @@
 | admin/roles | scope | 167 | 0 | 167 | 0% |
 | admin/solicitudes-eliminacion | scope | 8 | 0 | 8 | 0% |
 | admin/unidades | scope | 11 | 0 | 11 | 0% |
-| admin/usuarios | scope | 164 | 0 | 164 | 0% |
+| admin/usuarios | scope | 163 | 0 | 163 | 0% |
 | admin/usuarios-duplicados | scope | 18 | 0 | 18 | 0% |
 | admin/usuarios-test | scope | 37 | 0 | 37 | 0% |
 | apoyo-transporte | scope | 57 | 0 | 57 | 0% |
 | auth/set-password | scope | 13 | 0 | 13 | 0% |
-| bitacora/cobertura | scope | 20 | 0 | 20 | 0% |
+| bitacora/cobertura | scope | 19 | 0 | 19 | 0% |
 | bitacora/dashboard | scope | 26 | 0 | 26 | 0% |
 | bitacora/entregas | scope | 25 | 0 | 25 | 0% |
 | bitacora/historial | scope | 98 | 0 | 98 | 0% |
@@ -74,7 +74,7 @@
 | mensajes | scope | 68 | 0 | 68 | 0% |
 | mi-rendimiento | scope | 17 | 0 | 17 | 0% |
 | mis-choferes | scope | 9 | 0 | 9 | 0% |
-| notas/editor | scope | 54 | 0 | 54 | 0% |
+| notas/editor | scope | 53 | 0 | 53 | 0% |
 | notas | scope | 46 | 0 | 46 | 0% |
 | obra/avance | scope | 85 | 0 | 85 | 0% |
 | obra/checklists | scope | 57 | 0 | 57 | 0% |
@@ -136,15 +136,14 @@
 | legal/expedientes | scope | 90 | 7 | 83 | 8% |
 | bitacora/solicitudes-material | scope | 90 | 9 | 81 | 10% |
 | flota/mantenimientos | scope | 121 | 16 | 105 | 13% |
-| tecnologia/dev-notes | scope | 96 | 13 | 83 | 14% |
-| flota/vehiculos | scope | 424 | 66 | 358 | 16% |
+| tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
+| flota/vehiculos | scope | 422 | 66 | 356 | 16% |
 | bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | bitacora/moldes | scope | 22 | 5 | 17 | 23% |
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/activos | scope | 71 | 43 | 28 | 61% |
 | inventario/almacen-inventario | scope | 40 | 25 | 15 | 63% |
 | inventario/conduce | scope | 145 | 93 | 52 | 64% |
 | inventario/requisiciones | scope | 144 | 93 | 51 | 65% |
@@ -165,9 +164,9 @@
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
-| admin/auditoria | scope | 65 | 62 | 3 | 95% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | compras/gastos | scope | 26 | 25 | 1 | 96% |
+| admin/auditoria | scope | 64 | 62 | 2 | 97% |
 | tecnologia/whatsapp | scope | 186 | 183 | 3 | 98% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
@@ -178,6 +177,7 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
 | inventario/apertura | enforce | 38 | 38 | 0 | 100% |
 | inventario/articulos | enforce | 93 | 93 | 0 | 100% |
@@ -203,12 +203,12 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**900 literal(es) sin t()** en 118 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**887 literal(es) sin t()** en 116 archivo(s) (de 140 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
-| src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 32 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
+| src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 30 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
 | src/app/pages/inventario/conduce/conduce.ts | 26 | Sin pendientes · Conduce ${this.numeroConduce} eliminado. · Ruta iniciada … |
 | src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 23 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
 | src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
@@ -225,8 +225,8 @@
 | src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
 | src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
-| src/app/pages/tecnologia/dev-notes/dev-notes.ts | 14 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/apoyo-transporte/apoyo-transporte.ts | 13 | Faltan datos · Falta la foto · Apoyo creado … |
+| src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/compras/ordenes/ordenes.ts | 12 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
 | src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
@@ -267,7 +267,6 @@
 | src/app/pages/compras/proveedores-odoo/proveedores-odoo.ts | 6 | No se pudo cargar más proveedores · No se pudo cambiar el estado del proveedor · Dato de prueba eliminado … |
 | src/app/pages/flota/rutas-activas/rutas-activas.ts | 6 | Disponible · En ruta · Descanso … |
 | src/app/pages/flota/seguimiento/seguimiento.ts | 6 | Disponible · En ruta · Descanso … |
-| src/app/pages/inventario/activos/activos.ts | 6 | Dato de prueba eliminado · Error al eliminar · Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar? … |
 | src/app/pages/inventario/entradas/entradas.ts | 6 | Entrada rechazada · Recepción confirmada · Error … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
@@ -276,7 +275,6 @@
 | src/app/pages/flota/choferes-privados/choferes-privados.ts | 5 | Listo · Retirada · Listo … |
 | src/app/pages/flota/conductores/detalle/conductor-detalle.ts | 5 | Error · Foto actualizada · Multa registrada … |
 | src/app/pages/flota/vehiculos/cargar-documentos/cargar-documentos.ts | 5 | Un solo PDF · Formato no soportado · Demasiadas fotos … |
-| src/app/pages/notas/editor/nota-editor.ts | 5 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
 | src/app/pages/trabajos-transporte/trabajos-transporte.ts | 5 | Elige un chofer de la lista · Asignado · No se pudo asignar … |
@@ -286,14 +284,13 @@
 | src/app/pages/flota/rutas/rutas.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/inventario/almacen-inventario/almacen-inventario.ts | 4 | Existencia ajustada. · Apertura actualizada. · Ajuste real aplicado. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
+| src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/proyectos/personal/personal-levantamiento.ts | 4 | No se pudo marcar · Día cerrado · No se pudo cerrar … |
 | src/app/pages/rrhh/contratos/contratos.ts | 4 | No se pudo cargar Contratos y documentos · No se pudieron cargar los documentos · Guardado … |
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
-| src/app/pages/admin/usuarios/usuarios.ts | 3 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. · ${r.nombre} (${conteo.get(r.codigo) ?? 0}) |
-| src/app/pages/bitacora/cobertura/cobertura.ts | 3 | Sin bitácoras · Atrasada (${d} días) · Al día |
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
 | src/app/pages/compras/productos-por-dar-de-alta/productos-por-dar-de-alta.ts | 3 | Solicitud enviada. · Artículo creado. · Solicitud resuelta. |
 | src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
@@ -305,13 +302,14 @@
 | src/app/pages/tecnologia/resumen-operaciones/resumen-operaciones.ts | 3 | Envío disparado · No se pudo reenviar · ¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora? |
 | src/app/pages/admin/almacenes-duplicados/almacenes-duplicados.ts | 2 | Almacenes fusionados · Vas a FUSIONAR "${duplicadoNombre}" dentro de "${canonicoNombre}".\n\n |
 | src/app/pages/admin/solicitudes-eliminacion/solicitudes-eliminacion.ts | 2 | Listo · ¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible. |
+| src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
+| src/app/pages/bitacora/cobertura/cobertura.ts | 2 | Sin bitácoras · Al día |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
 | src/app/pages/compras/solicitar-odoo/solicitar-odoo.ts | 2 | Solicitud de alta enviada · No se pudo enviar la solicitud de alta |
 | src/app/pages/legal/expedientes/expedientes.ts | 2 | No se pudo cambiar el estado del expediente · No se pudo fijar la fecha límite |
 | src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
 | src/app/pages/tecnologia/odoo-sync/odoo-sync.ts | 2 | Reencolado · No se pudo reencolar |
-| src/app/pages/admin/auditoria/auditoria.ts | 1 | ${h.hora}h |
 | src/app/pages/admin/conduces-huerfanos/conduces-huerfanos.ts | 1 | Conduce anulado |
 | src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |

@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 25,
-  "pctHt": 54,
+  "pctHt": 55,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -824,9 +824,9 @@
     },
     {
       "pantalla": "admin/usuarios",
-      "total": 164,
+      "total": 163,
       "cubiertos": 0,
-      "sin": 164,
+      "sin": 163,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -993,8 +993,7 @@
         "No puedes eliminar tu propia cuenta",
         "Esta cuenta no recibe correo. Usa &quot;Establecer contraseña&quot;.",
         "¿Entrar como \"${u.nombre}\"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior.",
-        "¿Eliminar permanentemente a \"${usuario.nombre}\"? Esta acción no se puede deshacer.",
-        "${r.nombre} (${conteo.get(r.codigo) ?? 0})"
+        "¿Eliminar permanentemente a \"${usuario.nombre}\"? Esta acción no se puede deshacer."
       ]
     },
     {
@@ -1168,9 +1167,9 @@
     },
     {
       "pantalla": "bitacora/cobertura",
-      "total": 20,
+      "total": 19,
       "cubiertos": 0,
-      "sin": 20,
+      "sin": 19,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -1193,7 +1192,6 @@
         "Por fecha",
         "Obra",
         "Sin bitácoras",
-        "Atrasada (${d} días)",
         "Al día"
       ]
     },
@@ -4346,9 +4344,9 @@
     },
     {
       "pantalla": "notas/editor",
-      "total": 54,
+      "total": 53,
       "cubiertos": 0,
-      "sin": 54,
+      "sin": 53,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -4405,8 +4403,7 @@
         "Nota no encontrada",
         "Vinculado a la tarea",
         "Nota compartida",
-        "Movida a Dev notes",
-        "${v.plataforma === 'movil' ? 'App' : 'Web'} ${v.version}"
+        "Movida a Dev notes"
       ]
     },
     {
@@ -8603,9 +8600,9 @@
     },
     {
       "pantalla": "tecnologia/dev-notes",
-      "total": 96,
+      "total": 95,
       "cubiertos": 13,
-      "sin": 83,
+      "sin": 82,
       "pct": 14,
       "enScope": true,
       "enforce": false,
@@ -8691,15 +8688,14 @@
         "Copiado",
         "Nota compartida",
         "Movida a Notas",
-        "${MESES[m - 1]} ${y}",
         "Deshacer"
       ]
     },
     {
       "pantalla": "flota/vehiculos",
-      "total": 424,
+      "total": 422,
       "cubiertos": 66,
-      "sin": 358,
+      "sin": 356,
       "pct": 16,
       "enScope": true,
       "enforce": false,
@@ -9045,8 +9041,6 @@
         "¿Retirar la asignación de ${this.asigNombre(a)}?",
         "¿Retirar la autorización de ${a.usuario_nombre}?",
         "Vencida",
-        "Vence en ${d} día(s)",
-        "Faltan ${d} día(s)",
         "Sin filas",
         "Rendimientos importados",
         "No se pudo importar",
@@ -9545,45 +9539,6 @@
         "usuario@constructorasd.com",
         "Ocultar PIN",
         "Ocultar contraseña"
-      ]
-    },
-    {
-      "pantalla": "inventario/activos",
-      "total": 71,
-      "cubiertos": 43,
-      "sin": 28,
-      "pct": 61,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "activo",
-        "Nuevo activo",
-        "Registro de los",
-        "—mobiliario, equipos y herramientas mayores— con su valor, depreciación y ubicación. Es distinto del",
-        "(que se consume en obra): aquí van los bienes duraderos. Toca un activo para ver su ficha completa.",
-        "Todas las categorías",
-        "Todos los estados",
-        "Limpiar filtros",
-        "Mostrar datos de prueba",
-        "– de",
-        "Sin categoría",
-        "Sin relación",
-        "Seleccionar…",
-        "Activo habilitado",
-        "Dato de prueba",
-        "Cancelar",
-        "Guardando… } @else { }",
-        "Ver ficha de",
-        "Editar",
-        "Desactivar",
-        "Desactivar",
-        "Eliminar dato de prueba",
-        "Dato de prueba eliminado",
-        "Error al eliminar",
-        "Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?",
-        "¿Eliminar el dato de prueba \"${activo.nombre}\"? Esta acción no se puede deshacer.",
-        "${e.nombre} ${e.apellido ?? ''}",
-        "${v.placa} — ${v.marca}"
       ]
     },
     {
@@ -10111,20 +10066,6 @@
       ]
     },
     {
-      "pantalla": "admin/auditoria",
-      "total": 65,
-      "cubiertos": 62,
-      "sin": 3,
-      "pct": 95,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Excel }",
-        "— @if (c.target_nombre) { → } ·",
-        "${h.hora}h"
-      ]
-    },
-    {
       "pantalla": "oauth-consent",
       "total": 19,
       "cubiertos": 18,
@@ -10146,6 +10087,19 @@
       "enforce": false,
       "faltantes": [
         "Gasto registrado"
+      ]
+    },
+    {
+      "pantalla": "admin/auditoria",
+      "total": 64,
+      "cubiertos": 62,
+      "sin": 2,
+      "pct": 97,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "Excel }",
+        "— @if (c.target_nombre) { → } ·"
       ]
     },
     {
@@ -10250,6 +10204,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/activos",
+      "total": 70,
+      "cubiertos": 70,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
       "faltantes": []
     },
     {
