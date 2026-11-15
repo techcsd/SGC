@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 44%** (4728/10697 literales de 192 pantallas en alcance). **`ht`: 74%**.
+**Alcance `en`: 45%** (4764/10696 literales de 192 pantallas en alcance). **`ht`: 74%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -117,7 +117,6 @@
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
-| flota/rutas | scope | 98 | 61 | 37 | 62% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
 | flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
 | flota/conductores | scope | 165 | 115 | 50 | 70% |
@@ -167,6 +166,7 @@
 | flota/reporte-semanal | enforce | 56 | 56 | 0 | 100% |
 | flota/reportes | enforce | 35 | 35 | 0 | 100% |
 | flota/responsabilidad | enforce | 62 | 62 | 0 | 100% |
+| flota/rutas | enforce | 97 | 97 | 0 | 100% |
 | flota/rutas-activas | enforce | 37 | 37 | 0 | 100% |
 | flota/seguimiento | enforce | 23 | 23 | 0 | 100% |
 | flota/transferencias | enforce | 12 | 12 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**649 literal(es) sin t()** en 88 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**645 literal(es) sin t()** en 87 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -261,7 +261,6 @@
 | src/app/pages/bitacora/historial/historial.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/bitacora/solicitudes-material/solicitudes-material.ts | 4 | Elige una fecha de necesidad · Fecha de necesidad actualizada · Ya enviaste una igual hace poco … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
-| src/app/pages/flota/rutas/rutas.ts | 4 | Error · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/proyectos/personal/personal-levantamiento.ts | 4 | No se pudo marcar · Día cerrado · No se pudo cerrar … |

@@ -331,9 +331,6 @@
     "flota/combustible": {
       "enforce": false
     },
-    "flota/rutas": {
-      "enforce": false
-    },
     "flota/vehiculos": {
       "enforce": false
     },
@@ -479,6 +476,9 @@
       "enforce": true
     },
     "flota/responsabilidad": {
+      "enforce": true
+    },
+    "flota/rutas": {
       "enforce": true
     },
     "flota/rutas-activas": {

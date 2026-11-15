@@ -42,6 +42,7 @@ import { HighlightItemDirective } from '../../../../shared/directives/highlight-
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -79,6 +80,7 @@ export class Rutas implements OnInit {
   private geocoding = inject(GeocodingService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private datosPrueba = inject(DatosPruebaService);
   private motion = inject(MotionService);
 
@@ -218,23 +220,23 @@ export class Rutas implements OnInit {
       await this.datosPrueba.marcar('rutas', r.id, valor);
       this.rutas.update((list) => list.map((x) => (x.id === r.id ? { ...x, es_prueba: valor } : x)));
       this.detailRuta.update((d) => (d && d.id === r.id ? { ...d, es_prueba: valor } : d));
-      this.toast.success(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba');
+      this.toast.success(this.i18n.t(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente una ruta de prueba (solo admin). */
   async eliminarPrueba(r: Ruta) {
     if (!this.esAdmin() || !r.es_prueba) return;
-    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    if (!confirm(this.i18n.t('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.'))) return;
     try {
       await this.datosPrueba.eliminar('rutas', r.id);
       this.rutas.update((list) => list.filter((x) => x.id !== r.id));
       this.detailOpen.set(false);
-      this.toast.success('Dato de prueba eliminado');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'));
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
