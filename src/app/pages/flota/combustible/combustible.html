@@ -3,7 +3,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Combustible' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'registros' : 'registro') | t }}</span>
   </div>
   <div class="page-header__actions">
     @if (esFlotaElevado()) {
@@ -12,7 +12,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
-        Umbrales
+        {{ 'Umbrales' | t }}
       </button>
     }
     @if (esFlotaElevado()) {
@@ -22,7 +22,7 @@
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        Saneamiento
+        {{ 'Saneamiento' | t }}
       </button>
     }
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -33,13 +33,13 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/>
       </svg>
-      Dashboards
+      {{ 'Dashboards' | t }}
     </a>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo registro
+      {{ 'Nuevo registro' | t }}
     </button>
   </div>
 </div>
@@ -49,28 +49,27 @@
   <form class="combustible__config-panel sgc-card" [formGroup]="configForm" (ngSubmit)="saveConfig()">
     <h3 class="combustible__config-title">{{ 'Calibración del rendimiento de combustible' | t }}</h3>
     <p class="combustible__config-hint">
-      El rendimiento solo es confiable de tanque lleno a tanque lleno y con distancia suficiente.
-      Ajusta los umbrales; al guardar se recalcula el histórico.
+      {{ 'El rendimiento solo es confiable de tanque lleno a tanque lleno y con distancia suficiente.' | t }}
+      {{ 'Ajusta los umbrales; al guardar se recalcula el histórico.' | t }}
     </p>
     <div class="combustible__config-grid">
-      <label>Distancia mínima entre echadas (km)
+      <label>{{ 'Distancia mínima entre echadas (km)' | t }}
         <input type="number" formControlName="dist_min_km" min="1" /></label>
-      <label>Rendimiento mínimo coherente (km/gal)
+      <label>{{ 'Rendimiento mínimo coherente (km/gal)' | t }}
         <input type="number" step="0.1" formControlName="rendimiento_minimo_km_gal" min="0.01" /></label>
-      <label>Rendimiento máximo coherente (km/gal)
+      <label>{{ 'Rendimiento máximo coherente (km/gal)' | t }}
         <input type="number" step="0.1" formControlName="rendimiento_maximo_km_gal" min="1" /></label>
-      <label>Tolerancia "bajo" bajo el baseline (%)
+      <label>{{ 'Tolerancia "bajo" bajo el baseline (%)' | t }}
         <input type="number" formControlName="umbral_consumo_pct" min="1" max="99" /></label>
-      <label>Desviación "anormal" del baseline (%)
+      <label>{{ 'Desviación "anormal" del baseline (%)' | t }}
         <input type="number" formControlName="umbral_anormal_pct" min="1" max="99" /></label>
     </div>
 
     <!-- AW3 — topes de capacidad de tanque (galones) por clase de vehículo -->
     <h4 class="combustible__config-subtitle">{{ 'Topes de galones por clase (bloqueo duro al registrar)' | t }}</h4>
     <p class="combustible__config-hint">
-      Aproximados con holgura para no frustrar registros reales. Si un vehículo tiene su
-      capacidad de tanque cargada, esa manda. El bloqueo aplica cuando los galones superan
-      el tope × {{ flotaConfig.margenBloqueo() }}.
+      {{ 'Aproximados con holgura para no frustrar registros reales. Si un vehículo tiene su capacidad de tanque cargada, esa manda. El bloqueo aplica cuando los galones superan el tope ×' | t }}
+      {{ flotaConfig.margenBloqueo() }}.
     </p>
     <div class="combustible__config-grid">
       <label>{{ 'Automóvil (gal)' | t }}<input type="number" formControlName="tanque_cap_automovil" min="1" /></label>
@@ -124,10 +123,8 @@
   <div class="combustible__config-panel sgc-card">
     <h3 class="combustible__config-title">{{ 'Saneamiento de echadas' | t }}</h3>
     <p class="combustible__config-hint">
-      Echadas que superan la capacidad de tanque, tienen precio fuera de banda o un
-      rendimiento imposible. <strong>{{ 'Corregir' | t }}</strong> ajusta el valor (ej. decimal perdido);
-      <strong>{{ 'excluir' | t }}</strong> la deja fuera de promedios/KPIs/incentivo. En ambos casos se
-      conserva el valor original (traza, nunca se borra).
+      {{ 'Echadas que superan la capacidad de tanque, tienen precio fuera de banda o un rendimiento imposible.' | t }} <strong>{{ 'Corregir' | t }}</strong> {{ 'ajusta el valor (ej. decimal perdido);' | t }}
+      <strong>{{ 'excluir' | t }}</strong> {{ 'la deja fuera de promedios/KPIs/incentivo. En ambos casos se conserva el valor original (traza, nunca se borra).' | t }}
     </p>
     @if (loadingSospechosas()) {
       <app-skeleton variant="list" [rows]="3" />
@@ -188,7 +185,7 @@
 @if (preciosVigentes().length > 0) {
   <div class="combustible__precios-widget">
     <span class="combustible__precios-titulo">
-      <app-icon name="fuel" [size]="16" /> Precios oficiales MICM (RD$/gal)
+      <app-icon name="fuel" [size]="16" /> {{ 'Precios oficiales MICM (RD$/gal)' | t }}
       @if (esAdmin()) {
         <button type="button" class="combustible__precios-edit-btn" (click)="togglePreciosEdit()"
           title="{{ 'El MICM a veces publica con rezago. Edita el precio vigente a mano.' | t }}"><app-icon name="pen" [size]="14" /> {{ 'Editar' | t }}</button>
@@ -197,7 +194,7 @@
     <div class="combustible__precios-chips">
       @for (p of preciosVigentes(); track p.producto) {
         <span class="combustible__precio-chip">
-          {{ productoCanonicoLabel(p.producto) }}: <strong>{{ p.precio | number:'1.2-2' }}</strong>
+          {{ productoCanonicoLabel(p.producto) | t }}: <strong>{{ p.precio | number:'1.2-2' }}</strong>
         </span>
       }
     </div>
@@ -206,7 +203,7 @@
         <p class="combustible__precios-hint">{{ 'Precio vigente (RD$/galón). Se marca como fuente "Manual" con fecha de hoy.' | t }}</p>
         <div class="combustible__precios-grid">
           @for (p of preciosVigentes(); track p.producto) {
-            <label>{{ productoCanonicoLabel(p.producto) }}
+            <label>{{ productoCanonicoLabel(p.producto) | t }}
               <input type="number" step="0.01" min="0" [value]="preciosEdit()[p.producto]"
                 (input)="setPrecioForm(p.producto, $any($event.target).value)" />
             </label>
@@ -257,14 +254,14 @@
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
   @if (hasFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
   @if (esAdmin()) {
     <label class="combustible__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -289,8 +286,8 @@
         <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/>
       </svg>
       <p>
-        @if (hasFilters()) { No se encontraron registros con los filtros aplicados. }
-        @else { No hay registros de combustible. Crea el primero. }
+        @if (hasFilters()) { {{ 'No se encontraron registros con los filtros aplicados.' | t }} }
+        @else { {{ 'No hay registros de combustible. Crea el primero.' | t }} }
       </p>
     </div>
   } @else {
@@ -316,8 +313,8 @@
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
                 @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
-                @if (r.invalidada) { <span class="sgc-badge sgc-badge--danger" [title]="r.saneamiento_motivo || 'Excluida de promedios/KPIs'">{{ 'Excluida' | t }}</span> }
-                @else if (r.saneada) { <span class="sgc-badge sgc-badge--info" [title]="r.saneamiento_motivo || 'Corregida'">{{ 'Corregida' | t }}</span> }
+                @if (r.invalidada) { <span class="sgc-badge sgc-badge--danger" [title]="r.saneamiento_motivo || i18n.t('Excluida de promedios/KPIs')">{{ 'Excluida' | t }}</span> }
+                @else if (r.saneada) { <span class="sgc-badge sgc-badge--info" [title]="r.saneamiento_motivo || i18n.t('Corregida')">{{ 'Corregida' | t }}</span> }
                 @if (r.origen === 'deposito_obra') { <span class="sgc-badge sgc-badge--info" title="{{ 'Depósito en obra (no concilia)' | t }}">{{ 'Depósito' | t }}</span> }
                 @if (r.vehiculo?.marca) { <span class="combustible__marca">{{ r.vehiculo!.marca }}</span> }
                 @if (r.conductor?.nombre) { <span class="combustible__marca">{{ r.conductor!.nombre }}</span> }
@@ -341,8 +338,8 @@
                 <!-- AD7 — estado calibrado (4 estados) con tooltip explicando POR QUÉ. -->
                 <span
                   class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"
-                  [title]="r.motivo_alerta || estadoMeta(r).label">
-                  <app-icon [name]="estadoIcon(r)" [size]="14" /> {{ estadoMeta(r).label }}
+                  [title]="r.motivo_alerta || i18n.t(estadoMeta(r).label)">
+                  <app-icon [name]="estadoIcon(r)" [size]="14" /> {{ estadoMeta(r).label | t }}
                 </span>
               </td>
             </tr>
@@ -355,7 +352,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}">
@@ -382,7 +379,7 @@
       <div class="cmb-borrador" role="status">
         <div class="cmb-borrador__txt">
           <strong>{{ 'Tienes una echada sin terminar.' | t }}</strong>
-          Puedes retomar los datos que habías escrito. <em>{{ 'Las fotos hay que volver a tomarlas.' | t }}</em>
+          {{ 'Puedes retomar los datos que habías escrito.' | t }} <em>{{ 'Las fotos hay que volver a tomarlas.' | t }}</em>
         </div>
         <div class="cmb-borrador__acc">
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="retomarBorrador()">{{ 'Retomar' | t }}</button>
@@ -402,7 +399,7 @@
       </label>
       <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
       @if (odometroActual() !== null) {
-        <span class="field-hint">Odómetro actual: {{ odometroActual() | number:'1.0-0' }} km.</span>
+        <span class="field-hint">{{ i18n.t('Odómetro actual: {n} km.', { n: odometroActual()! }) }}</span>
       }
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) { <span class="field-error">{{ 'El vehículo es obligatorio.' | t }}</span> }
     </div>
@@ -410,7 +407,7 @@
     <div class="sgc-field">
       <label for="conductor_id">{{ 'Conductor' | t }}</label>
       <select id="conductor_id" formControlName="conductor_id">
-        <option [ngValue]="null">Sin conductor asignado</option>
+        <option [ngValue]="null">{{ 'Sin conductor asignado' | t }}</option>
         @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>
@@ -424,8 +421,8 @@
     <div class="sgc-field">
       <label for="origen">{{ 'Origen del combustible' | t }} <span class="required">*</span></label>
       <select id="origen" formControlName="origen">
-        <option value="estacion">Estación</option>
-        <option value="deposito_obra">Depósito en obra (garrafón)</option>
+        <option value="estacion">{{ 'Estación' | t }}</option>
+        <option value="deposito_obra">{{ 'Depósito en obra (garrafón)' | t }}</option>
       </select>
     </div>
 
@@ -433,7 +430,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-          <option [ngValue]="null">Selecciona la obra…</option>
+          <option [ngValue]="null">{{ 'Selecciona la obra…' | t }}</option>
           @for (p of proyectosVisibles(); track p.id) {
             <option [value]="p.id">{{ p.codigo ? p.codigo + ' · ' + p.nombre : p.nombre }}</option>
           }
@@ -449,7 +446,7 @@
         @if (prellenadoCompa().has('kilometraje')) { <span class="cmb-chip-compa">Compa</span> }
       </label>
       <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1"
-        [placeholder]="medidaSel() === 'horas' ? 'horas en el horómetro' : 'km en el tablero'"
+        [placeholder]="i18n.t(medidaSel() === 'horas' ? 'horas en el horómetro' : 'km en el tablero')"
         [class.invalid]="(f.kilometraje.invalid && f.kilometraje.touched) || (avisoCompa() && !f.kilometraje.value)" />
       @if (avisoCompa() && !f.kilometraje.value) {
         <span class="field-error">{{ 'Falta: Compa no la inventa.' | t }}</span>
@@ -458,7 +455,7 @@
       }
       <!-- CZ1 — pista de la última lectura con fecha (recibos retroactivos pueden ir por debajo del odómetro vivo). -->
       @if (kmValidacion()?.km_antes != null) {
-        <span class="field-hint">Última lectura: {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
+        <span class="field-hint">{{ 'Última lectura:' | t }} {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
       }
       <!-- CZ1 — error (bloquea Guardar): retroceso vs. lectura anterior o exceso retroactivo. -->
       @if (kmValidacion()?.nivel === 'error') {
@@ -482,7 +479,7 @@
           <span class="cmb-km-aviso__msg">{{ kmValidacion()!.mensaje }}</span>
           <label class="cmb-km-check">
             <input type="checkbox" [checked]="kmConfirmado()" (change)="kmConfirmado.set($any($event.target).checked)" />
-            Sí, es correcto
+            {{ 'Sí, es correcto' | t }}
           </label>
         </div>
       }
@@ -499,14 +496,14 @@
         <!-- AW3 — referencia de capacidad + aviso de valor sobre el tanque -->
         @if (!esDepositoObra() && f.vehiculo_id.value) {
           @if (f.galones.value && f.galones.value > capVehiculoSel() * flotaConfig.margenBloqueo()) {
-            <span class="field-error">Supera la capacidad estimada del tanque (~{{ capVehiculoSel() | number:'1.0-0' }} gal). Revisa el valor.</span>
+            <span class="field-error">{{ 'Supera la capacidad estimada del tanque (~' | t }}{{ capVehiculoSel() | number:'1.0-0' }} {{ 'gal). Revisa el valor.' | t }}</span>
           } @else {
-            <span class="field-hint">Tanque estimado: ~{{ capVehiculoSel() | number:'1.0-0' }} gal.</span>
+            <span class="field-hint">{{ 'Tanque estimado: ~' | t }}{{ capVehiculoSel() | number:'1.0-0' }} {{ 'gal.' | t }}</span>
           }
         }
       </div>
       <div class="sgc-field">
-        <label for="monto">Monto pagado (RD$)
+        <label for="monto">{{ 'Monto pagado (RD$)' | t }}
           @if (!esDepositoObra()) { <span class="required">*</span> }
           @else { <span class="sgc-field__opt">{{ '(opcional)' | t }}</span> }
           @if (prellenadoCompa().has('monto')) { <span class="cmb-chip-compa">Compa</span> }
@@ -543,9 +540,9 @@
         } @else if (calc().alerta) {
           <div class="calc-card__banda calc-card__banda--alerta">
             @switch (calc().refTipo) {
-              @case ('esperado') { <app-icon name="alert-triangle" [size]="14" /> Rinde por debajo del esperado ({{ calc().esperado | number:'1.1-2' }} km/gal). Se notificará a Flota. }
-              @case ('propio') { <app-icon name="alert-triangle" [size]="14" /> Consumo por debajo del promedio del vehículo ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota. }
-              @default { <app-icon name="alert-triangle" [size]="14" /> Rendimiento imposiblemente bajo ({{ calc().rend | number:'1.1-2' }} km/gal, mínimo {{ calc().piso | number:'1.0-0' }} km/gal). Se notificará a Flota. }
+              @case ('esperado') { <app-icon name="alert-triangle" [size]="14" /> {{ 'Rinde por debajo del esperado (' | t }}{{ calc().esperado | number:'1.1-2' }} {{ 'km/gal). Se notificará a Flota.' | t }} }
+              @case ('propio') { <app-icon name="alert-triangle" [size]="14" /> {{ 'Consumo por debajo del promedio del vehículo (' | t }}{{ calc().prom | number:'1.1-2' }} {{ 'km/gal). Se notificará a Flota.' | t }} }
+              @default { <app-icon name="alert-triangle" [size]="14" /> {{ 'Rendimiento imposiblemente bajo (' | t }}{{ calc().rend | number:'1.1-2' }} {{ 'km/gal, mínimo' | t }} {{ calc().piso | number:'1.0-0' }} {{ 'km/gal). Se notificará a Flota.' | t }} }
             }
           </div>
         } @else {
@@ -557,16 +554,16 @@
     <!-- 2 fotos obligatorias -->
     <div class="form-row">
       <div class="sgc-field photo-field">
-        <label>{{ esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo' }} <span class="required">*</span></label>
+        <label>{{ (esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo') | t }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()" [class.photo-drop--required]="avisoCompa() && !reciboPreview()">
           @if (reciboPreview()) { <img [src]="reciboPreview()" alt="{{ 'Evidencia' | t }}" /> }
-          @else { <span><app-icon name="camera" [size]="16" /> {{ esDepositoObra() ? 'Subir foto' : 'Subir recibo' }}</span> }
+          @else { <span><app-icon name="camera" [size]="16" /> {{ (esDepositoObra() ? 'Subir foto' : 'Subir recibo') | t }}</span> }
           <input type="file" accept="image/*" capture (change)="onFileSelected('recibo', $event)" hidden />
         </label>
         @if (avisoCompa() && !reciboPreview()) { <span class="cmb-photo-obligatoria">{{ 'Obligatoria' | t }}</span> }
       </div>
       <div class="sgc-field photo-field">
-        <label>{{ esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)' }} <span class="required">*</span></label>
+        <label>{{ (esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)') | t }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()" [class.photo-drop--required]="avisoCompa() && !tableroPreview()">
           @if (tableroPreview()) { <img [src]="tableroPreview()" alt="{{ 'Tablero' | t }}" /> }
           @else { <span><app-icon name="camera" [size]="16" /> {{ 'Subir tablero' | t }}</span> }
@@ -581,10 +578,10 @@
       <div class="lectura-banner"><span class="spinner" aria-hidden="true"></span> {{ 'Leyendo el recibo…' | t }}</div>
     } @else if (leidoCampos().length) {
       <div class="lectura-banner lectura-banner--ok">
-        <strong>{{ 'Leído del recibo:' | t }}</strong> {{ leidoCampos().join(' · ') }}. Revisa y confirma antes de guardar.
+        <strong>{{ 'Leído del recibo:' | t }}</strong> {{ leidoCampos().join(' · ') }}. {{ 'Revisa y confirma antes de guardar.' | t }}
       </div>
     } @else if (lecturaError()) {
-      <div class="lectura-banner lectura-banner--muted">{{ lecturaError() }} Escribe los datos a mano.</div>
+      <div class="lectura-banner lectura-banner--muted">{{ lecturaError() }} {{ 'Escribe los datos a mano.' | t }}</div>
     }
     @if (lecturaSugerencias().length) {
       <div class="lectura-sug">
@@ -601,7 +598,7 @@
     <div class="form-row">
       @if (!esDepositoObra()) {
         <div class="sgc-field">
-          <label for="estacionSel">Estación
+          <label for="estacionSel">{{ 'Estación' | t }}
             @if (prellenadoCompa().has('estacionSel')) { <span class="cmb-chip-compa">Compa</span> }
           </label>
           <select id="estacionSel" formControlName="estacionSel">
@@ -626,18 +623,18 @@
         <div class="sgc-field">
           <label for="producto">{{ 'Producto' | t }}</label>
           <select id="producto" formControlName="producto">
-            <option [ngValue]="null">Sin especificar</option>
-            <option value="diesel">Diésel</option>
-            <option value="gasolina">Gasolina</option>
+            <option [ngValue]="null">{{ 'Sin especificar' | t }}</option>
+            <option value="diesel">{{ 'Diésel' | t }}</option>
+            <option value="gasolina">{{ 'Gasolina' | t }}</option>
           </select>
         </div>
         <!-- AA20 — subtipo regular/premium (tras elegir gasolina/diésel) -->
         <div class="sgc-field">
           <label for="subtipo">{{ 'Tipo' | t }}</label>
           <select id="subtipo" formControlName="subtipo" [disabled]="!f.producto.value">
-            <option [ngValue]="null">Sin especificar</option>
-            <option value="regular">Regular</option>
-            <option value="premium">Premium / Óptimo</option>
+            <option [ngValue]="null">{{ 'Sin especificar' | t }}</option>
+            <option value="regular">{{ 'Regular' | t }}</option>
+            <option value="premium">{{ 'Premium / Óptimo' | t }}</option>
           </select>
         </div>
       </div>
@@ -646,12 +643,12 @@
       @if (precioReferencia(); as ref) {
         <div class="sgc-field combustible__ref-precio"
              [class.combustible__ref-precio--alerta]="desviacionPrecio() != null && (desviacionPrecio()! > 10 || desviacionPrecio()! < -10)">
-          Precio oficial MICM vigente: <strong>RD$ {{ ref | number:'1.2-2' }}/gal</strong>
+          {{ 'Precio oficial MICM vigente:' | t }} <strong>RD$ {{ ref | number:'1.2-2' }}{{ '/gal' | t }}</strong>
           @if (desviacionPrecio(); as d) {
             @if (d > 10 || d < -10) {
-              <span class="combustible__ref-desv"><app-icon name="alert-triangle" [size]="14" /> lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
+              <span class="combustible__ref-desv"><app-icon name="alert-triangle" [size]="14" /> {{ 'lo pagado se desvía' | t }} {{ d > 0 ? '+' : '' }}{{ d }}{{ '% del oficial' | t }}</span>
             } @else {
-              <span class="combustible__ref-ok"><app-icon name="check" [size]="14" /> dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
+              <span class="combustible__ref-ok"><app-icon name="check" [size]="14" /> {{ 'dentro de ±10% del oficial (' | t }}{{ d > 0 ? '+' : '' }}{{ d }}{{ '%)' | t }}</span>
             }
           }
         </div>
@@ -672,7 +669,7 @@
       <div class="sgc-field">
         <label class="combustible__prueba-toggle">
           <input type="checkbox" formControlName="titular_es_persona" />
-          La tarjeta es de una persona (no del vehículo)
+          {{ 'La tarjeta es de una persona (no del vehículo)' | t }}
         </label>
         @if (tarjetaEsPersona()) {
           <input class="estacion-otro" type="text" formControlName="titular" placeholder="{{ 'Nombre del titular de la tarjeta' | t }}" />
@@ -692,8 +689,8 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
-        @else { Registrar combustible }
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} }
+        @else { {{ 'Registrar combustible' | t }} }
       </button>
     </div>
   </form>
@@ -720,7 +717,7 @@
         <div class="detail__item"><span class="detail__label">{{ 'Km recorridos' | t }}</span><span class="detail__value">{{ r.km_recorridos !== null ? (r.km_recorridos | number:'1.0-0') : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">{{ 'Rendimiento' | t }}</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">{{ 'Costo / km' | t }}</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">{{ 'Origen' | t }}</span><span class="detail__value">{{ origenLabel(r) }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Origen' | t }}</span><span class="detail__value">{{ origenLabel(r) | t }}</span></div>
         @if (r.origen === 'deposito_obra') {
           <div class="detail__item"><span class="detail__label">{{ 'Obra' | t }}</span><span class="detail__value">{{ proyectoNombre(r.proyecto_id) ?? '—' }}</span></div>
         } @else {
@@ -738,21 +735,21 @@
         <p class="detail__analysis-line"
            [class.detail__analysis-line--alerta]="estadoDe(r) === 'anormal'"
            [class.detail__analysis-line--ok]="estadoDe(r) === 'optimo'">
-          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"><app-icon [name]="estadoIcon(r)" [size]="13" /> {{ estadoMeta(r).label }}</span>
-          {{ r.motivo_alerta ?? estadoMeta(r).label }}
+          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"><app-icon [name]="estadoIcon(r)" [size]="13" /> {{ estadoMeta(r).label | t }}</span>
+          {{ r.motivo_alerta ?? (estadoMeta(r).label | t) }}
         </p>
         @if (r.rendimiento_km_gal !== null) {
           <p class="detail__analysis-line detail__analysis-refs">
-            Rendimiento: <strong>{{ r.rendimiento_km_gal | number:'1.1-2' }} km/gal</strong> ·
-            esperado: {{ esperadoDeVehiculo(r.vehiculo_id) !== null ? (esperadoDeVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '— (sin definir)' }} ·
-            promedio del vehículo: {{ promedioVehiculo(r.vehiculo_id) !== null ? (promedioVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '—' }} ·
-            promedio de la flota: {{ promedioFlota() !== null ? (promedioFlota() | number:'1.1-2') + ' km/gal' : '—' }}
+            {{ 'Rendimiento:' | t }} <strong>{{ r.rendimiento_km_gal | number:'1.1-2' }} {{ 'km/gal' | t }}</strong> ·
+            {{ 'esperado:' | t }} {{ esperadoDeVehiculo(r.vehiculo_id) !== null ? (esperadoDeVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '— (sin definir)' }} ·
+            {{ 'promedio del vehículo:' | t }} {{ promedioVehiculo(r.vehiculo_id) !== null ? (promedioVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '—' }} ·
+            {{ 'promedio de la flota:' | t }} {{ promedioFlota() !== null ? (promedioFlota() | number:'1.1-2') + ' km/gal' : '—' }}
           </p>
         }
         @if (precioPromedioFlotaMes(r); as prom) {
           <p class="detail__analysis-line">
-            Precio pagado: RD$ {{ r.precio_por_galon | number:'1.2-2' }}/gal ·
-            promedio de la flota este mes: RD$ {{ prom | number:'1.2-2' }}/gal
+            {{ 'Precio pagado: RD$' | t }} {{ r.precio_por_galon | number:'1.2-2' }}{{ '/gal' | t }} ·
+            {{ 'promedio de la flota este mes: RD$' | t }} {{ prom | number:'1.2-2' }}{{ '/gal' | t }}
             @if (r.precio_por_galon && r.precio_por_galon > prom * 1.05) { <span class="detail__analysis-warn">{{ '(por encima del promedio)' | t }}</span> }
           </p>
         }

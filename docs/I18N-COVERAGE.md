@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 45%** (4859/10692 literales de 192 pantallas en alcance). **`ht`: 76%**.
+**Alcance `en`: 46%** (4947/10704 literales de 192 pantallas en alcance). **`ht`: 77%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -116,7 +116,6 @@
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| flota/combustible | scope | 197 | 121 | 76 | 61% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
@@ -153,6 +152,7 @@
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
 | flota/checklists | enforce | 104 | 104 | 0 | 100% |
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
+| flota/combustible | enforce | 209 | 209 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
 | flota/conciliacion-combustible | enforce | 161 | 161 | 0 | 100% |
@@ -202,13 +202,12 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**615 literal(es) sin t()** en 84 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**593 literal(es) sin t()** en 83 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
 | src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 30 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
-| src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |

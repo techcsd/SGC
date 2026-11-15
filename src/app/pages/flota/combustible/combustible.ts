@@ -48,6 +48,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * CW5 — el recibo trae el producto como texto libre ("DIESEL", "gasolina premium",
@@ -87,6 +88,7 @@ export class Combustible implements OnInit {
   protected flotaConfig = inject(FlotaConfigService);
   private estacionesService = inject(EstacionesCombustibleService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
   private motion = inject(MotionService);
@@ -294,11 +296,11 @@ export class Combustible implements OnInit {
       }
       if (cambios > 0) {
         this.preciosVigentes.set(await this.combustibleService.getPreciosVigentes());
-        this.toast.success('Precios actualizados', `Se actualizaron ${cambios} precio(s).`);
+        this.toast.success(this.i18n.t('Precios actualizados'), `Se actualizaron ${cambios} precio(s).`);
       }
       this.preciosEditOpen.set(false);
     } catch (e: unknown) {
-      this.toast.error('No se pudieron guardar los precios', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron guardar los precios'), e instanceof Error ? e.message : undefined);
     } finally {
       this.savingPrecios.set(false);
     }
@@ -373,10 +375,10 @@ export class Combustible implements OnInit {
       await this.flotaConfig.recargar();
       this.resetConfigForm();
       await this.cargarHistorialUmbrales();
-      this.toast.success('Versión restaurada', `Se restauraron ${n} umbral(es).`);
+      this.toast.success(this.i18n.t('Versión restaurada'), `Se restauraron ${n} umbral(es).`);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('No se pudo restaurar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo restaurar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.savingConfig.set(false);
     }
@@ -419,11 +421,11 @@ export class Combustible implements OnInit {
       this.flotaConfig.precioGalMin.set(v.precio_gal_min!);
       this.flotaConfig.precioGalMax.set(v.precio_gal_max!);
       const n = await this.flotaConfig.recalcularEstados();
-      this.toast.success('Umbrales guardados', `Se recalcularon ${n} registros con las reglas nuevas.`);
+      this.toast.success(this.i18n.t('Umbrales guardados'), `Se recalcularon ${n} registros con las reglas nuevas.`);
       this.configPanelOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('No se pudieron guardar los umbrales', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron guardar los umbrales'), e instanceof Error ? e.message : undefined);
     } finally {
       this.savingConfig.set(false);
     }
@@ -777,7 +779,7 @@ export class Combustible implements OnInit {
     const vehiculo = vehiculoId ? this.vehiculosDisponibles().find((v) => v.id === vehiculoId) : null;
     this.openCreate();
     if (!vehiculo) {
-      this.toast.warning('Compa no pudo identificar el vehículo', 'Completa el formulario a mano.');
+      this.toast.warning(this.i18n.t('Compa no pudo identificar el vehículo'), 'Completa el formulario a mano.');
       return;
     }
 
@@ -845,7 +847,7 @@ export class Combustible implements OnInit {
     // CV1.6 — retomó el borrador: lo de Compa NO se aplica (no se pisa lo que ya tenía).
     if (this.compaPendientePorAplicar) {
       this.compaPendientePorAplicar = null;
-      this.toast.info('Compa había preparado otra echada', 'No se aplicó: tenías un borrador sin terminar.');
+      this.toast.info(this.i18n.t('Compa había preparado otra echada'), 'No se aplicó: tenías un borrador sin terminar.');
     }
   }
   descartarBorrador() {
@@ -1092,27 +1094,27 @@ export class Combustible implements OnInit {
       this.limpiarBorrador(); // BV5 — echada registrada → el borrador ya no aplica
 
       // CN4 (Nota #204) — momento "combustible" al registrar (como el resto de Flota).
-      this.motion.momento('combustible', { texto: 'Combustible registrado' });
+      this.motion.momento('combustible', { texto: this.i18n.t('Combustible registrado') });
 
       if (derivados.alerta_consumo) {
         // AW2 — anomalía con dirección: alto = error de dato (revisar lectura),
         // bajo = posible falla mecánica (aviso a mantenimiento).
         if (derivados.direccion_alerta === 'alto') {
           this.toast.warning(
-            'Revisa la lectura',
+            this.i18n.t('Revisa la lectura'),
             `${derivados.motivo_alerta ?? `${derivados.rendimiento_km_gal} km/gal, inusualmente alto.`} Se pidió revisar la lectura (no es ticket de mantenimiento).`,
           );
         } else {
           this.combustibleService.notificarConsumoAnormal(registro); // email no bloqueante
           this.toast.warning(
-            'Consumo anormal detectado',
+            this.i18n.t('Consumo anormal detectado'),
             `${derivados.motivo_alerta ?? `${derivados.rendimiento_km_gal} km/gal, por debajo de lo normal.`} Se notificó a Flota.`,
           );
         }
       } else {
         const rendTxt = derivados.rendimiento_km_gal != null
           ? `${derivados.rendimiento_km_gal} km/gal` : 'primera echada del vehículo';
-        this.toast.success('Combustible registrado', `Rendimiento: ${rendTxt}.`);
+        this.toast.success(this.i18n.t('Combustible registrado'), `Rendimiento: ${rendTxt}.`);
       }
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
@@ -1152,23 +1154,23 @@ export class Combustible implements OnInit {
       await this.datosPrueba.marcar('registros_combustible', r.id, valor);
       this.registros.update((list) => list.map((x) => (x.id === r.id ? { ...x, es_prueba: valor } : x)));
       this.selected.update((s) => (s && s.id === r.id ? { ...s, es_prueba: valor } : s));
-      this.toast.success(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba');
+      this.toast.success(this.i18n.t(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente un registro de prueba (solo admin). */
   async eliminarPrueba(r: RegistroCombustible) {
     if (!this.esAdmin() || !r.es_prueba) return;
-    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    if (!confirm(this.i18n.t('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.'))) return;
     try {
       await this.datosPrueba.eliminar('registros_combustible', r.id);
       this.registros.update((list) => list.filter((x) => x.id !== r.id));
       this.detailOpen.set(false);
-      this.toast.success('Dato de prueba eliminado');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'));
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
@@ -1237,7 +1239,7 @@ export class Combustible implements OnInit {
       // BQ3 — no dejar la lista en []: eso pintaría "Todo limpio" mintiendo.
       this.sospechosas.set(null);
       this.sospechosasError.set(e instanceof Error ? e.message : 'Error inesperado');
-      this.toast.error('No se pudieron cargar las echadas sospechosas', this.sospechosasError() ?? undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar las echadas sospechosas'), this.sospechosasError() ?? undefined);
     } finally {
       this.loadingSospechosas.set(false);
     }
@@ -1250,10 +1252,10 @@ export class Combustible implements OnInit {
     if (motivo === null) return;
     try {
       await this.combustibleService.sanearEchada(e.id, 'invalidar', { motivo });
-      this.toast.success('Echada excluida', 'Fuera de promedios, KPIs e incentivo. Se conserva el registro.');
+      this.toast.success(this.i18n.t('Echada excluida'), 'Fuera de promedios, KPIs e incentivo. Se conserva el registro.');
       await Promise.all([this.loadAll(), this.cargarSospechosas()]);
     } catch (err: unknown) {
-      this.toast.error('No se pudo excluir', err instanceof Error ? err.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo excluir'), err instanceof Error ? err.message : undefined);
     }
   }
 
@@ -1267,15 +1269,15 @@ export class Combustible implements OnInit {
     if (txt === null) return;
     const galones = Number(txt.replace(',', '.'));
     if (!Number.isFinite(galones) || galones <= 0) {
-      this.toast.error('Valor inválido', 'Escribe una cantidad de galones válida.');
+      this.toast.error(this.i18n.t('Valor inválido'), 'Escribe una cantidad de galones válida.');
       return;
     }
     try {
       await this.combustibleService.sanearEchada(e.id, 'corregir', { galones, motivo: 'Corrección de galones (AW3)' });
-      this.toast.success('Echada corregida', 'Se recalcularon rendimiento y promedios.');
+      this.toast.success(this.i18n.t('Echada corregida'), 'Se recalcularon rendimiento y promedios.');
       await Promise.all([this.loadAll(), this.cargarSospechosas()]);
     } catch (err: unknown) {
-      this.toast.error('No se pudo corregir', err instanceof Error ? err.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo corregir'), err instanceof Error ? err.message : undefined);
     }
   }
 

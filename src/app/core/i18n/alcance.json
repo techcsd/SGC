@@ -328,9 +328,6 @@
     "auth": {
       "enforce": false
     },
-    "flota/combustible": {
-      "enforce": false
-    },
     "flota/vehiculos": {
       "enforce": false
     },
@@ -437,6 +434,9 @@
       "enforce": true
     },
     "flota/choferes-privados": {
+      "enforce": true
+    },
+    "flota/combustible": {
       "enforce": true
     },
     "flota/combustible-dashboard": {
