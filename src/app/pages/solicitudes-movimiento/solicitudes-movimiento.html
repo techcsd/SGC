@@ -3,35 +3,35 @@
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Solicitud de movimiento' | t }}</h1>
     <span class="page-count">
-      @if (esReferente()) { Logística de transporte · todas las solicitudes } @else { Tus solicitudes de movimiento }
+      @if (esReferente()) { {{ 'Logística de transporte · todas las solicitudes' | t }} } @else { {{ 'Tus solicitudes de movimiento' | t }} }
     </span>
   </div>
   <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Nueva solicitud
+    {{ 'Nueva solicitud' | t }}
   </button>
 </div>
 
 <!-- Filtros -->
 <div class="filters-bar">
   <select class="sgc-select" [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-    <option value="">Todos los estados</option>
-    <option value="pendiente">Pendiente</option>
-    <option value="planificada">Planificada</option>
-    <option value="en_curso">En curso</option>
-    <option value="completada">Completada</option>
-    <option value="cancelada">Cancelada</option>
+    <option value="">{{ 'Todos los estados' | t }}</option>
+    <option value="pendiente">{{ 'Pendiente' | t }}</option>
+    <option value="planificada">{{ 'Planificada' | t }}</option>
+    <option value="en_curso">{{ 'En curso' | t }}</option>
+    <option value="completada">{{ 'Completada' | t }}</option>
+    <option value="cancelada">{{ 'Cancelada' | t }}</option>
   </select>
   <select class="sgc-select" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)" aria-label="{{ 'Filtrar por prioridad' | t }}">
-    <option value="">Todas las prioridades</option>
-    <option value="urgente">Urgente</option>
-    <option value="alta">Alta</option>
-    <option value="media">Media</option>
-    <option value="baja">Baja</option>
+    <option value="">{{ 'Todas las prioridades' | t }}</option>
+    <option value="urgente">{{ 'Urgente' | t }}</option>
+    <option value="alta">{{ 'Alta' | t }}</option>
+    <option value="media">{{ 'Media' | t }}</option>
+    <option value="baja">{{ 'Baja' | t }}</option>
   </select>
   @if (esReferente()) {
     <select class="sgc-select" [value]="fProyecto()" (change)="fProyecto.set($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
-      <option value="">Todas las obras</option>
+      <option value="">{{ 'Todas las obras' | t }}</option>
       @for (p of proyectosVisibles(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
     </select>
   }
@@ -134,25 +134,25 @@
       <div class="sgc-field">
         <label for="tipo">{{ 'Tipo de carga' | t }}</label>
         <select id="tipo" formControlName="tipo_carga">
-          <option value="materiales">Materiales</option>
-          <option value="equipo">Equipo</option>
-          <option value="otros">Otros</option>
+          <option value="materiales">{{ 'Materiales' | t }}</option>
+          <option value="equipo">{{ 'Equipo' | t }}</option>
+          <option value="otros">{{ 'Otros' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
         <label for="prio">{{ 'Prioridad' | t }}</label>
         <select id="prio" formControlName="prioridad">
-          <option value="baja">Baja</option>
-          <option value="media">Media</option>
-          <option value="alta">Alta</option>
-          <option value="urgente">Urgente</option>
+          <option value="baja">{{ 'Baja' | t }}</option>
+          <option value="media">{{ 'Media' | t }}</option>
+          <option value="alta">{{ 'Alta' | t }}</option>
+          <option value="urgente">{{ 'Urgente' | t }}</option>
         </select>
       </div>
     </div>
     <div class="sgc-field">
       <label for="obra">{{ 'Obra (destino)' | t }}</label>
       <select id="obra" formControlName="proyecto_id">
-        <option [ngValue]="null">— Selecciona la obra —</option>
+        <option [ngValue]="null">{{ '— Selecciona la obra —' | t }}</option>
         @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
       </select>
     </div>
@@ -161,10 +161,10 @@
       <div class="sgc-field">
         <label for="ori-tipo">{{ 'Origen' | t }}</label>
         <select id="ori-tipo" formControlName="origen_tipo" (change)="origenTipo.set($any($event.target).value)">
-          <option value="almacen">Almacén</option>
-          <option value="obra">Obra</option>
-          <option value="proveedor">Proveedor</option>
-          <option value="otro">Otro</option>
+          <option value="almacen">{{ 'Almacén' | t }}</option>
+          <option value="obra">{{ 'Obra' | t }}</option>
+          <option value="proveedor">{{ 'Proveedor' | t }}</option>
+          <option value="otro">{{ 'Otro' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
@@ -172,14 +172,14 @@
           @case ('almacen') {
             <label for="ori-bod">{{ 'Almacén de origen' | t }}</label>
             <select id="ori-bod" formControlName="origen_bodega_id">
-              <option [ngValue]="null">— Selecciona almacén —</option>
-              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? 'Central — ' : '' }}{{ b.nombre }}</option> }
+              <option [ngValue]="null">{{ '— Selecciona almacén —' | t }}</option>
+              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? (i18n.t('Central —') + ' ') : '' }}{{ b.nombre }}</option> }
             </select>
           }
           @case ('obra') {
             <label for="ori-proy">{{ 'Obra de origen' | t }}</label>
             <select id="ori-proy" formControlName="origen_proyecto_id">
-              <option [ngValue]="null">— Selecciona obra —</option>
+              <option [ngValue]="null">{{ '— Selecciona obra —' | t }}</option>
               @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
             </select>
           }
@@ -195,10 +195,10 @@
       <div class="sgc-field">
         <label for="des-tipo">{{ 'Destino' | t }}</label>
         <select id="des-tipo" formControlName="destino_tipo" (change)="destinoTipo.set($any($event.target).value)">
-          <option value="obra">Obra</option>
-          <option value="almacen">Almacén</option>
-          <option value="proveedor">Proveedor</option>
-          <option value="otro">Otro</option>
+          <option value="obra">{{ 'Obra' | t }}</option>
+          <option value="almacen">{{ 'Almacén' | t }}</option>
+          <option value="proveedor">{{ 'Proveedor' | t }}</option>
+          <option value="otro">{{ 'Otro' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
@@ -206,8 +206,8 @@
           @case ('almacen') {
             <label for="des-bod">{{ 'Almacén de destino' | t }}</label>
             <select id="des-bod" formControlName="destino_bodega_id">
-              <option [ngValue]="null">— Selecciona almacén —</option>
-              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? 'Central — ' : '' }}{{ b.nombre }}</option> }
+              <option [ngValue]="null">{{ '— Selecciona almacén —' | t }}</option>
+              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? (i18n.t('Central —') + ' ') : '' }}{{ b.nombre }}</option> }
             </select>
           }
           @case ('obra') {
@@ -245,14 +245,14 @@
       <div class="sgc-field">
         <label for="pl-veh">{{ 'Vehículo' | t }}</label>
         <select id="pl-veh" [value]="planVehiculo()" (change)="planVehiculo.set($any($event.target).value || null)">
-          <option value="">— Selecciona vehículo —</option>
+          <option value="">{{ '— Selecciona vehículo —' | t }}</option>
           @for (v of vehiculosVisibles(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
         </select>
       </div>
       <div class="sgc-field">
         <label for="pl-cond">{{ 'Chofer' | t }}</label>
         <select id="pl-cond" [value]="planConductor()" (change)="planConductor.set($any($event.target).value || null)">
-          <option value="">— Selecciona chofer —</option>
+          <option value="">{{ '— Selecciona chofer —' | t }}</option>
           @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
         </select>
       </div>
@@ -265,7 +265,7 @@
       <div class="sm-cerca">
         <h3 class="sm-cerca__title">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Choferes cerca de la obra
+          {{ 'Choferes cerca de la obra' | t }}
         </h3>
         @if (buscandoChoferes()) {
           <p class="sm-cerca__hint">{{ 'Buscando…' | t }}</p>

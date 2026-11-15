@@ -286,15 +286,6 @@
     "auth": {
       "enforce": false
     },
-    "solicitudes-movimiento": {
-      "enforce": false
-    },
-    "trabajos-transporte": {
-      "enforce": false
-    },
-    "apoyo-transporte": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -344,6 +335,9 @@
       "enforce": false
     },
     "ajustes-notificaciones": {
+      "enforce": true
+    },
+    "apoyo-transporte": {
       "enforce": true
     },
     "bitacora/cartillas": {
@@ -575,6 +569,12 @@
       "enforce": true
     },
     "perfil": {
+      "enforce": true
+    },
+    "solicitudes-movimiento": {
+      "enforce": true
+    },
+    "trabajos-transporte": {
       "enforce": true
     }
   }

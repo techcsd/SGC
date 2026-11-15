@@ -10,9 +10,9 @@
 
 <div class="tt-filtros">
   <label>{{ 'Día' | t }} <input type="date" [value]="filtroDia()" (change)="filtroDia.set($any($event.target).value)" /></label>
-  <label>Obra
+  <label>{{ 'Obra' | t }}
     <select [value]="filtroObra()" (change)="filtroObra.set($any($event.target).value)">
-      <option value="">Todas</option>
+      <option value="">{{ 'Todas' | t }}</option>
       @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
     </select>
   </label>
@@ -24,19 +24,19 @@
   <div class="tt-board">
     @for (c of COLUMNAS; track c.key) {
       <div class="tt-col">
-        <div class="tt-col__head">{{ c.label }} <span class="tt-col__count">{{ porColumna()[c.key].length }}</span></div>
+        <div class="tt-col__head">{{ c.label | t }} <span class="tt-col__count">{{ porColumna()[c.key].length }}</span></div>
         <div class="tt-col__body">
           @for (r of porColumna()[c.key]; track r.origen + r.origen_id) {
             <div class="tt-card">
               <div class="tt-card__chips">
-                <span class="sgc-badge sgc-badge--info">{{ tipoLabel(r) }}</span>
+                <span class="sgc-badge sgc-badge--info">{{ tipoLabel(r) | t }}</span>
               </div>
               <p class="tt-card__desc">{{ r.descripcion || '—' }}</p>
-              <p class="tt-card__meta">{{ r.proyecto ?? 'Sin obra' }} · {{ r.dia ? fFecha(r.dia) : '—' }}</p>
-              @if (r.conductor) { <p class="tt-card__chofer">Chofer: {{ r.conductor }}</p> }
+              <p class="tt-card__meta">{{ r.proyecto ?? ('Sin obra' | t) }} · {{ r.dia ? fFecha(r.dia) : '—' }}</p>
+              @if (r.conductor) { <p class="tt-card__chofer">{{ 'Chofer:' | t }} {{ r.conductor }}</p> }
               @if (r.estado !== 'completada' && r.estado !== 'cancelada') {
                 <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirAsignar(r)">
-                  {{ r.conductor_id ? 'Reasignar' : 'Asignar chofer' }}
+                  {{ (r.conductor_id ? 'Reasignar' : 'Asignar chofer') | t }}
                 </button>
               }
             </div>
@@ -56,7 +56,7 @@
       <p class="tt-card__desc">{{ r.descripcion }}</p>
       <label for="tt-chofer">{{ 'Chofer' | t }}</label>
       <select id="tt-chofer" [value]="selChofer()" (change)="selChofer.set($any($event.target).value || null)">
-        <option value="">— Elige un chofer —</option>
+        <option value="">{{ '— Elige un chofer —' | t }}</option>
         @for (c of choferes(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>
@@ -77,7 +77,7 @@
     <div class="sgc-field">
       <label for="act-obra">{{ 'Obra (opcional)' | t }}</label>
       <select id="act-obra" formControlName="proyecto_id">
-        <option [ngValue]="null">— Sin obra —</option>
+        <option [ngValue]="null">{{ '— Sin obra —' | t }}</option>
         @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
       </select>
     </div>
@@ -88,7 +88,7 @@
     <div class="sgc-field">
       <label for="act-chofer">{{ 'Chofer (opcional)' | t }}</label>
       <select id="act-chofer" formControlName="conductor_id">
-        <option [ngValue]="null">— Sin asignar —</option>
+        <option [ngValue]="null">{{ '— Sin asignar —' | t }}</option>
         @for (c of choferes(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>

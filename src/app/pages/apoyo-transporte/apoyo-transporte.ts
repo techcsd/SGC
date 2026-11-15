@@ -17,6 +17,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { FilterSelect, FilterOption } from '../../../shared/ui/filter-select/filter-select';
 import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 interface TipoDef { value: TipoApoyo; label: string; glosa: string; }
 
@@ -46,6 +47,7 @@ export class ApoyoTransporte implements OnInit {
   private conductoresSvc = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly TIPOS = TIPOS;
   readonly estadoLabel = (e: EstadoApoyo) => ESTADO_LABEL[e] ?? e;
@@ -167,8 +169,8 @@ export class ApoyoTransporte implements OnInit {
 
   async guardar() {
     if (this.guardando()) return;
-    if (this.form.invalid) { this.form.markAllAsTouched(); this.toast.error('Faltan datos', 'Elige la obra y escribe qué hay que mover.'); return; }
-    if (this.fotos().length === 0) { this.toast.error('Falta la foto', 'Agrega al menos una foto de lo que se va a mover.'); return; }
+    if (this.form.invalid) { this.form.markAllAsTouched(); this.toast.error(this.i18n.t('Faltan datos'), 'Elige la obra y escribe qué hay que mover.'); return; }
+    if (this.fotos().length === 0) { this.toast.error(this.i18n.t('Falta la foto'), 'Agrega al menos una foto de lo que se va a mover.'); return; }
     this.guardando.set(true);
     try {
       const v = this.form.getRawValue();
@@ -183,11 +185,11 @@ export class ApoyoTransporte implements OnInit {
       for (const f of this.fotos()) {
         try { await this.svc.subirFoto(id, f); } catch { /* foto best-effort tras crear */ }
       }
-      this.toast.success('Apoyo creado', 'Transporte ya puede verlo y asignarlo.');
+      this.toast.success(this.i18n.t('Apoyo creado'), 'Transporte ya puede verlo y asignarlo.');
       this.crearOpen.set(false);
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -212,7 +214,7 @@ export class ApoyoTransporte implements OnInit {
       const urls = await Promise.all((d.fotos ?? []).map((f) => this.svc.fotoUrl(f.path)));
       this.detalleFotos.set(urls.filter(Boolean));
     } catch (e: unknown) {
-      this.toast.error('No se pudo abrir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir'), e instanceof Error ? e.message : undefined);
       this.detalleOpen.set(false);
     }
   }
@@ -230,13 +232,13 @@ export class ApoyoTransporte implements OnInit {
     this.accionBusy.set(true);
     try {
       await this.svc.cambiarEstado(d.id, estado, nota ?? null);
-      this.toast.success('Listo', 'El estado del apoyo se actualizó.');
+      this.toast.success(this.i18n.t('Listo'), 'El estado del apoyo se actualizó.');
       this.pidiendoNota.set(null);
       this.notaAccion.set('');
       await this.abrirDetalle(d);
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.accionBusy.set(false);
     }
@@ -244,7 +246,7 @@ export class ApoyoTransporte implements OnInit {
 
   confirmarConNota(tipo: 'cancelar' | 'reabrir') {
     const nota = this.notaAccion().trim();
-    if (!nota) { this.toast.error('Escribe el motivo', 'Indica por qué.'); return; }
+    if (!nota) { this.toast.error(this.i18n.t('Escribe el motivo'), 'Indica por qué.'); return; }
     this.cambiar(tipo === 'cancelar' ? 'cancelada' : 'en_proceso', nota);
   }
 
@@ -252,8 +254,8 @@ export class ApoyoTransporte implements OnInit {
   async confirmarReabrirEstado() {
     const destino = this.reabrirDestino();
     const nota = this.notaReabrir().trim();
-    if (!destino) { this.toast.error('Elige el estado', 'Toca a cuál estado quieres volver.'); return; }
-    if (!nota) { this.toast.error('Escribe el motivo', '¿Por qué la reabres?'); return; }
+    if (!destino) { this.toast.error(this.i18n.t('Elige el estado'), 'Toca a cuál estado quieres volver.'); return; }
+    if (!nota) { this.toast.error(this.i18n.t('Escribe el motivo'), '¿Por qué la reabres?'); return; }
     await this.cambiar(destino, nota);
   }
 
@@ -271,19 +273,19 @@ export class ApoyoTransporte implements OnInit {
     const conductorId = this.planConductor();
     if (!d || this.aprobandoBusy()) return;
     if (!vehiculoId || !conductorId) {
-      this.toast.error('Faltan datos', 'Elige vehículo y chofer.');
+      this.toast.error(this.i18n.t('Faltan datos'), 'Elige vehículo y chofer.');
       return;
     }
     this.aprobandoBusy.set(true);
     try {
       // Misma RPC/servicio que usa la bandeja de Solicitudes de movimiento para asignar.
       await this.movimientoSvc.planificarConRuta(d.id, vehiculoId, conductorId, this.planFecha() || undefined);
-      this.toast.success('Apoyo aprobado', 'Se creó la ruta y se notificó al chofer.');
+      this.toast.success(this.i18n.t('Apoyo aprobado'), 'Se creó la ruta y se notificó al chofer.');
       this.aprobando.set(false);
       await this.abrirDetalle(d);
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo aprobar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo aprobar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.aprobandoBusy.set(false);
     }

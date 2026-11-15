@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 54%** (5698/10604 literales de 192 pantallas en alcance). **`ht`: 82%**.
+**Alcance `en`: 54%** (5771/10605 literales de 192 pantallas en alcance). **`ht`: 82%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -102,9 +102,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| solicitudes-movimiento | scope | 81 | 38 | 43 | 47% |
-| trabajos-transporte | scope | 22 | 11 | 11 | 50% |
-| apoyo-transporte | scope | 51 | 33 | 18 | 65% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
@@ -122,6 +119,7 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
+| apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
 | bitacora/cobertura | enforce | 20 | 20 | 0 | 100% |
 | bitacora/dashboard | enforce | 14 | 14 | 0 | 100% |
@@ -199,10 +197,12 @@
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
+| solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
+| trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**520 literal(es) sin t()** en 74 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**494 literal(es) sin t()** en 71 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -214,7 +214,6 @@
 | src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
 | src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
-| src/app/pages/apoyo-transporte/apoyo-transporte.ts | 13 | Faltan datos · Falta la foto · Apoyo creado … |
 | src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
@@ -230,7 +229,6 @@
 | src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
 | src/app/pages/proyectos/personal/personal-import.ts | 8 | Aplicado · No se pudo generar la plantilla · Elige la obra … |
 | src/app/pages/rrhh/tramites/tramites.ts | 8 | No se pudieron cargar los trámites · Falta el nombre · Trámite guardado … |
-| src/app/pages/solicitudes-movimiento/solicitudes-movimiento.ts | 8 | Agrega al menos un renglón de lo que se va a mover. · Solicitud creada · Solicitud cancelada … |
 | src/app/pages/tecnologia/cotizaciones/cotizaciones.ts | 8 | El título es obligatorio · Cotización guardada · Renglones guardados … |
 | src/app/pages/tecnologia/oficina-agentes/oficina-agentes.ts | 8 | Ejecutado · No se pudo ejecutar · Deshecho … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
@@ -249,7 +247,6 @@
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
-| src/app/pages/trabajos-transporte/trabajos-transporte.ts | 5 | Elige un chofer de la lista · Asignado · No se pudo asignar … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |

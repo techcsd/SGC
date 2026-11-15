@@ -42,7 +42,7 @@
           <!-- CO9 — quién canceló/completó, visible sin abrir el detalle. -->
           @if (r.estado === 'cancelada' && r.cancelada_por_nombre) {
             <p class="apoyo-card__quien">
-              Cancelada por <b>{{ r.cancelada_por_nombre }}</b>
+              {{ 'Cancelada por' | t }} <b>{{ r.cancelada_por_nombre }}</b>
               @if (r.cancelada_at) { · {{ fHora(r.cancelada_at) }} }
               @if (r.motivo_cancelacion) { · «{{ r.motivo_cancelacion }}» }
             </p>
@@ -75,7 +75,7 @@
     <div class="sgc-field">
       <label for="ap-obra">{{ 'Obra' | t }} <span class="required">*</span></label>
       <select id="ap-obra" formControlName="proyecto_id">
-        <option [ngValue]="null">— Elige la obra —</option>
+        <option [ngValue]="null">{{ '— Elige la obra —' | t }}</option>
         @for (o of obras(); track o.id) { <option [ngValue]="o.id">{{ o.nombre }}</option> }
       </select>
     </div>
@@ -151,14 +151,14 @@
             <div class="sgc-field">
               <label for="ap-aprobar-veh">{{ 'Vehículo' | t }}</label>
               <select id="ap-aprobar-veh" [value]="planVehiculo()" (change)="planVehiculo.set($any($event.target).value || null)">
-                <option value="">— Selecciona vehículo —</option>
+                <option value="">{{ '— Selecciona vehículo —' | t }}</option>
                 @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
               </select>
             </div>
             <div class="sgc-field">
               <label for="ap-aprobar-cond">{{ 'Chofer' | t }}</label>
               <select id="ap-aprobar-cond" [value]="planConductor()" (change)="planConductor.set($any($event.target).value || null)">
-                <option value="">— Selecciona chofer —</option>
+                <option value="">{{ '— Selecciona chofer —' | t }}</option>
                 @for (c of conductores(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
               </select>
             </div>
@@ -183,7 +183,7 @@
         <div class="apoyo-acciones">
           @if (pidiendoNota(); as pn) {
             <textarea rows="2" [value]="notaAccion()" (input)="notaAccion.set($any($event.target).value)"
-              [placeholder]="pn === 'cancelar' ? 'Motivo de la cancelación…' : 'Explica por qué aún no se ha hecho…'"></textarea>
+              [placeholder]="pn === 'cancelar' ? i18n.t('Motivo de la cancelación…') : i18n.t('Explica por qué aún no se ha hecho…')"></textarea>
             <div class="apoyo-acciones__row">
               <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set(null)" [disabled]="accionBusy()">{{ 'Volver' | t }}</button>
               <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarConNota(pn)" [disabled]="accionBusy()">{{ 'Confirmar' | t }}</button>
