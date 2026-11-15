@@ -257,6 +257,79 @@ Siguiente módulo en la tabla de lotes: Compras (#5).
 **Módulo 5 (Compras) CERRADO: 8/8 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Flota (#6).
 
+## Flota — 100% COMPLETO (23/23 pantallas, 15-nov-2026)
+
+El módulo más grande hasta ahora: 23 pantallas (29 archivos `.html` incl.
+sub-rutas `detalle/`, `registrar-entrega/`, `cargar-documentos/`), 2109
+literales totales. Lotes 20-33 (commits `a28cbf05`..`1a82044c`):
+
+- **Lote 20** (`a28cbf05`): codemod masivo
+  (`scripts/i18n-wrap-html.mjs --modulo flota --write`) sobre las 23
+  pantallas: 1377 envueltos, 147 saltados a mano. **Bug encontrado y
+  corregido antes de aceptar el resultado:** el codemod envolvió
+  `"10 || d"` dentro de una condición `@if` numérica sin texto real
+  (`@if (d > 10 || d < -10)` → `@if (d > {{ '10 || d' | t }} < -10)`,
+  NG5002 parser error en `combustible.html`) — mismo patrón de bug que el
+  de `@if (a > b)` ya corregido en el escáner de *medición*, pero esta vez
+  en el codemod de *escritura* (lógica separada). Único caso real en todo
+  el módulo.
+- **Lotes 21-33**: cierre pantalla por pantalla, repartido entre 6 forks
+  secuenciales (nunca en paralelo — el riesgo real es que dos forks
+  escriban a la vez sobre `alcance.json`/`en.json`/`ht.json`/
+  `docs/i18n-coverage.json`, que se regeneran enteros en cada corrida del
+  escáner; una corrida paralela podría perder el enforce-flip o las
+  traducciones de la otra). Cada fork recibió instrucciones explícitas
+  (patrones + gotchas conocidos) y cada resultado se **reverificó
+  independientemente** (`i18n-coverage.mjs` + `verify-i18n.mjs` + build +
+  368 tests) antes de aceptarlo — un fork devolvió progreso real pero
+  incompleto más de una vez (HTML envuelto al 100% pero sin traducir/
+  enforce/commit), terminado a mano siguiendo el mismo patrón.
+- **Gotcha recurrente, el más caro de todo el módulo:** una etiqueta
+  devuelta por un método/getter (`estadoLabel(x)`, `tipoLabel()`,
+  `confianzaTexto()`, `labelLectura()`) mostrada en el template SIN
+  `| t` — ninguno de los dos escáneres lo detecta (solo matchean
+  literales de texto, no expresiones de propiedad/método), así que la
+  pantalla pasa "100%" con un bug real de "siempre en español sin
+  importar el idioma". Apareció en `seguimiento`, `panel-dia`,
+  `rendimiento-vehiculos`, `checklists`, `mantenimientos`,
+  `conciliacion-combustible`, `combustible` (×2), `vehiculos` (×4) — una
+  revisión manual de cada llamada a un helper de etiqueta en el template
+  fue obligatoria en cada pantalla grande.
+- **Gotcha nuevo:** `confirm()`/`alert()` con un literal envuelto NO
+  tiene contraparte "ya cubierto" en el escáner — un template literal con
+  `i18n.t()` anidado dentro de backticks se cuenta como texto crudo sin
+  traducir (el regex captura todo el contenido entre backticks
+  literalmente). Fix: usar el placeholder nombrado de
+  `I18nService.t('texto {ph}', { ph })` como argumento completo de
+  `confirm()`, nunca un template literal con `${}` anidando `i18n.t()`.
+- **Gotcha nuevo:** un carácter `<`/`>` literal dentro de CUALQUIER
+  string traducible (incluso una interpolación `{{ }}` plana, no solo
+  dentro de `@if`/atributos vinculados) rompe la detección de límites de
+  etiqueta del escáner. La entidad `&lt;` tampoco sirve (no se decodifica
+  dentro de un literal JS interpolado — se mostraría literal al
+  usuario). Fix: reformular el texto sin el símbolo, o mover el cálculo a
+  un computed/método de `.ts` que devuelva el string ya formateado.
+  Encontrado en `seguimiento.html` (texto original con `&lt; 2 min`).
+- **Gotcha nuevo:** un `@Input()` de un componente compartido llamado
+  `label` (o similar) puesto como atributo estático plano (`label="texto"`)
+  NUNCA se traduce aunque la clave exista — hay que pasarlo como binding
+  de propiedad (`[label]="'texto' | t"`).
+- **Gotcha nuevo:** `i18n.t('texto {n}', { n: algo() })` donde `algo()`
+  puede devolver `null` (ej. `number | null`) es un error de tipos real de
+  TypeScript (`TS2322`) en build, no un problema de i18n —
+  `I18nService.t()` exige `string | number` para sus placeholders. Fix:
+  `algo() ?? 0` (o el fallback que corresponda). Encontrado en
+  `conductor-detalle.html` (`diasParaVencer()`) y `vehiculos.ts`/
+  `vehiculo-detalle.html` (placas `string | null` en `confirm()`).
+- `public/i18n/en.json`/`ht.json`: crecieron de ~2906/~2037 a **~4200/
+  ~3469** claves (el módulo más grande traducido hasta ahora).
+- `alcance.json`: 23 pantallas nuevas `enforce:true` (total **66**).
+  `verify-i18n.mjs`: 66 pantallas enforce, 0 fallos. Build + 368/368 tests
+  verdes en todo momento.
+
+**Módulo 6 (Flota) CERRADO: 23/23 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Bitácora (#7).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -291,7 +364,7 @@ Admin, resto.
 | 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
 | 4 | Inventario | 35/35 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~350 a mano | ~130 (toasts/confirm/error) | ✅ **100% — hecho** | 46a3c9c5..9e839268 | **true** |
 | 5 | Compras | 8/8 pantallas 100% (ver detalle arriba) | ~cablear HTML a mano (sin codemod) | toasts/confirm/error | ✅ **100% — hecho** | e61f8488..8eda4b89 | **true** |
-| 6 | Flota | — | — | — | ⏳ pendiente | — | false |
+| 6 | Flota | 23/23 pantallas 100% (ver detalle arriba) | 1377 (codemod) + ~730 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | a28cbf05..1a82044c | **true** |
 | 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |
 | 8 | Transporte/apoyo | — | — | — | ⏳ pendiente | — | false |
 | 9 | Proyectos | — | — | — | ⏳ pendiente | — | false |
