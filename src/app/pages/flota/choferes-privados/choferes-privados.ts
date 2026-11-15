@@ -14,6 +14,7 @@ import { formatearCedula } from '../../../../shared/utils/cedula.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * CJ12 — Flota › Choferes privados. Lista los usuarios con rol chofer_privado, sus
@@ -32,6 +33,7 @@ export class ChoferesPrivados implements OnInit {
   private service = inject(ChoferesPrivadosService);
   private vehiculosService = inject(VehiculosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly fmtCedula = formatearCedula;
   readonly fmtTelefono = formatearTelefono;
@@ -74,7 +76,7 @@ export class ChoferesPrivados implements OnInit {
     try {
       this.choferes.set(await this.service.listar());
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudieron cargar los choferes privados');
+      this.toast.errorFrom(e, this.i18n.t('No se pudieron cargar los choferes privados'));
     } finally {
       this.cargando.set(false);
     }
@@ -104,24 +106,24 @@ export class ChoferesPrivados implements OnInit {
     try {
       const n = await this.service.autorizarLote(
         ch.usuario_id, ids, this.autDesde() || null, this.autHasta() || null, this.autNota().trim() || null);
-      this.toast.success('Listo', `Autorizaste ${n} vehículo${n !== 1 ? 's' : ''} a ${ch.nombre}.`);
+      this.toast.success(this.i18n.t('Listo'), `Autorizaste ${n} vehículo${n !== 1 ? 's' : ''} a ${ch.nombre}.`);
       this.autOpen.set(false);
       await this.cargar();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo autorizar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo autorizar'));
     } finally {
       this.autGuardando.set(false);
     }
   }
 
   async retirar(ch: ChoferPrivado, autorizacionId: string, placa: string | null) {
-    if (!window.confirm(`¿Retirar la autorización del vehículo ${placa ?? ''} a ${ch.nombre}?`)) return;
+    if (!window.confirm(this.i18n.t('¿Retirar la autorización del vehículo {placa} a {nombre}?', { placa: placa ?? '', nombre: ch.nombre }))) return;
     try {
       await this.service.retirar(autorizacionId);
-      this.toast.success('Retirada', 'La autorización se retiró.');
+      this.toast.success(this.i18n.t('Retirada'), 'La autorización se retiró.');
       await this.cargar();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo retirar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo retirar'));
     }
   }
 
@@ -131,18 +133,18 @@ export class ChoferesPrivados implements OnInit {
   async toggleTransporte(ch: ChoferPrivado) {
     const activar = !ch.tiene_transportista;
     const pregunta = activar
-      ? `¿Dar a ${ch.nombre} también el trabajo de chofer transportista (conduces y rutas de empresa)?`
-      : `¿Quitarle a ${ch.nombre} el trabajo de chofer transportista? Seguirá siendo chofer privado.`;
+      ? this.i18n.t('¿Dar a {nombre} también el trabajo de chofer transportista (conduces y rutas de empresa)?', { nombre: ch.nombre })
+      : this.i18n.t('¿Quitarle a {nombre} el trabajo de chofer transportista? Seguirá siendo chofer privado.', { nombre: ch.nombre });
     if (!window.confirm(pregunta)) return;
     this.permitiendoTransporte.set(ch.usuario_id);
     try {
       await this.service.permitirTransporte(ch.usuario_id, activar, null);
-      this.toast.success('Listo', activar
+      this.toast.success(this.i18n.t('Listo'), activar
         ? `${ch.nombre} ahora también hace conduces y rutas de empresa.`
         : `${ch.nombre} ya no hace trabajo de transportista.`);
       await this.cargar();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo cambiar el interruptor');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo cambiar el interruptor'));
     } finally {
       this.permitiendoTransporte.set(null);
     }
@@ -160,11 +162,11 @@ export class ChoferesPrivados implements OnInit {
     this.addGuardando.set(true);
     try {
       await this.service.hacerPrivado(sel.usuario_id);
-      this.toast.success('Listo', `${sel.nombre} ahora es chofer privado.`);
+      this.toast.success(this.i18n.t('Listo'), `${sel.nombre} ahora es chofer privado.`);
       this.addOpen.set(false);
       await this.cargar();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo asignar el rol');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo asignar el rol'));
     } finally {
       this.addGuardando.set(false);
     }

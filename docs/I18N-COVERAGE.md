@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 43%** (4582/10695 literales de 192 pantallas en alcance). **`ht`: 71%**.
+**Alcance `en`: 43%** (4604/10695 literales de 192 pantallas en alcance). **`ht`: 71%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -116,7 +116,6 @@
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| flota/choferes-privados | scope | 44 | 22 | 22 | 50% |
 | flota/mantenimientos | scope | 93 | 54 | 39 | 58% |
 | flota/checklists | scope | 99 | 60 | 39 | 61% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
@@ -159,6 +158,7 @@
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
+| flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
 | flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**696 literal(es) sin t()** en 93 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**691 literal(es) sin t()** en 92 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -256,7 +256,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/flota/choferes-privados/choferes-privados.ts | 5 | Listo · Retirada · Listo … |
 | src/app/pages/flota/conductores/detalle/conductor-detalle.ts | 5 | Error · Foto actualizada · Multa registrada … |
 | src/app/pages/flota/vehiculos/cargar-documentos/cargar-documentos.ts | 5 | Un solo PDF · Formato no soportado · Demasiadas fotos … |
 | src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |

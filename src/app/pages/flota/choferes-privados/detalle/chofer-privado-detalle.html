@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <a routerLink="/flota/choferes-privados" class="cpd-back">{{ '← Choferes privados' | t }}</a>
-    <h1 class="page-title">{{ data()?.chofer?.nombre || 'Chofer privado' }}</h1>
+    <h1 class="page-title">{{ data()?.chofer?.nombre || (i18n.t('Chofer privado')) }}</h1>
     @if (data()?.chofer; as c) {
       <div class="cpd-meta">
         @if (c.cedula) { <span>{{ fmtCedula(c.cedula) }}</span> }
@@ -19,16 +19,16 @@
 
   <!-- Vehículos autorizados (vigencias) -->
   <div class="sgc-card cpd-card">
-    <h2 class="cpd-title">Vehículos autorizados ({{ d.vigencias.length }})</h2>
+    <h2 class="cpd-title">{{ 'Vehículos autorizados' | t }} ({{ d.vigencias.length }})</h2>
     @if (!d.vigencias.length) {
       <p class="cpd-muted">{{ 'Sin vehículos autorizados — por eso no puede tomar ninguno. Autorízale desde la lista.' | t }}</p>
     } @else {
       <div class="cpd-chips">
         @for (v of d.vigencias; track v.autorizacion_id) {
           <span class="sgc-badge" [class.sgc-badge--success]="v.vigente" [class.sgc-badge--neutral]="!v.vigente"
-                [attr.title]="v.hasta ? ('Hasta ' + fmtFecha(v.hasta)) : 'Sin vencimiento'">
+                [attr.title]="v.hasta ? (i18n.t('Hasta') + ' ' + fmtFecha(v.hasta)) : i18n.t('Sin vencimiento')">
             {{ vehiculoLabel(v.placa, v.marca, v.modelo) }}
-            @if (!v.vigente) { · {{ v.activa ? 'por iniciar' : 'retirada' }} }
+            @if (!v.vigente) { · {{ (v.activa ? 'por iniciar' : 'retirada') | t }} }
           </span>
         }
       </div>
@@ -37,7 +37,7 @@
 
   <!-- Historial de usos (tomó / soltó / recibió) -->
   <div class="sgc-card cpd-card">
-    <h2 class="cpd-title">Historial de usos ({{ d.usos.length }})</h2>
+    <h2 class="cpd-title">{{ 'Historial de usos' | t }} ({{ d.usos.length }})</h2>
     @if (!d.usos.length) {
       <p class="cpd-muted">{{ 'Sin usos registrados.' | t }}</p>
     } @else {
@@ -47,7 +47,7 @@
             <div class="cpd-row__main">
               <strong>{{ vehiculoLabel(u.placa, u.marca, u.modelo) }}</strong>
               @if (u.activa) { <span class="sgc-badge sgc-badge--warning">{{ 'En uso' | t }}</span> }
-              @if (u.recibido_de) { <span class="cpd-muted">· recibido de {{ u.recibido_de }}</span> }
+              @if (u.recibido_de) { <span class="cpd-muted">· {{ 'recibido de' | t }} {{ u.recibido_de }}</span> }
             </div>
             <div class="cpd-row__sub">
               {{ fmtFechaHora(u.inicio_at) }} → {{ u.fin_at ? fmtFechaHora(u.fin_at) : '—' }}
@@ -61,7 +61,7 @@
 
   <!-- Entregas / recepciones (con fotos) -->
   <div class="sgc-card cpd-card">
-    <h2 class="cpd-title">Entregas y recepciones ({{ d.entregas.length }})</h2>
+    <h2 class="cpd-title">{{ 'Entregas y recepciones' | t }} ({{ d.entregas.length }})</h2>
     @if (!d.entregas.length) {
       <p class="cpd-muted">{{ 'Sin entregas registradas.' | t }}</p>
     } @else {
@@ -69,7 +69,7 @@
         @for (e of d.entregas; track e.id) {
           <div class="cpd-row">
             <div class="cpd-row__main">
-              <strong>{{ e.tipo === 'recepcion' ? 'Recepción' : 'Devolución' }}</strong>
+              <strong>{{ (e.tipo === 'recepcion' ? 'Recepción' : 'Devolución') | t }}</strong>
               · {{ vehiculoLabel(e.placa) }}
               <span class="sgc-badge" [class.sgc-badge--success]="e.estado === 'cerrada'" [class.sgc-badge--warning]="e.estado !== 'cerrada'">{{ e.estado }}</span>
               @if (e.tiene_danos) { <span class="sgc-badge sgc-badge--danger">{{ 'Con daños' | t }}</span> }
@@ -97,7 +97,7 @@
 
   <!-- Echadas de combustible -->
   <div class="sgc-card cpd-card">
-    <h2 class="cpd-title">Echadas de combustible ({{ d.echadas.length }})</h2>
+    <h2 class="cpd-title">{{ 'Echadas de combustible' | t }} ({{ d.echadas.length }})</h2>
     @if (!d.echadas.length) {
       <p class="cpd-muted">{{ 'Sin echadas registradas.' | t }}</p>
     } @else {
@@ -134,7 +134,7 @@
 
   <!-- Inspecciones / checklists -->
   <div class="sgc-card cpd-card">
-    <h2 class="cpd-title">Inspecciones ({{ d.inspecciones.length }})</h2>
+    <h2 class="cpd-title">{{ 'Inspecciones' | t }} ({{ d.inspecciones.length }})</h2>
     @if (!d.inspecciones.length) {
       <p class="cpd-muted">{{ 'Sin inspecciones registradas.' | t }}</p>
     } @else {
@@ -142,10 +142,10 @@
         @for (i of d.inspecciones; track i.id) {
           <div class="cpd-row">
             <div class="cpd-row__main">
-              <strong>{{ i.tipo === 'pre_uso' ? 'Pre-uso' : 'Inspección' }}</strong>
+              <strong>{{ (i.tipo === 'pre_uso' ? 'Pre-uso' : 'Inspección') | t }}</strong>
               · {{ vehiculoLabel(i.placa) }}
               @if (i.tiene_criticos) { <span class="sgc-badge sgc-badge--danger">{{ 'Con críticos' | t }}</span> }
-              @else { <span class="sgc-badge sgc-badge--success">OK</span> }
+              @else { <span class="sgc-badge sgc-badge--success">{{ 'OK' | t }}</span> }
             </div>
             <div class="cpd-row__sub">
               {{ fmtFecha(i.fecha) }}
