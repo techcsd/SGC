@@ -5,6 +5,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * BA / Transporte v3 — bandeja "Lugares por registrar": cada «Otros» textual cae
@@ -13,7 +14,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
  */
 @Component({
   selector: 'app-lugares-por-registrar',
-  imports: [DatePipe, Skeleton, StaggerDirective],
+  imports: [DatePipe, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './lugares-por-registrar.html',
   styleUrl: './lugares-por-registrar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

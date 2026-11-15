@@ -1,11 +1,11 @@
 <div class="page">
   <header class="page-header">
     <div class="page-header__left">
-      <h1 class="page-title">Conduces externos</h1>
+      <h1 class="page-title">{{ 'Conduces externos' | t }}</h1>
       <span class="page-count">{{ filtradas().length }}</span>
     </div>
     <div class="page-header__actions">
-      <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/inventario/conduce-externo/nuevo">+ Nuevo conduce externo</a>
+      <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/inventario/conduce-externo/nuevo">{{ '+ Nuevo conduce externo' | t }}</a>
     </div>
   </header>
 
@@ -27,20 +27,20 @@
   } @else if (error()) {
     <div class="page-error" role="alert">{{ error() }}</div>
   } @else if (filtradas().length === 0) {
-    <div class="sgc-card table-empty">No hay conduces externos todavía.</div>
+    <div class="sgc-card table-empty">{{ 'No hay conduces externos todavía.' | t }}</div>
   } @else {
     <div class="sgc-card table-wrapper">
       <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Código</th>
-              <th>Transporta</th>
-              <th>Origen → Destino</th>
-              <th>Material</th>
-              <th>Emisor</th>
-              <th>Estado</th>
-              <th>Fecha</th>
+              <th>{{ 'Código' | t }}</th>
+              <th>{{ 'Transporta' | t }}</th>
+              <th>{{ 'Origen → Destino' | t }}</th>
+              <th>{{ 'Material' | t }}</th>
+              <th>{{ 'Emisor' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
+              <th>{{ 'Fecha' | t }}</th>
             </tr>
           </thead>
           <tbody appStagger>
@@ -49,13 +49,13 @@
                 <td><strong>{{ c.codigo || '—' }}</strong></td>
                 <td>
                   {{ c.transporta || '—' }}
-                  @if (!c.es_proveedor_formal && c.transporta) { <span class="ce-otro">«Otro»</span> }
-                  @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                  @if (!c.es_proveedor_formal && c.transporta) { <span class="ce-otro">{{ '«Otro»' | t }}</span> }
+                  @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                 </td>
                 <td>{{ c.origen || '—' }} → {{ c.destino || '—' }}</td>
                 <td>
                   {{ c.material || (c.afecta_inventario ? 'Material de catálogo' : '—') }}
-                  @if (c.afecta_inventario) { <span class="sgc-badge sgc-badge--info" title="Este conduce mueve inventario">AFECTA INVENTARIO</span> }
+                  @if (c.afecta_inventario) { <span class="sgc-badge sgc-badge--info" title="{{ 'Este conduce mueve inventario' | t }}">{{ 'AFECTA INVENTARIO' | t }}</span> }
                 </td>
                 <td>{{ c.emisor_nombre || '—' }}</td>
                 <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">{{ estadoLabel(c.estado) }}</span></td>

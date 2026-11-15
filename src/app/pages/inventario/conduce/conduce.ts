@@ -26,6 +26,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { esUuid } from '../../../../shared/utils/uuid.util';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface ItemCierre {
   detalle_id: string;
@@ -39,7 +40,7 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
 
 @Component({
   selector: 'app-conduce',
-  imports: [Skeleton, SignaturePad, RouterLink, Lightbox, Icon, UserPicker],
+  imports: [Skeleton, SignaturePad, RouterLink, Lightbox, Icon, UserPicker, TranslatePipe],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

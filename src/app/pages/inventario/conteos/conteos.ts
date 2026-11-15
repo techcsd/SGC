@@ -19,6 +19,7 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
@@ -29,7 +30,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker],
+  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker, TranslatePipe],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

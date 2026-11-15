@@ -1,24 +1,24 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <a routerLink="/inventario/bodegas" class="page__back">← Almacenes</a>
-      <h1 class="page__title">Apertura de inventario</h1>
-      <p class="page__sub">Fija el piso inicial de existencias por almacén (solo admin).</p>
+      <a routerLink="/inventario/bodegas" class="page__back">{{ '← Almacenes' | t }}</a>
+      <h1 class="page__title">{{ 'Apertura de inventario' | t }}</h1>
+      <p class="page__sub">{{ 'Fija el piso inicial de existencias por almacén (solo admin).' | t }}</p>
     </div>
   </header>
 
   <div class="sgc-card apertura__intro">
     <p>
-      La <strong>apertura</strong> es el punto de partida del inventario mientras se levanta el stock real.
+      La <strong>{{ 'apertura' | t }}</strong> es el punto de partida del inventario mientras se levanta el stock real.
       No genera movimientos, no aparece en el kardex y al ajustarla la existencia se re-basa
-      <strong>sin caída</strong> en las gráficas. Úsala para poner un piso (p. ej. 1,000) y luego
+      <strong>{{ 'sin caída' | t }}</strong> en las gráficas. Úsala para poner un piso (p. ej. 1,000) y luego
       corrígela a la cantidad real desde aquí o desde el inventario del almacén.
     </p>
   </div>
 
   <div class="filters-bar">
     <div class="sgc-field filters-bar__select">
-      <label for="almacen">Almacén</label>
+      <label for="almacen">{{ 'Almacén' | t }}</label>
       <select id="almacen" [value]="bodegaId()" (change)="onAlmacen($any($event.target).value)">
         <option value="">Selecciona un almacén…</option>
         @for (a of almacenes(); track a.id) {
@@ -40,7 +40,7 @@
     <div class="sgc-card apertura__lote">
       <div class="apertura__lote-row">
         <div class="sgc-field">
-          <label for="cant">Cantidad de apertura</label>
+          <label for="cant">{{ 'Cantidad de apertura' | t }}</label>
           <input id="cant" type="number" step="any" min="0" [value]="cantidadLote()"
             (input)="cantidadLote.set($any($event.target).valueAsNumber)" />
         </div>
@@ -70,23 +70,23 @@
     <div class="filters-bar">
       <div class="sgc-field filters-bar__search">
         <input type="search" [value]="search()" (input)="search.set($any($event.target).value)"
-               placeholder="Buscar artículo…" aria-label="Buscar artículo" />
+               placeholder="{{ 'Buscar artículo…' | t }}" aria-label="{{ 'Buscar artículo' | t }}" />
       </div>
     </div>
 
     @if (loading()) {
-      <p class="page__loading">Cargando inventario…</p>
+      <p class="page__loading">{{ 'Cargando inventario…' | t }}</p>
     } @else if (filtrados().length === 0) {
-      <p class="page__empty">No hay artículos para este almacén.</p>
+      <p class="page__empty">{{ 'No hay artículos para este almacén.' | t }}</p>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Apertura por artículo">
+        <table class="data-table" aria-label="{{ 'Apertura por artículo' | t }}">
           <thead>
             <tr>
-              <th>Código</th>
-              <th>Artículo</th>
-              <th class="text-right">Existencia</th>
-              <th class="text-right">Apertura</th>
+              <th>{{ 'Código' | t }}</th>
+              <th>{{ 'Artículo' | t }}</th>
+              <th class="text-right">{{ 'Existencia' | t }}</th>
+              <th class="text-right">{{ 'Apertura' | t }}</th>
               <th></th>
             </tr>
           </thead>
@@ -98,7 +98,7 @@
                 <td class="text-right">{{ i.cantidad | number:'1.0-2' }}</td>
                 <td class="text-right">{{ i.apertura | number:'1.0-2' }}</td>
                 <td class="text-right">
-                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="editar(i)">Editar</button>
+                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="editar(i)">{{ 'Editar' | t }}</button>
                 </td>
               </tr>
             }
@@ -107,6 +107,6 @@
       </div>
     }
   } @else {
-    <p class="page__empty">Selecciona un almacén para fijar su apertura.</p>
+    <p class="page__empty">{{ 'Selecciona un almacén para fijar su apertura.' | t }}</p>
   }
 </section>

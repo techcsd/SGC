@@ -30,10 +30,11 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-activos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, TranslatePipe],
   templateUrl: './activos.html',
   styleUrl: './activos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

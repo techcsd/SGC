@@ -13,6 +13,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * AU4 — Bandeja "Material no catalogado": items libres que los choferes escribieron
@@ -24,7 +25,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-material-no-catalogado',
-  imports: [RouterLink, ArticuloPicker, Skeleton],
+  imports: [RouterLink, ArticuloPicker, Skeleton, TranslatePipe],
   templateUrl: './material-no-catalogado.html',
   styleUrl: './material-no-catalogado.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

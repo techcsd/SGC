@@ -1,12 +1,12 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Salidas de Inventario</h1>
+    <h1 class="page-title">{{ 'Salidas de Inventario' | t }}</h1>
     <span class="page-count">{{ filtered().length }} salida{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -25,7 +25,7 @@
     <span class="solicitudes-banner__text">
       <strong>{{ solicitudesPendientes().length }}</strong> requisición(es) pendiente(s) de aprobar
     </span>
-    <span class="solicitudes-banner__cta">Aprobar en Requisiciones →</span>
+    <span class="solicitudes-banner__cta">{{ 'Aprobar en Requisiciones →' | t }}</span>
   </a>
 }
 
@@ -34,10 +34,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por responsable o proyecto…"
+      placeholder="{{ 'Buscar por responsable o proyecto…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar salidas"
+      aria-label="{{ 'Buscar salidas' | t }}"
     />
   </div>
 
@@ -45,7 +45,7 @@
     <select
       [value]="selectedBodega()"
       (change)="onBodegaChange($any($event.target).value)"
-      aria-label="Filtrar por almacén"
+      aria-label="{{ 'Filtrar por almacén' | t }}"
     >
       <option value="">Todos los almacenes</option>
       @for (b of bodegasVisibles(); track b.id) {
@@ -58,7 +58,7 @@
     <select
       [value]="selectedMotivo()"
       (change)="onMotivoChange($any($event.target).value)"
-      aria-label="Filtrar por motivo"
+      aria-label="{{ 'Filtrar por motivo' | t }}"
     >
       <option value="">Todos los motivos</option>
       @for (m of MOTIVOS_SALIDA; track m.value) {
@@ -134,29 +134,29 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de salidas de inventario">
+      <table class="data-table" aria-label="{{ 'Lista de salidas de inventario' | t }}">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Almacén</th>
-            <th>Motivo</th>
-            <th>Proyecto</th>
-            <th>Responsable</th>
-            <th>Registrado por</th>
-            <th class="text-right">Artículos</th>
-            <th class="text-center">Foto</th>
-            <th>Entrega</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Almacén' | t }}</th>
+            <th>{{ 'Motivo' | t }}</th>
+            <th>{{ 'Proyecto' | t }}</th>
+            <th>{{ 'Responsable' | t }}</th>
+            <th>{{ 'Registrado por' | t }}</th>
+            <th class="text-right">{{ 'Artículos' | t }}</th>
+            <th class="text-center">{{ 'Foto' | t }}</th>
+            <th>{{ 'Entrega' | t }}</th>
             <th></th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (s of paginated(); track s.id) {
             <tr class="row--link" [appHighlightItem]="s.id" (click)="openDetail(s)" role="button" tabindex="0"
-                (keydown.enter)="openDetail(s)" aria-label="Ver detalle de la salida">
+                (keydown.enter)="openDetail(s)" aria-label="{{ 'Ver detalle de la salida' | t }}">
               <td class="salidas__date">
                 {{ formatFecha(s.fecha) }}
                 @if (s.es_prueba) {
-                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span>
                 }
               </td>
               <td>{{ s.bodega?.nombre ?? '—' }}</td>
@@ -174,9 +174,9 @@
               <td class="text-center">
                 @if (s.foto_path) {
                   <button type="button" class="salidas__foto-thumb" (click)="$event.stopPropagation(); verFoto(s)"
-                    title="Ver foto de la app de campo">
+                    title="{{ 'Ver foto de la app de campo' | t }}">
                     @if (thumb(s); as t) {
-                      <img [src]="t" alt="Foto de evidencia" loading="lazy" />
+                      <img [src]="t" alt="{{ 'Foto de evidencia' | t }}" loading="lazy" />
                     } @else {
                       <app-icon name="camera" [size]="16" />
                     }
@@ -185,9 +185,9 @@
                 <!-- AF10 — firma de quien entrega -->
                 @if (s.firma_path) {
                   <button type="button" class="salidas__foto-thumb" (click)="$event.stopPropagation(); verFirma(s)"
-                    title="Ver firma de quien entrega">
+                    title="{{ 'Ver firma de quien entrega' | t }}">
                     @if (firmaThumb(s); as t) {
-                      <img [src]="t" alt="Firma de quien entrega" loading="lazy" />
+                      <img [src]="t" alt="{{ 'Firma de quien entrega' | t }}" loading="lazy" />
                     } @else {
                       <app-icon name="pen" [size]="16" />
                     }
@@ -210,17 +210,17 @@
                 <!-- CK4 §5 — despachado a obra sin nadie que confirme la entrega -->
                 @if (sinReceptor(s)) {
                   <span class="sgc-badge sgc-badge--warning salidas__sin-receptor"
-                    title="Despachado a la obra sin receptor designado. Asígnalo en el conduce («Entregar a»).">Sin receptor</span>
+                    title="{{ 'Despachado a la obra sin receptor designado. Asígnalo en el conduce («Entregar a»).' | t }}">{{ 'Sin receptor' | t }}</span>
                 }
               </td>
               <td class="salidas__actions">
-                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation()" [routerLink]="['/inventario/salidas', s.id, 'conduce']">Conduce</a>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation()" [routerLink]="['/inventario/salidas', s.id, 'conduce']">{{ 'Conduce' | t }}</a>
                 @if (esAdmin()) {
                   @if (s.es_prueba) {
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); marcarPrueba(s, false)">Quitar prueba</button>
-                    <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="$event.stopPropagation(); eliminarPrueba(s)">Eliminar</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); marcarPrueba(s, false)">{{ 'Quitar prueba' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="$event.stopPropagation(); eliminarPrueba(s)">{{ 'Eliminar' | t }}</button>
                   } @else {
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); marcarPrueba(s, true)">Marcar prueba</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); marcarPrueba(s, true)">{{ 'Marcar prueba' | t }}</button>
                   }
                 }
               </td>
@@ -228,7 +228,7 @@
             @if (s.estado === 'entregado_incompleto' && s.notas_recepcion) {
               <tr>
                 <td colspan="10" class="salidas__incidencia">
-                  <strong>Incidencia:</strong> {{ s.notas_recepcion }}
+                  <strong>{{ 'Incidencia:' | t }}</strong> {{ s.notas_recepcion }}
                 </td>
               </tr>
             }
@@ -250,7 +250,7 @@
             type="button"
             (click)="goToPage(currentPage() - 1)"
             [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
+            aria-label="{{ 'Página anterior' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 18 9 12 15 6"/>
@@ -271,7 +271,7 @@
             type="button"
             (click)="goToPage(currentPage() + 1)"
             [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
+            aria-label="{{ 'Página siguiente' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
@@ -298,7 +298,7 @@
           <path d="M20 6 9 17l-5-5"/>
         </svg>
       </div>
-      <h3 class="exito-hoja__title">Salida registrada con éxito</h3>
+      <h3 class="exito-hoja__title">{{ 'Salida registrada con éxito' | t }}</h3>
       <p class="exito-hoja__sub">
         Se registró la salida de {{ (c.detalle_salidas ?? []).length }} artículo(s) del almacén
         <strong>{{ c.bodega?.nombre ?? '—' }}</strong>.
@@ -308,8 +308,8 @@
         <a class="sgc-btn sgc-btn--secondary" [routerLink]="['/inventario/salidas', c.id, 'conduce']">
           Ver conduce
         </a>
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="registrarOtra()">Registrar otra</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDrawer()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="registrarOtra()">{{ 'Registrar otra' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDrawer()">{{ 'Cerrar' | t }}</button>
       </div>
     </div>
   } @else {
@@ -320,13 +320,13 @@
       <!-- A2: aprobación de requisición — mapea cada renglón al catálogo; el sistema divide -->
       <div class="req-approve-note">
         <p class="req-approve-note__lead">
-          Elige el <strong>almacén</strong> y confirma a qué artículo del catálogo corresponde cada renglón.
+          Elige el <strong>{{ 'almacén' | t }}</strong> y confirma a qué artículo del catálogo corresponde cada renglón.
           El sistema despachará lo que haya en stock (con su conduce) y generará automáticamente una
-          <strong>solicitud de compra</strong> por el faltante y por los renglones sin artículo del catálogo.
+          <strong>{{ 'solicitud de compra' | t }}</strong> por el faltante y por los renglones sin artículo del catálogo.
         </p>
 
         <div class="sgc-field">
-          <label>Renglones de la requisición</label>
+          <label>{{ 'Renglones de la requisición' | t }}</label>
           <app-requisicion-items-mapper
             [solicitud]="solicitudEnAtencion()"
             [articulos]="articulos()"
@@ -342,7 +342,7 @@
     <!-- Almacén + Fecha -->
     <div class="form-row">
       <div class="sgc-field">
-        <label for="bodega_id">Almacén <span class="required">*</span></label>
+        <label for="bodega_id">{{ 'Almacén' | t }} <span class="required">*</span></label>
         <select
           id="bodega_id"
           formControlName="bodega_id"
@@ -354,12 +354,12 @@
           }
         </select>
         @if (f.bodega_id.invalid && f.bodega_id.touched) {
-          <span class="field-error">El almacén es obligatorio.</span>
+          <span class="field-error">{{ 'El almacén es obligatorio.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="fecha">Fecha <span class="required">*</span></label>
+        <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
         <input
           id="fecha"
           type="date"
@@ -368,7 +368,7 @@
           [class.invalid]="f.fecha.invalid && f.fecha.touched"
         />
         @if (f.fecha.invalid && f.fecha.touched) {
-          <span class="field-error">La fecha es obligatoria.</span>
+          <span class="field-error">{{ 'La fecha es obligatoria.' | t }}</span>
         }
       </div>
     </div>
@@ -376,7 +376,7 @@
     @if (!atendiendoRequisicion()) {
       <!-- Motivo -->
       <div class="sgc-field">
-        <label for="motivo">Motivo <span class="required">*</span></label>
+        <label for="motivo">{{ 'Motivo' | t }} <span class="required">*</span></label>
         <select
           id="motivo"
           formControlName="motivo"
@@ -388,14 +388,14 @@
           }
         </select>
         @if (f.motivo.invalid && f.motivo.touched) {
-          <span class="field-error">El motivo es obligatorio.</span>
+          <span class="field-error">{{ 'El motivo es obligatorio.' | t }}</span>
         }
       </div>
 
       <!-- Proyecto (solo si motivo = uso_proyecto) -->
       @if (showProyectoField()) {
         <div class="sgc-field">
-          <label for="proyecto_id">Obra destino</label>
+          <label for="proyecto_id">{{ 'Obra destino' | t }}</label>
           <select id="proyecto_id" formControlName="proyecto_id">
             <option [ngValue]="null">Sin proyecto</option>
             @for (p of activeProyectos(); track p.id) {
@@ -405,9 +405,9 @@
           <!-- AP1 — distinguir "sin acceso" de "no hay obras" (nunca vacío silencioso). -->
           @if (activeProyectos().length === 0) {
             @if (obrasSinAcceso()) {
-              <span class="field-hint field-hint--warn">No tienes acceso al listado de obras. Pídele a un administrador el permiso.</span>
+              <span class="field-hint field-hint--warn">{{ 'No tienes acceso al listado de obras. Pídele a un administrador el permiso.' | t }}</span>
             } @else {
-              <span class="field-hint">No hay obras activas registradas.</span>
+              <span class="field-hint">{{ 'No hay obras activas registradas.' | t }}</span>
             }
           }
         </div>
@@ -415,7 +415,7 @@
         <!-- AT16 — Receptor: quién confirmará la entrega en la obra (firma pendiente) -->
         @if (f.proyecto_id.value) {
           <div class="sgc-field">
-            <label for="receptor_usuario_id">Receptor en la obra (opcional)</label>
+            <label for="receptor_usuario_id">{{ 'Receptor en la obra (opcional)' | t }}</label>
             <select id="receptor_usuario_id" formControlName="receptor_usuario_id">
               <option [ngValue]="null">Sin designar (se confirma en la entrega)</option>
               @for (r of receptores(); track r.id) {
@@ -437,7 +437,7 @@
            usuarios del sistema (firman remoto desde "Conduces por firmar"). -->
       @if (wizardConduceOn()) {
         <div class="sgc-field">
-          <label for="despachante_usuario_id">Despachante (opcional)</label>
+          <label for="despachante_usuario_id">{{ 'Despachante (opcional)' | t }}</label>
           <select id="despachante_usuario_id" formControlName="despachante_usuario_id">
             <option [ngValue]="null">Sin designar (firma en mostrador al despachar)</option>
             @for (d of despachantes(); track d.id) {
@@ -454,7 +454,7 @@
 
         <!-- BJ3 — Chofer + vehículo: al fijar chofer, la ruta del día se crea sola. -->
         <div class="sgc-field">
-          <label for="conductor_id">Chofer (opcional)</label>
+          <label for="conductor_id">{{ 'Chofer (opcional)' | t }}</label>
           <select id="conductor_id" formControlName="conductor_id">
             <option [ngValue]="null">Sin asignar (se entrega en mostrador)</option>
             @for (c of conductores(); track c.id) {
@@ -467,7 +467,7 @@
         </div>
 
         <div class="sgc-field">
-          <label for="vehiculo_id">Vehículo (opcional)</label>
+          <label for="vehiculo_id">{{ 'Vehículo (opcional)' | t }}</label>
           <select id="vehiculo_id" formControlName="vehiculo_id">
             <option [ngValue]="null">Sin asignar</option>
             @for (ve of vehiculos(); track ve.id) {
@@ -480,34 +480,34 @@
       <!-- AL10 — Almacén destino (solo si motivo = traslado_almacen) -->
       @if (showAlmacenDestinoField()) {
         <div class="sgc-field">
-          <label for="destino_almacen_id">Almacén destino <span class="required">*</span></label>
+          <label for="destino_almacen_id">{{ 'Almacén destino' | t }} <span class="required">*</span></label>
           <select id="destino_almacen_id" formControlName="destino_almacen_id">
             <option [ngValue]="null">Seleccionar almacén…</option>
             @for (a of almacenesDestino(); track a.id) {
               <option [value]="a.id">{{ a.nombre }} · Central</option>
             }
           </select>
-          <span class="field-hint">La entrada al almacén se genera al confirmarse la recepción.</span>
+          <span class="field-hint">{{ 'La entrada al almacén se genera al confirmarse la recepción.' | t }}</span>
         </div>
       }
     }
 
     <!-- Responsable — BR2: buscar por usuario (queda enlazado), o texto libre "Otro". -->
     <div class="sgc-field">
-      <label>Responsable</label>
+      <label>{{ 'Responsable' | t }}</label>
       <app-user-picker [value]="responsableId()" [nombreLibre]="form.controls.responsable.value ?? ''"
-        placeholder="Quien retira el material — busca por usuario"
+        placeholder="{{ 'Quien retira el material — busca por usuario' | t }}"
         (selected)="onResponsablePicked($event)" />
     </div>
 
     <!-- Observaciones -->
     <div class="sgc-field">
-      <label for="observaciones">Observaciones</label>
+      <label for="observaciones">{{ 'Observaciones' | t }}</label>
       <textarea
         id="observaciones"
         formControlName="observaciones"
         rows="2"
-        placeholder="Notas adicionales (opcional)…"
+        placeholder="{{ 'Notas adicionales (opcional)…' | t }}"
       ></textarea>
     </div>
 
@@ -518,17 +518,17 @@
           <input type="checkbox" [checked]="crearComoPrueba()" (change)="crearComoPrueba.set($any($event.target).checked)" />
           Registrar como dato de prueba
         </label>
-        <small class="sgc-field__hint">Los movimientos de prueba no afectan el stock real ni los KPIs; se ocultan salvo que actives “ver datos de prueba”.</small>
+        <small class="sgc-field__hint">{{ 'Los movimientos de prueba no afectan el stock real ni los KPIs; se ocultan salvo que actives “ver datos de prueba”.' | t }}</small>
       </div>
     }
 
     <!-- Foto de evidencia (opcional) — paridad con la app de campo -->
     <div class="sgc-field">
-      <label>Foto de evidencia (opcional)</label>
+      <label>{{ 'Foto de evidencia (opcional)' | t }}</label>
       @if (fotoPreview(); as prev) {
         <div class="salidas__foto-preview">
-          <img [src]="prev" alt="Vista previa de la foto" />
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFoto()">Quitar foto</button>
+          <img [src]="prev" alt="{{ 'Vista previa de la foto' | t }}" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFoto()">{{ 'Quitar foto' | t }}</button>
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm salidas__foto-pick">
@@ -542,7 +542,7 @@
       <!-- Items -->
       <div class="sgc-field">
         <div class="items-header">
-          <label>Artículos <span class="required">*</span></label>
+          <label>{{ 'Artículos' | t }} <span class="required">*</span></label>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
             + Agregar artículo
           </button>
@@ -567,7 +567,7 @@
                   class="item-row__unidad"
                   [value]="item.unidad_capturada ? 'paquete' : 'base'"
                   (change)="setItemCaptura($index, $any($event.target).value)"
-                  aria-label="Unidad de captura"
+                  aria-label="{{ 'Unidad de captura' | t }}"
                 >
                   <option value="base">por unidad</option>
                   <option value="paquete">por {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
@@ -587,7 +587,7 @@
               class="item-row__remove"
               (click)="removeItem($index)"
               [disabled]="formItems().length === 1"
-              aria-label="Eliminar artículo"
+              aria-label="{{ 'Eliminar artículo' | t }}"
             >×</button>
           </div>
           @if (item.unidad_capturada && item.factor_aplicado && item.factor_aplicado > 1) {
@@ -599,8 +599,8 @@
                 type="text"
                 [value]="item.talla ?? ''"
                 (input)="updateItemTalla($index, $any($event.target).value)"
-                placeholder="Talla (obligatoria) — ej. S, M, L, XL, 42…"
-                aria-label="Talla"
+                placeholder="{{ 'Talla (obligatoria) — ej. S, M, L, XL, 42…' | t }}"
+                aria-label="{{ 'Talla' | t }}"
               />
             </div>
           }
@@ -614,16 +614,16 @@
 
     @if (step() === 'resumen') {
       <!-- ── Hoja de resumen / review ── -->
-      <p class="resumen-hoja__lead">Revisa lo que vas a retirar. Puedes ajustar cantidades o quitar renglones antes de confirmar.</p>
+      <p class="resumen-hoja__lead">{{ 'Revisa lo que vas a retirar. Puedes ajustar cantidades o quitar renglones antes de confirmar.' | t }}</p>
 
       <dl class="resumen-hoja__meta">
-        <div><dt>Almacén</dt><dd>{{ bodegaNombre() }}</dd></div>
-        <div><dt>Motivo</dt><dd>{{ f.motivo.value ? getMotivoLabel(f.motivo.value) : '—' }}</dd></div>
+        <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ bodegaNombre() }}</dd></div>
+        <div><dt>{{ 'Motivo' | t }}</dt><dd>{{ f.motivo.value ? getMotivoLabel(f.motivo.value) : '—' }}</dd></div>
         @if (f.motivo.value === 'uso_proyecto') {
-          <div><dt>Proyecto</dt><dd>{{ proyectoNombre() }}</dd></div>
+          <div><dt>{{ 'Proyecto' | t }}</dt><dd>{{ proyectoNombre() }}</dd></div>
         }
-        <div><dt>Fecha</dt><dd>{{ formatFecha(f.fecha.value) }}</dd></div>
-        @if (f.responsable.value) { <div><dt>Responsable</dt><dd>{{ f.responsable.value }}</dd></div> }
+        <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(f.fecha.value) }}</dd></div>
+        @if (f.responsable.value) { <div><dt>{{ 'Responsable' | t }}</dt><dd>{{ f.responsable.value }}</dd></div> }
       </dl>
 
       <div class="resumen-hoja__list">
@@ -645,7 +645,7 @@
               type="button"
               class="item-row__remove"
               (click)="removeItem(r.index)"
-              aria-label="Quitar artículo"
+              aria-label="{{ 'Quitar artículo' | t }}"
             >×</button>
           </div>
         }
@@ -654,22 +654,22 @@
       <!-- AU4 — material no catalogado (item libre) -->
       <div class="resumen-hoja__libres">
         <div class="resumen-hoja__libres-head">
-          <span>¿Un material no está en la lista?</span>
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItemLibre()">+ Agregar libre</button>
+          <span>{{ '¿Un material no está en la lista?' | t }}</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItemLibre()">{{ '+ Agregar libre' | t }}</button>
         </div>
         @for (il of formItemsLibres(); track $index) {
           <div class="libre-row">
-            <input type="text" placeholder="Nombre del material"
+            <input type="text" placeholder="{{ 'Nombre del material' | t }}"
               [value]="il.nombre" (input)="updateItemLibre($index, 'nombre', $any($event.target).value)" />
-            <input type="number" min="0" step="any" placeholder="Cant."
+            <input type="number" min="0" step="any" placeholder="{{ 'Cant.' | t }}"
               [value]="il.cantidad" (input)="updateItemLibre($index, 'cantidad', $any($event.target).value)" />
-            <input type="text" placeholder="Unidad"
+            <input type="text" placeholder="{{ 'Unidad' | t }}"
               [value]="il.unidad" (input)="updateItemLibre($index, 'unidad', $any($event.target).value)" />
-            <button type="button" class="item-row__remove" (click)="removeItemLibre($index)" aria-label="Quitar">×</button>
+            <button type="button" class="item-row__remove" (click)="removeItemLibre($index)" aria-label="{{ 'Quitar' | t }}">×</button>
           </div>
         }
         @if (formItemsLibres().length) {
-          <p class="libre-note">No afecta el stock. Le llegará al admin una alerta para catalogarlo.</p>
+          <p class="libre-note">{{ 'No afecta el stock. Le llegará al admin una alerta para catalogarlo.' | t }}</p>
         }
       </div>
     }
@@ -718,59 +718,59 @@
 </app-form-drawer>
 
 <!-- ── AG5 — Detalle read-only de la salida ── -->
-<app-form-drawer title="Detalle de la salida" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle de la salida' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailSalida(); as s) {
     <div class="salida-detalle">
       <dl class="salida-detalle__meta">
         <div><dt>Conduce</dt><dd><code class="code-tag">{{ conduceNumero(s.id) }}</code></dd></div>
-        <div><dt>Fecha</dt><dd>{{ formatFecha(s.fecha) }}</dd></div>
-        <div><dt>Almacén</dt><dd>{{ s.bodega?.nombre ?? '—' }}</dd></div>
-        <div><dt>Motivo</dt><dd>{{ getMotivoLabel(s.motivo) }}</dd></div>
-        @if (s.proyecto?.nombre) { <div><dt>Proyecto</dt><dd>{{ s.proyecto?.nombre }}</dd></div> }
-        <div><dt>Responsable</dt><dd>{{ s.responsable || '—' }}</dd></div>
-        @if (s.conductor?.nombre) { <div><dt>Conductor</dt><dd>{{ s.conductor?.nombre }}</dd></div> }
-        @if (s.vehiculo?.placa) { <div><dt>Vehículo</dt><dd>{{ idVehiculo(s.vehiculo) }}</dd></div> }
-        <div><dt>Estado</dt><dd>{{ ESTADO_LABELS[s.estado] }}</dd></div>
-        @if (s.recibido?.nombre) { <div><dt>Recibido por</dt><dd>{{ s.recibido?.nombre }}</dd></div> }
-        <div><dt>Registrado por</dt><dd>{{ nombreRegistrador(s) }}</dd></div>
+        <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(s.fecha) }}</dd></div>
+        <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ s.bodega?.nombre ?? '—' }}</dd></div>
+        <div><dt>{{ 'Motivo' | t }}</dt><dd>{{ getMotivoLabel(s.motivo) }}</dd></div>
+        @if (s.proyecto?.nombre) { <div><dt>{{ 'Proyecto' | t }}</dt><dd>{{ s.proyecto?.nombre }}</dd></div> }
+        <div><dt>{{ 'Responsable' | t }}</dt><dd>{{ s.responsable || '—' }}</dd></div>
+        @if (s.conductor?.nombre) { <div><dt>{{ 'Conductor' | t }}</dt><dd>{{ s.conductor?.nombre }}</dd></div> }
+        @if (s.vehiculo?.placa) { <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ idVehiculo(s.vehiculo) }}</dd></div> }
+        <div><dt>{{ 'Estado' | t }}</dt><dd>{{ ESTADO_LABELS[s.estado] }}</dd></div>
+        @if (s.recibido?.nombre) { <div><dt>{{ 'Recibido por' | t }}</dt><dd>{{ s.recibido?.nombre }}</dd></div> }
+        <div><dt>{{ 'Registrado por' | t }}</dt><dd>{{ nombreRegistrador(s) }}</dd></div>
       </dl>
 
-      @if (s.observaciones) { <p class="salida-detalle__obs"><strong>Observaciones:</strong> {{ s.observaciones }}</p> }
+      @if (s.observaciones) { <p class="salida-detalle__obs"><strong>{{ 'Observaciones:' | t }}</strong> {{ s.observaciones }}</p> }
       @if (s.estado === 'entregado_incompleto' && s.notas_recepcion) {
-        <p class="salida-detalle__obs"><strong>Incidencia de recepción:</strong> {{ s.notas_recepcion }}</p>
+        <p class="salida-detalle__obs"><strong>{{ 'Incidencia de recepción:' | t }}</strong> {{ s.notas_recepcion }}</p>
       }
 
       <!-- Evidencia (despacho + entrega) con lightbox -->
       <div class="salida-detalle__evidencias">
         @if (s.foto_path) {
           <div class="salida-detalle__evidencia">
-            <span class="salida-detalle__evidencia-label">Foto de despacho</span>
-            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFoto(s)" title="Ver en grande">
-              @if (detailFotoThumb(); as t) { <img [src]="t" alt="Foto de despacho" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
+            <span class="salida-detalle__evidencia-label">{{ 'Foto de despacho' | t }}</span>
+            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFoto(s)" title="{{ 'Ver en grande' | t }}">
+              @if (detailFotoThumb(); as t) { <img [src]="t" alt="{{ 'Foto de despacho' | t }}" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
             </button>
           </div>
         }
         @if (s.firma_path) {
           <div class="salida-detalle__evidencia">
-            <span class="salida-detalle__evidencia-label">Firma de quien entrega</span>
-            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFirma(s)" title="Ver firma">
-              @if (detailFirmaThumb(); as t) { <img [src]="t" alt="Firma de quien entrega" loading="lazy" /> } @else { <app-icon name="pen" [size]="20" /> }
+            <span class="salida-detalle__evidencia-label">{{ 'Firma de quien entrega' | t }}</span>
+            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFirma(s)" title="{{ 'Ver firma' | t }}">
+              @if (detailFirmaThumb(); as t) { <img [src]="t" alt="{{ 'Firma de quien entrega' | t }}" loading="lazy" /> } @else { <app-icon name="pen" [size]="20" /> }
             </button>
           </div>
         }
         @if (s.entrega_foto_path) {
           <div class="salida-detalle__evidencia">
             <span class="salida-detalle__evidencia-label">Foto de entrega{{ s.entrega_receptor ? ' — ' + s.entrega_receptor : '' }}</span>
-            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_foto_path!)" title="Ver en grande">
-              @if (detailEntregaFotoThumb(); as t) { <img [src]="t" alt="Foto de entrega" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
+            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_foto_path!)" title="{{ 'Ver en grande' | t }}">
+              @if (detailEntregaFotoThumb(); as t) { <img [src]="t" alt="{{ 'Foto de entrega' | t }}" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
             </button>
           </div>
         }
         @if (s.entrega_firma_path) {
           <div class="salida-detalle__evidencia">
-            <span class="salida-detalle__evidencia-label">Firma de quien recibe</span>
-            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_firma_path!)" title="Ver firma">
-              @if (detailEntregaFirmaThumb(); as t) { <img [src]="t" alt="Firma de quien recibe" loading="lazy" /> } @else { <app-icon name="pen" [size]="20" /> }
+            <span class="salida-detalle__evidencia-label">{{ 'Firma de quien recibe' | t }}</span>
+            <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_firma_path!)" title="{{ 'Ver firma' | t }}">
+              @if (detailEntregaFirmaThumb(); as t) { <img [src]="t" alt="{{ 'Firma de quien recibe' | t }}" loading="lazy" /> } @else { <app-icon name="pen" [size]="20" /> }
             </button>
           </div>
         }
@@ -778,7 +778,7 @@
 
       <h4 class="salida-detalle__title">Artículos ({{ (s.detalle_salidas ?? []).length }})</h4>
       <table class="data-table">
-        <thead><tr><th>Artículo</th><th class="text-right">Cantidad</th><th class="text-right">Recibida</th></tr></thead>
+        <thead><tr><th>{{ 'Artículo' | t }}</th><th class="text-right">{{ 'Cantidad' | t }}</th><th class="text-right">{{ 'Recibida' | t }}</th></tr></thead>
         <tbody>
           @for (d of s.detalle_salidas ?? []; track d.id) {
             <tr>
@@ -797,7 +797,7 @@
       </table>
 
       <div class="salida-detalle__foot">
-        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', s.id, 'conduce']">Ver conduce →</a>
+        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', s.id, 'conduce']">{{ 'Ver conduce →' | t }}</a>
       </div>
     </div>
   }
@@ -805,5 +805,5 @@
 
 <!-- W11 — lightbox de foto de evidencia (in-page, nunca nueva pestaña) -->
 @if (fotoLightbox(); as foto) {
-  <app-lightbox [src]="foto" alt="Foto de evidencia de la salida" (closed)="fotoLightbox.set(null)" />
+  <app-lightbox [src]="foto" alt="{{ 'Foto de evidencia de la salida' | t }}" (closed)="fotoLightbox.set(null)" />
 }

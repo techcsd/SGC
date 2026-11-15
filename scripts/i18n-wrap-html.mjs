@@ -99,6 +99,15 @@ for (const file of files) {
       saltadosArchivo++;
       continue;
     }
+    // Un binding `[attr]="...<..."` o `[attr]="...>..."` (comparaciones TS,
+    // p. ej. `[class.cn-up]="a > b"`) tiene un '<'/'>' DENTRO de un atributo,
+    // no delimitando una etiqueta — el regex de nodos de texto de abajo no
+    // distingue eso de un cierre/apertura real y corrompe la línea (visto en
+    // conteos.html: partió un atributo a la mitad). Se salta toda la línea.
+    if (/\]="[^"]*[<>][^"]*"/.test(line)) {
+      saltadosArchivo++;
+      continue;
+    }
 
     // 1) Atributos visibles con literal plano (sin `{{` en el valor).
     for (const attr of ATTRS_VISIBLES) {

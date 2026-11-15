@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Activos Fijos</h1>
+    <h1 class="page-title">{{ 'Activos Fijos' | t }}</h1>
     <span class="page-count">{{ filtered().length }} activo{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -14,8 +14,8 @@
 
 <!-- R8 — propósito del módulo -->
 <p class="page-lead">
-  Registro de los <strong>activos de la empresa</strong> —mobiliario, equipos y herramientas mayores— con su
-  valor, depreciación y ubicación. Es distinto del <strong>stock de materiales</strong> (que se consume en obra):
+  Registro de los <strong>{{ 'activos de la empresa' | t }}</strong> —mobiliario, equipos y herramientas mayores— con su
+  valor, depreciación y ubicación. Es distinto del <strong>{{ 'stock de materiales' | t }}</strong> (que se consume en obra):
   aquí van los bienes duraderos. Toca un activo para ver su ficha completa.
 </p>
 
@@ -24,10 +24,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre o código…"
+      placeholder="{{ 'Buscar por nombre o código…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar activos fijos"
+      aria-label="{{ 'Buscar activos fijos' | t }}"
     />
   </div>
 
@@ -35,7 +35,7 @@
     <select
       [value]="selectedCategory() ?? ''"
       (change)="onCategoryChange($any($event.target).value)"
-      aria-label="Filtrar por categoría"
+      aria-label="{{ 'Filtrar por categoría' | t }}"
     >
       <option value="">Todas las categorías</option>
       @for (cat of categories(); track cat.id) {
@@ -48,7 +48,7 @@
     <select
       [value]="selectedEstado()"
       (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
       <option value="all">Todos los estados</option>
       @for (e of ACTIVO_ESTADOS; track e.value) {
@@ -101,18 +101,18 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de activos fijos">
+      <table class="data-table" aria-label="{{ 'Lista de activos fijos' | t }}">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Estado</th>
-            <th class="text-right">Valor adq.</th>
-            <th>Fecha adq.</th>
-            <th class="text-right">Dep. anual</th>
-            <th>Ubicación</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Código' | t }}</th>
+            <th>{{ 'Nombre' | t }}</th>
+            <th>{{ 'Categoría' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-right">{{ 'Valor adq.' | t }}</th>
+            <th>{{ 'Fecha adq.' | t }}</th>
+            <th class="text-right">{{ 'Dep. anual' | t }}</th>
+            <th>{{ 'Ubicación' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -126,7 +126,7 @@
               <td>
                 <span class="activos__item-name">{{ activo.nombre }}</span>
                 @if (activo.es_prueba) {
-                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span>
                 }
                 @if (activo.descripcion) {
                   <span class="activos__item-desc">{{ activo.descripcion }}</span>
@@ -136,13 +136,13 @@
               <td>
                 @switch (activo.estado) {
                   @case ('activo') {
-                    <span class="sgc-badge sgc-badge--success">Activo</span>
+                    <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span>
                   }
                   @case ('mantenimiento') {
-                    <span class="sgc-badge sgc-badge--warning">Mantenimiento</span>
+                    <span class="sgc-badge sgc-badge--warning">{{ 'Mantenimiento' | t }}</span>
                   }
                   @case ('baja') {
-                    <span class="sgc-badge sgc-badge--neutral">Dado de baja</span>
+                    <span class="sgc-badge sgc-badge--neutral">{{ 'Dado de baja' | t }}</span>
                   }
                 }
               </td>
@@ -165,7 +165,7 @@
                     class="action-btn action-btn--edit"
                     (click)="openEdit(activo)"
                     [attr.aria-label]="'Editar ' + activo.nombre"
-                    title="Editar"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -192,7 +192,7 @@
                     }
                   </button>
                   @if (esAdmin() && activo.es_prueba) {
-                    <button class="activos__delete-prueba" type="button" (click)="eliminarPrueba(activo)" title="Eliminar dato de prueba" [attr.aria-label]="'Eliminar dato de prueba ' + activo.nombre">
+                    <button class="activos__delete-prueba" type="button" (click)="eliminarPrueba(activo)" title="{{ 'Eliminar dato de prueba' | t }}" [attr.aria-label]="'Eliminar dato de prueba ' + activo.nombre">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -220,7 +220,7 @@
             type="button"
             (click)="goToPage(currentPage() - 1)"
             [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
+            aria-label="{{ 'Página anterior' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 18 9 12 15 6"/>
@@ -241,7 +241,7 @@
             type="button"
             (click)="goToPage(currentPage() + 1)"
             [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
+            aria-label="{{ 'Página siguiente' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
@@ -263,18 +263,18 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="codigo">Código</label>
+        <label for="codigo">{{ 'Código' | t }}</label>
         <input
           id="codigo"
           type="text"
           formControlName="codigo"
-          placeholder="Se genera automáticamente"
+          placeholder="{{ 'Se genera automáticamente' | t }}"
           readonly
         />
       </div>
 
       <div class="sgc-field">
-        <label for="estado">Estado <span class="required">*</span></label>
+        <label for="estado">{{ 'Estado' | t }} <span class="required">*</span></label>
         <select
           id="estado"
           formControlName="estado"
@@ -288,31 +288,31 @@
     </div>
 
     <div class="sgc-field">
-      <label for="nombre">Nombre <span class="required">*</span></label>
+      <label for="nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
       <input
         id="nombre"
         type="text"
         formControlName="nombre"
-        placeholder="Nombre del activo fijo"
+        placeholder="{{ 'Nombre del activo fijo' | t }}"
         [class.invalid]="f.nombre.invalid && f.nombre.touched"
       />
       @if (f.nombre.invalid && f.nombre.touched) {
-        <span class="field-error">El nombre es obligatorio.</span>
+        <span class="field-error">{{ 'El nombre es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="descripcion">Descripción</label>
+      <label for="descripcion">{{ 'Descripción' | t }}</label>
       <textarea
         id="descripcion"
         formControlName="descripcion"
         rows="3"
-        placeholder="Descripción opcional del activo…"
+        placeholder="{{ 'Descripción opcional del activo…' | t }}"
       ></textarea>
     </div>
 
     <div class="sgc-field">
-      <label for="categoria_id">Categoría</label>
+      <label for="categoria_id">{{ 'Categoría' | t }}</label>
       <select id="categoria_id" formControlName="categoria_id">
         <option [ngValue]="null">Sin categoría</option>
         @for (cat of categories(); track cat.id) {
@@ -323,7 +323,7 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="valor_adquisicion">Valor de adquisición (DOP) <span class="required">*</span></label>
+        <label for="valor_adquisicion">{{ 'Valor de adquisición (DOP)' | t }} <span class="required">*</span></label>
         <input
           id="valor_adquisicion"
           type="number"
@@ -334,12 +334,12 @@
           [class.invalid]="f.valor_adquisicion.invalid && f.valor_adquisicion.touched"
         />
         @if (f.valor_adquisicion.invalid && f.valor_adquisicion.touched) {
-          <span class="field-error">El valor es obligatorio y debe ser mayor a 0.</span>
+          <span class="field-error">{{ 'El valor es obligatorio y debe ser mayor a 0.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="fecha_adquisicion">Fecha de adquisición <span class="required">*</span></label>
+        <label for="fecha_adquisicion">{{ 'Fecha de adquisición' | t }} <span class="required">*</span></label>
         <input
           id="fecha_adquisicion"
           type="date"
@@ -348,31 +348,31 @@
           [class.invalid]="f.fecha_adquisicion.invalid && f.fecha_adquisicion.touched"
         />
         @if (f.fecha_adquisicion.invalid && f.fecha_adquisicion.touched) {
-          <span class="field-error">La fecha es obligatoria.</span>
+          <span class="field-error">{{ 'La fecha es obligatoria.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="vida_util_anios">Vida útil (años)</label>
+        <label for="vida_util_anios">{{ 'Vida útil (años)' | t }}</label>
         <input
           id="vida_util_anios"
           type="number"
           formControlName="vida_util_anios"
           min="1"
           step="1"
-          placeholder="Ej: 10"
+          placeholder="{{ 'Ej: 10' | t }}"
         />
       </div>
 
       <div class="sgc-field">
-        <label for="ubicacion">Ubicación</label>
+        <label for="ubicacion">{{ 'Ubicación' | t }}</label>
         <input
           id="ubicacion"
           type="text"
           formControlName="ubicacion"
-          placeholder="Ej: Almacén principal"
+          placeholder="{{ 'Ej: Almacén principal' | t }}"
         />
       </div>
     </div>
@@ -380,7 +380,7 @@
     <!-- Y8 — Relación del activo a obra / empleado / ingeniero / almacén / vehículo -->
     <div class="form-row form-row--2">
       <div class="sgc-field">
-        <label for="asignado_tipo">Relacionado con</label>
+        <label for="asignado_tipo">{{ 'Relacionado con' | t }}</label>
         <select
           id="asignado_tipo"
           [value]="asignadoTipoSel() ?? ''"
@@ -395,7 +395,7 @@
 
       @if (asignadoTipoSel()) {
         <div class="sgc-field">
-          <label for="asignado_id">¿Cuál?</label>
+          <label for="asignado_id">{{ '¿Cuál?' | t }}</label>
           <select id="asignado_id" formControlName="asignado_id">
             <option [ngValue]="null">Seleccionar…</option>
             @for (o of asignadoOpciones(); track o.id) {
@@ -407,12 +407,12 @@
     </div>
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
+      <label for="notas">{{ 'Notas' | t }}</label>
       <textarea
         id="notas"
         formControlName="notas"
         rows="3"
-        placeholder="Notas adicionales…"
+        placeholder="{{ 'Notas adicionales…' | t }}"
       ></textarea>
     </div>
 
@@ -436,7 +436,7 @@
           <span class="toggle-switch" aria-hidden="true"></span>
           Dato de prueba
         </label>
-        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+        <small class="sgc-field__hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
       </div>
     }
 
@@ -467,7 +467,7 @@
 </app-form-drawer>
 
 <!-- ── R8 — Ficha read-only del activo ── -->
-<app-form-drawer title="Ficha del activo" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Ficha del activo' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailActivo(); as a) {
     <div class="activo-detalle">
       <div class="activo-detalle__head">
@@ -478,23 +478,23 @@
       @if (a.descripcion) { <p class="activo-detalle__desc">{{ a.descripcion }}</p> }
 
       <dl class="activo-detalle__meta">
-        <div><dt>Categoría</dt><dd>{{ a.categoria?.nombre ?? getCategoryName(a.categoria_id) }}</dd></div>
-        <div><dt>Ubicación</dt><dd>{{ a.ubicacion ?? '—' }}</dd></div>
-        <div><dt>Responsable</dt><dd>{{ a.responsable?.nombre ?? '—' }}</dd></div>
-        <div><dt>Relacionado con</dt><dd>{{ asignadoLabel(a) ?? '—' }}</dd></div>
-        <div><dt>Fecha de adquisición</dt><dd>{{ formatFecha(a.fecha_adquisicion) }}</dd></div>
-        <div><dt>Valor de adquisición</dt><dd>RD$ {{ a.valor_adquisicion | number:'1.2-2' }}</dd></div>
-        <div><dt>Vida útil</dt><dd>{{ a.vida_util_anios ? a.vida_util_anios + ' años' : '—' }}</dd></div>
-        <div><dt>Depreciación acumulada</dt><dd>{{ a.vida_util_anios ? ('RD$ ' + (depreciacionAcumulada(a) | number:'1.2-2')) : '— (sin vida útil)' }}</dd></div>
-        <div><dt>Valor actual estimado</dt><dd><strong>RD$ {{ valorActual(a) | number:'1.2-2' }}</strong></dd></div>
+        <div><dt>{{ 'Categoría' | t }}</dt><dd>{{ a.categoria?.nombre ?? getCategoryName(a.categoria_id) }}</dd></div>
+        <div><dt>{{ 'Ubicación' | t }}</dt><dd>{{ a.ubicacion ?? '—' }}</dd></div>
+        <div><dt>{{ 'Responsable' | t }}</dt><dd>{{ a.responsable?.nombre ?? '—' }}</dd></div>
+        <div><dt>{{ 'Relacionado con' | t }}</dt><dd>{{ asignadoLabel(a) ?? '—' }}</dd></div>
+        <div><dt>{{ 'Fecha de adquisición' | t }}</dt><dd>{{ formatFecha(a.fecha_adquisicion) }}</dd></div>
+        <div><dt>{{ 'Valor de adquisición' | t }}</dt><dd>RD$ {{ a.valor_adquisicion | number:'1.2-2' }}</dd></div>
+        <div><dt>{{ 'Vida útil' | t }}</dt><dd>{{ a.vida_util_anios ? a.vida_util_anios + ' años' : '—' }}</dd></div>
+        <div><dt>{{ 'Depreciación acumulada' | t }}</dt><dd>{{ a.vida_util_anios ? ('RD$ ' + (depreciacionAcumulada(a) | number:'1.2-2')) : '— (sin vida útil)' }}</dd></div>
+        <div><dt>{{ 'Valor actual estimado' | t }}</dt><dd><strong>RD$ {{ valorActual(a) | number:'1.2-2' }}</strong></dd></div>
       </dl>
 
       @if (a.notas) {
-        <h4 class="activo-detalle__title">Notas</h4>
+        <h4 class="activo-detalle__title">{{ 'Notas' | t }}</h4>
         <p class="activo-detalle__notas">{{ a.notas }}</p>
       }
 
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(a)">Editar activo</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(a)">{{ 'Editar activo' | t }}</button>
     </div>
   }
 </app-form-drawer>

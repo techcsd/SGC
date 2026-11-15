@@ -16,6 +16,7 @@ import { Articulo } from '../../../../shared/models/articulo.model';
 import { StockPorBodega } from '../../../../shared/models/stock.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface EntradaRow {
   id: string;
@@ -75,7 +76,7 @@ interface TopArticulo {
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, DatePipe, CurrencyPipe, Skeleton],
+  imports: [DecimalPipe, DatePipe, CurrencyPipe, Skeleton, TranslatePipe],
 })
 export class Reportes implements OnInit {
   private articulosService = inject(ArticulosService);

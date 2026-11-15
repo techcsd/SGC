@@ -15,6 +15,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 type Tab = 'activos' | 'pendientes_entrega' | 'por_confirmar' | 'historico';
 
@@ -46,7 +47,7 @@ const FASE_LABELS: Record<string, string> = {
 // obra/chofer/fecha y badges de conteo. Cada fila abre el detalle + PDF (AL4).
 @Component({
   selector: 'app-conduces',
-  imports: [RouterLink, Skeleton, Icon, StaggerDirective],
+  imports: [RouterLink, Skeleton, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './conduces.html',
   styleUrl: './conduces.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

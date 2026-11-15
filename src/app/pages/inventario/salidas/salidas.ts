@@ -46,6 +46,7 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 // CX3.2 — snapshot de filtros/página recordado mientras la persona siga en
 // Inventario (ver ListaEstadoService).
@@ -61,7 +62,7 @@ interface EstadoSalidas {
 
 @Component({
   selector: 'app-salidas',
-  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon, UserPicker, StaggerDirective],
+  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon, UserPicker, StaggerDirective, TranslatePipe],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

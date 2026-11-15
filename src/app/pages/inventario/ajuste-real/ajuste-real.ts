@@ -8,6 +8,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface FilaAjuste {
   articulo_id: string | null;
@@ -25,7 +26,7 @@ function norm(s: unknown): string {
 
 @Component({
   selector: 'app-ajuste-real',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TranslatePipe],
   templateUrl: './ajuste-real.html',
   styleUrl: './ajuste-real.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

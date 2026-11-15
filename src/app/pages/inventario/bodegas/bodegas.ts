@@ -23,10 +23,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-bodegas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton, FilterSelect],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton, FilterSelect, TranslatePipe],
   templateUrl: './bodegas.html',
   styleUrl: './bodegas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

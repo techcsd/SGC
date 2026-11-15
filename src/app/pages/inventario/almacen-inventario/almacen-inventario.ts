@@ -17,6 +17,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AU1 · P1 — los tres mecanismos que fijan/mueven stock, unificados en un solo modal. */
 type AjusteMecanismo = 'conteo' | 'apertura' | 'ajuste_real';
@@ -29,7 +30,7 @@ type AjusteMecanismo = 'conteo' | 'apertura' | 'ajuste_real';
  */
 @Component({
   selector: 'app-almacen-inventario',
-  imports: [DecimalPipe, RouterLink, KardexModal, FormDrawer, ArticuloPicker, ExportExcel],
+  imports: [DecimalPipe, RouterLink, KardexModal, FormDrawer, ArticuloPicker, ExportExcel, TranslatePipe],
   templateUrl: './almacen-inventario.html',
   styleUrl: './almacen-inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

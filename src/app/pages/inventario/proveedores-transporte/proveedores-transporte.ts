@@ -5,6 +5,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * BA / Transporte v3 — catálogo de proveedores de transporte + bandeja de
@@ -12,7 +13,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
  */
 @Component({
   selector: 'app-proveedores-transporte',
-  imports: [DatePipe, Skeleton, StaggerDirective],
+  imports: [DatePipe, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './proveedores-transporte.html',
   styleUrl: './proveedores-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

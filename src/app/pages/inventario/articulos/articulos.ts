@@ -35,10 +35,11 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-articulos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink, Icon, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

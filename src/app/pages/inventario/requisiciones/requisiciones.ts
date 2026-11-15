@@ -24,6 +24,7 @@ import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { OrdenTh } from '../../../../shared/ui/orden-th/orden-th';
 import { OrdenColumna, compararConNulosAlFinal, leerOrdenGuardado, guardarOrden } from '../../../../shared/utils/orden-columnas.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** CS1 — columnas ordenables de la bandeja de requisiciones. */
 export type ClaveOrdenReq = 'fecha' | 'necesidad' | 'folio' | 'obra' | 'estado';
@@ -80,7 +81,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective, OrdenTh],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective, OrdenTh, TranslatePipe],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

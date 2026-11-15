@@ -10,6 +10,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AT7 — opción de almacén para el selector de apertura (id + nombre + marcadores). */
 interface AlmacenOpcion {
@@ -27,7 +28,7 @@ interface AlmacenOpcion {
  */
 @Component({
   selector: 'app-apertura-inventario',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DecimalPipe, RouterLink, TranslatePipe],
   templateUrl: './apertura.html',
   styleUrl: './apertura.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

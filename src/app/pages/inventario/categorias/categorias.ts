@@ -14,10 +14,11 @@ import { Categoria, CategoriaFormData } from '../../../../shared/models/categori
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-inventario-categorias',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './categorias.html',
   styleUrl: './categorias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

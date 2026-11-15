@@ -12,6 +12,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaMedia, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * AU1 — Bandeja "Conduces por firmar" del despachante (web, paridad con la app).
@@ -21,7 +22,7 @@ import { formatFechaMedia, formatHoraTimestamp } from '../../../../shared/utils/
  */
 @Component({
   selector: 'app-conduces-por-firmar',
-  imports: [RouterLink, UpperCasePipe, SignaturePad, Skeleton],
+  imports: [RouterLink, UpperCasePipe, SignaturePad, Skeleton, TranslatePipe],
   templateUrl: './por-firmar.html',
   styleUrl: './por-firmar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
