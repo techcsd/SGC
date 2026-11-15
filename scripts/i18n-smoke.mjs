@@ -21,11 +21,17 @@ const BASE = process.env.SGC_QA_BASE || 'http://localhost:4200';
 const AUTH_STATE = join(ROOT, 'qa', 'visual', '.auth.json');
 
 const ALCANCE = JSON.parse(readFileSync(join(ROOT, 'src', 'app', 'core', 'i18n', 'alcance.json'), 'utf8'));
+// Mapa pantalla → ruta real a visitar (algunas pantallas medidas por el
+// escáner viven EMBEBIDAS dentro de otra ruta, no tienen URL propia).
+const RUTA_REAL = {
+  'configuracion/claude': 'claude', // embebida en Claude › Inicio
+  'admin/claude': 'claude', // embebida en Claude › Auditoría › Conexiones
+  'ajustes-notificaciones': 'configuracion#notificaciones', // embebida en Configuración
+};
 const RUTAS_ENFORCE = Object.entries(ALCANCE.pantallas ?? {})
   .filter(([, v]) => v?.enforce)
-  .map(([pant]) => pant)
-  .filter((p) => p !== 'claude' || true); // 'claude' es la ruta real; configuracion/claude y admin/claude viven embebidas ahí.
-const RUTAS = [...new Set(RUTAS_ENFORCE.map((p) => (p.startsWith('configuracion/') || p.startsWith('admin/claude') ? 'claude' : p)))];
+  .map(([pant]) => pant);
+const RUTAS = [...new Set(RUTAS_ENFORCE.map((p) => RUTA_REAL[p] ?? p))];
 
 async function dismissOverlays(page) {
   for (const texto of ['Acepto', 'Entendido']) {
@@ -79,6 +85,12 @@ async function ensureAuth(browser) {
   const NOMBRE_NATIVO = { en: 'English', ht: 'Kreyòl ayisyen' };
   async function cambiarIdiomaPorUi(idioma) {
     await page.goto(`${BASE}/configuracion#idioma`, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
+    // `/configuracion` lee el fragmento SOLO en ngOnInit — si la navegación
+    // previa terminó en la MISMA ruta (p. ej. /perfil redirige a
+    // /configuracion#cuenta), un cambio de fragmento a secas no re-dispara
+    // ngOnInit y la sección "idioma" nunca se muestra. Forzar un reload
+    // real garantiza que siempre se lea el fragmento actual.
+    await page.reload({ waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
     await dismissOverlays(page);
     await page.getByRole('button', { name: new RegExp(NOMBRE_NATIVO[idioma]) }).first().click({ timeout: 10000 });
     await page.waitForTimeout(800); // setIdioma() es async (RPC + catálogo)

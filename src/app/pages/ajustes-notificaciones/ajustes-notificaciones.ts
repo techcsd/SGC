@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 import { NotificacionesCentroService } from '../../../shared/services/notificaciones-centro.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 /** BK1 — fallback si el catálogo (tabla notif_tipo) no responde. Antes esta lista
  *  estaba hardcodeada y ya divergía del backend; ahora es solo red de seguridad. */
@@ -25,7 +27,7 @@ const CATEGORIAS_FALLBACK: { tipo: string; label: string; desc: string }[] = [
  */
 @Component({
   selector: 'app-ajustes-notificaciones',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './ajustes-notificaciones.html',
   styleUrl: './ajustes-notificaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,7 @@ const CATEGORIAS_FALLBACK: { tipo: string; label: string; desc: string }[] = [
 export class AjustesNotificaciones implements OnInit {
   private centro = inject(NotificacionesCentroService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   categorias = signal<{ tipo: string; label: string; desc: string }[]>(CATEGORIAS_FALLBACK);
   /** BT6 — alarmas operativas: switch si el usuario puede silenciarlas, "Siempre activa" si no. */
@@ -74,24 +77,24 @@ export class AjustesNotificaciones implements OnInit {
     try {
       const { dispositivos } = await this.centro.probarNotificacion();
       if (dispositivos === 0) {
-        this.resultadoPrueba.set('No tienes dispositivos con la app instalada. Entra a la app con tu cuenta y vuelve a probar.');
+        this.resultadoPrueba.set(this.i18n.t('No tienes dispositivos con la app instalada. Entra a la app con tu cuenta y vuelve a probar.'));
         return;
       }
-      this.toast.success('Enviada', 'Si no sonó ni apareció, revisa los permisos y el sonido de la app.');
+      this.toast.success(this.i18n.t('Enviada'), this.i18n.t('Si no sonó ni apareció, revisa los permisos y el sonido de la app.'));
       // El envío es asíncrono: esperamos un momento y leemos el resultado real.
       await new Promise((r) => setTimeout(r, 2500));
       const [ultima] = await this.centro.misEntregas(3);
       if (ultima) {
         this.resultadoPrueba.set(
           ultima.estado === 'enviada'
-            ? 'Entregada al teléfono. Si no la viste, activa el sonido/los permisos de la app.'
-            : `No se entregó (${ultima.motivo ?? 'motivo desconocido'}).`,
+            ? this.i18n.t('Entregada al teléfono. Si no la viste, activa el sonido/los permisos de la app.')
+            : this.i18n.t('No se entregó ({motivo}).', { motivo: ultima.motivo ?? this.i18n.t('motivo desconocido') }),
         );
       } else {
-        this.resultadoPrueba.set(`Enviada a ${dispositivos} dispositivo(s). Revisa tu teléfono.`);
+        this.resultadoPrueba.set(this.i18n.t('Enviada a {n} dispositivo(s). Revisa tu teléfono.', { n: dispositivos }));
       }
     } catch (e) {
-      this.toast.error('No se pudo probar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo probar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.probando.set(false);
     }
@@ -109,7 +112,7 @@ export class AjustesNotificaciones implements OnInit {
       await this.centro.setNotifPref(tipo, silenciar);
     } catch (e) {
       this.operativas.update((list) => list.map((o) => (o.tipo === tipo ? { ...o, activa: silenciar } : o)));
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(null);
     }
@@ -141,7 +144,7 @@ export class AjustesNotificaciones implements OnInit {
         else next.add(tipo);
         return next;
       });
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(null);
     }

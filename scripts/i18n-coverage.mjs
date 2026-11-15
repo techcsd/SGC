@@ -133,19 +133,56 @@ function extraerLiterales(htmlOriginal) {
 const TS_LLAMADA_LITERAL_RE = /\b(?:this\.)?(?:toast|snackbar)\.(?:error|success|warning|info|errorFrom)\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
 const TS_LLAMADA_T_RE = /\b(?:this\.)?(?:toast|snackbar)\.(?:error|success|warning|info|errorFrom)\(\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
 const TS_CONFIRM_RE = /\b(?:window\.)?(?:confirm|alert)\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
-const TS_PROP_LITERAL_RE = /\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
-const TS_PROP_T_RE = /\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+// (?<!\.) — evita confundir un acceso a propiedad (`x.mensaje : y` dentro de un
+// ternario) con una clave de objeto (`mensaje: 'y'`); ambos lucen igual sin él.
+const TS_PROP_LITERAL_RE = /(?<!\.)\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_PROP_T_RE = /(?<!\.)\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+
+// DP-09 — catálogos constantes (`= [{ label: '…' }, …]`) se declaran en
+// español a propósito (no congelar el idioma de arranque) y se traducen al
+// MOSTRAR (`| t` en la plantilla) — sea el arreglo module-level o un campo
+// de la clase (`secciones = [...]`, `readonly temas = [...]`, etc.). Devuelve
+// los rangos [inicio,fin) de cada arreglo `= [ ... ]` (balanceando corchetes)
+// para excluir sus props de la cuenta de ".ts sin t()".
+function spansDeArreglos(ts) {
+  const spans = [];
+  // `const x = [...]` / `campo = [...]` (arreglo literal completo).
+  const reArreglo = /=\s*\[/g;
+  let m;
+  while ((m = reArreglo.exec(ts))) {
+    const inicio = m.index + m[0].length - 1; // posición del '['
+    let profundidad = 1;
+    let i = inicio + 1;
+    while (i < ts.length && profundidad > 0) {
+      if (ts[i] === '[') profundidad++;
+      else if (ts[i] === ']') profundidad--;
+      i++;
+    }
+    spans.push([inicio, i]);
+  }
+  // `algo.push({...})` — sigue extendiendo el mismo catálogo condicionalmente.
+  const rePush = /\.push\(/g;
+  while ((m = rePush.exec(ts))) {
+    const inicio = m.index + m[0].length - 1; // posición del '('
+    let profundidad = 1;
+    let i = inicio + 1;
+    while (i < ts.length && profundidad > 0) {
+      if (ts[i] === '(') profundidad++;
+      else if (ts[i] === ')') profundidad--;
+      i++;
+    }
+    spans.push([inicio, i]);
+  }
+  return spans;
+}
+function dentroDeAlgunSpan(spans, idx) {
+  return spans.some(([s, e]) => idx >= s && idx < e);
+}
 
 function extraerLiteralesTs(ts) {
   const items = [];
   let m;
-  // DP-09 — catálogos constantes (arreglos/mapas module-level declarados ANTES
-  // de la clase, p. ej. `const OPCIONES = [{ label: '…' }]`) se declaran en
-  // español a propósito (no congelar el idioma de arranque) y se traducen al
-  // MOSTRAR (`| t` en la plantilla). Las props `label/placeholder/titulo/texto/
-  // mensaje` encontradas ahí no cuentan como "sin cubrir" — solo dentro de la clase.
-  const corteClase = ts.search(/\n\s*(export\s+)?(class\s+\w|@Component\b)/);
-  const tsClase = corteClase >= 0 ? ts.slice(corteClase) : ts;
+  const spansArreglos = spansDeArreglos(ts);
   TS_LLAMADA_LITERAL_RE.lastIndex = 0;
   while ((m = TS_LLAMADA_LITERAL_RE.exec(ts))) {
     const lit = limpiar(m[2]);
@@ -162,12 +199,13 @@ function extraerLiteralesTs(ts) {
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
   }
   TS_PROP_LITERAL_RE.lastIndex = 0;
-  while ((m = TS_PROP_LITERAL_RE.exec(tsClase))) {
+  while ((m = TS_PROP_LITERAL_RE.exec(ts))) {
+    if (dentroDeAlgunSpan(spansArreglos, m.index)) continue; // catálogo — se traduce al mostrar
     const lit = limpiar(m[2]);
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
   }
   TS_PROP_T_RE.lastIndex = 0;
-  while ((m = TS_PROP_T_RE.exec(tsClase))) {
+  while ((m = TS_PROP_T_RE.exec(ts))) {
     const lit = limpiar(m[2]);
     if (!esRuido(lit)) items.push({ texto: lit, cubierto: true });
   }

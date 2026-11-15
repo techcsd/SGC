@@ -58,6 +58,41 @@ lo mida.
   humana** — ver `docs/I18N-REVISAR-HT.md`.
 - Build + 362 tests verdes. Commit: ver `git log` rama `feature/dp-ronda-13nov`.
 
+## Medición tras lote 2 (Configuración/perfil/shell, 14-nov-2026)
+
+- **`configuracion`: 100% (58/58)** · **`perfil`: 100% (24/24)** ·
+  **`ajustes-notificaciones`: 100% (16/16)** — las 3 con `enforce:true`.
+- Tercer fix de precisión al escáner: los catálogos constantes (`label:`/…)
+  se exentaban solo si estaban **antes de la clase**; en este lote aparecieron
+  catálogos declarados **dentro** de la clase (`secciones = computed(() =>
+  [...])`) y extendidos con `.push({...})` condicional — ambos patrones
+  legítimos de DP-09 que el escáner marcaba mal. Ahora la exención es por
+  **rango de arreglo/`.push()` balanceado**, no por posición en el archivo
+  (`spansDeArreglos()` en `scripts/i18n-coverage.mjs`). También se corrigió
+  un falso positivo de `mensaje: '...'` disparado por un acceso a propiedad
+  (`x.mensaje : y` dentro de un ternario, no una clave de objeto) con un
+  lookbehind `(?<!\.)`.
+- **Hallazgo real de `verify-i18n.mjs` (el guard estático, no solo el
+  smoke):** su extracción de "claves usadas" solo miraba `| t` y `i18n.t(...)`
+  literales — nunca veía `s.label | t` (variable, no literal), así que un
+  catálogo con un label sin traducir podía pasar el guard sin que nadie lo
+  notara. Se agregó la misma extracción de propiedades de catálogo
+  (`PROP_RE`) al conjunto de "usados" — el guard pasó de medir ~1.400 textos
+  a ~2.350 en todo el repo (solo medición, no cableado nuevo). Encontró y se
+  corrigieron 19 claves reales sin traducir en los lotes enforce (temas,
+  catálogo de notificaciones, plantillas de skill).
+- `scripts/i18n-smoke.mjs`: se corrigió un bug real del propio script — `/perfil`
+  redirige a `/configuracion#cuenta`; volver a `/configuracion#idioma` después
+  era solo un cambio de fragmento sobre el MISMO componente, y Angular no
+  re-dispara `ngOnInit` (que es donde se lee el fragmento) solo por eso — el
+  selector de idioma nunca se montaba y el test fallaba por timeout, no por
+  falta de traducción. Fix: forzar `page.reload()` tras cada navegación a
+  `/configuracion#idioma` para garantizar que el fragmento se lea fresco.
+  También se agregó el mapeo pantalla→ruta real para pantallas embebidas
+  (`ajustes-notificaciones` → `/configuracion#notificaciones`).
+- `public/i18n/en.json` +63 (algunas ya existían), `public/i18n/ht.json` +115
+  (96 del lote + 19 del fix del guard). Build + 368 tests + smoke verdes.
+
 ## Tabla de lotes (F3 cablear HTML + F4 cablear `.ts`)
 
 Orden acordado en el prompt: Claude, Configuración/perfil/shell, Dashboard,
@@ -68,7 +103,7 @@ Admin, resto.
 | # | Módulo | Pantallas | Literales HTML | Literales `.ts` | Estado | Commit | `enforce` |
 |---|---|---:|---:|---:|---|---|---|
 | 1 | Claude | claude, configuracion/claude, admin/claude | 3 envueltos (resto ya venía) | 29 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
-| 2 | Configuración/perfil/shell | — | — | — | ⏳ pendiente | — | false |
+| 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 3 | Dashboard | — | — | — | ⏳ pendiente | — | false |
 | 4 | Inventario | — | — | — | ⏳ pendiente | — | false |
 | 5 | Compras | — | — | — | ⏳ pendiente | — | false |

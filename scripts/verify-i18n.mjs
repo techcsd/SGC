@@ -59,13 +59,19 @@ function pantallaDe(file) {
 // por archivo (para poder atribuirlos a una pantalla).
 const PIPE_RE = /(['"])((?:\\.|(?!\1).)*?)\1\s*\|\s*t\b/g;
 const CALL_RE = /\.t\(\s*(['"])((?:\\.|(?!\1).)*?)\1/g;
+// DP-09 — catálogos constantes (`{ label: '…' }` en un arreglo) se muestran
+// vía `s.label | t` (variable, no literal) — PIPE_RE/CALL_RE nunca los ven.
+// Sin esto, una pantalla `enforce:true` podía pasar el guard con un label de
+// catálogo sin traducir (hallazgo real: "Cuenta"/"Privacidad" en `configuracion`,
+// atrapado recién por i18n-smoke.mjs, no por este guard).
+const PROP_RE = /(?<!\.)\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
 
 const usadosGlobal = new Set();
 const usadosPorPantalla = new Map(); // pantalla → Set(claves)
 
 function extraerClaves(txt) {
   const claves = new Set();
-  for (const re of [PIPE_RE, CALL_RE]) {
+  for (const re of [PIPE_RE, CALL_RE, PROP_RE]) {
     re.lastIndex = 0;
     let m;
     while ((m = re.exec(txt))) {

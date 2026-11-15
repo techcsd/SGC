@@ -58,9 +58,6 @@
     "admin/usuarios-test": {
       "enforce": false
     },
-    "ajustes-notificaciones": {
-      "enforce": false
-    },
     "apoyo-transporte": {
       "enforce": false
     },
@@ -304,9 +301,6 @@
     "obra/subcontratistas": {
       "enforce": false
     },
-    "perfil": {
-      "enforce": false
-    },
     "politicas/eliminar-cuenta": {
       "enforce": false
     },
@@ -445,6 +439,9 @@
     "verificar": {
       "enforce": false
     },
+    "flota/flota-subnav": {
+      "enforce": false
+    },
     "soporte": {
       "enforce": false
     },
@@ -499,19 +496,10 @@
     "auth": {
       "enforce": false
     },
-    "configuracion": {
-      "enforce": false
-    },
-    "flota/transferencias": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
     "tecnologia/oficina-agentes": {
-      "enforce": false
-    },
-    "ingenieria/pagos": {
       "enforce": false
     },
     "tecnologia/envios-automaticos": {
@@ -520,10 +508,13 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "tecnologia/cotizaciones": {
+    "flota/transferencias": {
       "enforce": false
     },
-    "flota/cupos-combustible": {
+    "ingenieria/pagos": {
+      "enforce": false
+    },
+    "tecnologia/cotizaciones": {
       "enforce": false
     },
     "reuniones/reuniones-lista": {
@@ -532,13 +523,16 @@
     "compras/productos-por-dar-de-alta": {
       "enforce": false
     },
-    "admin/auditoria": {
+    "flota/cupos-combustible": {
       "enforce": false
     },
     "admin/vault": {
       "enforce": false
     },
     "reuniones/reunion-ficha": {
+      "enforce": false
+    },
+    "admin/auditoria": {
       "enforce": false
     },
     "asistente": {
@@ -562,10 +556,16 @@
     "admin/pulso-sistema": {
       "enforce": false
     },
+    "ajustes-notificaciones": {
+      "enforce": true
+    },
     "claude": {
       "enforce": true
     },
     "configuracion/claude": {
+      "enforce": true
+    },
+    "configuracion": {
       "enforce": true
     },
     "demo/escenarios": {
@@ -576,6 +576,9 @@
     },
     "inventario/stock-odoo": {
       "enforce": false
+    },
+    "perfil": {
+      "enforce": true
     }
   }
 }

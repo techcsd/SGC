@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Mi perfil</h1>
+    <h1 class="page-title">{{ 'Mi perfil' | t }}</h1>
   </div>
 </div>
 
@@ -11,15 +11,15 @@
       <div class="perfil-avatar">
         @if (avatarUrl() && !avatarFailed(); as url) {
           <!-- BT3 — si la foto no carga (path sin archivo, URL vencida), cae a la inicial. -->
-          <img [src]="avatarUrl()" alt="Foto de perfil" class="perfil-avatar__img" (error)="avatarFailed.set(true)" appVerFoto [verFotoNombre]="p.nombre" />
+          <img [src]="avatarUrl()" alt="{{ 'Foto de perfil' | t }}" class="perfil-avatar__img" (error)="avatarFailed.set(true)" appVerFoto [verFotoNombre]="p.nombre" />
         } @else {
           <span class="perfil-avatar__initials">{{ iniciales() }}</span>
         }
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm perfil-avatar__upload">
           @if (uploading()) {
-            <span class="spinner" aria-hidden="true"></span> Subiendo…
+            <span class="spinner" aria-hidden="true"></span> {{ 'Subiendo…' | t }}
           } @else {
-            Cambiar foto
+            {{ 'Cambiar foto' | t }}
           }
           <input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" (change)="onAvatarSelected($event)" [disabled]="uploading()" />
         </label>
@@ -29,7 +29,7 @@
         <h2 class="perfil-nombre">{{ p.nombre }}</h2>
         <p class="perfil-email">{{ p.email }}</p>
         <p class="perfil-nota">
-          Tu nombre y correo los administra el equipo de Administración. Si necesitas cambiarlos, contáctalos.
+          {{ 'Tu nombre y correo los administra el equipo de Administración. Si necesitas cambiarlos, contáctalos.' | t }}
         </p>
       </div>
     </section>
@@ -40,11 +40,11 @@
 
     <!-- Apariencia (BE6) -->
     <section class="perfil-card sgc-card">
-      <h3 class="perfil-section-title">Apariencia</h3>
+      <h3 class="perfil-section-title">{{ 'Apariencia' | t }}</h3>
       <div class="perfil-tema">
         <div class="perfil-tema__txt">
-          <span class="perfil-tema__label">Tema oscuro</span>
-          <span class="perfil-tema__hint">Se sincroniza con la app móvil. También puedes cambiarlo con el botón de la luna en el encabezado.</span>
+          <span class="perfil-tema__label">{{ 'Tema oscuro' | t }}</span>
+          <span class="perfil-tema__hint">{{ 'Se sincroniza con la app móvil. También puedes cambiarlo con el botón de la luna en el encabezado.' | t }}</span>
         </div>
         <button
           type="button"
@@ -52,7 +52,7 @@
           role="switch"
           [class.perfil-switch--on]="theme.isDark()"
           [attr.aria-checked]="theme.isDark()"
-          aria-label="Tema oscuro"
+          aria-label="{{ 'Tema oscuro' | t }}"
           (click)="theme.toggle()"
         >
           <span class="perfil-switch__track"><span class="perfil-switch__thumb"></span></span>
@@ -62,9 +62,9 @@
 
     <!-- Roles y permisos -->
     <section class="perfil-card sgc-card">
-      <h3 class="perfil-section-title">Mis roles y accesos</h3>
+      <h3 class="perfil-section-title">{{ 'Mis roles y accesos' | t }}</h3>
       @if (roles().length === 0) {
-        <p class="text-muted">No tienes roles asignados. Contacta a Administración.</p>
+        <p class="text-muted">{{ 'No tienes roles asignados. Contacta a Administración.' | t }}</p>
       } @else {
         <div class="rol-list">
           @for (r of roles(); track r.id) {
@@ -79,47 +79,47 @@
           }
         </div>
         <p class="perfil-nota">
-          ¿Qué significa cada acceso? Revísalo en <a routerLink="/dudas">Dudas → Roles y permisos</a>.
+          {{ '¿Qué significa cada acceso? Revísalo en' | t }} <a routerLink="/dudas">{{ 'Dudas → Roles y permisos' | t }}</a>.
         </p>
       }
     </section>
 
     <!-- Datos de cuenta -->
     <section class="perfil-card sgc-card">
-      <h3 class="perfil-section-title">Datos de la cuenta</h3>
+      <h3 class="perfil-section-title">{{ 'Datos de la cuenta' | t }}</h3>
       <div class="perfil-datos">
         <div class="perfil-dato">
-          <span class="perfil-dato__label">Estado</span>
+          <span class="perfil-dato__label">{{ 'Estado' | t }}</span>
           <span [class]="p.activo ? 'sgc-badge sgc-badge--success' : 'sgc-badge sgc-badge--danger'">
-            {{ p.activo ? 'Activo' : 'Inactivo' }}
+            {{ p.activo ? ('Activo' | t) : ('Inactivo' | t) }}
           </span>
         </div>
         <div class="perfil-dato">
-          <span class="perfil-dato__label">Miembro desde</span>
-          <span>{{ p.created_at | date:'dd/MM/yyyy' }}</span>
+          <span class="perfil-dato__label">{{ 'Miembro desde' | t }}</span>
+          <span>{{ p.created_at | fecha:'dd/MM/yyyy' }}</span>
         </div>
       </div>
     </section>
 
     <!-- Mi actividad: stat tiles -->
     <section class="perfil-card sgc-card">
-      <h3 class="perfil-section-title">Mi actividad</h3>
+      <h3 class="perfil-section-title">{{ 'Mi actividad' | t }}</h3>
       <div class="perfil-tiles">
         <div class="perfil-tile">
           <span class="perfil-tile__num">{{ tareasActivas() }}</span>
-          <span class="perfil-tile__lbl">Tareas activas</span>
+          <span class="perfil-tile__lbl">{{ 'Tareas activas' | t }}</span>
         </div>
         <div class="perfil-tile">
           <span class="perfil-tile__num">{{ tareasCompletadas() }}</span>
-          <span class="perfil-tile__lbl">Tareas completadas</span>
+          <span class="perfil-tile__lbl">{{ 'Tareas completadas' | t }}</span>
         </div>
         <div class="perfil-tile">
           <span class="perfil-tile__num">{{ bitacorasCount() }}</span>
-          <span class="perfil-tile__lbl">Bitácoras registradas</span>
+          <span class="perfil-tile__lbl">{{ 'Bitácoras registradas' | t }}</span>
         </div>
         <div class="perfil-tile">
           <span class="perfil-tile__num">{{ reportesEnviados() }}</span>
-          <span class="perfil-tile__lbl">Reportes enviados</span>
+          <span class="perfil-tile__lbl">{{ 'Reportes enviados' | t }}</span>
         </div>
       </div>
 
@@ -137,18 +137,18 @@
 
     <!-- Historial de actividad -->
     <section class="perfil-card sgc-card">
-      <h3 class="perfil-section-title">Historial reciente</h3>
+      <h3 class="perfil-section-title">{{ 'Historial reciente' | t }}</h3>
       @if (loadingStats()) {
         <app-skeleton variant="list" [rows]="5" />
       } @else if (actividad().length === 0) {
-        <p class="text-muted">Sin actividad reciente.</p>
+        <p class="text-muted">{{ 'Sin actividad reciente.' | t }}</p>
       } @else {
         <ul class="perfil-actividad">
           @for (a of actividad(); track $index) {
             <li class="perfil-actividad__item">
               <span class="perfil-actividad__icon" aria-hidden="true"><app-icon [name]="a.icono" [size]="16" /></span>
               <span class="perfil-actividad__texto">{{ a.texto }}</span>
-              <span class="perfil-actividad__fecha">{{ a.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+              <span class="perfil-actividad__fecha">{{ a.fecha | fecha:'dd/MM/yyyy HH:mm' }}</span>
             </li>
           }
         </ul>

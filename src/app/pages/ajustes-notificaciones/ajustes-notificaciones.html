@@ -1,15 +1,15 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Notificaciones</h1>
-    <p class="page-subtitle">Elige qué avisos quieres recibir. Silenciar un tipo detiene ese aviso en todos tus canales: la campana, el push y el correo (no cambia a quién más le llega).</p>
+    <h1 class="page-title">{{ 'Notificaciones' | t }}</h1>
+    <p class="page-subtitle">{{ 'Elige qué avisos quieres recibir. Silenciar un tipo detiene ese aviso en todos tus canales: la campana, el push y el correo (no cambia a quién más le llega).' | t }}</p>
   </div>
 </div>
 
 <!-- CK10 — probar que las notificaciones suenan y llegan al teléfono -->
 <div class="ajustes-notif sgc-card ck-probar">
   <div class="ck-probar__info">
-    <span class="ck-probar__label">¿Te suenan las notificaciones?</span>
-    <span class="ck-probar__desc">Envía una notificación de prueba a tu teléfono. Si no suena ni aparece, revisa el sonido y los permisos de la app.</span>
+    <span class="ck-probar__label">{{ '¿Te suenan las notificaciones?' | t }}</span>
+    <span class="ck-probar__desc">{{ 'Envía una notificación de prueba a tu teléfono. Si no suena ni aparece, revisa el sonido y los permisos de la app.' | t }}</span>
     @if (resultadoPrueba(); as r) { <span class="ck-probar__result">{{ r }}</span> }
   </div>
   <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="probando()" (click)="probarNotificacion()">
@@ -33,19 +33,19 @@
             class="notif-switch"
             [class.notif-switch--on]="recibe(c.tipo)"
             [attr.aria-pressed]="recibe(c.tipo)"
-            [attr.aria-label]="(recibe(c.tipo) ? 'Silenciar' : 'Activar') + ': ' + c.label"
+            [attr.aria-label]="(recibe(c.tipo) ? i18n.t('Silenciar') : i18n.t('Activar')) + ': ' + c.label"
             [disabled]="guardando() === c.tipo"
             (click)="toggle(c.tipo)"
           >
             <span class="notif-switch__track"><span class="notif-switch__thumb"></span></span>
-            <span class="notif-switch__text">{{ recibe(c.tipo) ? 'Recibir' : 'Silenciado' }}</span>
+            <span class="notif-switch__text">{{ recibe(c.tipo) ? ('Recibir' | t) : ('Silenciado' | t) }}</span>
           </button>
         </li>
       }
     </ul>
 
     @if (operativas().length) {
-      <h2 class="notif-section-title">Alarmas operativas</h2>
+      <h2 class="notif-section-title">{{ 'Alarmas operativas' | t }}</h2>
       <ul class="notif-prefs">
         @for (o of operativas(); track o.tipo) {
           <li class="notif-pref">
@@ -53,7 +53,7 @@
               <span class="notif-pref__label">{{ o.etiqueta }}</span>
               @if (o.descripcion) { <span class="notif-pref__desc">{{ o.descripcion }}</span> }
               @if (o.silenciada_por_admin) {
-                <span class="notif-pref__admin">Silenciada por Tecnología</span>
+                <span class="notif-pref__admin">{{ 'Silenciada por Tecnología' | t }}</span>
               }
             </div>
             @if (o.silenciable) {
@@ -62,15 +62,15 @@
                 class="notif-switch"
                 [class.notif-switch--on]="o.activa"
                 [attr.aria-pressed]="o.activa"
-                [attr.aria-label]="(o.activa ? 'Silenciar' : 'Activar') + ': ' + o.etiqueta"
+                [attr.aria-label]="(o.activa ? i18n.t('Silenciar') : i18n.t('Activar')) + ': ' + o.etiqueta"
                 [disabled]="guardando() === o.tipo"
                 (click)="toggleOperativa(o.tipo)"
               >
                 <span class="notif-switch__track"><span class="notif-switch__thumb"></span></span>
-                <span class="notif-switch__text">{{ o.activa ? 'Recibir' : 'Silenciado' }}</span>
+                <span class="notif-switch__text">{{ o.activa ? ('Recibir' | t) : ('Silenciado' | t) }}</span>
               </button>
             } @else {
-              <span class="notif-siempre">Siempre activa</span>
+              <span class="notif-siempre">{{ 'Siempre activa' | t }}</span>
             }
           </li>
         }
@@ -78,9 +78,8 @@
     }
 
     <p class="notif-prefs__foot">
-      Los avisos operativos o críticos que exigen tu acción (firmas pendientes, alertas) no se pueden silenciar
-      y seguirán llegándote por todos sus canales.
-      Puedes revisar tus preferencias en cualquier momento desde <a routerLink="/perfil">Mi perfil</a>.
+      {{ 'Los avisos operativos o críticos que exigen tu acción (firmas pendientes, alertas) no se pueden silenciar y seguirán llegándote por todos sus canales.' | t }}
+      {{ 'Puedes revisar tus preferencias en cualquier momento desde' | t }} <a routerLink="/perfil">{{ 'Mi perfil' | t }}</a>.
     </p>
   }
 </div>
