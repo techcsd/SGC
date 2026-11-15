@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 46%** (4947/10704 literales de 192 pantallas en alcance). **`ht`: 77%**.
+**Alcance `en`: 47%** (5089/10721 literales de 192 pantallas en alcance). **`ht`: 80%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -116,7 +116,6 @@
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| flota/vehiculos | scope | 361 | 236 | 125 | 65% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
@@ -170,6 +169,7 @@
 | flota/rutas-activas | enforce | 37 | 37 | 0 | 100% |
 | flota/seguimiento | enforce | 23 | 23 | 0 | 100% |
 | flota/transferencias | enforce | 12 | 12 | 0 | 100% |
+| flota/vehiculos | enforce | 378 | 378 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
 | inventario/almacen-inventario | enforce | 50 | 50 | 0 | 100% |
@@ -202,16 +202,14 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**593 literal(es) sin t()** en 83 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**543 literal(es) sin t()** en 80 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
-| src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 30 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
-| src/app/pages/flota/vehiculos/vehiculos.ts | 15 | Sin filas · Rendimientos importados · No se pudo importar … |
 | src/app/pages/ingenieria/pagos/pagos.ts | 14 | No se pudo crear la semana · No se pudo crear la semana · No se pudo guardar … |
 | src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
 | src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
@@ -250,7 +248,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/flota/vehiculos/cargar-documentos/cargar-documentos.ts | 5 | Un solo PDF · Formato no soportado · Demasiadas fotos … |
 | src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
 | src/app/pages/trabajos-transporte/trabajos-transporte.ts | 5 | Elige un chofer de la lista · Asignado · No se pudo asignar … |

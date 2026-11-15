@@ -328,9 +328,6 @@
     "auth": {
       "enforce": false
     },
-    "flota/vehiculos": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -488,6 +485,9 @@
       "enforce": true
     },
     "flota/transferencias": {
+      "enforce": true
+    },
+    "flota/vehiculos": {
       "enforce": true
     },
     "inventario/activos": {

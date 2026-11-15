@@ -16,26 +16,26 @@
     <!-- ── 1. Header ── -->
     <div class="sgc-card vd-card vd-header">
       @if (fotoUrl()) {
-        <img class="vd-header__foto" [src]="fotoUrl()" [alt]="'Foto de ' + v.placa" />
+        <img class="vd-header__foto" [src]="fotoUrl()" [alt]="i18n.t('Foto de') + ' ' + v.placa" />
       }
       <div class="vd-header__body">
         <div class="vd-header__top">
           <h1 class="vd-placa">{{ v.placa }}</h1>
-          <span class="sgc-badge sgc-badge--{{ estadoBadge[v.estado] }}">{{ estadoLabel(v.estado) }}</span>
+          <span class="sgc-badge sgc-badge--{{ estadoBadge[v.estado] }}">{{ estadoLabel(v.estado) | t }}</span>
         </div>
         <p class="vd-header__sub">
-          {{ v.marca }} {{ v.modelo }} · {{ v.anio }} · {{ tipoLabel(v.tipo) }} · {{ v.uso === 'administrativo' ? 'Administrativo' : 'Obra' }}@if (v.color) { · {{ v.color }}}
+          {{ v.marca }} {{ v.modelo }} · {{ v.anio }} · {{ tipoLabel(v.tipo) | t }} · {{ (v.uso === 'administrativo' ? 'Administrativo' : 'Obra') | t }}@if (v.color) { · {{ v.color }}}
         </p>
         @if (v.vin) {
-          <p class="vd-header__vin">VIN: {{ v.vin }}</p>
+          <p class="vd-header__vin">{{ 'VIN:' | t }} {{ v.vin }}</p>
         }
         @if (v.responsable?.nombre) {
-          <p class="vd-header__resp">Responsable: {{ v.responsable!.nombre }}</p>
+          <p class="vd-header__resp">{{ 'Responsable:' | t }} {{ v.responsable!.nombre }}</p>
         }
         @if (v.estado === 'no_disponible') {
           <button type="button" class="sgc-btn sgc-btn--primary vd-header__reactivar"
             [disabled]="reactivando()" (click)="reactivar()">
-            @if (reactivando()) { Reactivando… } @else { Reactivar vehículo }
+            @if (reactivando()) { {{ 'Reactivando…' | t }} } @else { {{ 'Reactivar vehículo' | t }} }
           </button>
         }
         <!-- AI13 · Visibilidad para choferes (admin/jefe de flota) -->
@@ -46,7 +46,7 @@
             }
             <button type="button" class="sgc-btn sgc-btn--ghost"
               [disabled]="guardandoVisible()" (click)="toggleVisible()">
-              @if (v.visible_choferes) { Ocultar a choferes } @else { Mostrar a choferes }
+              @if (v.visible_choferes) { {{ 'Ocultar a choferes' | t }} } @else { {{ 'Mostrar a choferes' | t }} }
             </button>
           </div>
         }
@@ -56,17 +56,17 @@
     <!-- ── AF4 · Galería de fotos del vehículo ── -->
     @if (galeria().length) {
       <div class="sgc-card vd-card vd-galeria">
-        <h2 class="vd-section-title">Fotos ({{ galeria().length }})</h2>
+        <h2 class="vd-section-title">{{ 'Fotos' | t }} ({{ galeria().length }})</h2>
         <div class="vd-galeria__grid">
           @for (f of galeria(); track f.path) {
             <div class="vd-galeria__item">
-              <button type="button" class="vd-galeria__thumb" (click)="abrirFoto(f.path)" [title]="'Ver en grande'">
-                <img [src]="f.url" [alt]="'Foto de ' + v.placa" loading="lazy" />
+              <button type="button" class="vd-galeria__thumb" (click)="abrirFoto(f.path)" [title]="i18n.t('Ver en grande')">
+                <img [src]="f.url" [alt]="i18n.t('Foto de') + ' ' + v.placa" loading="lazy" />
                 @if (esPortada(f.path)) { <span class="vd-galeria__badge">{{ 'Portada' | t }}</span> }
               </button>
               @if (esElevado() && !esPortada(f.path)) {
                 <button type="button" class="vd-galeria__portada-btn" [disabled]="guardandoPortada()" (click)="marcarPortada(f.path)">
-                  Marcar portada
+                  {{ 'Marcar portada' | t }}
                 </button>
               }
             </div>
@@ -82,10 +82,10 @@
         @for (n of [1, 2]; track n) {
           @if (llaveSlot($any(n)); as l) {
             <div class="vd-llaves__item">
-              <div class="vd-llaves__num"><app-icon name="key" [size]="16" /> Llave #{{ n }}</div>
-              <div class="vd-llaves__ubi">{{ LLAVE_UBICACION_LABEL[l.ubicacion_tipo] }}</div>
+              <div class="vd-llaves__num"><app-icon name="key" [size]="16" /> {{ 'Llave #' | t }}{{ n }}</div>
+              <div class="vd-llaves__ubi">{{ LLAVE_UBICACION_LABEL[l.ubicacion_tipo] | t }}</div>
               <div class="vd-llaves__portador">{{ llaveDescripcion(l) }}</div>
-              @if (l.updated_at) { <div class="vd-llaves__fecha">Actualizada: {{ fechaHora(l.updated_at) }}</div> }
+              @if (l.updated_at) { <div class="vd-llaves__fecha">{{ 'Actualizada:' | t }} {{ fechaHora(l.updated_at) }}</div> }
               @if (esElevado()) {
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openLlave($any(n))">{{ 'Registrar traspaso' | t }}</button>
               }
@@ -95,7 +95,7 @@
       </div>
       @if (llaveTraspasos().length) {
         <button type="button" class="vd-toggle" (click)="toggleHistorialLlaves()">
-          {{ mostrarHistorialLlaves() ? 'Ocultar' : 'Ver' }} historial de traspasos ({{ llaveTraspasos().length }})
+          {{ (mostrarHistorialLlaves() ? 'Ocultar' : 'Ver') | t }} {{ 'historial de traspasos' | t }} ({{ llaveTraspasos().length }})
         </button>
         @if (mostrarHistorialLlaves()) {
           <table class="data-table vd-llaves__historial">
@@ -104,7 +104,7 @@
               @for (t of llaveTraspasos(); track $index) {
                 <tr>
                   <td>#{{ t.numero }}</td>
-                  <td>{{ LLAVE_UBICACION_LABEL[t.ubicacion_tipo] }}@if (t.portador_nombre) { — {{ t.portador_nombre }} }@if (t.ubicacion_detalle) { — {{ t.ubicacion_detalle }} }</td>
+                  <td>{{ LLAVE_UBICACION_LABEL[t.ubicacion_tipo] | t }}@if (t.portador_nombre) { — {{ t.portador_nombre }} }@if (t.ubicacion_detalle) { — {{ t.ubicacion_detalle }} }</td>
                   <td>{{ t.registrado_nombre ?? '—' }}</td>
                   <td>{{ fechaHora(t.created_at) }}</td>
                 </tr>
@@ -139,7 +139,7 @@
           </div>
 
           @if (placaPPExt().length) {
-            <h4 class="vd-pp__subtitle">Extensiones de plazo ({{ placaPPExt().length }})</h4>
+            <h4 class="vd-pp__subtitle">{{ 'Extensiones de plazo' | t }} ({{ placaPPExt().length }})</h4>
             <table class="data-table">
               <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Días' | t }}</th><th>{{ 'Nuevo plazo' | t }}</th><th>{{ 'Motivo' | t }}</th></tr></thead>
               <tbody>
@@ -164,26 +164,24 @@
     <!-- ── S21 · Motivo No disponible por documento vencido ── -->
     @if (motivoNoDisponible(); as motivo) {
       <div class="page-error vd-nodisp" role="alert">
-        Vehículo <strong>{{ 'No disponible' | t }}</strong> — {{ motivo }} vencido(a). No puede recibirse para una salida
-        nueva hasta actualizar la vigencia (edita el vehículo y actualiza la fecha; volverá a Activo automáticamente).
+        {{ 'Vehículo' | t }} <strong>{{ 'No disponible' | t }}</strong> — {{ motivo }} {{ 'vencido(a). No puede recibirse para una salida nueva hasta actualizar la vigencia (edita el vehículo y actualiza la fecha; volverá a Activo automáticamente).' | t }}
       </div>
     }
 
     <!-- ── U11-web · Alerta de mantenimiento (visible en el perfil) ── -->
     @if (mantPorRevisar()) {
       <div class="vd-mant vd-mant--pre" role="status">
-        <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Dato de mantenimiento por revisar' | t }}</strong> — la lectura del último mantenimiento supera la
-        lectura actual del vehículo. No se calcula el próximo mantenimiento hasta corregirlo (se avisó a Flota).
+        <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Dato de mantenimiento por revisar' | t }}</strong> — {{ 'la lectura del último mantenimiento supera la lectura actual del vehículo. No se calcula el próximo mantenimiento hasta corregirlo (se avisó a Flota).' | t }}
       </div>
     } @else if (alertaMant(); as am) {
       @if (am.estado === 'vencido') {
         <div class="page-error vd-mant--vencido" role="alert">
-          <app-icon name="alert-circle" [size]="16" /> <strong>{{ 'Mantenimiento atrasado' | t }}</strong> — pasado con {{ am.km | number:'1.0-0' }} {{ unidad() }}.
-          Agenda el mantenimiento de este vehículo cuanto antes.
+          <app-icon name="alert-circle" [size]="16" /> <strong>{{ 'Mantenimiento atrasado' | t }}</strong> — {{ 'pasado con' | t }} {{ am.km | number:'1.0-0' }} {{ unidad() }}.
+          {{ 'Agenda el mantenimiento de este vehículo cuanto antes.' | t }}
         </div>
       } @else {
         <div class="vd-mant vd-mant--pre" role="status">
-          <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Mantenimiento próximo' | t }}</strong> — faltan {{ am.km | number:'1.0-0' }} {{ unidad() }} para el próximo.
+          <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Mantenimiento próximo' | t }}</strong> — {{ 'faltan' | t }} {{ am.km | number:'1.0-0' }} {{ unidad() }} {{ 'para el próximo.' | t }}
         </div>
       }
     }
@@ -191,15 +189,15 @@
     <!-- ── 2. Stats ── -->
     <div class="stat-grid">
       <div class="stat-card">
-        <span class="stat-card__label">{{ v.medida_uso === 'horas' ? 'Horas de uso' : 'Km actual' }}</span>
+        <span class="stat-card__label">{{ (v.medida_uso === 'horas' ? 'Horas de uso' : 'Km actual') | t }}</span>
         <span class="stat-card__value">{{ (stats()?.km_actual ?? v.kilometraje) | number:'1.0-0' }} {{ unidad() }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-card__label">{{ 'Combustible' | t }}</span>
         <span class="stat-card__value">{{ stats()?.combustible_echadas ?? 0 }}</span>
         <span class="stat-card__hint">
-          {{ (stats()?.combustible_galones ?? 0) | number:'1.0-0' }} gal ·
-          RD$ {{ (stats()?.combustible_monto ?? 0) | number:'1.0-0' }}
+          {{ (stats()?.combustible_galones ?? 0) | number:'1.0-0' }} {{ 'gal' | t }} ·
+          {{ 'RD$' | t }} {{ (stats()?.combustible_monto ?? 0) | number:'1.0-0' }}
         </span>
       </div>
       <!-- U11-web — último nivel de tanque registrado (checklist más reciente) -->
@@ -215,9 +213,9 @@
           @else { — }
         </span>
         <span class="stat-card__hint">
-          km/gal
+          {{ 'km/gal' | t }}
           @if (rendimientoEsperado() != null) {
-            · esperado {{ rendimientoEsperado() | number:'1.0-1' }}
+            · {{ 'esperado' | t }} {{ rendimientoEsperado() | number:'1.0-1' }}
             @if (rendimientoBajo()) { <span class="vd-danger"><app-icon name="alert-triangle" [size]="13" /> {{ 'por debajo' | t }}</span> }
           }
         </span>
@@ -233,7 +231,7 @@
         <span class="stat-card__label">{{ 'Checklists' | t }}</span>
         <span class="stat-card__value">{{ stats()?.checklists_total ?? 0 }}</span>
         @if ((stats()?.checklists_bloqueos ?? 0) > 0) {
-          <span class="stat-card__hint vd-danger">{{ stats()!.checklists_bloqueos }} bloqueo(s)</span>
+          <span class="stat-card__hint vd-danger">{{ stats()!.checklists_bloqueos }} {{ 'bloqueo(s)' | t }}</span>
         }
       </div>
       <div class="stat-card">
@@ -249,9 +247,9 @@
         </span>
         <span class="stat-card__hint">
           @if (mantPorRevisar()) { <span class="vd-danger">{{ 'revisar dato' | t }}</span> }
-          @else if (kmFaltanMant() == null) { sin dato }
-          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">pasado con {{ -kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }}</span> }
-          @else { faltan {{ kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }} }
+          @else if (kmFaltanMant() == null) { {{ 'sin dato' | t }} }
+          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">{{ 'pasado con' | t }} {{ -kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }}</span> }
+          @else { {{ 'faltan' | t }} {{ kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }} }
         </span>
       </div>
       <div class="stat-card">
@@ -266,22 +264,21 @@
         <div class="vd-section-head">
           <h2 class="vd-section-title">{{ 'Especificación de combustible' | t }}</h2>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleSpec()">
-            {{ specOpen() ? 'Cancelar' : 'Editar' }}
+            {{ (specOpen() ? 'Cancelar' : 'Editar') | t }}
           </button>
         </div>
         <p class="vd-muted" style="margin:0 0 10px">
-          Cada valor viene del vehículo, de su clase o del global. El rango se usa para
-          las banderas de rendimiento ({{ unidadSpec() }}).
+          {{ 'Cada valor viene del vehículo, de su clase o del global. El rango se usa para las banderas de rendimiento' | t }} ({{ unidadSpec() }}).
         </p>
 
         @if (!specOpen()) {
           <dl class="vd-venc">
             <div><dt>{{ 'Tipo' | t }}</dt><dd>{{ sp.combustible_tipo || '—' }}</dd></div>
             <div><dt>{{ 'Capacidad de tanque' | t }}</dt><dd>
-              {{ sp.capacidad.valor != null ? (sp.capacidad.valor | number:'1.0-0') + ' gal' : '—' }}
+              {{ sp.capacidad.valor != null ? (sp.capacidad.valor | number:'1.0-0') + ' ' + ('gal' | t) : '—' }}
               <span class="sgc-badge sgc-badge--neutral">{{ sp.capacidad.origen }}</span></dd></div>
             <div><dt>{{ 'Rendimiento esperado' | t }}</dt><dd>
-              {{ sp.esperado.valor != null ? (sp.esperado.valor | number:'1.0-1') + ' ' + unidadSpec() : 'sin definir' }}
+              {{ sp.esperado.valor != null ? (sp.esperado.valor | number:'1.0-1') + ' ' + unidadSpec() : ('sin definir' | t) }}
               <span class="sgc-badge sgc-badge--neutral">{{ sp.esperado.origen }}</span></dd></div>
             <div><dt>{{ 'Mínimo coherente' | t }}</dt><dd>
               {{ sp.min.valor | number:'1.0-2' }} {{ unidadSpec() }}
@@ -295,27 +292,27 @@
           </dl>
         } @else {
           <form class="vd-spec-form" [formGroup]="specForm" (ngSubmit)="guardarSpec()">
-            <label>Tipo de combustible
+            <label>{{ 'Tipo de combustible' | t }}
               <input type="text" formControlName="combustible_tipo" placeholder="{{ 'gasolina / gasoil…' | t }}" /></label>
-            <label>Capacidad de tanque (gal)
+            <label>{{ 'Capacidad de tanque (gal)' | t }}
               <input type="number" step="0.1" formControlName="capacidad" /></label>
-            <label>Rendimiento esperado ({{ unidadSpec() }})
+            <label>{{ 'Rendimiento esperado' | t }} ({{ unidadSpec() }})
               <input type="number" step="0.1" formControlName="esperado" /></label>
             @if (baselineSpec() != null) {
               <p class="vd-muted" style="grid-column:1/-1;margin:2px 0">
-                Baseline aprendido: <strong>{{ baselineSpec() | number:'1.0-2' }} {{ unidadSpec() }}</strong>
+                {{ 'Baseline aprendido:' | t }} <strong>{{ baselineSpec() | number:'1.0-2' }} {{ unidadSpec() }}</strong>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarBaseline()">{{ 'Usar este valor' | t }}</button>
               </p>
             }
-            <label>Mínimo coherente ({{ unidadSpec() }})
+            <label>{{ 'Mínimo coherente' | t }} ({{ unidadSpec() }})
               <input type="number" step="0.1" formControlName="min" /></label>
-            <label>Máximo coherente ({{ unidadSpec() }})
+            <label>{{ 'Máximo coherente' | t }} ({{ unidadSpec() }})
               <input type="number" step="0.1" formControlName="max" /></label>
-            <label>Tolerancia (%)
+            <label>{{ 'Tolerancia (%)' | t }}
               <input type="number" step="1" formControlName="tolerancia_pct" /></label>
             <div class="vd-spec-actions">
               <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="savingSpec()">
-                {{ savingSpec() ? 'Guardando…' : 'Guardar y recalcular' }}
+                {{ (savingSpec() ? 'Guardando…' : 'Guardar y recalcular') | t }}
               </button>
             </div>
           </form>
@@ -330,11 +327,11 @@
         <div>
           <dt>{{ 'Matrícula' | t }}</dt>
           <dd>
-            <span>Nº {{ v.numero_matricula ?? '—' }}</span>
+            <span>{{ 'Nº' | t }} {{ v.numero_matricula ?? '—' }}</span>
             @if (v.vencimiento_matricula) {
-              <span class="vd-muted">· vence {{ fecha(v.vencimiento_matricula) }}</span>
+              <span class="vd-muted">· {{ 'vence' | t }} {{ fecha(v.vencimiento_matricula) }}</span>
               @if (estadoVenc(v.vencimiento_matricula); as ev) {
-                <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] }}</span>
+                <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] | t }}</span>
               }
             }
           </dd>
@@ -342,12 +339,12 @@
         <div>
           <dt>{{ 'Seguro' | t }}</dt>
           <dd>
-            <span>Nº {{ v.numero_seguro ?? '—' }}</span>
+            <span>{{ 'Nº' | t }} {{ v.numero_seguro ?? '—' }}</span>
             @if (v.aseguradora) { <span class="vd-muted">· {{ v.aseguradora }}</span> }
             @if (v.vencimiento_seguro) {
-              <span class="vd-muted">· vence {{ fecha(v.vencimiento_seguro) }}</span>
+              <span class="vd-muted">· {{ 'vence' | t }} {{ fecha(v.vencimiento_seguro) }}</span>
               @if (estadoVenc(v.vencimiento_seguro); as ev) {
-                <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] }}</span>
+                <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] | t }}</span>
               }
             }
           </dd>
@@ -367,7 +364,7 @@
     <!-- ── 4. Asignaciones (R1) ── -->
     <div class="sgc-card vd-card">
       <div class="vd-section-head">
-        <h2 class="vd-section-title">Personas asignadas ({{ asignacionesActivas().length }})</h2>
+        <h2 class="vd-section-title">{{ 'Personas asignadas' | t }} ({{ asignacionesActivas().length }})</h2>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAsignar()">{{ 'Asignar persona' | t }}</button>
       </div>
 
@@ -380,9 +377,9 @@
               <div class="vd-asig__info">
                 <span class="vd-asig__nombre">{{ asigNombre(a) }}</span>
                 <span class="sgc-badge sgc-badge--{{ a.origen === 'auto' ? 'info' : 'neutral' }}">
-                  {{ a.origen === 'auto' ? 'Auto' : 'Admin' }}
+                  {{ (a.origen === 'auto' ? 'Auto' : 'Admin') | t }}
                 </span>
-                <span class="vd-muted">desde {{ fecha(a.desde) }}</span>
+                <span class="vd-muted">{{ 'desde' | t }} {{ fecha(a.desde) }}</span>
                 @if (a.notas) { <span class="vd-asig__notas">“{{ a.notas }}”</span> }
               </div>
               <button type="button" class="sgc-btn sgc-btn--ghost" (click)="retirar(a)">{{ 'Retirar' | t }}</button>
@@ -394,7 +391,7 @@
       @if (asignacionesHistoricas().length > 0) {
         <button type="button" class="vd-toggle" (click)="toggleHistorialAsig()">
           <app-icon [name]="mostrarHistorialAsig() ? 'chevron-down' : 'chevron-right'" [size]="14" />
-          Historial de asignaciones ({{ asignacionesHistoricas().length }})
+          {{ 'Historial de asignaciones' | t }} ({{ asignacionesHistoricas().length }})
         </button>
         @if (mostrarHistorialAsig()) {
           <ul class="vd-asig-list vd-asig-list--hist">
@@ -403,7 +400,7 @@
                 <div class="vd-asig__info">
                   <span class="vd-asig__nombre">{{ asigNombre(a) }}</span>
                   <span class="sgc-badge sgc-badge--{{ a.origen === 'auto' ? 'info' : 'neutral' }}">
-                    {{ a.origen === 'auto' ? 'Auto' : 'Admin' }}
+                    {{ (a.origen === 'auto' ? 'Auto' : 'Admin') | t }}
                   </span>
                   <span class="vd-muted">{{ fecha(a.desde) }} → {{ fecha(a.hasta) }}</span>
                 </div>
@@ -608,7 +605,7 @@
                 <span class="vd-asig__nombre">{{ fecha(m.fecha) }} · {{ m.motivo ?? 'Sin motivo' }}</span>
                 @if (m.monto != null) { <span class="vd-muted">RD$ {{ m.monto | number:'1.0-2' }}</span> }
                 @if (m.conductor?.nombre) { <span class="vd-muted">· {{ m.conductor!.nombre }}</span> }
-                <span class="sgc-badge sgc-badge--{{ multaEstadoMeta(m.estado).badge }}">{{ multaEstadoMeta(m.estado).label }}</span>
+                <span class="sgc-badge sgc-badge--{{ multaEstadoMeta(m.estado).badge }}">{{ multaEstadoMeta(m.estado).label | t }}</span>
               </div>
             </li>
           }
@@ -627,7 +624,7 @@
     <div class="sgc-field">
       <label for="usuario">{{ 'Persona' | t }}</label>
       <select id="usuario" formControlName="usuario_id">
-        <option [ngValue]="null" disabled>Selecciona una persona…</option>
+        <option [ngValue]="null" disabled>{{ 'Selecciona una persona…' | t }}</option>
         @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
       </select>
     </div>
@@ -639,10 +636,10 @@
     <div class="sgc-field">
       <label for="llave1">{{ 'Llave #1 del vehículo' | t }}</label>
       <select id="llave1" formControlName="llave1_accion">
-        <option value="no_cambiar">No cambiar</option>
-        <option value="chofer_asignado">La lleva el nuevo asignado</option>
-        <option value="oficina_central">Queda en oficina central</option>
-        <option value="otro">Otro…</option>
+        <option value="no_cambiar">{{ 'No cambiar' | t }}</option>
+        <option value="chofer_asignado">{{ 'La lleva el nuevo asignado' | t }}</option>
+        <option value="oficina_central">{{ 'Queda en oficina central' | t }}</option>
+        <option value="otro">{{ 'Otro…' | t }}</option>
       </select>
     </div>
     @if (asignarForm.controls.llave1_accion.value === 'otro') {
@@ -654,7 +651,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
-        @if (guardando()) { Guardando… } @else { Asignar }
+        @if (guardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Asignar' | t }} }
       </button>
     </div>
   </form>
@@ -692,7 +689,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="accDrawer.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="incGuardando()">
-        @if (incGuardando()) { Guardando… } @else { Registrar }
+        @if (incGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar' | t }} }
       </button>
     </div>
   </form>
@@ -722,28 +719,28 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="danoDrawer.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="incGuardando()">
-        @if (incGuardando()) { Guardando… } @else { Registrar }
+        @if (incGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar' | t }} }
       </button>
     </div>
   </form>
 </app-form-drawer>
 
 <!-- ── AF3 · Drawer: Registrar traspaso de llave ── -->
-<app-form-drawer [title]="'Llave #' + llaveEditando()" [open]="llaveDrawer()" (closed)="closeLlave()">
+<app-form-drawer [title]="i18n.t('Llave #') + llaveEditando()" [open]="llaveDrawer()" (closed)="closeLlave()">
   <form class="vd-form" [formGroup]="llaveForm" (ngSubmit)="guardarLlave()">
     <div class="sgc-field">
       <label for="llave_ubi">{{ '¿Dónde/quién la tiene?' | t }}</label>
       <select id="llave_ubi" formControlName="ubicacion_tipo">
-        <option value="chofer_asignado">Chofer asignado</option>
-        <option value="oficina_central">Oficina central</option>
-        <option value="otro">Otro</option>
+        <option value="chofer_asignado">{{ 'Chofer asignado' | t }}</option>
+        <option value="oficina_central">{{ 'Oficina central' | t }}</option>
+        <option value="otro">{{ 'Otro' | t }}</option>
       </select>
     </div>
     @if (llaveForm.controls.ubicacion_tipo.value === 'chofer_asignado') {
       <div class="sgc-field">
         <label for="llave_port">{{ 'Portador' | t }}</label>
         <select id="llave_port" formControlName="portador_usuario_id">
-          <option [ngValue]="null" disabled>Selecciona una persona…</option>
+          <option [ngValue]="null" disabled>{{ 'Selecciona una persona…' | t }}</option>
           @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
         </select>
       </div>
@@ -761,7 +758,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeLlave()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="llaveGuardando()">
-        @if (llaveGuardando()) { Guardando… } @else { Registrar traspaso }
+        @if (llaveGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar traspaso' | t }} }
       </button>
     </div>
   </form>
@@ -796,7 +793,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
-        @if (ppGuardando()) { Guardando… } @else { Registrar }
+        @if (ppGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar' | t }} }
       </button>
     </div>
   </form>
@@ -818,7 +815,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
-        @if (ppGuardando()) { Guardando… } @else { Ampliar plazo }
+        @if (ppGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Ampliar plazo' | t }} }
       </button>
     </div>
   </form>
@@ -836,7 +833,7 @@
       <label class="toggle-label" for="pp_marbete">
         <input id="pp_marbete" type="checkbox" formControlName="marbete" class="toggle-input" />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Marbete DGII recibido
+        {{ 'Marbete DGII recibido' | t }}
       </label>
     </div>
     <div class="sgc-field">
@@ -851,7 +848,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
-        @if (ppGuardando()) { Guardando… } @else { Registrar entrega }
+        @if (ppGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar entrega' | t }} }
       </button>
     </div>
   </form>

@@ -53,6 +53,7 @@ import { UserService } from '../../../core/services/user.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface PendingFoto {
   file: File;
@@ -84,6 +85,7 @@ export class FlotaVehiculos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private flotaConfig = inject(FlotaConfigService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
   private route = inject(ActivatedRoute);
 
@@ -121,14 +123,14 @@ export class FlotaVehiculos implements OnInit {
           unidad: String(get(r, 'unidad') ?? '').trim() || null,
         }))
         .filter((f) => f.placa);
-      if (filas.length === 0) { this.toast.warning('Sin filas', 'No se encontró ninguna placa en el archivo.'); return; }
+      if (filas.length === 0) { this.toast.warning(this.i18n.t('Sin filas'), 'No se encontró ninguna placa en el archivo.'); return; }
       const res = await this.vehiculosService.importarSpecs(filas) as { ok?: number; errores?: unknown[] };
       const ok = res.ok ?? 0;
       const errores = res.errores ?? [];
-      this.toast.success('Rendimientos importados', `${ok} vehículo(s) actualizado(s)${errores.length ? `, ${errores.length} con error` : ''}.`);
+      this.toast.success(this.i18n.t('Rendimientos importados'), `${ok} vehículo(s) actualizado(s)${errores.length ? `, ${errores.length} con error` : ''}.`);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('No se pudo importar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo importar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.importandoSpecs.set(false);
       input.value = '';
@@ -326,7 +328,7 @@ export class FlotaVehiculos implements OnInit {
     return this.USOS.find((u) => u.value === (uso ?? 'obra'))?.label ?? 'Obra';
   }
 
-  drawerTitle = computed(() => (this.editingId() ? 'Editar vehículo' : 'Nuevo vehículo'));
+  drawerTitle = computed(() => this.i18n.t(this.editingId() ? 'Editar vehículo' : 'Nuevo vehículo'));
 
   async ngOnInit() {
     // Q3 — drill-down desde el dashboard: filtrar por estado (?estado=activo).
@@ -479,7 +481,7 @@ export class FlotaVehiculos implements OnInit {
       await this.vehiculosService.setKmBaseCombustible(id, km, motivo);
       this.kmBaseActual.set(km);
       this.kmBaseMotivo.set('');
-      this.toast.success('Km base de combustible actualizado');
+      this.toast.success(this.i18n.t('Km base de combustible actualizado'));
       this.kmBaseMsg.set('Guardado. El salto se medirá desde este km.');
     } catch (e) {
       this.kmBaseMsg.set(e instanceof Error ? e.message : 'No se pudo guardar');
@@ -595,7 +597,7 @@ export class FlotaVehiculos implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && payload.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('vehiculos', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s) (checklists, echadas, entregas, mantenimientos…). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s) (checklists, echadas, entregas, mantenimientos…). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -622,7 +624,7 @@ export class FlotaVehiculos implements OnInit {
           uploaded.push(path);
           previewToPath[pending.preview] = path;
         } catch {
-          this.toast.warning('Foto no subida', `No se pudo subir "${pending.file.name}".`);
+          this.toast.warning(this.i18n.t('Foto no subida'), `No se pudo subir "${pending.file.name}".`);
         }
       }
 
@@ -644,7 +646,7 @@ export class FlotaVehiculos implements OnInit {
           await this.vehiculosService.setFotos(saved.id, finalFotos, finalPortada);
           saved = { ...saved, fotos: finalFotos, foto_portada: finalPortada };
         } catch {
-          this.toast.warning('Fotos no guardadas', 'El vehículo se guardó, pero las fotos no.');
+          this.toast.warning(this.i18n.t('Fotos no guardadas'), 'El vehículo se guardó, pero las fotos no.');
         }
       } else {
         saved = { ...saved, fotos: finalFotos, foto_portada: finalPortada };
@@ -668,7 +670,7 @@ export class FlotaVehiculos implements OnInit {
     const next = !vehiculo.activo;
     // CD1 — confirmar el cambio de estado (desactivar/activar) para evitar toques accidentales.
     const accion = next ? 'activar' : 'desactivar';
-    if (!confirm(`¿Seguro que quieres ${accion} el vehículo ${vehiculo.placa}?`)) return;
+    if (!confirm(this.i18n.t('¿Seguro que quieres {accion} el vehículo {placa}?', { accion: this.i18n.t(accion), placa: vehiculo.placa ?? '' }))) return;
     this.vehiculos.update((list) =>
       list.map((v) => (v.id === vehiculo.id ? { ...v, activo: next } : v)),
     );
@@ -684,17 +686,17 @@ export class FlotaVehiculos implements OnInit {
   /** T2 — elimina definitivamente una fila de datos de prueba (solo admin). */
   async eliminarPrueba(v: Vehiculo) {
     if (!this.esAdmin() || !v.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${v.placa}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{placa}"? Esta acción no se puede deshacer.', { placa: v.placa ?? '' }))) return;
     try {
       const ok = await this.vehiculosService.eliminarDatoPrueba(v.id);
       if (!ok) {
-        this.toast.warning('No eliminado', 'La fila no es un dato de prueba.');
+        this.toast.warning(this.i18n.t('No eliminado'), 'La fila no es un dato de prueba.');
         return;
       }
       this.vehiculos.update((list) => list.filter((x) => x.id !== v.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${v.placa}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), `Se eliminó "${v.placa}".`);
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
@@ -738,9 +740,9 @@ export class FlotaVehiculos implements OnInit {
     if (faltan == null) return null;
     // Umbral de pre-cita según la unidad del vehículo (25 h por defecto para horómetro).
     const umbral = v.medida_uso === 'horas' ? 25 : this.flotaConfig.umbralPrecitaKm();
-    if (faltan <= 0) return { label: 'Mant. vencido', badge: 'danger' };
-    if (faltan <= umbral) return { label: 'Agendar pre-cita', badge: 'warning' };
-    return { label: 'Mant. al día', badge: 'success' };
+    if (faltan <= 0) return { label: this.i18n.t('Mant. vencido'), badge: 'danger' };
+    if (faltan <= umbral) return { label: this.i18n.t('Agendar pre-cita'), badge: 'warning' };
+    return { label: this.i18n.t('Mant. al día'), badge: 'success' };
   }
 
   get f() { return this.form.controls; }
