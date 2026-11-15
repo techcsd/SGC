@@ -377,6 +377,32 @@ Siguiente módulo en la tabla de lotes: Bitácora (#7).
 **Módulo 7 (Bitácora) CERRADO: 11/11 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Transporte/apoyo (#8).
 
+## Transporte/apoyo — 100% COMPLETO (3/3 pantallas, 15-nov-2026)
+
+Módulo pequeño: `apoyo-transporte`, `trabajos-transporte`,
+`solicitudes-movimiento` (175 literales totales). Lote 40 (codemod,
+`405507d3`) + lote 41 (`3b044583`, terminado a mano completo, sin
+fork — módulo lo bastante chico para no justificar el overhead de
+verificación de un fork).
+
+- Mismos gotchas de siempre: etiqueta de método sin `| t`
+  (`tipoLabel(r)` en `trabajos-transporte.ts`, switch que devuelve
+  'Movimiento'/'Retiro'/'Bote'/'Apoyo'/'Conduce'/'Actividad' crudo);
+  catálogo-arreglo correctamente exento en declaración pero nunca
+  envuelto en el display (`c.label` de `COLUMNAS`); espacio final
+  dentro de un string traducible (`'Central — '`) movido fuera del
+  `t()` proactivamente, sin que el escáner lo marcara primero.
+- `confirm()` con interpolación de template literal reescrito con
+  placeholder nombrado (`i18n.t('¿Cancelar la solicitud "{que}"?', {
+  que })`) en vez de `${}` anidando `i18n.t()`.
+- `public/i18n/en.json`/`ht.json`: +97/+100 claves nuevas.
+- `alcance.json`: 3 pantallas nuevas `enforce:true` (total **80**).
+  `verify-i18n.mjs`: 80 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 8 (Transporte/apoyo) CERRADO: 3/3 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Proyectos (#9).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -413,7 +439,7 @@ Admin, resto.
 | 5 | Compras | 8/8 pantallas 100% (ver detalle arriba) | ~cablear HTML a mano (sin codemod) | toasts/confirm/error | ✅ **100% — hecho** | e61f8488..8eda4b89 | **true** |
 | 6 | Flota | 23/23 pantallas 100% (ver detalle arriba) | 1377 (codemod) + ~730 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | a28cbf05..1a82044c | **true** |
 | 7 | Bitácora | 11/11 pantallas 100% (ver detalle arriba) | 474 (codemod) + ~230 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 8255e835..665235da | **true** |
-| 8 | Transporte/apoyo | — | — | — | ⏳ pendiente | — | false |
+| 8 | Transporte/apoyo | 3/3 pantallas 100% (ver detalle arriba) | 103 (codemod) + ~72 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 405507d3..3b044583 | **true** |
 | 9 | Proyectos | — | — | — | ⏳ pendiente | — | false |
 | 10 | RRHH | — | — | — | ⏳ pendiente | — | false |
 | 11 | Legal | — | — | — | ⏳ pendiente | — | false |
