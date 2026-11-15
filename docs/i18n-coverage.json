@@ -5056,29 +5056,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/cronograma-import",
-      "total": 35,
-      "cubiertos": 23,
-      "sin": 12,
-      "pct": 66,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Formatos:",
-        "de MS Project deben exportarse a Excel primero (Archivo → Guardar como / Exportar → Excel).",
-        "actividad(es) detectada(s). Al confirmar, cada torre",
-        "su cronograma existente (delete-then-insert).",
-        "sin cambios",
-        "se elimina(n)",
-        "nueva(s) · modificada(s) · sin cambios · se elimina(n) @if (!d.faseExiste) {",
-        "Nueva } @case ('modificada') {",
-        "Modificada } @case ('sin_cambios') {",
-        "Sin cambios } @case ('eliminada') {",
-        "Se elimina } }",
-        "Cronograma importado"
-      ]
-    },
-    {
       "pantalla": "proyectos/clima",
       "total": 38,
       "cubiertos": 26,
@@ -6304,6 +6281,16 @@
       "pantalla": "proyectos/costos",
       "total": 13,
       "cubiertos": 13,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/cronograma-import",
+      "total": 39,
+      "cubiertos": 39,
       "sin": 0,
       "pct": 100,
       "enScope": true,

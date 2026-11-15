@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 59%** (6223/10535 literales de 192 pantallas en alcance). **`ht`: 83%**.
+**Alcance `en`: 59%** (6239/10539 literales de 192 pantallas en alcance). **`ht`: 83%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -93,7 +93,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | proyectos/lista | scope | 168 | 109 | 59 | 65% |
-| proyectos/cronograma-import | scope | 35 | 23 | 12 | 66% |
 | proyectos/clima | scope | 38 | 26 | 12 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
@@ -196,13 +195,14 @@
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/costos | enforce | 13 | 13 | 0 | 100% |
+| proyectos/cronograma-import | enforce | 39 | 39 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**487 literal(es) sin t()** en 70 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**486 literal(es) sin t()** en 69 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -274,5 +274,4 @@
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
 | src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |
-| src/app/pages/proyectos/cronograma-import/cronograma-import.ts | 1 | Cronograma importado |
 | src/app/pages/rrhh/organigrama/organigrama.ts | 1 | No se pudo cargar el organigrama |

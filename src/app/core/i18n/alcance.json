@@ -259,9 +259,6 @@
     "proyectos/lista": {
       "enforce": false
     },
-    "proyectos/cronograma-import": {
-      "enforce": false
-    },
     "proyectos/clima": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "proyectos/costos": {
+      "enforce": true
+    },
+    "proyectos/cronograma-import": {
       "enforce": true
     },
     "proyectos/kpi": {
