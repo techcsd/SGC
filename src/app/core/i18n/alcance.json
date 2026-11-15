@@ -58,9 +58,6 @@
     "admin/usuarios-test": {
       "enforce": false
     },
-    "apoyo-transporte": {
-      "enforce": false
-    },
     "auth/set-password": {
       "enforce": false
     },
@@ -211,9 +208,6 @@
     "rrhh/tramites": {
       "enforce": false
     },
-    "solicitudes-movimiento": {
-      "enforce": false
-    },
     "tareas/gestion": {
       "enforce": false
     },
@@ -268,9 +262,6 @@
     "tecnologia/resumen-operaciones": {
       "enforce": false
     },
-    "trabajos-transporte": {
-      "enforce": false
-    },
     "verificar": {
       "enforce": false
     },
@@ -293,6 +284,15 @@
       "enforce": false
     },
     "auth": {
+      "enforce": false
+    },
+    "solicitudes-movimiento": {
+      "enforce": false
+    },
+    "trabajos-transporte": {
+      "enforce": false
+    },
+    "apoyo-transporte": {
       "enforce": false
     },
     "practica": {

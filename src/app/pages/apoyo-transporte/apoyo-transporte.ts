@@ -16,6 +16,7 @@ import { Lightbox } from '../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { FilterSelect, FilterOption } from '../../../shared/ui/filter-select/filter-select';
 import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 
 interface TipoDef { value: TipoApoyo; label: string; glosa: string; }
 
@@ -32,7 +33,7 @@ const ESTADO_LABEL: Record<EstadoApoyo, string> = {
 
 @Component({
   selector: 'app-apoyo-transporte',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, FileUpload, Lightbox, Icon, FilterSelect],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, FileUpload, Lightbox, Icon, FilterSelect, TranslatePipe],
   templateUrl: './apoyo-transporte.html',
   styleUrl: './apoyo-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

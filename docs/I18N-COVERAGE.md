@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 53%** (5616/10625 literales de 192 pantallas en alcance). **`ht`: 82%**.
+**Alcance `en`: 54%** (5698/10604 literales de 192 pantallas en alcance). **`ht`: 82%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -26,7 +26,6 @@
 | admin/usuarios | scope | 163 | 0 | 163 | 0% |
 | admin/usuarios-duplicados | scope | 18 | 0 | 18 | 0% |
 | admin/usuarios-test | scope | 37 | 0 | 37 | 0% |
-| apoyo-transporte | scope | 57 | 0 | 57 | 0% |
 | auth/set-password | scope | 13 | 0 | 13 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | documentos/generar | scope | 9 | 0 | 9 | 0% |
@@ -77,7 +76,6 @@
 | rrhh/proveedores | scope | 35 | 0 | 35 | 0% |
 | rrhh/reportes | scope | 20 | 0 | 20 | 0% |
 | rrhh/tramites | scope | 47 | 0 | 47 | 0% |
-| solicitudes-movimiento | scope | 94 | 0 | 94 | 0% |
 | tareas/gestion | scope | 38 | 0 | 38 | 0% |
 | tareas/historial | scope | 22 | 0 | 22 | 0% |
 | tareas/mis-tareas | scope | 7 | 0 | 7 | 0% |
@@ -96,7 +94,6 @@
 | tecnologia/qa | scope | 83 | 0 | 83 | 0% |
 | tecnologia/reportes-errores | scope | 66 | 0 | 66 | 0% |
 | tecnologia/resumen-operaciones | scope | 70 | 0 | 70 | 0% |
-| trabajos-transporte | scope | 24 | 0 | 24 | 0% |
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
@@ -105,6 +102,9 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| solicitudes-movimiento | scope | 81 | 38 | 43 | 47% |
+| trabajos-transporte | scope | 22 | 11 | 11 | 50% |
+| apoyo-transporte | scope | 51 | 33 | 18 | 65% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |

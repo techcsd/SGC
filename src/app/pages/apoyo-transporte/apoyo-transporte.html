@@ -1,10 +1,10 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Apoyo de transporte</h1>
-    <p class="page-subtitle">Pide mover material entre obras, retirar lo que sobra o botar escombros. Solo obra, día y foto.</p>
+    <h1 class="page-title">{{ 'Apoyo de transporte' | t }}</h1>
+    <p class="page-subtitle">{{ 'Pide mover material entre obras, retirar lo que sobra o botar escombros. Solo obra, día y foto.' | t }}</p>
   </div>
   <div class="page-header__right">
-    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">+ Nuevo apoyo</button>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">{{ '+ Nuevo apoyo' | t }}</button>
   </div>
 </div>
 
@@ -18,14 +18,14 @@
 @if (loading()) {
   <app-skeleton variant="table" [rows]="6" />
 } @else if (filtrados().length === 0) {
-  <p class="apoyo-vacio">No hay apoyos de transporte que coincidan.</p>
+  <p class="apoyo-vacio">{{ 'No hay apoyos de transporte que coincidan.' | t }}</p>
 } @else {
   <div class="apoyo-grid">
     @for (r of filtrados(); track r.id) {
       <button type="button" class="apoyo-card" (click)="abrirDetalle(r)">
         <div class="apoyo-card__thumb">
           @if (thumbs()[r.id]; as url) {
-            <img [src]="url" alt="Foto del apoyo" loading="lazy" />
+            <img [src]="url" alt="{{ 'Foto del apoyo' | t }}" loading="lazy" />
           } @else {
             <span class="apoyo-card__noimg"><app-icon name="truck" [size]="22" /></span>
           }
@@ -47,7 +47,7 @@
               @if (r.motivo_cancelacion) { · «{{ r.motivo_cancelacion }}» }
             </p>
           } @else if (r.estado === 'completada' && r.completada_por_nombre) {
-            <p class="apoyo-card__quien">Completada por <b>{{ r.completada_por_nombre }}</b></p>
+            <p class="apoyo-card__quien">{{ 'Completada por' | t }} <b>{{ r.completada_por_nombre }}</b></p>
           }
         </div>
       </button>
@@ -56,11 +56,11 @@
 }
 
 <!-- ── Crear apoyo ── -->
-<app-form-drawer title="Nuevo apoyo de transporte" [open]="crearOpen()" (closed)="crearOpen.set(false)">
+<app-form-drawer title="{{ 'Nuevo apoyo de transporte' | t }}" [open]="crearOpen()" (closed)="crearOpen.set(false)">
   <form class="apoyo-form" [formGroup]="form" (ngSubmit)="guardar()">
     <!-- Tipo -->
     <div class="sgc-field">
-      <label>Tipo <span class="required">*</span></label>
+      <label>{{ 'Tipo' | t }} <span class="required">*</span></label>
       <div class="apoyo-tipos">
         @for (t of TIPOS; track t.value) {
           <button type="button" class="apoyo-tipo" [class.apoyo-tipo--on]="tipoSel() === t.value" (click)="setTipo(t.value)">
@@ -73,7 +73,7 @@
 
     <!-- Obra -->
     <div class="sgc-field">
-      <label for="ap-obra">Obra <span class="required">*</span></label>
+      <label for="ap-obra">{{ 'Obra' | t }} <span class="required">*</span></label>
       <select id="ap-obra" formControlName="proyecto_id">
         <option [ngValue]="null">— Elige la obra —</option>
         @for (o of obras(); track o.id) { <option [ngValue]="o.id">{{ o.nombre }}</option> }
@@ -82,19 +82,19 @@
 
     <!-- Día -->
     <div class="sgc-field">
-      <label for="ap-dia">Día <span class="required">*</span></label>
+      <label for="ap-dia">{{ 'Día' | t }} <span class="required">*</span></label>
       <input id="ap-dia" type="date" formControlName="dia" />
     </div>
 
     <!-- Qué hay que mover -->
     <div class="sgc-field">
-      <label for="ap-desc">¿Qué hay que mover? <span class="required">*</span></label>
-      <textarea id="ap-desc" rows="3" formControlName="descripcion" placeholder="Ej.: 20 sacos de cemento sobrante del 3er nivel…"></textarea>
+      <label for="ap-desc">{{ '¿Qué hay que mover?' | t }} <span class="required">*</span></label>
+      <textarea id="ap-desc" rows="3" formControlName="descripcion" placeholder="{{ 'Ej.: 20 sacos de cemento sobrante del 3er nivel…' | t }}"></textarea>
     </div>
 
     <!-- Fotos -->
     <div class="sgc-field">
-      <label>Foto(s) <span class="required">*</span></label>
+      <label>{{ 'Foto(s)' | t }} <span class="required">*</span></label>
       <app-file-upload [files]="fotos()" [max]="4" accept="image/*"
         label="Toma o arrastra una foto de lo que se va a mover"
         hint="Hasta 4 fotos." (add)="addFotos($event)" (removeAt)="quitarFoto($event)" />
@@ -103,8 +103,8 @@
     <!-- Destino (solo movimiento interno) -->
     @if (tipoSel() === 'movimiento_interno') {
       <div class="sgc-field">
-        <label for="ap-dest">Destino (opcional)</label>
-        <input id="ap-dest" type="text" formControlName="destino_texto" placeholder="Otra obra / almacén / donde lo define Misael" />
+        <label for="ap-dest">{{ 'Destino (opcional)' | t }}</label>
+        <input id="ap-dest" type="text" formControlName="destino_texto" placeholder="{{ 'Otra obra / almacén / donde lo define Misael' | t }}" />
       </div>
     }
 
@@ -112,12 +112,12 @@
     @if (tipoSel() === 'retiro_material') {
       <label class="apoyo-check">
         <input type="checkbox" formControlName="es_danado" />
-        <span>Es material dañado que vuelve al almacén (cuarentena)</span>
+        <span>{{ 'Es material dañado que vuelve al almacén (cuarentena)' | t }}</span>
       </label>
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="crearOpen.set(false)" [disabled]="guardando()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="crearOpen.set(false)" [disabled]="guardando()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ guardando() ? 'Creando…' : 'Crear apoyo' }}</button>
     </div>
   </form>
@@ -128,19 +128,19 @@
   [open]="detalleOpen()" (closed)="detalleOpen.set(false)">
   @if (detalle(); as d) {
     <div class="apoyo-detalle">
-      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Obra</span><span>{{ d.proyecto ?? '—' }}</span></div>
-      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Día</span><span>{{ d.dia ? fFecha(d.dia) : '—' }}</span></div>
-      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Solicitante</span><span>{{ d.solicitante ?? '—' }}</span></div>
-      @if (d.destino_texto) { <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Destino</span><span>{{ d.destino_texto }}</span></div> }
+      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">{{ 'Obra' | t }}</span><span>{{ d.proyecto ?? '—' }}</span></div>
+      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">{{ 'Día' | t }}</span><span>{{ d.dia ? fFecha(d.dia) : '—' }}</span></div>
+      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">{{ 'Solicitante' | t }}</span><span>{{ d.solicitante ?? '—' }}</span></div>
+      @if (d.destino_texto) { <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">{{ 'Destino' | t }}</span><span>{{ d.destino_texto }}</span></div> }
       <div class="apoyo-detalle__block">
-        <span class="apoyo-detalle__label">¿Qué hay que mover?</span>
+        <span class="apoyo-detalle__label">{{ '¿Qué hay que mover?' | t }}</span>
         <p>{{ d.descripcion || '—' }}</p>
       </div>
 
       <!-- Fotos -->
       @if (detalleFotos().length) {
         <div class="apoyo-detalle__fotos">
-          @for (u of detalleFotos(); track u) { <img [src]="u" alt="Foto del apoyo" (click)="lightbox.set(u)" /> }
+          @for (u of detalleFotos(); track u) { <img [src]="u" alt="{{ 'Foto del apoyo' | t }}" (click)="lightbox.set(u)" /> }
         </div>
       }
 
@@ -149,31 +149,31 @@
         <div class="apoyo-acciones apoyo-aprobar">
           @if (aprobando()) {
             <div class="sgc-field">
-              <label for="ap-aprobar-veh">Vehículo</label>
+              <label for="ap-aprobar-veh">{{ 'Vehículo' | t }}</label>
               <select id="ap-aprobar-veh" [value]="planVehiculo()" (change)="planVehiculo.set($any($event.target).value || null)">
                 <option value="">— Selecciona vehículo —</option>
                 @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
               </select>
             </div>
             <div class="sgc-field">
-              <label for="ap-aprobar-cond">Chofer</label>
+              <label for="ap-aprobar-cond">{{ 'Chofer' | t }}</label>
               <select id="ap-aprobar-cond" [value]="planConductor()" (change)="planConductor.set($any($event.target).value || null)">
                 <option value="">— Selecciona chofer —</option>
                 @for (c of conductores(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
               </select>
             </div>
             <div class="sgc-field">
-              <label for="ap-aprobar-fecha">Fecha de la ruta</label>
+              <label for="ap-aprobar-fecha">{{ 'Fecha de la ruta' | t }}</label>
               <input id="ap-aprobar-fecha" type="date" [value]="planFecha()" (change)="planFecha.set($any($event.target).value)" />
             </div>
             <div class="apoyo-acciones__row">
-              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="aprobando.set(false)" [disabled]="aprobandoBusy()">Volver</button>
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="aprobando.set(false)" [disabled]="aprobandoBusy()">{{ 'Volver' | t }}</button>
               <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarAprobar()" [disabled]="aprobandoBusy()">
                 {{ aprobandoBusy() ? 'Aprobando…' : 'Aprobar y crear ruta' }}
               </button>
             </div>
           } @else {
-            <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirAprobar()">Aprobar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirAprobar()">{{ 'Aprobar' | t }}</button>
           }
         </div>
       }
@@ -185,19 +185,19 @@
             <textarea rows="2" [value]="notaAccion()" (input)="notaAccion.set($any($event.target).value)"
               [placeholder]="pn === 'cancelar' ? 'Motivo de la cancelación…' : 'Explica por qué aún no se ha hecho…'"></textarea>
             <div class="apoyo-acciones__row">
-              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set(null)" [disabled]="accionBusy()">Volver</button>
-              <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarConNota(pn)" [disabled]="accionBusy()">Confirmar</button>
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set(null)" [disabled]="accionBusy()">{{ 'Volver' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarConNota(pn)" [disabled]="accionBusy()">{{ 'Confirmar' | t }}</button>
             </div>
           } @else {
             @if (d.estado === 'pendiente' || d.estado === 'asignada') {
-              <button type="button" class="sgc-btn sgc-btn--danger" (click)="pidiendoNota.set('cancelar')" [disabled]="accionBusy()">Cancelar</button>
+              <button type="button" class="sgc-btn sgc-btn--danger" (click)="pidiendoNota.set('cancelar')" [disabled]="accionBusy()">{{ 'Cancelar' | t }}</button>
             }
             @if (d.estado === 'asignada' || d.estado === 'en_proceso') {
-              <button type="button" class="sgc-btn sgc-btn--primary" (click)="cambiar('completada')" [disabled]="accionBusy()">Ya se hizo — Completar</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="cambiar('completada')" [disabled]="accionBusy()">{{ 'Ya se hizo — Completar' | t }}</button>
             }
             @if (d.estado === 'por_confirmar') {
-              <button type="button" class="sgc-btn sgc-btn--primary" (click)="cambiar('completada')" [disabled]="accionBusy()">Confirmar que se hizo</button>
-              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set('reabrir')" [disabled]="accionBusy()">No se ha hecho</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="cambiar('completada')" [disabled]="accionBusy()">{{ 'Confirmar que se hizo' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set('reabrir')" [disabled]="accionBusy()">{{ 'No se ha hecho' | t }}</button>
             }
           }
         </div>
@@ -206,17 +206,17 @@
       <!-- CO9 — "Cambiar estado": solo transporte elevado/admin, solo cuando ya está cerrado. -->
       @if (esElevado() && (d.estado === 'completada' || d.estado === 'cancelada')) {
         <div class="apoyo-detalle__block apoyo-reabrir">
-          <span class="apoyo-detalle__label">Cambiar estado</span>
+          <span class="apoyo-detalle__label">{{ 'Cambiar estado' | t }}</span>
           <div class="apoyo-reabrir__pills">
             @for (e of REABRIR_DESTINOS; track e) {
               <button type="button" class="apoyo-reabrir__pill" [class.apoyo-reabrir__pill--on]="reabrirDestino() === e"
                 (click)="reabrirDestino.set(e)">{{ estadoLabel(e) }}</button>
             }
           </div>
-          <label for="co9-nota-reabrir">¿Por qué la reabres? (obligatorio)</label>
+          <label for="co9-nota-reabrir">{{ '¿Por qué la reabres? (obligatorio)' | t }}</label>
           <textarea id="co9-nota-reabrir" class="sgc-input" rows="2" [value]="notaReabrir()"
             (input)="notaReabrir.set($any($event.target).value)"></textarea>
-          <span class="apoyo-reabrir__hint">Queda en la línea de tiempo y se avisa al solicitante.</span>
+          <span class="apoyo-reabrir__hint">{{ 'Queda en la línea de tiempo y se avisa al solicitante.' | t }}</span>
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="accionBusy() || !reabrirDestino()"
             (click)="confirmarReabrirEstado()">
             {{ reabrirDestino() ? ('Reabrir como ' + estadoLabel(reabrirDestino()!)) : 'Elige un estado' }}
@@ -226,7 +226,7 @@
 
       <!-- Línea de tiempo -->
       <div class="apoyo-timeline">
-        <span class="apoyo-detalle__label">Línea de tiempo</span>
+        <span class="apoyo-detalle__label">{{ 'Línea de tiempo' | t }}</span>
         @for (e of d.eventos; track e.created_at) {
           <div class="apoyo-timeline__item">
             <span class="apoyo-timeline__dot"></span>
@@ -245,5 +245,5 @@
 </app-form-drawer>
 
 @if (lightbox(); as url) {
-  <app-lightbox [src]="url" alt="Foto del apoyo" (closed)="lightbox.set(null)" />
+  <app-lightbox [src]="url" alt="{{ 'Foto del apoyo' | t }}" (closed)="lightbox.set(null)" />
 }

@@ -23,6 +23,7 @@ import { Bodega } from '../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../shared/ui/articulo-picker/articulo-picker';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 
 /**
  * AY11 — Solicitud de movimiento. El ingeniero solicita mover material/equipo; los
@@ -32,7 +33,7 @@ import { ArticuloPicker, ArticuloPickerSelection } from '../../../shared/ui/arti
  */
 @Component({
   selector: 'app-solicitudes-movimiento',
-  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, ArticuloPicker],
+  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, ArticuloPicker, TranslatePipe],
   templateUrl: './solicitudes-movimiento.html',
   styleUrl: './solicitudes-movimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

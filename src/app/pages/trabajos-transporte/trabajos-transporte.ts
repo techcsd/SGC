@@ -7,6 +7,7 @@ import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../shared/utils/fecha.util';
 import { esUuid } from '../../../shared/utils/uuid.util';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 
 interface Columna { key: string; label: string; estados: string[]; }
 
@@ -20,7 +21,7 @@ const COLUMNAS: Columna[] = [
 
 @Component({
   selector: 'app-trabajos-transporte',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './trabajos-transporte.html',
   styleUrl: './trabajos-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
