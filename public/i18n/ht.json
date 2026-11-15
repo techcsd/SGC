@@ -4021,5 +4021,12 @@
   "Retiro de material": "Retrè materyèl",
   "Asignados": "Asiyen",
   "En proceso": "Ann ale",
-  "Completados hoy": "Konplete jodi a"
+  "Completados hoy": "Konplete jodi a",
+  "Aún no hay material valorizado consumido en esta obra.": "Poko gen materyèl valorize konsome sou chantye sa a.",
+  "Costo de material": "Kou materyèl",
+  "Costo total": "Kou total",
+  "Costo total de material consumido": "Kou total materyèl konsome",
+  "Costo unit. prom.": "Kou inite mwayèn",
+  "El costo se congela al despachar cada salida, usando el costo promedio móvil del artículo. No incluye movimientos de prueba.": "Kou a fikse lè chak sòti ekspedye, lè l itilize kou mwayèn mobil atik la. Mouvman tès pa enkli.",
+  "← Proyectos": "← Chantye"
 }

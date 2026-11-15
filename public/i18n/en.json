@@ -4882,5 +4882,12 @@
   "Retiro de material": "Material removal",
   "Asignados": "Assigned",
   "En proceso": "In progress",
-  "Completados hoy": "Completed today"
+  "Completados hoy": "Completed today",
+  "Aún no hay material valorizado consumido en esta obra.": "No valued material has been consumed on this project yet.",
+  "Costo de material": "Material cost",
+  "Costo total": "Total cost",
+  "Costo total de material consumido": "Total cost of material consumed",
+  "Costo unit. prom.": "Avg. unit cost",
+  "El costo se congela al despachar cada salida, usando el costo promedio móvil del artículo. No incluye movimientos de prueba.": "The cost is locked in when each dispatch goes out, using the item's moving average cost. Test movements are not included.",
+  "← Proyectos": "← Projects"
 }

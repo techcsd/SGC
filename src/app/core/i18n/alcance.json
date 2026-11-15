@@ -569,7 +569,7 @@
       "enforce": true
     },
     "proyectos/costos": {
-      "enforce": false
+      "enforce": true
     },
     "solicitudes-movimiento": {
       "enforce": true
