@@ -41,6 +41,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { PdfViewer } from '../../../../shared/ui/pdf-viewer/pdf-viewer';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { GrabadoraAudio } from '../../../../shared/components/grabadora-audio/grabadora-audio';
@@ -98,6 +99,7 @@ export class Mantenimientos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private proveedoresService = inject(ProveedoresService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private route = inject(ActivatedRoute);
   private userService = inject(UserService);
@@ -182,7 +184,7 @@ export class Mantenimientos implements OnInit {
       }
     } catch (e: unknown) {
       this.editingAdjuntos.update((l) => l.map((a) => (a.id === adj.id ? { ...a, tipo_documento: previo } : a)));
-      this.toast.error('No se pudo cambiar el tipo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el tipo'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -213,7 +215,7 @@ export class Mantenimientos implements OnInit {
   async abrirAdjunto(adj: MantenimientoAdjunto) {
     const url = await this.mantenimientosService.getAdjuntoUrl(adj.path);
     if (!url) {
-      this.toast.error('No se pudo abrir el adjunto', 'Vuelve a intentarlo.');
+      this.toast.error(this.i18n.t('No se pudo abrir el adjunto'), 'Vuelve a intentarlo.');
       return;
     }
     if (this.esPdf(adj)) {
@@ -236,7 +238,7 @@ export class Mantenimientos implements OnInit {
       else rechazados++;
     }
     if (rechazados) {
-      this.toast.warning('Archivo no admitido', 'Solo se aceptan imágenes y PDF.');
+      this.toast.warning(this.i18n.t('Archivo no admitido'), 'Solo se aceptan imágenes y PDF.');
     }
     if (aceptados.length) this.adjPending.update((l) => [...l, ...aceptados]);
   }
@@ -252,7 +254,7 @@ export class Mantenimientos implements OnInit {
 
   /** Elimina un adjunto ya guardado del registro en edición. */
   async eliminarAdjunto(adj: MantenimientoAdjunto) {
-    if (!confirm(`¿Eliminar el adjunto "${adj.nombre}"?`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el adjunto "{nombre}"?', { nombre: adj.nombre }))) return;
     try {
       await this.mantenimientosService.deleteAdjunto(adj.id, adj.path);
       this.editingAdjuntos.update((l) => l.filter((a) => a.id !== adj.id));
@@ -262,9 +264,9 @@ export class Mantenimientos implements OnInit {
           list.map((m) => (m.id === id ? { ...m, adjuntos: (m.adjuntos ?? []).filter((a) => a.id !== adj.id) } : m)),
         );
       }
-      this.toast.success('Adjunto eliminado');
+      this.toast.success(this.i18n.t('Adjunto eliminado'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -537,8 +539,14 @@ export class Mantenimientos implements OnInit {
 
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
+  /** Evita el operador > en el template (rompe el escáner de i18n). */
+  paginaFin = computed(() => {
+    const fin = this.currentPage() * this.PAGE_SIZE;
+    return Math.min(fin, this.filtered().length);
+  });
+
   drawerTitle = computed(() =>
-    this.editingId() ? 'Editar mantenimiento' : 'Nuevo mantenimiento',
+    this.i18n.t(this.editingId() ? 'Editar mantenimiento' : 'Nuevo mantenimiento'),
   );
 
   // ── T16 — Vehículos cerca o vencidos de mantenimiento (por km) ──────────────
@@ -725,9 +733,9 @@ export class Mantenimientos implements OnInit {
       await this.mantenimientosService.completar(m.id, m.kilometraje_al_mantenimiento ?? null);
       await this.loadAll();
       this.motion.momento('mantenimiento'); // CL2 — la llave gira
-      this.toast.success('Mantenimiento completado', 'Se actualizó el próximo mantenimiento del vehículo.');
+      this.toast.success(this.i18n.t('Mantenimiento completado'), 'Se actualizó el próximo mantenimiento del vehículo.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo completar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo completar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.completandoId.set(null);
     }
@@ -743,24 +751,24 @@ export class Mantenimientos implements OnInit {
         list.map((x) => (x.id === m.id ? { ...x, es_prueba: valor } : x)),
       );
       this.toast.success(
-        valor ? 'Marcado como prueba' : 'Quitado de prueba',
+        this.i18n.t(valor ? 'Marcado como prueba' : 'Quitado de prueba'),
         valor ? 'El mantenimiento se ocultará del listado.' : 'El mantenimiento vuelve al listado.',
       );
     } catch (e: unknown) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     }
   }
 
   /** Elimina definitivamente un mantenimiento marcado como prueba. */
   async eliminarPrueba(m: Mantenimiento) {
     if (!this.esAdmin() || !m.es_prueba) return;
-    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    if (!confirm(this.i18n.t('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.'))) return;
     try {
       await this.datosPrueba.eliminar('mantenimientos', m.id);
       this.mantenimientos.update((list) => list.filter((x) => x.id !== m.id));
-      this.toast.success('Dato de prueba eliminado', 'El mantenimiento se eliminó definitivamente.');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), 'El mantenimiento se eliminó definitivamente.');
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
@@ -931,7 +939,7 @@ export class Mantenimientos implements OnInit {
         try {
           uploaded.push(await this.mantenimientosService.uploadFoto(saved.id, pending.file));
         } catch {
-          this.toast.warning('Foto no subida', `No se pudo subir "${pending.file.name}".`);
+          this.toast.warning(this.i18n.t('Foto no subida'), `No se pudo subir "${pending.file.name}".`);
         }
       }
 
@@ -944,7 +952,7 @@ export class Mantenimientos implements OnInit {
           await this.mantenimientosService.setFotos(saved.id, finalFotos);
           saved = { ...saved, fotos: finalFotos };
         } catch {
-          this.toast.warning('Fotos no guardadas', 'El mantenimiento se guardó, pero las fotos no.');
+          this.toast.warning(this.i18n.t('Fotos no guardadas'), 'El mantenimiento se guardó, pero las fotos no.');
         }
       } else {
         saved = { ...saved, fotos: finalFotos };
@@ -957,7 +965,7 @@ export class Mantenimientos implements OnInit {
         try {
           await this.mantenimientosService.uploadAdjunto(saved.id, p.file, p.tipo, p.descripcion ?? null);
         } catch (e: unknown) {
-          this.toast.warning('Adjunto no subido', `No se pudo subir "${p.file.name}".`);
+          this.toast.warning(this.i18n.t('Adjunto no subido'), `No se pudo subir "${p.file.name}".`);
         }
       }
 

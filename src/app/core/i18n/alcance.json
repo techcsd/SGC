@@ -328,9 +328,6 @@
     "auth": {
       "enforce": false
     },
-    "flota/mantenimientos": {
-      "enforce": false
-    },
     "flota/combustible": {
       "enforce": false
     },
@@ -461,6 +458,9 @@
       "enforce": true
     },
     "flota/cupos-combustible": {
+      "enforce": true
+    },
+    "flota/mantenimientos": {
       "enforce": true
     },
     "flota/panel-dia": {

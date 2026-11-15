@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Mantenimientos' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'registros' : 'registro') | t }}</span>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="mantenimientos" [rows]="filtered()" [allRows]="mantenimientos()"
@@ -11,7 +11,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo mantenimiento
+      {{ 'Nuevo mantenimiento' | t }}
     </button>
   </div>
 </div>
@@ -20,20 +20,20 @@
 @if (vehiculosMantenimiento().length > 0) {
   <div class="mant-banner sgc-card" role="status">
     <div class="mant-banner__title">
-      <app-icon name="wrench" [size]="16" /> {{ vehiculosMantenimiento().length }} vehículo{{ vehiculosMantenimiento().length !== 1 ? 's' : '' }} necesita{{ vehiculosMantenimiento().length === 1 ? '' : 'n' }} atención de mantenimiento
+      <app-icon name="wrench" [size]="16" /> {{ vehiculosMantenimiento().length }} {{ (vehiculosMantenimiento().length !== 1 ? 'vehículos necesitan atención de mantenimiento' : 'vehículo necesita atención de mantenimiento') | t }}
     </div>
     <ul class="mant-banner__list">
       @for (x of vehiculosMantenimiento(); track x.v.id) {
         <li class="mant-banner__item">
           <span class="mant-banner__veh">{{ idVehiculo(x.v) }}</span>
           @if (x.faltan !== null && x.faltan <= 0) {
-            <span class="sgc-badge sgc-badge--danger">Vencido · pasado con {{ -x.faltan! | number:'1.0-0' }} km</span>
+            <span class="sgc-badge sgc-badge--danger">{{ 'Vencido · pasado con' | t }} {{ -x.faltan! | number:'1.0-0' }} {{ 'km' | t }}</span>
           } @else {
-            <span class="sgc-badge sgc-badge--warning">Faltan {{ x.faltan | number:'1.0-0' }} km</span>
+            <span class="sgc-badge sgc-badge--warning">{{ 'Faltan' | t }} {{ x.faltan | number:'1.0-0' }} {{ 'km' | t }}</span>
           }
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                   (click)="crearDesdeBanner(x.v.id, (x.faltan ?? 0) <= 0)">
-            Crear mantenimiento
+            {{ 'Crear mantenimiento' | t }}
           </button>
         </li>
       }
@@ -49,7 +49,7 @@
       <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
     <div class="alert-banner__body">
-      <strong>{{ proximosMantenimientos().length }} mantenimiento{{ proximosMantenimientos().length !== 1 ? 's' : '' }} próximo{{ proximosMantenimientos().length !== 1 ? 's' : '' }}</strong>
+      <strong>{{ proximosMantenimientos().length }} {{ (proximosMantenimientos().length !== 1 ? 'mantenimientos próximos' : 'mantenimiento próximo') | t }}</strong>
       <span>
         @for (m of proximosMantenimientos(); track m.id; let last = $last) {
           {{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }} ({{ formatFecha(m.fecha) }}){{ !last ? ', ' : '' }}
@@ -77,9 +77,9 @@
       (change)="onTipoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por tipo' | t }}"
     >
-      <option value="">Todos los tipos</option>
+      <option value="">{{ 'Todos los tipos' | t }}</option>
       @for (t of MANT_TIPOS; track t.value) {
-        <option [value]="t.value">{{ t.label }}</option>
+        <option [value]="t.value">{{ t.label | t }}</option>
       }
     </select>
   </div>
@@ -90,16 +90,16 @@
       (change)="onEstadoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="">Todos los estados</option>
+      <option value="">{{ 'Todos los estados' | t }}</option>
       @for (e of MANT_ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
 
   @if (searchQuery() || selectedTipo() || selectedEstado()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
@@ -111,7 +111,7 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -164,7 +164,7 @@
                 (click)="openDetail(m)"
                 (keydown.enter)="openDetail(m)"
                 (keydown.space)="openDetail(m); $event.preventDefault()"
-                [attr.aria-label]="'Ver detalle del mantenimiento del ' + formatFecha(m.fecha)">
+                [attr.aria-label]="i18n.t('Ver detalle del mantenimiento del') + ' ' + formatFecha(m.fecha)">
               <td class="mantenimientos__fecha">{{ formatFecha(m.fecha) }}</td>
               <td>
                 <span class="mantenimientos__placa">{{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }}</span>
@@ -173,13 +173,13 @@
                 }
               </td>
               <td>
-                <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
+                <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) | t }}</span>
                 @if (m.incluye_preventivo) {
                   <span class="sgc-badge sgc-badge--success" title="{{ 'También incluyó mantenimiento preventivo' | t }}">{{ '+ prev.' | t }}</span>
                 }
               </td>
               <td>
-                <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) }}</span>
+                <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) | t }}</span>
               </td>
               <td class="text-right">
                 @if (m.costo !== null) {
@@ -224,7 +224,7 @@
                       class="action-btn action-btn--ok"
                       (click)="completar(m)"
                       [disabled]="completandoId() === m.id"
-                      [attr.aria-label]="'Marcar como completado el mantenimiento del ' + m.fecha"
+                      [attr.aria-label]="i18n.t('Marcar como completado el mantenimiento del') + ' ' + m.fecha"
                       title="{{ 'Marcar como completado' | t }}"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -236,7 +236,7 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(m)"
-                    [attr.aria-label]="'Editar mantenimiento del ' + m.fecha"
+                    [attr.aria-label]="i18n.t('Editar mantenimiento del') + ' ' + m.fecha"
                     title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -288,8 +288,8 @@
     @if (totalPages() > 1) {
       <div class="pagination">
         <span class="pagination__info">
-          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ paginaFin() }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -377,7 +377,7 @@
         formControlName="vehiculo_id"
         [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
       >
-        <option [ngValue]="null">Seleccionar vehículo…</option>
+        <option [ngValue]="null">{{ 'Seleccionar vehículo…' | t }}</option>
         @for (v of vehiculosVisibles(); track v.id) {
           <option [value]="v.id">{{ idVehiculo(v) }}</option>
         }
@@ -396,7 +396,7 @@
           [class.invalid]="f.tipo.invalid && f.tipo.touched"
         >
           @for (t of MANT_TIPOS; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+            <option [value]="t.value">{{ t.label | t }}</option>
           }
         </select>
       </div>
@@ -405,7 +405,7 @@
         <label for="estado">{{ 'Estado' | t }} <span class="required">*</span></label>
         <select id="estado" formControlName="estado">
           @for (e of MANT_ESTADOS; track e.value) {
-            <option [value]="e.value">{{ e.label }}</option>
+            <option [value]="e.value">{{ e.label | t }}</option>
           }
         </select>
       </div>
@@ -417,7 +417,7 @@
       <div class="sgc-field">
         <label class="mant-check">
           <input type="checkbox" formControlName="incluye_preventivo" />
-          También se hizo mantenimiento preventivo (cuenta para el ciclo)
+          {{ 'También se hizo mantenimiento preventivo (cuenta para el ciclo)' | t }}
         </label>
       </div>
     }
@@ -456,13 +456,13 @@
       </div>
 
       <div class="sgc-field">
-        <label for="kilometraje_al_mantenimiento">{{ esHorometro() ? 'Horómetro (h)' : 'Kilometraje' }}</label>
+        <label for="kilometraje_al_mantenimiento">{{ (esHorometro() ? 'Horómetro (h)' : 'Kilometraje') | t }}</label>
         <input id="kilometraje_al_mantenimiento" type="number" formControlName="kilometraje_al_mantenimiento" min="0" [placeholder]="unidadUso()" />
         <!-- CH1 — pista gris de la última lectura (nunca roja si no hay error). -->
         @if (kmValidacion()?.km_antes != null) {
-          <span class="field-hint">Última lectura: {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
+          <span class="field-hint">{{ 'Última lectura:' | t }} {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
         } @else if (odometroSeleccionado() !== null) {
-          <span class="field-hint">{{ esHorometro() ? 'Horómetro' : 'Odómetro' }} actual: {{ odometroSeleccionado() | number:'1.0-0' }} {{ unidadUso() }}.</span>
+          <span class="field-hint">{{ (esHorometro() ? 'Horómetro' : 'Odómetro') | t }} {{ 'actual:' | t }} {{ odometroSeleccionado() | number:'1.0-0' }} {{ unidadUso() }}.</span>
         }
         <!-- CH1 — error (bloquea Guardar): retroceso vs. lectura anterior o exceso retroactivo. -->
         @if (kmValidacion()?.nivel === 'error') {
@@ -474,7 +474,7 @@
             <span class="km-aviso__msg">{{ kmValidacion()!.mensaje }}</span>
             <label class="mant-check">
               <input type="checkbox" [checked]="kmConfirmado()" (change)="kmConfirmado.set($any($event.target).checked)" />
-              Sí, es correcto
+              {{ 'Sí, es correcto' | t }}
             </label>
           </div>
         }
@@ -485,7 +485,7 @@
     <div class="sgc-field">
       <label>{{ 'Proveedor / Taller' | t }}</label>
       <app-filter-select
-        label="Proveedor / Taller"
+        [label]="'Proveedor / Taller' | t"
         placeholder="{{ 'Selecciona el taller/proveedor' | t }}"
         [options]="proveedorOpciones()"
         [value]="proveedorSel()"
@@ -498,7 +498,7 @@
         @if (esFlotaElevado()) {
           <label class="mant-check">
             <input type="checkbox" [checked]="proveedorAltaTaller()" (change)="proveedorAltaTaller.set($any($event.target).checked)" />
-            Agregar al catálogo como taller
+            {{ 'Agregar al catálogo como taller' | t }}
           </label>
         }
       }
@@ -588,7 +588,7 @@
                   (input)="setAdjDescripcion(i, $any($event.target).value)"
                   [placeholder]="'¿Qué documento es?' | t" />
               }
-              <button type="button" class="adj-pending__remove" (click)="onAdjRemove(i)" [attr.aria-label]="'Quitar ' + a.file.name">
+              <button type="button" class="adj-pending__remove" (click)="onAdjRemove(i)" [attr.aria-label]="i18n.t('Quitar') + ' ' + a.file.name">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </li>
@@ -616,14 +616,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear mantenimiento' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear mantenimiento') | t }}
         }
       </button>
     </div>
@@ -641,8 +641,8 @@
           <span class="detail__sub">{{ formatFecha(m.fecha) }}</span>
         </div>
         <div class="detail__badges">
-          <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
-          <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) }}</span>
+          <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) | t }}</span>
+          <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) | t }}</span>
           @if (m.incluye_preventivo) {
             <span class="sgc-badge sgc-badge--success" title="{{ 'También incluyó mantenimiento preventivo' | t }}">{{ '+ prev.' | t }}</span>
           }
@@ -653,11 +653,11 @@
       <div class="detail__grid">
         <div class="detail__item">
           <span class="detail__label">{{ 'Tipo de visita' | t }}</span>
-          <span class="detail__value detail__value--wrap">{{ getTipoLabel(m.tipo) }}</span>
+          <span class="detail__value detail__value--wrap">{{ getTipoLabel(m.tipo) | t }}</span>
         </div>
         <div class="detail__item">
           <span class="detail__label">{{ 'Estado' | t }}</span>
-          <span class="detail__value detail__value--wrap">{{ getEstadoLabel(m.estado) }}</span>
+          <span class="detail__value detail__value--wrap">{{ getEstadoLabel(m.estado) | t }}</span>
         </div>
         <div class="detail__item">
           <span class="detail__label">{{ 'Vehículo' | t }}</span>
@@ -668,7 +668,7 @@
         <div class="detail__item">
           <span class="detail__label">{{ 'Kilometraje' | t }}</span>
           <span class="detail__value">
-            {{ m.kilometraje_al_mantenimiento !== null ? (m.kilometraje_al_mantenimiento | number:'1.0-0') + ' km' : '—' }}
+            {{ m.kilometraje_al_mantenimiento !== null ? (m.kilometraje_al_mantenimiento | number:'1.0-0') + ' ' + i18n.t('km') : '—' }}
           </span>
         </div>
         <div class="detail__item">

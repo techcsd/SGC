@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 44%** (4694/10702 literales de 192 pantallas en alcance). **`ht`: 73%**.
+**Alcance `en`: 44%** (4728/10697 literales de 192 pantallas en alcance). **`ht`: 74%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -116,7 +116,6 @@
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| flota/mantenimientos | scope | 93 | 54 | 39 | 58% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
 | flota/rutas | scope | 98 | 61 | 37 | 62% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
@@ -161,6 +160,7 @@
 | flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
 | flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
+| flota/mantenimientos | enforce | 88 | 88 | 0 | 100% |
 | flota/panel-dia | enforce | 26 | 26 | 0 | 100% |
 | flota/recorrido-diario | enforce | 12 | 12 | 0 | 100% |
 | flota/rendimiento-vehiculos | enforce | 19 | 19 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**664 literal(es) sin t()** en 89 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**649 literal(es) sin t()** en 88 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -213,7 +213,6 @@
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 16 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
-| src/app/pages/flota/mantenimientos/mantenimientos.ts | 15 | No se pudo cambiar el tipo · No se pudo abrir el adjunto · Archivo no admitido … |
 | src/app/pages/flota/vehiculos/vehiculos.ts | 15 | Sin filas · Rendimientos importados · No se pudo importar … |
 | src/app/pages/ingenieria/pagos/pagos.ts | 14 | No se pudo crear la semana · No se pudo crear la semana · No se pudo guardar … |
 | src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
