@@ -2056,5 +2056,11 @@
   "Ítems": "Atik",
   "Ítems de la orden": "Atik lòd la",
   "↓ abajo": "↓ anba",
-  "(y {n} más)": " (ak {n} anplis)"
+  "(y {n} más)": " (ak {n} anplis)",
+  "Enviada a aprobación en Odoo": "Voye pou apwobasyon nan Odoo",
+  "No se pudo publicar en Odoo": "Pa t kapab pibliye nan Odoo",
+  "Orden guardada sin publicar": "Lòd sove san pibliye",
+  "Orden publicada en Odoo": "Lòd pibliye nan Odoo",
+  "Recepciones en Odoo:": "Resepsyon nan Odoo:",
+  "Total en Odoo:": "Total nan Odoo:"
 }

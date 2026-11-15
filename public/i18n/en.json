@@ -3105,5 +3105,11 @@
   "Ítems": "Items",
   "Ítems de la orden": "Order items",
   "↓ abajo": "↓ below",
-  "(y {n} más)": " (and {n} more)"
+  "(y {n} más)": " (and {n} more)",
+  "Enviada a aprobación en Odoo": "Sent for approval in Odoo",
+  "No se pudo publicar en Odoo": "Couldn't publish in Odoo",
+  "Orden guardada sin publicar": "Order saved without publishing",
+  "Orden publicada en Odoo": "Order published in Odoo",
+  "Recepciones en Odoo:": "Receipts in Odoo:",
+  "Total en Odoo:": "Total in Odoo:"
 }

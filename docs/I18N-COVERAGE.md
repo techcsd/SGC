@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 30%** (3260/11004 literales de 192 pantallas en alcance). **`ht`: 66%**.
+**Alcance `en`: 31%** (3378/10982 literales de 192 pantallas en alcance). **`ht`: 66%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -34,7 +34,6 @@
 | bitacora/historial | scope | 97 | 0 | 97 | 0% |
 | bitacora/mi-proyecto | scope | 5 | 0 | 5 | 0% |
 | bitacora/solicitudes-compra | scope | 34 | 0 | 34 | 0% |
-| compras/ordenes-odoo | scope | 140 | 0 | 140 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | documentos/generar | scope | 9 | 0 | 9 | 0% |
 | documentos/historial | scope | 10 | 0 | 10 | 0% |
@@ -160,6 +159,7 @@
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/ordenes | enforce | 111 | 111 | 0 | 100% |
+| compras/ordenes-odoo | enforce | 118 | 118 | 0 | 100% |
 | compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
 | compras/proveedores | enforce | 77 | 77 | 0 | 100% |
 | compras/proveedores-odoo | enforce | 44 | 44 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**737 literal(es) sin t()** en 98 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**721 literal(es) sin t()** en 97 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -211,7 +211,6 @@
 | src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
-| src/app/pages/compras/ordenes-odoo/ordenes-odoo.ts | 16 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
 | src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 16 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
 | src/app/pages/flota/mantenimientos/mantenimientos.ts | 15 | No se pudo cambiar el tipo · No se pudo abrir el adjunto · Archivo no admitido … |
