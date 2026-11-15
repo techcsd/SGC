@@ -6,6 +6,7 @@ import { Cargo } from '../../../../shared/models/personal-obra.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** Fila previsualizada del import (antes de confirmar). */
 interface FilaPrev {
@@ -64,7 +65,7 @@ function parsePermiso(obs: string | null): string | null {
 
 @Component({
   selector: 'app-personal-import',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TranslatePipe],
   templateUrl: './personal-import.html',
   styleUrl: './personal-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

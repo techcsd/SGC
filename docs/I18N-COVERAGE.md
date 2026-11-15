@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 54%** (5771/10605 literales de 192 pantallas en alcance). **`ht`: 82%**.
+**Alcance `en`: 59%** (6197/10532 literales de 192 pantallas en alcance). **`ht`: 82%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -53,15 +53,6 @@
 | obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
 | politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
 | politicas | scope | 15 | 0 | 15 | 0% |
-| proyectos/cargos | scope | 43 | 0 | 43 | 0% |
-| proyectos/clima | scope | 40 | 0 | 40 | 0% |
-| proyectos/compras | scope | 30 | 0 | 30 | 0% |
-| proyectos/costos | scope | 13 | 0 | 13 | 0% |
-| proyectos/cronograma | scope | 81 | 0 | 81 | 0% |
-| proyectos/cronograma-import | scope | 37 | 0 | 37 | 0% |
-| proyectos/historial | scope | 18 | 0 | 18 | 0% |
-| proyectos/kpi | scope | 26 | 0 | 26 | 0% |
-| proyectos/lista | scope | 203 | 0 | 203 | 0% |
 | rrhh/activos | scope | 44 | 0 | 44 | 0% |
 | rrhh/asistencia | scope | 40 | 0 | 40 | 0% |
 | rrhh/ausencias | scope | 48 | 0 | 48 | 0% |
@@ -100,15 +91,23 @@
 | legal/expedientes | scope | 89 | 7 | 82 | 8% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
-| proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| proyectos/kpi | scope | 23 | 14 | 9 | 61% |
+| proyectos/cargos | scope | 38 | 24 | 14 | 63% |
+| proyectos/lista | scope | 168 | 109 | 59 | 65% |
+| proyectos/cronograma-import | scope | 35 | 23 | 12 | 66% |
+| proyectos/clima | scope | 38 | 26 | 12 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
+| proyectos/cronograma | scope | 73 | 53 | 20 | 73% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
+| proyectos/personal | scope | 263 | 203 | 60 | 77% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
+| proyectos/historial | scope | 16 | 13 | 3 | 81% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
+| proyectos/compras | scope | 28 | 24 | 4 | 86% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -197,6 +196,7 @@
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
+| proyectos/costos | scope | 13 | 13 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 

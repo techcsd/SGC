@@ -13,7 +13,7 @@
          mismo peso visual que la acción principal). Se oculta si no aplica ninguno. -->
     @if (tieneAccionesExtra()) {
       <div class="pob-menu">
-        <button type="button" class="sgc-btn sgc-btn--ghost pob-menu__trigger" aria-label="Más acciones"
+        <button type="button" class="sgc-btn sgc-btn--ghost pob-menu__trigger" aria-label="{{ 'Más acciones' | t }}"
                 [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">
           <app-icon name="more-horizontal" [size]="18" />
         </button>

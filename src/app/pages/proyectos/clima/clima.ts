@@ -6,12 +6,13 @@ import { WeatherAlertsService, WeatherAlerta } from '../../../../shared/context/
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { daysAgoIso, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 type RangoDias = 7 | 30 | 90;
 
 @Component({
   selector: 'app-proyectos-clima',
-  imports: [DatePipe, BarChart, Skeleton, RouterLink],
+  imports: [DatePipe, BarChart, Skeleton, RouterLink, TranslatePipe],
   templateUrl: './clima.html',
   styleUrl: './clima.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

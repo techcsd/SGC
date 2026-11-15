@@ -9,9 +9,9 @@
   <!-- ── PÁGINA: Nuevo proyecto ─────────────────────────────────── -->
   <section class="proyectos proyectos--pagina">
     <div class="proyectos__pagina-head">
-      <button type="button" class="proyectos__back" (click)="cancelarCrear()">← Proyectos</button>
-      <h1 class="proyectos__title">Nuevo proyecto</h1>
-      <p class="proyectos__subtitle">Registra una nueva obra. El código se genera automáticamente.</p>
+      <button type="button" class="proyectos__back" (click)="cancelarCrear()">{{ '← Proyectos' | t }}</button>
+      <h1 class="proyectos__title">{{ 'Nuevo proyecto' | t }}</h1>
+      <p class="proyectos__subtitle">{{ 'Registra una nueva obra. El código se genera automáticamente.' | t }}</p>
     </div>
     <div class="proyectos__pagina-body proyectos__pagina-body--form">
       <ng-container [ngTemplateOutlet]="proyectoFormTpl" />
@@ -25,24 +25,24 @@
     <section class="proyectos proyectos--pagina">
       <!-- Encabezado -->
       <div class="proyectos__pagina-head">
-        <button type="button" class="proyectos__back" (click)="volverListado()">← Proyectos</button>
+        <button type="button" class="proyectos__back" (click)="volverListado()">{{ '← Proyectos' | t }}</button>
         <div class="proyectos__detail-title-row">
           <div>
             <span class="proyectos__codigo">{{ p.codigo }}</span>
-            @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+            @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
             <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }} proyectos__badge--lg">
               {{ getEstadoLabel(p.estado) }}
             </span>
             <h1 class="proyectos__detail-nombre">{{ p.nombre }}</h1>
           </div>
           <div class="proyectos__detail-title-actions">
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']"><app-icon name="calendar" [size]="15" /> Cronograma</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']"><app-icon name="dollar-sign" [size]="15" /> Costos</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']"><app-icon name="shopping-cart" [size]="15" /> Compras</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]"><app-icon name="package" [size]="15" /> Inventario</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']"><app-icon name="calendar" [size]="15" /> {{ 'Cronograma' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']"><app-icon name="dollar-sign" [size]="15" /> {{ 'Costos' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']"><app-icon name="shopping-cart" [size]="15" /> {{ 'Compras' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]"><app-icon name="package" [size]="15" /> {{ 'Inventario' | t }}</a>
             @if (verRequisiciones()) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/requisiciones']"
-                 [queryParams]="{ obra: p.id }" title="Requisiciones de esta obra">
+                 [queryParams]="{ obra: p.id }" title="{{ 'Requisiciones de esta obra' | t }}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z" />
@@ -52,7 +52,7 @@
               </a>
             }
             @if (puedeGestionarProyectos()) {
-              <button type="button" class="proyectos__btn-edit" (click)="openEdit(p, $event)">Editar</button>
+              <button type="button" class="proyectos__btn-edit" (click)="openEdit(p, $event)">{{ 'Editar' | t }}</button>
             }
             <!-- AT19 — cerrar/reabrir obra (solo admin, reversible). Cerrada = sale de selectores, historial intacto. -->
             @if (esAdmin()) {
@@ -68,7 +68,7 @@
       @if (!tieneAlmacen(p.id) && p.estado !== 'completado' && p.estado !== 'cancelado') {
         <div class="alm-faltantes alm-faltantes--inline" role="note">
           <div class="alm-faltantes__inline">
-            <span><app-icon name="alert-triangle" [size]="15" /> Esta obra no tiene almacén asignado.</span>
+            <span><app-icon name="alert-triangle" [size]="15" /> {{ 'Esta obra no tiene almacén asignado.' | t }}</span>
             @if (puedeGestionarResponsables()) {
               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                       [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
@@ -80,7 +80,7 @@
       }
 
       <!-- Pestañas -->
-      <nav class="proyectos__tabs" role="tablist" aria-label="Secciones del proyecto">
+      <nav class="proyectos__tabs" role="tablist" aria-label="{{ 'Secciones del proyecto' | t }}">
         @for (t of tabsVisibles(); track t.id) {
           <button
             type="button"
@@ -100,42 +100,42 @@
           <div class="proyectos__detail-grid">
             @if (p.cliente) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Cliente</span>
+                <span class="proyectos__detail-key">{{ 'Cliente' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.cliente }}</span>
               </div>
             }
             @if (p.tipo) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Tipo</span>
+                <span class="proyectos__detail-key">{{ 'Tipo' | t }}</span>
                 <span class="proyectos__detail-val">{{ getTipoLabel(p.tipo) }}</span>
               </div>
             }
             @if (p.fecha_inicio) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Fecha inicio</span>
+                <span class="proyectos__detail-key">{{ 'Fecha inicio' | t }}</span>
                 <span class="proyectos__detail-val">{{ formatFecha(p.fecha_inicio) }}</span>
               </div>
             }
             @if (p.fecha_fin_estimada) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Fin estimado</span>
+                <span class="proyectos__detail-key">{{ 'Fin estimado' | t }}</span>
                 <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_estimada) }}</span>
               </div>
             }
             @if (p.fecha_fin_real) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Fin real</span>
+                <span class="proyectos__detail-key">{{ 'Fin real' | t }}</span>
                 <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_real) }}</span>
               </div>
             }
             @if (p.presupuesto) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Presupuesto</span>
+                <span class="proyectos__detail-key">{{ 'Presupuesto' | t }}</span>
                 <span class="proyectos__detail-val">RD${{ p.presupuesto | number:'1.0-0' }}</span>
               </div>
             }
             <div class="proyectos__detail-item">
-              <span class="proyectos__detail-key">Gasto real (compras)</span>
+              <span class="proyectos__detail-key">{{ 'Gasto real (compras)' | t }}</span>
               <span
                 class="proyectos__detail-val"
                 [class.proyectos__detail-val--over]="p.presupuesto != null && gastoReal() > p.presupuesto"
@@ -148,38 +148,38 @@
             </div>
             @if (p.ubicacion) {
               <div class="proyectos__detail-item proyectos__detail-item--full">
-                <span class="proyectos__detail-key">Ubicación</span>
+                <span class="proyectos__detail-key">{{ 'Ubicación' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.ubicacion }}</span>
               </div>
             }
             @if (p.responsable?.nombre) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Responsable</span>
+                <span class="proyectos__detail-key">{{ 'Responsable' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.responsable!.nombre }}</span>
               </div>
             }
             <!-- AM10 — datos estructurados de la obra -->
             @if (p.ingeniero_obra) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Ingeniero de obra</span>
+                <span class="proyectos__detail-key">{{ 'Ingeniero de obra' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.ingeniero_obra }}</span>
               </div>
             }
             @if (p.maestro_encargado) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Maestro encargado</span>
+                <span class="proyectos__detail-key">{{ 'Maestro encargado' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.maestro_encargado }}</span>
               </div>
             }
             @if (p.contacto_nombre) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Contacto de obra</span>
+                <span class="proyectos__detail-key">{{ 'Contacto de obra' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.contacto_nombre }}</span>
               </div>
             }
             @if (p.contacto_telefono) {
               <div class="proyectos__detail-item">
-                <span class="proyectos__detail-key">Teléfono de contacto</span>
+                <span class="proyectos__detail-key">{{ 'Teléfono de contacto' | t }}</span>
                 <span class="proyectos__detail-val">
                   <a class="proyectos__detail-link" [href]="'tel:' + p.contacto_telefono">{{ p.contacto_telefono }}</a>
                 </span>
@@ -187,7 +187,7 @@
             }
             @if (p.descripcion) {
               <div class="proyectos__detail-item proyectos__detail-item--full">
-                <span class="proyectos__detail-key">Descripción</span>
+                <span class="proyectos__detail-key">{{ 'Descripción' | t }}</span>
                 <span class="proyectos__detail-val">{{ p.descripcion }}</span>
               </div>
             }
@@ -202,7 +202,7 @@
 
           <!-- Progreso general -->
           <div class="proyectos__detail-progress-section">
-            <span class="proyectos__detail-key">Progreso general</span>
+            <span class="proyectos__detail-key">{{ 'Progreso general' | t }}</span>
             <div class="proyectos__progress-bar">
               <div
                 class="proyectos__progress-fill"
@@ -218,7 +218,7 @@
 
           <!-- R25: Pagado vs Trabajado -->
           <div class="proyectos__pagado">
-            <span class="proyectos__detail-key">Pagado vs Trabajado</span>
+            <span class="proyectos__detail-key">{{ 'Pagado vs Trabajado' | t }}</span>
 
             @if (avance()?.pago_excede) {
               <div class="proyectos__pagado-alert" role="alert">
@@ -227,7 +227,7 @@
             }
 
             <div class="proyectos__pagado-row">
-              <span class="proyectos__pagado-tag">Trabajado</span>
+              <span class="proyectos__pagado-tag">{{ 'Trabajado' | t }}</span>
               <div class="proyectos__progress-bar">
                 <div
                   class="proyectos__progress-fill"
@@ -242,7 +242,7 @@
             </div>
 
             <div class="proyectos__pagado-row">
-              <span class="proyectos__pagado-tag">Pagado</span>
+              <span class="proyectos__pagado-tag">{{ 'Pagado' | t }}</span>
               <div class="proyectos__progress-bar">
                 <div
                   class="proyectos__progress-fill proyectos__progress-fill--pagado"
@@ -261,7 +261,7 @@
 
             @if (puedeEditarPagado()) {
               <div class="proyectos__pagado-edit">
-                <label class="proyectos__label" for="pagado-input">Fijar % pagado (0-100)</label>
+                <label class="proyectos__label" for="pagado-input">{{ 'Fijar % pagado (0-100)' | t }}</label>
                 <div class="proyectos__pagado-edit-row">
                   <input
                     id="pagado-input"
@@ -289,7 +289,7 @@
           <!-- Preparación para iniciar (sistema de estrellas) -->
           <div class="proyectos__readiness">
             <div class="proyectos__readiness-head">
-              <span class="proyectos__detail-key">Preparación para iniciar</span>
+              <span class="proyectos__detail-key">{{ 'Preparación para iniciar' | t }}</span>
               <span
                 class="proyectos__readiness-score"
                 [class.proyectos__readiness-score--complete]="listoParaIniciar(p.id)"
@@ -326,23 +326,23 @@
           <!-- AR1 — Personal de obra (conteos por cargo y nacionalidad) -->
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Personal de obra</h3>
+              <h3 class="proyectos__fases-title">{{ 'Personal de obra' | t }}</h3>
               <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
-                 [routerLink]="['/proyectos/personal']" [queryParams]="{ obra: selectedProyecto()?.id }">Ver / registrar</a>
+                 [routerLink]="['/proyectos/personal']" [queryParams]="{ obra: selectedProyecto()?.id }">{{ 'Ver / registrar' | t }}</a>
             </div>
             @if (personalConteos(); as pc) {
               <div class="pob-conteos">
-                <div class="pob-conteos__total"><b>{{ pc.total }}</b><span>personas activas</span></div>
+                <div class="pob-conteos__total"><b>{{ pc.total }}</b><span>{{ 'personas activas' | t }}</span></div>
                 <div class="pob-conteos__cols">
                   <div>
-                    <span class="pob-conteos__lbl">Por cargo</span>
+                    <span class="pob-conteos__lbl">{{ 'Por cargo' | t }}</span>
                     @if (!pc.por_cargo.length) { <p class="text-muted">—</p> }
                     @for (c of pc.por_cargo; track c.cargo) {
                       <div class="pob-conteos__row"><span>{{ c.cargo }}</span><b>{{ c.total }}</b></div>
                     }
                   </div>
                   <div>
-                    <span class="pob-conteos__lbl">Por nacionalidad</span>
+                    <span class="pob-conteos__lbl">{{ 'Por nacionalidad' | t }}</span>
                     @if (!pc.por_nacionalidad.length) { <p class="text-muted">—</p> }
                     @for (n of pc.por_nacionalidad; track n.nacionalidad) {
                       <div class="pob-conteos__row"><span>{{ n.nacionalidad }}</span><b>{{ n.total }}</b></div>
@@ -351,14 +351,14 @@
                 </div>
               </div>
             } @else {
-              <p class="proyectos__fases-empty">Sin personal registrado en esta obra todavía.</p>
+              <p class="proyectos__fases-empty">{{ 'Sin personal registrado en esta obra todavía.' | t }}</p>
             }
           </div>
 
           <!-- Z2 — Responsables (ingenieros firmantes de liberación) -->
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Responsables</h3>
+              <h3 class="proyectos__fases-title">{{ 'Responsables' | t }}</h3>
             </div>
 
             @if (responsablesLoading()) {
@@ -367,7 +367,7 @@
               @if (responsables().length === 0) {
                 <p class="proyectos__fases-empty">
                   Sin ingenieros responsables vinculados. Una obra puede tener varios ingenieros;
-                  marca uno como <strong>principal</strong> (aparece como "ENC. OBRA" en encabezados y reportes).
+                  marca uno como <strong>{{ 'principal' | t }}</strong> (aparece como "ENC. OBRA" en encabezados y reportes).
                   Todos comparten la visibilidad y los permisos de la obra.
                 </p>
               } @else {
@@ -377,7 +377,7 @@
                       <div>
                         <p class="proyectos__fase-nombre">
                           @if (r.es_principal) {
-                            <span class="sgc-badge sgc-badge--hub">Principal</span>
+                            <span class="sgc-badge sgc-badge--hub">{{ 'Principal' | t }}</span>
                           }
                           <span class="sgc-badge sgc-badge--info">{{ tipoRespLabel(r.tipo_responsabilidad) }}</span>
                           {{ r.nombre }}
@@ -394,13 +394,13 @@
                             type="button"
                             class="sgc-btn sgc-btn--ghost sgc-btn--sm"
                             (click)="hacerPrincipal(r.usuario_id)"
-                          >Hacer principal</button>
+                          >{{ 'Hacer principal' | t }}</button>
                         }
                         <button
                           type="button"
                           class="proyectos__btn-icon proyectos__btn-icon--danger"
                           (click)="removeResponsable(r.id)"
-                          aria-label="Quitar responsable"
+                          aria-label="{{ 'Quitar responsable' | t }}"
                         >
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                         </button>
@@ -416,7 +416,7 @@
                   <select
                     [value]="nuevoRespTipo()"
                     (change)="nuevoRespTipo.set($any($event.target).value)"
-                    aria-label="Tipo de responsabilidad"
+                    aria-label="{{ 'Tipo de responsabilidad' | t }}"
                   >
                     @for (t of TIPOS_RESPONSABILIDAD; track t.value) {
                       <option [value]="t.value">{{ t.label }}</option>
@@ -425,7 +425,7 @@
                   <select
                     [value]="nuevoRespUsuarioId()"
                     (change)="nuevoRespUsuarioId.set($any($event.target).value)"
-                    aria-label="Seleccionar ingeniero"
+                    aria-label="{{ 'Seleccionar ingeniero' | t }}"
                   >
                     <option value="">Seleccionar ingeniero…</option>
                     @for (u of usuariosSinVincular(); track u.id) {
@@ -446,14 +446,14 @@
           <!-- Equipo de Obra (A3.2) -->
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Equipo de Obra</h3>
+              <h3 class="proyectos__fases-title">{{ 'Equipo de Obra' | t }}</h3>
             </div>
 
             @if (equipoLoading()) {
               <app-skeleton variant="list" [rows]="4" />
             } @else {
               @if (equipo().length === 0) {
-                <p class="proyectos__fases-empty">Sin miembros asignados a esta obra.</p>
+                <p class="proyectos__fases-empty">{{ 'Sin miembros asignados a esta obra.' | t }}</p>
               } @else {
                 @for (m of equipo(); track m.id) {
                   <div class="proyectos__fase-card">
@@ -467,7 +467,7 @@
                             {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
                           } @else {
                             {{ m.externo_nombre }}
-                            <span class="text-muted"> (externo)</span>
+                            <span class="text-muted"> {{ '(externo)' | t }}</span>
                           }
                         </p>
                         <p class="proyectos__fase-desc">
@@ -499,7 +499,7 @@
                 <select
                   [value]="nuevoMiembroRol()"
                   (change)="onNuevoMiembroRolChange($any($event.target).value)"
-                  aria-label="Rol en la obra"
+                  aria-label="{{ 'Rol en la obra' | t }}"
                 >
                   <option value="">Rol en la obra…</option>
                   @for (r of ROLES_OBRA; track r.value) {
@@ -508,15 +508,15 @@
                 </select>
 
                 <div class="proyectos__miembro-modo">
-                  <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'empleado'" (click)="setMiembroModo('empleado')">Empleado</button>
-                  <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'externo'" (click)="setMiembroModo('externo')">Externo</button>
+                  <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'empleado'" (click)="setMiembroModo('empleado')">{{ 'Empleado' | t }}</button>
+                  <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'externo'" (click)="setMiembroModo('externo')">{{ 'Externo' | t }}</button>
                 </div>
 
                 @if (nuevoMiembroModo() === 'empleado') {
                   <select
                     [value]="nuevoMiembroEmpleadoId()"
                     (change)="onNuevoMiembroChange($any($event.target).value)"
-                    aria-label="Seleccionar empleado"
+                    aria-label="{{ 'Seleccionar empleado' | t }}"
                   >
                     <option value="">Seleccionar empleado…</option>
                     @for (e of empleadosDisponibles(); track e.id) {
@@ -526,10 +526,10 @@
                 } @else {
                   <input
                     type="text"
-                    placeholder="Nombre de la empresa/entidad externa"
+                    placeholder="{{ 'Nombre de la empresa/entidad externa' | t }}"
                     [value]="nuevoMiembroExternoNombre()"
                     (input)="nuevoMiembroExternoNombre.set($any($event.target).value)"
-                    aria-label="Nombre de la entidad externa"
+                    aria-label="{{ 'Nombre de la entidad externa' | t }}"
                   />
                 }
 
@@ -537,8 +537,8 @@
                   type="date"
                   [value]="nuevoMiembroDesde()"
                   (change)="nuevoMiembroDesde.set($any($event.target).value)"
-                  aria-label="Vigente desde"
-                  title="Vigente desde (opcional)"
+                  aria-label="{{ 'Vigente desde' | t }}"
+                  title="{{ 'Vigente desde (opcional)' | t }}"
                 />
 
                 <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()">
@@ -556,7 +556,7 @@
         @if (detalleTab() === 'expediente') {
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Expediente de inicio de obra</h3>
+              <h3 class="proyectos__fases-title">{{ 'Expediente de inicio de obra' | t }}</h3>
             </div>
             <app-expediente-obra [proyectoId]="p.id" [usuarios]="usuarios()" />
           </div>
@@ -566,7 +566,7 @@
         @if (detalleTab() === 'cuadre' && verCuadre()) {
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Cuadre inicial de materiales</h3>
+              <h3 class="proyectos__fases-title">{{ 'Cuadre inicial de materiales' | t }}</h3>
             </div>
             <app-cuadre-obra [proyectoId]="p.id" [bodegas]="bodegasList()" [articulos]="articulosList()" />
           </div>
@@ -576,7 +576,7 @@
         @if (detalleTab() === 'ejecucion') {
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Vaciados y No Conformidades</h3>
+              <h3 class="proyectos__fases-title">{{ 'Vaciados y No Conformidades' | t }}</h3>
             </div>
             <app-ejecucion-obra [proyectoId]="p.id" />
           </div>
@@ -585,7 +585,7 @@
         <!-- ── Tab: Partidas ── -->
         @if (detalleTab() === 'partidas') {
           <div class="proyectos__fases">
-            <h3 class="proyectos__fases-title">Partidas</h3>
+            <h3 class="proyectos__fases-title">{{ 'Partidas' | t }}</h3>
             <app-proyecto-partidas [proyectoId]="p.id" />
           </div>
         }
@@ -594,7 +594,7 @@
         @if (detalleTab() === 'cl') {
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Checklists de Liberación (CL)</h3>
+              <h3 class="proyectos__fases-title">{{ 'Checklists de Liberación (CL)' | t }}</h3>
             </div>
             <app-cl-liberacion [proyectoId]="p.id" [focusRegistroId]="clFocusId()" [focusFirmaRol]="clFocusRol()" />
           </div>
@@ -604,37 +604,37 @@
         @if (detalleTab() === 'fases') {
           <!-- Z14 — Estructuras de la obra (bloques/pisos) -->
           <div class="proyectos__estructuras">
-            <h3 class="proyectos__fases-title">Estructuras (bloques / pisos)</h3>
-            <p class="proyectos__estructuras-hint">Se ofrecen como opciones en el campo "Bloque/Entrepiso" de las bitácoras de esta obra.</p>
+            <h3 class="proyectos__fases-title">{{ 'Estructuras (bloques / pisos)' | t }}</h3>
+            <p class="proyectos__estructuras-hint">{{ 'Se ofrecen como opciones en el campo "Bloque/Entrepiso" de las bitácoras de esta obra.' | t }}</p>
             <div class="proyectos__estructuras-chips">
               @for (e of estructuras(); track e.id) {
                 <span class="proyectos__estructura-chip">
                   {{ e.nombre }}
-                  <button type="button" (click)="eliminarEstructura(e)" aria-label="Eliminar estructura">×</button>
+                  <button type="button" (click)="eliminarEstructura(e)" aria-label="{{ 'Eliminar estructura' | t }}">×</button>
                 </span>
               } @empty {
-                <span class="text-muted">Sin estructuras definidas.</span>
+                <span class="text-muted">{{ 'Sin estructuras definidas.' | t }}</span>
               }
             </div>
             <div class="proyectos__estructuras-add">
               <input type="text" [value]="nuevaEstructura()" (input)="nuevaEstructura.set($any($event.target).value)"
-                     (keyup.enter)="agregarEstructura()" placeholder="Ej: Bloque A, Piso 3, Torre Norte…" maxlength="100" />
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarEstructura()">+ Agregar</button>
+                     (keyup.enter)="agregarEstructura()" placeholder="{{ 'Ej: Bloque A, Piso 3, Torre Norte…' | t }}" maxlength="100" />
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarEstructura()">{{ '+ Agregar' | t }}</button>
             </div>
           </div>
 
           <!-- Fases -->
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">
-              <h3 class="proyectos__fases-title">Fases del proyecto</h3>
+              <h3 class="proyectos__fases-title">{{ 'Fases del proyecto' | t }}</h3>
               <div class="proyectos__fases-actions">
-                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']"><app-icon name="calendar" [size]="15" /> Cronograma</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']"><app-icon name="dollar-sign" [size]="15" /> Costos</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']"><app-icon name="shopping-cart" [size]="15" /> Compras</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]"><app-icon name="package" [size]="15" /> Inventario</a>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']"><app-icon name="calendar" [size]="15" /> {{ 'Cronograma' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']"><app-icon name="dollar-sign" [size]="15" /> {{ 'Costos' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']"><app-icon name="shopping-cart" [size]="15" /> {{ 'Compras' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]"><app-icon name="package" [size]="15" /> {{ 'Inventario' | t }}</a>
                 @if (verRequisiciones()) {
                   <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/requisiciones']"
-                     [queryParams]="{ obra: p.id }" title="Requisiciones de esta obra">
+                     [queryParams]="{ obra: p.id }" title="{{ 'Requisiciones de esta obra' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z" />
@@ -643,7 +643,7 @@
                     Requisiciones
                   </a>
                 }
-                <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
+                <button class="proyectos__btn-add-fase" (click)="openNewFase()">{{ '+ Nueva fase' | t }}</button>
               </div>
             </div>
 
@@ -652,7 +652,7 @@
             }
 
             @if (!detailLoading() && (p.fases?.length ?? 0) === 0) {
-              <p class="proyectos__fases-empty">Sin fases registradas.</p>
+              <p class="proyectos__fases-empty">{{ 'Sin fases registradas.' | t }}</p>
             }
 
             @for (fase of p.fases; track fase.id) {
@@ -671,8 +671,8 @@
                     <span class="proyectos__badge proyectos__badge--{{ getFaseEstadoBadge(fase.estado) }}">
                       {{ getFaseEstadoLabel(fase.estado) }}
                     </span>
-                    <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase"><app-icon name="edit" [size]="15" /></button>
-                    <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase"><app-icon name="trash" [size]="15" /></button>
+                    <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="{{ 'Editar fase' | t }}"><app-icon name="edit" [size]="15" /></button>
+                    <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="{{ 'Eliminar fase' | t }}"><app-icon name="trash" [size]="15" /></button>
                   </div>
                 </div>
                 <div class="proyectos__fase-progress">
@@ -709,12 +709,12 @@
     <!-- Header -->
     <div class="proyectos__header">
       <div class="proyectos__header-left">
-        <h1 class="proyectos__title">Proyectos</h1>
-        <p class="proyectos__subtitle">Gestión y seguimiento de proyectos de construcción</p>
+        <h1 class="proyectos__title">{{ 'Proyectos' | t }}</h1>
+        <p class="proyectos__subtitle">{{ 'Gestión y seguimiento de proyectos de construcción' | t }}</p>
       </div>
       <div class="proyectos__header-actions">
         <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-                [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+                [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
           <app-icon name="download" [size]="16" /> Excel
         </button>
         @if (puedeGestionarProyectos()) {
@@ -729,19 +729,19 @@
     <div class="proyectos__stats">
       <div class="proyectos__stat-card">
         <span class="proyectos__stat-value">{{ statsTotal() }}</span>
-        <span class="proyectos__stat-label">Total</span>
+        <span class="proyectos__stat-label">{{ 'Total' | t }}</span>
       </div>
       <div class="proyectos__stat-card proyectos__stat-card--info">
         <span class="proyectos__stat-value">{{ statsEnProgreso() }}</span>
-        <span class="proyectos__stat-label">En progreso</span>
+        <span class="proyectos__stat-label">{{ 'En progreso' | t }}</span>
       </div>
       <div class="proyectos__stat-card proyectos__stat-card--success">
         <span class="proyectos__stat-value">{{ statsCompletados() }}</span>
-        <span class="proyectos__stat-label">Completados</span>
+        <span class="proyectos__stat-label">{{ 'Completados' | t }}</span>
       </div>
       <div class="proyectos__stat-card proyectos__stat-card--hub">
         <span class="proyectos__stat-value">RD${{ statsPresupuesto() | number:'1.0-0' }}</span>
-        <span class="proyectos__stat-label">Presupuesto total</span>
+        <span class="proyectos__stat-label">{{ 'Presupuesto total' | t }}</span>
       </div>
     </div>
 
@@ -774,16 +774,16 @@
       <input
         class="proyectos__search"
         type="search"
-        placeholder="Buscar por nombre, código o cliente..."
+        placeholder="{{ 'Buscar por nombre, código o cliente...' | t }}"
         [value]="searchQuery()"
         (input)="onSearch($any($event.target).value)"
-        aria-label="Buscar proyectos"
+        aria-label="{{ 'Buscar proyectos' | t }}"
       />
       <select
         class="proyectos__select"
         [value]="filterEstado()"
         (change)="onEstadoChange($any($event.target).value)"
-        aria-label="Filtrar por estado"
+        aria-label="{{ 'Filtrar por estado' | t }}"
       >
         <option value="">Todos los estados</option>
         @for (e of PROYECTO_ESTADOS; track e.value) {
@@ -794,7 +794,7 @@
         class="proyectos__select"
         [value]="filterTipo()"
         (change)="onTipoChange($any($event.target).value)"
-        aria-label="Filtrar por tipo"
+        aria-label="{{ 'Filtrar por tipo' | t }}"
       >
         <option value="">Todos los tipos</option>
         @for (t of PROYECTO_TIPOS; track t.value) {
@@ -807,7 +807,7 @@
           class="proyectos__select"
           [value]="filterZona()"
           (change)="onZonaChange($any($event.target).value)"
-          aria-label="Filtrar por zona"
+          aria-label="{{ 'Filtrar por zona' | t }}"
         >
           <option value="">Todas las zonas</option>
           @for (z of zonasDisponibles(); track z) {
@@ -821,7 +821,7 @@
           class="proyectos__select"
           [value]="filterSector()"
           (change)="onFilterSector($any($event.target).value)"
-          aria-label="Filtrar por sector"
+          aria-label="{{ 'Filtrar por sector' | t }}"
         >
           <option [value]="null">Todos los sectores</option>
           @for (s of sectoresDisponibles(); track s.id) {
@@ -830,7 +830,7 @@
         </select>
       }
       @if (searchQuery() || filterEstado() || filterTipo() || filterZona() || filterSector() != null) {
-        <button class="proyectos__btn-clear" (click)="clearFilters()">Limpiar</button>
+        <button class="proyectos__btn-clear" (click)="clearFilters()">{{ 'Limpiar' | t }}</button>
       }
       <!-- Z5(d) — mostrar datos de prueba (solo admin) -->
       @if (esAdmin()) {
@@ -858,7 +858,7 @@
     <!-- Grid -->
     @if (!loading()) {
       @if (filtered().length === 0) {
-        <div class="proyectos__empty">No se encontraron proyectos.</div>
+        <div class="proyectos__empty">{{ 'No se encontraron proyectos.' | t }}</div>
       } @else {
         <div class="proyectos__grid" appStagger>
           @for (p of filtered(); track p.id) {
@@ -875,7 +875,7 @@
               <div class="proyectos__card-header">
                 <span class="proyectos__codigo">{{ p.codigo }}</span>
                 <div class="proyectos__card-badges">
-                  @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                  @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                   <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }}">
                     {{ getEstadoLabel(p.estado) }}
                   </span>
@@ -955,7 +955,7 @@
                       class="proyectos__btn-delete-prueba"
                       type="button"
                       (click)="eliminarPrueba(p, $event)"
-                      title="Eliminar dato de prueba"
+                      title="{{ 'Eliminar dato de prueba' | t }}"
                       [attr.aria-label]="'Eliminar dato de prueba ' + p.nombre"
                     ><app-icon name="trash" [size]="15" /></button>
                   }
@@ -994,22 +994,22 @@
   <form [formGroup]="faseForm" (ngSubmit)="onSaveFase()" class="proyectos__form" novalidate>
     <div class="proyectos__form-grid">
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="fase-nombre">Nombre *</label>
+        <label class="proyectos__label" for="fase-nombre">{{ 'Nombre *' | t }}</label>
         <input
           id="fase-nombre"
           class="proyectos__input"
           [class.proyectos__input--error]="ff['nombre'].invalid && ff['nombre'].touched"
           formControlName="nombre"
           type="text"
-          placeholder="Nombre de la fase"
+          placeholder="{{ 'Nombre de la fase' | t }}"
         />
         @if (ff['nombre'].invalid && ff['nombre'].touched) {
-          <span class="proyectos__field-error">El nombre es requerido.</span>
+          <span class="proyectos__field-error">{{ 'El nombre es requerido.' | t }}</span>
         }
       </div>
 
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="fase-desc">Descripción</label>
+        <label class="proyectos__label" for="fase-desc">{{ 'Descripción' | t }}</label>
         <textarea
           id="fase-desc"
           class="proyectos__textarea"
@@ -1019,7 +1019,7 @@
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-estado">Estado</label>
+        <label class="proyectos__label" for="fase-estado">{{ 'Estado' | t }}</label>
         <select id="fase-estado" class="proyectos__input" formControlName="estado">
           @for (e of FASE_ESTADOS; track e.value) {
             <option [value]="e.value">{{ e.label }}</option>
@@ -1028,17 +1028,17 @@
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-orden">Orden</label>
+        <label class="proyectos__label" for="fase-orden">{{ 'Orden' | t }}</label>
         <input id="fase-orden" class="proyectos__input" formControlName="orden" type="number" min="1" />
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-inicio">Fecha inicio</label>
+        <label class="proyectos__label" for="fase-inicio">{{ 'Fecha inicio' | t }}</label>
         <input id="fase-inicio" class="proyectos__input" formControlName="fecha_inicio" type="date" />
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-fin">Fecha fin</label>
+        <label class="proyectos__label" for="fase-fin">{{ 'Fecha fin' | t }}</label>
         <input id="fase-fin" class="proyectos__input" formControlName="fecha_fin" type="date" />
       </div>
 
@@ -1061,7 +1061,7 @@
     }
 
     <div class="proyectos__form-actions">
-      <button type="button" class="proyectos__btn-cancel" (click)="closeFaseDrawer()">Cancelar</button>
+      <button type="button" class="proyectos__btn-cancel" (click)="closeFaseDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="proyectos__btn-save" [disabled]="faseSaving()">
         {{ faseSaving() ? 'Guardando...' : 'Guardar fase' }}
       </button>
@@ -1073,17 +1073,17 @@
 @if (almacenPrompt(); as proy) {
   <div class="art-modal-backdrop" (click)="descartarAlmacenPrompt()">
     <div class="art-modal art-modal--sm" role="dialog" aria-modal="true"
-         aria-label="Crear almacén de la obra" (click)="$event.stopPropagation()">
+         aria-label="{{ 'Crear almacén de la obra' | t }}" (click)="$event.stopPropagation()">
       <div class="art-modal__head">
-        <h2 class="art-modal__title">Almacén de la obra</h2>
-        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="Cerrar"><app-icon name="x" [size]="16" /></button>
+        <h2 class="art-modal__title">{{ 'Almacén de la obra' | t }}</h2>
+        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="{{ 'Cerrar' | t }}"><app-icon name="x" [size]="16" /></button>
       </div>
       <p class="alm-prompt__text">
         Toda obra debe tener un almacén. ¿Crear <strong>«Almacén {{ proy.nombre }}»</strong> ahora?
         Podrás vincular artículos y registrar entradas/salidas desde él.
       </p>
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descartarAlmacenPrompt()">Ahora no</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descartarAlmacenPrompt()">{{ 'Ahora no' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra()">
           @if (creandoAlmacen()) { Creando… } @else { Crear «Almacén {{ proy.nombre }}» }
         </button>
@@ -1098,48 +1098,48 @@
     <div class="proyectos__form-grid">
       <!-- Código -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="codigo">Código</label>
+        <label class="proyectos__label" for="codigo">{{ 'Código' | t }}</label>
         <input
           id="codigo"
           class="proyectos__input"
           formControlName="codigo"
           type="text"
-          placeholder="Se genera automáticamente"
+          placeholder="{{ 'Se genera automáticamente' | t }}"
           readonly
         />
       </div>
 
       <!-- Nombre -->
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="nombre">Nombre *</label>
+        <label class="proyectos__label" for="nombre">{{ 'Nombre *' | t }}</label>
         <input
           id="nombre"
           class="proyectos__input"
           [class.proyectos__input--error]="f['nombre'].invalid && f['nombre'].touched"
           formControlName="nombre"
           type="text"
-          placeholder="Nombre del proyecto"
+          placeholder="{{ 'Nombre del proyecto' | t }}"
         />
         @if (f['nombre'].invalid && f['nombre'].touched) {
-          <span class="proyectos__field-error">El nombre es requerido.</span>
+          <span class="proyectos__field-error">{{ 'El nombre es requerido.' | t }}</span>
         }
       </div>
 
       <!-- Cliente -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="cliente">Cliente</label>
+        <label class="proyectos__label" for="cliente">{{ 'Cliente' | t }}</label>
         <input
           id="cliente"
           class="proyectos__input"
           formControlName="cliente"
           type="text"
-          placeholder="Nombre del cliente"
+          placeholder="{{ 'Nombre del cliente' | t }}"
         />
       </div>
 
       <!-- Tipo -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="tipo">Tipo</label>
+        <label class="proyectos__label" for="tipo">{{ 'Tipo' | t }}</label>
         <select id="tipo" class="proyectos__select proyectos__input" formControlName="tipo">
           <option [ngValue]="null">Seleccionar tipo</option>
           @for (t of PROYECTO_TIPOS; track t.value) {
@@ -1150,7 +1150,7 @@
 
       <!-- Estado -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="estado">Estado *</label>
+        <label class="proyectos__label" for="estado">{{ 'Estado *' | t }}</label>
         <select id="estado" class="proyectos__select proyectos__input" formControlName="estado">
           @for (e of PROYECTO_ESTADOS; track e.value) {
             <option [value]="e.value">{{ e.label }}</option>
@@ -1160,19 +1160,19 @@
 
       <!-- Ingeniero principal (AV3) — el resto del equipo se gestiona en el detalle -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="responsable_id">Ingeniero principal</label>
+        <label class="proyectos__label" for="responsable_id">{{ 'Ingeniero principal' | t }}</label>
         <select id="responsable_id" class="proyectos__select proyectos__input" formControlName="responsable_id">
           <option [ngValue]="null">Sin responsable</option>
           @for (u of usuarios(); track u.id) {
             <option [value]="u.id">{{ u.nombre }}</option>
           }
         </select>
-        <p class="proyectos__hint">Puedes agregar más ingenieros al equipo desde el detalle de la obra (Responsables).</p>
+        <p class="proyectos__hint">{{ 'Puedes agregar más ingenieros al equipo desde el detalle de la obra (Responsables).' | t }}</p>
       </div>
 
       <!-- Fecha inicio -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="fecha_inicio">Fecha de inicio</label>
+        <label class="proyectos__label" for="fecha_inicio">{{ 'Fecha de inicio' | t }}</label>
         <input
           id="fecha_inicio"
           class="proyectos__input"
@@ -1183,7 +1183,7 @@
 
       <!-- Fecha fin estimada -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="fecha_fin_estimada">Fecha fin estimada</label>
+        <label class="proyectos__label" for="fecha_fin_estimada">{{ 'Fecha fin estimada' | t }}</label>
         <input
           id="fecha_fin_estimada"
           class="proyectos__input"
@@ -1194,7 +1194,7 @@
 
       <!-- Presupuesto -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="presupuesto">Presupuesto</label>
+        <label class="proyectos__label" for="presupuesto">{{ 'Presupuesto' | t }}</label>
         <input
           id="presupuesto"
           class="proyectos__input"
@@ -1207,19 +1207,19 @@
 
       <!-- Ubicación -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="ubicacion">Ubicación (texto)</label>
+        <label class="proyectos__label" for="ubicacion">{{ 'Ubicación (texto)' | t }}</label>
         <input
           id="ubicacion"
           class="proyectos__input"
           formControlName="ubicacion"
           type="text"
-          placeholder="Ciudad, dirección..."
+          placeholder="{{ 'Ciudad, dirección...' | t }}"
         />
       </div>
 
       <!-- AZ8 — Buscador de ubicación: "punta cana" rellena provincia/municipio/sector solo -->
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="ubic-buscar">Buscar ubicación</label>
+        <label class="proyectos__label" for="ubic-buscar">{{ 'Buscar ubicación' | t }}</label>
         <div class="proyectos__ubic-search">
           <input
             id="ubic-buscar"
@@ -1228,7 +1228,7 @@
             autocomplete="off"
             [value]="ubicBusqueda()"
             (input)="buscarUbicacion($any($event.target).value)"
-            placeholder="Escribe un sector, municipio o provincia — ej. Punta Cana"
+            placeholder="{{ 'Escribe un sector, municipio o provincia — ej. Punta Cana' | t }}"
           />
           @if (ubicResultados().length) {
             <ul class="proyectos__ubic-results">
@@ -1243,12 +1243,12 @@
             </ul>
           }
         </div>
-        <span class="proyectos__hint">Rellena provincia, municipio y sector de una vez. También puedes elegirlos manualmente abajo.</span>
+        <span class="proyectos__hint">{{ 'Rellena provincia, municipio y sector de una vez. También puedes elegirlos manualmente abajo.' | t }}</span>
       </div>
 
       <!-- AZ8 — Zona/región de la empresa (derivada de la provincia, editable) -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="zona">Zona / región</label>
+        <label class="proyectos__label" for="zona">{{ 'Zona / región' | t }}</label>
         <select id="zona" class="proyectos__input" formControlName="zona">
           <option [ngValue]="null">— Sin zona —</option>
           @for (z of zonasRd; track z) { <option [value]="z">{{ z }}</option> }
@@ -1257,14 +1257,14 @@
 
       <!-- AU4 — Locación estructurada: provincia → municipio → sector (para segmentar). -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="provincia_id">Provincia</label>
+        <label class="proyectos__label" for="provincia_id">{{ 'Provincia' | t }}</label>
         <select id="provincia_id" class="proyectos__input" formControlName="provincia_id">
           <option [ngValue]="null">— Seleccionar —</option>
           @for (pr of provincias(); track pr.id) { <option [ngValue]="pr.id">{{ pr.nombre }}</option> }
         </select>
       </div>
       <div class="proyectos__field">
-        <label class="proyectos__label" for="municipio_id">Municipio</label>
+        <label class="proyectos__label" for="municipio_id">{{ 'Municipio' | t }}</label>
         <select id="municipio_id" class="proyectos__input" formControlName="municipio_id"
                 [attr.disabled]="form.get('provincia_id')?.value ? null : true">
           <option [ngValue]="null">— Seleccionar —</option>
@@ -1272,7 +1272,7 @@
         </select>
       </div>
       <div class="proyectos__field">
-        <label class="proyectos__label" for="sector_id">Sector</label>
+        <label class="proyectos__label" for="sector_id">{{ 'Sector' | t }}</label>
         <div class="proyectos__sector-row">
           <select id="sector_id" class="proyectos__input" formControlName="sector_id"
                   [attr.disabled]="form.get('municipio_id')?.value ? null : true">
@@ -1280,23 +1280,23 @@
             @for (se of sectores(); track se.id) { <option [ngValue]="se.id">{{ se.nombre }}</option> }
           </select>
           @if (puedeEditarLocacion() && form.get('municipio_id')?.value) {
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarSectorInline()">+ Sector</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarSectorInline()">{{ '+ Sector' | t }}</button>
           }
         </div>
       </div>
 
       <!-- AZ9 — Equipo de obra con identidad real (no texto libre) -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="ingeniero_obra_id">Ingeniero de obra</label>
+        <label class="proyectos__label" for="ingeniero_obra_id">{{ 'Ingeniero de obra' | t }}</label>
         <select id="ingeniero_obra_id" class="proyectos__input" formControlName="ingeniero_obra_id">
           <option [ngValue]="null">— Seleccionar ingeniero —</option>
           @for (i of ingenierosDisp(); track i.id) { <option [ngValue]="i.id">{{ i.nombre }}</option> }
         </select>
-        <span class="proyectos__hint">Se elige de los usuarios con rol Ingenieros. Para varios ingenieros/residentes usa "Responsables" en el detalle de la obra.</span>
+        <span class="proyectos__hint">{{ 'Se elige de los usuarios con rol Ingenieros. Para varios ingenieros/residentes usa "Responsables" en el detalle de la obra.' | t }}</span>
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="maestro_ref">Maestro encargado</label>
+        <label class="proyectos__label" for="maestro_ref">{{ 'Maestro encargado' | t }}</label>
         <select id="maestro_ref" class="proyectos__input" formControlName="maestro_ref">
           <option [ngValue]="null">— Seleccionar maestro —</option>
           @if (ingenierosDisp().length) {
@@ -1310,34 +1310,34 @@
             </optgroup>
           }
         </select>
-        <span class="proyectos__hint">Puede ser un usuario del sistema o una ficha de Personal de obra (sin login).</span>
+        <span class="proyectos__hint">{{ 'Puede ser un usuario del sistema o una ficha de Personal de obra (sin login).' | t }}</span>
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="contacto_nombre">Contacto de obra</label>
+        <label class="proyectos__label" for="contacto_nombre">{{ 'Contacto de obra' | t }}</label>
         <input
           id="contacto_nombre"
           class="proyectos__input"
           formControlName="contacto_nombre"
           type="text"
-          placeholder="Nombre del contacto"
+          placeholder="{{ 'Nombre del contacto' | t }}"
         />
       </div>
 
       <div class="proyectos__field">
-        <label class="proyectos__label" for="contacto_telefono">Teléfono de contacto</label>
+        <label class="proyectos__label" for="contacto_telefono">{{ 'Teléfono de contacto' | t }}</label>
         <input
           id="contacto_telefono"
           class="proyectos__input"
           formControlName="contacto_telefono"
           type="tel"
-          placeholder="Ej. 809-000-0000"
+          placeholder="{{ 'Ej. 809-000-0000' | t }}"
         />
       </div>
 
       <!-- Geolocalización (mapa) -->
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label">Ubicación en el mapa (para clima y contexto)</label>
+        <label class="proyectos__label">{{ 'Ubicación en el mapa (para clima y contexto)' | t }}</label>
         <app-location-picker
           [latitud]="formLat()"
           [longitud]="formLng()"
@@ -1347,13 +1347,13 @@
 
       <!-- Descripción -->
       <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="descripcion">Descripción</label>
+        <label class="proyectos__label" for="descripcion">{{ 'Descripción' | t }}</label>
         <textarea
           id="descripcion"
           class="proyectos__textarea"
           formControlName="descripcion"
           rows="3"
-          placeholder="Descripción del proyecto..."
+          placeholder="{{ 'Descripción del proyecto...' | t }}"
         ></textarea>
       </div>
 
@@ -1365,7 +1365,7 @@
             <span class="toggle-switch" aria-hidden="true"></span>
             Dato de prueba
           </label>
-          <small class="proyectos__field-hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+          <small class="proyectos__field-hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
         </div>
       }
     </div>

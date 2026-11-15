@@ -5,6 +5,7 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { ToastService } from '../../../../shared/services/toast.service';
 import { CronogramaTarea } from '../../../../shared/models/cronograma.model';
 import { FaseProyecto } from '../../../../shared/models/proyecto.model';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AS21 — actividad parseada de una hoja del Excel. */
 interface TareaImport {
@@ -77,7 +78,7 @@ interface HojaDiff {
  */
 @Component({
   selector: 'app-cronograma-import',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './cronograma-import.html',
   styleUrl: './cronograma-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

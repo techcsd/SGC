@@ -8,10 +8,11 @@ import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-proyectos-historial',
-  imports: [DecimalPipe, RouterLink, DonutChart, BarChart, Skeleton, Paginator],
+  imports: [DecimalPipe, RouterLink, DonutChart, BarChart, Skeleton, Paginator, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

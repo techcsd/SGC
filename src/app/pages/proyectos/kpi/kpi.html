@@ -1,20 +1,20 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Ranking de Encargados</h1>
-    <span class="page-count">Desempeño por proyecto</span>
+    <h1 class="page-title">{{ 'Ranking de Encargados' | t }}</h1>
+    <span class="page-count">{{ 'Desempeño por proyecto' | t }}</span>
   </div>
 </div>
 
 <p class="kpi-intro">
-  Puntaje combinado de <strong>cumplimiento de bitácora</strong> (30%), <strong>seguridad / cero incidentes</strong> (30%),
-  <strong>control de presupuesto</strong> (25%) y <strong>avance de fases</strong> (15%). El avance pesa poco: una obra
+  Puntaje combinado de <strong>{{ 'cumplimiento de bitácora' | t }}</strong> (30%), <strong>{{ 'seguridad / cero incidentes' | t }}</strong> (30%),
+  <strong>{{ 'control de presupuesto' | t }}</strong> {{ '(25%) y' | t }} <strong>{{ 'avance de fases' | t }}</strong> (15%). El avance pesa poco: una obra
   recién iniciada no se "desempeña mal" por estar temprano.
 </p>
 
 <!-- AY3 — leyenda de la escala de color (accesible: no solo color, también el valor %) -->
-<div class="kpi-legend" aria-label="Escala de desempeño">
-  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--good"></span> Buen desempeño (≥80)</span>
-  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--mid"></span> Aceptable (60–79)</span>
+<div class="kpi-legend" aria-label="{{ 'Escala de desempeño' | t }}">
+  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--good"></span> {{ 'Buen desempeño (≥80)' | t }}</span>
+  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--mid"></span> {{ 'Aceptable (60–79)' | t }}</span>
   <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--low"></span> Necesita atención (&lt;60)</span>
 </div>
 
@@ -25,7 +25,7 @@
 @if (loading()) {
   <app-skeleton variant="cards" />
 } @else if (ranking().length === 0) {
-  <div class="table-empty sgc-card"><p>No hay proyectos activos para evaluar.</p></div>
+  <div class="table-empty sgc-card"><p>{{ 'No hay proyectos activos para evaluar.' | t }}</p></div>
 } @else {
   <div class="kpi-charts">
     <div class="sgc-card kpi-chart-card">
@@ -60,21 +60,21 @@
 
           <div class="ranking-card__metrics">
             <div class="metric">
-              <div class="metric__head"><span>Avance de fases</span><span>{{ k.scoreAvance }}</span></div>
+              <div class="metric__head"><span>{{ 'Avance de fases' | t }}</span><span>{{ k.scoreAvance }}</span></div>
               <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scoreAvance)" [style.width.%]="k.scoreAvance"></div></div>
             </div>
             <div class="metric">
-              <div class="metric__head"><span>Bitácora (30d)</span><span>{{ k.scoreBitacora }}</span></div>
+              <div class="metric__head"><span>{{ 'Bitácora (30d)' | t }}</span><span>{{ k.scoreBitacora }}</span></div>
               <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scoreBitacora)" [style.width.%]="k.scoreBitacora"></div></div>
               <span class="metric__note">{{ k.bitacoras_30d }} bitácora(s) del día</span>
             </div>
             <div class="metric">
-              <div class="metric__head"><span>Seguridad</span><span>{{ k.scoreSeguridad }}</span></div>
+              <div class="metric__head"><span>{{ 'Seguridad' | t }}</span><span>{{ k.scoreSeguridad }}</span></div>
               <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scoreSeguridad)" [style.width.%]="k.scoreSeguridad"></div></div>
               <span class="metric__note">{{ k.incidentes_90d }} incidente(s) (90d)</span>
             </div>
             <div class="metric">
-              <div class="metric__head"><span>Presupuesto</span><span>{{ k.scorePresupuesto }}</span></div>
+              <div class="metric__head"><span>{{ 'Presupuesto' | t }}</span><span>{{ k.scorePresupuesto }}</span></div>
               <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scorePresupuesto)" [style.width.%]="k.scorePresupuesto"></div></div>
               <span class="metric__note">
                 RD$ {{ k.gasto_real | number:'1.0-0' }} / {{ k.presupuesto ? ('RD$ ' + (k.presupuesto | number:'1.0-0')) : 's/ presupuesto' }}
@@ -92,13 +92,13 @@
       <span class="pagination__info">Página {{ currentPage() }} de {{ totalPages() }} · {{ ranking().length }} proyectos</span>
       <div class="pagination__controls">
         <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)"
-                [disabled]="currentPage() === 1" aria-label="Página anterior"><app-icon name="chevron-left" [size]="16" /></button>
+                [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}"><app-icon name="chevron-left" [size]="16" /></button>
         @for (p of pages; track p) {
           <button class="page-btn" type="button" (click)="goToPage(p)"
                   [class.page-btn--active]="p === currentPage()">{{ p }}</button>
         }
         <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)"
-                [disabled]="currentPage() === totalPages()" aria-label="Página siguiente"><app-icon name="chevron-right" [size]="16" /></button>
+                [disabled]="currentPage() === totalPages()" aria-label="{{ 'Página siguiente' | t }}"><app-icon name="chevron-right" [size]="16" /></button>
       </div>
     </div>
   }

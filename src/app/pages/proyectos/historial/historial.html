@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Historial de proyectos</h1>
+    <h1 class="page-title">{{ 'Historial de proyectos' | t }}</h1>
     <span class="page-count">{{ visibles().length }} proyecto{{ visibles().length !== 1 ? 's' : '' }}</span>
   </div>
 </div>
@@ -14,9 +14,9 @@
 } @else {
   <!-- Stat tiles -->
   <div class="hist-tiles">
-    <div class="hist-tile"><span class="hist-tile__num">{{ totalActivos() }}</span><span class="hist-tile__lbl">En progreso</span></div>
-    <div class="hist-tile"><span class="hist-tile__num">{{ totalCompletados() }}</span><span class="hist-tile__lbl">Completados</span></div>
-    <div class="hist-tile"><span class="hist-tile__num">{{ totalCancelados() }}</span><span class="hist-tile__lbl">Cancelados</span></div>
+    <div class="hist-tile"><span class="hist-tile__num">{{ totalActivos() }}</span><span class="hist-tile__lbl">{{ 'En progreso' | t }}</span></div>
+    <div class="hist-tile"><span class="hist-tile__num">{{ totalCompletados() }}</span><span class="hist-tile__lbl">{{ 'Completados' | t }}</span></div>
+    <div class="hist-tile"><span class="hist-tile__num">{{ totalCancelados() }}</span><span class="hist-tile__lbl">{{ 'Cancelados' | t }}</span></div>
   </div>
 
   <!-- Charts -->
@@ -37,25 +37,25 @@
 
   <div class="table-wrapper sgc-card">
     @if (visibles().length === 0) {
-      <div class="table-empty"><p>No hay proyectos en esta vista.</p></div>
+      <div class="table-empty"><p>{{ 'No hay proyectos en esta vista.' | t }}</p></div>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Historial de proyectos">
+        <table class="data-table" aria-label="{{ 'Historial de proyectos' | t }}">
           <thead>
             <tr>
-              <th>Código</th>
-              <th>Nombre</th>
-              <th>Tipo</th>
-              <th>Inicio</th>
-              <th>Fin real</th>
-              <th>Duración</th>
-              <th>Presupuesto</th>
-              <th>Estado</th>
+              <th>{{ 'Código' | t }}</th>
+              <th>{{ 'Nombre' | t }}</th>
+              <th>{{ 'Tipo' | t }}</th>
+              <th>{{ 'Inicio' | t }}</th>
+              <th>{{ 'Fin real' | t }}</th>
+              <th>{{ 'Duración' | t }}</th>
+              <th>{{ 'Presupuesto' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (p of paginated(); track p.id) {
-              <tr class="row--link" [routerLink]="['/proyectos', p.id]" role="button" tabindex="0" aria-label="Ver detalle del proyecto">
+              <tr class="row--link" [routerLink]="['/proyectos', p.id]" role="button" tabindex="0" aria-label="{{ 'Ver detalle del proyecto' | t }}">
                 <td><code class="code-tag">{{ p.codigo }}</code></td>
                 <td>{{ p.nombre }}</td>
                 <td>{{ tipoLabel(p.tipo) }}</td>

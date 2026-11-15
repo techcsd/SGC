@@ -1,6 +1,6 @@
 <div class="page-header">
   <div>
-    <a routerLink="/proyectos/personal" class="pob-back">← Personal de obra</a>
+    <a routerLink="/proyectos/personal" class="pob-back">{{ '← Personal de obra' | t }}</a>
     <h1 class="page-title">{{ editando() ? 'Editar' : 'Registrar' }} personal</h1>
   </div>
 </div>
@@ -20,28 +20,28 @@
 <!-- DB5 — Paso 0 (Registro rápido): 2 fotos → la IA precarga los datos -->
 @if (paso() === 0) {
   <div class="sgc-card pob-form pob-rapido">
-    <h2 class="pob-rapido__title">Registro rápido (2 fotos)</h2>
-    <p class="pob-rapido__hint">Toma la foto del documento y la de la persona sosteniéndolo junto a su cara. El sistema llena los campos; tú solo revisas y eliges el cargo.</p>
+    <h2 class="pob-rapido__title">{{ 'Registro rápido (2 fotos)' | t }}</h2>
+    <p class="pob-rapido__hint">{{ 'Toma la foto del documento y la de la persona sosteniéndolo junto a su cara. El sistema llena los campos; tú solo revisas y eliges el cargo.' | t }}</p>
     <div class="pob-rapido__fotos">
       <label class="pob-rapido__slot" [class.pob-rapido__slot--ok]="fotoDocPreview()">
         <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoRapida('documento', $event)" />
-        @if (fotoDocPreview()) { <img [src]="fotoDocPreview()" alt="Documento" /> } @else {
+        @if (fotoDocPreview()) { <img [src]="fotoDocPreview()" alt="{{ 'Documento' | t }}" /> } @else {
           <app-icon name="upload" [size]="22" />
         }
-        <span class="pob-rapido__slot-label">1 · Foto del documento</span>
-        <span class="pob-rapido__slot-ayuda">Cédula o pasaporte, legible</span>
+        <span class="pob-rapido__slot-label">{{ '1 · Foto del documento' | t }}</span>
+        <span class="pob-rapido__slot-ayuda">{{ 'Cédula o pasaporte, legible' | t }}</span>
       </label>
       <label class="pob-rapido__slot" [class.pob-rapido__slot--ok]="fotoPersonaPreview()">
         <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoRapida('persona', $event)" />
-        @if (fotoPersonaPreview()) { <img [src]="fotoPersonaPreview()" alt="Persona con documento" /> } @else {
+        @if (fotoPersonaPreview()) { <img [src]="fotoPersonaPreview()" alt="{{ 'Persona con documento' | t }}" /> } @else {
           <app-icon name="upload" [size]="22" />
         }
-        <span class="pob-rapido__slot-label">2 · Persona con el documento</span>
-        <span class="pob-rapido__slot-ayuda">Documento junto a la cara, rostro visible</span>
+        <span class="pob-rapido__slot-label">{{ '2 · Persona con el documento' | t }}</span>
+        <span class="pob-rapido__slot-ayuda">{{ 'Documento junto a la cara, rostro visible' | t }}</span>
       </label>
     </div>
     <div class="pob-form__foot">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarLectura()">Llenar a mano</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarLectura()">{{ 'Llenar a mano' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary"
               [disabled]="!fotoDocFile() || !fotoPersonaFile() || leyendoIa()" (click)="leerConIa()">
         {{ leyendoIa() ? 'Leyendo…' : 'Leer y precargar datos' }}
@@ -55,13 +55,13 @@
   @if (coincideRostro() === 'no' || coincideRostro() === 'dudoso') {
     <div class="pob-form__dup" role="alert">
       <strong>{{ coincideRostro() === 'no' ? 'La cara NO parece coincidir con la foto del documento.' : 'No se pudo confirmar que la cara coincida con el documento.' }}</strong>
-      <p class="text-muted">Verifícalo tú antes de guardar (la lectura automática no decide sola).</p>
+      <p class="text-muted">{{ 'Verifícalo tú antes de guardar (la lectura automática no decide sola).' | t }}</p>
     </div>
   }
   <form class="sgc-card pob-form" [formGroup]="form" (ngSubmit)="guardarDatos()">
     <div class="form-row">
       <div class="sgc-field">
-        <label for="obra">Obra *</label>
+        <label for="obra">{{ 'Obra *' | t }}</label>
         <select id="obra" formControlName="proyecto_id">
           <option [value]="''" disabled>Seleccionar obra…</option>
           @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
@@ -70,13 +70,13 @@
              heredaría es_prueba y no aparecería en la lista real. -->
         @if (obraEsPrueba()) {
           <div class="pob-aviso-prueba" role="note">
-            ⚠ Esta es una <strong>obra de prueba</strong>. El trabajador quedará marcado como prueba y
+            ⚠ Esta es una <strong>{{ 'obra de prueba' | t }}</strong>. El trabajador quedará marcado como prueba y
             no aparecerá en la lista de personal real. Elige una obra real si es un registro de verdad.
           </div>
         }
       </div>
       <div class="sgc-field">
-        <label for="cargo">Cargo</label>
+        <label for="cargo">{{ 'Cargo' | t }}</label>
         <select id="cargo" formControlName="cargo_id">
           <option [value]="''">Sin cargo</option>
           @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }} ({{ c.codigo }})</option> }
@@ -85,64 +85,64 @@
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="nombre">Nombre *</label>
+        <label for="nombre">{{ 'Nombre *' | t }}</label>
         <input id="nombre" class="sgc-input" formControlName="nombre" />
       </div>
       <div class="sgc-field">
-        <label for="apellido">Apellido</label>
+        <label for="apellido">{{ 'Apellido' | t }}</label>
         <input id="apellido" class="sgc-input" formControlName="apellido" />
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="nac">Nacionalidad *</label>
+        <label for="nac">{{ 'Nacionalidad *' | t }}</label>
         <select id="nac" formControlName="nacionalidad">
           @for (n of nacionalidades; track n.value) { <option [value]="n.value">{{ n.label }}</option> }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="tdoc">Tipo de documento *</label>
+        <label for="tdoc">{{ 'Tipo de documento *' | t }}</label>
         <select id="tdoc" formControlName="tipo_documento">
           @for (t of tiposDocumento; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="ndoc">Número de documento</label>
+        <label for="ndoc">{{ 'Número de documento' | t }}</label>
         <input id="ndoc" class="sgc-input" formControlName="documento_numero" />
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="tel">Teléfono</label>
+        <label for="tel">{{ 'Teléfono' | t }}</label>
         <input id="tel" class="sgc-input" formControlName="telefono" />
       </div>
       <div class="sgc-field sgc-field--grow">
-        <label for="dom">Domicilio</label>
-        <input id="dom" class="sgc-input" formControlName="domicilio" placeholder="Dirección del trabajador (para el contrato)" />
+        <label for="dom">{{ 'Domicilio' | t }}</label>
+        <input id="dom" class="sgc-input" formControlName="domicilio" placeholder="{{ 'Dirección del trabajador (para el contrato)' | t }}" />
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="tarifa">Salario por hora (RD$)</label>
-        <input id="tarifa" type="number" min="0" step="any" class="sgc-input" formControlName="tarifa_hora" placeholder="Opcional" />
+        <label for="tarifa">{{ 'Salario por hora (RD$)' | t }}</label>
+        <input id="tarifa" type="number" min="0" step="any" class="sgc-input" formControlName="tarifa_hora" placeholder="{{ 'Opcional' | t }}" />
       </div>
       <div class="sgc-field sgc-field--grow">
-        <label for="notas">Notas</label>
+        <label for="notas">{{ 'Notas' | t }}</label>
         <input id="notas" class="sgc-input" formControlName="notas" />
       </div>
     </div>
     <!-- CE16 — aviso de posible duplicado por documento -->
     @if (dupAviso().length > 0) {
       <div class="pob-form__dup" role="alert">
-        <strong>Ya existe un trabajador con este documento:</strong>
+        <strong>{{ 'Ya existe un trabajador con este documento:' | t }}</strong>
         <ul>@for (n of dupAviso(); track n) { <li>{{ n }}</li> }</ul>
-        <p class="text-muted">Verifica que no sea la misma persona. Si estás seguro, puedes registrarlo igual.</p>
+        <p class="text-muted">{{ 'Verifica que no sea la misma persona. Si estás seguro, puedes registrarlo igual.' | t }}</p>
         <!-- DB5 — si ya está registrado, lo útil hoy es marcarlo presente, no duplicarlo. -->
         @for (d of dupRegistros(); track d.id) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="saving()"
                   (click)="marcarPresenteHoy(d.id)">Ya está registrado: marcar presente hoy a {{ d.nombre }}</button>
         }
-        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="registrarDeTodosModos()">Registrar de todos modos</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="registrarDeTodosModos()">{{ 'Registrar de todos modos' | t }}</button>
       </div>
     }
     <div class="pob-form__foot">
@@ -183,7 +183,7 @@
       }
     </div>
     <div class="pob-form__foot pob-form__foot--split">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(1)">Atrás</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(1)">{{ 'Atrás' | t }}</button>
       <!-- CE4 — las fotos son opcionales: se puede continuar sin subirlas. -->
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(3)">
         Continuar
@@ -202,22 +202,22 @@
   <section class="sgc-card pob-form">
     <div class="form-row">
       <div class="sgc-field sgc-field--grow">
-        <label for="plantilla">Documento a firmar (plantilla de Legal, opcional)</label>
+        <label for="plantilla">{{ 'Documento a firmar (plantilla de Legal, opcional)' | t }}</label>
         <select id="plantilla" [ngModel]="plantillaSel()" (ngModelChange)="onPlantilla($event)">
           <option [value]="''">— Acuerdo por defecto —</option>
           @for (pl of plantillas(); track pl.id) { <option [value]="pl.id">{{ pl.nombre }}</option> }
         </select>
       </div>
       <div class="sgc-field sgc-field--grow">
-        <label for="docnom">Nombre del documento</label>
+        <label for="docnom">{{ 'Nombre del documento' | t }}</label>
         <input id="docnom" class="sgc-input" [ngModel]="documentoNombre()" (ngModelChange)="documentoNombre.set($event)" />
       </div>
     </div>
     <!-- AZ1 — campos que el sistema no resuelve solo: se piden aquí antes de firmar -->
     @if (camposPendientes().length) {
       <div class="pob-doc-pend">
-        <p class="pob-doc-pend__title">Completa los datos del documento</p>
-        <p class="pob-doc-pend__hint">El resto (empresa, nombre, cédula, cargo, obra y fecha) se llena solo. Faltan estos:</p>
+        <p class="pob-doc-pend__title">{{ 'Completa los datos del documento' | t }}</p>
+        <p class="pob-doc-pend__hint">{{ 'El resto (empresa, nombre, cédula, cargo, obra y fecha) se llena solo. Faltan estos:' | t }}</p>
         <div class="form-grid">
           @for (c of camposPendientes(); track c.key) {
             <div class="sgc-field">
@@ -246,20 +246,20 @@
       </div>
     }
     @if (plantillaHtml()) {
-      <label class="pob-firma-label">Vista previa del documento</label>
+      <label class="pob-firma-label">{{ 'Vista previa del documento' | t }}</label>
       <div class="pob-doc-prev" [innerHTML]="plantillaHtml()"></div>
       @if (faltanCampos()) {
-        <p class="pob-doc-warn" role="alert">Faltan campos por completar — no se puede firmar hasta llenarlos.</p>
+        <p class="pob-doc-warn" role="alert">{{ 'Faltan campos por completar — no se puede firmar hasta llenarlos.' | t }}</p>
       }
     }
-    <label class="pob-firma-label">Firma del personal</label>
+    <label class="pob-firma-label">{{ 'Firma del personal' | t }}</label>
     <div class="pob-firma">
       <app-signature-pad ariaLabel="Firma del personal de obra" />
     </div>
     <div class="pob-form__foot pob-form__foot--split">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(2)">Atrás</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(2)">{{ 'Atrás' | t }}</button>
       <div class="pob-form__foot-right">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarFirma()">Omitir por ahora</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarFirma()">{{ 'Omitir por ahora' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarFirma()" [disabled]="saving() || faltanCampos()">
           {{ saving() ? 'Guardando…' : 'Firmar y continuar' }}
         </button>
@@ -275,13 +275,13 @@
       @if (p.carnet_numero) {
         <app-personal-carnet [personal]="p" [fotoDataUrl]="personaDataUrl()" [verifyUrl]="verifyUrl" />
         <div class="pob-form__foot pob-form__foot--split">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimirCarnet()">Imprimir / PDF</button>
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(5)">Continuar</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimirCarnet()">{{ 'Imprimir / PDF' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(5)">{{ 'Continuar' | t }}</button>
         </div>
       } @else {
-        <p class="pob-form__hint">Emite el carnet para asignarle un número y generar el QR de verificación.</p>
+        <p class="pob-form__hint">{{ 'Emite el carnet para asignarle un número y generar el QR de verificación.' | t }}</p>
         <div class="pob-form__foot pob-form__foot--split">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(3)">Atrás</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(3)">{{ 'Atrás' | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--primary" (click)="emitirCarnet()" [disabled]="saving()">
             {{ saving() ? 'Emitiendo…' : 'Emitir carnet' }}
           </button>
@@ -297,7 +297,7 @@
     @if (personal(); as p) {
       <div class="pob-resumen">
         <span class="pob-resumen__check"><app-icon name="check" [size]="28" /></span>
-        <h2>Personal registrado</h2>
+        <h2>{{ 'Personal registrado' | t }}</h2>
         <p class="text-muted">{{ p.nombre }} {{ p.apellido }} — {{ p.cargo?.nombre ?? 'Sin cargo' }}</p>
       </div>
       <!-- BN6 — el carnet vive dentro del expediente; mostrarlo aquí para que no haya que adivinarlo. -->
@@ -306,9 +306,9 @@
       }
       <div class="pob-form__foot pob-form__foot--split">
         @if (p.carnet_numero) {
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimirCarnet()">Ver / imprimir carnet</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimirCarnet()">{{ 'Ver / imprimir carnet' | t }}</button>
         }
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="finalizar()">Ver expediente</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="finalizar()">{{ 'Ver expediente' | t }}</button>
       </div>
     }
   </section>

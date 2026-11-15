@@ -63,6 +63,7 @@ import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface UsuarioSimple {
   id: string;
@@ -82,7 +83,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, NgTemplateOutlet, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink, Icon, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, NgTemplateOutlet, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

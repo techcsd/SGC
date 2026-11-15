@@ -18,11 +18,12 @@ import {
   Cargo, PersonalObra, FOTOS_GUIA, FotoTipo,
   NACIONALIDADES, TIPOS_DOCUMENTO, NACIONALIDAD_LABEL,
 } from '../../../../shared/models/personal-obra.model';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AR1 — Wizard de registro de personal: datos → fotos guiadas → firma → carnet → resumen. */
 @Component({
   selector: 'app-personal-registro',
-  imports: [FormsModule, ReactiveFormsModule, RouterLink, SignaturePad, PersonalCarnet, Icon],
+  imports: [FormsModule, ReactiveFormsModule, RouterLink, SignaturePad, PersonalCarnet, Icon, TranslatePipe],
   templateUrl: './personal-registro.html',
   styleUrl: './personal-registro.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

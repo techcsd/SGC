@@ -4,29 +4,29 @@
       <img [src]="logoSrc" alt="Constructora SD" class="carnet__logo" />
       <div>
         <b>CONSTRUCTORA SD</b>
-        <small>CARNET DE PERSONAL DE OBRA</small>
+        <small>{{ 'CARNET DE PERSONAL DE OBRA' | t }}</small>
       </div>
     </div>
     <div class="carnet__body">
       @if (fotoDataUrl()) {
-        <img class="carnet__foto" [src]="fotoDataUrl()" alt="Foto" />
+        <img class="carnet__foto" [src]="fotoDataUrl()" alt="{{ 'Foto' | t }}" />
       } @else {
         <div class="carnet__foto carnet__foto--ini">{{ iniciales(p) }}</div>
       }
       <div class="carnet__info">
         <div class="carnet__nom">{{ p.nombre }} {{ p.apellido }}</div>
-        <div class="carnet__row"><span>Cargo:</span> {{ p.cargo ? p.cargo.nombre + ' · ' + p.cargo.codigo : '—' }}</div>
-        <div class="carnet__row"><span>Obra:</span> {{ p.proyecto?.nombre ?? '—' }}</div>
-        <div class="carnet__row"><span>Nacionalidad:</span> {{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</div>
-        <div class="carnet__row"><span>Documento:</span> {{ p.documento_numero ?? '—' }}</div>
+        <div class="carnet__row"><span>{{ 'Cargo:' | t }}</span> {{ p.cargo ? p.cargo.nombre + ' · ' + p.cargo.codigo : '—' }}</div>
+        <div class="carnet__row"><span>{{ 'Obra:' | t }}</span> {{ p.proyecto?.nombre ?? '—' }}</div>
+        <div class="carnet__row"><span>{{ 'Nacionalidad:' | t }}</span> {{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</div>
+        <div class="carnet__row"><span>{{ 'Documento:' | t }}</span> {{ p.documento_numero ?? '—' }}</div>
       </div>
     </div>
     <div class="carnet__foot">
       <div>
         <div class="carnet__num">{{ p.carnet_numero ?? 'SIN CARNET' }}</div>
-        <div class="carnet__hint">Verifica escaneando el código</div>
+        <div class="carnet__hint">{{ 'Verifica escaneando el código' | t }}</div>
       </div>
-      @if (qr()) { <img class="carnet__qr" [src]="qr()" alt="Código QR de verificación" /> }
+      @if (qr()) { <img class="carnet__qr" [src]="qr()" alt="{{ 'Código QR de verificación' | t }}" /> }
     </div>
   </div>
 }

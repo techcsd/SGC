@@ -7,6 +7,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * CG2 — Proyectos › Cargos. Catálogo de cargos (lectura) + gestor de alias:
@@ -18,7 +19,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
  */
 @Component({
   selector: 'app-proyectos-cargos',
-  imports: [RouterLink, Icon, FormDrawer, ConfirmDialog],
+  imports: [RouterLink, Icon, FormDrawer, ConfirmDialog, TranslatePipe],
   templateUrl: './cargos.html',
   styleUrl: './cargos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

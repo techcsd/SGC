@@ -1,23 +1,23 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <a routerLink="/proyectos/personal" class="page__back">← Personal de obra</a>
-      <h1 class="page__title">Cargos y alias</h1>
-      <p class="page__sub">Catálogo de cargos de obra y los textos (alias) que el importador de personal reconoce. Si un listado trae un cargo escrito de otra forma, agrégalo aquí o déjalo que se aprenda solo al importar.</p>
+      <a routerLink="/proyectos/personal" class="page__back">{{ '← Personal de obra' | t }}</a>
+      <h1 class="page__title">{{ 'Cargos y alias' | t }}</h1>
+      <p class="page__sub">{{ 'Catálogo de cargos de obra y los textos (alias) que el importador de personal reconoce. Si un listado trae un cargo escrito de otra forma, agrégalo aquí o déjalo que se aprenda solo al importar.' | t }}</p>
     </div>
   </header>
 
   @if (error()) { <div class="save-error" role="alert">{{ error() }}</div> }
 
   @if (cargando()) {
-    <p class="text-muted">Cargando…</p>
+    <p class="text-muted">{{ 'Cargando…' | t }}</p>
   } @else {
     <!-- Catálogo de cargos -->
-    <h2 class="cg-h">Catálogo de cargos</h2>
+    <h2 class="cg-h">{{ 'Catálogo de cargos' | t }}</h2>
     <div class="table-scroll">
       <table class="data-table">
         <thead>
-          <tr><th>Código</th><th>Cargo</th><th>Alias</th><th>Estado</th></tr>
+          <tr><th>{{ 'Código' | t }}</th><th>{{ 'Cargo' | t }}</th><th>{{ 'Alias' | t }}</th><th>{{ 'Estado' | t }}</th></tr>
         </thead>
         <tbody>
           @for (c of cargos(); track c.id) {
@@ -27,8 +27,8 @@
               <td>{{ c.nombre }}</td>
               <td class="text-muted">{{ aliasPorCargo().get(c.id) ?? 0 }}</td>
               <td>
-                @if (c.activo) { <span class="cg-pill cg-pill--ok">Activo</span> }
-                @else { <span class="cg-pill cg-pill--off">Inactivo</span> }
+                @if (c.activo) { <span class="cg-pill cg-pill--ok">{{ 'Activo' | t }}</span> }
+                @else { <span class="cg-pill cg-pill--off">{{ 'Inactivo' | t }}</span> }
               </td>
             </tr>
           }
@@ -38,16 +38,16 @@
 
     <!-- Gestor de alias -->
     <h2 class="cg-h">Alias reconocidos ({{ aliases().length }})</h2>
-    <p class="page__sub">Un alias es un texto tal como aparece en el Excel que se traduce a un cargo del catálogo.</p>
+    <p class="page__sub">{{ 'Un alias es un texto tal como aparece en el Excel que se traduce a un cargo del catálogo.' | t }}</p>
 
     <form class="cg-add" (submit)="$event.preventDefault(); agregarAlias()">
       <label class="cg-field">
-        <span>Texto del Excel</span>
+        <span>{{ 'Texto del Excel' | t }}</span>
         <input type="text" [value]="nuevoAlias()" (input)="nuevoAlias.set($any($event.target).value)"
-               placeholder="Ej: AYUDANTE DE CARPINTERO" />
+               placeholder="{{ 'Ej: AYUDANTE DE CARPINTERO' | t }}" />
       </label>
       <label class="cg-field">
-        <span>Se mapea al cargo</span>
+        <span>{{ 'Se mapea al cargo' | t }}</span>
         <select [value]="nuevoCargoId()" (change)="nuevoCargoId.set($any($event.target).value)">
           <option value="">Elige un cargo…</option>
           @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
@@ -62,7 +62,7 @@
       <div class="table-scroll">
         <table class="data-table">
           <thead>
-            <tr><th>Texto (alias)</th><th>Cargo</th><th></th></tr>
+            <tr><th>{{ 'Texto (alias)' | t }}</th><th>{{ 'Cargo' | t }}</th><th></th></tr>
           </thead>
           <tbody>
             @for (a of aliases(); track a.id) {
@@ -70,7 +70,7 @@
                 <td>{{ a.alias_normalizado }}</td>
                 <td class="text-muted">{{ a.cargo_nombre || '—' }}</td>
                 <td class="cg-actions">
-                  <button type="button" class="cg-del" title="Eliminar alias" (click)="eliminarAlias(a)">
+                  <button type="button" class="cg-del" title="{{ 'Eliminar alias' | t }}" (click)="eliminarAlias(a)">
                     <app-icon name="trash" [size]="15" />
                   </button>
                 </td>
@@ -80,7 +80,7 @@
         </table>
       </div>
     } @else {
-      <p class="text-muted">Aún no hay alias. El importador aprenderá los que corrijas a mano.</p>
+      <p class="text-muted">{{ 'Aún no hay alias. El importador aprenderá los que corrijas a mano.' | t }}</p>
     }
   }
 </section>
@@ -91,19 +91,19 @@
     <div class="cg-detalle">
       <div class="cg-detalle__meta">
         <span><code class="cg-code">{{ c.codigo }}</code></span>
-        @if (c.activo) { <span class="cg-pill cg-pill--ok">Activo</span> }
-        @else { <span class="cg-pill cg-pill--off">Inactivo</span> }
+        @if (c.activo) { <span class="cg-pill cg-pill--ok">{{ 'Activo' | t }}</span> }
+        @else { <span class="cg-pill cg-pill--off">{{ 'Inactivo' | t }}</span> }
       </div>
       @if (c.descripcion) { <p class="text-muted">{{ c.descripcion }}</p> }
 
-      <h3 class="cg-h">Personas de obra con este cargo</h3>
+      <h3 class="cg-h">{{ 'Personas de obra con este cargo' | t }}</h3>
       @if (cargandoPersonas()) {
-        <p class="text-muted">Contando…</p>
+        <p class="text-muted">{{ 'Contando…' | t }}</p>
       } @else {
         <p>
           {{ personasDelCargo() ?? 0 }} persona(s)
           @if ((personasDelCargo() ?? 0) > 0) {
-            — <a [routerLink]="['/proyectos/personal']" [queryParams]="{ cargo: c.id }">verlas en Personal</a>
+            — <a [routerLink]="['/proyectos/personal']" [queryParams]="{ cargo: c.id }">{{ 'verlas en Personal' | t }}</a>
           }
         </p>
       }
@@ -115,21 +115,21 @@
             <li>
               <span>{{ a.alias_normalizado }}</span>
               <span class="text-muted">agregado el {{ formatFecha(a.created_at) }}</span>
-              <button type="button" class="cg-del" title="Eliminar alias" (click)="pedirEliminarAlias(a)">
+              <button type="button" class="cg-del" title="{{ 'Eliminar alias' | t }}" (click)="pedirEliminarAlias(a)">
                 <app-icon name="trash" [size]="15" />
               </button>
             </li>
           }
         </ul>
       } @else {
-        <p class="text-muted">Este cargo todavía no tiene alias.</p>
+        <p class="text-muted">{{ 'Este cargo todavía no tiene alias.' | t }}</p>
       }
 
       <form class="cg-add" (submit)="$event.preventDefault(); agregarAliasAlSeleccionado()">
         <label class="cg-field">
-          <span>Agregar alias (texto del Excel)</span>
+          <span>{{ 'Agregar alias (texto del Excel)' | t }}</span>
           <input type="text" [value]="nuevoAliasDetalle()" (input)="nuevoAliasDetalle.set($any($event.target).value)"
-                 placeholder="Ej: AYUDANTE DE CARPINTERO" />
+                 placeholder="{{ 'Ej: AYUDANTE DE CARPINTERO' | t }}" />
         </label>
         <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoDetalle() || !nuevoAliasDetalle().trim()">
           <app-icon name="plus" [size]="15" /> {{ guardandoDetalle() ? 'Guardando…' : 'Agregar alias' }}
@@ -139,7 +139,7 @@
   }
 </app-form-drawer>
 
-<app-confirm-dialog [open]="!!aliasAEliminar()" title="¿Eliminar este alias?"
+<app-confirm-dialog [open]="!!aliasAEliminar()" title="{{ '¿Eliminar este alias?' | t }}"
   [message]="aliasAEliminar() ? ('«' + aliasAEliminar()!.alias_normalizado + '» → ' + (aliasAEliminar()!.cargo_nombre ?? '')) : ''"
   confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
   (confirmed)="confirmarEliminarAlias()" (cancelled)="aliasAEliminar.set(null)" />

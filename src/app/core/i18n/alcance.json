@@ -139,33 +139,6 @@
     "politicas": {
       "enforce": false
     },
-    "proyectos/cargos": {
-      "enforce": false
-    },
-    "proyectos/clima": {
-      "enforce": false
-    },
-    "proyectos/compras": {
-      "enforce": false
-    },
-    "proyectos/costos": {
-      "enforce": false
-    },
-    "proyectos/cronograma": {
-      "enforce": false
-    },
-    "proyectos/cronograma-import": {
-      "enforce": false
-    },
-    "proyectos/historial": {
-      "enforce": false
-    },
-    "proyectos/kpi": {
-      "enforce": false
-    },
-    "proyectos/lista": {
-      "enforce": false
-    },
     "rrhh/activos": {
       "enforce": false
     },
@@ -280,10 +253,22 @@
     "app-movil": {
       "enforce": false
     },
-    "proyectos/personal": {
+    "auth": {
       "enforce": false
     },
-    "auth": {
+    "proyectos/kpi": {
+      "enforce": false
+    },
+    "proyectos/cargos": {
+      "enforce": false
+    },
+    "proyectos/lista": {
+      "enforce": false
+    },
+    "proyectos/cronograma-import": {
+      "enforce": false
+    },
+    "proyectos/clima": {
       "enforce": false
     },
     "practica": {
@@ -292,19 +277,31 @@
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
+    "proyectos/cronograma": {
+      "enforce": false
+    },
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
     "admin/compa-conversaciones": {
       "enforce": false
     },
+    "proyectos/personal": {
+      "enforce": false
+    },
     "ingenieria/pagos": {
+      "enforce": false
+    },
+    "proyectos/historial": {
       "enforce": false
     },
     "reuniones/reuniones-lista": {
       "enforce": false
     },
     "tecnologia/cotizaciones": {
+      "enforce": false
+    },
+    "proyectos/compras": {
       "enforce": false
     },
     "admin/vault": {
@@ -570,6 +567,9 @@
     },
     "perfil": {
       "enforce": true
+    },
+    "proyectos/costos": {
+      "enforce": false
     },
     "solicitudes-movimiento": {
       "enforce": true

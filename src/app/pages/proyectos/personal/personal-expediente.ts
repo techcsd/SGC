@@ -22,11 +22,12 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
 import { EmpresaService, TestigoFrecuente } from '../../../../shared/services/empresa.service';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { UserService } from '../../../core/services/user.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AR1 — Expediente completo del personal: datos, galería, carnet e historial. */
 @Component({
   selector: 'app-personal-expediente',
-  imports: [RouterLink, Skeleton, Lightbox, PersonalCarnet, FormDrawer, SignaturePad],
+  imports: [RouterLink, Skeleton, Lightbox, PersonalCarnet, FormDrawer, SignaturePad, TranslatePipe],
   templateUrl: './personal-expediente.html',
   styleUrl: './personal-expediente.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

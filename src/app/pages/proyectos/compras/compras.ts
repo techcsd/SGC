@@ -11,6 +11,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { ToastService } from '../../../../shared/services/toast.service';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 type FiltroTipo = 'todos' | 'orden_compra' | 'ferreteria' | 'gasto_directo';
 
@@ -27,7 +28,7 @@ const TIPO_LABEL: Record<string, string> = {
  */
 @Component({
   selector: 'app-proyecto-compras',
-  imports: [RouterLink, DecimalPipe, FormDrawer, Icon],
+  imports: [RouterLink, DecimalPipe, FormDrawer, Icon, TranslatePipe],
   templateUrl: './compras.html',
   styleUrl: './compras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

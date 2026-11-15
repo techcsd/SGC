@@ -21,6 +21,7 @@ import {
 import { FaseProyecto } from '../../../../shared/models/proyecto.model';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AA24 — conector real de una dependencia (predecesora → esta tarea). */
 interface DepConn {
@@ -67,7 +68,7 @@ const GANTT_LABEL_W = 220;
 
 @Component({
   selector: 'app-proyecto-cronograma',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe, Icon],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe, Icon, TranslatePipe],
   templateUrl: './cronograma.html',
   styleUrl: './cronograma.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

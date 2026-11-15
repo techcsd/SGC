@@ -1,37 +1,37 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <a class="page__back" [routerLink]="['/proyectos', proyectoId(), 'cronograma']">← Cronograma</a>
-      <h1 class="page__title">Importar cronograma</h1>
-      <p class="page__sub">Sube el Excel de la obra: cada hoja (torre/etapa) se convierte en una fase con sus actividades.</p>
+      <a class="page__back" [routerLink]="['/proyectos', proyectoId(), 'cronograma']">{{ '← Cronograma' | t }}</a>
+      <h1 class="page__title">{{ 'Importar cronograma' | t }}</h1>
+      <p class="page__sub">{{ 'Sube el Excel de la obra: cada hoja (torre/etapa) se convierte en una fase con sus actividades.' | t }}</p>
     </div>
   </header>
 
   <div class="sgc-card cimport__drop">
     <label class="cimport__file">
       <input type="file" accept=".xlsx,.xls,.csv,.mpp" (change)="onFile($event)" hidden />
-      <span class="sgc-btn sgc-btn--primary">Seleccionar archivo…</span>
+      <span class="sgc-btn sgc-btn--primary">{{ 'Seleccionar archivo…' | t }}</span>
     </label>
     @if (fileName()) { <span class="cimport__filename">{{ fileName() }}</span> }
     <p class="cimport__hint">
-      Formatos: <strong>.xlsx / .xls / .csv</strong>. Los <strong>.mpp</strong> de MS Project deben
+      Formatos: <strong>{{ '.xlsx / .xls / .csv' | t }}</strong>{{ '. Los' | t }} <strong>{{ '.mpp' | t }}</strong> de MS Project deben
       exportarse a Excel primero (Archivo → Guardar como / Exportar → Excel).
     </p>
   </div>
 
-  @if (parsing()) { <p class="page__loading">Leyendo el archivo…</p> }
+  @if (parsing()) { <p class="page__loading">{{ 'Leyendo el archivo…' | t }}</p> }
   @if (error()) { <div class="page__error" role="alert">{{ error() }}</div> }
 
   @if (hojas().length > 0) {
     <div class="cimport__resumen sgc-card">
       <p class="cimport__resumen-line">
-        <strong>{{ hojas().length }}</strong> torre(s)/etapa(s) · <strong>{{ totalTareas() }}</strong> actividad(es) detectada(s).
-        Al confirmar, cada torre <strong>reemplaza</strong> su cronograma existente (delete-then-insert).
+        <strong>{{ hojas().length }}</strong> {{ 'torre(s)/etapa(s) ·' | t }} <strong>{{ totalTareas() }}</strong> actividad(es) detectada(s).
+        Al confirmar, cada torre <strong>{{ 'reemplaza' | t }}</strong> su cronograma existente (delete-then-insert).
       </p>
       @if (cargandoExistente()) {
-        <p class="cimport__resumen-line text-muted">Comparando con lo ya guardado…</p>
+        <p class="cimport__resumen-line text-muted">{{ 'Comparando con lo ya guardado…' | t }}</p>
       } @else {
-        <div class="cimport__chips" role="group" aria-label="Resumen de cambios">
+        <div class="cimport__chips" role="group" aria-label="{{ 'Resumen de cambios' | t }}">
           <span class="cimport__chip cimport__chip--nueva">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             {{ totalNuevas() }} nueva(s)
@@ -58,9 +58,9 @@
           <h2 class="cimport__hoja-title">{{ d.torre }}</h2>
           <span class="cimport__hoja-count">
             {{ d.nuevas }} nueva(s) · {{ d.modificadas }} modificada(s) · {{ d.sinCambios }} sin cambios · {{ d.eliminadas }} se elimina(n)
-            @if (!d.faseExiste) { <em>· fase nueva</em> }
+            @if (!d.faseExiste) { <em>{{ '· fase nueva' | t }}</em> }
           </span>
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarHoja(d.torre)">Quitar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarHoja(d.torre)">{{ 'Quitar' | t }}</button>
         </div>
 
         @for (w of d.warnings; track w) {
@@ -72,19 +72,19 @@
 
         @if (d.filas.length > 0) {
           <div class="table-scroll">
-            <table class="data-table" aria-label="Diff de actividades">
+            <table class="data-table" aria-label="{{ 'Diff de actividades' | t }}">
               <thead>
                 <tr>
-                  <th>Estado</th>
+                  <th>{{ 'Estado' | t }}</th>
                   <th>#</th>
-                  <th>Actividad</th>
-                  <th>Grupo</th>
-                  <th>Responsable</th>
-                  <th>Volumetría</th>
-                  <th>Inicio</th>
-                  <th>Fin</th>
-                  <th class="text-right">Días</th>
-                  <th class="text-right">Avance</th>
+                  <th>{{ 'Actividad' | t }}</th>
+                  <th>{{ 'Grupo' | t }}</th>
+                  <th>{{ 'Responsable' | t }}</th>
+                  <th>{{ 'Volumetría' | t }}</th>
+                  <th>{{ 'Inicio' | t }}</th>
+                  <th>{{ 'Fin' | t }}</th>
+                  <th class="text-right">{{ 'Días' | t }}</th>
+                  <th class="text-right">{{ 'Avance' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -142,7 +142,7 @@
     }
 
     <div class="cimport__actions">
-      <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/proyectos', proyectoId(), 'cronograma']">Cancelar</a>
+      <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/proyectos', proyectoId(), 'cronograma']">{{ 'Cancelar' | t }}</a>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="importing() || totalTareas() === 0" (click)="confirmar()">
         @if (importing()) { Importando… } @else { Importar al cronograma }
       </button>
