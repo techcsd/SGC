@@ -36,6 +36,7 @@ import { DatosPruebaService } from '../../../../shared/services/datos-prueba.ser
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-articulos',
@@ -51,6 +52,7 @@ export class Articulos implements OnInit {
   private unidadesService = inject(UnidadesService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   // Z5(d) — datos de prueba (marcar/ocultar/eliminar), patrón de vehículos.
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
@@ -196,7 +198,7 @@ export class Articulos implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   drawerTitle = computed(() =>
-    this.editingId() ? 'Editar artículo' : 'Nuevo artículo',
+    this.i18n.t(this.editingId() ? 'Editar artículo' : 'Nuevo artículo'),
   );
 
   async ngOnInit() {
@@ -225,7 +227,7 @@ export class Articulos implements OnInit {
       this.unidades.set(unidades);
       this.resolverThumbs();
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los datos.'));
     } finally {
       this.loading.set(false);
     }
@@ -402,7 +404,7 @@ export class Articulos implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && this.form.value.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('articulos', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s) (entradas/salidas de inventario). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s) (entradas/salidas de inventario). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -423,7 +425,7 @@ export class Articulos implements OnInit {
         // hay unique en nombre, pero un duplicado ensucia la búsqueda fuzzy AU12/AW6).
         const nombreNorm = (payload.nombre ?? '').trim().toLowerCase();
         const dup = this.articles().find((a) => a.nombre.trim().toLowerCase() === nombreNorm);
-        if (dup && !confirm(`Ya existe un artículo llamado "${dup.nombre}" (${dup.codigo}). ¿Crear de todas formas?`)) {
+        if (dup && !confirm(this.i18n.t('Ya existe un artículo llamado "{n}" ({c}). ¿Crear de todas formas?', { n: dup.nombre, c: dup.codigo }))) {
           this.saving.set(false);
           return;
         }
@@ -439,7 +441,7 @@ export class Articulos implements OnInit {
       this.drawerOpen.set(false);
       this.resolverThumbs();
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar.'));
     } finally {
       this.saving.set(false);
     }
@@ -510,7 +512,7 @@ export class Articulos implements OnInit {
       this.apodos.set(await this.articulosService.listarApodos(d.id));
       this.apodoNuevo.set('');
     } catch (e: unknown) {
-      this.toast.error('No se pudo agregar el apodo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo agregar el apodo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.apodoSaving.set(false);
     }
@@ -523,7 +525,7 @@ export class Articulos implements OnInit {
       await this.articulosService.eliminarApodo(id);
       this.apodos.update((list) => list.filter((x) => x.id !== id));
     } catch (e: unknown) {
-      this.toast.error('No se pudo eliminar el apodo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar el apodo'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -561,13 +563,13 @@ export class Articulos implements OnInit {
   /** Z5(d) — elimina definitivamente un artículo de prueba (solo admin). */
   async eliminarPrueba(article: Articulo) {
     if (!this.esAdmin() || !article.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${article.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{n}"? Esta acción no se puede deshacer.', { n: article.nombre }))) return;
     try {
       await this.datosPrueba.eliminar('articulos', article.id);
       this.articles.update((list) => list.filter((a) => a.id !== article.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${article.nombre}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), this.i18n.t('Se eliminó "{n}".', { n: article.nombre }));
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

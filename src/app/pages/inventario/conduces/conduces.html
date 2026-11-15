@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Conduces' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} conduce{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'conduces' : 'conduce') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -18,7 +18,7 @@
 </div>
 
 <p class="conduces__intro">
-  Cada salida de inventario genera un conduce. Aquí ves todos los conduces creados por estado, y puedes abrir, imprimir o descargar cualquiera en PDF.
+  {{ 'Cada salida de inventario genera un conduce. Aquí ves todos los conduces creados por estado, y puedes abrir, imprimir o descargar cualquiera en PDF.' | t }}
 </p>
 
 <!-- ── Tabs ── -->
@@ -32,7 +32,7 @@
       [attr.aria-selected]="tab() === t.key"
       (click)="setTab(t.key)"
     >
-      {{ t.label }}
+      {{ t.label | t }}
       <span class="conduces__tab-badge">{{ counts()[t.key] }}</span>
     </button>
   }
@@ -52,25 +52,25 @@
 
   <div class="sgc-field filters-bar__select">
     <select [value]="origenFilter()" (change)="onOrigen($any($event.target).value)" aria-label="{{ 'Filtrar por obra de origen' | t }}">
-      <option value="">Origen: todas</option>
+      <option value="">{{ 'Origen: todas' | t }}</option>
       @for (o of obrasOrigen(); track o.id) {
-        <option [value]="o.id">Origen: {{ o.nombre }}</option>
+        <option [value]="o.id">{{ 'Origen:' | t }} {{ o.nombre }}</option>
       }
     </select>
   </div>
 
   <div class="sgc-field filters-bar__select">
     <select [value]="obraFilter()" (change)="onObra($any($event.target).value)" aria-label="{{ 'Filtrar por obra de destino' | t }}">
-      <option value="">Destino: todas</option>
+      <option value="">{{ 'Destino: todas' | t }}</option>
       @for (o of obras(); track o.id) {
-        <option [value]="o.id">Destino: {{ o.nombre }}</option>
+        <option [value]="o.id">{{ 'Destino:' | t }} {{ o.nombre }}</option>
       }
     </select>
   </div>
 
   <div class="sgc-field filters-bar__select">
     <select [value]="choferFilter()" (change)="onChofer($any($event.target).value)" aria-label="{{ 'Filtrar por chofer' | t }}">
-      <option value="">Todos los choferes</option>
+      <option value="">{{ 'Todos los choferes' | t }}</option>
       @for (c of choferes(); track c) {
         <option [value]="c">{{ c }}</option>
       }
@@ -79,7 +79,7 @@
 
   <div class="sgc-field filters-bar__select">
     <select [value]="responsableFilter()" (change)="onResponsable($any($event.target).value)" aria-label="{{ 'Filtrar por responsable' | t }}">
-      <option value="">Todos los responsables</option>
+      <option value="">{{ 'Todos los responsables' | t }}</option>
       @for (u of responsables(); track u.id) {
         <option [value]="u.id">{{ u.nombre }}</option>
       }
@@ -95,7 +95,7 @@
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -112,9 +112,9 @@
     <div class="table-empty">
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron conduces con los filtros aplicados.
+          {{ 'No se encontraron conduces con los filtros aplicados.' | t }}
         } @else {
-          No hay conduces en esta pestaña.
+          {{ 'No hay conduces en esta pestaña.' | t }}
         }
       </p>
     </div>
@@ -122,15 +122,15 @@
     <!-- BV7 — barra de asignación múltiple (aparece al seleccionar conduces sin chofer) -->
     @if (puedeAsignarChofer() && seleccionados().size > 0) {
       <div class="conduces__lote">
-        <span>{{ seleccionados().size }} conduce(s) seleccionado(s)</span>
+        <span>{{ seleccionados().size }} {{ 'conduce(s) seleccionado(s)' | t }}</span>
         <select class="sgc-select" [value]="choferLote()" (change)="choferLote.set($any($event.target).value)">
-          <option value="">Elegir chofer…</option>
+          <option value="">{{ 'Elegir chofer…' | t }}</option>
           @for (c of choferesDisponibles(); track c.conductor_id) {
             <option [value]="c.conductor_id">{{ c.nombre }}</option>
           }
         </select>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
-                [disabled]="!choferLote() || asignandoSaving()" (click)="asignarLote()">Asignar a los {{ seleccionados().size }}</button>
+                [disabled]="!choferLote() || asignandoSaving()" (click)="asignarLote()">{{ 'Asignar a los' | t }} {{ seleccionados().size }}</button>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarSeleccion()">{{ 'Limpiar' | t }}</button>
       </div>
     }
@@ -161,7 +161,7 @@
               <td class="text-muted">
                 {{ r.proyecto ?? r.destino_almacen ?? '—' }}
                 @for (m of responsableMatch(r); track m) {
-                  <span class="sgc-badge sgc-badge--info">{{ m }}</span>
+                  <span class="sgc-badge sgc-badge--info">{{ m | t }}</span>
                 }
               </td>
               <td class="text-muted">{{ r.bodega ?? '—' }}</td>
@@ -173,7 +173,7 @@
                     <!-- BV7 — picker inline para asignar chofer (no navega la fila) -->
                     <div class="conduces__asignar" (click)="$event.stopPropagation()">
                       <select class="sgc-select sgc-select--sm" [value]="choferSel()" (change)="choferSel.set($any($event.target).value)">
-                        <option value="">Elegir chofer…</option>
+                        <option value="">{{ 'Elegir chofer…' | t }}</option>
                         @for (c of choferesDisponibles(); track c.conductor_id) {
                           <option [value]="c.conductor_id">{{ c.nombre }}</option>
                         }
@@ -196,7 +196,7 @@
               <td class="text-right">{{ r.items }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + faseModifier(r.bucket)">
-                  {{ faseLabel(r.fase) }}
+                  {{ faseLabel(r.fase) | t }}
                 </span>
               </td>
               <td>
@@ -218,7 +218,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}">‹</button>

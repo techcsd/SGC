@@ -412,12 +412,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/conduces": {
-      "enforce": false
-    },
-    "inventario/articulos": {
-      "enforce": false
-    },
     "inventario/salidas": {
       "enforce": false
     },
@@ -532,10 +526,16 @@
     "inventario/apertura": {
       "enforce": true
     },
+    "inventario/articulos": {
+      "enforce": true
+    },
     "inventario/categorias": {
       "enforce": true
     },
     "inventario/conduce-externo-form": {
+      "enforce": true
+    },
+    "inventario/conduces": {
       "enforce": true
     },
     "inventario/conduces-externos": {

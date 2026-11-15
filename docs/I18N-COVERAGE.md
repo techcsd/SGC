@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 23%** (2593/11108 literales de 193 pantallas en alcance). **`ht`: 47%**.
+**Alcance `en`: 24%** (2650/11107 literales de 193 pantallas en alcance). **`ht`: 49%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -144,8 +144,6 @@
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/conduces | scope | 33 | 17 | 16 | 52% |
-| inventario/articulos | scope | 95 | 53 | 42 | 56% |
 | inventario/salidas | scope | 124 | 73 | 51 | 59% |
 | inventario/bodegas | scope | 70 | 42 | 28 | 60% |
 | inventario/activos | scope | 71 | 43 | 28 | 61% |
@@ -184,8 +182,10 @@
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
 | inventario/apertura | enforce | 38 | 38 | 0 | 100% |
+| inventario/articulos | enforce | 93 | 93 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
+| inventario/conduces | enforce | 34 | 34 | 0 | 100% |
 | inventario/conduces-externos | scope | 14 | 14 | 0 | 100% |
 | inventario/conduces-por-implementar | enforce | 14 | 14 | 0 | 100% |
 | inventario/confirmaciones | enforce | 27 | 27 | 0 | 100% |
@@ -203,7 +203,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**927 literal(es) sin t()** en 122 archivo(s) (de 141 archivo(s) .ts con algo detectado).
+**918 literal(es) sin t()** en 120 archivo(s) (de 141 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -256,7 +256,6 @@
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/compras/proveedores/proveedores.ts | 7 | No se pudo cambiar el estado del proveedor · Dato de prueba eliminado · Error al eliminar … |
 | src/app/pages/flota/cupos-combustible/cupos-combustible.ts | 7 | Cupo ampliado · No se pudo ampliar · Falta el motivo … |
-| src/app/pages/inventario/articulos/articulos.ts | 7 | No se pudo agregar el apodo · No se pudo eliminar el apodo · Dato de prueba eliminado … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
 | src/app/pages/proyectos/cargos/cargos.ts | 7 | Faltan datos · Alias agregado · No se pudo guardar … |
@@ -311,7 +310,6 @@
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
 | src/app/pages/compras/solicitar-odoo/solicitar-odoo.ts | 2 | Solicitud de alta enviada · No se pudo enviar la solicitud de alta |
-| src/app/pages/inventario/conduces/conduces.ts | 2 | Chofer asignado · Chofer asignado a ${ok} de ${ids.length} conduce(s) |
 | src/app/pages/legal/expedientes/expedientes.ts | 2 | No se pudo cambiar el estado del expediente · No se pudo fijar la fecha límite |
 | src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
 | src/app/pages/tecnologia/odoo-sync/odoo-sync.ts | 2 | Reencolado · No se pudo reencolar |
