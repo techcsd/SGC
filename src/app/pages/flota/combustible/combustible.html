@@ -442,7 +442,7 @@
 
     <!-- Los 3 datos que digita el chofer -->
     <div class="sgc-field">
-      <label for="kilometraje">{{ labelLectura() }} <span class="required">*</span>
+      <label for="kilometraje">{{ labelLectura() | t }} <span class="required">*</span>
         @if (prellenadoCompa().has('kilometraje')) { <span class="cmb-chip-compa">Compa</span> }
       </label>
       <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1"
