@@ -334,9 +334,6 @@
     "flota/vehiculos": {
       "enforce": false
     },
-    "flota/conciliacion-combustible": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -446,6 +443,9 @@
       "enforce": true
     },
     "flota/combustible-log": {
+      "enforce": true
+    },
+    "flota/conciliacion-combustible": {
       "enforce": true
     },
     "flota/conductores": {

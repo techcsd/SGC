@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 45%** (4814/10696 literales de 192 pantallas en alcance). **`ht`: 75%**.
+**Alcance `en`: 45%** (4859/10692 literales de 192 pantallas en alcance). **`ht`: 76%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -118,7 +118,6 @@
 | auth | scope | 42 | 15 | 27 | 36% |
 | flota/combustible | scope | 197 | 121 | 76 | 61% |
 | flota/vehiculos | scope | 361 | 236 | 125 | 65% |
-| flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
@@ -156,6 +155,7 @@
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
+| flota/conciliacion-combustible | enforce | 161 | 161 | 0 | 100% |
 | flota/conductores | enforce | 165 | 165 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
 | flota/cupos-combustible | enforce | 48 | 48 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**631 literal(es) sin t()** en 85 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**615 literal(es) sin t()** en 84 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -211,7 +211,6 @@
 | src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
-| src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 16 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
 | src/app/pages/flota/vehiculos/vehiculos.ts | 15 | Sin filas · Rendimientos importados · No se pudo importar … |
 | src/app/pages/ingenieria/pagos/pagos.ts | 14 | No se pudo crear la semana · No se pudo crear la semana · No se pudo guardar … |

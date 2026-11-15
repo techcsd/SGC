@@ -18,17 +18,17 @@
       </select>
     </div>
     <label class="sgc-btn sgc-btn--primary cc-file">
-      <app-icon name="upload" [size]="16" /> Importar informe (Excel/CSV/PDF)
+      <app-icon name="upload" [size]="16" /> {{ 'Importar informe (Excel/CSV/PDF)' | t }}
       <input type="file" accept=".xlsx,.xls,.csv,.pdf" (change)="onFileSelected($event)" hidden />
     </label>
   </div>
-  @if (nombreArchivo()) { <p class="cc-file-name">Archivo: {{ nombreArchivo() }}</p> }
+  @if (nombreArchivo()) { <p class="cc-file-name">{{ 'Archivo:' | t }} {{ nombreArchivo() }}</p> }
   @if (parsing()) { <p class="cc-muted">{{ 'Procesando…' | t }}</p> }
   @if (parseError()) { <p class="cc-error" role="alert">{{ parseError() }}</p> }
   <p class="cc-hint">
-    Reconoce el reporte real de Total Energies en Excel/CSV (coma decimal, fechas dd/mm/aaaa,
-    Transacción_num) <strong>{{ 'y la factura PDF' | t }}</strong> (crédito fiscal electrónico, agrupada por tarjeta).
-    Nada se inserta hasta que confirmes en la <strong>{{ 'vista previa' | t }}</strong>.
+    {{ 'Reconoce el reporte real de Total Energies en Excel/CSV (coma decimal, fechas dd/mm/aaaa, Transacción_num)' | t }}
+    <strong>{{ 'y la factura PDF' | t }}</strong> {{ '(crédito fiscal electrónico, agrupada por tarjeta).' | t }}
+    {{ 'Nada se inserta hasta que confirmes en la' | t }} <strong>{{ 'vista previa' | t }}</strong>.
   </p>
 </div>
 
@@ -36,12 +36,12 @@
 @if (preview(); as rows) {
   <div class="sgc-card cc-preview">
     <div class="cc-preview__head">
-      <h2 class="cc-section" style="margin:0">Vista previa — factura {{ facturaNum() || '—' }}</h2>
+      <h2 class="cc-section" style="margin:0">{{ 'Vista previa — factura' | t }} {{ facturaNum() || '—' }}</h2>
       <div class="cc-preview__actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarPreview()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="importando() || previewStats().validas === 0"
                 (click)="confirmarImport()">
-          {{ importando() ? 'Importando…' : 'Confirmar e importar (' + (previewStats().validas - previewStats().duplicadas) + ')' }}
+          {{ importando() ? i18n.t('Importando…') : i18n.t('Confirmar e importar ({n})', { n: previewStats().validas - previewStats().duplicadas }) }}
         </button>
       </div>
     </div>
@@ -61,7 +61,7 @@
       @if (previewStats().anulaciones > 0) { <div class="stat-card"><span class="stat-card__label">{{ 'Anulaciones' | t }}</span><span class="stat-card__value">{{ previewStats().anulaciones }}</span></div> }
     </div>
     @if (cuadraFactura() === false) {
-      <p class="cc-error"><app-icon name="alert-triangle" [size]="14" /> La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
+      <p class="cc-error"><app-icon name="alert-triangle" [size]="14" /> {{ 'La suma de montos' | t }} ({{ previewStats().sumaMonto | number:'1.2-2' }}) {{ 'no cuadra con el total de la factura' | t }} ({{ facturaTotal() | number:'1.2-2' }}). {{ 'Revisa antes de confirmar.' | t }}</p>
     }
 
     <!-- BJ2 — cuadre por producto (del resumen fiscal del PDF). -->
@@ -97,15 +97,15 @@
     @if (esPdfPreview() && cardsDetectadas().length) {
       <div class="cc-tarjetas sgc-card">
         <div class="cc-tarjetas__head">
-          <h3>Tarjetas del PDF ({{ cardsDetectadas().length }})</h3>
+          <h3>{{ i18n.t('Tarjetas del PDF ({n})', { n: cardsDetectadas().length }) }}</h3>
           @if (tarjetasSinMapear() > 0) {
-            <span class="sgc-badge sgc-badge--warning">{{ tarjetasSinMapear() }} sin vehículo</span>
+            <span class="sgc-badge sgc-badge--warning">{{ i18n.t('{n} sin vehículo', { n: tarjetasSinMapear() }) }}</span>
           } @else {
             <span class="sgc-badge sgc-badge--success">{{ 'todas mapeadas' | t }}</span>
           }
           @if (autoSugeridas() > 0) {
             <button type="button" class="sgc-btn sgc-btn--sm" (click)="aceptarAutomaticos()">
-              Aceptar los {{ autoSugeridas() }} automáticos
+              {{ i18n.t('Aceptar los {n} automáticos', { n: autoSugeridas() }) }}
             </button>
           }
         </div>
@@ -123,13 +123,13 @@
                   <td>
                     <select [value]="t.vehiculo_id ?? ''" [disabled]="t.guardando"
                             (change)="asignarVehiculoTarjeta(t.card.codigo, $any($event.target).value)">
-                      <option value="">Sin vehículo (solo informe)</option>
+                      <option value="">{{ 'Sin vehículo (solo informe)' | t }}</option>
                       @for (v of vehiculos(); track v.id) {
                         <option [value]="v.id">{{ v.label }}</option>
                       }
                     </select>
                     @if (t.auto && t.sugerido) {
-                      <span class="sgc-badge sgc-badge--info" title="Sugerido automáticamente por {{ t.sugerido.via }}">auto · {{ (t.sugerido.score * 100) | number:'1.0-0' }}% · {{ t.sugerido.via }}</span>
+                      <span class="sgc-badge sgc-badge--info" [title]="i18n.t('Sugerido automáticamente por {via}', { via: t.sugerido.via })">{{ i18n.t('auto · {pct}% · {via}', { pct: (t.sugerido.score * 100).toFixed(0), via: t.sugerido.via }) }}</span>
                     }
                   </td>
                 </tr>
@@ -141,7 +141,7 @@
     }
 
     <!-- BY2 — la tabla principal = FLOTA (lo importante). -->
-    <h3 class="cc-section">Flota ({{ filasFlota().length }})</h3>
+    <h3 class="cc-section">{{ i18n.t('Flota ({n})', { n: filasFlota().length }) }}</h3>
     <div class="table-wrapper sgc-card">
       <div class="table-scroll">
         <table class="data-table" aria-label="{{ 'Vista previa del reporte (flota)' | t }}">
@@ -188,7 +188,7 @@
       <div class="cc-cubo sgc-card">
         <button type="button" class="cc-cubo__head" (click)="fueraFlotaAbierto.set(!fueraFlotaAbierto())">
           <app-icon [name]="fueraFlotaAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
-          Fuera de flota ({{ filasFuera().length }}) · RD$ {{ cuboMonto(filasFuera()) | number:'1.0-2' }}
+          {{ i18n.t('Fuera de flota ({n})', { n: filasFuera().length }) }} {{ '· RD$' | t }} {{ cuboMonto(filasFuera()) | number:'1.0-2' }}
           <span class="cc-hint">{{ 'no se importan; asigna un vehículo arriba para incluirlas' | t }}</span>
         </button>
         @if (fueraFlotaAbierto()) {
@@ -217,7 +217,7 @@
       <div class="cc-cubo sgc-card">
         <button type="button" class="cc-cubo__head" (click)="anulacionesAbierto.set(!anulacionesAbierto())">
           <app-icon [name]="anulacionesAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
-          Anulaciones ({{ filasAnulacion().length }}) · RD$ {{ cuboMonto(filasAnulacion()) | number:'1.0-2' }}
+          {{ i18n.t('Anulaciones ({n})', { n: filasAnulacion().length }) }} {{ '· RD$' | t }} {{ cuboMonto(filasAnulacion()) | number:'1.0-2' }}
           <span class="cc-hint">{{ 'créditos/reversos del informe; no se importan' | t }}</span>
         </button>
         @if (anulacionesAbierto()) {
@@ -270,17 +270,17 @@
 
   <div class="cc-actions">
     <div class="cc-tabs">
-      <button type="button" [class.cc-tab--active]="tab() === 'diferencia'" (click)="tab.set('diferencia')">Diferencias ({{ m.total_diferencias }})</button>
-      <button type="button" [class.cc-tab--active]="tab() === 'solo_informe'" (click)="tab.set('solo_informe')">Solo informe ({{ m.total_solo_informe }})</button>
-      <button type="button" [class.cc-tab--active]="tab() === 'solo_plataforma'" (click)="tab.set('solo_plataforma')">Solo plataforma ({{ m.total_solo_plataforma }})</button>
-      <button type="button" [class.cc-tab--active]="tab() === 'match'" (click)="tab.set('match')">Coinciden ({{ m.total_matches }})</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'diferencia'" (click)="tab.set('diferencia')">{{ i18n.t('Diferencias ({n})', { n: m.total_diferencias }) }}</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'solo_informe'" (click)="tab.set('solo_informe')">{{ i18n.t('Solo informe ({n})', { n: m.total_solo_informe }) }}</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'solo_plataforma'" (click)="tab.set('solo_plataforma')">{{ i18n.t('Solo plataforma ({n})', { n: m.total_solo_plataforma }) }}</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'match'" (click)="tab.set('match')">{{ i18n.t('Coinciden ({n})', { n: m.total_matches }) }}</button>
     </div>
     <div class="cc-actions">
       @if (faltantesCount() > 0) {
         <!-- BT1 — crea las echadas que nadie registró (filas del informe sin match). -->
         <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="registrarFaltantes()"
                 title="{{ 'Registra como echadas las filas de la factura que no están en la plataforma' | t }}">
-          {{ saving() ? 'Registrando…' : 'Registrar ' + faltantesCount() + ' echada(s) faltante(s)' }}
+          {{ saving() ? i18n.t('Registrando…') : i18n.t('Registrar {n} echada(s) faltante(s)', { n: faltantesCount() }) }}
         </button>
       }
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
@@ -294,7 +294,7 @@
     <div class="sgc-field filters-bar__select">
       <select aria-label="{{ 'Filtrar por vehículo o tarjeta' | t }}"
               [value]="filtroVehiculo()" (change)="onFiltroVehiculo($any($event.target).value)">
-        <option value="">Todos los vehículos / tarjetas</option>
+        <option value="">{{ 'Todos los vehículos / tarjetas' | t }}</option>
         @for (id of identificadoresDisponibles(); track id) {
           <option [value]="id">{{ id }}</option>
         }
@@ -303,7 +303,7 @@
     <app-date-range-filter [desde]="filtroDesde()" [hasta]="filtroHasta()" (rangeChange)="onRangoDetalle($event)" />
     @if (hayFiltrosDetalle()) {
       <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="limpiarFiltrosDetalle()">
-        Limpiar filtros
+        {{ 'Limpiar filtros' | t }}
       </button>
     }
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -391,14 +391,14 @@
 <h2 class="cc-section">
   <button type="button" class="cc-toggle" (click)="abrirPanel()">
     <app-icon [name]="panelAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
-    Cómo subir el % de match
+    {{ 'Cómo subir el % de match' | t }}
   </button>
 </h2>
 @if (panelAbierto()) {
   <div class="sgc-card cc-panel">
     <p class="cc-panel__hint">
-      Cada fila del informe que no cruza baja el %. Aquí ves <strong>{{ 'por qué' | t }}</strong> no cruzan y qué hacer.
-      El % del dashboard cuenta <strong>{{ 'una factura una sola vez' | t }}</strong> (las re-subidas son versiones).
+      {{ 'Cada fila del informe que no cruza baja el %. Aquí ves' | t }} <strong>{{ 'por qué' | t }}</strong> {{ 'no cruzan y qué hacer.' | t }}
+      {{ 'El % del dashboard cuenta' | t }} <strong>{{ 'una factura una sola vez' | t }}</strong> {{ '(las re-subidas son versiones).' | t }}
     </p>
 
     @if (cargandoPanel()) {
@@ -413,7 +413,7 @@
             <tbody>
               @for (c of causas(); track c.causa) {
                 <tr>
-                  <td>{{ causaLabel(c.causa).texto }}</td>
+                  <td>{{ causaLabel(c.causa).texto | t }}</td>
                   <td class="text-right">{{ c.filas }}</td>
                   <td>
                     @if (c.causa === 'chofer_no_registro') {
@@ -421,7 +421,7 @@
                         {{ recordando() ? 'Enviando…' : 'Recordar a los choferes' }}
                       </button>
                     } @else {
-                      <span class="cc-muted">{{ causaLabel(c.causa).accion || '—' }}</span>
+                      <span class="cc-muted">{{ (causaLabel(c.causa).accion | t) || '—' }}</span>
                     }
                   </td>
                 </tr>
@@ -434,7 +434,7 @@
       }
 
       <!-- % de match por chofer / vehículo -->
-      <h3 class="cc-subtitle">% de match por {{ matchPorTipo() === 'chofer' ? 'chofer' : 'vehículo' }}</h3>
+      <h3 class="cc-subtitle">{{ '% de match por' | t }} {{ (matchPorTipo() === 'chofer' ? 'chofer' : 'vehículo') | t }}</h3>
       <div class="cc-seg" role="tablist">
         <button type="button" class="cc-seg__btn" [class.cc-seg__btn--active]="matchPorTipo() === 'vehiculo'" (click)="cambiarMatchPorTipo('vehiculo')">{{ 'Por vehículo' | t }}</button>
         <button type="button" class="cc-seg__btn" [class.cc-seg__btn--active]="matchPorTipo() === 'chofer'" (click)="cambiarMatchPorTipo('chofer')">{{ 'Por chofer' | t }}</button>
@@ -442,7 +442,7 @@
       @if (matchPorLista().length) {
         <div class="table-wrapper">
           <table class="data-table" aria-label="{{ '% match por entidad' | t }}">
-            <thead><tr><th>{{ matchPorTipo() === 'chofer' ? 'Chofer' : 'Vehículo' }}</th><th class="text-right">{{ 'Cruzan' | t }}</th><th class="text-right">{{ 'Total' | t }}</th><th class="text-right">{{ '% match' | t }}</th></tr></thead>
+            <thead><tr><th>{{ (matchPorTipo() === 'chofer' ? 'Chofer' : 'Vehículo') | t }}</th><th class="text-right">{{ 'Cruzan' | t }}</th><th class="text-right">{{ 'Total' | t }}</th><th class="text-right">{{ '% match' | t }}</th></tr></thead>
             <tbody>
               @for (r of matchPorLista(); track r.entidad_id) {
                 <tr>
@@ -461,12 +461,12 @@
 
       <details class="cc-guia">
         <summary>{{ 'Cómo funciona (guía)' | t }}</summary>
-        <p>El sistema cruza cada carga del informe con la echada que registró el chofer, en 3 niveles:
-          ① por <strong>{{ 'número de recibo' | t }}</strong> (lo más seguro — pídeles que lo anoten),
-          ② por <strong>{{ 'placa + fecha + galones' | t }}</strong>{{ ', y ③ por' | t }} <strong>{{ 'tarjeta → vehículo + fecha' | t }}</strong>.</p>
+        <p>{{ 'El sistema cruza cada carga del informe con la echada que registró el chofer, en 3 niveles:' | t }}
+          {{ '① por' | t }} <strong>{{ 'número de recibo' | t }}</strong> {{ '(lo más seguro — pídeles que lo anoten),' | t }}
+          {{ '② por' | t }} <strong>{{ 'placa + fecha + galones' | t }}</strong>{{ ', y ③ por' | t }} <strong>{{ 'tarjeta → vehículo + fecha' | t }}</strong>.</p>
         <p>{{ 'Para subir el %: que los choferes' | t }} <strong>{{ 'registren la echada' | t }}</strong> {{ 'y anoten el' | t }} <strong>{{ 'Nº de recibo' | t }}</strong>;
-          <strong>{{ 'asigna cada tarjeta' | t }}</strong> {{ 'a su vehículo; revisa' | t }} <strong>{{ 'galones/fecha' | t }}</strong> cuando difieran.
-          Ver <code>docs/CONCILIACION-COMO-MEJORAR.md</code>.</p>
+          <strong>{{ 'asigna cada tarjeta' | t }}</strong> {{ 'a su vehículo; revisa' | t }} <strong>{{ 'galones/fecha' | t }}</strong> {{ 'cuando difieran.' | t }}
+          {{ 'Ver' | t }} <code>docs/CONCILIACION-COMO-MEJORAR.md</code>.</p>
       </details>
     }
   </div>
@@ -476,7 +476,7 @@
 <h2 class="cc-section">
   <button type="button" class="cc-toggle" (click)="toggleFacturas()">
     <app-icon [name]="facturasAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
-    Facturas ({{ facturas().length || '—' }})
+    {{ i18n.t('Facturas ({n})', { n: facturas().length || '—' }) }}
   </button>
 </h2>
 @if (facturasAbierto()) {
@@ -514,9 +514,9 @@
                   }
                 </td>
                 <td>
-                  @if (f.diagnostico?.rows) { <small>{{ f.diagnostico?.rows }} tx</small> }
+                  @if (f.diagnostico?.rows) { <small>{{ f.diagnostico?.rows }} {{ 'tx' | t }}</small> }
                   @if (f.diagnostico?.cuadre && !f.diagnostico?.cuadre?.cuadra) { <small class="cc-neg"> {{ '· no cuadra' | t }}</small> }
-                  @if (f.diagnostico?.columnas_faltantes?.length) { <small class="cc-neg"> · faltan cols: {{ f.diagnostico?.columnas_faltantes?.join(', ') }}</small> }
+                  @if (f.diagnostico?.columnas_faltantes?.length) { <small class="cc-neg"> {{ '· faltan cols:' | t }} {{ f.diagnostico?.columnas_faltantes?.join(', ') }}</small> }
                   @if (f.diagnostico?.diagnostico === 'sin_texto') { <small class="cc-neg">{{ 'PDF escaneado' | t }}</small> }
                 </td>
                 <td>{{ f.subido_por_nombre || '—' }}</td>
