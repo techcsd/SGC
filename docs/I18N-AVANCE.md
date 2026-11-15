@@ -225,6 +225,38 @@ Lotes 10-14 cerraron las 6 pantallas restantes:
 **Módulo 4 (Inventario) CERRADO: 35/35 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Compras (#5).
 
+## Compras — 100% COMPLETO (8/8 pantallas, 15-nov-2026)
+
+8 pantallas: `gastos`, `productos-por-dar-de-alta`, `reportes`,
+`solicitar-odoo`, `proveedores-odoo`, `proveedores`, `ordenes`,
+`ordenes-odoo`. Lotes 15-19:
+
+- **Lote 15** (`e61f8488`): `gastos` y `productos-por-dar-de-alta` → 100%.
+- **Lote 16** (`5221c3de`): `reportes` y `solicitar-odoo` → 100%.
+- **Lote 17** (`f4c7f771`): `proveedores-odoo` y `proveedores` → 100%.
+- **Lote 18** (`08f2664b`): `ordenes` → 100%. Undécimo fix: `verify-i18n.mjs`
+  compara claves con `.trim()`, pero el lookup en tiempo de ejecución
+  (`I18nService.t()`) hace match exacto sin trim — una clave con espacio
+  intencional (`' (y {n} más)'`, usada para concatenar con espaciado) nunca
+  puede pasar ambos checks a la vez si se guarda con el espacio. Fix: el
+  espacio sale del `t()` y se concatena aparte (`' ' + this.i18n.t('(y {n}
+  más)', {...})`), la clave queda limpia.
+- **Lote 19** (`8eda4b89`): `ordenes-odoo` → 100%, cierra el módulo. Pantalla
+  estructuralmente casi idéntica a `ordenes` (misma tabla de reconciliación
+  de recepción, panel de vincular artículo, historial de entradas) — mismo
+  patrón de fix reutilizado. No tenía `I18nService`/`TranslatePipe`
+  inyectados (quedó fuera del alcance del codemod automático) — se agregó
+  desde cero junto con el envolver de 16 toasts.
+- `public/i18n/en.json` y `ht.json`: pocas claves nuevas por módulo gracias
+  al solapamiento entre `ordenes`/`ordenes-odoo` (comparten casi todo el
+  vocabulario de reconciliación/recepción).
+- `alcance.json`: 8 pantallas nuevas `enforce:true` (total **43**).
+  `verify-i18n.mjs`: 43 pantallas enforce, 0 fallos. Build + 368/368 tests
+  verdes en todo momento.
+
+**Módulo 5 (Compras) CERRADO: 8/8 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Flota (#6).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -258,7 +290,7 @@ Admin, resto.
 | 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
 | 4 | Inventario | 35/35 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~350 a mano | ~130 (toasts/confirm/error) | ✅ **100% — hecho** | 46a3c9c5..9e839268 | **true** |
-| 5 | Compras | — | — | — | ⏳ pendiente | — | false |
+| 5 | Compras | 8/8 pantallas 100% (ver detalle arriba) | ~cablear HTML a mano (sin codemod) | toasts/confirm/error | ✅ **100% — hecho** | e61f8488..8eda4b89 | **true** |
 | 6 | Flota | — | — | — | ⏳ pendiente | — | false |
 | 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |
 | 8 | Transporte/apoyo | — | — | — | ⏳ pendiente | — | false |
