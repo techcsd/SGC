@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 52,
+  "pctScopeEn": 53,
   "pctHt": 81,
   "filas": [
     {
@@ -6055,35 +6055,6 @@
       ]
     },
     {
-      "pantalla": "bitacora/cartillas",
-      "total": 75,
-      "cubiertos": 57,
-      "sin": 18,
-      "pct": 76,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "· total kg",
-        "· kg",
-        "( pz)",
-        "prueba",
-        "kg",
-        "Elige la obra…",
-        "kg",
-        "kg",
-        "Cartilla",
-        "No se pudo abrir",
-        "Escribe la observación",
-        "Cartilla actualizada",
-        "No se pudo actualizar",
-        "Diámetro actualizado",
-        "No se pudo guardar",
-        "No se pudo guardar",
-        "Cartilla",
-        "Cartilla enviada"
-      ]
-    },
-    {
       "pantalla": "admin/compa-conversaciones",
       "total": 26,
       "cubiertos": 20,
@@ -6339,6 +6310,16 @@
       "pantalla": "ajustes-notificaciones",
       "total": 16,
       "cubiertos": 16,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/cartillas",
+      "total": 76,
+      "cubiertos": 76,
       "sin": 0,
       "pct": 100,
       "enScope": true,

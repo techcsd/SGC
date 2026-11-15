@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 52%** (5560/10619 literales de 192 pantallas en alcance). **`ht`: 81%**.
+**Alcance `en`: 53%** (5579/10620 literales de 192 pantallas en alcance). **`ht`: 81%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -108,7 +108,6 @@
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
-| bitacora/cartillas | scope | 75 | 57 | 18 | 76% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | bitacora/nueva | scope | 164 | 132 | 32 | 80% |
@@ -124,6 +123,7 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
+| bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
 | bitacora/cobertura | enforce | 20 | 20 | 0 | 100% |
 | bitacora/dashboard | enforce | 14 | 14 | 0 | 100% |
 | bitacora/entregas | enforce | 24 | 24 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**529 literal(es) sin t()** en 75 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**520 literal(es) sin t()** en 74 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -224,7 +224,6 @@
 | src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
 | src/app/pages/proyectos/cronograma/cronograma.ts | 11 | Tarea guardada. · Dependencia agregada. · Dependencia eliminada. … |
 | src/app/pages/proyectos/personal/personal.ts | 11 | No se pudieron cargar los duplicados · Registros fusionados · No se pudo fusionar … |
-| src/app/pages/bitacora/cartillas/cartillas.ts | 9 | No se pudo abrir · Escribe la observación · Cartilla actualizada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |

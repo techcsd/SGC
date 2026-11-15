@@ -45,12 +45,12 @@
   @if (resumen().length) {
     <div class="cart-acero sgc-card">
       <div class="cart-acero__head">
-        <h3>{{ 'Acero por diámetro' | t }} <span class="text-muted">· total {{ kgTotal() | number:'1.0-1' }} kg</span></h3>
+        <h3>{{ 'Acero por diámetro' | t }} <span class="text-muted">· {{ 'total' | t }} {{ kgTotal() | number:'1.0-1' }} {{ 'kg' | t }}</span></h3>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarAcero()">{{ 'Exportar acero' | t }}</button>
       </div>
       <div class="cart-acero__chips">
         @for (r of resumen(); track r.diametro_codigo) {
-          <span class="cart-acero__chip"><strong>{{ r.diametro_codigo }}</strong> · {{ r.peso_kg | number:'1.0-1' }} kg <span class="text-muted">({{ r.piezas }} pz)</span></span>
+          <span class="cart-acero__chip"><strong>{{ r.diametro_codigo }}</strong> · {{ r.peso_kg | number:'1.0-1' }} {{ 'kg' | t }} <span class="text-muted">({{ r.piezas }} {{ 'pz' | t }})</span></span>
         }
       </div>
     </div>
@@ -72,11 +72,11 @@
         <tbody>
           @for (c of paginaActual(); track c.id) {
             <tr class="row--link" (click)="abrirDetalle(c)" role="button" tabindex="0" (keydown.enter)="abrirDetalle(c)">
-              <td><code class="req-codigo">{{ c.folio ?? '—' }}</code>@if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }</td>
+              <td><code class="req-codigo">{{ c.folio ?? '—' }}</code>@if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }</td>
               <td>{{ c.proyecto ?? '—' }}</td>
               <td>{{ c.ingeniero ?? '—' }}</td>
               <td>{{ formatFecha(c.fecha) }}</td>
-              <td><span class="status-pill" [class]="'status-pill--' + estadoBadge(c.estado)">{{ ESTADO_LABEL[c.estado] ?? c.estado }}</span></td>
+              <td><span class="status-pill" [class]="'status-pill--' + estadoBadge(c.estado)">{{ (ESTADO_LABEL[c.estado] ?? c.estado) | t }}</span></td>
               <td class="text-right">{{ c.peso_total_kg | number:'1.0-1' }}</td>
             </tr>
           }
@@ -88,7 +88,7 @@
 </div>
 
 <!-- ── Detalle ── -->
-<app-form-drawer [title]="detalle()?.folio ?? 'Cartilla'" [open]="detalleOpen()" (closed)="cerrarDetalle()">
+<app-form-drawer [title]="detalle()?.folio ?? i18n.t('Cartilla')" [open]="detalleOpen()" (closed)="cerrarDetalle()">
   @if (detalleLoading()) {
     <app-skeleton variant="list" [rows]="5" />
   } @else if (detalle(); as d) {
@@ -97,15 +97,15 @@
         <div><dt>{{ 'Obra' | t }}</dt><dd>{{ d.proyecto ?? '—' }}</dd></div>
         <div><dt>{{ 'Ingeniero' | t }}</dt><dd>{{ d.ingeniero ?? '—' }}</dd></div>
         <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(d.fecha) }}</dd></div>
-        <div><dt>{{ 'Estado' | t }}</dt><dd><span class="status-pill" [class]="'status-pill--' + estadoBadge(d.estado)">{{ ESTADO_LABEL[d.estado] ?? d.estado }}</span></dd></div>
-        <div><dt>{{ 'Peso total' | t }}</dt><dd>{{ d.peso_total_kg | number:'1.0-2' }} kg</dd></div>
+        <div><dt>{{ 'Estado' | t }}</dt><dd><span class="status-pill" [class]="'status-pill--' + estadoBadge(d.estado)">{{ (ESTADO_LABEL[d.estado] ?? d.estado) | t }}</span></dd></div>
+        <div><dt>{{ 'Peso total' | t }}</dt><dd>{{ d.peso_total_kg | number:'1.0-2' }} {{ 'kg' | t }}</dd></div>
       </dl>
       @if (d.observacion) { <p class="cart-detalle__obs"><strong>{{ 'Observación:' | t }}</strong> {{ d.observacion }}</p> }
       @if (d.notas) { <p class="text-muted">{{ d.notas }}</p> }
 
       @for (a of d.atados; track a.id) {
         <div class="cart-atado">
-          <h4>{{ a.identificador || 'Atado' }} @if (a.elemento) { <span class="text-muted">· {{ a.elemento }}</span> }</h4>
+          <h4>{{ a.identificador || i18n.t('Atado') }} @if (a.elemento) { <span class="text-muted">· {{ a.elemento }}</span> }</h4>
           <table class="data-table cart-piezas">
             <thead><tr><th>{{ 'Marca' | t }}</th><th>Ø</th><th>{{ 'Figura' | t }}</th><th>{{ 'Tramos (cm)' | t }}</th><th class="text-right">{{ 'Long.' | t }}</th><th class="text-right">{{ 'Cant.' | t }}</th><th class="text-right">{{ 'kg' | t }}</th></tr></thead>
             <tbody>
@@ -140,7 +140,7 @@
       <ul class="cart-eventos">
         @for (e of d.eventos; track e.created_at) {
           <li>
-            <span class="status-pill" [class]="'status-pill--' + estadoBadge(e.estado_hasta ?? '')">{{ ESTADO_LABEL[e.estado_hasta ?? ''] ?? e.estado_hasta }}</span>
+            <span class="status-pill" [class]="'status-pill--' + estadoBadge(e.estado_hasta ?? '')">{{ (ESTADO_LABEL[e.estado_hasta ?? ''] ?? e.estado_hasta) | t }}</span>
             <span class="text-muted">{{ e.usuario ?? '—' }} · {{ formatFecha(e.created_at) }}</span>
             @if (e.nota) { <span> — {{ e.nota }}</span> }
           </li>
@@ -168,7 +168,7 @@
     <div class="sgc-field">
       <label>{{ 'Obra' | t }}</label>
       <select [value]="cObra()" (change)="cObra.set($any($event.target).value)">
-        <option value="">Elige la obra…</option>
+        <option value="">{{ 'Elige la obra…' | t }}</option>
         @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
       </select>
     </div>
@@ -204,7 +204,7 @@
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addTramo(cAtados().indexOf(a), a.piezas.indexOf(p))">{{ '+ lado' | t }}</button>
             </div>
             <input type="number" min="1" [value]="p.cantidad" (input)="setPieza(cAtados().indexOf(a), $index, 'cantidad', +$any($event.target).value)" placeholder="{{ 'Cant.' | t }}" class="cart-cap-pieza__cant" />
-            <span class="cart-cap-pieza__peso">{{ pesoPieza(p) | number:'1.0-2' }} kg</span>
+            <span class="cart-cap-pieza__peso">{{ pesoPieza(p) | number:'1.0-2' }} {{ 'kg' | t }}</span>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="removePieza(cAtados().indexOf(a), $index)" aria-label="{{ 'Quitar pieza' | t }}">×</button>
           </div>
         }
@@ -239,12 +239,12 @@
       <textarea rows="2" [value]="cNotas()" (input)="cNotas.set($any($event.target).value)"></textarea>
     </div>
 
-    <p class="cart-captura__total">{{ 'Peso total:' | t }} <strong>{{ pesoTotalCaptura() | number:'1.0-2' }} kg</strong></p>
+    <p class="cart-captura__total">{{ 'Peso total:' | t }} <strong>{{ pesoTotalCaptura() | number:'1.0-2' }} {{ 'kg' | t }}</strong></p>
     @if (cError()) { <p class="page-error" role="alert">{{ cError() }}</p> }
     <div class="cart-captura__acciones">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarCaptura()" [disabled]="cGuardando()">{{ 'Cancelar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarCaptura()" [disabled]="cGuardando()">
-        {{ cGuardando() ? 'Guardando…' : 'Enviar cartilla' }}
+        {{ (cGuardando() ? 'Guardando…' : 'Enviar cartilla') | t }}
       </button>
     </div>
   </div>

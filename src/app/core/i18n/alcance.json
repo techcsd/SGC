@@ -304,9 +304,6 @@
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
-    "bitacora/cartillas": {
-      "enforce": false
-    },
     "admin/compa-conversaciones": {
       "enforce": false
     },
@@ -350,6 +347,9 @@
       "enforce": false
     },
     "ajustes-notificaciones": {
+      "enforce": true
+    },
+    "bitacora/cartillas": {
       "enforce": true
     },
     "bitacora/cobertura": {
