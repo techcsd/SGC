@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 25%** (2789/11117 literales de 193 pantallas en alcance). **`ht`: 56%**.
+**Alcance `en`: 26%** (2847/11084 literales de 192 pantallas en alcance). **`ht`: 58%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -52,7 +52,7 @@
 | flota/combustible | scope | 224 | 0 | 224 | 0% |
 | flota/combustible-dashboard | scope | 54 | 0 | 54 | 0% |
 | flota/combustible-log | scope | 139 | 0 | 139 | 0% |
-| flota/conciliacion-combustible | scope | 186 | 0 | 186 | 0% |
+| flota/conciliacion-combustible | scope | 179 | 0 | 179 | 0% |
 | flota/conductores | scope | 195 | 0 | 195 | 0% |
 | flota/conductores-estado | scope | 17 | 0 | 17 | 0% |
 | flota/panel-dia | scope | 24 | 0 | 24 | 0% |
@@ -62,8 +62,8 @@
 | flota/reportes | scope | 46 | 0 | 46 | 0% |
 | flota/responsabilidad | scope | 72 | 0 | 72 | 0% |
 | flota/rutas | scope | 128 | 0 | 128 | 0% |
-| flota/rutas-activas | scope | 52 | 0 | 52 | 0% |
-| flota/seguimiento | scope | 29 | 0 | 29 | 0% |
+| flota/rutas-activas | scope | 46 | 0 | 46 | 0% |
+| flota/seguimiento | scope | 23 | 0 | 23 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
 | incentivos | scope | 184 | 0 | 184 | 0% |
 | legal/aprobaciones | scope | 34 | 0 | 34 | 0% |
@@ -112,7 +112,7 @@
 | tareas/historial | scope | 22 | 0 | 22 | 0% |
 | tareas/mis-tareas | scope | 7 | 0 | 7 | 0% |
 | tecnologia/apis-consumo | scope | 44 | 0 | 44 | 0% |
-| tecnologia/compras | scope | 105 | 0 | 105 | 0% |
+| tecnologia/compras | scope | 98 | 0 | 98 | 0% |
 | tecnologia/consultas-compa | scope | 24 | 0 | 24 | 0% |
 | tecnologia/design-system | scope | 131 | 0 | 131 | 0% |
 | tecnologia/estadisticas | scope | 41 | 0 | 41 | 0% |
@@ -128,7 +128,6 @@
 | tecnologia/resumen-operaciones | scope | 69 | 0 | 69 | 0% |
 | trabajos-transporte | scope | 24 | 0 | 24 | 0% |
 | verificar | scope | 9 | 0 | 9 | 0% |
-| flota/flota-subnav | scope | 12 | 0 | 12 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | flota/checklists | scope | 112 | 5 | 107 | 4% |
@@ -144,7 +143,6 @@
 | proyectos/personal | scope | 276 | 74 | 202 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/conduce | scope | 145 | 93 | 52 | 64% |
 | inventario/requisiciones | scope | 144 | 93 | 51 | 65% |
 | inventario/retiros | scope | 99 | 65 | 34 | 66% |
 | practica | scope | 34 | 24 | 10 | 71% |
@@ -166,7 +164,7 @@
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | compras/gastos | scope | 26 | 25 | 1 | 96% |
 | admin/auditoria | scope | 64 | 62 | 2 | 97% |
-| tecnologia/whatsapp | scope | 186 | 183 | 3 | 98% |
+| tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
@@ -183,6 +181,7 @@
 | inventario/articulos | enforce | 93 | 93 | 0 | 100% |
 | inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
+| inventario/conduce | enforce | 151 | 151 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces | enforce | 34 | 34 | 0 | 100% |
 | inventario/conduces-externos | enforce | 14 | 14 | 0 | 100% |
@@ -203,21 +202,19 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**883 literal(es) sin t()** en 115 archivo(s) (de 140 archivo(s) .ts con algo detectado).
+**818 literal(es) sin t()** en 110 archivo(s) (de 137 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
 | src/app/pages/flota/vehiculos/detalle/vehiculo-detalle.ts | 30 | Especificación guardada · No se pudo guardar · Vehículo reactivado … |
-| src/app/pages/inventario/conduce/conduce.ts | 26 | Sin pendientes · Conduce ${this.numeroConduce} eliminado. · Ruta iniciada … |
-| src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 23 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
 | src/app/pages/flota/combustible/combustible.ts | 22 | Precios actualizados · No se pudieron guardar los precios · Versión restaurada … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/inventario/retiros/retiros.ts | 17 | No se pudo subir la foto · Selecciona la obra. · Agrega al menos un artículo. … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/compras/ordenes-odoo/ordenes-odoo.ts | 16 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
+| src/app/pages/flota/conciliacion-combustible/conciliacion-combustible.ts | 16 | Recordatorio enviado · No se pudo identificar a los choferes · No se pudo enviar el recordatorio … |
 | src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
-| src/app/pages/tecnologia/compras/compras.ts | 16 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
 | src/app/pages/flota/mantenimientos/mantenimientos.ts | 15 | No se pudo cambiar el tipo · No se pudo abrir el adjunto · Archivo no admitido … |
 | src/app/pages/flota/vehiculos/vehiculos.ts | 15 | Sin filas · Rendimientos importados · No se pudo importar … |
 | src/app/pages/flota/combustible-log/combustible-log.ts | 14 | Elige el usuario · Indica el vencimiento del permiso · Permiso otorgado … |
@@ -230,7 +227,6 @@
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/compras/ordenes/ordenes.ts | 12 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
 | src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
-| src/app/pages/flota/flota-subnav/flota-subnav.ts | 12 | Mapa en vivo · Rutas activas · Recorrido diario … |
 | src/app/pages/inventario/requisiciones/requisiciones.ts | 12 | Fecha de necesidad actualizada · No se pudo cambiar la fecha · Cobertura deshecha … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
@@ -245,6 +241,7 @@
 | src/app/pages/inventario/conduce-externo-ficha/conduce-externo-ficha.ts | 9 | Enlace copiado · No se pudo cambiar el estado de prueba · Conduce externo anulado … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
+| src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
 | src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
 | src/app/pages/proyectos/personal/personal-import.ts | 8 | Aplicado · No se pudo generar la plantilla · Elige la obra … |
 | src/app/pages/rrhh/tramites/tramites.ts | 8 | No se pudieron cargar los trámites · Falta el nombre · Trámite guardado … |
@@ -265,8 +262,6 @@
 | src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |
 | src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
 | src/app/pages/compras/proveedores-odoo/proveedores-odoo.ts | 6 | No se pudo cargar más proveedores · No se pudo cambiar el estado del proveedor · Dato de prueba eliminado … |
-| src/app/pages/flota/rutas-activas/rutas-activas.ts | 6 | Disponible · En ruta · Descanso … |
-| src/app/pages/flota/seguimiento/seguimiento.ts | 6 | Disponible · En ruta · Descanso … |
 | src/app/pages/inventario/entradas/entradas.ts | 6 | Entrada rechazada · Recepción confirmada · Error … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
@@ -321,4 +316,3 @@
 | src/app/pages/proyectos/compras/compras.ts | 1 | Gasto registrado |
 | src/app/pages/proyectos/cronograma-import/cronograma-import.ts | 1 | Cronograma importado |
 | src/app/pages/rrhh/organigrama/organigrama.ts | 1 | No se pudo cargar el organigrama |
-| src/app/pages/tecnologia/whatsapp/whatsapp.ts | 1 | message-circle |

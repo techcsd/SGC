@@ -364,9 +364,6 @@
     "verificar": {
       "enforce": false
     },
-    "flota/flota-subnav": {
-      "enforce": false
-    },
     "soporte": {
       "enforce": false
     },
@@ -410,9 +407,6 @@
       "enforce": false
     },
     "auth": {
-      "enforce": false
-    },
-    "inventario/conduce": {
       "enforce": false
     },
     "inventario/requisiciones": {
@@ -527,6 +521,9 @@
       "enforce": true
     },
     "inventario/categorias": {
+      "enforce": true
+    },
+    "inventario/conduce": {
       "enforce": true
     },
     "inventario/conduce-externo-form": {

@@ -27,6 +27,7 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
 import { esUuid } from '../../../../shared/utils/uuid.util';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface ItemCierre {
   detalle_id: string;
@@ -57,6 +58,7 @@ export class Conduce implements OnInit {
   private salidasService = inject(SalidasService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
   private datosPruebaView = inject(DatosPruebaViewService);
@@ -305,7 +307,7 @@ export class Conduce implements OnInit {
       const candidato =
         porFirmar.find((r) => r.id !== actual) ?? pendEntrega.find((r) => r.id !== actual);
       if (!candidato) {
-        this.toast.success('Sin pendientes', 'No tienes otros conduces pendientes por firmar o confirmar.');
+        this.toast.success(this.i18n.t('Sin pendientes'), 'No tienes otros conduces pendientes por firmar o confirmar.');
         return;
       }
       await this.navegarAConduce(candidato.id);
@@ -399,7 +401,7 @@ export class Conduce implements OnInit {
     this.anularError.set('');
     try {
       await this.salidasService.anularConduce(s.id, this.motivoAnulacion().trim() || null);
-      this.toast.success(`Conduce ${this.numeroConduce} eliminado.`, 'Se repuso su stock y se canceló la ruta vinculada.');
+      this.toast.success(this.i18n.t('Conduce {n} eliminado.', { n: this.numeroConduce }), 'Se repuso su stock y se canceló la ruta vinculada.');
       this.mostrarAnular.set(false);
       this.router.navigate(['/inventario/conduces']);
     } catch (e: unknown) {
@@ -439,11 +441,11 @@ export class Conduce implements OnInit {
     this.transporteBusy.set(true);
     try {
       await this.salidasService.iniciarRuta(s.id, this.selVehiculo());
-      this.toast.success('Ruta iniciada', 'El conduce quedó en ruta.');
+      this.toast.success(this.i18n.t('Ruta iniciada'), 'El conduce quedó en ruta.');
       this.iniciarRutaOpen.set(false);
       await this.recargarSalida();
     } catch (e: unknown) {
-      this.toast.error('No se pudo iniciar la ruta', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo iniciar la ruta'), e instanceof Error ? e.message : undefined);
     } finally {
       this.transporteBusy.set(false);
     }
@@ -465,15 +467,15 @@ export class Conduce implements OnInit {
     const cond = this.selConductor();
     if (!s || this.transporteBusy()) return;
     // CK6 — nunca mandar "undefined"/vacío a un parámetro uuid: pedir que elija de la lista.
-    if (!esUuid(cond)) { this.toast.error('Elige un chofer de la lista', 'Selecciona a quién transferir el conduce.'); return; }
+    if (!esUuid(cond)) { this.toast.error(this.i18n.t('Elige un chofer de la lista'), 'Selecciona a quién transferir el conduce.'); return; }
     this.transporteBusy.set(true);
     try {
       await this.salidasService.ofrecerTransferencia(s.id, cond, this.transferirNotas().trim() || null);
-      this.toast.success('Transferencia ofrecida', 'El chofer receptor debe aceptarla en su dispositivo.');
+      this.toast.success(this.i18n.t('Transferencia ofrecida'), 'El chofer receptor debe aceptarla en su dispositivo.');
       this.transferirOpen.set(false);
       await this.recargarSalida();
     } catch (e: unknown) {
-      this.toast.error('No se pudo transferir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo transferir'), e instanceof Error ? e.message : undefined);
     } finally {
       this.transporteBusy.set(false);
     }
@@ -505,16 +507,16 @@ export class Conduce implements OnInit {
     if (!s || this.receptorBusy()) return;
     const otro = this.receptorOtroMode();
     const id = otro ? this.receptorOtroId() : this.selReceptor();
-    if (!esUuid(id)) { this.toast.error('Elige a quién recibe', 'Selecciona un usuario de la lista.'); return; }
+    if (!esUuid(id)) { this.toast.error(this.i18n.t('Elige a quién recibe'), 'Selecciona un usuario de la lista.'); return; }
     this.receptorBusy.set(true);
     try {
       // "otro" = usuario fuera de la obra → forzar (el servidor solo lo permite a elevados).
       await this.salidasService.asignarReceptor(s.id, id!, otro);
-      this.toast.success('Receptor asignado', 'Se avisó a quien debe confirmar la entrega.');
+      this.toast.success(this.i18n.t('Receptor asignado'), 'Se avisó a quien debe confirmar la entrega.');
       this.receptorOpen.set(false);
       await this.recargarSalida();
     } catch (e: unknown) {
-      this.toast.error('No se pudo asignar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo asignar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.receptorBusy.set(false);
     }
@@ -541,10 +543,10 @@ export class Conduce implements OnInit {
     const s = this.salida();
     if (!s || this.despachanteBusy()) return;
     const sel = this.selDespachante();
-    if (!sel) { this.toast.error('Elige quién despachó', 'Selecciona a la persona de la lista.'); return; }
+    if (!sel) { this.toast.error(this.i18n.t('Elige quién despachó'), 'Selecciona a la persona de la lista.'); return; }
     const [tipo, id] = sel.split(':');
     if (this.firmaEmisor() && !this.despachanteMotivo().trim()) {
-      this.toast.error('Falta el motivo', 'El despachante anterior ya firmó: da un motivo para cambiarlo.');
+      this.toast.error(this.i18n.t('Falta el motivo'), 'El despachante anterior ya firmó: da un motivo para cambiarlo.');
       return;
     }
     this.despachanteBusy.set(true);
@@ -554,11 +556,11 @@ export class Conduce implements OnInit {
         { usuarioId: tipo === 'usuario' ? id : null, empleadoId: tipo === 'empleado' ? id : null },
         this.despachanteMotivo().trim() || null,
       );
-      this.toast.success('Despachante cambiado', 'Se avisó a la persona nueva (y a la anterior, si aplica).');
+      this.toast.success(this.i18n.t('Despachante cambiado'), 'Se avisó a la persona nueva (y a la anterior, si aplica).');
       this.despachanteOpen.set(false);
       await this.recargarSalida();
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar el despachante', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el despachante'), e instanceof Error ? e.message : undefined);
     } finally {
       this.despachanteBusy.set(false);
     }
@@ -603,15 +605,15 @@ export class Conduce implements OnInit {
       const nombre = await this.salidasService.recordarDespachante(s.id);
       if (nombre === null) {
         // Ya firmó entre medio → recarga salida + firmas para desbloquear la entrega.
-        this.toast.success('El despachante ya firmó', 'Ya puedes registrar la entrega.');
+        this.toast.success(this.i18n.t('El despachante ya firmó'), 'Ya puedes registrar la entrega.');
         const fresca = await this.salidasService.getById(s.id);
         this.salida.set(fresca);
         await this.loadEvidencia(fresca);
       } else {
-        this.toast.info(`Se le recordó a ${nombre}`, 'Te avisaremos cuando firme el conduce.');
+        this.toast.info(this.i18n.t('Se le recordó a {n}', { n: nombre }), 'Te avisaremos cuando firme el conduce.');
       }
     } catch (e) {
-      this.toast.error('No se pudo enviar el recordatorio', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar el recordatorio'), e instanceof Error ? e.message : undefined);
     } finally {
       this.recordando.set(false);
     }
@@ -728,7 +730,7 @@ export class Conduce implements OnInit {
       this.salida.set(fresca);
       await this.loadEvidencia(fresca);
       this.mostrarCierre.set(false);
-      this.toast.success('Conduce entregado', 'Se registró la entrega con su evidencia.');
+      this.toast.success(this.i18n.t('Conduce entregado'), 'Se registró la entrega con su evidencia.');
     } catch (e: unknown) {
       this.cierreError.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudo registrar la entrega.');
     } finally {
@@ -746,14 +748,14 @@ export class Conduce implements OnInit {
   async marcarPrueba(valor: boolean) {
     const s = this.salida();
     if (!s || this.marcandoPrueba()) return;
-    if (valor && !confirm('¿Marcar este conduce como dato de prueba? Se revertirá su movimiento de stock y dejará de aparecer en listados, KPIs y notificaciones (salvo con el toggle de datos de prueba).')) return;
+    if (valor && !confirm(this.i18n.t('¿Marcar este conduce como dato de prueba? Se revertirá su movimiento de stock y dejará de aparecer en listados, KPIs y notificaciones (salvo con el toggle de datos de prueba).'))) return;
     this.marcandoPrueba.set(true);
     try {
       await this.datosPrueba.marcarMovimiento('salidas_inventario', s.id, valor);
       this.salida.set({ ...s, es_prueba: valor });
       this.toast.success(valor ? 'Conduce marcado como prueba' : 'Conduce vuelto a real', valor ? 'Se revirtió su movimiento de stock.' : 'Se re-aplicó su movimiento de stock.');
     } catch (e) {
-      this.toast.error('No se pudo cambiar el estado de prueba', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado de prueba'), e instanceof Error ? e.message : undefined);
     } finally {
       this.marcandoPrueba.set(false);
     }

@@ -1,6 +1,6 @@
 {
-  "pctScopeEn": 25,
-  "pctHt": 56,
+  "pctScopeEn": 26,
+  "pctHt": 58,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -2805,9 +2805,9 @@
     },
     {
       "pantalla": "flota/conciliacion-combustible",
-      "total": 186,
+      "total": 179,
       "cubiertos": 0,
-      "sin": 186,
+      "sin": 179,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -2990,14 +2990,7 @@
         "Conciliación guardada",
         "No se pudo guardar",
         "No se pudo abrir el PDF",
-        "No se pudo descargar el PDF",
-        "Chofer no registró la echada",
-        "Tarjeta sin vehículo asignado",
-        "Galones fuera de tolerancia",
-        "Fecha distinta",
-        "Fuera de flota — no cuenta",
-        "Anulaciones — no cuentan",
-        "Sin clasificar"
+        "No se pudo descargar el PDF"
       ]
     },
     {
@@ -3673,9 +3666,9 @@
     },
     {
       "pantalla": "flota/rutas-activas",
-      "total": 52,
+      "total": 46,
       "cubiertos": 0,
-      "sin": 52,
+      "sin": 46,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -3725,20 +3718,14 @@
         "Desde",
         "Hasta",
         "Hasta",
-        "Histórico de rutas",
-        "Disponible",
-        "En ruta",
-        "Descanso",
-        "Almuerzo",
-        "Inactivo",
-        "Otros"
+        "Histórico de rutas"
       ]
     },
     {
       "pantalla": "flota/seguimiento",
-      "total": 29,
+      "total": 23,
       "cubiertos": 0,
-      "sin": 29,
+      "sin": 23,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -3765,13 +3752,7 @@
         "Choferes",
         "Sin choferes registrados.",
         "en vivo",
-        "Ver todos los choferes",
-        "Disponible",
-        "En ruta",
-        "Descanso",
-        "Almuerzo",
-        "Inactivo",
-        "Otros"
+        "Ver todos los choferes"
       ]
     },
     {
@@ -6654,9 +6635,9 @@
     },
     {
       "pantalla": "tecnologia/compras",
-      "total": 105,
+      "total": 98,
       "cubiertos": 0,
-      "sin": 105,
+      "sin": 98,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -6758,14 +6739,7 @@
         "Escribe el motivo del rechazo",
         "No se pudo decidir",
         "Marcada como comprada",
-        "No se pudo marcar",
-        "Pendiente (flujo anterior)",
-        "Aprobada / convertida",
-        "Rechazada",
-        "Borrador",
-        "Esperando aprobación",
-        "Aprobada",
-        "Comprada"
+        "No se pudo marcar"
       ]
     },
     {
@@ -7850,29 +7824,6 @@
         "Carnet no encontrado",
         "Este código no corresponde a ningún carnet vigente de Constructora SD.",
         "Constructora SD · verificación de personal de obra"
-      ]
-    },
-    {
-      "pantalla": "flota/flota-subnav",
-      "total": 12,
-      "cubiertos": 0,
-      "sin": 12,
-      "pct": 0,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Mapa en vivo",
-        "Rutas activas",
-        "Recorrido diario",
-        "Registro",
-        "Echadas (log)",
-        "Dashboards",
-        "Conciliación",
-        "Rendimiento",
-        "Cupos de tarjetas",
-        "Conductores",
-        "Estado",
-        "Choferes privados"
       ]
     },
     {
@@ -9542,69 +9493,6 @@
       ]
     },
     {
-      "pantalla": "inventario/conduce",
-      "total": 145,
-      "cubiertos": 93,
-      "sin": 52,
-      "pct": 64,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "← Anterior",
-        "de",
-        "Siguiente →",
-        "Recordarle al despachante }",
-        "Se creará (o adjuntará) la ruta del conduce .",
-        "— Sin especificar —",
-        "Ofrece el conduce a otro chofer. El receptor debe aceptarlo en su dispositivo.",
-        "— Selecciona chofer —",
-        "Elige quién confirmará la entrega del conduce en la obra.",
-        "— Selecciona receptor —",
-        "Elige quién despachó de verdad el conduce .",
-        "— Selecciona despachante —",
-        "ya firmó como despachante — esa firma se quitará y se le pedirá a la persona nueva.",
-        "Este es un conduce de",
-        ". No cuenta para inventario, KPIs ni avisos, y solo lo ven los administradores.",
-        "Falta la firma del despachante . No puedes registrar la entrega hasta que firme el conduce desde su sesión. Ya se le notificó — puedes recordárselo.",
-        "Eliminar conduce",
-        ". Si tiene una ruta vinculada, se cancelará. No se puede deshacer.",
-        "Firmó el",
-        "Entregado por:",
-        "de",
-        "Adjuntar foto",
-        "Constructora Scheker &amp; Domínguez",
-        "· parada :",
-        "No afecta el stock (el artículo no existe en el sistema). El admin lo revisa en",
-        "Asignada a",
-        "Sin pendientes",
-        "Conduce ${this.numeroConduce} eliminado.",
-        "Ruta iniciada",
-        "No se pudo iniciar la ruta",
-        "Elige un chofer de la lista",
-        "Transferencia ofrecida",
-        "No se pudo transferir",
-        "Elige a quién recibe",
-        "Receptor asignado",
-        "No se pudo asignar",
-        "Elige quién despachó",
-        "Falta el motivo",
-        "Despachante cambiado",
-        "No se pudo cambiar el despachante",
-        "El despachante ya firmó",
-        "Se le recordó a ${nombre}",
-        "No se pudo enviar el recordatorio",
-        "Conduce entregado",
-        "No se pudo cambiar el estado de prueba",
-        "¿Marcar este conduce como dato de prueba? Se revertirá su movimiento de stock y dejará de aparecer en listados, KPIs y notificaciones (salvo con el toggle de datos de prueba).",
-        "Emitido",
-        "En tránsito",
-        "Entregado",
-        "Confirmado",
-        "Pendiente de firma",
-        "Pendiente de firma del despachante"
-      ]
-    },
-    {
       "pantalla": "inventario/requisiciones",
       "total": 144,
       "cubiertos": 93,
@@ -10078,16 +9966,15 @@
     },
     {
       "pantalla": "tecnologia/whatsapp",
-      "total": 186,
+      "total": 185,
       "cubiertos": 183,
-      "sin": 3,
-      "pct": 98,
+      "sin": 2,
+      "pct": 99,
       "enScope": true,
       "enforce": false,
       "faltantes": [
         "Adjunto:",
-        "Tipo:",
-        "message-circle"
+        "Tipo:"
       ]
     },
     {
@@ -10244,6 +10131,16 @@
       "pantalla": "inventario/categorias",
       "total": 23,
       "cubiertos": 23,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/conduce",
+      "total": 151,
+      "cubiertos": 151,
       "sin": 0,
       "pct": 100,
       "enScope": true,

@@ -3,15 +3,15 @@
   <!-- DM-23 — navegar entre conduces sin volver a la lista. -->
   @if (hayListaNav()) {
     <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="!idAnterior()" (click)="irAnterior()" title="{{ 'Flecha izquierda' | t }}">
-      ← Anterior
+      {{ '← Anterior' | t }}
     </button>
-    <span class="text-muted conduce-nav__contador">{{ posicionActual() + 1 }} de {{ listaTotal }}</span>
+    <span class="text-muted conduce-nav__contador">{{ posicionActual() + 1 }} {{ 'de' | t }} {{ listaTotal }}</span>
     <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="!idSiguiente()" (click)="irSiguiente()" title="{{ 'Flecha derecha' | t }}">
-      Siguiente →
+      {{ 'Siguiente →' | t }}
     </button>
   }
   <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="buscandoPendiente()" (click)="irSiguientePendiente()">
-    {{ buscandoPendiente() ? 'Buscando…' : 'Siguiente pendiente para mí' }}
+    {{ (buscandoPendiente() ? 'Buscando…' : 'Siguiente pendiente para mí') | t }}
   </button>
   @if (puedeCerrar() && !mostrarCierre()) {
     <!-- AV3 — gate: si falta la firma del despachante, el botón de entregar sale
@@ -20,9 +20,9 @@
       <button type="button" class="sgc-btn sgc-btn--secondary" disabled
               title="{{ 'Falta la firma del despachante' | t }}">{{ 'Falta la firma del despachante' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="recordando()" (click)="recordarDespachante()">
-        @if (recordando()) { Enviando… } @else {
+        @if (recordando()) { {{ 'Enviando…' | t }} } @else {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          Recordarle al despachante
+          {{ 'Recordarle al despachante' | t }}
         }
       </button>
     } @else {
@@ -36,7 +36,7 @@
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirIniciarRuta()">{{ 'Iniciar ruta' | t }}</button>
   }
   @if (puedeTransferir() && !mostrarCierre()) {
-    <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="transferBloqueado()" (click)="abrirTransferir()">{{ salida()?.conductor_id ? 'Transferir a…' : 'Asignar a un chofer' }}</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="transferBloqueado()" (click)="abrirTransferir()">{{ (salida()?.conductor_id ? 'Transferir a…' : 'Asignar a un chofer') | t }}</button>
     @if (transferBloqueado() && transferMotivo()) {
       <p class="conduce-transfer-motivo">{{ transferMotivo() }}</p>
     }
@@ -47,7 +47,7 @@
   <!-- AT10 — solo admin: marcar/desmarcar como dato de prueba -->
   @if (esAdmin() && salida(); as s) {
     <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="marcandoPrueba()" (click)="marcarPrueba(!s.es_prueba)">
-      {{ s.es_prueba ? 'Quitar de prueba' : 'Marcar como prueba' }}
+      {{ (s.es_prueba ? 'Quitar de prueba' : 'Marcar como prueba') | t }}
     </button>
   }
 </div>
@@ -60,18 +60,18 @@
   <div class="conduce-modal no-print" (click)="iniciarRutaOpen.set(false)">
     <div class="conduce-modal__panel" (click)="$event.stopPropagation()">
       <h2>{{ 'Iniciar ruta' | t }}</h2>
-      <p class="conduce-modal__sub">Se creará (o adjuntará) la ruta del conduce {{ numeroConduce }}.</p>
+      <p class="conduce-modal__sub">{{ 'Se creará (o adjuntará) la ruta del conduce' | t }} {{ numeroConduce }}.</p>
       <div class="sgc-field">
         <label for="ir-veh">{{ 'Vehículo (opcional)' | t }}</label>
         <select id="ir-veh" [value]="selVehiculo()" (change)="selVehiculo.set($any($event.target).value || null)">
-          <option value="">— Sin especificar —</option>
+          <option value="">{{ '— Sin especificar —' | t }}</option>
           @for (v of vehiculosPicker(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
         </select>
       </div>
       <div class="conduce-modal__foot">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="iniciarRutaOpen.set(false)" [disabled]="transporteBusy()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarIniciarRuta()" [disabled]="transporteBusy()">
-          {{ transporteBusy() ? 'Iniciando…' : 'Iniciar ruta' }}
+          {{ (transporteBusy() ? 'Iniciando…' : 'Iniciar ruta') | t }}
         </button>
       </div>
     </div>
@@ -83,11 +83,11 @@
   <div class="conduce-modal no-print" (click)="transferirOpen.set(false)">
     <div class="conduce-modal__panel" (click)="$event.stopPropagation()">
       <h2>{{ 'Transferir conduce' | t }}</h2>
-      <p class="conduce-modal__sub">Ofrece el conduce {{ numeroConduce }} a otro chofer. El receptor debe aceptarlo en su dispositivo.</p>
+      <p class="conduce-modal__sub">{{ 'Ofrece el conduce' | t }} {{ numeroConduce }} {{ 'a otro chofer. El receptor debe aceptarlo en su dispositivo.' | t }}</p>
       <div class="sgc-field">
         <label for="tr-cond">{{ 'Transferir a' | t }}</label>
         <select id="tr-cond" [value]="selConductor()" (change)="selConductor.set($any($event.target).value || null)">
-          <option value="">— Selecciona chofer —</option>
+          <option value="">{{ '— Selecciona chofer —' | t }}</option>
           @for (c of conductoresPicker(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
         </select>
       </div>
@@ -98,7 +98,7 @@
       <div class="conduce-modal__foot">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="transferirOpen.set(false)" [disabled]="transporteBusy()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarTransferir()" [disabled]="transporteBusy()">
-          {{ transporteBusy() ? 'Transfiriendo…' : 'Ofrecer transferencia' }}
+          {{ (transporteBusy() ? 'Transfiriendo…' : 'Ofrecer transferencia') | t }}
         </button>
       </div>
     </div>
@@ -110,12 +110,12 @@
   <div class="conduce-modal no-print" (click)="receptorOpen.set(false)">
     <div class="conduce-modal__panel" (click)="$event.stopPropagation()">
       <h2>{{ 'Entregar a' | t }}</h2>
-      <p class="conduce-modal__sub">Elige quién confirmará la entrega del conduce {{ numeroConduce }} en la obra.</p>
+      <p class="conduce-modal__sub">{{ 'Elige quién confirmará la entrega del conduce' | t }} {{ numeroConduce }} {{ 'en la obra.' | t }}</p>
       @if (!receptorOtroMode()) {
         <div class="sgc-field">
           <label for="rc-receptor">{{ 'Receptor de la obra' | t }}</label>
           <select id="rc-receptor" [value]="selReceptor()" (change)="selReceptor.set($any($event.target).value || null)">
-            <option value="">— Selecciona receptor —</option>
+            <option value="">{{ '— Selecciona receptor —' | t }}</option>
             @for (r of receptoresPicker(); track r.id) {
               <option [value]="r.id">{{ r.nombre }}@if (r.detalle) { — {{ r.detalle }} }</option>
             }
@@ -135,7 +135,7 @@
       <div class="conduce-modal__foot">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="receptorOpen.set(false)" [disabled]="receptorBusy()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarAsignarReceptor()" [disabled]="receptorBusy()">
-          {{ receptorBusy() ? 'Asignando…' : 'Asignar' }}
+          {{ (receptorBusy() ? 'Asignando…' : 'Asignar') | t }}
         </button>
       </div>
     </div>
@@ -147,11 +147,11 @@
   <div class="conduce-modal no-print" (click)="despachanteOpen.set(false)">
     <div class="conduce-modal__panel" (click)="$event.stopPropagation()">
       <h2>{{ 'Cambiar despachante' | t }}</h2>
-      <p class="conduce-modal__sub">Elige quién despachó de verdad el conduce {{ numeroConduce }}.</p>
+      <p class="conduce-modal__sub">{{ 'Elige quién despachó de verdad el conduce' | t }} {{ numeroConduce }}.</p>
       <div class="sgc-field">
         <label for="cd-despachante">{{ 'Despachante' | t }}</label>
         <select id="cd-despachante" [value]="selDespachante()" (change)="selDespachante.set($any($event.target).value || null)">
-          <option value="">— Selecciona despachante —</option>
+          <option value="">{{ '— Selecciona despachante —' | t }}</option>
           @for (d of despachantesPicker(); track d.tipo + ':' + d.id) {
             <option [value]="d.tipo + ':' + d.id">{{ d.nombre }}@if (d.detalle) { — {{ d.detalle }} }</option>
           }
@@ -159,7 +159,7 @@
       </div>
       @if (firmaEmisor()) {
         <p class="conduce-modal__warn">
-          <app-icon name="alert-triangle" [size]="14" /> {{ firmaEmisor()?.nombre }} ya firmó como despachante — esa firma se quitará y se le pedirá a la persona nueva.
+          <app-icon name="alert-triangle" [size]="14" /> {{ firmaEmisor()?.nombre }} {{ 'ya firmó como despachante — esa firma se quitará y se le pedirá a la persona nueva.' | t }}
         </p>
         <div class="sgc-field">
           <label for="cd-motivo">{{ 'Motivo (obligatorio)' | t }}</label>
@@ -170,7 +170,7 @@
       <div class="conduce-modal__foot">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="despachanteOpen.set(false)" [disabled]="despachanteBusy()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarCambiarDespachante()" [disabled]="despachanteBusy()">
-          {{ despachanteBusy() ? 'Cambiando…' : 'Cambiar' }}
+          {{ (despachanteBusy() ? 'Cambiando…' : 'Cambiar') | t }}
         </button>
       </div>
     </div>
@@ -181,15 +181,15 @@
 @if (salida()?.es_prueba) {
   <div class="conduce-prueba-banner no-print" role="note">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    Este es un conduce de <strong>{{ 'prueba' | t }}</strong>. No cuenta para inventario, KPIs ni avisos, y solo lo ven los administradores.
+    {{ 'Este es un conduce de' | t }} <strong>{{ 'prueba' | t }}</strong>. {{ 'No cuenta para inventario, KPIs ni avisos, y solo lo ven los administradores.' | t }}
   </div>
 }
 
 <!-- AV3 — motivo visible del bloqueo de entrega por firma del despachante pendiente -->
 @if (puedeCerrar() && firmaDespachantePendiente()) {
   <p class="cnd-anular__warn no-print" role="alert">
-    <app-icon name="clock" [size]="14" /> Falta la firma del despachante{{ despachanteNombre() ? ' (' + despachanteNombre() + ')' : '' }}.
-    No puedes registrar la entrega hasta que firme el conduce desde su sesión. Ya se le notificó — puedes recordárselo.
+    <app-icon name="clock" [size]="14" /> {{ 'Falta la firma del despachante' | t }}{{ despachanteNombre() ? ' (' + despachanteNombre() + ')' : '' }}.
+    {{ 'No puedes registrar la entrega hasta que firme el conduce desde su sesión. Ya se le notificó — puedes recordárselo.' | t }}
   </p>
 }
 
@@ -197,10 +197,10 @@
 @if (mostrarAnular()) {
   <div class="cnd-anular-overlay no-print" (click)="cerrarAnular()">
     <div class="cnd-anular sgc-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="anular-titulo">
-      <h3 id="anular-titulo">Eliminar conduce {{ numeroConduce }}</h3>
+      <h3 id="anular-titulo">{{ 'Eliminar conduce' | t }} {{ numeroConduce }}</h3>
       <p class="cnd-anular__warn">
-        <app-icon name="alert-triangle" [size]="14" /> {{ 'Esto eliminará el conduce y' | t }} <strong>{{ 'repondrá su stock' | t }}</strong>. Si tiene una ruta vinculada, se cancelará.
-        No se puede deshacer.
+        <app-icon name="alert-triangle" [size]="14" /> {{ 'Esto eliminará el conduce y' | t }} <strong>{{ 'repondrá su stock' | t }}</strong>. {{ 'Si tiene una ruta vinculada, se cancelará.' | t }}
+        {{ 'No se puede deshacer.' | t }}
       </p>
       <label class="sgc-field">
         <span>{{ 'Motivo (opcional)' | t }}</span>
@@ -211,7 +211,7 @@
       <div class="cnd-anular__actions">
         <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="anulando()" (click)="cerrarAnular()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="anulando()" (click)="confirmarAnular()">
-          {{ anulando() ? 'Eliminando…' : 'Sí, eliminar' }}
+          {{ (anulando() ? 'Eliminando…' : 'Sí, eliminar') | t }}
         </button>
       </div>
     </div>
@@ -222,11 +222,11 @@
 @if (mostrarCierre() && salida(); as s) {
   <section class="conduce-cierre no-print">
     <h2 class="conduce-cierre__title">
-      @if (emisorEnMostrador()) { Registrar entrega del conduce } @else { Confirmar la entrega }
+      @if (emisorEnMostrador()) { {{ 'Registrar entrega del conduce' | t }} } @else { {{ 'Confirmar la entrega' | t }} }
     </h2>
     <p class="conduce-cierre__lead">
       @if (emisorEnMostrador()) {
-        Confirma lo que recibe la obra, ambas firmas (quien entrega y quien recibe) y (opcional) una foto. Queda como evidencia de entrega.
+        {{ 'Confirma lo que recibe la obra, ambas firmas (quien entrega y quien recibe) y (opcional) una foto. Queda como evidencia de entrega.' | t }}
       } @else {
         El material ya fue entregado por quien lo transportó. Solo tienes que confirmar lo que se recibió y firmar como quien recibe — <strong>{{ 'no tienes que firmar por quien entregó' | t }}</strong>.
       }
@@ -244,7 +244,7 @@
             @if (firmaEmisor()?.rol_desc) { <span class="conduce-cierre__emisor-rol">· {{ firmaEmisor()?.rol_desc }}</span> }
           </p>
           @if (firmaEmisor()?.firmado_en) {
-            <p class="conduce-cierre__emisor-meta">Firmó el {{ formatTimestamp(firmaEmisor()!.firmado_en) }}</p>
+            <p class="conduce-cierre__emisor-meta">{{ 'Firmó el' | t }} {{ formatTimestamp(firmaEmisor()!.firmado_en) }}</p>
           }
           @if (firmaEmisor()?.url) {
             <img class="conduce-cierre__emisor-firma" [src]="firmaEmisor()!.url" alt="{{ 'Firma de quien entregó' | t }}" />
@@ -254,7 +254,7 @@
       } @else if (emisorSinFirma()) {
         <!-- Despachante en registro pero sin firma digital (AS1 libre / entrega sin firma) -->
         <div class="conduce-cierre__emisor-nota">
-          <p class="conduce-cierre__emisor-name">Entregado por: {{ despachanteNombre() }}</p>
+          <p class="conduce-cierre__emisor-name">{{ 'Entregado por:' | t }} {{ despachanteNombre() }}</p>
           <p class="conduce-cierre__emisor-hint">{{ 'Este conduce quedó registrado sin una firma digital del emisor (se despachó sin firma en sitio). No hace falta que firmes por él; solo confirma tu recepción.' | t }}</p>
         </div>
       } @else {
@@ -278,7 +278,7 @@
         </div>
         <div class="sgc-field">
           <label>{{ 'Firma de quien entrega' | t }} <span class="required">*</span></label>
-          <app-signature-pad #firmaEmisorPad ariaLabel="Firma de quien entrega" />
+          <app-signature-pad #firmaEmisorPad [ariaLabel]="i18n.t('Firma de quien entrega')" />
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="firmaEmisorPad.clear()">{{ 'Limpiar firma' | t }}</button>
         </div>
       }
@@ -299,7 +299,7 @@
       </div>
       <div class="sgc-field">
         <label>{{ 'Firma de quien recibe' | t }} <span class="required">*</span></label>
-        <app-signature-pad #firmaPad ariaLabel="Firma de quien recibe" />
+        <app-signature-pad #firmaPad [ariaLabel]="i18n.t('Firma de quien recibe')" />
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="firmaPad.clear()">{{ 'Limpiar firma' | t }}</button>
       </div>
     </fieldset>
@@ -309,7 +309,7 @@
       @for (it of itemsCierre(); track it.detalle_id; let i = $index) {
         <div class="conduce-cierre__item">
           <span class="conduce-cierre__item-name">{{ it.nombre }}</span>
-          <span class="conduce-cierre__item-env">de {{ it.cantidad }}</span>
+          <span class="conduce-cierre__item-env">{{ 'de' | t }} {{ it.cantidad }}</span>
           <input type="number" min="0" [max]="it.cantidad" [value]="it.cantidad_recibida"
             (input)="updateRecibida(i, $any($event.target).value)" aria-label="{{ 'Cantidad recibida' | t }}" />
         </div>
@@ -325,7 +325,7 @@
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm conduce-cierre__foto-pick">
-          <app-icon name="camera" [size]="16" /> Adjuntar foto
+          <app-icon name="camera" [size]="16" /> {{ 'Adjuntar foto' | t }}
           <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoCierre($event)" />
         </label>
       }
@@ -342,7 +342,7 @@
     <div class="conduce-cierre__actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarCierre()">{{ 'Cancelar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoCierre()" (click)="confirmarCierre()">
-        @if (guardandoCierre()) { Guardando… } @else { Registrar entrega }
+        @if (guardandoCierre()) { {{ 'Guardando…' | t }} } @else { {{ 'Registrar entrega' | t }} }
       </button>
     </div>
   </section>
@@ -380,7 +380,7 @@
       </div>
       <div>
         <span class="conduce__label">{{ 'Motivo' | t }}</span>
-        <span>{{ motivoLabel(s.motivo) }}</span>
+        <span>{{ motivoLabel(s.motivo) | t }}</span>
       </div>
       <!-- BO7/F5.6 — requisición de procedencia (navegable a la bandeja). -->
       @if (s.origen_requisicion?.id) {
@@ -406,7 +406,7 @@
           }
           @if (puedeAsignarReceptor()) {
             <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirAsignarReceptor()">
-              {{ receptorActual() ? 'Cambiar' : 'Asignar' }}
+              {{ (receptorActual() ? 'Cambiar' : 'Asignar') | t }}
             </button>
           }
         </span>
@@ -428,9 +428,9 @@
       <div>
         <span class="conduce__label">{{ 'Estado' | t }}</span>
         <span>
-          {{ ESTADO_LABELS[s.estado] }}
+          {{ ESTADO_LABELS[s.estado] | t }}
           @if (faseMeta(); as fm) {
-            <span class="sgc-badge sgc-badge--{{ fm.badge }}">{{ fm.label }}</span>
+            <span class="sgc-badge sgc-badge--{{ fm.badge }}">{{ fm.label | t }}</span>
           }
         </span>
       </div>
@@ -438,7 +438,7 @@
         <div>
           <span class="conduce__label">{{ 'Transporte' | t }}</span>
           <span>
-            {{ s.conductor?.nombre ?? 'Sin conductor' }}@if (s.vehiculo?.placa) { — {{ idVehiculo(s.vehiculo) }}}
+            {{ s.conductor?.nombre ?? i18n.t('Sin conductor') }}@if (s.vehiculo?.placa) { — {{ idVehiculo(s.vehiculo) }}}
           </span>
         </div>
       }
@@ -448,14 +448,14 @@
           <span class="conduce__label">{{ 'Ruta de transporte' | t }}</span>
           <span>
             <a [routerLink]="['/flota/rutas']" [queryParams]="{ item: ri.ruta_id }">{{ ri.origen ?? '—' }} → {{ ri.destino ?? '—' }}</a>
-            @if (ri.parada_ubicacion) { <span class="text-muted"> · parada {{ ri.parada_orden }}: {{ ri.parada_ubicacion }}</span> }
+            @if (ri.parada_ubicacion) { <span class="text-muted"> · {{ 'parada' | t }} {{ ri.parada_orden }}: {{ ri.parada_ubicacion }}</span> }
           </span>
         </div>
       }
       @if (s.recibido_en && !s.entregado_en) {
         <div>
           <span class="conduce__label">{{ 'Recepción confirmada' | t }}</span>
-          <span>{{ formatTimestamp(s.recibido_en) }}@if (s.recibido?.nombre) { por {{ s.recibido?.nombre }}}</span>
+          <span>{{ formatTimestamp(s.recibido_en) }}@if (s.recibido?.nombre) { {{ 'por' | t }} {{ s.recibido?.nombre }}}</span>
         </div>
       }
       @if (s.entrega_receptor) {
@@ -467,7 +467,7 @@
       @if (s.entregado_en) {
         <div>
           <span class="conduce__label">{{ 'Entrega registrada' | t }}</span>
-          <span>{{ formatTimestamp(s.entregado_en) }}@if (s.entregado?.nombre) { por {{ s.entregado?.nombre }}}</span>
+          <span>{{ formatTimestamp(s.entregado_en) }}@if (s.entregado?.nombre) { {{ 'por' | t }} {{ s.entregado?.nombre }}}</span>
         </div>
       }
     </section>
@@ -531,13 +531,13 @@
                 <td>{{ il.nombre }}</td>
                 <td class="text-right">{{ il.cantidad }}</td>
                 <td>{{ il.unidad || '—' }}</td>
-                <td>{{ il.articulo_vinculado_id ? 'Catalogado' : 'Pendiente de catalogar' }}</td>
+                <td>{{ (il.articulo_vinculado_id ? 'Catalogado' : 'Pendiente de catalogar') | t }}</td>
               </tr>
             }
           </tbody>
         </table>
         <p class="conduce__libres-note no-print">
-          No afecta el stock (el artículo no existe en el sistema). El admin lo revisa en
+          {{ 'No afecta el stock (el artículo no existe en el sistema). El admin lo revisa en' | t }}
           <a routerLink="/inventario/material-no-catalogado">{{ 'Material no catalogado' | t }}</a>.
         </p>
       </div>
@@ -587,7 +587,7 @@
           <span class="conduce__firma-line conduce__firma-line--signed"></span>
           <span class="conduce__firma-name">{{ f.nombre }}</span>
           @if (f.cedula || f.rol_desc) {
-            <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { Céd. {{ f.cedula }} }</span>
+            <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { {{ 'Céd.' | t }} {{ f.cedula }} }</span>
           }
           @if (f.firmado_en) { <span class="conduce__firma-meta">{{ formatTimestamp(f.firmado_en) }}</span> }
         } @else if (despachanteNombre(); as desp) {
@@ -609,7 +609,7 @@
           <span class="conduce__firma-line conduce__firma-line--signed"></span>
           <span class="conduce__firma-name">{{ f.nombre }}</span>
           @if (f.cedula || f.rol_desc) {
-            <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { Céd. {{ f.cedula }} }</span>
+            <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { {{ 'Céd.' | t }} {{ f.cedula }} }</span>
           }
           @if (f.firmado_en) { <span class="conduce__firma-meta">{{ formatTimestamp(f.firmado_en) }}</span> }
         } @else if (entregaFirmaUrl(); as url) {
@@ -620,7 +620,7 @@
           <!-- AE — el receptor no estaba presente: firma pendiente enrutada (móvil) -->
           <span class="conduce__firma-line"></span>
           <span class="conduce__firma-name conduce__firma-name--pending">{{ 'PENDIENTE' | t }}</span>
-          <span class="conduce__firma-meta">Asignada a {{ s.firma_pendiente_nombre ?? '—' }}</span>
+          <span class="conduce__firma-meta">{{ 'Asignada a' | t }} {{ s.firma_pendiente_nombre ?? '—' }}</span>
         } @else {
           <span class="conduce__firma-line"></span>
         }

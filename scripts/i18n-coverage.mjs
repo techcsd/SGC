@@ -182,6 +182,33 @@ function spansDeArreglos(ts) {
     }
     spans.push([inicio, i]);
   }
+  // `campo: Record<K, { label: '…' }> = {...}` — catálogo-mapa (no arreglo):
+  // mismo DP-09, se traduce al mostrar (`FASE_META[x] | t`), no al declarar.
+  // Acotado a `Record<` para no exentar cualquier objeto literal de la clase;
+  // el tipo genérico se balancea por `<`/`>` (puede llevar `;`/`,` adentro).
+  const reRecordStart = /:\s*Record</g;
+  while ((m = reRecordStart.exec(ts))) {
+    let i = m.index + m[0].length; // justo después de 'Record<'
+    let prof = 1;
+    while (i < ts.length && prof > 0) {
+      if (ts[i] === '<') prof++;
+      else if (ts[i] === '>') prof--;
+      i++;
+    }
+    // Tras el '>' de cierre, debe seguir `= {` (si no, no es la declaración completa).
+    const resto = ts.slice(i, i + 20);
+    const eq = resto.match(/^\s*=\s*\{/);
+    if (!eq) continue;
+    const inicio = i + eq[0].length - 1; // posición del '{'
+    let profundidad = 1;
+    let j = inicio + 1;
+    while (j < ts.length && profundidad > 0) {
+      if (ts[j] === '{') profundidad++;
+      else if (ts[j] === '}') profundidad--;
+      j++;
+    }
+    spans.push([inicio, j]);
+  }
   // `algo.push({...})` — sigue extendiendo el mismo catálogo condicionalmente.
   const rePush = /\.push\(/g;
   while ((m = rePush.exec(ts))) {
