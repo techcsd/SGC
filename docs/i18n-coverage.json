@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 27,
-  "pctHt": 63,
+  "pctHt": 64,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -9638,24 +9638,6 @@
       ]
     },
     {
-      "pantalla": "compras/productos-por-dar-de-alta",
-      "total": 48,
-      "cubiertos": 41,
-      "sin": 7,
-      "pct": 85,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Productos por dar de alta en Odoo",
-        "Ej. Tornillo hexagonal M10 galvanizado",
-        "Ej. busqué &quot;tornillo m10&quot; y &quot;m10 galvanizado&quot;",
-        "Ej. ya existe un artículo equivalente, o no aplica",
-        "Solicitud enviada.",
-        "Artículo creado.",
-        "Solicitud resuelta."
-      ]
-    },
-    {
       "pantalla": "flota/cupos-combustible",
       "total": 48,
       "cubiertos": 41,
@@ -9748,18 +9730,6 @@
       ]
     },
     {
-      "pantalla": "compras/gastos",
-      "total": 26,
-      "cubiertos": 25,
-      "sin": 1,
-      "pct": 96,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Gasto registrado"
-      ]
-    },
-    {
       "pantalla": "admin/auditoria",
       "total": 63,
       "cubiertos": 62,
@@ -9818,6 +9788,26 @@
       "pantalla": "claude",
       "total": 117,
       "cubiertos": 117,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "compras/gastos",
+      "total": 26,
+      "cubiertos": 26,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "compras/productos-por-dar-de-alta",
+      "total": 43,
+      "cubiertos": 43,
       "sin": 0,
       "pct": 100,
       "enScope": true,

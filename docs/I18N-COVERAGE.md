@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 27%** (2976/11064 literales de 192 pantallas en alcance). **`ht`: 63%**.
+**Alcance `en`: 27%** (2979/11059 literales de 192 pantallas en alcance). **`ht`: 64%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -151,20 +151,20 @@
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
-| compras/productos-por-dar-de-alta | scope | 48 | 41 | 7 | 85% |
 | flota/cupos-combustible | scope | 48 | 41 | 7 | 85% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
-| compras/gastos | scope | 26 | 25 | 1 | 96% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
+| compras/gastos | enforce | 26 | 26 | 0 | 100% |
+| compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
 | configuracion/claude | enforce | 32 | 32 | 0 | 100% |
 | configuracion | enforce | 58 | 58 | 0 | 100% |
 | dashboard | enforce | 70 | 70 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**768 literal(es) sin t()** en 104 archivo(s) (de 135 archivo(s) .ts con algo detectado).
+**764 literal(es) sin t()** en 102 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -282,7 +282,6 @@
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo-ficha.ts | 3 | Enlace copiado. · No se pudo copiar el enlace. · Orden compartida. |
-| src/app/pages/compras/productos-por-dar-de-alta/productos-por-dar-de-alta.ts | 3 | Solicitud enviada. · Artículo creado. · Solicitud resuelta. |
 | src/app/pages/flota/transferencias/transferencias.ts | 3 | Transferencia cancelada · No se pudo cancelar · ¿Cancelar la transferencia hacia ${f.a_nombre ?? 'este chofer'}? |
 | src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
 | src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
@@ -303,7 +302,6 @@
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
 | src/app/pages/bitacora/orden-trabajo/orden-trabajo.ts | 1 | Orden de trabajo registrada. |
-| src/app/pages/compras/gastos/gastos.ts | 1 | Gasto registrado |
 | src/app/pages/flota/reporte-semanal/reporte-semanal.ts | 1 | Inspección vehículo |
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
