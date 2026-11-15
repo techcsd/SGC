@@ -187,6 +187,44 @@ a mano): `conteos` 45%, `apertura` 47%, `conduces` 52%, `reposicion` 52%,
 `retiros` ~66%, `entradas` ~72%, `conduce-externo-ficha` ~73% (esta última
 es ruta dinámica `:id`, sin URL genérica para el smoke — igual que antes).
 
+## Inventario — 100% COMPLETO (35/35 pantallas, 14-nov-2026)
+
+Lotes 10-14 cerraron las 6 pantallas restantes:
+
+- **Lote 10** (`e5c69459`): `almacen-inventario` → 100%.
+- **Lote 11** (`15b5d7ea`): `conduce` → 100% (pantalla grande, 157
+  literales: toolbar + 4 modales + cierre de conduce + vista imprimible).
+  Noveno fix de escáner: `FASE_META` es un catálogo-MAPA
+  (`Record<string, {label}> = {...}`), no un arreglo — se agregó detección
+  de `: Record<...> = {...}` (balanceado por `<`/`>` y luego por `{`/`}`)
+  para eximirlo igual que a los catálogos-arreglo. También se agregó
+  "Constructora Scheker & Domínguez" al whitelist de nombres propios.
+- **Lote 12** (`63df844d`): `requisiciones` → 100% (157 literales: 3 vistas
+  lista/semana/mes + tabs activas/historial + aprobar/rechazar/cancelar).
+  Dos fixes más: `esRuido()` no reconocía `@let` como palabra clave de
+  control flow (se generalizó el prefijo tolerado de una lista fija de
+  símbolos a "cualquier carácter que no sea letra", con `\p{L}`); y la
+  neutralización de comparaciones dentro de un `@if (a > b)` asumía
+  condiciones sin paréntesis anidados — una condición real con una llamada
+  de cero argumentos (`fn() && a > b`) rompía esa asunción. Se reescribió
+  balanceando paréntesis de verdad. También: `&nbsp;` se trataba como copy
+  (tiene letras literales "nbsp") — ahora se reconoce como ruido.
+- **Lote 13** (`aaa398b9`): `retiros` → 100% (flujo solicitar → aprobar/
+  rechazar/cancelar → conduce de retiro → cuarentena → disposición).
+- **Lote 14** (`9e839268`): `entradas` y `conduce-externo-ficha` → 100%.
+  Décimo fix: `spansDeArreglos()` no reconocía `return [...]` dentro de un
+  computed/método (solo `campo = [...]`) — un catálogo-arreglo construido
+  y devuelto directo (ej. `lineaVida()`) se contaba como copy sin traducir.
+  `reArreglo` ahora matchea `(?:=>|=|\breturn)\s*\[`.
+- Cada fix de escáner se verificó que NO rompiera ninguna pantalla
+  `enforce:true` previa (`verify-i18n.mjs` con 0 fallos) antes de seguir.
+  Build + 368/368 tests verdes en todo momento.
+- `public/i18n/en.json`: → **2.705** claves. `public/i18n/ht.json`:
+  → **1.799** claves. Siguen **sin revisión humana** (`docs/I18N-REVISAR-HT.md`).
+
+**Módulo 4 (Inventario) CERRADO: 35/35 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Compras (#5).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -219,7 +257,7 @@ Admin, resto.
 | 1 | Claude | claude, configuracion/claude, admin/claude | 3 envueltos (resto ya venía) | 29 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
-| 4 | Inventario | 21/28 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~200 a mano | ~80 (toasts/confirm/error) | 🧪 **en progreso (21/28)** | 46a3c9c5..33f874ed | parcial |
+| 4 | Inventario | 35/35 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~350 a mano | ~130 (toasts/confirm/error) | ✅ **100% — hecho** | 46a3c9c5..9e839268 | **true** |
 | 5 | Compras | — | — | — | ⏳ pendiente | — | false |
 | 6 | Flota | — | — | — | ⏳ pendiente | — | false |
 | 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |
