@@ -24,6 +24,8 @@ import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { OrdenTh } from '../../../../shared/ui/orden-th/orden-th';
 import { OrdenColumna, compararConNulosAlFinal, leerOrdenGuardado, guardarOrden } from '../../../../shared/utils/orden-columnas.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** CS1 — columnas ordenables de la bandeja de requisiciones. */
 export type ClaveOrdenReq = 'fecha' | 'necesidad' | 'folio' | 'obra' | 'estado';
@@ -80,7 +82,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective, OrdenTh],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective, OrdenTh, TranslatePipe],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -94,6 +96,7 @@ export class Requisiciones implements OnInit {
   private stockService = inject(StockService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   private listaEstado = inject(ListaEstadoService);
   // CX3.2 — clave de pantalla para recordar filtros mientras la persona siga en
@@ -626,12 +629,12 @@ export class Requisiciones implements OnInit {
     if (!r || !f) return;
     try {
       await this.service.setFechaNecesidad(r.id, f, this.motivoFecha().trim() || null);
-      this.toast.success('Fecha de necesidad actualizada');
+      this.toast.success(this.i18n.t('Fecha de necesidad actualizada'));
       this.editandoFecha.set(false);
       await this.loadAll();
       this.selected.set(this.requisiciones().find((x) => x.id === r.id) ?? null);
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar la fecha', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar la fecha'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -776,7 +779,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.desvincularCobertura(c.id);
-      this.toast.success('Cobertura deshecha');
+      this.toast.success(this.i18n.t('Cobertura deshecha'));
       await this.cargarAvance(s.id);
       await this.cargarCobertura(s.id);
     } catch (e) {
@@ -793,7 +796,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.cerrar(s.id);
-      this.toast.success('Requisición cerrada');
+      this.toast.success(this.i18n.t('Requisición cerrada'));
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e) {
@@ -833,7 +836,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.cancelarItem(item.item_id, motivo);
-      this.toast.success('Línea quitada', 'El resto de la requisición sigue despachable.');
+      this.toast.success(this.i18n.t('Línea quitada'), 'El resto de la requisición sigue despachable.');
       await this.cargarAvance(s.id);
       await this.loadAll();
     } catch (e) {
@@ -852,7 +855,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.cancelar(s.id, motivo);
-      this.toast.success('Requisición cancelada');
+      this.toast.success(this.i18n.t('Requisición cancelada'));
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e) {
@@ -887,7 +890,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.vincularConduce(s.id, salidaId);
-      this.toast.success('Conduce vinculado', 'El avance ya cuenta este despacho.');
+      this.toast.success(this.i18n.t('Conduce vinculado'), 'El avance ya cuenta este despacho.');
       this.mostrarVincular.set(false);
       await this.cargarAvance(s.id);
       await this.loadAll();
@@ -921,7 +924,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.vincularConduceExterno(s.id, conduceExternoId);
-      this.toast.success('Conduce externo vinculado', 'El avance ya cuenta este despacho.');
+      this.toast.success(this.i18n.t('Conduce externo vinculado'), 'El avance ya cuenta este despacho.');
       this.mostrarVincularExterno.set(false);
       await this.cargarAvance(s.id);
       await this.loadAll();
@@ -1008,7 +1011,7 @@ export class Requisiciones implements OnInit {
       if (res.despachado_total > 0) partes.push('despacho generado');
       if (res.solicitud_compra_id) partes.push('compra automática por el faltante');
       this.toast.success(
-        'Requisición aprobada',
+        this.i18n.t('Requisición aprobada'),
         partes.length ? partes.join(' + ') : undefined,
       );
       this.motion.momento('aprobado');
@@ -1017,7 +1020,7 @@ export class Requisiciones implements OnInit {
     } catch (e: unknown) {
       const msg = e instanceof Error ? humanizeError(e).mensaje : 'Error al aprobar la requisición.';
       this.actionError.set(msg);
-      this.toast.error('No se pudo aprobar', msg);
+      this.toast.error(this.i18n.t('No se pudo aprobar'), msg);
     } finally {
       this.saving.set(false);
     }
@@ -1030,13 +1033,13 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     try {
       await this.service.rechazar(s.id, this.rechazoNota().trim() || null);
-      this.toast.info('Requisición rechazada');
+      this.toast.info(this.i18n.t('Requisición rechazada'));
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error al rechazar la requisición.';
       this.actionError.set(msg);
-      this.toast.error('No se pudo rechazar', msg);
+      this.toast.error(this.i18n.t('No se pudo rechazar'), msg);
     } finally {
       this.saving.set(false);
     }

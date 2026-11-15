@@ -1,10 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 import { TransporteV3Service, LugarPendiente } from '../../../../shared/services/transporte-v3.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * BA / Transporte v3 — bandeja "Lugares por registrar": cada «Otros» textual cae
@@ -13,7 +15,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
  */
 @Component({
   selector: 'app-lugares-por-registrar',
-  imports: [DatePipe, Skeleton, StaggerDirective],
+  imports: [FechaPipe, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './lugares-por-registrar.html',
   styleUrl: './lugares-por-registrar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +24,7 @@ export class LugaresPorRegistrar {
   private svc = inject(TransporteV3Service);
   private user = inject(UserService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
 
   esLogistica = computed(() => this.user.hasRole('admin') || this.user.hasRole('logistica'));
 
@@ -62,7 +65,7 @@ export class LugaresPorRegistrar {
     const lng = this.lng().trim() ? Number(this.lng()) : null;
     try {
       await this.svc.promoverLugar(l.id, nombre, lat, lng);
-      this.toast.success('Lugar registrado', 'El buscador ya lo va a encontrar.');
+      this.toast.success(this.i18n.t('Lugar registrado'), this.i18n.t('El buscador ya lo va a encontrar.'));
       this.promoviendo.set(null);
       await this.recargar();
     } catch (e) {

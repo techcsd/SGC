@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { SalidasService, ConducePorImplementar } from '../../../../shared/services/salidas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * AY13 — "Conduces por implementar": conduces que tienen ≥1 item libre (material no
@@ -14,7 +15,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-conduces-por-implementar',
-  imports: [RouterLink, DatePipe, Skeleton],
+  imports: [RouterLink, DatePipe, Skeleton, TranslatePipe],
   templateUrl: './conduces-por-implementar.html',
   styleUrl: './conduces-por-implementar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

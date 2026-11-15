@@ -24,6 +24,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface FormItem {
   articulo_id: string;
@@ -66,7 +68,7 @@ const DISPOSICION_LABEL: Record<Disposicion, string> = {
 
 @Component({
   selector: 'app-inventario-retiros',
-  imports: [DatePipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper, StaggerDirective],
+  imports: [DatePipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper, StaggerDirective, TranslatePipe],
   templateUrl: './retiros.html',
   styleUrl: './retiros.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +81,7 @@ export class InventarioRetiros implements OnInit {
   private categoriasSvc = inject(CategoriasService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   motivoLabel = (m: string) => MOTIVO_LABEL[m as MotivoDano] ?? m;
   estadoLabel = (e: string) => ESTADO_LABEL[e as RetiroEstado] ?? e;
@@ -168,7 +171,7 @@ export class InventarioRetiros implements OnInit {
         this.filas.set(await this.retiros.listado());
       }
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar.'));
     } finally {
       this.loading.set(false);
     }
@@ -239,7 +242,7 @@ export class InventarioRetiros implements OnInit {
         this.fFotos.update((fs) => [...fs, { path, nombre: f.name }]);
       }
     } catch (e) {
-      this.toast.error('No se pudo subir la foto', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir la foto'), e instanceof Error ? e.message : undefined);
     } finally {
       this.subiendoFoto.set(false);
       input.value = '';
@@ -258,11 +261,11 @@ export class InventarioRetiros implements OnInit {
         cantidad: it.cantidad,
         unidad: it.unidad || null,
       }));
-    if (!this.fProyecto()) { this.toast.error('Selecciona la obra.'); return; }
-    if (!items.length) { this.toast.error('Agrega al menos un artículo.'); return; }
-    if (!this.fFotos().length) { this.toast.error('Agrega al menos una foto del material dañado.'); return; }
+    if (!this.fProyecto()) { this.toast.error(this.i18n.t('Selecciona la obra.')); return; }
+    if (!items.length) { this.toast.error(this.i18n.t('Agrega al menos un artículo.')); return; }
+    if (!this.fFotos().length) { this.toast.error(this.i18n.t('Agrega al menos una foto del material dañado.')); return; }
     if (this.fMotivo() === 'otro' && !this.fMotivoDetalle().trim()) {
-      this.toast.error('Describe el motivo del daño.');
+      this.toast.error(this.i18n.t('Describe el motivo del daño.'));
       return;
     }
     this.guardando.set(true);
@@ -276,11 +279,11 @@ export class InventarioRetiros implements OnInit {
         items,
         fotos: this.fFotos(),
       });
-      this.toast.success('Retiro solicitado');
+      this.toast.success(this.i18n.t('Retiro solicitado'));
       this.crearAbierto.set(false);
       await this.load();
     } catch (e) {
-      this.toast.error('No se pudo crear el retiro', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear el retiro'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -300,7 +303,7 @@ export class InventarioRetiros implements OnInit {
       const urls = await Promise.all(fotos.map((x) => this.retiros.signedUrl(x.path)));
       this.detalleFotosUrls.set(urls.filter((u): u is string => !!u));
     } catch (e) {
-      this.toast.error('No se pudo cargar el detalle', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el detalle'), e instanceof Error ? e.message : undefined);
     }
   }
   get retiroActual(): Record<string, unknown> | null {
@@ -343,7 +346,7 @@ export class InventarioRetiros implements OnInit {
       else if (target === 'recepFoto') this.aRecepFotoPath.set(path);
       else if (target === 'recepFirma') this.aRecepFirmaPath.set(path);
     } catch (e) {
-      this.toast.error('No se pudo subir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir'), e instanceof Error ? e.message : undefined);
     } finally {
       input.value = '';
     }
@@ -357,7 +360,7 @@ export class InventarioRetiros implements OnInit {
       this.detalleAbierto.set(false);
       await this.load();
     } catch (e) {
-      this.toast.error('No se pudo completar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo completar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.procesando.set(false);
     }
@@ -367,16 +370,16 @@ export class InventarioRetiros implements OnInit {
     this.run(() => this.retiros.aprobar(this.retiroId()), 'Retiro aprobado');
   }
   confirmarRechazo() {
-    if (!this.aMotivo().trim()) { this.toast.error('Indica el motivo.'); return; }
+    if (!this.aMotivo().trim()) { this.toast.error(this.i18n.t('Indica el motivo.')); return; }
     this.run(() => this.retiros.rechazar(this.retiroId(), this.aMotivo().trim()), 'Retiro rechazado');
   }
   confirmarCancelar() {
-    if (!this.aMotivo().trim()) { this.toast.error('Indica el motivo.'); return; }
+    if (!this.aMotivo().trim()) { this.toast.error(this.i18n.t('Indica el motivo.')); return; }
     this.run(() => this.retiros.cancelar(this.retiroId(), this.aMotivo().trim()), 'Retiro cancelado');
   }
   confirmarConduce() {
-    if (!this.aTransporta().trim()) { this.toast.error('Indica quién transporta.'); return; }
-    if (!this.aPlacaPath()) { this.toast.error('Sube la foto de la placa.'); return; }
+    if (!this.aTransporta().trim()) { this.toast.error(this.i18n.t('Indica quién transporta.')); return; }
+    if (!this.aPlacaPath()) { this.toast.error(this.i18n.t('Sube la foto de la placa.')); return; }
     this.run(
       () =>
         this.retiros.generarConduce(this.retiroId(), {
@@ -389,8 +392,8 @@ export class InventarioRetiros implements OnInit {
     );
   }
   confirmarRecibir() {
-    if (!this.aRecepFotoPath()) { this.toast.error('Sube la foto de recepción.'); return; }
-    if (!this.aRecepFirmaPath()) { this.toast.error('Sube la firma del receptor.'); return; }
+    if (!this.aRecepFotoPath()) { this.toast.error(this.i18n.t('Sube la foto de recepción.')); return; }
+    if (!this.aRecepFirmaPath()) { this.toast.error(this.i18n.t('Sube la firma del receptor.')); return; }
     this.run(
       () =>
         this.retiros.recibir(
@@ -404,7 +407,7 @@ export class InventarioRetiros implements OnInit {
   }
   confirmarDisponer() {
     if (this.aDisposicion() === 'devolucion' && !this.aProveedor()) {
-      this.toast.error('Selecciona el proveedor.');
+      this.toast.error(this.i18n.t('Selecciona el proveedor.'));
       return;
     }
     this.run(

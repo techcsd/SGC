@@ -11,6 +11,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { IconName } from '../../../shared/ui/icon/icons';
 import { LanguageSelector } from '../../../shared/ui/language-selector/language-selector';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 import { Perfil } from '../perfil/perfil';
 import { AjustesNotificaciones } from '../ajustes-notificaciones/ajustes-notificaciones';
 import { UserService } from '../../core/services/user.service';
@@ -64,6 +65,7 @@ export class Configuracion implements OnInit {
   private privacidad = inject(PrivacidadService);
   private theme = inject(ThemeService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
 
   seccion = signal<Seccion>('cuenta');
   prefs = this.prefsService.prefs;
@@ -168,7 +170,7 @@ export class Configuracion implements OnInit {
     try {
       await this.privacidad.setConsentimiento('ia', otorgar);
       this.consentIA.set(otorgar);
-      this.toast.success('Guardado', otorgar ? 'Activaste las funciones de IA.' : 'Desactivaste las funciones de IA.');
+      this.toast.success(this.i18n.t('Guardado'), otorgar ? 'Activaste las funciones de IA.' : 'Desactivaste las funciones de IA.');
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo guardar');
     } finally {
@@ -183,7 +185,7 @@ export class Configuracion implements OnInit {
       await this.privacidad.solicitarEliminacion(this.motivoEliminacion().trim());
       this.eliminacionEnviada.set(true);
       this.confirmandoEliminacion.set(false);
-      this.toast.success('Solicitud enviada', 'La procesaremos en un máximo de 30 días.');
+      this.toast.success(this.i18n.t('Solicitud enviada'), this.i18n.t('La procesaremos en un máximo de 30 días.'));
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo enviar la solicitud');
     } finally {
@@ -215,13 +217,13 @@ export class Configuracion implements OnInit {
   /** CS4 — cierra UNA sesión (no la actual; el servidor también lo bloquea). */
   async cerrarUnaSesion(s: MiSesion) {
     if (s.es_actual || this.cerrandoSesionId()) return;
-    if (!confirm(`¿Cerrar la sesión en "${this.dispositivoLabel(s.user_agent)}"?`)) return;
+    if (!confirm(this.i18n.t('¿Cerrar la sesión en "{dispositivo}"?', { dispositivo: this.dispositivoLabel(s.user_agent) }))) return;
     this.cerrandoSesionId.set(s.id);
     try {
       const { error } = await this.supabase.client.schema('sgc').rpc('cerrar_mi_sesion', { p_id: s.id });
       if (error) throw new Error(await edgeErrorMessage(error));
       this.sesiones.update((list) => list.filter((x) => x.id !== s.id));
-      this.toast.success('Sesión cerrada');
+      this.toast.success(this.i18n.t('Sesión cerrada'));
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo cerrar esa sesión');
     } finally {
@@ -285,7 +287,7 @@ export class Configuracion implements OnInit {
   async setModuloInicio(route: string) {
     try {
       await this.prefsService.set('modulo_inicio', route);
-      this.toast.success('Guardado', 'Al iniciar sesión abrirás aquí.');
+      this.toast.success(this.i18n.t('Guardado'), this.i18n.t('Al iniciar sesión abrirás aquí.'));
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo guardar');
     }
@@ -299,7 +301,7 @@ export class Configuracion implements OnInit {
         body: {},
       });
       if (error) throw new Error(await edgeErrorMessage(error));
-      this.toast.success('Listo', 'Cerramos tu sesión en los demás dispositivos.');
+      this.toast.success(this.i18n.t('Listo'), this.i18n.t('Cerramos tu sesión en los demás dispositivos.'));
       this.sesiones.update((list) => list.filter((x) => x.es_actual)); // CS4 — refleja el cierre sin refetch
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo cerrar la sesión en otros dispositivos');

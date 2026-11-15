@@ -1,14 +1,14 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">
-      Movimientos de inventario
+      {{ 'Movimientos de inventario' | t }}
       @if (bodegaFiltradaNombre()) { <span class="mov-scope">· {{ bodegaFiltradaNombre() }}</span> }
     </h1>
-    <span class="page-count">{{ filtered().length }} movimiento{{ filtered().length !== 1 ? 's' : '' }} · {{ totalSalidas() }} salidas · {{ totalEntradas() }} entradas</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'movimientos' : 'movimiento') | t }} · {{ totalSalidas() }} {{ 'salidas' | t }} · {{ totalEntradas() }} {{ 'entradas' | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
   </div>
@@ -17,21 +17,21 @@
 <!-- Filtros -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedBodega()" (change)="onBodega($any($event.target).value)" aria-label="Almacén">
-      <option value="">Todos los almacenes</option>
+    <select [value]="selectedBodega()" (change)="onBodega($any($event.target).value)" aria-label="{{ 'Almacén' | t }}">
+      <option value="">{{ 'Todos los almacenes' | t }}</option>
       @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
     </select>
   </div>
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedTipo()" (change)="onTipo($any($event.target).value)" aria-label="Tipo">
-      <option value="">Entradas y salidas</option>
-      <option value="salida">Salidas</option>
-      <option value="entrada">Entradas</option>
+    <select [value]="selectedTipo()" (change)="onTipo($any($event.target).value)" aria-label="{{ 'Tipo' | t }}">
+      <option value="">{{ 'Entradas y salidas' | t }}</option>
+      <option value="salida">{{ 'Salidas' | t }}</option>
+      <option value="entrada">{{ 'Entradas' | t }}</option>
     </select>
   </div>
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
   @if (hasActiveFilters()) {
-    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="clearFilters()">Limpiar filtros</button>
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="clearFilters()">{{ 'Limpiar filtros' | t }}</button>
   }
 </div>
 
@@ -41,17 +41,17 @@
   @if (loading()) {
     <app-skeleton variant="table" [rows]="8" />
   } @else if (filtered().length === 0) {
-    <div class="table-empty"><p>No hay movimientos con los filtros aplicados.</p></div>
+    <div class="table-empty"><p>{{ 'No hay movimientos con los filtros aplicados.' | t }}</p></div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Movimientos de inventario">
+      <table class="data-table" aria-label="{{ 'Movimientos de inventario' | t }}">
         <thead>
-          <tr><th>Fecha</th><th>Tipo</th><th>Almacén</th><th>Concepto / referencia</th><th class="text-right">Artículos</th><th>Responsable</th><th></th></tr>
+          <tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Tipo' | t }}</th><th>{{ 'Almacén' | t }}</th><th>{{ 'Concepto / referencia' | t }}</th><th class="text-right">{{ 'Artículos' | t }}</th><th>{{ 'Responsable' | t }}</th><th></th></tr>
         </thead>
         <tbody appStagger>
           @for (m of paginated(); track m.tipo + m.referencia_id) {
             <tr class="row--link" (click)="abrir(m)" role="button" tabindex="0" (keydown.enter)="abrir(m)"
-                aria-label="Ver detalle del movimiento">
+                aria-label="{{ 'Ver detalle del movimiento' | t }}">
               <td>{{ formatFecha(m.fecha) }}</td>
               <td>
                 <span class="sgc-badge" [class.sgc-badge--warning]="m.tipo === 'salida'" [class.sgc-badge--success]="m.tipo === 'entrada'">
@@ -62,14 +62,14 @@
               <td class="text-muted">
                 {{ m.concepto || '—' }}
                 @if (m.origen_tipo === 'devolucion_obra') {
-                  <span class="mov-origen"><app-icon name="rotate-ccw" [size]="14" /> Devolución de obra{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { · traspaso enlazado }</span>
+                  <span class="mov-origen"><app-icon name="rotate-ccw" [size]="14" /> {{ 'Devolución de obra' | t }}{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { {{ '· traspaso enlazado' | t }} }</span>
                 }
               </td>
               <td class="text-right">{{ m.items }}</td>
               <td class="text-muted">{{ m.responsable || '—' }}</td>
               <td (click)="$event.stopPropagation()">
                 @if (m.tipo === 'salida') {
-                  <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', m.referencia_id, 'conduce']">Conduce</a>
+                  <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', m.referencia_id, 'conduce']">{{ 'Conduce' | t }}</a>
                 }
               </td>
             </tr>

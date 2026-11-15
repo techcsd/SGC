@@ -1,79 +1,79 @@
 <div class="kardex-backdrop" (click)="close.emit()"></div>
 
-<div class="kardex" role="dialog" aria-modal="true" aria-label="Kardex del artículo">
+<div class="kardex" role="dialog" aria-modal="true" aria-label="{{ 'Kardex del artículo' | t }}">
   <header class="kardex__head">
     <div>
       <h2 class="kardex__title">{{ articuloNombre() || 'Kardex' }}</h2>
       <p class="kardex__sub">{{ bodegaNombre() }}</p>
     </div>
-    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="close.emit()" aria-label="Cerrar"><app-icon name="x" [size]="18" /></button>
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="close.emit()" aria-label="{{ 'Cerrar' | t }}"><app-icon name="x" [size]="18" /></button>
   </header>
 
   @if (loading()) {
-    <p class="kardex__loading">Cargando kardex…</p>
+    <p class="kardex__loading">{{ 'Cargando kardex…' | t }}</p>
   } @else if (error()) {
     <p class="kardex__error">{{ error() }}</p>
   } @else if (data(); as d) {
     <!-- Resumen -->
     <div class="kardex__stats">
-      <div class="kardex__stat"><span>Apertura</span><strong>{{ d.apertura | number:'1.0-2' }}</strong></div>
-      <div class="kardex__stat"><span>Existencia actual</span><strong>{{ d.saldo_actual | number:'1.0-2' }}</strong></div>
-      <div class="kardex__stat"><span>Movimientos</span><strong>{{ movimientos().length }}</strong></div>
+      <div class="kardex__stat"><span>{{ 'Apertura' | t }}</span><strong>{{ d.apertura | number:'1.0-2' }}</strong></div>
+      <div class="kardex__stat"><span>{{ 'Existencia actual' | t }}</span><strong>{{ d.saldo_actual | number:'1.0-2' }}</strong></div>
+      <div class="kardex__stat"><span>{{ 'Movimientos' | t }}</span><strong>{{ movimientos().length }}</strong></div>
     </div>
 
     <!-- Timeline del stock -->
     @if (timeline(); as tl) {
       <div class="kardex__timeline">
-        <span class="kardex__timeline-cap">Existencias en el tiempo (base = apertura {{ d.apertura | number:'1.0-2' }})</span>
+        <span class="kardex__timeline-cap">{{ 'Existencias en el tiempo (base = apertura' | t }} {{ d.apertura | number:'1.0-2' }})</span>
         <svg [attr.viewBox]="'0 0 ' + VW + ' ' + VH" class="kardex__svg" preserveAspectRatio="none" aria-hidden="true">
           <polyline [attr.points]="tl.base" class="kardex__svg-base" />
           <polyline [attr.points]="tl.points" class="kardex__svg-line" />
         </svg>
         <div class="kardex__timeline-scale">
-          <span>mín {{ tl.min | number:'1.0-2' }}</span>
-          <span>máx {{ tl.max | number:'1.0-2' }}</span>
+          <span>{{ 'mín' | t }} {{ tl.min | number:'1.0-2' }}</span>
+          <span>{{ 'máx' | t }} {{ tl.max | number:'1.0-2' }}</span>
         </div>
       </div>
     }
 
     <!-- Filtros -->
     <div class="kardex__filters">
-      <select [value]="fTipo()" (change)="fTipo.set($any($event.target).value)" aria-label="Tipo de movimiento">
-        <option value="">Todos los movimientos</option>
-        <option value="entrada">Entradas</option>
-        <option value="salida">Salidas</option>
-        <option value="ajuste">Ajustes</option>
+      <select [value]="fTipo()" (change)="fTipo.set($any($event.target).value)" aria-label="{{ 'Tipo de movimiento' | t }}">
+        <option value="">{{ 'Todos los movimientos' | t }}</option>
+        <option value="entrada">{{ 'Entradas' | t }}</option>
+        <option value="salida">{{ 'Salidas' | t }}</option>
+        <option value="ajuste">{{ 'Ajustes' | t }}</option>
       </select>
-      <select [value]="fTransportista()" (change)="fTransportista.set($any($event.target).value)" aria-label="Transportista">
-        <option value="">Todo transportista</option>
+      <select [value]="fTransportista()" (change)="fTransportista.set($any($event.target).value)" aria-label="{{ 'Transportista' | t }}">
+        <option value="">{{ 'Todo transportista' | t }}</option>
         @for (t of transportistas(); track t) { <option [value]="t">{{ t }}</option> }
       </select>
-      <select [value]="fEntrega()" (change)="fEntrega.set($any($event.target).value)" aria-label="Quien entrega">
-        <option value="">Todo el que entrega</option>
+      <select [value]="fEntrega()" (change)="fEntrega.set($any($event.target).value)" aria-label="{{ 'Quien entrega' | t }}">
+        <option value="">{{ 'Todo el que entrega' | t }}</option>
         @for (e of entregadores(); track e) { <option [value]="e">{{ e }}</option> }
       </select>
-      <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" title="Desde" />
-      <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" title="Hasta" />
+      <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="{{ 'Desde' | t }}" title="{{ 'Desde' | t }}" />
+      <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="{{ 'Hasta' | t }}" title="{{ 'Hasta' | t }}" />
       @if (hasFilters()) {
-        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="clearFilters()">Limpiar</button>
+        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="clearFilters()">{{ 'Limpiar' | t }}</button>
       }
     </div>
 
     <!-- Tabla del sketch -->
     <div class="kardex__scroll">
-      <table class="data-table kardex__table" aria-label="Movimientos del artículo">
+      <table class="data-table kardex__table" aria-label="{{ 'Movimientos del artículo' | t }}">
         <thead>
           <tr>
-            <th>Mov.</th>
-            <th class="text-right">Cantidad</th>
-            <th class="text-right">Saldo</th>
-            <th>Origen</th>
-            <th>Destino</th>
-            <th>Fecha</th>
-            <th>Entrega</th>
-            <th>Recibe</th>
-            <th>Transporte</th>
-            <th>Conduce</th>
+            <th>{{ 'Mov.' | t }}</th>
+            <th class="text-right">{{ 'Cantidad' | t }}</th>
+            <th class="text-right">{{ 'Saldo' | t }}</th>
+            <th>{{ 'Origen' | t }}</th>
+            <th>{{ 'Destino' | t }}</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Entrega' | t }}</th>
+            <th>{{ 'Recibe' | t }}</th>
+            <th>{{ 'Transporte' | t }}</th>
+            <th>{{ 'Conduce' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -104,7 +104,7 @@
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="10" class="kardex__empty">No hay movimientos con esos filtros.</td></tr>
+            <tr><td colspan="10" class="kardex__empty">{{ 'No hay movimientos con esos filtros.' | t }}</td></tr>
           }
         </tbody>
       </table>

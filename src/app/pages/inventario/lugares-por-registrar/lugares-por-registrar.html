@@ -1,16 +1,16 @@
 <div class="page">
   <header class="page-header">
     <div class="page-header__left">
-      <h1 class="page-title">Lugares por registrar</h1>
+      <h1 class="page-title">{{ 'Lugares por registrar' | t }}</h1>
       <span class="page-count">{{ filas().length }}</span>
     </div>
   </header>
-  <p class="page-sub">Lugares escritos como «Otros» en conduces y rutas. Promuévelos para que el buscador los encuentre.</p>
+  <p class="page-sub">{{ 'Lugares escritos como «Otros» en conduces y rutas. Promuévelos para que el buscador los encuentre.' | t }}</p>
 
   @if (loading()) {
     <app-skeleton variant="list" [rows]="5" />
   } @else if (filas().length === 0) {
-    <div class="sgc-card table-empty">No hay lugares pendientes. 🎉</div>
+    <div class="sgc-card table-empty">{{ 'No hay lugares pendientes. 🎉' | t }}</div>
   } @else {
     <div class="lpr-list" appStagger>
       @for (l of filas(); track l.id) {
@@ -18,17 +18,17 @@
           <div class="lpr-head">
             <div>
               <span class="lpr-texto">{{ l.texto }}</span>
-              @if (l.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+              @if (l.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
               <div class="lpr-meta">
-                {{ l.contexto || '—' }} · {{ l.documento_tipo || 'documento' }} ·
-                por {{ l.usado_por_nombre || '—' }} · {{ l.created_at | date: 'dd/MM/yyyy' }}
+                {{ l.contexto || '—' }} · {{ l.documento_tipo || ('documento' | t) }} ·
+                {{ 'por' | t }} {{ l.usado_por_nombre || '—' }} · {{ l.created_at | fecha: 'dd/MM/yyyy' }}
               </div>
             </div>
             @if (esLogistica()) {
               <div class="lpr-actions">
                 @if (promoviendo() !== l.id) {
-                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirPromover(l)">Promover</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartar(l)">Descartar</button>
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirPromover(l)">{{ 'Promover' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartar(l)">{{ 'Descartar' | t }}</button>
                 }
               </div>
             }
@@ -36,11 +36,11 @@
 
           @if (promoviendo() === l.id) {
             <div class="lpr-form">
-              <input class="sgc-input" placeholder="Nombre del lugar" [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
-              <input class="sgc-input lpr-coord" placeholder="Lat (opcional)" [value]="lat()" (input)="lat.set($any($event.target).value)" />
-              <input class="sgc-input lpr-coord" placeholder="Lng (opcional)" [value]="lng()" (input)="lng.set($any($event.target).value)" />
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="promover(l)">Guardar</button>
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="promoviendo.set(null)">Cancelar</button>
+              <input class="sgc-input" placeholder="{{ 'Nombre del lugar' | t }}" [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
+              <input class="sgc-input lpr-coord" placeholder="{{ 'Lat (opcional)' | t }}" [value]="lat()" (input)="lat.set($any($event.target).value)" />
+              <input class="sgc-input lpr-coord" placeholder="{{ 'Lng (opcional)' | t }}" [value]="lng()" (input)="lng.set($any($event.target).value)" />
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="promover(l)">{{ 'Guardar' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="promoviendo.set(null)">{{ 'Cancelar' | t }}</button>
             </div>
           }
         </div>

@@ -30,10 +30,12 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-activos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, TranslatePipe],
   templateUrl: './activos.html',
   styleUrl: './activos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +52,7 @@ export class Activos implements OnInit {
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
 
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -306,7 +309,7 @@ export class Activos implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && this.form.value.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('activos_fijos', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -348,13 +351,13 @@ export class Activos implements OnInit {
   /** Z5(d) — elimina definitivamente una fila de datos de prueba (solo admin). */
   async eliminarPrueba(activo: ActivoFijo) {
     if (!this.esAdmin() || !activo.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${activo.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{n}"? Esta acción no se puede deshacer.', { n: activo.nombre }))) return;
     try {
       await this.datosPrueba.eliminar('activos_fijos', activo.id);
       this.activos.update((list) => list.filter((x) => x.id !== activo.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${activo.nombre}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), this.i18n.t('Se eliminó "{n}".', { n: activo.nombre }));
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

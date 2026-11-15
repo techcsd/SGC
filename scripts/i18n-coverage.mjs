@@ -62,8 +62,31 @@ function esRuido(s) {
   if (WHITE.has(t.toLowerCase())) return true;         // nombre propio
   // Palabras técnicas de binding que a veces quedan sueltas.
   if (/^(true|false|null|ngIf|ngFor|px|em|rem)$/i.test(t)) return true;
+  // Entidades HTML crudas (espaciador invisible, no es copy) — "&nbsp;" tiene
+  // letras literales ("nbsp") que el regex de letras no distingue de texto real.
+  if (/^&[a-z]+;$/i.test(t)) return true;
   // Un token que es claramente una expresión (camelCase con paréntesis) no es copy.
   if (/^[a-z][A-Za-z0-9]*\([^)]*\)$/.test(t)) return true;
+  // Bloques de control flow de Angular (@if/@for/@else/@switch/…) que el
+  // regex de nodos de texto atrapa como "texto" entre un '>' y un '<' porque
+  // no están envueltos en una etiqueta — no son copy, son sintaxis de plantilla.
+  // Tolera cualquier separador decorativo (puntuación, emoji, "·", etc.)
+  // pegado justo antes del @if/@let cuando ambos quedan en el mismo nodo de
+  // texto (sin tag de por medio) — se usa "no es letra" en vez de una lista
+  // fija de símbolos, para no perseguir cada emoji nuevo uno por uno.
+  if (/^[^\p{L}]*@(if|else if|else|for|switch|case|default|empty|let)\b/u.test(t)) return true;
+  // Residuo de control flow MEZCLADO con un resultado de interpolación en el
+  // mismo nodo de texto (ej. "0 } @else { }" — el "0" es un número real
+  // emitido por la plantilla, pero el resto son llaves/palabra "else" que
+  // sobrevivieron a la limpieza de interpolaciones puras). Si trae llaves o
+  // paréntesis Y no le queda ninguna letra real tras quitar las palabras
+  // clave de control flow y la puntuación/dígitos, es ruido de sintaxis.
+  if (/[{}()]/.test(t)) {
+    const sinControlFlow = t
+      .replace(/@(if|else if|else|for|switch|case|default|empty|let)\b/g, '')
+      .replace(/[{}()\d\s.,;:|·—–-]/g, '');
+    if (!HAS_LETTER.test(sinControlFlow)) return true;
+  }
   return false;
 }
 
@@ -78,7 +101,51 @@ function stripExprInterpolations(html) {
 
 // Extrae segmentos de texto entre tags (nodos de texto) y de atributos visibles.
 function extraerLiterales(htmlOriginal) {
-  const html = stripExprInterpolations(htmlOriginal);
+  // Los comentarios <!-- ... --> tienen su propio '<' y '>' que confunden al
+  // regex de nodos de texto (el '>' de cierre de un tag anterior + el '<' de
+  // "<!--" delimitan un falso "nodo" que es en realidad el comentario) —
+  // se reemplazan por espacios ANTES de stripExprInterpolations.
+  const sinComentarios = htmlOriginal.replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length));
+  // Un binding `[attr]="...<..."` / `[attr]="...>..."` (comparaciones TS, p.
+  // ej. `[class.ar-up]="a > b"`) tiene un '<'/'>' DENTRO de un atributo, no
+  // delimitando una etiqueta real — confunde al regex de nodos de abajo
+  // igual que un comentario. Se neutraliza (mismo largo, para no desalinear
+  // columnas/posiciones) antes de escanear.
+  const sinBindingsComparacion = sinComentarios.replace(/\]="[^"]*[<>][^"]*"/g, (m) => ' '.repeat(m.length));
+  // Mismo problema que arriba pero en la CONDICIÓN de un @if/@else if de
+  // control flow (no en un atributo): `@if (a > b) { ... }` tiene un '>' que
+  // no delimita ninguna etiqueta. Se neutraliza igual, solo dentro del `(...)`.
+  // La condición se balancea por paréntesis (puede traer llamadas anidadas
+  // como `puedeGestionarReq() && a.pendiente > 0`) en vez de asumir "sin
+  // paréntesis adentro" — si no, una condición con una función de cero
+  // argumentos rompe el neutralizado y dejaba '>'/'<' colándose como texto.
+  let sinCondicionesComparacion = sinBindingsComparacion;
+  {
+    const reIfStart = /@(?:if|else if)\s*\(/g;
+    let mm;
+    const partes = [];
+    let cursor = 0;
+    while ((mm = reIfStart.exec(sinCondicionesComparacion))) {
+      const inicio = mm.index + mm[0].length - 1; // posición del '('
+      let profundidad = 1;
+      let i = inicio + 1;
+      while (i < sinCondicionesComparacion.length && profundidad > 0) {
+        if (sinCondicionesComparacion[i] === '(') profundidad++;
+        else if (sinCondicionesComparacion[i] === ')') profundidad--;
+        i++;
+      }
+      const span = sinCondicionesComparacion.slice(mm.index, i);
+      if (/[<>]/.test(span)) {
+        partes.push(sinCondicionesComparacion.slice(cursor, mm.index));
+        partes.push(' '.repeat(span.length));
+        cursor = i;
+      }
+      reIfStart.lastIndex = i;
+    }
+    partes.push(sinCondicionesComparacion.slice(cursor));
+    sinCondicionesComparacion = partes.join('');
+  }
+  const html = stripExprInterpolations(sinCondicionesComparacion);
   const items = []; // { texto, cubierto }
 
   // 1) Nodos de texto entre '>' y '<'
@@ -123,6 +190,124 @@ function extraerLiterales(htmlOriginal) {
   return items;
 }
 
+// ── DP-07c — literales dentro de `.ts` (toasts/confirm/alert/labels/placeholders
+// que NO pasan por el escáner de HTML porque no viven en un template). Mismo
+// criterio: cubierto = ya pasa por `t()`/`i18n.t()`; sin cubrir = literal crudo.
+const TS_LLAMADA_LITERAL_RE = /\b(?:this\.)?(?:toast|snackbar)\.(?:error|success|warning|info|errorFrom)\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_LLAMADA_T_RE = /\b(?:this\.)?(?:toast|snackbar)\.(?:error|success|warning|info|errorFrom)\(\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_CONFIRM_RE = /\b(?:window\.)?(?:confirm|alert)\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+// (?<!\.) — evita confundir un acceso a propiedad (`x.mensaje : y` dentro de un
+// ternario) con una clave de objeto (`mensaje: 'y'`); ambos lucen igual sin él.
+const TS_PROP_LITERAL_RE = /(?<!\.)\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+const TS_PROP_T_RE = /(?<!\.)\b(?:placeholder|label|titulo|texto|mensaje)\s*:\s*(?:this\.)?(?:i18n\.)?t\(\s*(['"`])((?:\\.|(?!\1).)*?)\1/g;
+
+// DP-09 — catálogos constantes (`= [{ label: '…' }, …]`) se declaran en
+// español a propósito (no congelar el idioma de arranque) y se traducen al
+// MOSTRAR (`| t` en la plantilla) — sea el arreglo module-level o un campo
+// de la clase (`secciones = [...]`, `readonly temas = [...]`, etc.). Devuelve
+// los rangos [inicio,fin) de cada arreglo `= [ ... ]` (balanceando corchetes)
+// para excluir sus props de la cuenta de ".ts sin t()".
+function spansDeArreglos(ts) {
+  const spans = [];
+  // `const x = [...]` / `campo = [...]` (arreglo literal completo) — también
+  // `campo = computed(() => [...])`, donde el arreglo no sigue al `=`
+  // directamente sino a un `=>` de la función flecha que lo envuelve.
+  // también `return [...]` — un catálogo-arreglo construido y devuelto desde un
+  // computed()/método (ej. lineaVida() del conduce externo), no asignado con
+  // `=`/`=>` sino devuelto directo.
+  const reArreglo = /(?:=>|=|\breturn)\s*\[/g;
+  let m;
+  while ((m = reArreglo.exec(ts))) {
+    const inicio = m.index + m[0].length - 1; // posición del '['
+    let profundidad = 1;
+    let i = inicio + 1;
+    while (i < ts.length && profundidad > 0) {
+      if (ts[i] === '[') profundidad++;
+      else if (ts[i] === ']') profundidad--;
+      i++;
+    }
+    spans.push([inicio, i]);
+  }
+  // `campo: Record<K, { label: '…' }> = {...}` — catálogo-mapa (no arreglo):
+  // mismo DP-09, se traduce al mostrar (`FASE_META[x] | t`), no al declarar.
+  // Acotado a `Record<` para no exentar cualquier objeto literal de la clase;
+  // el tipo genérico se balancea por `<`/`>` (puede llevar `;`/`,` adentro).
+  const reRecordStart = /:\s*Record</g;
+  while ((m = reRecordStart.exec(ts))) {
+    let i = m.index + m[0].length; // justo después de 'Record<'
+    let prof = 1;
+    while (i < ts.length && prof > 0) {
+      if (ts[i] === '<') prof++;
+      else if (ts[i] === '>') prof--;
+      i++;
+    }
+    // Tras el '>' de cierre, debe seguir `= {` (si no, no es la declaración completa).
+    const resto = ts.slice(i, i + 20);
+    const eq = resto.match(/^\s*=\s*\{/);
+    if (!eq) continue;
+    const inicio = i + eq[0].length - 1; // posición del '{'
+    let profundidad = 1;
+    let j = inicio + 1;
+    while (j < ts.length && profundidad > 0) {
+      if (ts[j] === '{') profundidad++;
+      else if (ts[j] === '}') profundidad--;
+      j++;
+    }
+    spans.push([inicio, j]);
+  }
+  // `algo.push({...})` — sigue extendiendo el mismo catálogo condicionalmente.
+  const rePush = /\.push\(/g;
+  while ((m = rePush.exec(ts))) {
+    const inicio = m.index + m[0].length - 1; // posición del '('
+    let profundidad = 1;
+    let i = inicio + 1;
+    while (i < ts.length && profundidad > 0) {
+      if (ts[i] === '(') profundidad++;
+      else if (ts[i] === ')') profundidad--;
+      i++;
+    }
+    spans.push([inicio, i]);
+  }
+  return spans;
+}
+function dentroDeAlgunSpan(spans, idx) {
+  return spans.some(([s, e]) => idx >= s && idx < e);
+}
+
+function extraerLiteralesTs(ts) {
+  const items = [];
+  let m;
+  const spansArreglos = spansDeArreglos(ts);
+  TS_LLAMADA_LITERAL_RE.lastIndex = 0;
+  while ((m = TS_LLAMADA_LITERAL_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
+  }
+  TS_LLAMADA_T_RE.lastIndex = 0;
+  while ((m = TS_LLAMADA_T_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: true });
+  }
+  TS_CONFIRM_RE.lastIndex = 0;
+  while ((m = TS_CONFIRM_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
+  }
+  TS_PROP_LITERAL_RE.lastIndex = 0;
+  while ((m = TS_PROP_LITERAL_RE.exec(ts))) {
+    if (dentroDeAlgunSpan(spansArreglos, m.index)) continue; // catálogo — se traduce al mostrar
+    if (m[1] === '`' && m[2].includes('${')) continue; // template literal con datos (`${x.nombre}`), no es copy
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: false });
+  }
+  TS_PROP_T_RE.lastIndex = 0;
+  while ((m = TS_PROP_T_RE.exec(ts))) {
+    const lit = limpiar(m[2]);
+    if (!esRuido(lit)) items.push({ texto: lit, cubierto: true });
+  }
+  return items;
+}
+
 // ── Recorrido por pantalla ──────────────────────────────────────────────────
 function walkHtml(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -130,6 +315,16 @@ function walkHtml(dir, out = []) {
     const st = statSync(full);
     if (st.isDirectory()) walkHtml(full, out);
     else if (name.endsWith('.html')) out.push(full);
+  }
+  return out;
+}
+
+function walkTs(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    const st = statSync(full);
+    if (st.isDirectory()) walkTs(full, out);
+    else if (name.endsWith('.ts') && !name.endsWith('.spec.ts')) out.push(full);
   }
   return out;
 }
@@ -145,6 +340,7 @@ function pantallaDe(file) {
 
 const files = existsSync(PAGES) ? walkHtml(PAGES) : [];
 const porPantalla = new Map(); // pantalla → { total, cubiertos, sin: [] }
+const porArchivoTs = new Map(); // ruta .ts → { total, cubiertos, sin: [] } (DP-07c)
 
 for (const f of files) {
   const pant = pantallaDe(f);
@@ -156,6 +352,31 @@ for (const f of files) {
     if (it.cubierto) acc.cubiertos++;
     else acc.sin.push(it.texto);
   }
+}
+
+// DP-07c — literales en .ts, agregados a la MISMA pantalla (ajustes/errores/labels
+// no cableados porque viven en el componente, no en el template).
+const tsFiles = existsSync(PAGES) ? walkTs(PAGES) : [];
+for (const f of tsFiles) {
+  const pant = pantallaDe(f);
+  const items = extraerLiteralesTs(readFileSync(f, 'utf8'));
+  if (!items.length) continue;
+  if (!porPantalla.has(pant)) porPantalla.set(pant, { total: 0, cubiertos: 0, sin: [] });
+  const acc = porPantalla.get(pant);
+  const relF = relative(ROOT, f).split(sep).join('/');
+  const accTs = { total: 0, cubiertos: 0, sin: [] };
+  for (const it of items) {
+    acc.total++;
+    accTs.total++;
+    if (it.cubierto) {
+      acc.cubiertos++;
+      accTs.cubiertos++;
+    } else {
+      acc.sin.push(it.texto);
+      accTs.sin.push(it.texto);
+    }
+  }
+  porArchivoTs.set(relF, accTs);
 }
 
 // ── Alcance ─────────────────────────────────────────────────────────────────
@@ -207,15 +428,45 @@ for (const f of filas) {
   const marca = f.enScope ? (f.enforce ? 'enforce' : 'scope') : '-';
   md.push(`| ${f.pantalla} | ${marca} | ${f.total} | ${f.cubiertos} | ${f.sin} | ${f.pct}% |`);
 }
+
+// DP-07c — detalle por archivo .ts (toasts/confirm/alert/placeholder/label/
+// titulo/mensaje sin t()), solo los archivos con algo pendiente.
+const tsFilasConPendientes = [...porArchivoTs.entries()]
+  .map(([archivo, a]) => ({ archivo, total: a.total, cubiertos: a.cubiertos, sin: a.total - a.cubiertos, faltantes: a.sin }))
+  .filter((f) => f.sin > 0)
+  .sort((a, b) => b.sin - a.sin);
+if (tsFilasConPendientes.length) {
+  md.push('');
+  md.push('## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)');
+  md.push('');
+  md.push(`**${tsFilasConPendientes.reduce((s, f) => s + f.sin, 0)} literal(es) sin t()** en ${tsFilasConPendientes.length} archivo(s) (de ${porArchivoTs.size} archivo(s) .ts con algo detectado).`);
+  md.push('');
+  md.push('| Archivo | sin t() | ejemplos |');
+  md.push('|---|---:|---|');
+  for (const f of tsFilasConPendientes) {
+    md.push(`| ${f.archivo} | ${f.sin} | ${f.faltantes.slice(0, 3).join(' · ')}${f.faltantes.length > 3 ? ' …' : ''} |`);
+  }
+}
 writeFileSync(join(ROOT, 'docs', 'I18N-COVERAGE.md'), md.join('\n') + '\n');
 writeFileSync(join(ROOT, 'docs', 'i18n-coverage.json'), JSON.stringify({ pctScopeEn, pctHt, filas }, null, 2));
 
-// Constante para el selector honesto (umbrales 95/90).
+// Constante para el selector honesto (DP-12: umbral 100/100, nunca "ok" a mano).
 const gen =
   `// Generado por scripts/i18n-coverage.mjs — NO editar a mano (BT2, regla 17).\n` +
   `export const I18N_COVERAGE = { en: ${pctScopeEn}, ht: ${pctHt} } as const;\n` +
-  `export const I18N_UMBRAL = { en: 95, ht: 90 } as const;\n`;
+  `export const I18N_UMBRAL = { en: 100, ht: 100 } as const;\n`;
 writeFileSync(join(SRC, 'shared', 'i18n', 'i18n-coverage.generated.ts'), gen);
+
+// DP-07d — alcance.json pasa a TODAS las pantallas detectadas (generado por el
+// escáner, no a mano). `enforce` de una pantalla ya existente se PRESERVA (lo
+// activa F3/F4 por lote); una pantalla nueva entra con `enforce:false`.
+const alcanceNuevo = {
+  _doc: 'DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).',
+  pantallas: Object.fromEntries(
+    filas.map((f) => [f.pantalla, { enforce: !!ALCANCE.pantallas?.[f.pantalla]?.enforce }]),
+  ),
+};
+writeFileSync(join(SRC, 'app', 'core', 'i18n', 'alcance.json'), JSON.stringify(alcanceNuevo, null, 2) + '\n');
 
 // ── Guard: pantallas enforce sin t() rompen (lo invoca verify-i18n) ─────────
 const rotas = filas.filter((f) => f.enforce && f.sin > 0);

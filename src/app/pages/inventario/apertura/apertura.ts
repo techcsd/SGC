@@ -10,6 +10,8 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** AT7 — opción de almacén para el selector de apertura (id + nombre + marcadores). */
 interface AlmacenOpcion {
@@ -27,7 +29,7 @@ interface AlmacenOpcion {
  */
 @Component({
   selector: 'app-apertura-inventario',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DecimalPipe, RouterLink, TranslatePipe],
   templateUrl: './apertura.html',
   styleUrl: './apertura.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +41,7 @@ export class AperturaInventario implements OnInit {
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private i18n = inject(I18nService);
 
   esAdmin = computed(() => this.userService.hasRole('admin'));
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
@@ -93,7 +96,7 @@ export class AperturaInventario implements OnInit {
     try {
       this.bodegasRaw.set(await this.bodegasService.getAll());
     } catch (e: unknown) {
-      this.toast.error('No se pudieron cargar los almacenes', e instanceof Error ? e.message : '');
+      this.toast.error(this.i18n.t('No se pudieron cargar los almacenes'), e instanceof Error ? e.message : '');
     }
   }
 
@@ -107,7 +110,7 @@ export class AperturaInventario implements OnInit {
       this.items.set(await this.service.getInventario(id, true, null, this.incluirCatalogo()));
       await this.actualizarPreview();
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar el inventario', e instanceof Error ? e.message : '');
+      this.toast.error(this.i18n.t('No se pudo cargar el inventario'), e instanceof Error ? e.message : '');
     } finally {
       this.loading.set(false);
     }
@@ -140,19 +143,19 @@ export class AperturaInventario implements OnInit {
 
   /** Apertura individual (prompt). */
   async editar(i: InventarioAlmacenItem) {
-    const entrada = window.prompt(`Apertura de "${i.nombre}" en este almacén:`, String(i.apertura ?? 0));
+    const entrada = window.prompt(this.i18n.t('Apertura de "{n}" en este almacén:', { n: i.nombre }), String(i.apertura ?? 0));
     if (entrada == null) return;
     const n = Number(entrada);
     if (Number.isNaN(n) || n < 0) {
-      this.toast.error('Cantidad inválida.');
+      this.toast.error(this.i18n.t('Cantidad inválida.'));
       return;
     }
     try {
       await this.service.setApertura(i.articulo_id, this.bodegaId(), n);
       await this.onAlmacen(this.bodegaId());
-      this.toast.success('Apertura actualizada.');
+      this.toast.success(this.i18n.t('Apertura actualizada.'));
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo fijar la apertura.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo fijar la apertura.'));
     }
   }
 
@@ -161,14 +164,16 @@ export class AperturaInventario implements OnInit {
     if (this.aplicandoLote() || !this.bodegaId()) return;
     const cant = Number(this.cantidadLote());
     if (!Number.isFinite(cant) || cant < 0) {
-      this.toast.error('Cantidad de apertura inválida.');
+      this.toast.error(this.i18n.t('Cantidad de apertura inválida.'));
       return;
     }
-    const universo = this.incluirCatalogo() ? 'TODO el catálogo del sistema' : 'los artículos de este almacén';
-    const alcance = this.soloFaltantes() ? 'sin apertura' : '(incluye los que ya tienen apertura)';
+    const universo = this.incluirCatalogo() ? this.i18n.t('TODO el catálogo del sistema') : this.i18n.t('los artículos de este almacén');
+    const alcance = this.soloFaltantes() ? this.i18n.t('sin apertura') : this.i18n.t('(incluye los que ya tienen apertura)');
     const n = this.previewCount();
-    const cuantos = n != null ? `\nSe dará apertura a ${n} artículo(s).` : '';
-    if (!confirm(`¿Fijar la apertura en ${cant} de ${universo} ${alcance}?${cuantos}\nNo genera movimientos ni afecta el kardex (re-basa sin caída).`)) {
+    const cuantos = n != null ? '\n' + this.i18n.t('Se dará apertura a {n} artículo(s).', { n }) : '';
+    const mensaje = this.i18n.t('¿Fijar la apertura en {cant} de {universo} {alcance}?', { cant, universo, alcance })
+      + cuantos + '\n' + this.i18n.t('No genera movimientos ni afecta el kardex (re-basa sin caída).');
+    if (!confirm(mensaje)) {
       return;
     }
     this.aplicandoLote.set(true);
@@ -180,9 +185,9 @@ export class AperturaInventario implements OnInit {
         incluirTodoCatalogo: this.incluirCatalogo(),
       });
       await this.onAlmacen(this.bodegaId());
-      this.toast.success('Apertura aplicada en lote', `Se actualizó la apertura de ${tocados} artículo(s).`);
+      this.toast.success(this.i18n.t('Apertura aplicada en lote'), this.i18n.t('Se actualizó la apertura de {n} artículo(s).', { n: tocados }));
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo aplicar la apertura en lote.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo aplicar la apertura en lote.'));
     } finally {
       this.aplicandoLote.set(false);
     }

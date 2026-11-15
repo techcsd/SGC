@@ -8,6 +8,7 @@ import {
 } from '../../../../shared/services/inventario-almacen.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * AP3 — Kardex por artículo×almacén (el sketch de Xaviel manda): tabla de
@@ -17,7 +18,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-kardex-modal',
-  imports: [RouterLink, DecimalPipe, Icon],
+  imports: [RouterLink, DecimalPipe, Icon, TranslatePipe],
   templateUrl: './kardex-modal.html',
   styleUrl: './kardex-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

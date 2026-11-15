@@ -41,6 +41,8 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * QA-OC6 — fila del formulario de "Registrar entrada". `ocDescripcion` es solo
@@ -63,7 +65,7 @@ interface EstadoEntradas {
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective, ArticuloPicker],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective, ArticuloPicker, TranslatePipe],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +81,7 @@ export class Entradas implements OnInit {
   private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
   private listaEstado = inject(ListaEstadoService);
@@ -210,7 +213,7 @@ export class Entradas implements OnInit {
     this.rechazoError.set('');
     try {
       await this.entradasService.rechazarRecepcion('entrada', e.id, motivo);
-      this.toast.success('Entrada rechazada', 'Se avisó al emisor para corregir y reenviar.');
+      this.toast.success(this.i18n.t('Entrada rechazada'), 'Se avisó al emisor para corregir y reenviar.');
       this.cancelarRechazo();
       this.closeDetail();
       await this.loadAll();
@@ -289,7 +292,7 @@ export class Entradas implements OnInit {
     }
     if (this.confirmStep() === 'evidencia') {
       if (this.confirmFotos().length === 0) {
-        this.confirmError.set('Agrega al menos una foto de lo que estás confirmando.');
+        this.confirmError.set(this.i18n.t('Agrega al menos una foto de lo que estás confirmando.'));
         return;
       }
       this.confirmStep.set('confirmar');
@@ -316,7 +319,7 @@ export class Entradas implements OnInit {
         modo: this.confirmModo(),
       });
       this.motion.momento('entrada'); // CL2 — caja entra al almacén
-      this.toast.success('Recepción confirmada', 'Se registró la evidencia y se actualizó el stock.');
+      this.toast.success(this.i18n.t('Recepción confirmada'), 'Se registró la evidencia y se actualizó el stock.');
       this.confirmOpen.set(false);
       this.clearConfirmFotos();
       await this.loadAll();
@@ -337,25 +340,25 @@ export class Entradas implements OnInit {
       this.entries.update((list) => list.map((x) => (x.id === e.id ? { ...x, es_prueba: valor } : x)));
       this.detailEntrada.update((d) => (d && d.id === e.id ? { ...d, es_prueba: valor } : d));
       this.toast.success(
-        valor ? 'Marcada como prueba' : 'Prueba quitada',
+        this.i18n.t(valor ? 'Marcada como prueba' : 'Prueba quitada'),
         valor ? 'La entrada se ocultará del listado.' : 'La entrada vuelve al listado normal.',
       );
     } catch (err: unknown) {
-      this.toast.error('Error', err instanceof Error ? err.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), err instanceof Error ? err.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente una entrada marcada como prueba. */
   async eliminarPrueba(e: EntradaInventario) {
     if (!this.esAdmin() || !e.es_prueba) return;
-    if (!confirm(`¿Eliminar definitivamente la entrada de prueba del ${this.formatFecha(e.fecha)}? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar definitivamente la entrada de prueba del {f}? Esta acción no se puede deshacer.', { f: this.formatFecha(e.fecha) }))) return;
     try {
       await this.datosPrueba.eliminar(this.TABLA_PRUEBA, e.id);
       this.entries.update((list) => list.filter((x) => x.id !== e.id));
       this.closeDetail();
-      this.toast.success('Dato de prueba eliminado', 'Se eliminó la entrada.');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), 'Se eliminó la entrada.');
     } catch (err: unknown) {
-      this.toast.error('Error al eliminar', err instanceof Error ? err.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), err instanceof Error ? err.message : 'Intenta de nuevo.');
     }
   }
 
@@ -405,7 +408,7 @@ export class Entradas implements OnInit {
       const url = await this.entradasService.getFotoUrl(e.foto_path);
       if (url) this.fotoLightbox.set(url);
     } catch {
-      this.fotoError.set('No se pudo abrir la foto.');
+      this.fotoError.set(this.i18n.t('No se pudo abrir la foto.'));
     }
   }
 
@@ -823,20 +826,20 @@ export class Entradas implements OnInit {
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
     if (this.form.invalid || items.length === 0) {
       if (items.length === 0) {
-        this.saveError.set('Agrega al menos un artículo con cantidad mayor a cero.');
+        this.saveError.set(this.i18n.t('Agrega al menos un artículo con cantidad mayor a cero.'));
       }
       return;
     }
 
     // P12 — devolución de obra requiere elegir la obra de origen.
     if (this.form.controls.origen_tipo.value === 'devolucion_obra' && !this.form.controls.origen_proyecto_id.value) {
-      this.saveError.set('Selecciona la obra de origen de la devolución.');
+      this.saveError.set(this.i18n.t('Selecciona la obra de origen de la devolución.'));
       return;
     }
 
     const articuloIds = items.map((i) => i.articulo_id);
     if (new Set(articuloIds).size !== articuloIds.length) {
-      this.saveError.set('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.');
+      this.saveError.set(this.i18n.t('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.'));
       return;
     }
 
@@ -844,7 +847,7 @@ export class Entradas implements OnInit {
     // provided it must be a real non-negative number — catches both a
     // typo'd negative value and a non-numeric input silently becoming NaN.
     if (items.some((i) => i.precio_unit !== null && !(i.precio_unit >= 0))) {
-      this.saveError.set('El precio unitario debe ser un número mayor o igual a cero.');
+      this.saveError.set(this.i18n.t('El precio unitario debe ser un número mayor o igual a cero.'));
       return;
     }
 

@@ -23,10 +23,12 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-bodegas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton, FilterSelect],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton, FilterSelect, TranslatePipe],
   templateUrl: './bodegas.html',
   styleUrl: './bodegas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +40,7 @@ export class Bodegas implements OnInit {
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   // Z5(d) — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -174,7 +177,7 @@ export class Bodegas implements OnInit {
       this.proyectos.set(proyectos.filter((p) => p.activo));
       this.usuarios.set(usuarios);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar los almacenes.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los almacenes.'));
     } finally {
       this.loading.set(false);
     }
@@ -302,7 +305,7 @@ export class Bodegas implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && this.form.value.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('bodegas', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -337,14 +340,14 @@ export class Bodegas implements OnInit {
           // BN3 / regla 8 — el almacén ya se guardó, pero la ubicación no se pudo
           // fijar: NO lo silencies, dilo en pantalla para que se pueda reintentar.
           this.toast.warning(
-            'Almacén guardado, pero la ubicación no se pudo fijar',
+            this.i18n.t('Almacén guardado, pero la ubicación no se pudo fijar'),
             e instanceof Error ? e.message : 'Vuelve a intentar fijar la ubicación desde el almacén.',
           );
         }
       }
       this.drawerOpen.set(false);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar.'));
     } finally {
       this.saving.set(false);
     }
@@ -397,13 +400,13 @@ export class Bodegas implements OnInit {
   /** Z5(d) — elimina definitivamente un almacén marcado como prueba (solo admin). */
   async eliminarPrueba(b: Bodega) {
     if (!this.esAdmin() || !b.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${b.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{n}"? Esta acción no se puede deshacer.', { n: b.nombre }))) return;
     try {
       await this.datosPrueba.eliminar('bodegas', b.id);
       this.bodegas.update((list) => list.filter((x) => x.id !== b.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${b.nombre}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), this.i18n.t('Se eliminó "{n}".', { n: b.nombre }));
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
