@@ -82,7 +82,12 @@ function stripExprInterpolations(html) {
 
 // Extrae segmentos de texto entre tags (nodos de texto) y de atributos visibles.
 function extraerLiterales(htmlOriginal) {
-  const html = stripExprInterpolations(htmlOriginal);
+  // Los comentarios <!-- ... --> tienen su propio '<' y '>' que confunden al
+  // regex de nodos de texto (el '>' de cierre de un tag anterior + el '<' de
+  // "<!--" delimitan un falso "nodo" que es en realidad el comentario) —
+  // se reemplazan por espacios ANTES de stripExprInterpolations.
+  const sinComentarios = htmlOriginal.replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length));
+  const html = stripExprInterpolations(sinComentarios);
   const items = []; // { texto, cubierto }
 
   // 1) Nodos de texto entre '>' y '<'

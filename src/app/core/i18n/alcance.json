@@ -100,9 +100,6 @@
     "compras/solicitar-odoo": {
       "enforce": false
     },
-    "dashboard": {
-      "enforce": false
-    },
     "direccion": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "configuracion": {
+      "enforce": true
+    },
+    "dashboard": {
       "enforce": true
     },
     "demo/escenarios": {

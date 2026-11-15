@@ -93,6 +93,30 @@ lo mida.
 - `public/i18n/en.json` +63 (algunas ya existían), `public/i18n/ht.json` +115
   (96 del lote + 19 del fix del guard). Build + 368 tests + smoke verdes.
 
+## Medición tras lote 3 (Dashboard, 14-nov-2026)
+
+- **`dashboard`: 100% (70/70), `enforce:true`.**
+- Codemod (`--modulo dashboard --write`): 59 envueltos automático, 7 saltados
+  (mixto/multilínea) resueltos a mano.
+- **Cuarto fix de precisión al escáner:** los comentarios HTML (`<!-- ... -->`)
+  se escaneaban como si fueran texto visible — el `<` de apertura y el `>` de
+  cierre del comentario "engañaban" al regex de nodos de texto (`>texto<`),
+  contando el contenido del comentario (a veces en español) como literal sin
+  `t()`. Ahora se reemplazan por espacios antes de escanear. Se agregó
+  `"RD$"` al whitelist (símbolo de moneda, no se traduce).
+- Gaps reales cerrados a mano: banner "sin módulos asignados" (multilínea),
+  fragmentos mixtos (`"% del mínimo ·"`, `"· avance"`, `"Presupuesto total:"`,
+  `"Mantenimientos pendientes:"`), 2 atributos `[title]` con concatenación
+  de string (`'Entradas: ' + d.entradas` → `i18n.t('Entradas: {n}', {n})`,
+  requiere `i18n` inyectado y expuesto `protected` porque el pipe `| t` no
+  funciona dentro de un binding de atributo, solo en interpolación), y un
+  `label:` de catálogo retornado desde un `computed()` condicional (no
+  detectado por `spansDeArreglos` porque no es un arreglo ni un `.push()`,
+  es un `return { ... }` — caso puntual, resuelto a mano con `this.i18n.t()`).
+- `public/i18n/en.json` +60, `public/i18n/ht.json` +62 (61 del lote + 1
+  `"Bitácora"` que el guard atrapó al activar `enforce:true`). Build + 368
+  tests + smoke (5 pantallas × 2 idiomas) verdes.
+
 ## Tabla de lotes (F3 cablear HTML + F4 cablear `.ts`)
 
 Orden acordado en el prompt: Claude, Configuración/perfil/shell, Dashboard,
@@ -104,7 +128,7 @@ Admin, resto.
 |---|---|---:|---:|---:|---|---|---|
 | 1 | Claude | claude, configuracion/claude, admin/claude | 3 envueltos (resto ya venía) | 29 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
-| 3 | Dashboard | — | — | — | ⏳ pendiente | — | false |
+| 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
 | 4 | Inventario | — | — | — | ⏳ pendiente | — | false |
 | 5 | Compras | — | — | — | ⏳ pendiente | — | false |
 | 6 | Flota | — | — | — | ⏳ pendiente | — | false |

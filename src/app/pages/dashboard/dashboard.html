@@ -4,7 +4,7 @@
   <div class="dashboard-header">
     <div>
       <h1 class="dashboard-greeting">{{ getGreeting() }}</h1>
-      <p class="dashboard-subtitle">Resumen general del sistema</p>
+      <p class="dashboard-subtitle">{{ 'Resumen general del sistema' | t }}</p>
     </div>
   </div>
 
@@ -15,9 +15,8 @@
   <!-- AS8 — usuario sin rol/módulos: banner informativo (no bloqueo) -->
   @if (sinRol()) {
     <div class="dashboard-error" role="status" style="background:var(--info-bg);border-color:var(--info);color:var(--text);">
-      <strong>Tu cuenta aún no tiene módulos asignados.</strong>
-      Por ahora puedes usar Notas, Tareas, Mensajes y Dudas. Para acceder a más
-      secciones, habla con Administración para que te asignen un rol.
+      <strong>{{ 'Tu cuenta aún no tiene módulos asignados.' | t }}</strong>
+      {{ 'Por ahora puedes usar Notas, Tareas, Mensajes y Dudas. Para acceder a más secciones, habla con Administración para que te asignen un rol.' | t }}
     </div>
   }
 
@@ -30,48 +29,48 @@
     <div class="kpi-grid">
       @if (!esChoferPrivado()) {
         <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/mi-rendimiento">
-          <span class="kpi-label">Mi rendimiento (esta semana)</span>
+          <span class="kpi-label">{{ 'Mi rendimiento (esta semana)' | t }}</span>
           @if (miPuntaje()) {
             <span class="kpi-value">{{ miPuntaje()!.puntaje }} / {{ miPuntaje()!.minimo }}</span>
-            <span class="kpi-sub">{{ miPuntajePct() }}% del mínimo · {{ miPuntaje()!.cumplio ? 'cumples ✓' : 'aún no llegas al mínimo' }}</span>
+            <span class="kpi-sub">{{ miPuntajePct() }}{{ '% del mínimo ·' | t }} {{ miPuntaje()!.cumplio ? ('cumples ✓' | t) : ('aún no llegas al mínimo' | t) }}</span>
           } @else {
             <span class="kpi-value">—</span>
-            <span class="kpi-sub">Sin informe de esta semana todavía</span>
+            <span class="kpi-sub">{{ 'Sin informe de esta semana todavía' | t }}</span>
           }
         </a>
       }
 
       <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/vehiculos">
-        <span class="kpi-label">Mi vehículo</span>
+        <span class="kpi-label">{{ 'Mi vehículo' | t }}</span>
         @if (miVehiculo()) {
           <span class="kpi-value kpi-value--sm">{{ idVehiculo(miVehiculo()) }}</span>
         } @else {
-          <span class="kpi-value kpi-value--sm">Sin vehículo asignado</span>
+          <span class="kpi-value kpi-value--sm">{{ 'Sin vehículo asignado' | t }}</span>
         }
       </a>
 
       @if (!esChoferPrivado()) {
         <div class="kpi-card kpi-card--warning">
-          <span class="kpi-label">Conduces pendientes de entrega</span>
+          <span class="kpi-label">{{ 'Conduces pendientes de entrega' | t }}</span>
           <span class="kpi-value" [appCountUp]="misConducesPendientes()"></span>
-          <span class="kpi-sub">Entrégalos desde la app CSD</span>
+          <span class="kpi-sub">{{ 'Entrégalos desde la app CSD' | t }}</span>
         </div>
       }
 
       <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
-        <span class="kpi-label">Mis tareas pendientes</span>
+        <span class="kpi-label">{{ 'Mis tareas pendientes' | t }}</span>
         <span class="kpi-value" [appCountUp]="misTareasPendientes()"></span>
       </a>
     </div>
 
     <!-- Accesos rápidos del chofer -->
     <div class="chofer-quick">
-      <a class="chofer-quick__btn" routerLink="/flota">Flota</a>
+      <a class="chofer-quick__btn" routerLink="/flota">{{ 'Flota' | t }}</a>
       @if (!esChoferPrivado()) {
-        <a class="chofer-quick__btn" routerLink="/mi-rendimiento">Mi rendimiento</a>
+        <a class="chofer-quick__btn" routerLink="/mi-rendimiento">{{ 'Mi rendimiento' | t }}</a>
       }
-      <a class="chofer-quick__btn" routerLink="/mensajes">Mensajes</a>
-      <a class="chofer-quick__btn" routerLink="/app-movil">CSD App (móvil)</a>
+      <a class="chofer-quick__btn" routerLink="/mensajes">{{ 'Mensajes' | t }}</a>
+      <a class="chofer-quick__btn" routerLink="/app-movil">{{ 'CSD App (móvil)' | t }}</a>
     </div>
 
   } @else {
@@ -89,93 +88,93 @@
     <div class="kpi-grid">
       @if (canSee('inventario')) {
         <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/inventario/articulos">
-          <span class="kpi-label">Valor de inventario</span>
+          <span class="kpi-label">{{ 'Valor de inventario' | t }}</span>
           <span class="kpi-value">RD$ {{ valorInventario() | number:'1.0-0' }}</span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/inventario/articulos" [queryParams]="{ stock: 'critico' }">
-          <span class="kpi-label">Artículos en stock crítico</span>
+          <span class="kpi-label">{{ 'Artículos en stock crítico' | t }}</span>
           <span class="kpi-value" [appCountUp]="stockCritico()"></span>
         </a>
       }
       @if (canSee('compras')) {
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/compras/ordenes">
-          <span class="kpi-label">Compras este mes</span>
+          <span class="kpi-label">{{ 'Compras este mes' | t }}</span>
           <span class="kpi-value">RD$ {{ gastoComprasDelMes() | number:'1.0-0' }}</span>
         </a>
       }
       @if (canSee('rrhh')) {
         <a class="kpi-card kpi-card--success kpi-card--link" routerLink="/rrhh/empleados">
-          <span class="kpi-label">Empleados activos</span>
+          <span class="kpi-label">{{ 'Empleados activos' | t }}</span>
           <span class="kpi-value" [appCountUp]="empleadosActivos()"></span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/rrhh/ausencias">
-          <span class="kpi-label">Ausencias pendientes</span>
+          <span class="kpi-label">{{ 'Ausencias pendientes' | t }}</span>
           <span class="kpi-value" [appCountUp]="ausenciasPendientes()"></span>
         </a>
       }
       @if (canSee('proyectos')) {
         <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/proyectos" [queryParams]="{ estado: 'en_progreso' }">
-          <span class="kpi-label">Proyectos en progreso</span>
+          <span class="kpi-label">{{ 'Proyectos en progreso' | t }}</span>
           <span class="kpi-value" [appCountUp]="proyectosActivos()"></span>
         </a>
       }
       @if (canSee('flota')) {
         <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/avisos">
-          <span class="kpi-label">Alertas de flota activas</span>
+          <span class="kpi-label">{{ 'Alertas de flota activas' | t }}</span>
           <span class="kpi-value" [appCountUp]="flotaAvisosActivos()"></span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/flota/avisos">
-          <span class="kpi-label">Documentos de flota por vencer</span>
+          <span class="kpi-label">{{ 'Documentos de flota por vencer' | t }}</span>
           <span class="kpi-value" [appCountUp]="flotaDocsPorVencer()"></span>
         </a>
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/flota/checklists">
-          <span class="kpi-label">Checklists de hoy</span>
+          <span class="kpi-label">{{ 'Checklists de hoy' | t }}</span>
           <span class="kpi-value" [appCountUp]="checklistsHoy()"></span>
         </a>
         <a class="kpi-card kpi-card--link" routerLink="/flota/vehiculos">
-          <span class="kpi-label">Vehículos activos</span>
+          <span class="kpi-label">{{ 'Vehículos activos' | t }}</span>
           <span class="kpi-value" [appCountUp]="vehiculosActivos()"></span>
         </a>
       }
       @if (solicitudesDestino(); as destSol) {
         <a class="kpi-card kpi-card--warning kpi-card--link" [routerLink]="destSol.ruta">
-          <span class="kpi-label">Solicitudes pendientes</span>
+          <span class="kpi-label">{{ 'Solicitudes pendientes' | t }}</span>
           <span class="kpi-value" [appCountUp]="solicitudesPendientesTotal()"></span>
         </a>
       }
       @if (canSeeBitacora()) {
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/bitacora/historial">
-          <span class="kpi-label">Bitácoras esta semana</span>
+          <span class="kpi-label">{{ 'Bitácoras esta semana' | t }}</span>
           <span class="kpi-value" [appCountUp]="bitacorasSemana()"></span>
         </a>
       }
       @if (entregasDestino(); as destEnt) {
         <a class="kpi-card kpi-card--warning kpi-card--link" [routerLink]="destEnt.ruta" [queryParams]="destEnt.queryParams">
-          <span class="kpi-label">Entregas por confirmar</span>
+          <span class="kpi-label">{{ 'Entregas por confirmar' | t }}</span>
           <span class="kpi-value" [appCountUp]="entregasPendientesCount()"></span>
         </a>
         <a class="kpi-card kpi-card--danger kpi-card--link" [routerLink]="destEnt.ruta" [queryParams]="destEnt.queryParams">
-          <span class="kpi-label">Entregas incompletas (30 días)</span>
+          <span class="kpi-label">{{ 'Entregas incompletas (30 días)' | t }}</span>
           <span class="kpi-value" [appCountUp]="entregasIncompletasCount()"></span>
         </a>
       }
       @if (canAccess('legal') || isAdmin()) {
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/legal/expedientes">
-          <span class="kpi-label">Expedientes legales abiertos</span>
+          <span class="kpi-label">{{ 'Expedientes legales abiertos' | t }}</span>
           <span class="kpi-value" [appCountUp]="expedientesLegalesAbiertos()"></span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/legal/contratos">
-          <span class="kpi-label">Contratos por vencer (30 días)</span>
+          <span class="kpi-label">{{ 'Contratos por vencer (30 días)' | t }}</span>
           <span class="kpi-value" [appCountUp]="contratosPorVencer()"></span>
         </a>
       }
       <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
-        <span class="kpi-label">Mis tareas pendientes</span>
+        <span class="kpi-label">{{ 'Mis tareas pendientes' | t }}</span>
         <span class="kpi-value" [appCountUp]="misTareasPendientes()"></span>
       </a>
       @if (esTecnologia()) {
         <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/tecnologia/reportes-errores">
-          <span class="kpi-label">Errores de app (7 días)</span>
+          <span class="kpi-label">{{ 'Errores de app (7 días)' | t }}</span>
           <span class="kpi-value">{{ erroresApp7d() }}</span>
         </a>
       }
@@ -190,24 +189,24 @@
       <!-- Movimientos de inventario (7 días) -->
       @if (canSee('inventario')) {
       <section class="chart-card chart-card--wide" aria-labelledby="mov-title">
-        <h2 class="chart-title" id="mov-title">Movimientos de inventario — últimos 7 días</h2>
+        <h2 class="chart-title" id="mov-title">{{ 'Movimientos de inventario — últimos 7 días' | t }}</h2>
         @if (movimientosMax() <= 1 && movimientosChart().length === 0) {
-          <p class="chart-empty">Sin movimientos registrados.</p>
+          <p class="chart-empty">{{ 'Sin movimientos registrados.' | t }}</p>
         } @else {
           <div class="bar-chart bar-chart--dual">
             @for (d of movimientosChart(); track d.label) {
               <div class="bar-chart__col">
                 <div class="bar-chart__bars">
-                  <div class="bar-chart__bar bar-chart__bar--entrada" [style.height.%]="(d.entradas / movimientosMax()) * 100" [title]="'Entradas: ' + d.entradas"></div>
-                  <div class="bar-chart__bar bar-chart__bar--salida" [style.height.%]="(d.salidas / movimientosMax()) * 100" [title]="'Salidas: ' + d.salidas"></div>
+                  <div class="bar-chart__bar bar-chart__bar--entrada" [style.height.%]="(d.entradas / movimientosMax()) * 100" [title]="i18n.t('Entradas: {n}', { n: d.entradas })"></div>
+                  <div class="bar-chart__bar bar-chart__bar--salida" [style.height.%]="(d.salidas / movimientosMax()) * 100" [title]="i18n.t('Salidas: {n}', { n: d.salidas })"></div>
                 </div>
                 <span class="bar-chart__label">{{ d.label }}</span>
               </div>
             }
           </div>
           <div class="chart-legend">
-            <span class="chart-legend__item"><i class="chart-legend__dot chart-legend__dot--entrada"></i>Entradas</span>
-            <span class="chart-legend__item"><i class="chart-legend__dot chart-legend__dot--salida"></i>Salidas</span>
+            <span class="chart-legend__item"><i class="chart-legend__dot chart-legend__dot--entrada"></i>{{ 'Entradas' | t }}</span>
+            <span class="chart-legend__item"><i class="chart-legend__dot chart-legend__dot--salida"></i>{{ 'Salidas' | t }}</span>
           </div>
         }
       </section>
@@ -216,15 +215,15 @@
       <!-- Órdenes de compra por estado -->
       @if (canSee('compras')) {
       <section class="chart-card" aria-labelledby="ordenes-title">
-        <h2 class="chart-title" id="ordenes-title">Órdenes de compra por estado</h2>
+        <h2 class="chart-title" id="ordenes-title">{{ 'Órdenes de compra por estado' | t }}</h2>
         @if (donutTotal(ordenesPorEstado()) === 0) {
-          <p class="chart-empty">Sin órdenes registradas.</p>
+          <p class="chart-empty">{{ 'Sin órdenes registradas.' | t }}</p>
         } @else {
           <div class="donut-wrap">
             <div class="donut" [style.background]="donutBackground(ordenesPorEstado())">
               <div class="donut__hole">
                 <span class="donut__total">{{ donutTotal(ordenesPorEstado()) }}</span>
-                <span class="donut__total-label">órdenes</span>
+                <span class="donut__total-label">{{ 'órdenes' | t }}</span>
               </div>
             </div>
             <ul class="chart-legend chart-legend--vertical">
@@ -244,15 +243,15 @@
       <!-- Asistencia de hoy -->
       @if (canSee('rrhh')) {
       <section class="chart-card" aria-labelledby="asistencia-title">
-        <h2 class="chart-title" id="asistencia-title">Asistencia de hoy</h2>
+        <h2 class="chart-title" id="asistencia-title">{{ 'Asistencia de hoy' | t }}</h2>
         @if (donutTotal(asistenciaChart()) === 0) {
-          <p class="chart-empty">Sin registros de asistencia hoy.</p>
+          <p class="chart-empty">{{ 'Sin registros de asistencia hoy.' | t }}</p>
         } @else {
           <div class="donut-wrap">
             <div class="donut" [style.background]="donutBackground(asistenciaChart())">
               <div class="donut__hole">
                 <span class="donut__total">{{ donutTotal(asistenciaChart()) }}</span>
-                <span class="donut__total-label">registros</span>
+                <span class="donut__total-label">{{ 'registros' | t }}</span>
               </div>
             </div>
             <ul class="chart-legend chart-legend--vertical">
@@ -272,9 +271,9 @@
       <!-- Stock por categoría -->
       @if (canSee('inventario')) {
       <section class="chart-card" aria-labelledby="stock-title">
-        <h2 class="chart-title" id="stock-title">Stock por categoría (top 6)</h2>
+        <h2 class="chart-title" id="stock-title">{{ 'Stock por categoría (top 6)' | t }}</h2>
         @if (stockPorCategoria().length === 0) {
-          <p class="chart-empty">Sin datos de stock.</p>
+          <p class="chart-empty">{{ 'Sin datos de stock.' | t }}</p>
         } @else {
           <div class="hbar-chart">
             @for (c of stockPorCategoria(); track c.label) {
@@ -294,9 +293,9 @@
       <!-- Proyectos por estado -->
       @if (canSee('proyectos') || canSee('direccion')) {
       <section class="chart-card" aria-labelledby="proyectos-title">
-        <h2 class="chart-title" id="proyectos-title">Proyectos por estado</h2>
+        <h2 class="chart-title" id="proyectos-title">{{ 'Proyectos por estado' | t }}</h2>
         @if (proyectosPorEstado().length === 0) {
-          <p class="chart-empty">Sin proyectos registrados.</p>
+          <p class="chart-empty">{{ 'Sin proyectos registrados.' | t }}</p>
         } @else {
           <div class="hbar-chart">
             @for (p of proyectosPorEstado(); track p.label) {
@@ -310,7 +309,7 @@
             }
           </div>
           @if (canVerMontos()) {
-            <div class="chart-footnote">Presupuesto total: RD$ {{ presupuestoTotalProyectos() | number:'1.0-0' }}</div>
+            <div class="chart-footnote">{{ 'Presupuesto total:' | t }} RD$ {{ presupuestoTotalProyectos() | number:'1.0-0' }}</div>
           }
         }
       </section>
@@ -319,15 +318,15 @@
       <!-- Flota -->
       @if (canSee('flota')) {
       <section class="chart-card" aria-labelledby="flota-title">
-        <h2 class="chart-title" id="flota-title">Estado de la flota</h2>
+        <h2 class="chart-title" id="flota-title">{{ 'Estado de la flota' | t }}</h2>
         @if (donutTotal(vehiculosPorEstado()) === 0) {
-          <p class="chart-empty">Sin vehículos registrados.</p>
+          <p class="chart-empty">{{ 'Sin vehículos registrados.' | t }}</p>
         } @else {
           <div class="donut-wrap">
             <div class="donut" [style.background]="donutBackground(vehiculosPorEstado())">
               <div class="donut__hole">
                 <span class="donut__total">{{ donutTotal(vehiculosPorEstado()) }}</span>
-                <span class="donut__total-label">vehículos</span>
+                <span class="donut__total-label">{{ 'vehículos' | t }}</span>
               </div>
             </div>
             <ul class="chart-legend chart-legend--vertical">
@@ -342,7 +341,7 @@
               }
             </ul>
           </div>
-          <div class="chart-footnote">Mantenimientos pendientes: {{ mantenimientosPendientes() }}</div>
+          <div class="chart-footnote">{{ 'Mantenimientos pendientes:' | t }} {{ mantenimientosPendientes() }}</div>
         }
       </section>
       }
@@ -350,9 +349,9 @@
       <!-- Empleados por departamento -->
       @if (canSee('rrhh')) {
       <section class="chart-card" aria-labelledby="dept-title">
-        <h2 class="chart-title" id="dept-title">Empleados por departamento</h2>
+        <h2 class="chart-title" id="dept-title">{{ 'Empleados por departamento' | t }}</h2>
         @if (empleadosPorDepartamento().length === 0) {
-          <p class="chart-empty">Sin empleados registrados.</p>
+          <p class="chart-empty">{{ 'Sin empleados registrados.' | t }}</p>
         } @else {
           <div class="hbar-chart">
             @for (d of empleadosPorDepartamento(); track d.label) {
@@ -372,14 +371,14 @@
       <!-- Ranking de Encargados (compacto) -->
       @if (canSeeRanking() && ranking().length > 0) {
         <section class="chart-card" aria-labelledby="ranking-title">
-          <h2 class="chart-title" id="ranking-title">Ranking de encargados</h2>
+          <h2 class="chart-title" id="ranking-title">{{ 'Ranking de encargados' | t }}</h2>
           <ol class="rank-list">
             @for (r of ranking(); track r.proyecto) {
               <li class="rank-list__item">
                 <span class="rank-list__pos">{{ r.pos }}</span>
                 <span class="rank-list__name">
                   {{ r.encargado }}
-                  <small class="rank-list__proy">{{ r.proyecto }} · avance {{ r.avance }}%</small>
+                  <small class="rank-list__proy">{{ r.proyecto }} {{ '· avance' | t }} {{ r.avance }}%</small>
                 </span>
                 <span class="rank-list__score">{{ r.score }}</span>
               </li>
@@ -389,7 +388,7 @@
                alguien con solo el módulo Dirección ve este resumen pero no
                necesariamente el detalle completo, así que el link se oculta. -->
           @if (canSeeRankingCompleto()) {
-            <a class="chart-footnote chart-footnote--link" routerLink="/proyectos/kpi">Ver ranking completo →</a>
+            <a class="chart-footnote chart-footnote--link" routerLink="/proyectos/kpi">{{ 'Ver ranking completo →' | t }}</a>
           }
         </section>
       }
@@ -397,9 +396,9 @@
       <!-- Solicitudes pendientes (Bitácora → Inventario/Compras) -->
       @if (solicitudesDestino(); as destSolSeccion) {
         <section class="chart-card" aria-labelledby="solicitudes-title">
-          <h2 class="chart-title" id="solicitudes-title">Solicitudes pendientes</h2>
+          <h2 class="chart-title" id="solicitudes-title">{{ 'Solicitudes pendientes' | t }}</h2>
           @if (solicitudesRecientes().length === 0) {
-            <p class="chart-empty">Sin solicitudes pendientes de ingenieros de campo.</p>
+            <p class="chart-empty">{{ 'Sin solicitudes pendientes de ingenieros de campo.' | t }}</p>
           } @else {
             <ul class="upcoming-list">
               @for (s of solicitudesRecientes(); track s.created_at + s.tipo) {
@@ -412,7 +411,7 @@
                 </li>
               }
             </ul>
-            <div class="chart-footnote">{{ solicitudesPendientesTotal() }} pendiente(s) en total — ver en Inventario o Compras.</div>
+            <div class="chart-footnote">{{ solicitudesPendientesTotal() }} {{ 'pendiente(s) en total — ver en Inventario o Compras.' | t }}</div>
           }
         </section>
       }
@@ -421,9 +420,9 @@
            debería verse (antes se mostraba a cualquiera sin gate). -->
       @if (canSee('flota')) {
       <section class="chart-card" aria-labelledby="proximos-mant-title">
-        <h2 class="chart-title" id="proximos-mant-title">Próximos mantenimientos (7 días)</h2>
+        <h2 class="chart-title" id="proximos-mant-title">{{ 'Próximos mantenimientos (7 días)' | t }}</h2>
         @if (proximosMantenimientos().length === 0) {
-          <p class="chart-empty">Sin mantenimientos programados esta semana.</p>
+          <p class="chart-empty">{{ 'Sin mantenimientos programados esta semana.' | t }}</p>
         } @else {
           <ul class="upcoming-list">
             @for (m of proximosMantenimientos(); track m.fecha + (m.vehiculo?.placa ?? '')) {
@@ -443,7 +442,7 @@
 
   <!-- Module cards -->
   <section class="dashboard-section" aria-labelledby="modulos-heading">
-    <h2 class="section-title" id="modulos-heading">Módulos del sistema</h2>
+    <h2 class="section-title" id="modulos-heading">{{ 'Módulos del sistema' | t }}</h2>
 
     <div class="module-grid">
       <!-- AU17 — solo módulos accesibles (antes se pintaba la pared de tarjetas grises). -->
@@ -476,8 +475,8 @@
             </svg>
           </div>
           <div class="module-card-body">
-            <span class="module-card-title">Administración</span>
-            <span class="module-card-desc">Usuarios, roles y configuración.</span>
+            <span class="module-card-title">{{ 'Administración' | t }}</span>
+            <span class="module-card-desc">{{ 'Usuarios, roles y configuración.' | t }}</span>
           </div>
           <span class="module-card-arrow" aria-hidden="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -492,7 +491,7 @@
     <!-- AU17 — resumen discreto de módulos sin acceso (en vez de la pared de tarjetas grises) -->
     @if (!isAdmin() && modulosSinAcceso() > 0) {
       <p class="module-noaccess-note">
-        {{ modulosSinAcceso() }} módulo(s) sin acceso asignado. Si necesitas alguno, habla con Administración.
+        {{ modulosSinAcceso() }} {{ 'módulo(s) sin acceso asignado. Si necesitas alguno, habla con Administración.' | t }}
       </p>
     }
   </section>
