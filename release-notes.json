@@ -1,5 +1,11 @@
 {
   "web": {
+    "1.216.0": {
+      "titulo": "Inventario 100% disponible en Inglés y Kreyòl ayisyen",
+      "cambios": [
+        { "t": "mejora", "m": "Inventario", "d": "Todo el módulo de Inventario (artículos, almacenes, conduces, salidas, entradas, requisiciones, retiros, activos fijos y más) ya se traduce por completo al cambiar el idioma a Inglés o Kreyòl ayisyen en Configuración › Idioma — antes quedaba texto a medias en español." }
+      ]
+    },
     "1.215.0": {
       "titulo": "Transporte, Organigrama, Reclutamiento + CV con IA, y módulo Claude/Skills ampliado",
       "cambios": [
