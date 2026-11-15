@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">{{ alcance() === 'mias' ? 'Mis Bitácoras' : 'Todas las Bitácoras' }}</h1>
-    <span class="page-count">{{ filtered().length }} bitácora{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ (alcance() === 'mias' ? 'Mis Bitácoras' : 'Todas las Bitácoras') | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'bitácoras' : 'bitácora') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarListaExcel()"
@@ -12,7 +12,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva bitácora
+      {{ 'Nueva bitácora' | t }}
     </a>
   </div>
 </div>
@@ -21,13 +21,13 @@
 <div class="bitacora-alcance" role="tablist" aria-label="{{ 'Alcance de bitácoras' | t }}">
   <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'mias'"
     [attr.aria-selected]="alcance() === 'mias'" (click)="setAlcance('mias')">
-    Mis bitácoras <span class="bitacora-alcance__count">{{ countMias() }}</span>
+    {{ 'Mis bitácoras' | t }} <span class="bitacora-alcance__count">{{ countMias() }}</span>
   </button>
   <!-- Z19 — "Todas" solo para roles que pueden ver bitácoras de otros (admin o módulo proyectos, espejo de RLS) -->
   @if (puedeVerTodas()) {
     <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'todas'"
       [attr.aria-selected]="alcance() === 'todas'" (click)="setAlcance('todas')">
-      Todas <span class="bitacora-alcance__count">{{ countTodas() }}</span>
+      {{ 'Todas' | t }} <span class="bitacora-alcance__count">{{ countTodas() }}</span>
     </button>
   }
 </div>
@@ -46,7 +46,7 @@
 
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedProyecto()" (change)="onProyectoChange($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
-      <option value="">Todas las obras</option>
+      <option value="">{{ 'Todas las obras' | t }}</option>
       @for (p of proyectosVisibles(); track p.id) {
         <option [value]="p.id">{{ p.nombre }}</option>
       }
@@ -57,7 +57,7 @@
   @if (alcance() === 'todas') {
     <div class="sgc-field filters-bar__select">
       <select [value]="selectedUsuario()" (change)="onUsuarioChange($any($event.target).value)" aria-label="{{ 'Filtrar por usuario' | t }}">
-        <option value="">Todos los usuarios</option>
+        <option value="">{{ 'Todos los usuarios' | t }}</option>
         @for (u of usuarios(); track u.id) {
           <option [value]="u.id">{{ u.nombre }}</option>
         }
@@ -69,7 +69,7 @@
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
@@ -81,7 +81,7 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -97,9 +97,9 @@
     <div class="table-empty">
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron bitácoras con los filtros aplicados.
+          {{ 'No se encontraron bitácoras con los filtros aplicados.' | t }}
         } @else {
-          Aún no hay bitácoras registradas.
+          {{ 'Aún no hay bitácoras registradas.' | t }}
         }
       </p>
     </div>
@@ -137,7 +137,7 @@
               }
             </td>
             <td>
-              <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+              <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) | t }}</span>
               @if (b.sin_actividad) {
                 <span class="sgc-badge sgc-badge--warning historial__badge-inline">{{ 'Sin actividad' | t }}</span>
               }
@@ -146,7 +146,7 @@
               }
               @if (b.cronograma_tareas && b.cronograma_tareas.length > 0) {
                 <span class="sgc-badge sgc-badge--info historial__badge-inline"
-                      [title]="'Cronograma: ' + b.cronograma_tareas[0].tarea?.nombre"><app-icon name="link" [size]="14" /> {{ 'Tarea' | t }}</span>
+                      [title]="i18n.t('Cronograma:') + ' ' + b.cronograma_tareas[0].tarea?.nombre"><app-icon name="link" [size]="14" /> {{ 'Tarea' | t }}</span>
               }
             </td>
             <td>{{ b.proyecto?.nombre ?? '—' }}</td>
@@ -162,8 +162,8 @@
             <td class="text-muted">
               @switch (b.tipo) {
                 @case ('parte_diario') { {{ actividadesResumen(b) }} }
-                @case ('visita') { {{ visitanteLabel(b.visita_tipo_visitante) }} }
-                @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }} }
+                @case ('visita') { {{ visitanteLabel(b.visita_tipo_visitante) | t }} }
+                @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) | t }} · {{ gravedadLabel(b.incidente_gravedad) | t }} }
                 @case ('orden_trabajo') { Orden de trabajo }
               }
             </td>
@@ -175,8 +175,8 @@
                     type="button"
                     class="action-btn"
                     (click)="marcarPrueba(b, !b.es_prueba)"
-                    [attr.aria-label]="b.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
-                    [title]="b.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                    [attr.aria-label]="b.es_prueba ? i18n.t('Quitar de datos de prueba') : i18n.t('Marcar como dato de prueba')"
+                    [title]="b.es_prueba ? i18n.t('Quitar de datos de prueba') : i18n.t('Marcar como dato de prueba')"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6L12 2z"/>
@@ -211,7 +211,7 @@
   <div class="pagination">
     <span class="pagination__info">
       {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-      de {{ filtered().length }}
+      {{ 'de' | t }} {{ filtered().length }}
     </span>
     <div class="pagination__controls">
       <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}">
@@ -245,12 +245,12 @@
           <span class="bit-band__obra">{{ proyectoNombre(b) }}</span>
           <span class="bit-band__fecha">{{ formatFecha(b.fecha) }}</span>
           @if (esRetrofechada(b)) {
-            <span class="bit-band__retro" [title]="'Bitácora de otra fecha — registrada el ' + formatFechaHora(b.created_at)">
-              Otra fecha · registrada {{ formatFecha(b.created_at) }}
+            <span class="bit-band__retro" [title]="i18n.t('Bitácora de otra fecha — registrada el') + ' ' + formatFechaHora(b.created_at)">
+              {{ 'Otra fecha · registrada' | t }} {{ formatFecha(b.created_at) }}
             </span>
           }
         </div>
-        <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+        <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) | t }}</span>
       </div>
 
       @if (b.tipo === 'parte_diario') {
@@ -259,7 +259,7 @@
           <div class="bitacora-detail__row">
             <span class="bitacora-detail__label">{{ 'Sin actividad' | t }}</span>
             <span>
-              No se trabajó en obra — {{ motivoSinActividadLabel(b.motivo_sin_actividad) }}@if (b.motivo_sin_actividad_detalle) { : {{ b.motivo_sin_actividad_detalle }} }
+              {{ 'No se trabajó en obra —' | t }} {{ motivoSinActividadLabel(b.motivo_sin_actividad) | t }}@if (b.motivo_sin_actividad_detalle) { : {{ b.motivo_sin_actividad_detalle }} }
             </span>
           </div>
         } @else {
@@ -277,7 +277,7 @@
           </div>
           <div class="bitacora-detail__row">
             <span class="bitacora-detail__label">{{ 'Personal' | t }}</span>
-            <span>Carpintería: {{ b.personal_carpinteria }} · Acero: {{ b.personal_acero }} · Casa: {{ b.trabajadores_casa }}</span>
+            <span>{{ 'Carpintería:' | t }} {{ b.personal_carpinteria }} · {{ 'Acero:' | t }} {{ b.personal_acero }} · {{ 'Casa:' | t }} {{ b.trabajadores_casa }}</span>
           </div>
           @if (b.otro_personal) {
             <div class="bitacora-detail__row">
@@ -293,8 +293,8 @@
             <span class="bitacora-detail__label">{{ 'Clima' | t }}</span>
             <span>
               @if (b.llovio) {
-                <app-icon name="cloud-rain" [size]="14" /> Llovió@if (b.horas_lluvia != null) { · afectó {{ b.horas_lluvia }} h }
-              } @else { Sin lluvia }
+                <app-icon name="cloud-rain" [size]="14" /> {{ 'Llovió' | t }}@if (b.horas_lluvia != null) { · {{ 'afectó' | t }} {{ b.horas_lluvia }} h }
+              } @else { {{ 'Sin lluvia' | t }} }
             </span>
           </div>
           @if (b.llovio && b.lluvia_detalle) {
@@ -327,7 +327,7 @@
       @if (b.tipo === 'visita') {
         <div class="bitacora-detail__row">
           <span class="bitacora-detail__label">{{ 'Tipo de visitante' | t }}</span>
-          <span>{{ visitanteLabel(b.visita_tipo_visitante) }}</span>
+          <span>{{ visitanteLabel(b.visita_tipo_visitante) | t }}</span>
         </div>
         <div class="bitacora-detail__row">
           <span class="bitacora-detail__label">{{ 'Visitante' | t }}</span>
@@ -353,7 +353,7 @@
           <h3>{{ 'Orden de trabajo' | t }}</h3>
           @if (b.comentarios) { <p>{{ b.comentarios }}</p> }
           <a [routerLink]="['/bitacora/orden-trabajo', b.id]" class="sgc-btn sgc-btn--secondary sgc-btn--sm">
-            Ver orden y firmas →
+            {{ 'Ver orden y firmas →' | t }}
           </a>
         </div>
       }
@@ -362,13 +362,13 @@
         <div class="bitacora-detail__row">
           <span class="bitacora-detail__label">{{ 'Clasificación' | t }}</span>
           <span>
-            {{ incidenteTipoLabel(b.incidente_tipo) }}@if (b.incidente_tipo === 'accidente') { · {{ gravedadLabel(b.incidente_gravedad) }} }
+            {{ incidenteTipoLabel(b.incidente_tipo) | t }}@if (b.incidente_tipo === 'accidente') { · {{ gravedadLabel(b.incidente_gravedad) | t }} }
           </span>
         </div>
         @if (b.incidente_suceso) {
           <div class="bitacora-detail__row">
             <span class="bitacora-detail__label">{{ '¿Qué pasó?' | t }}</span>
-            <span>{{ sucesoLabel(b.incidente_suceso) }}</span>
+            <span>{{ sucesoLabel(b.incidente_suceso) | t }}</span>
           </div>
         }
         @if (b.incidente_tipo === 'incidente_equipo') {
@@ -420,7 +420,7 @@
 
       @if (b.weather_snapshot; as w) {
         <div class="bitacora-detail__section">
-          <h3>Clima registrado @if (b.tipo === 'incidente') { <span class="bitacora-clima__tag">{{ 'al momento del incidente' | t }}</span> }</h3>
+          <h3>{{ 'Clima registrado' | t }} @if (b.tipo === 'incidente') { <span class="bitacora-clima__tag">{{ 'al momento del incidente' | t }}</span> }</h3>
           <div class="bitacora-clima">
             <span class="bitacora-clima__icon" aria-hidden="true">{{ detailTiempo().icono }}</span>
             <div class="bitacora-clima__main">
@@ -429,11 +429,11 @@
             </div>
           </div>
           <div class="bitacora-clima__stats">
-            <span>Sensación {{ w.sensacion != null ? (w.sensacion | number:'1.0-0') + '°' : '—' }}</span>
-            <span>Humedad {{ w.humedad ?? '—' }}%</span>
-            <span>Viento {{ w.viento_kmh != null ? (w.viento_kmh | number:'1.0-0') + ' km/h' : '—' }}</span>
-            <span>Lluvia {{ w.precipitacion_mm ?? 0 }} mm</span>
-            <span>UV {{ w.uv != null ? (w.uv | number:'1.0-0') : '—' }}</span>
+            <span>{{ 'Sensación' | t }} {{ w.sensacion != null ? (w.sensacion | number:'1.0-0') + '°' : '—' }}</span>
+            <span>{{ 'Humedad' | t }} {{ w.humedad ?? '—' }}%</span>
+            <span>{{ 'Viento' | t }} {{ w.viento_kmh != null ? (w.viento_kmh | number:'1.0-0') + ' km/h' : '—' }}</span>
+            <span>{{ 'Lluvia' | t }} {{ w.precipitacion_mm ?? 0 }} {{ 'mm' | t }}</span>
+            <span>{{ 'UV' | t }} {{ w.uv != null ? (w.uv | number:'1.0-0') : '—' }}</span>
           </div>
           <span class="bitacora-clima__note">{{ 'Capturado automáticamente al registrar la bitácora.' | t }}</span>
         </div>
@@ -449,7 +449,7 @@
             <ul class="bitacora-detail__list">
               @for (a of grupo.items; track a.id) {
                 <!-- AW1 — cantidad aproximada (~) vs exacta; "se trabajó" cuando no hay cantidad. -->
-                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× @if (a.es_aproximada) { ~ }{{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} }@if (a.es_aproximada) { &nbsp;<span class="sgc-badge sgc-badge--neutral">aprox.</span> } } @else if (a.es_aproximada) { &nbsp;<span class="text-muted">(se trabajó)</span> }</li>
+                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× @if (a.es_aproximada) { ~ }{{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} }@if (a.es_aproximada) { &nbsp;<span class="sgc-badge sgc-badge--neutral">{{ 'aprox.' | t }}</span> } } @else if (a.es_aproximada) { &nbsp;<span class="text-muted">{{ '(se trabajó)' | t }}</span> }</li>
               }
             </ul>
           }
@@ -547,7 +547,7 @@
                 @if (m.estructura) { <span class="text-muted">· {{ m.estructura }}</span> }
                 @if (m.identificador) { <span class="text-muted">· {{ m.identificador }}</span> }
                 @if (m.desviacion_max_cm != null) {
-                  <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">Desvío {{ m.desviacion_max_cm }} cm</span>
+                  <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">{{ 'Desvío' | t }} {{ m.desviacion_max_cm }} {{ 'cm' | t }}</span>
                 }
               </div>
               <!-- DI2 — ampliable: clic en el esquema o en "Ampliar" abre app-molde-visor. -->

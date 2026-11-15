@@ -295,9 +295,6 @@
     "auth": {
       "enforce": false
     },
-    "bitacora/historial": {
-      "enforce": false
-    },
     "bitacora/solicitudes-material": {
       "enforce": false
     },
@@ -365,6 +362,9 @@
       "enforce": true
     },
     "bitacora/entregas": {
+      "enforce": true
+    },
+    "bitacora/historial": {
       "enforce": true
     },
     "bitacora/mi-proyecto": {

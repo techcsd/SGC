@@ -19,6 +19,7 @@ import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema'
 import { MoldeVisor, MoldeVisorItem } from '../../../../shared/ui/molde-visor/molde-visor';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-bitacora-historial',
@@ -33,6 +34,7 @@ export class Historial implements OnInit {
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private datosPrueba = inject(DatosPruebaService);
+  protected i18n = inject(I18nService);
 
   // T2 — solo admin ve/gestiona datos de prueba (enforcement server-side vía RLS).
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -376,24 +378,24 @@ export class Historial implements OnInit {
         list.map((x) => (x.id === b.id ? { ...x, es_prueba: valor } : x)),
       );
       this.toast.success(
-        valor ? 'Marcada como prueba' : 'Quitada de prueba',
+        this.i18n.t(valor ? 'Marcada como prueba' : 'Quitada de prueba'),
         valor ? 'La bitácora ahora es un dato de prueba.' : 'La bitácora ya no es un dato de prueba.',
       );
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente una bitácora de prueba (solo admin). */
   async eliminarPrueba(b: Bitacora) {
     if (!this.esAdmin() || !b.es_prueba) return;
-    if (!confirm('¿Eliminar esta bitácora de prueba? Esta acción no se puede deshacer.')) return;
+    if (!confirm(this.i18n.t('¿Eliminar esta bitácora de prueba? Esta acción no se puede deshacer.'))) return;
     try {
       await this.datosPrueba.eliminar('bitacoras', b.id);
       this.bitacoras.update((list) => list.filter((x) => x.id !== b.id));
-      this.toast.success('Dato de prueba eliminado', 'Se eliminó la bitácora de prueba.');
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), 'Se eliminó la bitácora de prueba.');
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

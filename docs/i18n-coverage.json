@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 52,
-  "pctHt": 80,
+  "pctHt": 81,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -5996,48 +5996,6 @@
       ]
     },
     {
-      "pantalla": "bitacora/historial",
-      "total": 85,
-      "cubiertos": 54,
-      "sin": 31,
-      "pct": 64,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "bitácora",
-        "Nueva bitácora",
-        "Mis bitácoras",
-        "Todas",
-        "Todas las obras",
-        "Todos los usuarios",
-        "Limpiar filtros",
-        "Mostrar datos de prueba",
-        "– de",
-        "Otra fecha · registrada",
-        "No se trabajó en obra — @if (b.motivo_sin_actividad_detalle) { : }",
-        "Carpintería: · Acero: · Casa:",
-        "Llovió@if (b.horas_lluvia != null) { · afectó h } } @else { Sin lluvia }",
-        "Ver orden y firmas →",
-        "Clima registrado @if (b.tipo === 'incidente') {",
-        "Sensación",
-        "Humedad %",
-        "Viento",
-        "Lluvia mm",
-        "UV",
-        "aprox.",
-        "(se trabajó)",
-        "Desvío cm",
-        "Cronograma:",
-        "Quitar de datos de prueba",
-        "Quitar de datos de prueba",
-        "Bitácora de otra fecha — registrada el",
-        "Error",
-        "Dato de prueba eliminado",
-        "Error al eliminar",
-        "¿Eliminar esta bitácora de prueba? Esta acción no se puede deshacer."
-      ]
-    },
-    {
       "pantalla": "bitacora/solicitudes-material",
       "total": 73,
       "cubiertos": 52,
@@ -6443,6 +6401,16 @@
       "pantalla": "bitacora/entregas",
       "total": 24,
       "cubiertos": 24,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "bitacora/historial",
+      "total": 91,
+      "cubiertos": 91,
       "sin": 0,
       "pct": 100,
       "enScope": true,
