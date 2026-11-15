@@ -1,8 +1,11 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DP (13-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN `feature/dp-ronda-13nov`, NO dev/main todavía
+## 🧪 Ronda DP (13/14-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN `feature/dp-ronda-13nov`, NO dev/main todavía
 
-**TL;DR:** módulo Claude (CSS DP-01..DP-05) **100% hecho y verificado visualmente**. Idioma: infraestructura completa (DP-07..DP-13) + **1 de 17 lotes de cableado** (módulo Claude + shell/sidebar global) llevado a 100% real, verificado con un smoke Playwright que de verdad pasa en `en` y `ht`. Los 16 módulos restantes (~14.700 literales HTML + ~1.330 .ts) quedan **sin cablear** — ver tabla de lotes en `docs/I18N-AVANCE.md`. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 13112026\CONTEXTO-ACTUALIZACION-72.md`. Worktree `SGC-dp`, rama `feature/dp-ronda-13nov` desde `origin/main` (`056082b8`), 5 commits limpios (uno por fase F1/F2/F3-5/F6/F7). **No se abrió PR todavía** — avisar a Xaviel antes de abrirlo/mergearlo a `dev`.
+**TL;DR (actualizado 14-nov):** módulo Claude (CSS DP-01..DP-05) **100% hecho y verificado visualmente**. Idioma: infraestructura completa (DP-07..DP-13) + **lote 1 (Claude+shell) + lote 2 (Configuración/perfil) + lote 3 (Dashboard) + MÓDULO 4 (Inventario) COMPLETO (35/35 pantallas, lotes 4-14)** — los 4 primeros módulos de 17 están al 100% real, con `enforce:true` y verificados (`verify-i18n.mjs` 0 fallos, build + 368 tests verdes, smoke Playwright pasando en `en`/`ht`). Quedan **13 módulos** (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, resto) — ver tabla de lotes en `docs/I18N-AVANCE.md`. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 13112026\CONTEXTO-ACTUALIZACION-72.md`. Worktree `SGC-dp`, rama `feature/dp-ronda-13nov` desde `origin/main` (`056082b8`). **No se abrió PR todavía** — avisar a Xaviel antes de abrirlo/mergearlo a `dev`.
+
+### Inventario (módulo 4) — cierre de ronda 14-nov
+11 lotes (4-14), cada uno con su propio commit en `feature/dp-ronda-13nov` (ver `git log` o `docs/I18N-AVANCE.md` sección "Inventario — 100% COMPLETO" para el detalle completo). Encontré y corregí **10 bugs de precisión distintos** en `scripts/i18n-coverage.mjs` (y a veces también en `scripts/verify-i18n.mjs`) durante el proceso — todos documentados en los mensajes de commit y en `docs/I18N-AVANCE.md`. Patrón recurrente: el escáner mide por heurística de texto-entre-tags + regex sobre `.ts`, y cada vez que apareció una construcción nueva (condición `@if` con paréntesis anidados, catálogo-mapa `Record<>`, `return [...]` en vez de `= [...]`, template literal con `${datos}`, entidad HTML cruda, etc.) hubo que enseñarle esa forma — **cada fix se verificó contra las pantallas `enforce:true` previas antes de seguir** (nunca rompió una ya cableada). `public/i18n/en.json`/`ht.json` crecieron de ~1.575/~700 a **2.705/1.799 claves** — **siguen sin revisión humana en `ht`** (ver `docs/I18N-REVISAR-HT.md`).
 
 ### Tabla DP-xx → hecho / no-hecho / por qué
 
@@ -28,7 +31,7 @@
 - **Ledger de prod intacto**: esta ronda NO tocó SQL/migraciones/edges — todo el trabajo es frontend + scripts, nada que registrar en `sgc.migraciones_aplicadas`.
 
 ### Pending — Claude puede hacer (próxima ronda, mismo prompt/CONTEXTO)
-1. **Cablear los 16 módulos restantes** (orden del prompt: Configuración/perfil/shell, Dashboard, Inventario, Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, resto) — mismo patrón que el lote 1: `i18n-wrap-html.mjs --modulo <x> --write` → revisar saltados → cablear `.ts` a mano → traducir claves nuevas (reutilizar de csd-app primero) → `enforce:true` solo cuando el módulo mida 100% → commit por lote → actualizar `docs/I18N-AVANCE.md`.
+1. **Cablear los 13 módulos restantes** (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, resto — Claude/Configuración-perfil/Dashboard/Inventario ya están 100%) — mismo patrón ya probado 35 veces en Inventario: `i18n-wrap-html.mjs --modulo <x> --write` → revisar saltados → cablear `.ts` a mano (toasts/confirm/prompt, incluso los que el escáner no detecta) → `node scripts/i18n-coverage.mjs` iterar hasta 100% real por pantalla → traducir claves nuevas a `en`+`ht` (reutilizar de csd-app primero) → `enforce:true` solo cuando la pantalla mida 100% → `verify-i18n.mjs` debe seguir en 0 fallos → commit por lote → actualizar `docs/I18N-AVANCE.md`. Siguiente en la cola: **Compras**.
 2. **Barrer los 30 archivos restantes con `| date`** (lista en `docs/I18N-AVANCE.md` § F6) — reemplazo mecánico `| date`→`| fecha`, `DatePipe`→`FechaPipe` en `imports`.
 3. **Extender `scripts/i18n-coverage.mjs`** para que también recorra `src/shared/components/shell` y `compa-flotante` (hoy invisibles al sistema de cobertura, ver gotcha arriba) — así un futuro texto sin `t()` en el shell sí se detecta.
 4. Cuando TODOS los módulos lleguen a 100%: `alcance.json` → todas las pantallas `enforce:true`, correr `i18n:smoke` sobre TODAS las rutas (hoy solo cubre las `enforce:true`).
@@ -43,10 +46,11 @@
 ### Verify on resume
 ```bash
 cd "C:/Users/xavie/Desktop/X Dev/dev/SGC-dp"   # o el worktree donde se reanude
-git log --oneline -6            # debe mostrar hasta "guardias estrictas..." (F7)
-node scripts/i18n-coverage.mjs  # debe decir "alcance en=12% ht=22%" o más (nunca menos)
-node scripts/verify-i18n.mjs    # debe decir "0 fallos" para las pantallas enforce
-npm run build                   # debe compilar sin errores
+git log --oneline -20            # debe mostrar hasta "Inventario 100% completo..." (07cc6a2c)
+node scripts/i18n-coverage.mjs   # debe decir "alcance en=27% ht=62%" o más (nunca menos)
+node scripts/verify-i18n.mjs     # debe decir "0 fallos", 35 pantalla(s) enforce (o más)
+npm run build                    # debe compilar sin errores
+npx ng test --watch=false        # debe decir 368/368 (o más)
 ```
 
 
