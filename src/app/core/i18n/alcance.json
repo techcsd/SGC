@@ -256,9 +256,6 @@
     "auth": {
       "enforce": false
     },
-    "proyectos/kpi": {
-      "enforce": false
-    },
     "proyectos/cargos": {
       "enforce": false
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "proyectos/costos": {
+      "enforce": true
+    },
+    "proyectos/kpi": {
       "enforce": true
     },
     "solicitudes-movimiento": {

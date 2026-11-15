@@ -4986,26 +4986,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/kpi",
-      "total": 23,
-      "cubiertos": 14,
-      "sin": 9,
-      "pct": 61,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Puntaje combinado de",
-        "(15%). El avance pesa poco: una obra recién iniciada no se \"desempeña mal\" por estar temprano.",
-        "Necesita atención (&lt;60)",
-        "Encargado:",
-        "bitácora(s) del día",
-        "incidente(s) (90d)",
-        "RD$ /",
-        "Página de · proyectos",
-        "Ver detalle de"
-      ]
-    },
-    {
       "pantalla": "proyectos/cargos",
       "total": 38,
       "cubiertos": 24,
@@ -6339,6 +6319,16 @@
       "pantalla": "proyectos/costos",
       "total": 13,
       "cubiertos": 13,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/kpi",
+      "total": 27,
+      "cubiertos": 27,
       "sin": 0,
       "pct": 100,
       "enScope": true,
