@@ -2277,5 +2277,11 @@
   "Estado de stock": "Stock status",
   "Pendientes de entrega": "Pending delivery",
   "Por confirmar": "To confirm",
-  "Histórico": "History"
+  "Histórico": "History",
+  "+ Nuevo conduce externo": "+ New external delivery note",
+  "No hay conduces externos todavía.": "No external delivery notes yet.",
+  "Emisor": "Issuer",
+  "«Otro»": "«Other»",
+  "Este conduce mueve inventario": "This delivery note moves inventory",
+  "AFECTA INVENTARIO": "AFFECTS INVENTORY"
 }

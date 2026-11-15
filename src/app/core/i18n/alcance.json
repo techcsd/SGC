@@ -539,7 +539,7 @@
       "enforce": true
     },
     "inventario/conduces-externos": {
-      "enforce": false
+      "enforce": true
     },
     "inventario/conduces-por-implementar": {
       "enforce": true
@@ -575,7 +575,7 @@
       "enforce": true
     },
     "inventario/stock-odoo": {
-      "enforce": false
+      "enforce": true
     },
     "perfil": {
       "enforce": true
