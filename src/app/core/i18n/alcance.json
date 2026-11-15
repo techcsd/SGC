@@ -409,9 +409,6 @@
     "auth": {
       "enforce": false
     },
-    "inventario/requisiciones": {
-      "enforce": false
-    },
     "inventario/retiros": {
       "enforce": false
     },
@@ -439,10 +436,10 @@
     "ingenieria/pagos": {
       "enforce": false
     },
-    "tecnologia/cotizaciones": {
+    "reuniones/reuniones-lista": {
       "enforce": false
     },
-    "reuniones/reuniones-lista": {
+    "tecnologia/cotizaciones": {
       "enforce": false
     },
     "compras/productos-por-dar-de-alta": {
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "inventario/reposicion": {
+      "enforce": true
+    },
+    "inventario/requisiciones": {
       "enforce": true
     },
     "inventario/salidas": {

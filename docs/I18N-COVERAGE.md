@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 26%** (2847/11084 literales de 192 pantallas en alcance). **`ht`: 58%**.
+**Alcance `en`: 26%** (2900/11070 literales de 192 pantallas en alcance). **`ht`: 60%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -20,7 +20,7 @@
 | admin/otros-valores | scope | 10 | 0 | 10 | 0% |
 | admin/parametros | scope | 12 | 0 | 12 | 0% |
 | admin/reportes | scope | 44 | 0 | 44 | 0% |
-| admin/roles | scope | 167 | 0 | 167 | 0% |
+| admin/roles | scope | 166 | 0 | 166 | 0% |
 | admin/solicitudes-eliminacion | scope | 8 | 0 | 8 | 0% |
 | admin/unidades | scope | 11 | 0 | 11 | 0% |
 | admin/usuarios | scope | 163 | 0 | 163 | 0% |
@@ -31,7 +31,7 @@
 | bitacora/cobertura | scope | 19 | 0 | 19 | 0% |
 | bitacora/dashboard | scope | 26 | 0 | 26 | 0% |
 | bitacora/entregas | scope | 25 | 0 | 25 | 0% |
-| bitacora/historial | scope | 98 | 0 | 98 | 0% |
+| bitacora/historial | scope | 97 | 0 | 97 | 0% |
 | bitacora/mi-proyecto | scope | 5 | 0 | 5 | 0% |
 | bitacora/solicitudes-compra | scope | 34 | 0 | 34 | 0% |
 | compras/ordenes | scope | 134 | 0 | 134 | 0% |
@@ -48,10 +48,10 @@
 | dudas | scope | 15 | 0 | 15 | 0% |
 | flota/accidentes | scope | 56 | 0 | 56 | 0% |
 | flota/avisos | scope | 55 | 0 | 55 | 0% |
-| flota/choferes-privados | scope | 55 | 0 | 55 | 0% |
-| flota/combustible | scope | 224 | 0 | 224 | 0% |
+| flota/choferes-privados | scope | 54 | 0 | 54 | 0% |
+| flota/combustible | scope | 223 | 0 | 223 | 0% |
 | flota/combustible-dashboard | scope | 54 | 0 | 54 | 0% |
-| flota/combustible-log | scope | 139 | 0 | 139 | 0% |
+| flota/combustible-log | scope | 138 | 0 | 138 | 0% |
 | flota/conciliacion-combustible | scope | 179 | 0 | 179 | 0% |
 | flota/conductores | scope | 195 | 0 | 195 | 0% |
 | flota/conductores-estado | scope | 17 | 0 | 17 | 0% |
@@ -61,7 +61,7 @@
 | flota/reporte-semanal | scope | 55 | 0 | 55 | 0% |
 | flota/reportes | scope | 46 | 0 | 46 | 0% |
 | flota/responsabilidad | scope | 72 | 0 | 72 | 0% |
-| flota/rutas | scope | 128 | 0 | 128 | 0% |
+| flota/rutas | scope | 125 | 0 | 125 | 0% |
 | flota/rutas-activas | scope | 46 | 0 | 46 | 0% |
 | flota/seguimiento | scope | 23 | 0 | 23 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
@@ -74,8 +74,8 @@
 | mensajes | scope | 68 | 0 | 68 | 0% |
 | mi-rendimiento | scope | 17 | 0 | 17 | 0% |
 | mis-choferes | scope | 9 | 0 | 9 | 0% |
-| notas/editor | scope | 53 | 0 | 53 | 0% |
-| notas | scope | 46 | 0 | 46 | 0% |
+| notas/editor | scope | 54 | 0 | 54 | 0% |
+| notas | scope | 47 | 0 | 47 | 0% |
 | obra/avance | scope | 85 | 0 | 85 | 0% |
 | obra/checklists | scope | 57 | 0 | 57 | 0% |
 | obra/informes | scope | 49 | 0 | 49 | 0% |
@@ -84,7 +84,7 @@
 | obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
 | politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
 | politicas | scope | 15 | 0 | 15 | 0% |
-| proyectos/cargos | scope | 42 | 0 | 42 | 0% |
+| proyectos/cargos | scope | 43 | 0 | 43 | 0% |
 | proyectos/clima | scope | 40 | 0 | 40 | 0% |
 | proyectos/compras | scope | 30 | 0 | 30 | 0% |
 | proyectos/costos | scope | 13 | 0 | 13 | 0% |
@@ -99,7 +99,7 @@
 | rrhh/candidatos | scope | 60 | 0 | 60 | 0% |
 | rrhh/capacitacion | scope | 33 | 0 | 33 | 0% |
 | rrhh/contratos | scope | 32 | 0 | 32 | 0% |
-| rrhh/empleados | scope | 163 | 0 | 163 | 0% |
+| rrhh/empleados | scope | 162 | 0 | 162 | 0% |
 | rrhh/evaluaciones | scope | 22 | 0 | 22 | 0% |
 | rrhh/nomina | scope | 35 | 0 | 35 | 0% |
 | rrhh/onboarding | scope | 42 | 0 | 42 | 0% |
@@ -107,7 +107,7 @@
 | rrhh/proveedores | scope | 35 | 0 | 35 | 0% |
 | rrhh/reportes | scope | 23 | 0 | 23 | 0% |
 | rrhh/tramites | scope | 47 | 0 | 47 | 0% |
-| solicitudes-movimiento | scope | 95 | 0 | 95 | 0% |
+| solicitudes-movimiento | scope | 94 | 0 | 94 | 0% |
 | tareas/gestion | scope | 38 | 0 | 38 | 0% |
 | tareas/historial | scope | 22 | 0 | 22 | 0% |
 | tareas/mis-tareas | scope | 7 | 0 | 7 | 0% |
@@ -120,30 +120,29 @@
 | tecnologia/homologacion | scope | 37 | 0 | 37 | 0% |
 | tecnologia/inventario | scope | 240 | 0 | 240 | 0% |
 | tecnologia/matriz | scope | 27 | 0 | 27 | 0% |
-| tecnologia/monitoreo | scope | 68 | 0 | 68 | 0% |
+| tecnologia/monitoreo | scope | 69 | 0 | 69 | 0% |
 | tecnologia/odoo-sync | scope | 33 | 0 | 33 | 0% |
 | tecnologia/outbox-atascados | scope | 57 | 0 | 57 | 0% |
 | tecnologia/qa | scope | 83 | 0 | 83 | 0% |
 | tecnologia/reportes-errores | scope | 66 | 0 | 66 | 0% |
-| tecnologia/resumen-operaciones | scope | 69 | 0 | 69 | 0% |
+| tecnologia/resumen-operaciones | scope | 70 | 0 | 70 | 0% |
 | trabajos-transporte | scope | 24 | 0 | 24 | 0% |
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | flota/checklists | scope | 112 | 5 | 107 | 4% |
 | bitacora/nueva | scope | 201 | 17 | 184 | 8% |
-| legal/expedientes | scope | 90 | 7 | 83 | 8% |
-| bitacora/solicitudes-material | scope | 90 | 9 | 81 | 10% |
-| flota/mantenimientos | scope | 121 | 16 | 105 | 13% |
+| legal/expedientes | scope | 89 | 7 | 82 | 8% |
+| bitacora/solicitudes-material | scope | 88 | 9 | 79 | 10% |
+| flota/mantenimientos | scope | 120 | 16 | 104 | 13% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
-| flota/vehiculos | scope | 422 | 66 | 356 | 16% |
+| flota/vehiculos | scope | 420 | 66 | 354 | 16% |
 | bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | bitacora/moldes | scope | 22 | 5 | 17 | 23% |
-| proyectos/personal | scope | 276 | 74 | 202 | 27% |
+| proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| inventario/requisiciones | scope | 144 | 93 | 51 | 65% |
 | inventario/retiros | scope | 99 | 65 | 34 | 66% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
@@ -152,18 +151,18 @@
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | flota/transferencias | scope | 13 | 10 | 3 | 77% |
-| ingenieria/pagos | scope | 69 | 54 | 15 | 78% |
-| tecnologia/cotizaciones | scope | 80 | 65 | 15 | 81% |
+| ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
+| tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | compras/productos-por-dar-de-alta | scope | 48 | 41 | 7 | 85% |
-| flota/cupos-combustible | scope | 47 | 40 | 7 | 85% |
-| admin/vault | scope | 74 | 65 | 9 | 88% |
+| flota/cupos-combustible | scope | 48 | 41 | 7 | 85% |
+| admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | compras/gastos | scope | 26 | 25 | 1 | 96% |
-| admin/auditoria | scope | 64 | 62 | 2 | 97% |
+| admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
@@ -196,13 +195,14 @@
 | inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
 | inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
+| inventario/requisiciones | enforce | 143 | 143 | 0 | 100% |
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**818 literal(es) sin t()** en 110 archivo(s) (de 137 archivo(s) .ts con algo detectado).
+**806 literal(es) sin t()** en 109 archivo(s) (de 137 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -227,7 +227,6 @@
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/compras/ordenes/ordenes.ts | 12 | Artículo vinculado · No se pudo vincular el artículo · Artículo creado y vinculado … |
 | src/app/pages/flota/checklists/checklists.ts | 12 | Listo · Sin hallazgos claros · Vehículo BLOQUEADO … |
-| src/app/pages/inventario/requisiciones/requisiciones.ts | 12 | Fecha de necesidad actualizada · No se pudo cambiar la fecha · Cobertura deshecha … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/proyectos/lista/lista.ts | 12 | No se pudo agregar el sector · La obra se creó, pero no se pudo guardar la ubicación · Obra de prueba eliminada … |

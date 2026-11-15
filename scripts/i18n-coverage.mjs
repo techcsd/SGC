@@ -62,14 +62,31 @@ function esRuido(s) {
   if (WHITE.has(t.toLowerCase())) return true;         // nombre propio
   // Palabras técnicas de binding que a veces quedan sueltas.
   if (/^(true|false|null|ngIf|ngFor|px|em|rem)$/i.test(t)) return true;
+  // Entidades HTML crudas (espaciador invisible, no es copy) — "&nbsp;" tiene
+  // letras literales ("nbsp") que el regex de letras no distingue de texto real.
+  if (/^&[a-z]+;$/i.test(t)) return true;
   // Un token que es claramente una expresión (camelCase con paréntesis) no es copy.
   if (/^[a-z][A-Za-z0-9]*\([^)]*\)$/.test(t)) return true;
   // Bloques de control flow de Angular (@if/@for/@else/@switch/…) que el
   // regex de nodos de texto atrapa como "texto" entre un '>' y un '<' porque
   // no están envueltos en una etiqueta — no son copy, son sintaxis de plantilla.
-  // Tolera un separador decorativo (p. ej. "·") pegado justo antes del @if
-  // cuando ambos quedan en el mismo nodo de texto (sin tag de por medio).
-  if (/^[}\s(·]*@(if|else if|else|for|switch|case|default|empty)\b/.test(t)) return true;
+  // Tolera cualquier separador decorativo (puntuación, emoji, "·", etc.)
+  // pegado justo antes del @if/@let cuando ambos quedan en el mismo nodo de
+  // texto (sin tag de por medio) — se usa "no es letra" en vez de una lista
+  // fija de símbolos, para no perseguir cada emoji nuevo uno por uno.
+  if (/^[^\p{L}]*@(if|else if|else|for|switch|case|default|empty|let)\b/u.test(t)) return true;
+  // Residuo de control flow MEZCLADO con un resultado de interpolación en el
+  // mismo nodo de texto (ej. "0 } @else { }" — el "0" es un número real
+  // emitido por la plantilla, pero el resto son llaves/palabra "else" que
+  // sobrevivieron a la limpieza de interpolaciones puras). Si trae llaves o
+  // paréntesis Y no le queda ninguna letra real tras quitar las palabras
+  // clave de control flow y la puntuación/dígitos, es ruido de sintaxis.
+  if (/[{}()]/.test(t)) {
+    const sinControlFlow = t
+      .replace(/@(if|else if|else|for|switch|case|default|empty|let)\b/g, '')
+      .replace(/[{}()\d\s.,;:|·—–-]/g, '');
+    if (!HAS_LETTER.test(sinControlFlow)) return true;
+  }
   return false;
 }
 
@@ -98,10 +115,36 @@ function extraerLiterales(htmlOriginal) {
   // Mismo problema que arriba pero en la CONDICIÓN de un @if/@else if de
   // control flow (no en un atributo): `@if (a > b) { ... }` tiene un '>' que
   // no delimita ninguna etiqueta. Se neutraliza igual, solo dentro del `(...)`.
-  const sinCondicionesComparacion = sinBindingsComparacion.replace(
-    /@(?:if|else if)\s*\([^()]*[<>][^()]*\)/g,
-    (m) => ' '.repeat(m.length),
-  );
+  // La condición se balancea por paréntesis (puede traer llamadas anidadas
+  // como `puedeGestionarReq() && a.pendiente > 0`) en vez de asumir "sin
+  // paréntesis adentro" — si no, una condición con una función de cero
+  // argumentos rompe el neutralizado y dejaba '>'/'<' colándose como texto.
+  let sinCondicionesComparacion = sinBindingsComparacion;
+  {
+    const reIfStart = /@(?:if|else if)\s*\(/g;
+    let mm;
+    const partes = [];
+    let cursor = 0;
+    while ((mm = reIfStart.exec(sinCondicionesComparacion))) {
+      const inicio = mm.index + mm[0].length - 1; // posición del '('
+      let profundidad = 1;
+      let i = inicio + 1;
+      while (i < sinCondicionesComparacion.length && profundidad > 0) {
+        if (sinCondicionesComparacion[i] === '(') profundidad++;
+        else if (sinCondicionesComparacion[i] === ')') profundidad--;
+        i++;
+      }
+      const span = sinCondicionesComparacion.slice(mm.index, i);
+      if (/[<>]/.test(span)) {
+        partes.push(sinCondicionesComparacion.slice(cursor, mm.index));
+        partes.push(' '.repeat(span.length));
+        cursor = i;
+      }
+      reIfStart.lastIndex = i;
+    }
+    partes.push(sinCondicionesComparacion.slice(cursor));
+    sinCondicionesComparacion = partes.join('');
+  }
   const html = stripExprInterpolations(sinCondicionesComparacion);
   const items = []; // { texto, cubierto }
 
