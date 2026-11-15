@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Historial de proyectos' | t }}</h1>
-    <span class="page-count">{{ visibles().length }} proyecto{{ visibles().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ visibles().length }} {{ (visibles().length !== 1 ? 'proyectos' : 'proyecto') | t }}</span>
   </div>
 </div>
 
@@ -21,17 +21,17 @@
 
   <!-- Charts -->
   <div class="hist-charts">
-    <div class="sgc-card hist-chart"><app-donut-chart titulo="Por estado" [data]="porEstado()" /></div>
-    <div class="sgc-card hist-chart"><app-bar-chart titulo="Por tipo" [data]="porTipo()" /></div>
+    <div class="sgc-card hist-chart"><app-donut-chart [titulo]="'Por estado' | t" [data]="porEstado()" /></div>
+    <div class="sgc-card hist-chart"><app-bar-chart [titulo]="'Por tipo' | t" [data]="porTipo()" /></div>
   </div>
 
   <!-- Tabs -->
   <div class="tabs-bar">
     <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'finalizados'" (click)="setTab('finalizados')">
-      Finalizados ({{ finalizados().length }})
+      {{ 'Finalizados' | t }} ({{ finalizados().length }})
     </button>
     <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todos'" (click)="setTab('todos')">
-      Todos
+      {{ 'Todos' | t }}
     </button>
   </div>
 
@@ -58,12 +58,12 @@
               <tr class="row--link" [routerLink]="['/proyectos', p.id]" role="button" tabindex="0" aria-label="{{ 'Ver detalle del proyecto' | t }}">
                 <td><code class="code-tag">{{ p.codigo }}</code></td>
                 <td>{{ p.nombre }}</td>
-                <td>{{ tipoLabel(p.tipo) }}</td>
+                <td>{{ tipoLabel(p.tipo) | t }}</td>
                 <td>{{ formatFecha(p.fecha_inicio) }}</td>
                 <td>{{ formatFecha(p.fecha_fin_real) }}</td>
                 <td>{{ duracion(p) }}</td>
                 <td>{{ p.presupuesto ? ('RD$ ' + (p.presupuesto | number:'1.0-0')) : '—' }}</td>
-                <td><span [class]="estadoBadge(p.estado)">{{ estadoLabel(p.estado) }}</span></td>
+                <td><span [class]="estadoBadge(p.estado)">{{ estadoLabel(p.estado) | t }}</span></td>
               </tr>
             }
           </tbody>

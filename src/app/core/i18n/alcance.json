@@ -277,9 +277,6 @@
     "ingenieria/pagos": {
       "enforce": false
     },
-    "proyectos/historial": {
-      "enforce": false
-    },
     "reuniones/reuniones-lista": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "proyectos/cronograma-import": {
+      "enforce": true
+    },
+    "proyectos/historial": {
       "enforce": true
     },
     "proyectos/kpi": {

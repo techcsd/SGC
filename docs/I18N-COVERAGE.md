@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 60%** (6272/10540 literales de 192 pantallas en alcance). **`ht`: 83%**.
+**Alcance `en`: 60%** (6274/10539 literales de 192 pantallas en alcance). **`ht`: 83%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -99,7 +99,6 @@
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | proyectos/personal | scope | 263 | 203 | 60 | 77% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
-| proyectos/historial | scope | 16 | 13 | 3 | 81% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | proyectos/compras | scope | 28 | 24 | 4 | 86% |
@@ -196,6 +195,7 @@
 | proyectos/costos | enforce | 13 | 13 | 0 | 100% |
 | proyectos/cronograma | enforce | 72 | 72 | 0 | 100% |
 | proyectos/cronograma-import | enforce | 39 | 39 | 0 | 100% |
+| proyectos/historial | enforce | 15 | 15 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |

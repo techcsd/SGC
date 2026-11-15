@@ -5228,20 +5228,6 @@
       ]
     },
     {
-      "pantalla": "proyectos/historial",
-      "total": 16,
-      "cubiertos": 13,
-      "sin": 3,
-      "pct": 81,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "proyecto",
-        "Finalizados ( )",
-        "Todos"
-      ]
-    },
-    {
       "pantalla": "reuniones/reuniones-lista",
       "total": 68,
       "cubiertos": 56,
@@ -6257,6 +6243,16 @@
       "pantalla": "proyectos/cronograma-import",
       "total": 39,
       "cubiertos": 39,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "proyectos/historial",
+      "total": 15,
+      "cubiertos": 15,
       "sin": 0,
       "pct": 100,
       "enScope": true,
