@@ -47,6 +47,7 @@ import { todayIso, formatFechaDisplay, formatFechaHoraDisplay } from '../../../.
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * CW5 — el recibo trae el producto como texto libre ("DIESEL", "gasolina premium",
@@ -73,7 +74,7 @@ interface CompaPrefill {
 
 @Component({
   selector: 'app-combustible',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton, DateRangeFilter, Icon],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton, DateRangeFilter, Icon, TranslatePipe],
   templateUrl: './combustible.html',
   styleUrl: './combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

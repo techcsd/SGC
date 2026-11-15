@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Checklists de flota</h1>
+    <h1 class="page-title">{{ 'Checklists de flota' | t }}</h1>
     <span class="page-count">
       {{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}
     </span>
@@ -29,10 +29,10 @@
 </div>
 
 <p class="cl-lead">
-  <strong>Uso de vehículo</strong>: inspección diaria antes de mover el vehículo — un ítem crítico marcado
-  en NO lo bloquea. <strong>Inspección vehículo</strong>: chequeo que cada chofer envía una vez por
+  <strong>{{ 'Uso de vehículo' | t }}</strong>: inspección diaria antes de mover el vehículo — un ítem crítico marcado
+  en NO lo bloquea. <strong>{{ 'Inspección vehículo' | t }}</strong>: chequeo que cada chofer envía una vez por
   semana por su vehículo; solo estos alimentan el
-  <a routerLink="/flota/reporte-semanal">dashboard de cumplimiento</a>.
+  <a routerLink="/flota/reporte-semanal">{{ 'dashboard de cumplimiento' | t }}</a>.
 </p>
 
 <!-- ── Filters ── -->
@@ -41,10 +41,10 @@
     <div class="sgc-field filters-bar__search">
       <input
         type="search"
-        placeholder="Buscar por placa o conductor…"
+        placeholder="{{ 'Buscar por placa o conductor…' | t }}"
         [value]="searchQuery()"
         (input)="onSearch($any($event.target).value)"
-        aria-label="Buscar checklists"
+        aria-label="{{ 'Buscar checklists' | t }}"
       />
     </div>
 
@@ -52,7 +52,7 @@
       <select
         [value]="selectedTipo()"
         (change)="onTipoChange($any($event.target).value)"
-        aria-label="Filtrar por tipo"
+        aria-label="{{ 'Filtrar por tipo' | t }}"
       >
         <option value="">Todos los tipos</option>
         @for (t of TIPOS; track t.value) {
@@ -109,15 +109,15 @@
       </div>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Historial de checklists">
+        <table class="data-table" aria-label="{{ 'Historial de checklists' | t }}">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Vehículo</th>
-              <th>Conductor</th>
-              <th>Tipo</th>
-              <th>Plantilla</th>
-              <th>Resultado</th>
+              <th>{{ 'Fecha' | t }}</th>
+              <th>{{ 'Vehículo' | t }}</th>
+              <th>{{ 'Conductor' | t }}</th>
+              <th>{{ 'Tipo' | t }}</th>
+              <th>{{ 'Plantilla' | t }}</th>
+              <th>{{ 'Resultado' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -133,10 +133,10 @@
                 <td><span class="sgc-badge sgc-badge--neutral">{{ getTipoLabel(c.tipo) }}</span></td>
                 <td class="text-muted">{{ c.plantilla?.nombre ?? '—' }}</td>
                 <td>
-                  @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral cl-badge-gap">PRUEBA</span> }
+                  @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral cl-badge-gap">{{ 'PRUEBA' | t }}</span> }
                   <span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span>
                   @if (c.tiene_criticos && !c.atendido) {
-                    <span class="sgc-badge sgc-badge--warning cl-badge-gap">Requiere atención</span>
+                    <span class="sgc-badge sgc-badge--warning cl-badge-gap">{{ 'Requiere atención' | t }}</span>
                   }
                   @if (c.alerta_mantenimiento && c.alerta_mantenimiento !== 'ok') {
                     <span class="sgc-badge sgc-badge--{{ alertaMantMeta(c.alerta_mantenimiento).badge }} cl-badge-gap">{{ alertaMantMeta(c.alerta_mantenimiento).label }}</span>
@@ -156,20 +156,20 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
-      <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
+      <label for="vehiculo_id">{{ 'Vehículo' | t }} <span class="required">*</span></label>
       <app-vehiculo-picker
         formControlName="vehiculo_id"
         [vehiculos]="vehiculosVisibles()"
         (valueChange)="onVehiculoChange($event)"
       />
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
-        <span class="field-error">El vehículo es obligatorio.</span>
+        <span class="field-error">{{ 'El vehículo es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="conductor_id">Conductor</label>
+        <label for="conductor_id">{{ 'Conductor' | t }}</label>
         <select id="conductor_id" formControlName="conductor_id">
           <option [ngValue]="null">Sin conductor…</option>
           @for (c of conductoresVisibles(); track c.id) {
@@ -179,7 +179,7 @@
       </div>
 
       <div class="sgc-field">
-        <label for="tipo">Tipo <span class="required">*</span></label>
+        <label for="tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
         <select id="tipo" formControlName="tipo">
           @for (t of TIPOS; track t.value) {
             <option [value]="t.value">{{ t.label }}</option>
@@ -220,17 +220,17 @@
         }
       </select>
       @if (f.plantilla_id.invalid && f.plantilla_id.touched) {
-        <span class="field-error">La plantilla es obligatoria.</span>
+        <span class="field-error">{{ 'La plantilla es obligatoria.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha">Fecha <span class="required">*</span></label>
+        <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
         <input id="fecha" type="date" formControlName="fecha"
           [class.invalid]="f.fecha.invalid && f.fecha.touched" />
         @if (f.fecha.invalid && f.fecha.touched) {
-          <span class="field-error">La fecha es obligatoria.</span>
+          <span class="field-error">{{ 'La fecha es obligatoria.' | t }}</span>
         }
       </div>
 
@@ -242,7 +242,7 @@
     </div>
 
     <div class="sgc-field">
-      <label for="nivel_combustible">Nivel de combustible</label>
+      <label for="nivel_combustible">{{ 'Nivel de combustible' | t }}</label>
       <select id="nivel_combustible" formControlName="nivel_combustible">
         <option [ngValue]="null">—</option>
         @for (n of NIVELES; track n) { <option [value]="n">{{ n }}</option> }
@@ -286,7 +286,7 @@
             <div class="item-row" [class.item-row--alert]="it.es_critico && getRespuesta(it.id) === 'no'">
               <div class="item-row__label">
                 <span>@if (it.numero) { <b class="cl-num">{{ it.numero }}</b> } {{ it.etiqueta }}</span>
-                @if (it.es_critico) { <span class="cl-critico" title="Ítem crítico">● crítico</span> }
+                @if (it.es_critico) { <span class="cl-critico" title="{{ 'Ítem crítico' | t }}">{{ '● crítico' | t }}</span> }
                 @if (confianzaDeItem(it.id); as conf) {
                   <span class="sgc-badge sgc-badge--{{ conf < 0.70 ? 'warning' : 'success' }} cl-badge-gap">
                     {{ (conf < 0.70 ? '¿seguro?' : 'entendido') | t }}
@@ -316,16 +316,16 @@
                   [attr.aria-invalid]="comentarioRequerido(it.id)"
                   [attr.aria-label]="'Comentario para ' + it.etiqueta" />
                 @if (comentarioRequerido(it.id)) {
-                  <span class="cl-coment-hint">Explica qué pasó con este vehículo (obligatorio en hallazgos críticos).</span>
+                  <span class="cl-coment-hint">{{ 'Explica qué pasó con este vehículo (obligatorio en hallazgos críticos).' | t }}</span>
                 }
               </div>
 
               <!-- Foto por ítem (opcional) — paridad app de campo -->
               @if (slotPreview(itemSlot(it.orden)); as prev) {
                 <div class="cl-item-foto-edit">
-                  <img [src]="prev" alt="Foto del ítem" />
+                  <img [src]="prev" alt="{{ 'Foto del ítem' | t }}" />
                   <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(itemSlot(it.orden))"
-                    aria-label="Quitar foto del ítem"><app-icon name="x" [size]="16" /></button>
+                    aria-label="{{ 'Quitar foto del ítem' | t }}"><app-icon name="x" [size]="16" /></button>
                 </div>
               } @else {
                 <label class="cl-foto-add" [attr.title]="'Foto para ' + it.etiqueta">
@@ -343,7 +343,7 @@
     <!-- Fotos del vehículo (opcional) — paridad app de campo. Z11: etiquetas por
          zona, agrupadas por sección (Exterior / Interior). -->
     <div class="sgc-field">
-      <label>Fotos del vehículo (opcional)</label>
+      <label>{{ 'Fotos del vehículo (opcional)' | t }}</label>
       @for (grupo of fotoSlotsPorGrupo(); track grupo.grupo) {
         <p class="cl-fotos-grupo">{{ grupo.grupo }}</p>
         <div class="cl-fotos-slots">
@@ -369,7 +369,7 @@
 
     <!-- Firma del conductor (opcional) -->
     <div class="sgc-field">
-      <label>Firma del conductor (opcional)</label>
+      <label>{{ 'Firma del conductor (opcional)' | t }}</label>
       <app-signature-pad #firmaPad ariaLabel="Firma del conductor" />
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaPad.clear()">
         Limpiar firma
@@ -377,9 +377,9 @@
     </div>
 
     <div class="sgc-field">
-      <label for="observaciones">Observaciones</label>
+      <label for="observaciones">{{ 'Observaciones' | t }}</label>
       <textarea id="observaciones" formControlName="observaciones" rows="2"
-        placeholder="Observaciones generales del checklist…"></textarea>
+        placeholder="{{ 'Observaciones generales del checklist…' | t }}"></textarea>
     </div>
 
     @if (saveError()) {
@@ -392,7 +392,7 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
@@ -421,11 +421,11 @@
       <!-- Tarjetas -->
       <div class="cl-cards">
         <div class="cl-card">
-          <span class="cl-card__label">Kilometraje</span>
+          <span class="cl-card__label">{{ 'Kilometraje' | t }}</span>
           <span class="cl-card__value">{{ c.kilometraje != null ? (c.kilometraje | number:'1.0-0') + ' km' : '—' }}</span>
         </div>
         <div class="cl-card">
-          <span class="cl-card__label">Mantenimiento</span>
+          <span class="cl-card__label">{{ 'Mantenimiento' | t }}</span>
           <span class="cl-card__value">
             <span class="sgc-badge sgc-badge--{{ alertaMantMeta(c.alerta_mantenimiento).badge }}">{{ alertaMantMeta(c.alerta_mantenimiento).label }}</span>
           </span>
@@ -434,36 +434,36 @@
           }
         </div>
         <div class="cl-card">
-          <span class="cl-card__label">Checklist</span>
+          <span class="cl-card__label">{{ 'Checklist' | t }}</span>
           <span class="cl-card__value">{{ hallazgos().length }} hallazgo(s)</span>
           <span class="cl-card__hint">{{ (c.respuestas?.length ?? 0) }} ítems evaluados</span>
         </div>
         <div class="cl-card">
-          <span class="cl-card__label">Combustible</span>
+          <span class="cl-card__label">{{ 'Combustible' | t }}</span>
           <span class="cl-card__value">{{ c.nivel_combustible ?? '—' }}</span>
         </div>
       </div>
 
       <!-- Datos -->
-      <h4 class="cl-section-title">Datos del chofer y vehículo</h4>
+      <h4 class="cl-section-title">{{ 'Datos del chofer y vehículo' | t }}</h4>
       <dl class="cl-meta">
-        <div><dt>Conductor</dt><dd>{{ c.conductor?.nombre ?? '—' }}</dd></div>
-        <div><dt>Licencia</dt><dd>
+        <div><dt>{{ 'Conductor' | t }}</dt><dd>{{ c.conductor?.nombre ?? '—' }}</dd></div>
+        <div><dt>{{ 'Licencia' | t }}</dt><dd>
           @if (c.conductor?.licencia_numero || c.conductor?.licencia_tipo) {
             {{ c.conductor?.licencia_tipo }} {{ c.conductor?.licencia_numero }}
             @if (c.conductor?.licencia_vencimiento) { · vence {{ formatFecha(c.conductor!.licencia_vencimiento!) }} }
           } @else { — }
         </dd></div>
-        <div><dt>Autorizado</dt><dd>{{ c.conductor?.tipo_vehiculo_autorizado ?? '—' }}</dd></div>
-        <div><dt>Tipo inspección</dt><dd>{{ getTipoLabel(c.tipo) }}</dd></div>
-        <div><dt>Matrícula</dt><dd>{{ c.vehiculo?.vencimiento_matricula ? formatFecha(c.vehiculo!.vencimiento_matricula!) : '—' }}</dd></div>
-        <div><dt>Seguro</dt><dd>{{ c.vehiculo?.vencimiento_seguro ? formatFecha(c.vehiculo!.vencimiento_seguro!) : '—' }}</dd></div>
+        <div><dt>{{ 'Autorizado' | t }}</dt><dd>{{ c.conductor?.tipo_vehiculo_autorizado ?? '—' }}</dd></div>
+        <div><dt>{{ 'Tipo inspección' | t }}</dt><dd>{{ getTipoLabel(c.tipo) }}</dd></div>
+        <div><dt>{{ 'Matrícula' | t }}</dt><dd>{{ c.vehiculo?.vencimiento_matricula ? formatFecha(c.vehiculo!.vencimiento_matricula!) : '—' }}</dd></div>
+        <div><dt>{{ 'Seguro' | t }}</dt><dd>{{ c.vehiculo?.vencimiento_seguro ? formatFecha(c.vehiculo!.vencimiento_seguro!) : '—' }}</dd></div>
       </dl>
 
       @if (c.observaciones) { <p class="cl-obs">“{{ c.observaciones }}”</p> }
 
       <!-- Acción automática -->
-      <h4 class="cl-section-title">Acción automática</h4>
+      <h4 class="cl-section-title">{{ 'Acción automática' | t }}</h4>
       <div class="cl-accion cl-accion--{{ resultadoMeta(c).badge }}">
         @switch (resultadoMeta(c).label) {
           @case ('Bloqueado') { Vehículo fuera de servicio hasta corrección. Notificación inmediata a mantenimiento y supervisor. }
@@ -482,10 +482,10 @@
             <div class="item-row item-row--read" [class.item-row--alert]="r.es_critico">
               <div class="item-row__label">
                 <span>{{ r.etiqueta }}</span>
-                @if (r.es_critico) { <span class="cl-critico">● crítico</span> }
+                @if (r.es_critico) { <span class="cl-critico">{{ '● crítico' | t }}</span> }
                 @if (r.es_critico) {
                   <span class="cl-coment-critico">
-                    <b>Qué pasó:</b> {{ r.comentario || 'Sin explicación registrada.' }}
+                    <b>{{ 'Qué pasó:' | t }}</b> {{ r.comentario || 'Sin explicación registrada.' }}
                   </span>
                 } @else if (r.comentario) {
                   <span class="cl-coment-read">{{ r.comentario }}</span>
@@ -494,7 +494,7 @@
                   <div class="cl-item-fotos">
                     @for (u of fotosDeItem(r.orden); track u) {
                       <a [href]="u" target="_blank" rel="noopener">
-                        <img [src]="u" alt="Foto del hallazgo" loading="lazy" />
+                        <img [src]="u" alt="{{ 'Foto del hallazgo' | t }}" loading="lazy" />
                       </a>
                     }
                   </div>
@@ -503,7 +503,7 @@
                 @if (getRespuestaFoto(r.id); as rf) {
                   <div class="cl-item-fotos">
                     <a [href]="rf" target="_blank" rel="noopener">
-                      <img [src]="rf" alt="Foto de la falla" loading="lazy" />
+                      <img [src]="rf" alt="{{ 'Foto de la falla' | t }}" loading="lazy" />
                     </a>
                   </div>
                 }
@@ -512,36 +512,36 @@
                 }
                 @if (r.transcripcion) { <span class="cl-coment-read">“{{ r.transcripcion }}”</span> }
               </div>
-              <span class="sgc-badge sgc-badge--danger">NO</span>
+              <span class="sgc-badge sgc-badge--danger">{{ 'NO' | t }}</span>
             </div>
           }
         </div>
       }
 
       <!-- Respuestas completas -->
-      <h4 class="cl-section-title">Detalle del checklist</h4>
+      <h4 class="cl-section-title">{{ 'Detalle del checklist' | t }}</h4>
       <div class="cl-respuestas">
         @for (r of c.respuestas; track r.id) {
           <div class="item-row item-row--read" [class.item-row--alert]="r.es_critico && r.respuesta === 'no'">
             <div class="item-row__label">
               <span>{{ r.etiqueta }}</span>
-              @if (r.es_critico) { <span class="cl-critico">● crítico</span> }
+              @if (r.es_critico) { <span class="cl-critico">{{ '● crítico' | t }}</span> }
               @if (r.comentario) { <span class="cl-coment-read">{{ r.comentario }}</span> }
             </div>
             <span [class]="'sgc-badge sgc-badge--' + getRespuestaBadge(r.respuesta)">{{ getRespuestaLabel(r.respuesta) }}</span>
           </div>
-        } @empty { <p class="cl-muted">Sin respuestas registradas.</p> }
+        } @empty { <p class="cl-muted">{{ 'Sin respuestas registradas.' | t }}</p> }
       </div>
 
       <!-- Evidencia: 7 slots -->
-      <h4 class="cl-section-title">Evidencia fotográfica</h4>
+      <h4 class="cl-section-title">{{ 'Evidencia fotográfica' | t }}</h4>
       <div class="cl-fotos-grid">
         @for (foto of fotosGrid(); track foto.slot) {
           <div class="cl-foto-slot">
             @if (foto.url) {
               <a [href]="foto.url" target="_blank" rel="noopener"><img [src]="foto.url" [alt]="foto.label" loading="lazy" /></a>
             } @else {
-              <div class="cl-foto-slot__empty">Sin foto</div>
+              <div class="cl-foto-slot__empty">{{ 'Sin foto' | t }}</div>
             }
             <span class="cl-foto-slot__cap">{{ foto.label }}</span>
           </div>
@@ -550,7 +550,7 @@
 
       <!-- Fotos por ítem (X3) — evidencia que sube la app por cada ítem -->
       @if (itemFotosGrupos().length > 0) {
-        <h4 class="cl-section-title">Fotos por ítem</h4>
+        <h4 class="cl-section-title">{{ 'Fotos por ítem' | t }}</h4>
         <div class="cl-item-galeria">
           @for (g of itemFotosGrupos(); track g.orden) {
             <div class="cl-item-grupo">
@@ -569,16 +569,16 @@
 
       <!-- Firma del conductor -->
       @if (firmaUrl()) {
-        <h4 class="cl-section-title">Firma del conductor</h4>
+        <h4 class="cl-section-title">{{ 'Firma del conductor' | t }}</h4>
         <div class="cl-firma">
           <a [href]="firmaUrl()!" target="_blank" rel="noopener">
-            <img [src]="firmaUrl()!" alt="Firma del conductor" loading="lazy" />
+            <img [src]="firmaUrl()!" alt="{{ 'Firma del conductor' | t }}" loading="lazy" />
           </a>
         </div>
       }
 
       <!-- Z23c — notas de voz del checklist -->
-      <h4 class="cl-section-title">Notas de voz</h4>
+      <h4 class="cl-section-title">{{ 'Notas de voz' | t }}</h4>
       <app-audio-notas [entidadTipo]="audioEntidadTipo(c)" [entidadId]="c.id" bucket="flota-documentos" [esPrueba]="c.es_prueba ?? false" />
 
       <div class="cl-report__actions">
@@ -591,14 +591,14 @@
       <!-- Atender -->
       @if (c.tiene_criticos && !c.atendido) {
         <div class="cl-atender">
-          <h4 class="cl-section-title">Atender ítems críticos</h4>
+          <h4 class="cl-section-title">{{ 'Atender ítems críticos' | t }}</h4>
           <textarea
             class="cl-atender__nota"
             rows="3"
-            placeholder="Nota de atención (qué se hizo / disposición del vehículo)…"
+            placeholder="{{ 'Nota de atención (qué se hizo / disposición del vehículo)…' | t }}"
             [value]="notaAtencion()"
             (input)="onNotaInput($any($event.target).value)"
-            aria-label="Nota de atención"
+            aria-label="{{ 'Nota de atención' | t }}"
           ></textarea>
           <button
             type="button"
@@ -611,7 +611,7 @@
         </div>
       } @else if (c.atendido) {
         <div class="cl-atendido">
-          <span class="sgc-badge sgc-badge--success">Atendido</span>
+          <span class="sgc-badge sgc-badge--success">{{ 'Atendido' | t }}</span>
           @if (c.nota_atencion) { <p class="cl-obs">“{{ c.nota_atencion }}”</p> }
         </div>
       }
@@ -620,13 +620,13 @@
       @if (esAdmin()) {
         <div class="cl-prueba">
           @if (c.es_prueba) {
-            <span class="sgc-badge sgc-badge--neutral">Dato de prueba</span>
+            <span class="sgc-badge sgc-badge--neutral">{{ 'Dato de prueba' | t }}</span>
             <div class="cl-prueba__actions">
-              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(c, false)">Quitar prueba</button>
-              <button type="button" class="sgc-btn sgc-btn--ghost cl-prueba__del" (click)="eliminarPrueba(c)">Eliminar</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(c, false)">{{ 'Quitar prueba' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost cl-prueba__del" (click)="eliminarPrueba(c)">{{ 'Eliminar' | t }}</button>
             </div>
           } @else {
-            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(c, true)">Marcar como dato de prueba</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(c, true)">{{ 'Marcar como dato de prueba' | t }}</button>
           }
         </div>
       }

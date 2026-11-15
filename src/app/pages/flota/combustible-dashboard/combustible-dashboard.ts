@@ -15,6 +15,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 type Vista = 'vehiculo' | 'flotilla';
 type EstadoVeh = 'NORMAL' | 'REVISAR' | 'ALERTA';
@@ -34,7 +35,7 @@ const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'o
 
 @Component({
   selector: 'app-combustible-dashboard',
-  imports: [HumanizarEnumPipe, FlotaSubnav, DecimalPipe, RouterLink, BarChart, Skeleton, Icon],
+  imports: [HumanizarEnumPipe, FlotaSubnav, DecimalPipe, RouterLink, BarChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './combustible-dashboard.html',
   styleUrl: './combustible-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

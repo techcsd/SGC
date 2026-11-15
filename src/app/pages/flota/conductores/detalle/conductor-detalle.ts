@@ -55,12 +55,13 @@ import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { formatFechaDisplay, formatFechaHumana, daysUntil, formatearDuracion } from '../../../../../shared/utils/fecha.util';
 import { duracionRealMin } from '../../../../../shared/models/ruta.model';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
 
 const MAX_HIST = 15;
 
 @Component({
   selector: 'app-conductor-detalle',
-  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle, VerFotoDirective],
+  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle, VerFotoDirective, TranslatePipe],
   templateUrl: './conductor-detalle.html',
   styleUrl: './conductor-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

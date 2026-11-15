@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Vehículos en uso</h1>
+    <h1 class="page-title">{{ 'Vehículos en uso' | t }}</h1>
     <span class="page-count">
       {{ enUsoCount() }} en uso · {{ totalCount() }} en flota
     </span>
@@ -54,19 +54,19 @@
     <div class="uso-summary">
       <div class="uso-stat">
         <span class="uso-stat__num">{{ totalCount() }}</span>
-        <span class="uso-stat__lbl">En flota</span>
+        <span class="uso-stat__lbl">{{ 'En flota' | t }}</span>
       </div>
       <div class="uso-stat uso-stat--uso">
         <span class="uso-stat__num">{{ enUsoCount() }}</span>
-        <span class="uso-stat__lbl">En uso</span>
+        <span class="uso-stat__lbl">{{ 'En uso' | t }}</span>
       </div>
       <div class="uso-stat uso-stat--libre">
         <span class="uso-stat__num">{{ libresCount() }}</span>
-        <span class="uso-stat__lbl">Libres</span>
+        <span class="uso-stat__lbl">{{ 'Libres' | t }}</span>
       </div>
       <div class="uso-stat uso-stat--mant">
         <span class="uso-stat__num">{{ mantenimientoCount() }}</span>
-        <span class="uso-stat__lbl">En mantenimiento</span>
+        <span class="uso-stat__lbl">{{ 'En mantenimiento' | t }}</span>
       </div>
     </div>
 
@@ -75,16 +75,16 @@
       <div class="sgc-field filters-bar__search">
         <input
           type="search"
-          placeholder="Buscar por marca, modelo, color o placa…"
+          placeholder="{{ 'Buscar por marca, modelo, color o placa…' | t }}"
           [value]="usoSearch()"
           (input)="onUsoSearch($any($event.target).value)"
-          aria-label="Buscar vehículo"
+          aria-label="{{ 'Buscar vehículo' | t }}"
         />
       </div>
     </div>
 
     @if (vehiculosUso().length === 0) {
-      <p class="resp-muted">No hay vehículos que coincidan.</p>
+      <p class="resp-muted">{{ 'No hay vehículos que coincidan.' | t }}</p>
     } @else {
       <div class="uso-grid">
         @for (v of vehiculosUso(); track v.id) {
@@ -109,10 +109,10 @@
                   </span>
                 }
                 @case ('mantenimiento') {
-                  <span class="uso-pill uso-pill--mant">En mantenimiento</span>
+                  <span class="uso-pill uso-pill--mant">{{ 'En mantenimiento' | t }}</span>
                 }
                 @default {
-                  <span class="uso-pill uso-pill--libre">Libre</span>
+                  <span class="uso-pill uso-pill--libre">{{ 'Libre' | t }}</span>
                 }
               }
 
@@ -129,9 +129,9 @@
 
             <!-- Acciones ── -->
             <div class="uso-card__actions">
-              <a class="sgc-btn sgc-btn--sm" routerLink="/flota/seguimiento">Ver en el mapa</a>
-              <a class="sgc-btn sgc-btn--sm" [routerLink]="['/flota/vehiculos', v.id]">Perfil</a>
-              <button type="button" class="sgc-btn sgc-btn--sm" (click)="verHistorial(v)">Historial</button>
+              <a class="sgc-btn sgc-btn--sm" routerLink="/flota/seguimiento">{{ 'Ver en el mapa' | t }}</a>
+              <a class="sgc-btn sgc-btn--sm" [routerLink]="['/flota/vehiculos', v.id]">{{ 'Perfil' | t }}</a>
+              <button type="button" class="sgc-btn sgc-btn--sm" (click)="verHistorial(v)">{{ 'Historial' | t }}</button>
             </div>
           </article>
         }
@@ -151,10 +151,10 @@
       <div class="sgc-field filters-bar__search">
         <input
           type="search"
-          placeholder="Buscar por placa o conductor…"
+          placeholder="{{ 'Buscar por placa o conductor…' | t }}"
           [value]="searchQuery()"
           (input)="onSearch($any($event.target).value)"
-          aria-label="Buscar responsabilidad"
+          aria-label="{{ 'Buscar responsabilidad' | t }}"
         />
       </div>
       <button
@@ -168,7 +168,7 @@
     </div>
 
     @if (filtered().length === 0) {
-      <p class="resp-muted">No hay registros todavía.</p>
+      <p class="resp-muted">{{ 'No hay registros todavía.' | t }}</p>
     } @else {
       <div class="resp-list">
         @for (e of filtered(); track e.id) {
@@ -184,10 +184,10 @@
                   {{ e.tipo === 'recepcion' ? 'Recepción' : 'Devolución' }}
                 </span>
                 @if (e.estado === 'abierta') {
-                  <span class="resp-badge resp-badge--open">A cargo</span>
+                  <span class="resp-badge resp-badge--open">{{ 'A cargo' | t }}</span>
                 }
                 @if (e.requiere_revision) {
-                  <span class="resp-badge resp-badge--warn"><app-icon name="alert-triangle" [size]="14" /> Revisar</span>
+                  <span class="resp-badge resp-badge--warn"><app-icon name="alert-triangle" [size]="14" /> {{ 'Revisar' | t }}</span>
                 }
               </div>
               <div class="resp-card__meta">
@@ -205,25 +205,25 @@
                 }
 
                 <!-- ── Ubicación (X2): prueba de dónde ocurrió la entrega/recepción ── -->
-                <h4 class="resp-detail-title">Ubicación</h4>
+                <h4 class="resp-detail-title">{{ 'Ubicación' | t }}</h4>
                 <app-mini-mapa [lat]="e.gps_lat" [lng]="e.gps_lng" />
                 @if (e.gps_lat != null) {
                   <p class="resp-muted resp-gps-fecha">Registrada el {{ fechaHora(e.capturado_en) }}</p>
                 }
 
                 @if (e.danos?.length) {
-                  <h4 class="resp-detail-title">Daños reportados</h4>
+                  <h4 class="resp-detail-title">{{ 'Daños reportados' | t }}</h4>
                   <ul class="resp-danos">
                     @for (d of e.danos; track d.id) {
                       <li>
                         <b>{{ d.zona }}</b>
-                        @if (d.es_nuevo) { <span class="resp-badge resp-badge--warn">Nuevo</span> }
+                        @if (d.es_nuevo) { <span class="resp-badge resp-badge--warn">{{ 'Nuevo' | t }}</span> }
                         @if (d.descripcion) { — {{ d.descripcion }} }
                       </li>
                     }
                   </ul>
                 }
-                <h4 class="resp-detail-title">Fotos y firma</h4>
+                <h4 class="resp-detail-title">{{ 'Fotos y firma' | t }}</h4>
                 <div class="resp-fotos">
                   @for (f of fotosDe(e.id); track f.key) {
                     <a class="resp-foto" [href]="f.url" target="_blank" rel="noopener">
@@ -231,13 +231,13 @@
                       <span class="resp-foto__cap">{{ f.key }}</span>
                     </a>
                   } @empty {
-                    <span class="resp-muted">Cargando fotos…</span>
+                    <span class="resp-muted">{{ 'Cargando fotos…' | t }}</span>
                   }
                 </div>
                 @if (firmaDe(e.id); as firma) {
                   <div class="resp-firma">
                     <a class="resp-foto resp-foto--firma" [href]="firma" target="_blank" rel="noopener">
-                      <img [src]="firma" alt="Firma de quien recibe" loading="lazy" />
+                      <img [src]="firma" alt="{{ 'Firma de quien recibe' | t }}" loading="lazy" />
                       <span class="resp-foto__cap">Firma de {{ e.conductor?.nombre ?? 'quien recibe' }}</span>
                     </a>
                   </div>
@@ -252,7 +252,7 @@
 }
 
 <!-- ── Registrar entrega/recepción (paridad web/móvil) ── -->
-<app-form-drawer title="Registrar entrega / recepción" [open]="drawerOpen()" (closed)="cerrarRegistro()">
+<app-form-drawer title="{{ 'Registrar entrega / recepción' | t }}" [open]="drawerOpen()" (closed)="cerrarRegistro()">
   @if (drawerOpen()) {
     <app-registrar-entrega (creada)="onCreada()" (cancelar)="cerrarRegistro()" />
   }

@@ -41,6 +41,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -55,7 +56,7 @@ interface ParadaEdit {
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal, Icon, HighlightItemDirective, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal, Icon, HighlightItemDirective, StaggerDirective, TranslatePipe],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

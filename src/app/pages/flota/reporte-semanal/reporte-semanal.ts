@@ -8,6 +8,7 @@ import { ReporteSemanalFila } from '../../../../shared/models/vehiculo-asignacio
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** Grupo de filas de una semana ISO (para historial + semana actual). */
 interface SemanaGrupo {
@@ -35,7 +36,7 @@ const RESULTADO_LABEL: Record<string, string> = {
 /** R3 — Dashboard de cumplimiento del reporte semanal de vehículos. */
 @Component({
   selector: 'app-reporte-semanal',
-  imports: [DatePipe, DecimalPipe, Skeleton, RouterLink, Icon],
+  imports: [DatePipe, DecimalPipe, Skeleton, RouterLink, Icon, TranslatePipe],
   templateUrl: './reporte-semanal.html',
   styleUrl: './reporte-semanal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

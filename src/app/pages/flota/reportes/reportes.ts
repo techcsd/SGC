@@ -14,6 +14,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface VehiculoReport {
   id: string;
@@ -71,7 +72,7 @@ interface PlacaInfo {
 
 @Component({
   selector: 'app-flota-reportes',
-  imports: [DecimalPipe, TitleCasePipe, Skeleton, Icon],
+  imports: [DecimalPipe, TitleCasePipe, Skeleton, Icon, TranslatePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

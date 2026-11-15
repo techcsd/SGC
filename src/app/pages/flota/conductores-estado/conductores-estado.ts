@@ -12,6 +12,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * S25 — Dashboard "Estado de conductores": KPIs clicables (filtran la tabla),
@@ -21,7 +22,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
  */
 @Component({
   selector: 'app-conductores-estado',
-  imports: [FlotaSubnav, Skeleton],
+  imports: [FlotaSubnav, Skeleton, TranslatePipe],
   templateUrl: './conductores-estado.html',
   styleUrl: './conductores-estado.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

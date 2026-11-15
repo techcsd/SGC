@@ -8,6 +8,7 @@ import { Lightbox } from '../../../../../shared/ui/lightbox/lightbox';
 import { formatearCedula } from '../../../../../shared/utils/cedula.util';
 import { formatearTelefono } from '../../../../../shared/utils/telefono.util';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
 
 /**
  * CK1/CK2 — Flota › Choferes privados › ficha. Cadena de responsabilidad completa de un
@@ -17,7 +18,7 @@ import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../../share
  */
 @Component({
   selector: 'app-chofer-privado-detalle',
-  imports: [DecimalPipe, RouterLink, Skeleton, Icon, Lightbox],
+  imports: [DecimalPipe, RouterLink, Skeleton, Icon, Lightbox, TranslatePipe],
   templateUrl: './chofer-privado-detalle.html',
   styleUrl: './chofer-privado-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

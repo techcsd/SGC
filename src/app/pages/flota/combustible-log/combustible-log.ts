@@ -20,6 +20,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** BQ5 — campos editables (whitelist alineada con el RPC editar_echada). */
 type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' | 'kilometraje' | 'producto';
@@ -31,7 +32,7 @@ type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' 
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon, StaggerDirective],
+  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

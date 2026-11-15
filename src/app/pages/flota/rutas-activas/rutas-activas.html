@@ -2,19 +2,19 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <h1 class="page__title">Rutas activas</h1>
+      <h1 class="page__title">{{ 'Rutas activas' | t }}</h1>
       <p class="page__sub">{{ enRutaCount() }} chofer(es) en ruta ahora</p>
     </div>
-    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">Ver en el mapa →</a>
+    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">{{ 'Ver en el mapa →' | t }}</a>
   </header>
 
   <div class="tabs" role="tablist">
-    <button class="tabs__tab" [class.tabs__tab--active]="tab() === 'activas'" (click)="setTab('activas')" role="tab" [attr.aria-selected]="tab() === 'activas'">Activas</button>
-    <button class="tabs__tab" [class.tabs__tab--active]="tab() === 'historico'" (click)="setTab('historico')" role="tab" [attr.aria-selected]="tab() === 'historico'">Histórico</button>
+    <button class="tabs__tab" [class.tabs__tab--active]="tab() === 'activas'" (click)="setTab('activas')" role="tab" [attr.aria-selected]="tab() === 'activas'">{{ 'Activas' | t }}</button>
+    <button class="tabs__tab" [class.tabs__tab--active]="tab() === 'historico'" (click)="setTab('historico')" role="tab" [attr.aria-selected]="tab() === 'historico'">{{ 'Histórico' | t }}</button>
   </div>
 
   @if (loading()) {
-    <p class="page__loading">Cargando…</p>
+    <p class="page__loading">{{ 'Cargando…' | t }}</p>
   } @else if (error()) {
     <p class="page__error">{{ error() }}</p>
   } @else if (tab() === 'activas') {
@@ -25,19 +25,19 @@
       </button>
       @if (diagOpen()) {
         @if (diagLoading()) {
-          <p class="page__loading">Cargando diagnóstico…</p>
+          <p class="page__loading">{{ 'Cargando diagnóstico…' | t }}</p>
         } @else if (diag().length === 0) {
-          <p class="page__empty">Sin datos de ingesta recientes (últimas 48 h).</p>
+          <p class="page__empty">{{ 'Sin datos de ingesta recientes (últimas 48 h).' | t }}</p>
         } @else {
           <div class="table-scroll">
-            <table class="data-table" aria-label="Diagnóstico de rastreo">
+            <table class="data-table" aria-label="{{ 'Diagnóstico de rastreo' | t }}">
               <thead>
                 <tr>
-                  <th>Chofer</th>
-                  <th class="text-right">Recibidos</th>
-                  <th class="text-right">Insertados</th>
-                  <th class="text-right">Descartados</th>
-                  <th>Última posición</th>
+                  <th>{{ 'Chofer' | t }}</th>
+                  <th class="text-right">{{ 'Recibidos' | t }}</th>
+                  <th class="text-right">{{ 'Insertados' | t }}</th>
+                  <th class="text-right">{{ 'Descartados' | t }}</th>
+                  <th>{{ 'Última posición' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -53,14 +53,14 @@
               </tbody>
             </table>
           </div>
-          <p class="diag__hint">Recibidos vs insertados revela rechazos (precisión/salto/sin-coord). "Última posición" muy vieja = el servicio de captura no está enviando.</p>
+          <p class="diag__hint">{{ 'Recibidos vs insertados revela rechazos (precisión/salto/sin-coord). "Última posición" muy vieja = el servicio de captura no está enviando.' | t }}</p>
         }
       }
     </div>
 
     <!-- ACTIVAS: por chofer -->
     @if (choferes().length === 0) {
-      <p class="page__empty">No hay choferes registrados.</p>
+      <p class="page__empty">{{ 'No hay choferes registrados.' | t }}</p>
     } @else {
       <div class="chofer-grid">
         @for (c of choferes(); track c.usuario_id) {
@@ -86,14 +86,14 @@
                 </div>
               </div>
             } @else {
-              <p class="chofer-card__sin-ruta">Sin ruta activa</p>
+              <p class="chofer-card__sin-ruta">{{ 'Sin ruta activa' | t }}</p>
             }
 
             <div class="chofer-card__foot">
               <span class="chofer-card__pos" [class.chofer-card__pos--off]="!c.posicion">
                 <app-icon name="map-pin" [size]="14" /> {{ c.posicion ? hace(c.posicion.capturado_en) : 'sin posición' }}
               </span>
-              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">Ver trayecto</a>
+              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">{{ 'Ver trayecto' | t }}</a>
             </div>
           </article>
         }
@@ -102,44 +102,44 @@
   } @else {
     <!-- HISTÓRICO -->
     <div class="filters-bar">
-      <select [value]="fChofer()" (change)="fChofer.set($any($event.target).value)" aria-label="Chofer">
+      <select [value]="fChofer()" (change)="fChofer.set($any($event.target).value)" aria-label="{{ 'Chofer' | t }}">
         <option value="">Todos los choferes</option>
         @for (c of choferesHist(); track c) { <option [value]="c">{{ c }}</option> }
       </select>
-      <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="Obra">
+      <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="{{ 'Obra' | t }}">
         <option value="">Todas las obras</option>
         @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
       </select>
-      <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="Estado">
+      <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="{{ 'Estado' | t }}">
         <option value="">Todos los estados</option>
         <option value="planificada">Planificada</option>
         <option value="en_curso">En curso</option>
         <option value="completada">Completada</option>
         <option value="cancelada">Cancelada</option>
       </select>
-      <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" title="Desde" />
-      <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" title="Hasta" />
+      <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="{{ 'Desde' | t }}" title="{{ 'Desde' | t }}" />
+      <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="{{ 'Hasta' | t }}" title="{{ 'Hasta' | t }}" />
       @if (hasHistFilters()) {
-        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="clearHistFilters()">Limpiar</button>
+        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="clearHistFilters()">{{ 'Limpiar' | t }}</button>
       }
     </div>
 
     @if (historicoFiltrado().length === 0) {
-      <p class="page__empty">No hay rutas con esos filtros.</p>
+      <p class="page__empty">{{ 'No hay rutas con esos filtros.' | t }}</p>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Histórico de rutas">
+        <table class="data-table" aria-label="{{ 'Histórico de rutas' | t }}">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Chofer</th>
-              <th>Trayecto</th>
-              <th>Obra</th>
-              <th>H. Inicio</th>
-              <th>H. Fin</th>
+              <th>{{ 'Fecha' | t }}</th>
+              <th>{{ 'Chofer' | t }}</th>
+              <th>{{ 'Trayecto' | t }}</th>
+              <th>{{ 'Obra' | t }}</th>
+              <th>{{ 'H. Inicio' | t }}</th>
+              <th>{{ 'H. Fin' | t }}</th>
               <th class="text-right">Km</th>
-              <th>Duración</th>
-              <th>Estado</th>
+              <th>{{ 'Duración' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
             </tr>
           </thead>
           <tbody>

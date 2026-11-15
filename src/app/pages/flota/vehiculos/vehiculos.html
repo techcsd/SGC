@@ -1,8 +1,8 @@
 <!-- Header -->
 <div class="flota-vehiculos__header">
   <div class="flota-vehiculos__title">
-    <h1>Flota de Vehículos</h1>
-    <p>Gestiona los vehículos y maquinaria de la empresa</p>
+    <h1>{{ 'Flota de Vehículos' | t }}</h1>
+    <p>{{ 'Gestiona los vehículos y maquinaria de la empresa' | t }}</p>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="vehiculos" [rows]="filtered()" [allRows]="vehiculos()"
@@ -10,11 +10,11 @@
     @if (puedeGestionar()) {
       <!-- DB3 — lector IA de documentos en lote (seguros/matrículas/marbetes renovados) -->
       <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos/cargar-documentos"
-         title="Subir el PDF o las fotos de los documentos renovados: la IA los lee y los aplica a cada vehículo">Cargar documentos</a>
+         title="{{ 'Subir el PDF o las fotos de los documentos renovados: la IA los lee y los aplica a cada vehículo' | t }}">{{ 'Cargar documentos' | t }}</a>
       <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos/importar"
-         title="Importar vehículos desde una plantilla de Excel (o desde Odoo)">Importar</a>
+         title="{{ 'Importar vehículos desde una plantilla de Excel (o desde Odoo)' | t }}">{{ 'Importar' | t }}</a>
       <!-- CE12 — carga masiva de especificación de combustible (placa, esperado, mín, máx, unidad) -->
-      <label class="sgc-btn sgc-btn--ghost" title="Carga masiva de rendimiento por placa (Excel)">
+      <label class="sgc-btn sgc-btn--ghost" title="{{ 'Carga masiva de rendimiento por placa (Excel)' | t }}">
         {{ importandoSpecs() ? 'Importando…' : 'Importar rendimientos' }}
         <input type="file" accept=".xlsx,.xls,.csv" hidden [disabled]="importandoSpecs()" (change)="onImportSpecs($event)" />
       </label>
@@ -34,16 +34,16 @@
     <input
       class="flota-vehiculos__search"
       type="search"
-      placeholder="Buscar por placa, marca o modelo..."
+      placeholder="{{ 'Buscar por placa, marca o modelo...' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar vehículos"
+      aria-label="{{ 'Buscar vehículos' | t }}"
     />
     <select
       class="flota-vehiculos__select"
       [value]="selectedTipo()"
       (change)="onTipoChange($any($event.target).value)"
-      aria-label="Filtrar por tipo"
+      aria-label="{{ 'Filtrar por tipo' | t }}"
     >
       <option value="">Todos los tipos</option>
       @for (t of TIPOS; track t.value) {
@@ -54,7 +54,7 @@
       class="flota-vehiculos__select"
       [value]="selectedEstado()"
       (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
       <option value="">Todos los estados</option>
       @for (e of ESTADOS; track e.value) {
@@ -66,7 +66,7 @@
       class="flota-vehiculos__select"
       [value]="selectedUso()"
       (change)="onUsoChange($any($event.target).value)"
-      aria-label="Filtrar por uso"
+      aria-label="{{ 'Filtrar por uso' | t }}"
     >
       <option value="">Obra y oficina</option>
       @for (u of USOS; track u.value) {
@@ -105,7 +105,7 @@
         <path d="M16 8h4l3 6v4h-7V8z"/>
         <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
       </svg>
-      <p>No hay vehículos registrados</p>
+      <p>{{ 'No hay vehículos registrados' | t }}</p>
       @if (puedeGestionar()) {
         <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
           Agregar primer vehículo
@@ -130,7 +130,7 @@
             </div>
             <div class="flota-vehiculos__card-badges">
               @if (v.es_prueba) {
-                <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span>
               }
               <!-- AA17 — badge de uso obra/oficina -->
               <span class="sgc-badge sgc-badge--info">{{ usoLabel(v.uso) }}</span>
@@ -172,12 +172,12 @@
             </div>
             @if (v.capacidad_valor != null) {
               <div class="flota-vehiculos__stat">
-                <span class="flota-vehiculos__stat-label">Capacidad</span>
+                <span class="flota-vehiculos__stat-label">{{ 'Capacidad' | t }}</span>
                 <span class="flota-vehiculos__stat-value">{{ v.capacidad_valor }} {{ v.capacidad_unidad }}</span>
               </div>
             } @else if (v.capacidad_carga) {
               <div class="flota-vehiculos__stat">
-                <span class="flota-vehiculos__stat-label">Capacidad</span>
+                <span class="flota-vehiculos__stat-label">{{ 'Capacidad' | t }}</span>
                 <span class="flota-vehiculos__stat-value">{{ v.capacidad_carga }}</span>
               </div>
             }
@@ -240,7 +240,7 @@
                 class="flota-vehiculos__delete-prueba"
                 type="button"
                 (click)="eliminarPrueba(v)"
-                title="Eliminar dato de prueba"
+                title="{{ 'Eliminar dato de prueba' | t }}"
                 [attr.aria-label]="'Eliminar dato de prueba ' + v.placa"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -272,74 +272,74 @@
       <div class="sgc-field">
         <label for="placa">Placa
           @if (!placaOpcional()) { <span class="required" aria-hidden="true">*</span> }
-          @else { <span class="sgc-field__opt">(opcional)</span> }
+          @else { <span class="sgc-field__opt">{{ '(opcional)' | t }}</span> }
         </label>
         <input id="placa" type="text" formControlName="placa"
           [class.invalid]="f.placa.invalid && f.placa.touched"
           [placeholder]="placaOpcional() ? 'Maquinaria sin placa — usa VIN / Serial' : 'Ej: A123BC'"
           [attr.aria-required]="!placaOpcional()" style="text-transform:uppercase" />
         @if (f.placa.invalid && f.placa.touched) {
-          <span class="field-error" role="alert">La placa es requerida.</span>
+          <span class="field-error" role="alert">{{ 'La placa es requerida.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="anio">Año <span class="required" aria-hidden="true">*</span></label>
+        <label for="anio">{{ 'Año' | t }} <span class="required" aria-hidden="true">*</span></label>
         <input id="anio" type="number" formControlName="anio"
           [class.invalid]="f.anio.invalid && f.anio.touched" aria-required="true" />
         @if (f.anio.invalid && f.anio.touched) {
-          <span class="field-error" role="alert">Año inválido.</span>
+          <span class="field-error" role="alert">{{ 'Año inválido.' | t }}</span>
         }
       </div>
     </div>
 
     <!-- V1 / AC14 — VIN o número de serial (maquinaria pesada usa serial) -->
     <div class="sgc-field">
-      <label for="vin">VIN / Serial</label>
+      <label for="vin">{{ 'VIN / Serial' | t }}</label>
       <input id="vin" type="text" formControlName="vin" maxlength="17"
-        placeholder="VIN o número de serial del equipo" style="text-transform:uppercase"
+        placeholder="{{ 'VIN o número de serial del equipo' | t }}" style="text-transform:uppercase"
         [class.invalid]="f.vin.invalid && f.vin.touched" />
-      <small class="sgc-field__hint">Identificador único del vehículo o maquinaria (hasta 17 caracteres). En equipos sin placa (telehandler, excavadora…) es su número de serial.</small>
+      <small class="sgc-field__hint">{{ 'Identificador único del vehículo o maquinaria (hasta 17 caracteres). En equipos sin placa (telehandler, excavadora…) es su número de serial.' | t }}</small>
       @if (f.vin.invalid && f.vin.touched) {
-        <span class="field-error" role="alert">El VIN / serial no debe exceder 17 caracteres.</span>
+        <span class="field-error" role="alert">{{ 'El VIN / serial no debe exceder 17 caracteres.' | t }}</span>
       }
     </div>
 
     <!-- BV2 — alias legible del vehículo (Eduardo: "por placa no sé cuál es cuál") -->
     <div class="sgc-field">
-      <label for="alias">Nombre / Alias</label>
+      <label for="alias">{{ 'Nombre / Alias' | t }}</label>
       <input id="alias" type="text" formControlName="alias" maxlength="60"
-        placeholder="Ej. Camión Raykler, Suburban blanca…"
+        placeholder="{{ 'Ej. Camión Raykler, Suburban blanca…' | t }}"
         [class.invalid]="f.alias.invalid && f.alias.touched" />
-      <small class="sgc-field__hint">Nombre corto con el que se reconoce el vehículo. Se muestra junto a la placa en resúmenes y selectores. Opcional.</small>
+      <small class="sgc-field__hint">{{ 'Nombre corto con el que se reconoce el vehículo. Se muestra junto a la placa en resúmenes y selectores. Opcional.' | t }}</small>
       @if (f.alias.invalid && f.alias.touched) {
-        <span class="field-error" role="alert">El alias no debe exceder 60 caracteres.</span>
+        <span class="field-error" role="alert">{{ 'El alias no debe exceder 60 caracteres.' | t }}</span>
       }
     </div>
 
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="marca">Marca <span class="required" aria-hidden="true">*</span></label>
+        <label for="marca">{{ 'Marca' | t }} <span class="required" aria-hidden="true">*</span></label>
         <input id="marca" type="text" formControlName="marca"
           [class.invalid]="f.marca.invalid && f.marca.touched" aria-required="true" />
         @if (f.marca.invalid && f.marca.touched) {
-          <span class="field-error" role="alert">La marca es requerida.</span>
+          <span class="field-error" role="alert">{{ 'La marca es requerida.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="modelo">Modelo <span class="required" aria-hidden="true">*</span></label>
+        <label for="modelo">{{ 'Modelo' | t }} <span class="required" aria-hidden="true">*</span></label>
         <input id="modelo" type="text" formControlName="modelo"
           [class.invalid]="f.modelo.invalid && f.modelo.touched" aria-required="true" />
         @if (f.modelo.invalid && f.modelo.touched) {
-          <span class="field-error" role="alert">El modelo es requerido.</span>
+          <span class="field-error" role="alert">{{ 'El modelo es requerido.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="tipo">Tipo <span class="required" aria-hidden="true">*</span></label>
+        <label for="tipo">{{ 'Tipo' | t }} <span class="required" aria-hidden="true">*</span></label>
         <select id="tipo" formControlName="tipo" aria-required="true">
           @for (t of TIPOS; track t.value) {
             <option [value]="t.value">{{ t.label }}</option>
@@ -348,7 +348,7 @@
       </div>
 
       <div class="sgc-field">
-        <label for="estado">Estado <span class="required" aria-hidden="true">*</span></label>
+        <label for="estado">{{ 'Estado' | t }} <span class="required" aria-hidden="true">*</span></label>
         <select id="estado" formControlName="estado" aria-required="true">
           @for (e of ESTADOS; track e.value) {
             <option [value]="e.value">{{ e.label }}</option>
@@ -359,31 +359,31 @@
 
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="uso">Uso <span class="required" aria-hidden="true">*</span></label>
+        <label for="uso">{{ 'Uso' | t }} <span class="required" aria-hidden="true">*</span></label>
         <select id="uso" formControlName="uso" aria-required="true">
           @for (u of USOS; track u.value) {
             <option [value]="u.value">{{ u.label }}</option>
           }
         </select>
-        <small class="sgc-field__hint">Obra usa el uso de vehículo completo; Oficina, uno reducido.</small>
+        <small class="sgc-field__hint">{{ 'Obra usa el uso de vehículo completo; Oficina, uno reducido.' | t }}</small>
       </div>
 
       <!-- AA18.3 — unidad del odómetro: km u horas (horómetro). -->
       <div class="sgc-field">
-        <label for="medida_uso">Medida de uso <span class="required" aria-hidden="true">*</span></label>
+        <label for="medida_uso">{{ 'Medida de uso' | t }} <span class="required" aria-hidden="true">*</span></label>
         <select id="medida_uso" formControlName="medida_uso" aria-required="true">
           @for (m of MEDIDAS_USO; track m.value) {
             <option [value]="m.value">{{ m.label }}</option>
           }
         </select>
-        <small class="sgc-field__hint">Maquinaria como el Telehandler se mide por horas de uso.</small>
+        <small class="sgc-field__hint">{{ 'Maquinaria como el Telehandler se mide por horas de uso.' | t }}</small>
       </div>
     </div>
 
     <div class="flota-vehiculos__form-row">
       <!-- AA18.2 — color como select + "Otro" → input manual. -->
       <div class="sgc-field">
-        <label for="colorSel">Color</label>
+        <label for="colorSel">{{ 'Color' | t }}</label>
         <select id="colorSel" formControlName="colorSel">
           <option [ngValue]="null">—</option>
           @for (c of COLORES; track c) {
@@ -392,7 +392,7 @@
           <option value="Otro">Otro…</option>
         </select>
         @if (colorEsOtro()) {
-          <input type="text" formControlName="colorOtro" placeholder="Especifica el color" class="flota-vehiculos__otro-input" />
+          <input type="text" formControlName="colorOtro" placeholder="{{ 'Especifica el color' | t }}" class="flota-vehiculos__otro-input" />
         }
       </div>
 
@@ -405,11 +405,11 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="capacidad_valor">Capacidad de carga</label>
-        <input id="capacidad_valor" type="number" min="0" step="0.01" formControlName="capacidad_valor" placeholder="Ej: 10" />
+        <label for="capacidad_valor">{{ 'Capacidad de carga' | t }}</label>
+        <input id="capacidad_valor" type="number" min="0" step="0.01" formControlName="capacidad_valor" placeholder="{{ 'Ej: 10' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="capacidad_unidad">Unidad</label>
+        <label for="capacidad_unidad">{{ 'Unidad' | t }}</label>
         <select id="capacidad_unidad" formControlName="capacidad_unidad">
           <option [ngValue]="null">—</option>
           @for (u of CAPACIDAD_UNIDADES; track u.value) {
@@ -422,18 +422,18 @@
     <!-- V2 — Matrícula y seguro (números). La foto se sube en el perfil vía Documentos. -->
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="numero_matricula">Nº de matrícula</label>
-        <input id="numero_matricula" type="text" formControlName="numero_matricula" placeholder="Número de matrícula" />
+        <label for="numero_matricula">{{ 'Nº de matrícula' | t }}</label>
+        <input id="numero_matricula" type="text" formControlName="numero_matricula" placeholder="{{ 'Número de matrícula' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="numero_seguro">Nº de seguro (póliza)</label>
-        <input id="numero_seguro" type="text" formControlName="numero_seguro" placeholder="Número de póliza" />
+        <label for="numero_seguro">{{ 'Nº de seguro (póliza)' | t }}</label>
+        <input id="numero_seguro" type="text" formControlName="numero_seguro" placeholder="{{ 'Número de póliza' | t }}" />
       </div>
     </div>
 
     <!-- AA18.4 — aseguradora como select ("Seguros Universal" por default) + "Otro". -->
     <div class="sgc-field">
-      <label for="aseguradoraSel">Compañía aseguradora</label>
+      <label for="aseguradoraSel">{{ 'Compañía aseguradora' | t }}</label>
       <select id="aseguradoraSel" formControlName="aseguradoraSel">
         <option [ngValue]="null">—</option>
         @for (a of ASEGURADORAS; track a) {
@@ -442,19 +442,19 @@
         <option value="Otro">Otro…</option>
       </select>
       @if (aseguradoraEsOtro()) {
-        <input type="text" formControlName="aseguradoraOtro" placeholder="Especifica la aseguradora" class="flota-vehiculos__otro-input" />
+        <input type="text" formControlName="aseguradoraOtro" placeholder="{{ 'Especifica la aseguradora' | t }}" class="flota-vehiculos__otro-input" />
       }
-      <small class="sgc-field__hint">La foto de la matrícula y del seguro se sube desde el perfil del vehículo (Documentos).</small>
+      <small class="sgc-field__hint">{{ 'La foto de la matrícula y del seguro se sube desde el perfil del vehículo (Documentos).' | t }}</small>
     </div>
 
     <!-- Vencimientos + mantenimiento (Flota v2) -->
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="vencimiento_matricula">Vencimiento matrícula</label>
+        <label for="vencimiento_matricula">{{ 'Vencimiento matrícula' | t }}</label>
         <input id="vencimiento_matricula" type="date" formControlName="vencimiento_matricula" />
       </div>
       <div class="sgc-field">
-        <label for="vencimiento_seguro">Vencimiento seguro</label>
+        <label for="vencimiento_seguro">{{ 'Vencimiento seguro' | t }}</label>
         <input id="vencimiento_seguro" type="date" formControlName="vencimiento_seguro" />
       </div>
     </div>
@@ -471,12 +471,12 @@
       <!-- AA18.3 — el intervalo de mantenimiento se pide en km o en horas según la medida. -->
       @if (esHoras()) {
         <div class="sgc-field">
-          <label for="intervalo_mantenimiento_horas">Intervalo mantenimiento (horas)</label>
-          <input id="intervalo_mantenimiento_horas" type="number" min="1" formControlName="intervalo_mantenimiento_horas" placeholder="Ej: 250" />
+          <label for="intervalo_mantenimiento_horas">{{ 'Intervalo mantenimiento (horas)' | t }}</label>
+          <input id="intervalo_mantenimiento_horas" type="number" min="1" formControlName="intervalo_mantenimiento_horas" placeholder="{{ 'Ej: 250' | t }}" />
         </div>
       } @else {
         <div class="sgc-field">
-          <label for="intervalo_mantenimiento_km">Intervalo mantenimiento (km)</label>
+          <label for="intervalo_mantenimiento_km">{{ 'Intervalo mantenimiento (km)' | t }}</label>
           <input id="intervalo_mantenimiento_km" type="number" min="1" formControlName="intervalo_mantenimiento_km" />
         </div>
       }
@@ -484,9 +484,9 @@
 
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="rendimiento_esperado_km_gal">Rendimiento esperado (km/gal)</label>
+        <label for="rendimiento_esperado_km_gal">{{ 'Rendimiento esperado (km/gal)' | t }}</label>
         <input id="rendimiento_esperado_km_gal" type="number" min="0" step="0.1"
-          formControlName="rendimiento_esperado_km_gal" placeholder="Referencia manual para comparar" />
+          formControlName="rendimiento_esperado_km_gal" placeholder="{{ 'Referencia manual para comparar' | t }}" />
       </div>
     </div>
 
@@ -494,7 +494,7 @@
          desde el que se mide el salto de combustible, sin tocar echadas registradas. -->
     @if (editingId() && esAdmin() && !esHoras()) {
       <div class="flota-vehiculos__km-base">
-        <label for="km_base_combustible">Km de la última echada</label>
+        <label for="km_base_combustible">{{ 'Km de la última echada' | t }}</label>
         <p class="flota-vehiculos__km-base-hint">
           Cambia el punto desde el que se mide el salto; no toca echadas registradas.
           @if (kmBaseMaxEchada() != null) { <span>Última echada registrada: {{ kmBaseMaxEchada() | number:'1.0-0' }} km.</span> }
@@ -506,7 +506,7 @@
           </div>
           <div class="sgc-field">
             <input type="text" [value]="kmBaseMotivo()" (input)="kmBaseMotivo.set($any($event.target).value)"
-              placeholder="Motivo del cambio (obligatorio)" maxlength="200" />
+              placeholder="{{ 'Motivo del cambio (obligatorio)' | t }}" maxlength="200" />
           </div>
           <button type="button" class="sgc-btn sgc-btn--secondary" (click)="guardarKmBase()"
             [disabled]="kmBaseSaving() || kmBaseInput() == null || !kmBaseMotivo().trim()">
@@ -518,9 +518,9 @@
     }
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
+      <label for="notas">{{ 'Notas' | t }}</label>
       <textarea id="notas" formControlName="notas" rows="3"
-        placeholder="Observaciones sobre el vehículo..."></textarea>
+        placeholder="{{ 'Observaciones sobre el vehículo...' | t }}"></textarea>
     </div>
 
     <!-- W7 — dato de prueba (solo admin): switch deslizable -->
@@ -531,29 +531,29 @@
           <span class="toggle-switch" aria-hidden="true"></span>
           Dato de prueba
         </label>
-        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+        <small class="sgc-field__hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
       </div>
     }
 
     <!-- Fotos -->
     <div class="sgc-field">
-      <label>Fotos del vehículo</label>
-      <small class="sgc-field__hint">AA19 — usa las flechas para ordenar y <app-icon name="star" [size]="14" /> para elegir la portada (la que sale en las tarjetas y el perfil).</small>
+      <label>{{ 'Fotos del vehículo' | t }}</label>
+      <small class="sgc-field__hint">{{ 'AA19 — usa las flechas para ordenar y' | t }} <app-icon name="star" [size]="14" /> {{ 'para elegir la portada (la que sale en las tarjetas y el perfil).' | t }}</small>
       <div class="fotos-grid">
         @for (path of fotoPaths(); track path; let i = $index) {
           <div class="fotos-thumb" [class.fotos-thumb--portada]="esPortada(path)">
             @if (fotoUrls()[path]) {
-              <img [src]="fotoUrls()[path]" alt="Foto del vehículo" />
+              <img [src]="fotoUrls()[path]" alt="{{ 'Foto del vehículo' | t }}" />
             } @else {
               <span class="fotos-thumb__loading" aria-hidden="true"></span>
             }
             @if (esPortada(path)) {
-              <span class="fotos-thumb__portada-badge" aria-label="Portada"><app-icon name="star" [size]="14" /> Portada</span>
+              <span class="fotos-thumb__portada-badge" aria-label="{{ 'Portada' | t }}"><app-icon name="star" [size]="14" /> {{ 'Portada' | t }}</span>
             }
             <div class="fotos-thumb__actions">
-              <button type="button" (click)="moverFoto(i, -1)" [disabled]="i === 0" aria-label="Mover a la izquierda"><app-icon name="chevron-left" [size]="16" /></button>
-              <button type="button" (click)="usarComoPortada(path)" [class.active]="esPortada(path)" aria-label="Usar como portada" title="Usar como portada"><app-icon name="star" [size]="16" /></button>
-              <button type="button" (click)="moverFoto(i, 1)" [disabled]="i === fotoPaths().length - 1" aria-label="Mover a la derecha"><app-icon name="chevron-right" [size]="16" /></button>
+              <button type="button" (click)="moverFoto(i, -1)" [disabled]="i === 0" aria-label="{{ 'Mover a la izquierda' | t }}"><app-icon name="chevron-left" [size]="16" /></button>
+              <button type="button" (click)="usarComoPortada(path)" [class.active]="esPortada(path)" aria-label="{{ 'Usar como portada' | t }}" title="{{ 'Usar como portada' | t }}"><app-icon name="star" [size]="16" /></button>
+              <button type="button" (click)="moverFoto(i, 1)" [disabled]="i === fotoPaths().length - 1" aria-label="{{ 'Mover a la derecha' | t }}"><app-icon name="chevron-right" [size]="16" /></button>
             </div>
             <button type="button" class="fotos-thumb__remove" (click)="removeExistingFoto(path)"
               aria-label="Quitar foto">&times;</button>
@@ -561,12 +561,12 @@
         }
         @for (p of fotoFiles(); track p.preview; let i = $index) {
           <div class="fotos-thumb fotos-thumb--pending" [class.fotos-thumb--portada]="esPortada(p.preview)">
-            <img [src]="p.preview" alt="Foto pendiente de subir" />
+            <img [src]="p.preview" alt="{{ 'Foto pendiente de subir' | t }}" />
             @if (esPortada(p.preview)) {
-              <span class="fotos-thumb__portada-badge" aria-label="Portada"><app-icon name="star" [size]="14" /> Portada</span>
+              <span class="fotos-thumb__portada-badge" aria-label="{{ 'Portada' | t }}"><app-icon name="star" [size]="14" /> {{ 'Portada' | t }}</span>
             }
             <div class="fotos-thumb__actions">
-              <button type="button" (click)="usarComoPortada(p.preview)" [class.active]="esPortada(p.preview)" aria-label="Usar como portada" title="Usar como portada"><app-icon name="star" [size]="16" /></button>
+              <button type="button" (click)="usarComoPortada(p.preview)" [class.active]="esPortada(p.preview)" aria-label="{{ 'Usar como portada' | t }}" title="{{ 'Usar como portada' | t }}"><app-icon name="star" [size]="16" /></button>
             </div>
             <button type="button" class="fotos-thumb__remove" (click)="removePending(i)"
               aria-label="Quitar foto">&times;</button>
@@ -578,7 +578,7 @@
             <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
             <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
           </svg>
-          <span>Agregar</span>
+          <span>{{ 'Agregar' | t }}</span>
         </label>
       </div>
     </div>
@@ -588,7 +588,7 @@
     }
 
     <div class="flota-vehiculos__drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) { Guardando... } @else { Guardar }
       </button>

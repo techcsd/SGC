@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 31%** (3378/10982 literales de 192 pantallas en alcance). **`ht`: 66%**.
+**Alcance `en`: 42%** (4456/10684 literales de 192 pantallas en alcance). **`ht`: 66%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -40,24 +40,6 @@
 | documentos/plantillas | scope | 49 | 0 | 49 | 0% |
 | documentos/ver | scope | 9 | 0 | 9 | 0% |
 | dudas | scope | 15 | 0 | 15 | 0% |
-| flota/accidentes | scope | 56 | 0 | 56 | 0% |
-| flota/avisos | scope | 55 | 0 | 55 | 0% |
-| flota/choferes-privados | scope | 54 | 0 | 54 | 0% |
-| flota/combustible | scope | 223 | 0 | 223 | 0% |
-| flota/combustible-dashboard | scope | 54 | 0 | 54 | 0% |
-| flota/combustible-log | scope | 138 | 0 | 138 | 0% |
-| flota/conciliacion-combustible | scope | 179 | 0 | 179 | 0% |
-| flota/conductores | scope | 195 | 0 | 195 | 0% |
-| flota/conductores-estado | scope | 17 | 0 | 17 | 0% |
-| flota/panel-dia | scope | 24 | 0 | 24 | 0% |
-| flota/recorrido-diario | scope | 14 | 0 | 14 | 0% |
-| flota/rendimiento-vehiculos | scope | 21 | 0 | 21 | 0% |
-| flota/reporte-semanal | scope | 55 | 0 | 55 | 0% |
-| flota/reportes | scope | 46 | 0 | 46 | 0% |
-| flota/responsabilidad | scope | 72 | 0 | 72 | 0% |
-| flota/rutas | scope | 125 | 0 | 125 | 0% |
-| flota/rutas-activas | scope | 46 | 0 | 46 | 0% |
-| flota/seguimiento | scope | 23 | 0 | 23 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
 | incentivos | scope | 184 | 0 | 184 | 0% |
 | legal/aprobaciones | scope | 34 | 0 | 34 | 0% |
@@ -124,24 +106,41 @@
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
-| flota/checklists | scope | 112 | 5 | 107 | 4% |
 | bitacora/nueva | scope | 201 | 17 | 184 | 8% |
 | legal/expedientes | scope | 89 | 7 | 82 | 8% |
 | bitacora/solicitudes-material | scope | 88 | 9 | 79 | 10% |
-| flota/mantenimientos | scope | 120 | 16 | 104 | 13% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
-| flota/vehiculos | scope | 420 | 66 | 354 | 16% |
 | bitacora/cartillas | scope | 87 | 15 | 72 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | bitacora/moldes | scope | 22 | 5 | 17 | 23% |
 | proyectos/personal | scope | 277 | 76 | 201 | 27% |
 | bitacora/orden-trabajo | scope | 92 | 27 | 65 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| flota/choferes-privados | scope | 44 | 22 | 22 | 50% |
+| flota/recorrido-diario | scope | 14 | 7 | 7 | 50% |
+| flota/avisos | scope | 46 | 25 | 21 | 54% |
+| flota/mantenimientos | scope | 93 | 54 | 39 | 58% |
+| flota/checklists | scope | 99 | 60 | 39 | 61% |
+| flota/combustible | scope | 197 | 121 | 76 | 61% |
+| flota/rutas | scope | 98 | 61 | 37 | 62% |
+| flota/reporte-semanal | scope | 54 | 35 | 19 | 65% |
+| flota/vehiculos | scope | 361 | 236 | 125 | 65% |
+| flota/seguimiento | scope | 22 | 15 | 7 | 68% |
+| flota/conciliacion-combustible | scope | 165 | 116 | 49 | 70% |
+| flota/conductores | scope | 165 | 115 | 50 | 70% |
+| flota/responsabilidad | scope | 56 | 39 | 17 | 70% |
+| flota/rutas-activas | scope | 37 | 26 | 11 | 70% |
+| flota/combustible-dashboard | scope | 41 | 29 | 12 | 71% |
+| flota/conductores-estado | scope | 14 | 10 | 4 | 71% |
+| flota/rendimiento-vehiculos | scope | 21 | 15 | 6 | 71% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
+| flota/accidentes | scope | 46 | 33 | 13 | 72% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | flota/transferencias | scope | 13 | 10 | 3 | 77% |
+| flota/panel-dia | scope | 23 | 18 | 5 | 78% |
+| flota/combustible-log | scope | 120 | 95 | 25 | 79% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
@@ -150,6 +149,7 @@
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
+| flota/reportes | scope | 35 | 33 | 2 | 94% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |

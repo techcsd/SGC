@@ -19,6 +19,7 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * S22 — Submódulo "Accidentes": los formularios de choque completos (no solo el
@@ -27,7 +28,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
  */
 @Component({
   selector: 'app-flota-accidentes',
-  imports: [FormDrawer, Skeleton, ReactiveFormsModule, Paginator, Lightbox, AudioNotas, Icon, StaggerDirective],
+  imports: [FormDrawer, Skeleton, ReactiveFormsModule, Paginator, Lightbox, AudioNotas, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './accidentes.html',
   styleUrl: './accidentes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

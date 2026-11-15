@@ -13,6 +13,7 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { formatearCedula } from '../../../../shared/utils/cedula.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * CJ12 — Flota › Choferes privados. Lista los usuarios con rol chofer_privado, sus
@@ -22,7 +23,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
  */
 @Component({
   selector: 'app-choferes-privados',
-  imports: [FormsModule, RouterLink, FlotaSubnav, FormDrawer, Skeleton, Icon, UserPicker],
+  imports: [FormsModule, RouterLink, FlotaSubnav, FormDrawer, Skeleton, Icon, UserPicker, TranslatePipe],
   templateUrl: './choferes-privados.html',
   styleUrl: './choferes-privados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

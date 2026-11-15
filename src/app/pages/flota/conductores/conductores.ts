@@ -45,10 +45,11 @@ import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { formatearCedula } from '../../../../shared/utils/cedula.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 @Component({
   selector: 'app-conductores',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload, StaggerDirective],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload, StaggerDirective, TranslatePipe],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

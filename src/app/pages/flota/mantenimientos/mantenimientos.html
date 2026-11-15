@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Mantenimientos</h1>
+    <h1 class="page-title">{{ 'Mantenimientos' | t }}</h1>
     <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
@@ -64,10 +64,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por vehículo o proveedor…"
+      placeholder="{{ 'Buscar por vehículo o proveedor…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar mantenimientos"
+      aria-label="{{ 'Buscar mantenimientos' | t }}"
     />
   </div>
 
@@ -75,7 +75,7 @@
     <select
       [value]="selectedTipo()"
       (change)="onTipoChange($any($event.target).value)"
-      aria-label="Filtrar por tipo"
+      aria-label="{{ 'Filtrar por tipo' | t }}"
     >
       <option value="">Todos los tipos</option>
       @for (t of MANT_TIPOS; track t.value) {
@@ -88,7 +88,7 @@
     <select
       [value]="selectedEstado()"
       (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
       <option value="">Todos los estados</option>
       @for (e of MANT_ESTADOS; track e.value) {
@@ -146,16 +146,16 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de mantenimientos">
+      <table class="data-table" aria-label="{{ 'Lista de mantenimientos' | t }}">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Vehículo</th>
-            <th>Tipo</th>
-            <th>Estado</th>
-            <th class="text-right">Costo (DOP)</th>
-            <th>Proveedor</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Vehículo' | t }}</th>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-right">{{ 'Costo (DOP)' | t }}</th>
+            <th>{{ 'Proveedor' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
@@ -169,13 +169,13 @@
               <td>
                 <span class="mantenimientos__placa">{{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }}</span>
                 @if (m.es_prueba) {
-                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span>
                 }
               </td>
               <td>
                 <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
                 @if (m.incluye_preventivo) {
-                  <span class="sgc-badge sgc-badge--success" title="También incluyó mantenimiento preventivo">+ prev.</span>
+                  <span class="sgc-badge sgc-badge--success" title="{{ 'También incluyó mantenimiento preventivo' | t }}">{{ '+ prev.' | t }}</span>
                 }
               </td>
               <td>
@@ -197,8 +197,8 @@
                   <div class="mantenimientos__fotos" (click)="$event.stopPropagation()">
                     @for (path of m.fotos; track path) {
                       @if (rowFotoUrl(path); as url) {
-                        <a [href]="url" target="_blank" rel="noopener" class="mantenimientos__foto-thumb" title="Ver foto">
-                          <img [src]="url" alt="Foto del mantenimiento" loading="lazy" />
+                        <a [href]="url" target="_blank" rel="noopener" class="mantenimientos__foto-thumb" title="{{ 'Ver foto' | t }}">
+                          <img [src]="url" alt="{{ 'Foto del mantenimiento' | t }}" loading="lazy" />
                         </a>
                       }
                     }
@@ -225,7 +225,7 @@
                       (click)="completar(m)"
                       [disabled]="completandoId() === m.id"
                       [attr.aria-label]="'Marcar como completado el mantenimiento del ' + m.fecha"
-                      title="Marcar como completado"
+                      title="{{ 'Marcar como completado' | t }}"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="20 6 9 17 4 12"/>
@@ -237,7 +237,7 @@
                     class="action-btn action-btn--edit"
                     (click)="openEdit(m)"
                     [attr.aria-label]="'Editar mantenimiento del ' + m.fecha"
-                    title="Editar"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -251,23 +251,23 @@
                         type="button"
                         class="action-btn"
                         (click)="marcarPrueba(m, true)"
-                        aria-label="Marcar como dato de prueba"
-                        title="Marcar como dato de prueba"
+                        aria-label="{{ 'Marcar como dato de prueba' | t }}"
+                        title="{{ 'Marcar como dato de prueba' | t }}"
                       ><app-icon name="beaker" [size]="16" /></button>
                     } @else {
                       <button
                         type="button"
                         class="action-btn"
                         (click)="marcarPrueba(m, false)"
-                        aria-label="Quitar de datos de prueba"
-                        title="Quitar de datos de prueba"
+                        aria-label="{{ 'Quitar de datos de prueba' | t }}"
+                        title="{{ 'Quitar de datos de prueba' | t }}"
                       ><app-icon name="rotate-ccw" [size]="16" /></button>
                       <button
                         type="button"
                         class="action-btn action-btn--danger"
                         (click)="eliminarPrueba(m)"
-                        aria-label="Eliminar dato de prueba"
-                        title="Eliminar dato de prueba"
+                        aria-label="{{ 'Eliminar dato de prueba' | t }}"
+                        title="{{ 'Eliminar dato de prueba' | t }}"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <polyline points="3 6 5 6 21 6"/>
@@ -297,7 +297,7 @@
             type="button"
             (click)="goToPage(currentPage() - 1)"
             [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
+            aria-label="{{ 'Página anterior' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 18 9 12 15 6"/>
@@ -318,7 +318,7 @@
             type="button"
             (click)="goToPage(currentPage() + 1)"
             [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
+            aria-label="{{ 'Página siguiente' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
@@ -371,7 +371,7 @@
     }
 
     <div class="sgc-field">
-      <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
+      <label for="vehiculo_id">{{ 'Vehículo' | t }} <span class="required">*</span></label>
       <select
         id="vehiculo_id"
         formControlName="vehiculo_id"
@@ -383,13 +383,13 @@
         }
       </select>
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
-        <span class="field-error">El vehículo es obligatorio.</span>
+        <span class="field-error">{{ 'El vehículo es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="tipo">Tipo <span class="required">*</span></label>
+        <label for="tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
         <select
           id="tipo"
           formControlName="tipo"
@@ -402,7 +402,7 @@
       </div>
 
       <div class="sgc-field">
-        <label for="estado">Estado <span class="required">*</span></label>
+        <label for="estado">{{ 'Estado' | t }} <span class="required">*</span></label>
         <select id="estado" formControlName="estado">
           @for (e of MANT_ESTADOS; track e.value) {
             <option [value]="e.value">{{ e.label }}</option>
@@ -423,7 +423,7 @@
     }
 
     <div class="sgc-field">
-      <label for="fecha">Fecha <span class="required">*</span></label>
+      <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
       <input
         id="fecha"
         type="date"
@@ -431,27 +431,27 @@
         [class.invalid]="f.fecha.invalid && f.fecha.touched"
       />
       @if (f.fecha.invalid && f.fecha.touched) {
-        <span class="field-error">La fecha es obligatoria.</span>
+        <span class="field-error">{{ 'La fecha es obligatoria.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="descripcion">Descripción <span class="required">*</span></label>
+      <label for="descripcion">{{ 'Descripción' | t }} <span class="required">*</span></label>
       <textarea
         id="descripcion"
         formControlName="descripcion"
         rows="3"
-        placeholder="Descripción del mantenimiento…"
+        placeholder="{{ 'Descripción del mantenimiento…' | t }}"
         [class.invalid]="f.descripcion.invalid && f.descripcion.touched"
       ></textarea>
       @if (f.descripcion.invalid && f.descripcion.touched) {
-        <span class="field-error">La descripción es obligatoria.</span>
+        <span class="field-error">{{ 'La descripción es obligatoria.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="costo">Costo (DOP)</label>
+        <label for="costo">{{ 'Costo (DOP)' | t }}</label>
         <input id="costo" type="number" formControlName="costo" min="0" step="0.01" placeholder="0.00" />
       </div>
 
@@ -483,10 +483,10 @@
 
     <!-- CH2 — Proveedor / Taller: combobox del maestro (talleres primero) + "Otro". -->
     <div class="sgc-field">
-      <label>Proveedor / Taller</label>
+      <label>{{ 'Proveedor / Taller' | t }}</label>
       <app-filter-select
         label="Proveedor / Taller"
-        placeholder="Selecciona el taller/proveedor"
+        placeholder="{{ 'Selecciona el taller/proveedor' | t }}"
         [options]="proveedorOpciones()"
         [value]="proveedorSel()"
         (valueChange)="onProveedorPick($event)"
@@ -494,7 +494,7 @@
       @if (proveedorSel() === OTRO) {
         <input class="mant-otro-input" type="text" [value]="form.value.proveedor ?? ''"
           (input)="onProveedorOtroTexto($any($event.target).value)"
-          placeholder="Nombre del taller / proveedor" />
+          placeholder="{{ 'Nombre del taller / proveedor' | t }}" />
         @if (esFlotaElevado()) {
           <label class="mant-check">
             <input type="checkbox" [checked]="proveedorAltaTaller()" (change)="proveedorAltaTaller.set($any($event.target).checked)" />
@@ -505,8 +505,8 @@
     </div>
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
+      <label for="notas">{{ 'Notas' | t }}</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="{{ 'Notas adicionales…' | t }}"></textarea>
     </div>
 
     <!-- CG13 — Fotos + documentos (facturas, informes, cotizaciones…) de la reparación -->
@@ -519,7 +519,7 @@
           @for (path of fotoPaths(); track path) {
             <div class="fotos-thumb">
               @if (fotoUrls()[path]) {
-                <img [src]="fotoUrls()[path]" alt="Foto del mantenimiento" />
+                <img [src]="fotoUrls()[path]" alt="{{ 'Foto del mantenimiento' | t }}" />
               } @else {
                 <span class="fotos-thumb__loading" aria-hidden="true"></span>
               }
@@ -600,7 +600,7 @@
     <!-- Z23c — notas de voz (solo en edición: requiere un registro existente) -->
     @if (editingId(); as id) {
       <div class="sgc-field">
-        <label>Notas de voz</label>
+        <label>{{ 'Notas de voz' | t }}</label>
         <app-audio-notas entidadTipo="mantenimiento" [entidadId]="id" bucket="flota-documentos" [esPrueba]="editingEsPrueba()" />
       </div>
     }
@@ -632,7 +632,7 @@
 </app-form-drawer>
 
 <!-- ── AB3 — Detail Drawer (read-only) ── -->
-<app-form-drawer title="Detalle del mantenimiento" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle del mantenimiento' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (selected(); as m) {
     <div class="detail">
       <div class="detail__header">
@@ -644,60 +644,60 @@
           <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
           <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) }}</span>
           @if (m.incluye_preventivo) {
-            <span class="sgc-badge sgc-badge--success" title="También incluyó mantenimiento preventivo">+ prev.</span>
+            <span class="sgc-badge sgc-badge--success" title="{{ 'También incluyó mantenimiento preventivo' | t }}">{{ '+ prev.' | t }}</span>
           }
-          @if (m.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+          @if (m.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
         </div>
       </div>
 
       <div class="detail__grid">
         <div class="detail__item">
-          <span class="detail__label">Tipo de visita</span>
+          <span class="detail__label">{{ 'Tipo de visita' | t }}</span>
           <span class="detail__value detail__value--wrap">{{ getTipoLabel(m.tipo) }}</span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Estado</span>
+          <span class="detail__label">{{ 'Estado' | t }}</span>
           <span class="detail__value detail__value--wrap">{{ getEstadoLabel(m.estado) }}</span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Vehículo</span>
+          <span class="detail__label">{{ 'Vehículo' | t }}</span>
           <span class="detail__value detail__value--wrap">
             {{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }}
           </span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Kilometraje</span>
+          <span class="detail__label">{{ 'Kilometraje' | t }}</span>
           <span class="detail__value">
             {{ m.kilometraje_al_mantenimiento !== null ? (m.kilometraje_al_mantenimiento | number:'1.0-0') + ' km' : '—' }}
           </span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Costo (DOP)</span>
+          <span class="detail__label">{{ 'Costo (DOP)' | t }}</span>
           <span class="detail__value">{{ m.costo !== null ? ('RD$ ' + (m.costo | number:'1.2-2')) : '—' }}</span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Proveedor / Taller</span>
+          <span class="detail__label">{{ 'Proveedor / Taller' | t }}</span>
           <span class="detail__value detail__value--wrap">{{ m.proveedor ?? '—' }}</span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Fecha del mantenimiento</span>
+          <span class="detail__label">{{ 'Fecha del mantenimiento' | t }}</span>
           <span class="detail__value">{{ formatFecha(m.fecha) }}</span>
         </div>
         <div class="detail__item">
-          <span class="detail__label">Registrado</span>
+          <span class="detail__label">{{ 'Registrado' | t }}</span>
           <span class="detail__value">{{ fechaHora(m.created_at) }}</span>
         </div>
         <div class="detail__item detail__item--full">
-          <span class="detail__label">Registrado por</span>
+          <span class="detail__label">{{ 'Registrado por' | t }}</span>
           <span class="detail__value detail__value--wrap">{{ m.creado_por_usuario?.nombre ?? '—' }}</span>
         </div>
         <div class="detail__item detail__item--full">
-          <span class="detail__label">Descripción</span>
+          <span class="detail__label">{{ 'Descripción' | t }}</span>
           <span class="detail__value detail__value--wrap">{{ m.descripcion || '—' }}</span>
         </div>
         @if (m.notas) {
           <div class="detail__item detail__item--full">
-            <span class="detail__label">Notas</span>
+            <span class="detail__label">{{ 'Notas' | t }}</span>
             <span class="detail__value detail__value--wrap">{{ m.notas }}</span>
           </div>
         }
@@ -706,12 +706,12 @@
       <!-- Adjuntos (fotos de la reparación) -->
       @if (m.fotos?.length) {
         <div class="detail__item detail__item--full">
-          <span class="detail__label">Fotos de la reparación</span>
+          <span class="detail__label">{{ 'Fotos de la reparación' | t }}</span>
           <div class="detail__photos">
             @for (path of m.fotos; track path) {
               @if (rowFotoUrl(path); as url) {
-                <a class="detail__photo" [href]="url" target="_blank" rel="noopener" title="Ver foto">
-                  <img [src]="url" alt="Foto del mantenimiento" loading="lazy" />
+                <a class="detail__photo" [href]="url" target="_blank" rel="noopener" title="{{ 'Ver foto' | t }}">
+                  <img [src]="url" alt="{{ 'Foto del mantenimiento' | t }}" loading="lazy" />
                 </a>
               }
             }
@@ -742,8 +742,8 @@
       }
 
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">Cerrar</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="editDesdeDetalle(m)">Editar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">{{ 'Cerrar' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="editDesdeDetalle(m)">{{ 'Editar' | t }}</button>
       </div>
     </div>
   }

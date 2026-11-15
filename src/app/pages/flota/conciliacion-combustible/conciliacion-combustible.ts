@@ -22,6 +22,7 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * T4 — Conciliación de combustible: importa el informe de la estación (Excel/CSV
@@ -31,7 +32,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-conciliacion-combustible',
-  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter, Icon],
+  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter, Icon, TranslatePipe],
   templateUrl: './conciliacion-combustible.html',
   styleUrl: './conciliacion-combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

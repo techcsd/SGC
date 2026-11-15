@@ -19,6 +19,7 @@ import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.mod
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { ErrorState } from '../../../../shared/ui/error-state/error-state';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 type RespTab = 'uso' | 'historial';
 
@@ -37,7 +38,7 @@ interface EstadoUso {
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon, ErrorState],
+  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon, ErrorState, TranslatePipe],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

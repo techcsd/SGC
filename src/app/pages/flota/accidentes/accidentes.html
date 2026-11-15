@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Accidentes</h1>
+    <h1 class="page-title">{{ 'Accidentes' | t }}</h1>
     <span class="page-count">{{ visibles().length }} reportes</span>
   </div>
   <div class="page-header__actions">
@@ -31,14 +31,14 @@
 } @else {
   <div class="table-wrapper sgc-card">
     @if (visibles().length === 0) {
-      <div class="table-empty"><p>No hay accidentes registrados.</p></div>
+      <div class="table-empty"><p>{{ 'No hay accidentes registrados.' | t }}</p></div>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Accidentes">
+        <table class="data-table" aria-label="{{ 'Accidentes' | t }}">
           <thead>
             <tr>
-              <th>Fecha</th><th>Vehículo</th><th>Conductor</th><th>Momento</th>
-              <th class="text-right">Lesionados</th><th>Acta AMET</th>
+              <th>{{ 'Fecha' | t }}</th><th>{{ 'Vehículo' | t }}</th><th>{{ 'Conductor' | t }}</th><th>{{ 'Momento' | t }}</th>
+              <th class="text-right">{{ 'Lesionados' | t }}</th><th>{{ 'Acta AMET' | t }}</th>
             </tr>
           </thead>
           <tbody appStagger>
@@ -49,7 +49,7 @@
                 <td>
                   <span class="ac-placa">{{ a.vehiculo ? idVehiculo(a.vehiculo) : '—' }}</span>
                   @if (a.es_prueba) {
-                    <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                    <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span>
                   }
                 </td>
                 <td>{{ a.conductor?.nombre ?? '—' }}</td>
@@ -58,7 +58,7 @@
                   @if (a.lesionados > 0) { <span class="sgc-badge sgc-badge--danger">{{ a.lesionados }}</span> }
                   @else { 0 }
                 </td>
-                <td>@if (a.reporte_amet_path) { <span class="sgc-badge sgc-badge--info">Sí</span> } @else { — }</td>
+                <td>@if (a.reporte_amet_path) { <span class="sgc-badge sgc-badge--info">{{ 'Sí' | t }}</span> } @else { — }</td>
               </tr>
             }
           </tbody>
@@ -70,10 +70,10 @@
 }
 
 <!-- T12 — Registrar accidente -->
-<app-form-drawer title="Registrar accidente" [open]="createOpen()" (closed)="closeCreate()">
+<app-form-drawer title="{{ 'Registrar accidente' | t }}" [open]="createOpen()" (closed)="closeCreate()">
   <form [formGroup]="form" (ngSubmit)="guardarAccidente()" class="ac-form">
     <div class="sgc-field">
-      <label for="ac-veh">Vehículo <span class="required">*</span></label>
+      <label for="ac-veh">{{ 'Vehículo' | t }} <span class="required">*</span></label>
       <select id="ac-veh" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
         <option [value]="''">Seleccionar vehículo…</option>
         @for (v of vehiculosVisibles(); track v.id) {
@@ -82,7 +82,7 @@
       </select>
     </div>
     <div class="sgc-field">
-      <label for="ac-cond">Conductor</label>
+      <label for="ac-cond">{{ 'Conductor' | t }}</label>
       <select id="ac-cond" formControlName="conductor_id">
         <option [ngValue]="null">— Sin conductor —</option>
         @for (c of conductoresVisibles(); track c.id) {
@@ -92,11 +92,11 @@
     </div>
     <div class="ac-form__row">
       <div class="sgc-field">
-        <label for="ac-fecha">Fecha <span class="required">*</span></label>
+        <label for="ac-fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
         <input id="ac-fecha" type="date" formControlName="fecha" [max]="today" />
       </div>
       <div class="sgc-field">
-        <label for="ac-fase">Momento</label>
+        <label for="ac-fase">{{ 'Momento' | t }}</label>
         <select id="ac-fase" formControlName="fase">
           @for (fase of FASES; track fase.value) {
             <option [value]="fase.value">{{ fase.label }}</option>
@@ -106,33 +106,33 @@
     </div>
     <div class="ac-form__row">
       <div class="sgc-field">
-        <label for="ac-les">Lesionados</label>
+        <label for="ac-les">{{ 'Lesionados' | t }}</label>
         <input id="ac-les" type="number" min="0" formControlName="lesionados" />
       </div>
       <div class="sgc-field">
-        <label for="ac-terc">Tercero involucrado</label>
-        <input id="ac-terc" type="text" formControlName="tercero_involucrado" placeholder="Nombre / vehículo del tercero" />
+        <label for="ac-terc">{{ 'Tercero involucrado' | t }}</label>
+        <input id="ac-terc" type="text" formControlName="tercero_involucrado" placeholder="{{ 'Nombre / vehículo del tercero' | t }}" />
       </div>
     </div>
     <div class="sgc-field">
-      <label for="ac-desc">¿Qué pasó?</label>
-      <textarea id="ac-desc" rows="3" formControlName="descripcion" placeholder="Describe el accidente"></textarea>
+      <label for="ac-desc">{{ '¿Qué pasó?' | t }}</label>
+      <textarea id="ac-desc" rows="3" formControlName="descripcion" placeholder="{{ 'Describe el accidente' | t }}"></textarea>
     </div>
     <div class="sgc-field">
-      <label>Acta AMET (opcional)</label>
+      <label>{{ 'Acta AMET (opcional)' | t }}</label>
       <input type="file" accept="image/*,application/pdf" (change)="onAmetSelected($event)" />
       @if (ametFile()) { <span class="ac-muted">{{ ametFile()!.name }}</span> }
     </div>
     <!-- X3 — fotos del hecho (múltiples) -->
     <div class="sgc-field">
-      <label>Fotos del hecho (opcional)</label>
+      <label>{{ 'Fotos del hecho (opcional)' | t }}</label>
       <input type="file" accept="image/*" multiple (change)="onFotosSelected($event)" />
       @if (fotoPreviews().length) {
         <div class="ac-fotos-grid">
           @for (p of fotoPreviews(); track $index) {
             <div class="ac-foto-thumb">
-              <img [src]="p" alt="Foto del hecho" />
-              <button type="button" class="ac-foto-quitar" (click)="quitarFoto($index)" aria-label="Quitar foto"><app-icon name="x" [size]="16" /></button>
+              <img [src]="p" alt="{{ 'Foto del hecho' | t }}" />
+              <button type="button" class="ac-foto-quitar" (click)="quitarFoto($index)" aria-label="{{ 'Quitar foto' | t }}"><app-icon name="x" [size]="16" /></button>
             </div>
           }
         </div>
@@ -140,7 +140,7 @@
     </div>
     @if (saveError()) { <div class="save-error" role="alert">{{ saveError() }}</div> }
     <div class="ac-form__actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreate()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreate()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : 'Registrar' }}
       </button>
@@ -149,43 +149,43 @@
 </app-form-drawer>
 
 <!-- Detalle del accidente -->
-<app-form-drawer title="Detalle del accidente" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle del accidente' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as a) {
     <dl class="ac-detail">
-      <div><dt>Fecha</dt><dd>{{ formatFecha(a.fecha) }}</dd></div>
-      <div><dt>Momento</dt><dd>{{ faseLabel(a.fase) }}</dd></div>
-      <div><dt>Vehículo</dt><dd>{{ a.vehiculo ? idVehiculo(a.vehiculo) : '—' }}</dd></div>
-      <div><dt>Conductor</dt><dd>{{ a.conductor?.nombre ?? '—' }}</dd></div>
-      <div><dt>Lesionados</dt><dd>{{ a.lesionados }}</dd></div>
-      @if (a.tercero_involucrado) { <div><dt>Tercero</dt><dd>{{ a.tercero_involucrado }}</dd></div> }
-      @if (a.descripcion) { <div><dt>Descripción</dt><dd>{{ a.descripcion }}</dd></div> }
+      <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(a.fecha) }}</dd></div>
+      <div><dt>{{ 'Momento' | t }}</dt><dd>{{ faseLabel(a.fase) }}</dd></div>
+      <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ a.vehiculo ? idVehiculo(a.vehiculo) : '—' }}</dd></div>
+      <div><dt>{{ 'Conductor' | t }}</dt><dd>{{ a.conductor?.nombre ?? '—' }}</dd></div>
+      <div><dt>{{ 'Lesionados' | t }}</dt><dd>{{ a.lesionados }}</dd></div>
+      @if (a.tercero_involucrado) { <div><dt>{{ 'Tercero' | t }}</dt><dd>{{ a.tercero_involucrado }}</dd></div> }
+      @if (a.descripcion) { <div><dt>{{ 'Descripción' | t }}</dt><dd>{{ a.descripcion }}</dd></div> }
     </dl>
     <!-- X3 — acta AMET con thumbnail + lightbox in-page (no nueva pestaña) -->
     <div class="ac-evidencia">
-      <span class="ac-evidencia__label">Acta AMET</span>
+      <span class="ac-evidencia__label">{{ 'Acta AMET' | t }}</span>
       @if (a.reporte_amet_path && esPdf(a.reporte_amet_path)) {
         <!-- PDF: el visor de imagen no aplica; abrir el documento -->
-        <a class="sgc-btn sgc-btn--secondary" [href]="ametUrl()" target="_blank" rel="noopener"><app-icon name="file-text" [size]="16" /> Ver acta AMET (PDF)</a>
+        <a class="sgc-btn sgc-btn--secondary" [href]="ametUrl()" target="_blank" rel="noopener"><app-icon name="file-text" [size]="16" /> {{ 'Ver acta AMET (PDF)' | t }}</a>
       } @else if (ametUrl(); as url) {
         <button type="button" class="ac-foto-thumb ac-foto-thumb--doc" (click)="abrirLightbox(a.reporte_amet_path!)">
-          <img [src]="url" alt="Acta AMET" loading="lazy" />
+          <img [src]="url" alt="{{ 'Acta AMET' | t }}" loading="lazy" />
         </button>
       } @else if (a.reporte_amet_path) {
-        <p class="ac-muted">Cargando documento…</p>
+        <p class="ac-muted">{{ 'Cargando documento…' | t }}</p>
       } @else {
-        <p class="ac-muted">Sin acta AMET adjunta.</p>
+        <p class="ac-muted">{{ 'Sin acta AMET adjunta.' | t }}</p>
       }
     </div>
 
     <!-- X3 — fotos del hecho -->
     @if (a.fotos?.length) {
       <div class="ac-evidencia">
-        <span class="ac-evidencia__label">Fotos del hecho</span>
+        <span class="ac-evidencia__label">{{ 'Fotos del hecho' | t }}</span>
         <div class="ac-fotos-grid">
           @for (path of a.fotos; track path) {
             <button type="button" class="ac-foto-thumb" (click)="abrirLightbox(path)">
               @if (fotoThumb(path); as t) {
-                <img [src]="t" alt="Foto del hecho" loading="lazy" />
+                <img [src]="t" alt="{{ 'Foto del hecho' | t }}" loading="lazy" />
               } @else { <span class="ac-foto-cargando">…</span> }
             </button>
           }
@@ -195,7 +195,7 @@
 
     <!-- Z23c — notas de voz del accidente -->
     <div class="ac-evidencia">
-      <span class="ac-evidencia__label">Notas de voz</span>
+      <span class="ac-evidencia__label">{{ 'Notas de voz' | t }}</span>
       <app-audio-notas entidadTipo="accidente" [entidadId]="a.id" bucket="flota-documentos" [esPrueba]="a.es_prueba ?? false" />
     </div>
 
@@ -221,5 +221,5 @@
 
 <!-- X3 — lightbox in-page para acta/fotos del accidente -->
 @if (lightboxUrl(); as url) {
-  <app-lightbox [src]="url" alt="Evidencia del accidente" (closed)="lightboxUrl.set(null)" />
+  <app-lightbox [src]="url" alt="{{ 'Evidencia del accidente' | t }}" (closed)="lightboxUrl.set(null)" />
 }

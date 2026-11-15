@@ -52,6 +52,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface PendingFoto {
   file: File;
@@ -74,7 +75,7 @@ function kmUltimoMantCoherente(group: AbstractControl): ValidationErrors | null 
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel, Icon, ErrorState, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel, Icon, ErrorState, StaggerDirective, TranslatePipe],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

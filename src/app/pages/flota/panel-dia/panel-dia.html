@@ -1,12 +1,12 @@
 <!-- ── Header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Panel del día</h1>
+    <h1 class="page-title">{{ 'Panel del día' | t }}</h1>
     <span class="page-count">{{ formatFecha(hoy) }}</span>
   </div>
   <div class="page-header__actions">
-    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/avisos">Avisos</a>
-    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/checklists">Checklists</a>
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/avisos">{{ 'Avisos' | t }}</a>
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/checklists">{{ 'Checklists' | t }}</a>
   </div>
 </div>
 
@@ -18,20 +18,20 @@
   <!-- ── Cobertura + conteos ── -->
   <div class="stat-grid">
     <div class="stat-card">
-      <span class="stat-card__label">Inspecciones hoy</span>
+      <span class="stat-card__label">{{ 'Inspecciones hoy' | t }}</span>
       <span class="stat-card__value">{{ cobertura().reportaron }} / {{ cobertura().total }}</span>
-      <span class="stat-card__hint">choferes activos que reportaron</span>
+      <span class="stat-card__hint">{{ 'choferes activos que reportaron' | t }}</span>
     </div>
     <div class="stat-card stat-card--ok">
-      <span class="stat-card__label">Aprobadas</span>
+      <span class="stat-card__label">{{ 'Aprobadas' | t }}</span>
       <span class="stat-card__value">{{ conteo().aprobado }}</span>
     </div>
     <div class="stat-card stat-card--warn">
-      <span class="stat-card__label">Con hallazgos</span>
+      <span class="stat-card__label">{{ 'Con hallazgos' | t }}</span>
       <span class="stat-card__value">{{ conteo().con_hallazgos }}</span>
     </div>
     <div class="stat-card stat-card--danger">
-      <span class="stat-card__label">Bloqueadas</span>
+      <span class="stat-card__label">{{ 'Bloqueadas' | t }}</span>
       <span class="stat-card__value">{{ conteo().bloqueado }}</span>
     </div>
   </div>
@@ -39,13 +39,13 @@
   <div class="pd-cols">
     <!-- Tabla del día -->
     <div class="table-wrapper sgc-card pd-col-main">
-      <div class="pd-card-title">Inspecciones de hoy</div>
+      <div class="pd-card-title">{{ 'Inspecciones de hoy' | t }}</div>
       @if (inspeccionesHoy().length === 0) {
-        <div class="table-empty"><p>Aún no hay inspecciones registradas hoy.</p></div>
+        <div class="table-empty"><p>{{ 'Aún no hay inspecciones registradas hoy.' | t }}</p></div>
       } @else {
         <div class="table-scroll">
-          <table class="data-table" aria-label="Inspecciones de hoy">
-            <thead><tr><th>Hora</th><th>Chofer</th><th>Vehículo</th><th class="text-right">Km</th><th>Comb.</th><th class="text-right">Faltan mant.</th><th>Resultado</th></tr></thead>
+          <table class="data-table" aria-label="{{ 'Inspecciones de hoy' | t }}">
+            <thead><tr><th>{{ 'Hora' | t }}</th><th>{{ 'Chofer' | t }}</th><th>{{ 'Vehículo' | t }}</th><th class="text-right">Km</th><th>{{ 'Comb.' | t }}</th><th class="text-right">{{ 'Faltan mant.' | t }}</th><th>{{ 'Resultado' | t }}</th></tr></thead>
             <tbody>
               @for (c of inspeccionesVisibles(); track c.id) {
                 <tr>
@@ -73,7 +73,7 @@
     <div class="sgc-card pd-col-side">
       <div class="pd-card-title">Choferes sin reportar ({{ choferesSinReportar().length }})</div>
       @if (choferesSinReportar().length === 0) {
-        <p class="pd-muted">Todos los choferes activos reportaron. <app-icon name="check" [size]="14" /></p>
+        <p class="pd-muted">{{ 'Todos los choferes activos reportaron.' | t }} <app-icon name="check" [size]="14" /></p>
       } @else {
         <ul class="pd-list">
           @for (c of choferesVisibles(); track c.id) {
@@ -97,7 +97,7 @@
     <div class="sgc-card pd-col-side">
       <div class="pd-card-title">Alertas activas ({{ alertasActivas().length }})</div>
       @if (alertasActivas().length === 0) {
-        <p class="pd-muted">Sin alertas activas. <app-icon name="check" [size]="14" /></p>
+        <p class="pd-muted">{{ 'Sin alertas activas.' | t }} <app-icon name="check" [size]="14" /></p>
       } @else {
         @for (a of alertasVisibles(); track a.id) {
           <div class="pd-alert">

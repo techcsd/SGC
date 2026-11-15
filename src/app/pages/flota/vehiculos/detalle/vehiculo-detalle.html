@@ -1,5 +1,5 @@
 <!-- ── Back link ── -->
-<a class="vd-back" routerLink="/flota/vehiculos">← Vehículos</a>
+<a class="vd-back" routerLink="/flota/vehiculos">{{ '← Vehículos' | t }}</a>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
 
@@ -8,8 +8,8 @@
 } @else if (!vehiculo()) {
   <!-- ── Empty state ── -->
   <div class="sgc-card vd-card vd-empty">
-    <p>No se encontró el vehículo solicitado.</p>
-    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos">Volver a Vehículos</a>
+    <p>{{ 'No se encontró el vehículo solicitado.' | t }}</p>
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos">{{ 'Volver a Vehículos' | t }}</a>
   </div>
 } @else {
   @if (vehiculo(); as v) {
@@ -42,7 +42,7 @@
         @if (esElevado()) {
           <div class="vd-header__visible">
             @if (!v.visible_choferes) {
-              <span class="sgc-badge sgc-badge--warning">Oculto para choferes</span>
+              <span class="sgc-badge sgc-badge--warning">{{ 'Oculto para choferes' | t }}</span>
             }
             <button type="button" class="sgc-btn sgc-btn--ghost"
               [disabled]="guardandoVisible()" (click)="toggleVisible()">
@@ -62,7 +62,7 @@
             <div class="vd-galeria__item">
               <button type="button" class="vd-galeria__thumb" (click)="abrirFoto(f.path)" [title]="'Ver en grande'">
                 <img [src]="f.url" [alt]="'Foto de ' + v.placa" loading="lazy" />
-                @if (esPortada(f.path)) { <span class="vd-galeria__badge">Portada</span> }
+                @if (esPortada(f.path)) { <span class="vd-galeria__badge">{{ 'Portada' | t }}</span> }
               </button>
               @if (esElevado() && !esPortada(f.path)) {
                 <button type="button" class="vd-galeria__portada-btn" [disabled]="guardandoPortada()" (click)="marcarPortada(f.path)">
@@ -77,7 +77,7 @@
 
     <!-- ── AF3 · Llaves del vehículo ── -->
     <div class="sgc-card vd-card vd-llaves">
-      <h2 class="vd-section-title">Llaves</h2>
+      <h2 class="vd-section-title">{{ 'Llaves' | t }}</h2>
       <div class="vd-llaves__grid">
         @for (n of [1, 2]; track n) {
           @if (llaveSlot($any(n)); as l) {
@@ -87,7 +87,7 @@
               <div class="vd-llaves__portador">{{ llaveDescripcion(l) }}</div>
               @if (l.updated_at) { <div class="vd-llaves__fecha">Actualizada: {{ fechaHora(l.updated_at) }}</div> }
               @if (esElevado()) {
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openLlave($any(n))">Registrar traspaso</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openLlave($any(n))">{{ 'Registrar traspaso' | t }}</button>
               }
             </div>
           }
@@ -99,7 +99,7 @@
         </button>
         @if (mostrarHistorialLlaves()) {
           <table class="data-table vd-llaves__historial">
-            <thead><tr><th>Llave</th><th>Ubicación</th><th>Registró</th><th>Fecha</th></tr></thead>
+            <thead><tr><th>{{ 'Llave' | t }}</th><th>{{ 'Ubicación' | t }}</th><th>{{ 'Registró' | t }}</th><th>{{ 'Fecha' | t }}</th></tr></thead>
             <tbody>
               @for (t of llaveTraspasos(); track $index) {
                 <tr>
@@ -119,29 +119,29 @@
     @if (esElevado()) {
       <div class="sgc-card vd-card vd-pp">
         <div class="vd-pp__head">
-          <h2 class="vd-section-title">Placa provisional (PP)</h2>
+          <h2 class="vd-section-title">{{ 'Placa provisional (PP)' | t }}</h2>
           @if (placaPP()) { <span class="sgc-badge" [class]="'sgc-badge--' + ppBadge().clase">{{ ppBadge().label }}</span> }
         </div>
 
         @if (placaPP(); as pp) {
           <dl class="vd-pp__meta">
-            @if (pp.placa_pp) { <div><dt>Placa PP</dt><dd>{{ pp.placa_pp }}</dd></div> }
-            <div><dt>Vence (regulado)</dt><dd>{{ fecha(ppVence()) }}</dd></div>
-            <div><dt>Registrada</dt><dd>{{ fecha(pp.fecha_registro) }}</dd></div>
-            @if (pp.dealer) { <div><dt>Dealer</dt><dd>{{ pp.dealer }}</dd></div> }
-            @if (pp.fecha_entrega_prometida) { <div><dt>Entrega prometida</dt><dd>{{ fecha(pp.fecha_entrega_prometida) }}</dd></div> }
+            @if (pp.placa_pp) { <div><dt>{{ 'Placa PP' | t }}</dt><dd>{{ pp.placa_pp }}</dd></div> }
+            <div><dt>{{ 'Vence (regulado)' | t }}</dt><dd>{{ fecha(ppVence()) }}</dd></div>
+            <div><dt>{{ 'Registrada' | t }}</dt><dd>{{ fecha(pp.fecha_registro) }}</dd></div>
+            @if (pp.dealer) { <div><dt>{{ 'Dealer' | t }}</dt><dd>{{ pp.dealer }}</dd></div> }
+            @if (pp.fecha_entrega_prometida) { <div><dt>{{ 'Entrega prometida' | t }}</dt><dd>{{ fecha(pp.fecha_entrega_prometida) }}</dd></div> }
           </dl>
           @if (pp.notas) { <p class="vd-pp__notas">{{ pp.notas }}</p> }
 
           <div class="vd-pp__actions">
-            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirPPEntregar()">Placa entregada</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPPAmpliar()">Ampliar plazo</button>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirPPEntregar()">{{ 'Placa entregada' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPPAmpliar()">{{ 'Ampliar plazo' | t }}</button>
           </div>
 
           @if (placaPPExt().length) {
             <h4 class="vd-pp__subtitle">Extensiones de plazo ({{ placaPPExt().length }})</h4>
             <table class="data-table">
-              <thead><tr><th>Fecha</th><th>Días</th><th>Nuevo plazo</th><th>Motivo</th></tr></thead>
+              <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Días' | t }}</th><th>{{ 'Nuevo plazo' | t }}</th><th>{{ 'Motivo' | t }}</th></tr></thead>
               <tbody>
                 @for (e of placaPPExt(); track e.id) {
                   <tr>
@@ -155,8 +155,8 @@
             </table>
           }
         } @else {
-          <p class="vd-pp__empty">Este vehículo no tiene una placa provisional en seguimiento.</p>
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirPPCrear()">Registrar placa provisional</button>
+          <p class="vd-pp__empty">{{ 'Este vehículo no tiene una placa provisional en seguimiento.' | t }}</p>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirPPCrear()">{{ 'Registrar placa provisional' | t }}</button>
         }
       </div>
     }
@@ -164,7 +164,7 @@
     <!-- ── S21 · Motivo No disponible por documento vencido ── -->
     @if (motivoNoDisponible(); as motivo) {
       <div class="page-error vd-nodisp" role="alert">
-        Vehículo <strong>No disponible</strong> — {{ motivo }} vencido(a). No puede recibirse para una salida
+        Vehículo <strong>{{ 'No disponible' | t }}</strong> — {{ motivo }} vencido(a). No puede recibirse para una salida
         nueva hasta actualizar la vigencia (edita el vehículo y actualiza la fecha; volverá a Activo automáticamente).
       </div>
     }
@@ -172,18 +172,18 @@
     <!-- ── U11-web · Alerta de mantenimiento (visible en el perfil) ── -->
     @if (mantPorRevisar()) {
       <div class="vd-mant vd-mant--pre" role="status">
-        <app-icon name="alert-triangle" [size]="16" /> <strong>Dato de mantenimiento por revisar</strong> — la lectura del último mantenimiento supera la
+        <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Dato de mantenimiento por revisar' | t }}</strong> — la lectura del último mantenimiento supera la
         lectura actual del vehículo. No se calcula el próximo mantenimiento hasta corregirlo (se avisó a Flota).
       </div>
     } @else if (alertaMant(); as am) {
       @if (am.estado === 'vencido') {
         <div class="page-error vd-mant--vencido" role="alert">
-          <app-icon name="alert-circle" [size]="16" /> <strong>Mantenimiento atrasado</strong> — pasado con {{ am.km | number:'1.0-0' }} {{ unidad() }}.
+          <app-icon name="alert-circle" [size]="16" /> <strong>{{ 'Mantenimiento atrasado' | t }}</strong> — pasado con {{ am.km | number:'1.0-0' }} {{ unidad() }}.
           Agenda el mantenimiento de este vehículo cuanto antes.
         </div>
       } @else {
         <div class="vd-mant vd-mant--pre" role="status">
-          <app-icon name="alert-triangle" [size]="16" /> <strong>Mantenimiento próximo</strong> — faltan {{ am.km | number:'1.0-0' }} {{ unidad() }} para el próximo.
+          <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Mantenimiento próximo' | t }}</strong> — faltan {{ am.km | number:'1.0-0' }} {{ unidad() }} para el próximo.
         </div>
       }
     }
@@ -195,7 +195,7 @@
         <span class="stat-card__value">{{ (stats()?.km_actual ?? v.kilometraje) | number:'1.0-0' }} {{ unidad() }}</span>
       </div>
       <div class="stat-card">
-        <span class="stat-card__label">Combustible</span>
+        <span class="stat-card__label">{{ 'Combustible' | t }}</span>
         <span class="stat-card__value">{{ stats()?.combustible_echadas ?? 0 }}</span>
         <span class="stat-card__hint">
           {{ (stats()?.combustible_galones ?? 0) | number:'1.0-0' }} gal ·
@@ -204,12 +204,12 @@
       </div>
       <!-- U11-web — último nivel de tanque registrado (checklist más reciente) -->
       <div class="stat-card">
-        <span class="stat-card__label">Último nivel</span>
+        <span class="stat-card__label">{{ 'Último nivel' | t }}</span>
         <span class="stat-card__value">{{ ultimoNivelCombustible() ?? '—' }}</span>
-        <span class="stat-card__hint">del checklist más reciente</span>
+        <span class="stat-card__hint">{{ 'del checklist más reciente' | t }}</span>
       </div>
       <div class="stat-card" [class.stat-card--warn]="rendimientoBajo()">
-        <span class="stat-card__label">Rendimiento prom.</span>
+        <span class="stat-card__label">{{ 'Rendimiento prom.' | t }}</span>
         <span class="stat-card__value">
           @if (rendimientoReal() != null) { {{ rendimientoReal() | number:'1.0-1' }} }
           @else { — }
@@ -218,44 +218,44 @@
           km/gal
           @if (rendimientoEsperado() != null) {
             · esperado {{ rendimientoEsperado() | number:'1.0-1' }}
-            @if (rendimientoBajo()) { <span class="vd-danger"><app-icon name="alert-triangle" [size]="13" /> por debajo</span> }
+            @if (rendimientoBajo()) { <span class="vd-danger"><app-icon name="alert-triangle" [size]="13" /> {{ 'por debajo' | t }}</span> }
           }
         </span>
       </div>
       <div class="stat-card">
-        <span class="stat-card__label">Costo / km</span>
+        <span class="stat-card__label">{{ 'Costo / km' | t }}</span>
         <span class="stat-card__value">
           @if (stats()?.costo_por_km_promedio != null) { RD$ {{ stats()!.costo_por_km_promedio | number:'1.0-1' }} }
           @else { — }
         </span>
       </div>
       <div class="stat-card" [class.stat-card--danger]="(stats()?.checklists_bloqueos ?? 0) > 0">
-        <span class="stat-card__label">Checklists</span>
+        <span class="stat-card__label">{{ 'Checklists' | t }}</span>
         <span class="stat-card__value">{{ stats()?.checklists_total ?? 0 }}</span>
         @if ((stats()?.checklists_bloqueos ?? 0) > 0) {
           <span class="stat-card__hint vd-danger">{{ stats()!.checklists_bloqueos }} bloqueo(s)</span>
         }
       </div>
       <div class="stat-card">
-        <span class="stat-card__label">Mantenimientos</span>
+        <span class="stat-card__label">{{ 'Mantenimientos' | t }}</span>
         <span class="stat-card__value">{{ stats()?.mantenimientos_total ?? 0 }}</span>
       </div>
       <div class="stat-card"
         [class.stat-card--danger]="kmFaltanMant() != null && kmFaltanMant()! <= 0"
         [class.stat-card--warn]="kmFaltanMant() != null && kmFaltanMant()! > 0 && kmFaltanMant()! <= 500">
-        <span class="stat-card__label">Próximo mant.</span>
+        <span class="stat-card__label">{{ 'Próximo mant.' | t }}</span>
         <span class="stat-card__value">
           @if (proxKm(v) != null) { {{ proxKm(v) | number:'1.0-0' }} {{ unidad() }} } @else { — }
         </span>
         <span class="stat-card__hint">
-          @if (mantPorRevisar()) { <span class="vd-danger">revisar dato</span> }
+          @if (mantPorRevisar()) { <span class="vd-danger">{{ 'revisar dato' | t }}</span> }
           @else if (kmFaltanMant() == null) { sin dato }
           @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">pasado con {{ -kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }}</span> }
           @else { faltan {{ kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }} }
         </span>
       </div>
       <div class="stat-card">
-        <span class="stat-card__label">Última actividad</span>
+        <span class="stat-card__label">{{ 'Última actividad' | t }}</span>
         <span class="stat-card__value vd-fecha-val">{{ fechaHora(stats()?.ultima_actividad) }}</span>
       </div>
     </div>
@@ -264,7 +264,7 @@
     @if (esElevado() && spec(); as sp) {
       <div class="sgc-card vd-card">
         <div class="vd-section-head">
-          <h2 class="vd-section-title">Especificación de combustible</h2>
+          <h2 class="vd-section-title">{{ 'Especificación de combustible' | t }}</h2>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleSpec()">
             {{ specOpen() ? 'Cancelar' : 'Editar' }}
           </button>
@@ -276,27 +276,27 @@
 
         @if (!specOpen()) {
           <dl class="vd-venc">
-            <div><dt>Tipo</dt><dd>{{ sp.combustible_tipo || '—' }}</dd></div>
-            <div><dt>Capacidad de tanque</dt><dd>
+            <div><dt>{{ 'Tipo' | t }}</dt><dd>{{ sp.combustible_tipo || '—' }}</dd></div>
+            <div><dt>{{ 'Capacidad de tanque' | t }}</dt><dd>
               {{ sp.capacidad.valor != null ? (sp.capacidad.valor | number:'1.0-0') + ' gal' : '—' }}
               <span class="sgc-badge sgc-badge--neutral">{{ sp.capacidad.origen }}</span></dd></div>
-            <div><dt>Rendimiento esperado</dt><dd>
+            <div><dt>{{ 'Rendimiento esperado' | t }}</dt><dd>
               {{ sp.esperado.valor != null ? (sp.esperado.valor | number:'1.0-1') + ' ' + unidadSpec() : 'sin definir' }}
               <span class="sgc-badge sgc-badge--neutral">{{ sp.esperado.origen }}</span></dd></div>
-            <div><dt>Mínimo coherente</dt><dd>
+            <div><dt>{{ 'Mínimo coherente' | t }}</dt><dd>
               {{ sp.min.valor | number:'1.0-2' }} {{ unidadSpec() }}
               <span class="sgc-badge sgc-badge--neutral">{{ sp.min.origen }}</span></dd></div>
-            <div><dt>Máximo coherente</dt><dd>
+            <div><dt>{{ 'Máximo coherente' | t }}</dt><dd>
               {{ sp.max.valor | number:'1.0-2' }} {{ unidadSpec() }}
               <span class="sgc-badge sgc-badge--neutral">{{ sp.max.origen }}</span></dd></div>
-            <div><dt>Tolerancia</dt><dd>
+            <div><dt>{{ 'Tolerancia' | t }}</dt><dd>
               {{ sp.tolerancia_pct.valor | number:'1.0-0' }}%
               <span class="sgc-badge sgc-badge--neutral">{{ sp.tolerancia_pct.origen }}</span></dd></div>
           </dl>
         } @else {
           <form class="vd-spec-form" [formGroup]="specForm" (ngSubmit)="guardarSpec()">
             <label>Tipo de combustible
-              <input type="text" formControlName="combustible_tipo" placeholder="gasolina / gasoil…" /></label>
+              <input type="text" formControlName="combustible_tipo" placeholder="{{ 'gasolina / gasoil…' | t }}" /></label>
             <label>Capacidad de tanque (gal)
               <input type="number" step="0.1" formControlName="capacidad" /></label>
             <label>Rendimiento esperado ({{ unidadSpec() }})
@@ -304,7 +304,7 @@
             @if (baselineSpec() != null) {
               <p class="vd-muted" style="grid-column:1/-1;margin:2px 0">
                 Baseline aprendido: <strong>{{ baselineSpec() | number:'1.0-2' }} {{ unidadSpec() }}</strong>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarBaseline()">Usar este valor</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarBaseline()">{{ 'Usar este valor' | t }}</button>
               </p>
             }
             <label>Mínimo coherente ({{ unidadSpec() }})
@@ -325,10 +325,10 @@
 
     <!-- ── 3. Matrícula y seguro (V2) ── -->
     <div class="sgc-card vd-card">
-      <h2 class="vd-section-title">Matrícula y seguro</h2>
+      <h2 class="vd-section-title">{{ 'Matrícula y seguro' | t }}</h2>
       <dl class="vd-venc">
         <div>
-          <dt>Matrícula</dt>
+          <dt>{{ 'Matrícula' | t }}</dt>
           <dd>
             <span>Nº {{ v.numero_matricula ?? '—' }}</span>
             @if (v.vencimiento_matricula) {
@@ -340,7 +340,7 @@
           </dd>
         </div>
         <div>
-          <dt>Seguro</dt>
+          <dt>{{ 'Seguro' | t }}</dt>
           <dd>
             <span>Nº {{ v.numero_seguro ?? '—' }}</span>
             @if (v.aseguradora) { <span class="vd-muted">· {{ v.aseguradora }}</span> }
@@ -360,7 +360,7 @@
       <!-- DB3 — mismo lector IA del lote, pre-asignado a este vehículo -->
       <a class="sgc-btn sgc-btn--ghost sgc-btn--sm vd-leer-doc" routerLink="/flota/vehiculos/cargar-documentos"
          [queryParams]="{ vehiculo: v.id }"
-         title="Sube la foto del seguro/matrícula/marbete y la IA llena los campos de este vehículo">Leer documento</a>
+         title="{{ 'Sube la foto del seguro/matrícula/marbete y la IA llena los campos de este vehículo' | t }}">{{ 'Leer documento' | t }}</a>
       <app-documentos-flota entidad="vehiculo" [entidadId]="v.id" [autoAbrir]="docAuto" />
     </div>
 
@@ -368,11 +368,11 @@
     <div class="sgc-card vd-card">
       <div class="vd-section-head">
         <h2 class="vd-section-title">Personas asignadas ({{ asignacionesActivas().length }})</h2>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAsignar()">Asignar persona</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAsignar()">{{ 'Asignar persona' | t }}</button>
       </div>
 
       @if (asignacionesActivas().length === 0) {
-        <p class="vd-muted">Este vehículo no tiene personas asignadas actualmente.</p>
+        <p class="vd-muted">{{ 'Este vehículo no tiene personas asignadas actualmente.' | t }}</p>
       } @else {
         <ul class="vd-asig-list">
           @for (a of asignacionesActivas(); track a.id) {
@@ -385,7 +385,7 @@
                 <span class="vd-muted">desde {{ fecha(a.desde) }}</span>
                 @if (a.notas) { <span class="vd-asig__notas">“{{ a.notas }}”</span> }
               </div>
-              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="retirar(a)">Retirar</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="retirar(a)">{{ 'Retirar' | t }}</button>
             </li>
           }
         </ul>
@@ -450,13 +450,13 @@
     <!-- ── 5. Historial ── -->
     <!-- Checklists -->
     <div class="table-wrapper sgc-card vd-card">
-      <h2 class="vd-section-title vd-section-title--pad">Checklists recientes</h2>
+      <h2 class="vd-section-title vd-section-title--pad">{{ 'Checklists recientes' | t }}</h2>
       @if (checklistsRecientes().length === 0) {
-        <div class="table-empty"><p>Sin checklists registrados.</p></div>
+        <div class="table-empty"><p>{{ 'Sin checklists registrados.' | t }}</p></div>
       } @else {
         <div class="table-scroll">
-          <table class="data-table" aria-label="Checklists del vehículo">
-            <thead><tr><th>Fecha</th><th>Resultado</th><th class="text-right">Km</th><th>Conductor</th></tr></thead>
+          <table class="data-table" aria-label="{{ 'Checklists del vehículo' | t }}">
+            <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Resultado' | t }}</th><th class="text-right">Km</th><th>{{ 'Conductor' | t }}</th></tr></thead>
             <tbody>
               @for (c of checklistsRecientes(); track c.id) {
                 <tr>
@@ -474,13 +474,13 @@
 
     <!-- Mantenimientos -->
     <div class="table-wrapper sgc-card vd-card">
-      <h2 class="vd-section-title vd-section-title--pad">Mantenimientos recientes</h2>
+      <h2 class="vd-section-title vd-section-title--pad">{{ 'Mantenimientos recientes' | t }}</h2>
       @if (mantenimientosRecientes().length === 0) {
-        <div class="table-empty"><p>Sin mantenimientos registrados.</p></div>
+        <div class="table-empty"><p>{{ 'Sin mantenimientos registrados.' | t }}</p></div>
       } @else {
         <div class="table-scroll">
-          <table class="data-table" aria-label="Mantenimientos del vehículo">
-            <thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th class="text-right">Km</th><th>Estado</th><th>{{ 'Adjuntos' | t }}</th></tr></thead>
+          <table class="data-table" aria-label="{{ 'Mantenimientos del vehículo' | t }}">
+            <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Tipo' | t }}</th><th>{{ 'Descripción' | t }}</th><th class="text-right">Km</th><th>{{ 'Estado' | t }}</th><th>{{ 'Adjuntos' | t }}</th></tr></thead>
             <tbody>
               @for (m of mantenimientosRecientes(); track m.id) {
                 <tr>
@@ -513,13 +513,13 @@
 
     <!-- Combustible -->
     <div class="table-wrapper sgc-card vd-card">
-      <h2 class="vd-section-title vd-section-title--pad">Combustible reciente</h2>
+      <h2 class="vd-section-title vd-section-title--pad">{{ 'Combustible reciente' | t }}</h2>
       @if (combustiblesRecientes().length === 0) {
-        <div class="table-empty"><p>Sin registros de combustible.</p></div>
+        <div class="table-empty"><p>{{ 'Sin registros de combustible.' | t }}</p></div>
       } @else {
         <div class="table-scroll">
-          <table class="data-table" aria-label="Combustible del vehículo">
-            <thead><tr><th>Fecha</th><th class="text-right">Km</th><th class="text-right">Galones</th><th class="text-right">RD$</th><th class="text-right">Rend.</th><th></th></tr></thead>
+          <table class="data-table" aria-label="{{ 'Combustible del vehículo' | t }}">
+            <thead><tr><th>{{ 'Fecha' | t }}</th><th class="text-right">Km</th><th class="text-right">{{ 'Galones' | t }}</th><th class="text-right">RD$</th><th class="text-right">{{ 'Rend.' | t }}</th><th></th></tr></thead>
             <tbody>
               @for (r of combustiblesRecientes(); track r.id) {
                 <tr>
@@ -528,7 +528,7 @@
                   <td class="text-right">{{ r.galones != null ? (r.galones | number:'1.0-1') : '—' }}</td>
                   <td class="text-right">{{ r.monto != null ? (r.monto | number:'1.0-0') : '—' }}</td>
                   <td class="text-right">{{ r.rendimiento_km_gal != null ? (r.rendimiento_km_gal | number:'1.0-1') : '—' }}</td>
-                  <td>@if (r.alerta_consumo) { <span class="vd-danger" title="Consumo anormal"><app-icon name="alert-triangle" [size]="14" /></span> }</td>
+                  <td>@if (r.alerta_consumo) { <span class="vd-danger" title="{{ 'Consumo anormal' | t }}"><app-icon name="alert-triangle" [size]="14" /></span> }</td>
                 </tr>
               }
             </tbody>
@@ -540,13 +540,13 @@
     <!-- ── S22 · Accidentes (solo reportes con acta AMET) ── -->
     <div class="sgc-card vd-card">
       <div class="vd-section-head">
-        <h2 class="vd-section-title">Accidentes (acta AMET)</h2>
+        <h2 class="vd-section-title">{{ 'Accidentes (acta AMET)' | t }}</h2>
         @if (esElevado()) {
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAccidente()">Reportar accidente</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAccidente()">{{ 'Reportar accidente' | t }}</button>
         }
       </div>
       @if (accidentesConActa().length === 0) {
-        <p class="vd-muted">Sin reportes de accidente con acta AMET.</p>
+        <p class="vd-muted">{{ 'Sin reportes de accidente con acta AMET.' | t }}</p>
       } @else {
         <ul class="vd-asig-list">
           @for (a of accidentesConActa(); track a.id) {
@@ -557,7 +557,7 @@
                 @if (a.descripcion) { <span class="vd-asig__notas">“{{ a.descripcion }}”</span> }
               </div>
               @if (incUrl(a.reporte_amet_path); as url) {
-                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver acta</a>
+                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">{{ 'Ver acta' | t }}</a>
               }
             </li>
           }
@@ -568,13 +568,13 @@
     <!-- ── S22 · Daños ── -->
     <div class="sgc-card vd-card">
       <div class="vd-section-head">
-        <h2 class="vd-section-title">Daños</h2>
+        <h2 class="vd-section-title">{{ 'Daños' | t }}</h2>
         @if (esElevado()) {
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="openDano()">Reportar daño</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="openDano()">{{ 'Reportar daño' | t }}</button>
         }
       </div>
       @if (danos().length === 0) {
-        <p class="vd-muted">Sin daños registrados.</p>
+        <p class="vd-muted">{{ 'Sin daños registrados.' | t }}</p>
       } @else {
         <ul class="vd-asig-list">
           @for (d of danos(); track d.id) {
@@ -586,7 +586,7 @@
                 @if (d.descripcion) { <span class="vd-asig__notas">“{{ d.descripcion }}”</span> }
               </div>
               @if (incUrl(d.foto_path); as url) {
-                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver foto</a>
+                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">{{ 'Ver foto' | t }}</a>
               }
             </li>
           }
@@ -596,14 +596,14 @@
 
     <!-- ── U11-web · Multas del vehículo ── -->
     <div class="sgc-card vd-card">
-      <h2 class="vd-section-title">Multas del vehículo</h2>
+      <h2 class="vd-section-title">{{ 'Multas del vehículo' | t }}</h2>
       @if (multas().length === 0) {
-        <p class="vd-muted">Sin multas relacionadas a este vehículo.</p>
+        <p class="vd-muted">{{ 'Sin multas relacionadas a este vehículo.' | t }}</p>
       } @else {
         <ul class="vd-asig-list">
           @for (m of multas(); track m.id) {
             <li class="vd-asig vd-asig--link" (click)="multaDetalle.set(m)" role="button" tabindex="0"
-                (keydown.enter)="multaDetalle.set(m)" aria-label="Ver detalle de la multa">
+                (keydown.enter)="multaDetalle.set(m)" aria-label="{{ 'Ver detalle de la multa' | t }}">
               <div class="vd-asig__info">
                 <span class="vd-asig__nombre">{{ fecha(m.fecha) }} · {{ m.motivo ?? 'Sin motivo' }}</span>
                 @if (m.monto != null) { <span class="vd-muted">RD$ {{ m.monto | number:'1.0-2' }}</span> }
@@ -622,22 +622,22 @@
 <app-multa-detalle [multa]="multaDetalle()" (closed)="multaDetalle.set(null)" />
 
 <!-- ── Drawer: Asignar persona ── -->
-<app-form-drawer title="Asignar persona" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer title="{{ 'Asignar persona' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form class="vd-form" [formGroup]="asignarForm" (ngSubmit)="asignar()">
     <div class="sgc-field">
-      <label for="usuario">Persona</label>
+      <label for="usuario">{{ 'Persona' | t }}</label>
       <select id="usuario" formControlName="usuario_id">
         <option [ngValue]="null" disabled>Selecciona una persona…</option>
         @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
       </select>
     </div>
     <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" rows="3" formControlName="notas" placeholder="Motivo / detalle de la asignación…"></textarea>
+      <label for="notas">{{ 'Notas' | t }}</label>
+      <textarea id="notas" rows="3" formControlName="notas" placeholder="{{ 'Motivo / detalle de la asignación…' | t }}"></textarea>
     </div>
     <!-- AF3 — ¿qué pasa con la llave 1 al cambiar el asignado? -->
     <div class="sgc-field">
-      <label for="llave1">Llave #1 del vehículo</label>
+      <label for="llave1">{{ 'Llave #1 del vehículo' | t }}</label>
       <select id="llave1" formControlName="llave1_accion">
         <option value="no_cambiar">No cambiar</option>
         <option value="chofer_asignado">La lleva el nuevo asignado</option>
@@ -647,12 +647,12 @@
     </div>
     @if (asignarForm.controls.llave1_accion.value === 'otro') {
       <div class="sgc-field">
-        <label for="llave1_det">¿Dónde queda la llave 1?</label>
-        <input id="llave1_det" type="text" formControlName="llave1_detalle" placeholder="Ej: taller, oficina de obra…" />
+        <label for="llave1_det">{{ '¿Dónde queda la llave 1?' | t }}</label>
+        <input id="llave1_det" type="text" formControlName="llave1_detalle" placeholder="{{ 'Ej: taller, oficina de obra…' | t }}" />
       </div>
     }
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
         @if (guardando()) { Guardando… } @else { Asignar }
       </button>
@@ -661,36 +661,36 @@
 </app-form-drawer>
 
 <!-- ── Drawer: Reportar accidente (con acta AMET) ── -->
-<app-form-drawer title="Reportar accidente" [open]="accDrawer()" (closed)="accDrawer.set(false)">
+<app-form-drawer title="{{ 'Reportar accidente' | t }}" [open]="accDrawer()" (closed)="accDrawer.set(false)">
   <form class="vd-form" [formGroup]="accForm" (ngSubmit)="guardarAccidente()">
     <div class="sgc-field">
-      <label for="acc_fecha">Fecha</label>
+      <label for="acc_fecha">{{ 'Fecha' | t }}</label>
       <input id="acc_fecha" type="date" formControlName="fecha" />
     </div>
     <div class="sgc-field">
-      <label for="acc_fase">Momento</label>
+      <label for="acc_fase">{{ 'Momento' | t }}</label>
       <select id="acc_fase" formControlName="fase">
         @for (f of ACCIDENTE_FASES; track f.value) { <option [value]="f.value">{{ f.label }}</option> }
       </select>
     </div>
     <div class="sgc-field">
-      <label for="acc_desc">Descripción</label>
-      <textarea id="acc_desc" rows="3" formControlName="descripcion" placeholder="¿Qué pasó?"></textarea>
+      <label for="acc_desc">{{ 'Descripción' | t }}</label>
+      <textarea id="acc_desc" rows="3" formControlName="descripcion" placeholder="{{ '¿Qué pasó?' | t }}"></textarea>
     </div>
     <div class="sgc-field">
-      <label for="acc_les">Lesionados</label>
+      <label for="acc_les">{{ 'Lesionados' | t }}</label>
       <input id="acc_les" type="number" min="0" formControlName="lesionados" />
     </div>
     <div class="sgc-field">
-      <label for="acc_terc">Tercero involucrado</label>
-      <input id="acc_terc" type="text" formControlName="tercero_involucrado" placeholder="Otro vehículo / persona" />
+      <label for="acc_terc">{{ 'Tercero involucrado' | t }}</label>
+      <input id="acc_terc" type="text" formControlName="tercero_involucrado" placeholder="{{ 'Otro vehículo / persona' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="acc_amet">Acta AMET (documento)</label>
+      <label for="acc_amet">{{ 'Acta AMET (documento)' | t }}</label>
       <input id="acc_amet" type="file" accept="image/*,.pdf" (change)="onAccFile($event)" />
     </div>
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="accDrawer.set(false)">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="accDrawer.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="incGuardando()">
         @if (incGuardando()) { Guardando… } @else { Registrar }
       </button>
@@ -699,28 +699,28 @@
 </app-form-drawer>
 
 <!-- ── Drawer: Reportar daño ── -->
-<app-form-drawer title="Reportar daño" [open]="danoDrawer()" (closed)="danoDrawer.set(false)">
+<app-form-drawer title="{{ 'Reportar daño' | t }}" [open]="danoDrawer()" (closed)="danoDrawer.set(false)">
   <form class="vd-form" [formGroup]="danoForm" (ngSubmit)="guardarDano()">
     <div class="sgc-field">
-      <label for="dano_zona">Zona</label>
-      <input id="dano_zona" type="text" formControlName="zona" placeholder="Ej: parachoques delantero" />
+      <label for="dano_zona">{{ 'Zona' | t }}</label>
+      <input id="dano_zona" type="text" formControlName="zona" placeholder="{{ 'Ej: parachoques delantero' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="dano_origen">Origen</label>
+      <label for="dano_origen">{{ 'Origen' | t }}</label>
       <select id="dano_origen" formControlName="origen">
         @for (o of DANO_ORIGENES; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
       </select>
     </div>
     <div class="sgc-field">
-      <label for="dano_desc">Descripción</label>
-      <textarea id="dano_desc" rows="3" formControlName="descripcion" placeholder="Detalle del daño"></textarea>
+      <label for="dano_desc">{{ 'Descripción' | t }}</label>
+      <textarea id="dano_desc" rows="3" formControlName="descripcion" placeholder="{{ 'Detalle del daño' | t }}"></textarea>
     </div>
     <div class="sgc-field">
-      <label for="dano_foto">Foto</label>
+      <label for="dano_foto">{{ 'Foto' | t }}</label>
       <input id="dano_foto" type="file" accept="image/*" (change)="onDanoFile($event)" />
     </div>
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="danoDrawer.set(false)">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="danoDrawer.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="incGuardando()">
         @if (incGuardando()) { Guardando… } @else { Registrar }
       </button>
@@ -732,7 +732,7 @@
 <app-form-drawer [title]="'Llave #' + llaveEditando()" [open]="llaveDrawer()" (closed)="closeLlave()">
   <form class="vd-form" [formGroup]="llaveForm" (ngSubmit)="guardarLlave()">
     <div class="sgc-field">
-      <label for="llave_ubi">¿Dónde/quién la tiene?</label>
+      <label for="llave_ubi">{{ '¿Dónde/quién la tiene?' | t }}</label>
       <select id="llave_ubi" formControlName="ubicacion_tipo">
         <option value="chofer_asignado">Chofer asignado</option>
         <option value="oficina_central">Oficina central</option>
@@ -741,7 +741,7 @@
     </div>
     @if (llaveForm.controls.ubicacion_tipo.value === 'chofer_asignado') {
       <div class="sgc-field">
-        <label for="llave_port">Portador</label>
+        <label for="llave_port">{{ 'Portador' | t }}</label>
         <select id="llave_port" formControlName="portador_usuario_id">
           <option [ngValue]="null" disabled>Selecciona una persona…</option>
           @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
@@ -750,16 +750,16 @@
     }
     @if (llaveForm.controls.ubicacion_tipo.value === 'otro') {
       <div class="sgc-field">
-        <label for="llave_det">Detalle</label>
-        <input id="llave_det" type="text" formControlName="ubicacion_detalle" placeholder="Ej: taller mecánico, casa del encargado…" />
+        <label for="llave_det">{{ 'Detalle' | t }}</label>
+        <input id="llave_det" type="text" formControlName="ubicacion_detalle" placeholder="{{ 'Ej: taller mecánico, casa del encargado…' | t }}" />
       </div>
     }
     <div class="sgc-field">
-      <label for="llave_nota">Nota del traspaso (opcional)</label>
-      <textarea id="llave_nota" rows="2" formControlName="nota" placeholder="Motivo / detalle del cambio de mano…"></textarea>
+      <label for="llave_nota">{{ 'Nota del traspaso (opcional)' | t }}</label>
+      <textarea id="llave_nota" rows="2" formControlName="nota" placeholder="{{ 'Motivo / detalle del cambio de mano…' | t }}"></textarea>
     </div>
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeLlave()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeLlave()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="llaveGuardando()">
         @if (llaveGuardando()) { Guardando… } @else { Registrar traspaso }
       </button>
@@ -768,33 +768,33 @@
 </app-form-drawer>
 
 <!-- ── AG8 · Drawer: registrar placa provisional ── -->
-<app-form-drawer title="Registrar placa provisional" [open]="ppDrawer() === 'crear'" (closed)="cerrarPP()">
+<app-form-drawer title="{{ 'Registrar placa provisional' | t }}" [open]="ppDrawer() === 'crear'" (closed)="cerrarPP()">
   <form class="vd-form" [formGroup]="crearPPForm" (ngSubmit)="guardarPPCrear()">
     <div class="sgc-field">
-      <label for="pp_placa">Placa provisional (PP)</label>
-      <input id="pp_placa" type="text" formControlName="placa_pp" placeholder="Ej: PP261353" />
+      <label for="pp_placa">{{ 'Placa provisional (PP)' | t }}</label>
+      <input id="pp_placa" type="text" formControlName="placa_pp" placeholder="{{ 'Ej: PP261353' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="pp_venc">Fecha de vencimiento de la PP <span class="required">*</span></label>
+      <label for="pp_venc">{{ 'Fecha de vencimiento de la PP' | t }} <span class="required">*</span></label>
       <input id="pp_venc" type="date" formControlName="fecha_vencimiento" />
-      <small class="vd-form__hint">La que aparece impresa en la propia placa (plazo regulado, ~3 meses). Es lo que dispara el aviso.</small>
+      <small class="vd-form__hint">{{ 'La que aparece impresa en la propia placa (plazo regulado, ~3 meses). Es lo que dispara el aviso.' | t }}</small>
     </div>
-    <p class="vd-form__hint">Seguimiento del dealer (opcional): el dealer varía y promete distinto.</p>
+    <p class="vd-form__hint">{{ 'Seguimiento del dealer (opcional): el dealer varía y promete distinto.' | t }}</p>
     <div class="sgc-field">
-      <label for="pp_dealer">Dealer / suplidor</label>
-      <input id="pp_dealer" type="text" formControlName="dealer" placeholder="Nombre del dealer (varía por caso)" />
+      <label for="pp_dealer">{{ 'Dealer / suplidor' | t }}</label>
+      <input id="pp_dealer" type="text" formControlName="dealer" placeholder="{{ 'Nombre del dealer (varía por caso)' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="pp_entrega">Entrega prometida de la definitiva</label>
+      <label for="pp_entrega">{{ 'Entrega prometida de la definitiva' | t }}</label>
       <input id="pp_entrega" type="date" formControlName="fecha_entrega_prometida" />
     </div>
     <div class="sgc-field">
-      <label for="pp_notas">Notas (opcional)</label>
-      <textarea id="pp_notas" rows="2" formControlName="notas" placeholder="Indicaciones del dealer…"></textarea>
+      <label for="pp_notas">{{ 'Notas (opcional)' | t }}</label>
+      <textarea id="pp_notas" rows="2" formControlName="notas" placeholder="{{ 'Indicaciones del dealer…' | t }}"></textarea>
     </div>
     @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
         @if (ppGuardando()) { Guardando… } @else { Registrar }
       </button>
@@ -803,20 +803,20 @@
 </app-form-drawer>
 
 <!-- ── AG8 · Drawer: ampliar plazo ── -->
-<app-form-drawer title="Ampliar plazo" [open]="ppDrawer() === 'ampliar'" (closed)="cerrarPP()">
+<app-form-drawer title="{{ 'Ampliar plazo' | t }}" [open]="ppDrawer() === 'ampliar'" (closed)="cerrarPP()">
   <form class="vd-form" [formGroup]="ampliarPPForm" (ngSubmit)="guardarPPAmpliar()">
-    <p class="vd-form__hint">El dealer comunicó una nueva fecha. Indica cuántos días adicionales al plazo actual.</p>
+    <p class="vd-form__hint">{{ 'El dealer comunicó una nueva fecha. Indica cuántos días adicionales al plazo actual.' | t }}</p>
     <div class="sgc-field">
-      <label for="pp_amp_dias">Días adicionales <span class="required">*</span></label>
-      <input id="pp_amp_dias" type="number" min="1" max="365" formControlName="dias" placeholder="Ej: 15" />
+      <label for="pp_amp_dias">{{ 'Días adicionales' | t }} <span class="required">*</span></label>
+      <input id="pp_amp_dias" type="number" min="1" max="365" formControlName="dias" placeholder="{{ 'Ej: 15' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="pp_amp_motivo">Motivo / comunicación del dealer</label>
-      <textarea id="pp_amp_motivo" rows="2" formControlName="motivo" placeholder="Lo que comunicó el dealer…"></textarea>
+      <label for="pp_amp_motivo">{{ 'Motivo / comunicación del dealer' | t }}</label>
+      <textarea id="pp_amp_motivo" rows="2" formControlName="motivo" placeholder="{{ 'Lo que comunicó el dealer…' | t }}"></textarea>
     </div>
     @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
         @if (ppGuardando()) { Guardando… } @else { Ampliar plazo }
       </button>
@@ -825,12 +825,12 @@
 </app-form-drawer>
 
 <!-- ── AG8 · Drawer: entregar placa definitiva + marbete DGII ── -->
-<app-form-drawer title="Placa definitiva entregada" [open]="ppDrawer() === 'entregar'" (closed)="cerrarPP()">
+<app-form-drawer title="{{ 'Placa definitiva entregada' | t }}" [open]="ppDrawer() === 'entregar'" (closed)="cerrarPP()">
   <form class="vd-form" [formGroup]="entregarPPForm" (ngSubmit)="guardarPPEntregar()">
-    <p class="vd-form__hint">Registra la placa definitiva y el marbete DGII (sticker de circulación) juntos.</p>
+    <p class="vd-form__hint">{{ 'Registra la placa definitiva y el marbete DGII (sticker de circulación) juntos.' | t }}</p>
     <div class="sgc-field">
-      <label for="pp_def">Placa definitiva <span class="required">*</span></label>
-      <input id="pp_def" type="text" formControlName="placa_definitiva" placeholder="Nueva placa oficial" />
+      <label for="pp_def">{{ 'Placa definitiva' | t }} <span class="required">*</span></label>
+      <input id="pp_def" type="text" formControlName="placa_definitiva" placeholder="{{ 'Nueva placa oficial' | t }}" />
     </div>
     <div class="form-toggle">
       <label class="toggle-label" for="pp_marbete">
@@ -840,16 +840,16 @@
       </label>
     </div>
     <div class="sgc-field">
-      <label for="pp_marbete_num">Número de marbete (opcional)</label>
-      <input id="pp_marbete_num" type="text" formControlName="marbete_numero" placeholder="Número del sticker DGII" />
+      <label for="pp_marbete_num">{{ 'Número de marbete (opcional)' | t }}</label>
+      <input id="pp_marbete_num" type="text" formControlName="marbete_numero" placeholder="{{ 'Número del sticker DGII' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="pp_entrega">Fecha de entrega</label>
+      <label for="pp_entrega">{{ 'Fecha de entrega' | t }}</label>
       <input id="pp_entrega" type="date" formControlName="fecha_entrega" />
     </div>
     @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
         @if (ppGuardando()) { Guardando… } @else { Registrar entrega }
       </button>
@@ -897,7 +897,7 @@
 
 <!-- ── AF4 · Lightbox de la galería ── -->
 @if (lightboxUrl(); as url) {
-  <app-lightbox [src]="url" alt="Foto del vehículo" (closed)="lightboxUrl.set(null)" />
+  <app-lightbox [src]="url" alt="{{ 'Foto del vehículo' | t }}" (closed)="lightboxUrl.set(null)" />
 }
 
 <!-- ── CG13 · visor de PDF de adjuntos de mantenimiento ── -->

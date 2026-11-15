@@ -3,13 +3,13 @@
 <div class="page">
   <div class="page__head">
     <div>
-      <h1 class="page__title">Recorrido diario</h1>
+      <h1 class="page__title">{{ 'Recorrido diario' | t }}</h1>
       <p class="page__sub">
         Elige un chofer y una fecha para ver su recorrido del día — aunque no haya estado en
         una ruta. Se dibuja a partir de las posiciones capturadas por su teléfono durante la jornada.
       </p>
     </div>
-    <a class="page__link" routerLink="/flota/seguimiento">Ver en vivo →</a>
+    <a class="page__link" routerLink="/flota/seguimiento">{{ 'Ver en vivo →' | t }}</a>
   </div>
 
   @if (loading()) {
@@ -18,9 +18,9 @@
     <div class="rec-layout">
       <!-- Panel izquierdo: choferes + fechas -->
       <aside class="rec-side">
-        <h2 class="rec-side__h">Choferes</h2>
+        <h2 class="rec-side__h">{{ 'Choferes' | t }}</h2>
         @if (choferes().length === 0) {
-          <p class="rec-empty">Nadie ha compartido recorridos en los últimos 30 días.</p>
+          <p class="rec-empty">{{ 'Nadie ha compartido recorridos en los últimos 30 días.' | t }}</p>
         } @else {
           <ul class="rec-choferes">
             @for (c of choferes(); track c.usuario_id) {
@@ -40,7 +40,7 @@
         }
 
         @if (choferSel()) {
-          <h2 class="rec-side__h">Fechas con recorrido</h2>
+          <h2 class="rec-side__h">{{ 'Fechas con recorrido' | t }}</h2>
           <div class="rec-fechas">
             @for (d of fechasDeChofer(); track d.fecha) {
               <button
@@ -85,9 +85,9 @@
           </div>
         }
 
-        @if (cargandoRec()) { <p class="rec-hint">Cargando recorrido…</p> }
+        @if (cargandoRec()) { <p class="rec-hint">{{ 'Cargando recorrido…' | t }}</p> }
         @if (error()) { <p class="rec-hint rec-hint--err">{{ error() }}</p> }
-        @if (!choferSel()) { <p class="rec-hint">Selecciona un chofer para empezar.</p> }
+        @if (!choferSel()) { <p class="rec-hint">{{ 'Selecciona un chofer para empezar.' | t }}</p> }
 
         <!-- AU7 — Paradas / visitas detectadas (estilo Google Timeline) -->
         @if (paradas().length) {

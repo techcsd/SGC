@@ -23,6 +23,7 @@ import { VehiculoPicker } from '../../../../../shared/components/vehiculo-picker
 import { SignaturePad } from '../../../../../shared/ui/signature-pad/signature-pad';
 import { comprimirImagen } from '../../../../../shared/utils/comprimir-imagen.util';
 import { Icon } from '../../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
 
 interface DanoEdit {
   zona: string;
@@ -48,7 +49,7 @@ const ENTREGA_SLOTS: { slot: string; label: string }[] = [
  */
 @Component({
   selector: 'app-registrar-entrega',
-  imports: [DecimalPipe, DatePipe, ReactiveFormsModule, VehiculoPicker, SignaturePad, Icon],
+  imports: [DecimalPipe, DatePipe, ReactiveFormsModule, VehiculoPicker, SignaturePad, Icon, TranslatePipe],
   templateUrl: './registrar-entrega.html',
   styleUrl: './registrar-entrega.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

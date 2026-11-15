@@ -100,60 +100,6 @@
     "dudas": {
       "enforce": false
     },
-    "flota/accidentes": {
-      "enforce": false
-    },
-    "flota/avisos": {
-      "enforce": false
-    },
-    "flota/choferes-privados": {
-      "enforce": false
-    },
-    "flota/combustible": {
-      "enforce": false
-    },
-    "flota/combustible-dashboard": {
-      "enforce": false
-    },
-    "flota/combustible-log": {
-      "enforce": false
-    },
-    "flota/conciliacion-combustible": {
-      "enforce": false
-    },
-    "flota/conductores": {
-      "enforce": false
-    },
-    "flota/conductores-estado": {
-      "enforce": false
-    },
-    "flota/panel-dia": {
-      "enforce": false
-    },
-    "flota/recorrido-diario": {
-      "enforce": false
-    },
-    "flota/rendimiento-vehiculos": {
-      "enforce": false
-    },
-    "flota/reporte-semanal": {
-      "enforce": false
-    },
-    "flota/reportes": {
-      "enforce": false
-    },
-    "flota/responsabilidad": {
-      "enforce": false
-    },
-    "flota/rutas": {
-      "enforce": false
-    },
-    "flota/rutas-activas": {
-      "enforce": false
-    },
-    "flota/seguimiento": {
-      "enforce": false
-    },
     "forbidden": {
       "enforce": false
     },
@@ -352,9 +298,6 @@
     "admin/empresa": {
       "enforce": false
     },
-    "flota/checklists": {
-      "enforce": false
-    },
     "bitacora/nueva": {
       "enforce": false
     },
@@ -364,13 +307,7 @@
     "bitacora/solicitudes-material": {
       "enforce": false
     },
-    "flota/mantenimientos": {
-      "enforce": false
-    },
     "tecnologia/dev-notes": {
-      "enforce": false
-    },
-    "flota/vehiculos": {
       "enforce": false
     },
     "bitacora/cartillas": {
@@ -391,10 +328,64 @@
     "auth": {
       "enforce": false
     },
+    "flota/choferes-privados": {
+      "enforce": false
+    },
+    "flota/recorrido-diario": {
+      "enforce": false
+    },
+    "flota/avisos": {
+      "enforce": false
+    },
+    "flota/mantenimientos": {
+      "enforce": false
+    },
+    "flota/checklists": {
+      "enforce": false
+    },
+    "flota/combustible": {
+      "enforce": false
+    },
+    "flota/rutas": {
+      "enforce": false
+    },
+    "flota/reporte-semanal": {
+      "enforce": false
+    },
+    "flota/vehiculos": {
+      "enforce": false
+    },
+    "flota/seguimiento": {
+      "enforce": false
+    },
+    "flota/conciliacion-combustible": {
+      "enforce": false
+    },
+    "flota/conductores": {
+      "enforce": false
+    },
+    "flota/responsabilidad": {
+      "enforce": false
+    },
+    "flota/rutas-activas": {
+      "enforce": false
+    },
+    "flota/combustible-dashboard": {
+      "enforce": false
+    },
+    "flota/conductores-estado": {
+      "enforce": false
+    },
+    "flota/rendimiento-vehiculos": {
+      "enforce": false
+    },
     "practica": {
       "enforce": false
     },
     "tecnologia/oficina-agentes": {
+      "enforce": false
+    },
+    "flota/accidentes": {
       "enforce": false
     },
     "tecnologia/envios-automaticos": {
@@ -404,6 +395,12 @@
       "enforce": false
     },
     "flota/transferencias": {
+      "enforce": false
+    },
+    "flota/panel-dia": {
+      "enforce": false
+    },
+    "flota/combustible-log": {
       "enforce": false
     },
     "ingenieria/pagos": {
@@ -428,6 +425,9 @@
       "enforce": false
     },
     "borrador-claude": {
+      "enforce": false
+    },
+    "flota/reportes": {
       "enforce": false
     },
     "oauth-consent": {
