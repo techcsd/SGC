@@ -170,14 +170,19 @@ function asegurarTranslatePipe(htmlFile) {
   const importPath = rel.startsWith('.') ? rel : `./${rel}`;
 
   // 1) agrega el import (tras el último import existente).
-  const importLines = ts.split(/\r?\n/);
-  let lastImport = -1;
-  for (let i = 0; i < importLines.length; i++) {
-    if (/^import\s/.test(importLines[i])) lastImport = i;
+  // DP-20 — un import puede ser multilínea (`import {\n  A, B,\n} from '...'`);
+  // buscar la última línea que EMPIEZA con "import" (como antes) partía el
+  // bloque a la mitad si esa línea era solo la apertura `import {` de un
+  // import multilínea. Ahora se busca el cierre real de cada statement
+  // (`... from '...';`), multilínea incluido, y se inserta tras el último.
+  const importStmtRe = /^import\s[\s\S]*?from\s*['"][^'"]+['"]\s*;?\s*$/gm;
+  let lastEnd = -1;
+  let m;
+  while ((m = importStmtRe.exec(ts)) !== null) {
+    lastEnd = m.index + m[0].length;
   }
-  if (lastImport === -1) return; // archivo sin imports, no tocar (raro)
-  importLines.splice(lastImport + 1, 0, `import { TranslatePipe } from '${importPath}';`);
-  ts = importLines.join('\n');
+  if (lastEnd === -1) return; // archivo sin imports con "from", no tocar (raro)
+  ts = `${ts.slice(0, lastEnd)}\nimport { TranslatePipe } from '${importPath}';${ts.slice(lastEnd)}`;
 
   // 2) agrega TranslatePipe al array `imports: [...]` del @Component.
   const impMatch = ts.match(/imports:\s*\[([^\]]*)\]/);
