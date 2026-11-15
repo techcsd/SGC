@@ -310,9 +310,6 @@
     "ingenieria/pagos": {
       "enforce": false
     },
-    "bitacora/nueva": {
-      "enforce": false
-    },
     "reuniones/reuniones-lista": {
       "enforce": false
     },
@@ -368,6 +365,9 @@
       "enforce": true
     },
     "bitacora/moldes": {
+      "enforce": true
+    },
+    "bitacora/nueva": {
       "enforce": true
     },
     "bitacora/orden-trabajo": {

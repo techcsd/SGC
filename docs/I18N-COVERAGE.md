@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 53%** (5579/10620 literales de 192 pantallas en alcance). **`ht`: 81%**.
+**Alcance `en`: 53%** (5616/10625 literales de 192 pantallas en alcance). **`ht`: 82%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -110,7 +110,6 @@
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
-| bitacora/nueva | scope | 164 | 132 | 32 | 80% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
@@ -130,6 +129,7 @@
 | bitacora/historial | enforce | 91 | 91 | 0 | 100% |
 | bitacora/mi-proyecto | enforce | 5 | 5 | 0 | 100% |
 | bitacora/moldes | enforce | 19 | 19 | 0 | 100% |
+| bitacora/nueva | enforce | 169 | 169 | 0 | 100% |
 | bitacora/orden-trabajo | enforce | 81 | 81 | 0 | 100% |
 | bitacora/solicitudes-compra | enforce | 26 | 26 | 0 | 100% |
 | bitacora/solicitudes-material | enforce | 75 | 75 | 0 | 100% |

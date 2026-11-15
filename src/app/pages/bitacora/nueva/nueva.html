@@ -7,7 +7,7 @@
 
 @if (enProceso().length) {
   <div class="bitacora-draft-banner" role="status">
-    <span class="bitacora-draft-banner__title">Documentación en proceso ({{ enProceso().length }})</span>
+    <span class="bitacora-draft-banner__title">{{ 'Documentación en proceso' | t }} ({{ enProceso().length }})</span>
     @for (b of enProceso(); track b.id) {
       <div class="bitacora-draft-item">
         <span class="bitacora-draft-item__label">{{ b.label }}</span>
@@ -33,19 +33,19 @@
           <label class="bitacora-tipo-card" [class.selected]="tipoActual() === t.value">
             <input type="radio" formControlName="tipo" [value]="t.value" />
             <span class="bitacora-tipo-card__icon" aria-hidden="true">{{ t.icono }}</span>
-            <span class="bitacora-tipo-card__label">{{ t.label }}</span>
-            <span class="bitacora-tipo-card__desc">{{ t.desc }}</span>
+            <span class="bitacora-tipo-card__label">{{ t.label | t }}</span>
+            <span class="bitacora-tipo-card__desc">{{ t.desc | t }}</span>
           </label>
         }
       </div>
       <!-- BN1 — la orden de trabajo (con firma de ingeniero + cliente) tiene su propio flujo. -->
       <a routerLink="/bitacora/orden-trabajo" class="bitacora-ot-link">
-        🧾 ¿Es una <strong>{{ 'orden de trabajo' | t }}</strong> pedida por el cliente? Regístrala con las dos firmas →
+        🧾 {{ '¿Es una' | t }} <strong>{{ 'orden de trabajo' | t }}</strong> {{ 'pedida por el cliente? Regístrala con las dos firmas →' | t }}
       </a>
       <!-- BW1 — ver/revisar/compartir las órdenes de trabajo ya creadas. -->
       <a routerLink="/bitacora/ordenes-trabajo" class="bitacora-ot-link bitacora-ot-link--ver">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-        Ver y compartir las <strong>{{ 'órdenes de trabajo' | t }}</strong> creadas →
+        {{ 'Ver y compartir las' | t }} <strong>{{ 'órdenes de trabajo' | t }}</strong> {{ 'creadas →' | t }}
       </a>
     </section>
 
@@ -150,7 +150,7 @@
         <div class="sgc-field">
           <label for="proyecto_id">{{ 'Obra / Proyecto' | t }} <span class="required">*</span></label>
           <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-            <option [ngValue]="null">Seleccionar obra…</option>
+            <option [ngValue]="null">{{ 'Seleccionar obra…' | t }}</option>
             @for (p of activeProyectos(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }
@@ -167,7 +167,7 @@
         <div class="sgc-field">
           <label for="cronograma_tarea_id">{{ 'Tarea del cronograma (opcional)' | t }}</label>
           <select id="cronograma_tarea_id" formControlName="cronograma_tarea_id">
-            <option [ngValue]="null">Ninguna</option>
+            <option [ngValue]="null">{{ 'Ninguna' | t }}</option>
             @for (t of tareasCronograma(); track t.id) {
               <option [value]="t.id">{{ t.nombre }}</option>
             }
@@ -190,7 +190,7 @@
             <span>{{ 'No se trabajó en obra este día' | t }}</span>
           </label>
           <span class="bitacora-section__hint">
-            Registra el día sin trabajo: solo necesitas la obra, la fecha y el motivo.
+            {{ 'Registra el día sin trabajo: solo necesitas la obra, la fecha y el motivo.' | t }}
           </span>
         </div>
 
@@ -204,9 +204,9 @@
                 (change)="actualizarReqMotivoDetallePublic()"
                 [class.invalid]="f.motivo_sin_actividad.invalid && f.motivo_sin_actividad.touched"
               >
-                <option [ngValue]="null">Selecciona el motivo…</option>
+                <option [ngValue]="null">{{ 'Selecciona el motivo…' | t }}</option>
                 @for (m of MOTIVOS_SIN_ACTIVIDAD; track m.value) {
-                  <option [value]="m.value">{{ m.label }}</option>
+                  <option [value]="m.value">{{ m.label | t }}</option>
                 }
               </select>
               @if (f.motivo_sin_actividad.invalid && f.motivo_sin_actividad.touched) {
@@ -247,8 +247,8 @@
               @for (e of estructurasObra(); track e) { <option [value]="e"></option> }
             </datalist>
             <span class="bitacora-section__hint">
-              @if (estructurasObra().length > 0) { Elige una estructura de la obra o escribe otra. }
-              @else { Opcional. Para registrar en varios bloques usa los chips de la sección Actividades. }
+              @if (estructurasObra().length > 0) { {{ 'Elige una estructura de la obra o escribe otra.' | t }} }
+              @else { {{ 'Opcional. Para registrar en varios bloques usa los chips de la sección Actividades.' | t }} }
             </span>
           </div>
 
@@ -290,7 +290,7 @@
           <div class="sgc-field">
             <label for="visita_tipo_visitante">{{ 'Tipo de visitante' | t }} <span class="required">*</span></label>
             <select id="visita_tipo_visitante" formControlName="visita_tipo_visitante" [class.invalid]="f.visita_tipo_visitante.invalid && f.visita_tipo_visitante.touched">
-              <option [ngValue]="null">Seleccionar…</option>
+              <option [ngValue]="null">{{ 'Seleccionar…' | t }}</option>
               @for (vt of VISITANTE_TIPOS; track vt.value) {
                 <option [value]="vt.value">{{ vt.label }}</option>
               }
@@ -326,7 +326,7 @@
         <div class="sgc-field">
           <label for="incidente_tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
           <select id="incidente_tipo" formControlName="incidente_tipo" [class.invalid]="f.incidente_tipo.invalid && f.incidente_tipo.touched">
-            <option [ngValue]="null">Seleccionar…</option>
+            <option [ngValue]="null">{{ 'Seleccionar…' | t }}</option>
             @for (it of INCIDENTE_TIPOS; track it.value) {
               <option [value]="it.value">{{ it.label }}</option>
             }
@@ -342,7 +342,7 @@
             <div class="sgc-field">
               <label for="incidente_gravedad">{{ 'Gravedad' | t }} <span class="required">*</span></label>
               <select id="incidente_gravedad" formControlName="incidente_gravedad" [class.invalid]="f.incidente_gravedad.invalid && f.incidente_gravedad.touched">
-                <option [ngValue]="null">Seleccionar…</option>
+                <option [ngValue]="null">{{ 'Seleccionar…' | t }}</option>
                 @for (g of INCIDENTE_GRAVEDADES; track g.value) {
                   <option [value]="g.value">{{ g.label }}</option>
                 }
@@ -403,13 +403,13 @@
           <!-- T19 — comentario de operatividad: opcional si "Sí", obligatorio si quedó fuera de servicio. -->
           <div class="sgc-field">
             <label for="incidente_equipo_operativo_comentario">
-              {{ f.incidente_equipo_operativo.value === 'no' ? 'Explica qué pasó' : 'Comentario' }}
+              {{ (f.incidente_equipo_operativo.value === 'no' ? 'Explica qué pasó' : 'Comentario') | t }}
               @if (f.incidente_equipo_operativo.value === 'no') { <span class="required">*</span> }
               @else { <span class="text-muted">{{ '(opcional)' | t }}</span> }
             </label>
             <textarea id="incidente_equipo_operativo_comentario" rows="2" maxlength="1000"
               formControlName="incidente_equipo_operativo_comentario"
-              [placeholder]="f.incidente_equipo_operativo.value === 'no' ? 'Ej: se fundió el motor, no arranca…' : 'Detalle opcional del estado del equipo'"
+              [placeholder]="f.incidente_equipo_operativo.value === 'no' ? i18n.t('Ej: se fundió el motor, no arranca…') : i18n.t('Detalle opcional del estado del equipo')"
               [class.invalid]="f.incidente_equipo_operativo_comentario.invalid && f.incidente_equipo_operativo_comentario.touched"></textarea>
             @if (f.incidente_equipo_operativo_comentario.invalid && f.incidente_equipo_operativo_comentario.touched) {
               <span class="field-error">{{ 'Requerido: el equipo quedó fuera de servicio.' | t }}</span>
@@ -422,11 +422,11 @@
           <div class="sgc-field">
             <label for="incidente_suceso">{{ '¿Qué pasó?' | t }} <span class="required">*</span></label>
             <select id="incidente_suceso" formControlName="incidente_suceso" [class.invalid]="f.incidente_suceso.invalid && f.incidente_suceso.touched">
-              <option [ngValue]="null">Seleccionar…</option>
+              <option [ngValue]="null">{{ 'Seleccionar…' | t }}</option>
               @for (s of sucesosActuales(); track s) {
-                <option [value]="s">{{ sucesoLabel(s) }}</option>
+                <option [value]="s">{{ sucesoLabel(s) | t }}</option>
               }
-              <option [value]="SUCESO_OTRO">Otro…</option>
+              <option [value]="SUCESO_OTRO">{{ 'Otro…' | t }}</option>
             </select>
             @if (f.incidente_suceso.invalid && f.incidente_suceso.touched) {
               <span class="field-error">{{ 'Requerido.' | t }}</span>
@@ -443,7 +443,7 @@
 
         <div class="sgc-field">
           <label for="incidente_descripcion">
-            Descripción de lo ocurrido
+            {{ 'Descripción de lo ocurrido' | t }}
             @if (incidenteSubtipo() === 'accidente' || incidenteSubtipo() === 'incidente') { <span class="required">*</span> }
           </label>
           <textarea id="incidente_descripcion" rows="3" maxlength="2000" formControlName="incidente_descripcion" placeholder="{{ '¿Qué pasó, dónde y cómo?' | t }}" [class.invalid]="f.incidente_descripcion.invalid && f.incidente_descripcion.touched"></textarea>
@@ -527,7 +527,7 @@
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">{{ 'Equipos alquilados' | t }}</h2>
       <p class="bitacora-section__hint">
-        Registra los equipos alquilados usados hoy para respaldar el gasto.
+        {{ 'Registra los equipos alquilados usados hoy para respaldar el gasto.' | t }}
       </p>
 
       <div class="sgc-field">
@@ -616,7 +616,7 @@
         }
 
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addEquipo()">
-          + Agregar equipo
+          {{ '+ Agregar equipo' | t }}
         </button>
       }
     </section>
@@ -627,8 +627,7 @@
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">{{ '¿Se dañó algo hoy?' | t }}</h2>
       <p class="bitacora-section__hint">
-        Reporta material (un molde, una viga…) o un equipo propio (CSD) que se haya dañado en obra.
-        Si es material, puedes solicitar su retiro y aparecerá en Inventario › Retiros.
+        {{ 'Reporta material (un molde, una viga…) o un equipo propio (CSD) que se haya dañado en obra. Si es material, puedes solicitar su retiro y aparecerá en Inventario › Retiros.' | t }}
       </p>
 
       @for (d of danos(); track $index; let i = $index) {
@@ -702,16 +701,16 @@
           }
 
           <div class="sgc-field">
-            <label>Fotos {{ d.solicita_retiro ? '' : '(opcional)' }}</label>
+            <label>{{ 'Fotos' | t }} {{ (d.solicita_retiro ? '' : '(opcional)') | t }}</label>
             <app-file-upload [files]="d.fotos" [max]="6" accept="image/*"
-              hint="Fotos del daño."
+              [hint]="'Fotos del daño.' | t"
               (add)="addDanoFotos(i, $event)" (removeAt)="removeDanoFoto(i, $event)" />
           </div>
         </div>
       }
 
       <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addDano()">
-        + Agregar daño
+        {{ '+ Agregar daño' | t }}
       </button>
     </section>
     }
@@ -721,8 +720,7 @@
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">{{ 'Moldes del día' | t }}</h2>
       <p class="bitacora-section__hint">
-        Captura las medidas reales (cm) de los moldes. El esquema se dibuja solo; si cargas la
-        medida de plano, se compara y avisa cuando el desvío pasa la tolerancia.
+        {{ 'Captura las medidas reales (cm) de los moldes. El esquema se dibuja solo; si cargas la medida de plano, se compara y avisa cuando el desvío pasa la tolerancia.' | t }}
       </p>
 
       <!-- BQ8c — toggle Ficha / Compositor (ambos escriben la misma lista de moldes) -->
@@ -737,8 +735,7 @@
 
       @if (moldeModo() === 'compositor') {
         <p class="bitacora-section__hint">
-          Arma la formación con figuras: colócalas en la rejilla de 5&nbsp;cm, muévelas, gíralas y
-          ajusta sus medidas reales y de plano. Cada figura es un molde.
+          {{ 'Arma la formación con figuras: colócalas en la rejilla de 5 cm, muévelas, gíralas y ajusta sus medidas reales y de plano. Cada figura es un molde.' | t }}
         </p>
         <app-molde-compositor [valorInicial]="compositorFiguras()" [toleranciaCm]="moldeToleranciaCm()"
           (cambio)="onCompositorCambio($event)" />
@@ -776,7 +773,7 @@
             <div class="molde-tramo">
               @if (moldeMultiTramo(m)) {
                 <div class="molde-tramo__head">
-                  <span class="molde-tramo__lado">Lado {{ t.lado }}</span>
+                  <span class="molde-tramo__lado">{{ 'Lado' | t }} {{ t.lado }}</span>
                   @if (m.tramos.length > 1) {
                     <button type="button" class="molde-tramo__remove sgc-btn sgc-btn--ghost sgc-btn--sm"
                       (click)="removeMoldeLado(i, ti)" aria-label="{{ 'Quitar lado' | t }}"><app-icon name="x" [size]="14" /></button>
@@ -808,7 +805,7 @@
 
           @if (moldeMultiTramo(m) && m.tramos.length < 3) {
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm molde-add-lado" (click)="addMoldeLado(i)">
-              + Agregar lado
+              {{ '+ Agregar lado' | t }}
             </button>
           }
 
@@ -820,14 +817,14 @@
 
           <div class="sgc-field">
             <label>{{ 'Fotos (opcional)' | t }}</label>
-            <app-file-upload [files]="m.fotos" [max]="6" accept="image/*" hint="Fotos del molde."
+            <app-file-upload [files]="m.fotos" [max]="6" accept="image/*" [hint]="'Fotos del molde.' | t"
               (add)="addMoldeFotos(i, $event)" (removeAt)="removeMoldeFoto(i, $event)" />
           </div>
         </div>
       }
 
       <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addMolde()">
-        + Agregar molde
+        {{ '+ Agregar molde' | t }}
       </button>
       }
     </section>
@@ -856,7 +853,7 @@
           (click)="agregarBloque(nuevoBloque.value); nuevoBloque.value=''">{{ 'Agregar' | t }}</button>
       </div>
       @if (totalActividades() > 0) {
-        <p class="bitacora-section__hint">{{ totalActividades() }} actividad(es) en total en {{ bloquesLista().length }} bloque(s).</p>
+        <p class="bitacora-section__hint">{{ totalActividades() }} {{ 'actividad(es) en total en' | t }} {{ bloquesLista().length }} {{ 'bloque(s).' | t }}</p>
       }
 
       <div class="bitacora-matriz">
@@ -907,13 +904,13 @@
                       }
                       <div class="bitacora-matriz__qty">
                         <span class="bitacora-matriz__qty-label">
-                          @if (isAproximada(estructura, actividad)) { ~ Cantidad aproximada } @else { Cantidad }
+                          @if (isAproximada(estructura, actividad)) { ~ {{ 'Cantidad aproximada' | t }} } @else { {{ 'Cantidad' | t }} }
                         </span>
                         <app-qty-stepper
                           [value]="getCantidad(estructura, actividad)"
                           [min]="0"
                           [step]="1"
-                          [ariaLabel]="'Cantidad de ' + actividad"
+                          [ariaLabel]="i18n.t('Cantidad de') + ' ' + actividad"
                           (valueChange)="setCantidad(estructura, actividad, $event)"
                         />
                         <!-- Q6 — unidad de medida del trabajo realizado -->
@@ -922,7 +919,7 @@
                           class="bitacora-matriz__unidad"
                           [value]="getUnidad(estructura, actividad)"
                           (change)="setUnidad(estructura, actividad, $any($event.target).value)"
-                          [attr.aria-label]="'Unidad de ' + actividad"
+                          [attr.aria-label]="i18n.t('Unidad de') + ' ' + actividad"
                         >
                           <option value="">—</option>
                           @for (u of unidades(); track u.id) {
@@ -934,7 +931,7 @@
                       </div>
                       @if (isAproximada(estructura, actividad)) {
                         <p class="bitacora-matriz__aprox-hint">
-                          Puedes dejar la cantidad vacía: se registrará solo como «se trabajó». Si pones un número, quedará marcado como aproximado (~).
+                          {{ 'Puedes dejar la cantidad vacía: se registrará solo como «se trabajó». Si pones un número, quedará marcado como aproximado (~).' | t }}
                         </p>
                       }
                     }
@@ -1046,7 +1043,7 @@
             <label>{{ 'Describe cada restricción' | t }} <span class="required">*</span></label>
             @for (r of restriccionesADescribir(); track r) {
               <div class="bitacora-restriccion-desc">
-                <span class="bitacora-restriccion-desc__tag">{{ restriccionLabel(r) }}</span>
+                <span class="bitacora-restriccion-desc__tag">{{ restriccionLabel(r) | t }}</span>
                 <input type="text"
                   [value]="getRestriccionDescripcion(r)"
                   (input)="setRestriccionDescripcion(r, $any($event.target).value)"
@@ -1064,11 +1061,11 @@
 
       <div class="sgc-field">
         <label>
-          Imágenes y archivos
+          {{ 'Imágenes y archivos' | t }}
           @if (tipoActual() === 'parte_diario' && !sinActividad()) { <span class="required">*</span> }
         </label>
         @if (tipoActual() === 'parte_diario' && !sinActividad()) {
-          <p class="bitacora-section__hint">Agrega al menos {{ minFotosParte }} fotos del trabajo realizado.</p>
+          <p class="bitacora-section__hint">{{ 'Agrega al menos' | t }} {{ minFotosParte }} {{ 'fotos del trabajo realizado.' | t }}</p>
         } @else if (sinActividad()) {
           <p class="bitacora-section__hint">{{ 'Opcional: una foto o comentario del motivo.' | t }}</p>
         }
@@ -1076,7 +1073,7 @@
           [files]="archivos()"
           [max]="maxArchivos"
           accept="image/*,audio/*,.pdf,.mp4,.docx,.xlsx,.webm,.m4a,.mp3,.ogg,.wav"
-          hint="Imágenes, PDF, notas de voz y documentos."
+          [hint]="'Imágenes, PDF, notas de voz y documentos.' | t"
           (add)="onFilesAdded($event)"
           (removeAt)="removeArchivo($event)"
         />
