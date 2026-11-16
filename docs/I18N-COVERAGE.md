@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 82%** (8313/10191 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 82%** (8358/10191 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -46,7 +46,6 @@
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
 | tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
@@ -184,6 +183,7 @@
 | tecnologia/compras | enforce | 81 | 81 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/cotizaciones | enforce | 79 | 79 | 0 | 100% |
+| tecnologia/design-system | enforce | 130 | 130 | 0 | 100% |
 | tecnologia/dev-notes | enforce | 76 | 76 | 0 | 100% |
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |

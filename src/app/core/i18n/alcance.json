@@ -118,9 +118,6 @@
     "auth": {
       "enforce": false
     },
-    "tecnologia/design-system": {
-      "enforce": false
-    },
     "tecnologia/inventario": {
       "enforce": false
     },
@@ -530,6 +527,9 @@
       "enforce": true
     },
     "tecnologia/cotizaciones": {
+      "enforce": true
+    },
+    "tecnologia/design-system": {
       "enforce": true
     },
     "tecnologia/dev-notes": {
