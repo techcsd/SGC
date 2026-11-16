@@ -2,9 +2,9 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Contratos' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} contrato{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ 'contrato' | t }}{{ filtered().length !== 1 ? 's' : '' }}</span>
     @if (porVencerCount() > 0) {
-      <span class="sgc-badge sgc-badge--warning">{{ porVencerCount() }} por vencer (30 días)</span>
+      <span class="sgc-badge sgc-badge--warning">{{ porVencerCount() }} {{ 'por vencer (30 días)' | t }}</span>
     }
   </div>
   <div class="page-header__actions">
@@ -16,7 +16,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo contrato
+      {{ 'Nuevo contrato' | t }}
     </button>
   </div>
 </div>
@@ -35,16 +35,16 @@
 
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-      <option value="all">Todos los estados</option>
+      <option value="all">{{ 'Todos los estados' | t }}</option>
       @for (e of ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
 
   @if (searchQuery() || selectedEstado() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -61,9 +61,9 @@
     <div class="table-empty">
       <p>
         @if (searchQuery() || selectedEstado() !== 'all') {
-          No se encontraron contratos con los filtros aplicados.
+          {{ 'No se encontraron contratos con los filtros aplicados.' | t }}
         } @else {
-          No hay contratos registrados. Crea el primero.
+          {{ 'No hay contratos registrados. Crea el primero.' | t }}
         }
       </p>
     </div>
@@ -88,7 +88,7 @@
                 (keydown.enter)="openDetail(c)" aria-label="{{ 'Ver detalle del contrato' | t }}">
               <td><code class="code-tag">{{ c.codigo }}</code></td>
               <td><span class="con-title">{{ c.titulo }}</span></td>
-              <td>{{ tipoLabel(c.tipo) }}</td>
+              <td>{{ tipoLabel(c.tipo) | t }}</td>
               <td>{{ c.contraparte_nombre }}</td>
               <td>{{ c.proyecto?.nombre ?? '—' }}</td>
               <td>
@@ -98,15 +98,15 @@
                   <span class="text-muted">—</span>
                 }
               </td>
-              <td><span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) }}</span></td>
+              <td><span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) | t }}</span></td>
               <td>
                 <div class="row-actions">
-                  <button type="button" class="action-btn action-btn--view" (click)="$event.stopPropagation(); openDetail(c)" [attr.aria-label]="'Ver ' + c.titulo" title="{{ 'Ver detalle' | t }}">
+                  <button type="button" class="action-btn action-btn--view" (click)="$event.stopPropagation(); openDetail(c)" [attr.aria-label]="i18n.t('Ver') + ' ' + c.titulo" title="{{ 'Ver detalle' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                   </button>
-                  <button type="button" class="action-btn action-btn--edit" (click)="$event.stopPropagation(); openEdit(c)" [attr.aria-label]="'Editar ' + c.titulo" title="{{ 'Editar' | t }}">
+                  <button type="button" class="action-btn action-btn--edit" (click)="$event.stopPropagation(); openEdit(c)" [attr.aria-label]="i18n.t('Editar') + ' ' + c.titulo" title="{{ 'Editar' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -120,7 +120,7 @@
       </table>
     </div>
     <div class="table-footer">
-      {{ filtered().length }} contrato{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+      {{ filtered().length }} {{ 'contrato' | t }}{{ filtered().length !== 1 ? 's' : '' }} {{ 'encontrado' | t }}{{ filtered().length !== 1 ? 's' : '' }}
     </div>
   }
 </div>
@@ -141,7 +141,7 @@
         <label for="tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
         <select id="tipo" formControlName="tipo">
           @for (t of TIPOS; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+            <option [value]="t.value">{{ t.label | t }}</option>
           }
         </select>
       </div>
@@ -155,7 +155,7 @@
       <div class="sgc-field">
         <label for="proveedor_id">{{ 'Proveedor vinculado' | t }}</label>
         <select id="proveedor_id" formControlName="proveedor_id">
-          <option [ngValue]="null">Sin vincular</option>
+          <option [ngValue]="null">{{ 'Sin vincular' | t }}</option>
           @for (p of proveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -164,7 +164,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">{{ 'Proyecto relacionado' | t }}</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [ngValue]="null">Sin proyecto</option>
+          <option [ngValue]="null">{{ 'Sin proyecto' | t }}</option>
           @for (p of proyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -192,7 +192,7 @@
     <div class="sgc-field">
       <label for="documento_generado_id">{{ 'Documento ligado (opcional)' | t }}</label>
       <select id="documento_generado_id" formControlName="documento_generado_id">
-        <option [ngValue]="null">Sin documento — lo subo firmado después</option>
+        <option [ngValue]="null">{{ 'Sin documento — lo subo firmado después' | t }}</option>
         @for (d of documentosDisponibles(); track d.id) {
           <option [value]="d.id">{{ d.nombre }}</option>
         }
@@ -209,9 +209,9 @@
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear contrato' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear contrato') | t }}
         }
       </button>
     </div>
@@ -219,7 +219,7 @@
 </app-form-drawer>
 
 <!-- ── Detail Drawer ── -->
-<app-form-drawer [title]="detailContrato()?.codigo ?? 'Contrato'" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer [title]="detailContrato()?.codigo ?? i18n.t('Contrato')" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailContrato(); as c) {
     <div class="detail-body">
       <div class="detail-grid">
@@ -229,7 +229,7 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Tipo' | t }}</span>
-          <span>{{ tipoLabel(c.tipo) }}</span>
+          <span>{{ tipoLabel(c.tipo) | t }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Contraparte' | t }}</span>
@@ -277,7 +277,7 @@
           <p class="text-muted">{{ 'Sin documento generado ligado.' | t }}</p>
         }
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm file-upload-btn">
-          @if (subiendoFirmado()) { <span class="spinner" aria-hidden="true"></span> Subiendo… } @else { Subir firmado }
+          @if (subiendoFirmado()) { <span class="spinner" aria-hidden="true"></span> {{ 'Subiendo…' | t }} } @else { {{ 'Subir firmado' | t }} }
           <input type="file" class="sr-only" accept="application/pdf,image/*" (change)="onFirmadoSelected($event)" [disabled]="subiendoFirmado()" />
         </label>
       </div>
@@ -286,11 +286,11 @@
         <span class="detail-estado__label">{{ 'Cambiar estado:' | t }}</span>
         @for (estado of nextEstados(c.estado); track estado) {
           <button type="button" class="sgc-btn sgc-btn--ghost detail-estado__btn" (click)="cambiarEstado(estado)">
-            {{ estadoLabel(estado) }}
+            {{ estadoLabel(estado) | t }}
           </button>
         }
         @if (nextEstados(c.estado).length === 0) {
-          <span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) }}</span>
+          <span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) | t }}</span>
         }
       </div>
     </div>

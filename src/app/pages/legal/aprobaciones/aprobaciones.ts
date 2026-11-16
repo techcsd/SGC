@@ -13,6 +13,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-aprobaciones',
   imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator, StaggerDirective, TranslatePipe],
@@ -24,6 +25,7 @@ export class Aprobaciones implements OnInit {
   private legalService = inject(LegalService);
   private motion = inject(MotionService);
   private userService = inject(UserService);
+  protected i18n = inject(I18nService);
 
   readonly MODULOS = APROBACION_MODULOS;
 

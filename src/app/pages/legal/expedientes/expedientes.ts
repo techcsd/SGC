@@ -47,7 +47,7 @@ export class Expedientes implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
-  private i18n = inject(I18nService);
+  protected i18n = inject(I18nService);
 
   readonly TIPOS = EXPEDIENTE_TIPOS;
   readonly ESTADOS = EXPEDIENTE_ESTADOS;
@@ -397,7 +397,7 @@ export class Expedientes implements OnInit {
       this.detailExpediente.set(updated);
       this.expedientes.update((list) => list.map((e) => (e.id === exp.id ? updated : e)));
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar el estado del expediente', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado del expediente'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -415,7 +415,7 @@ export class Expedientes implements OnInit {
       this.expedientes.update((list) => list.map((e) => (e.id === exp.id ? updated : e)));
       this.fijandoFechaLimite.set(false);
     } catch (e: unknown) {
-      this.toast.error('No se pudo fijar la fecha límite', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo fijar la fecha límite'), e instanceof Error ? e.message : undefined);
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 68,
-  "pctHt": 86,
+  "pctHt": 87,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -3936,35 +3936,6 @@
       ]
     },
     {
-      "pantalla": "legal/contratos",
-      "total": 56,
-      "cubiertos": 38,
-      "sin": 18,
-      "pct": 68,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "contrato",
-        "por vencer (30 días)",
-        "Nuevo contrato",
-        "Todos los estados",
-        "Limpiar filtros",
-        "contrato encontrado",
-        "Sin vincular",
-        "Sin proyecto",
-        "Sin documento — lo subo firmado después",
-        "Guardando… } @else { }",
-        "Subiendo… } @else { Subir firmado }",
-        "Ver",
-        "Editar",
-        "Contrato",
-        "No se pudo cargar el detalle",
-        "Firmado subido",
-        "No se pudo subir el archivo",
-        "No se pudo cambiar el estado del contrato"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -4021,54 +3992,6 @@
         "No se pudo cargar «Quién recibe»",
         "Correo no válido",
         "No se pudo guardar"
-      ]
-    },
-    {
-      "pantalla": "legal/aprobaciones",
-      "total": 32,
-      "cubiertos": 24,
-      "sin": 8,
-      "pct": 75,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "pendiente",
-        "Pendientes ( )",
-        "Todas",
-        "Revisar",
-        "Ver",
-        "· v.",
-        "Rechazar",
-        "pendiente"
-      ]
-    },
-    {
-      "pantalla": "legal/expedientes",
-      "total": 75,
-      "cubiertos": 57,
-      "sin": 18,
-      "pct": 76,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "expediente",
-        "Nuevo expediente",
-        "Todos los estados",
-        "Todos los tipos",
-        "Limpiar filtros",
-        "expediente encontrado",
-        "Sin proyecto",
-        "Guardando… } @else { }",
-        "Prioridad",
-        "Notas ( )",
-        "Archivos ( )",
-        "Subiendo… } @else { Adjuntar archivo }",
-        "Ver",
-        "Editar",
-        "Expediente",
-        "Eliminar",
-        "No se pudo cambiar el estado del expediente",
-        "No se pudo fijar la fecha límite"
       ]
     },
     {
@@ -4181,18 +4104,6 @@
       ]
     },
     {
-      "pantalla": "legal/firmas-pendientes",
-      "total": 11,
-      "cubiertos": 10,
-      "sin": 1,
-      "pct": 91,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "documento"
-      ]
-    },
-    {
       "pantalla": "reuniones/reunion-ficha",
       "total": 54,
       "cubiertos": 49,
@@ -4233,18 +4144,6 @@
       "faltantes": [
         "Lote procesado",
         "Borrador descartado."
-      ]
-    },
-    {
-      "pantalla": "legal/configuracion",
-      "total": 17,
-      "cubiertos": 16,
-      "sin": 1,
-      "pct": 94,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Configuración guardada"
       ]
     },
     {
@@ -5078,6 +4977,56 @@
       "pantalla": "inventario/stock-odoo",
       "total": 27,
       "cubiertos": 27,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "legal/aprobaciones",
+      "total": 32,
+      "cubiertos": 32,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "legal/configuracion",
+      "total": 17,
+      "cubiertos": 17,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "legal/contratos",
+      "total": 60,
+      "cubiertos": 60,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "legal/expedientes",
+      "total": 77,
+      "cubiertos": 77,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "legal/firmas-pendientes",
+      "total": 11,
+      "cubiertos": 11,
       "sin": 0,
       "pct": 100,
       "enScope": true,

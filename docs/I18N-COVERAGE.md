@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 68%** (7085/10432 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 68%** (7137/10438 literales de 192 pantallas en alcance). **`ht`: 87%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -73,22 +73,17 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| legal/contratos | scope | 56 | 38 | 18 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
-| legal/aprobaciones | scope | 32 | 24 | 8 | 75% |
-| legal/expedientes | scope | 75 | 57 | 18 | 76% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
-| legal/firmas-pendientes | scope | 11 | 10 | 1 | 91% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
-| legal/configuracion | scope | 17 | 16 | 1 | 94% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
@@ -172,6 +167,11 @@
 | inventario/retiros | enforce | 100 | 100 | 0 | 100% |
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
+| legal/aprobaciones | enforce | 32 | 32 | 0 | 100% |
+| legal/configuracion | enforce | 17 | 17 | 0 | 100% |
+| legal/contratos | enforce | 60 | 60 | 0 | 100% |
+| legal/expedientes | enforce | 77 | 77 | 0 | 100% |
+| legal/firmas-pendientes | enforce | 11 | 11 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**353 literal(es) sin t()** en 51 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**346 literal(es) sin t()** en 48 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -234,7 +234,6 @@
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
-| src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
@@ -248,12 +247,10 @@
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/legal/expedientes/expedientes.ts | 2 | No se pudo cambiar el estado del expediente · No se pudo fijar la fecha límite |
 | src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
 | src/app/pages/tecnologia/odoo-sync/odoo-sync.ts | 2 | Reencolado · No se pudo reencolar |
 | src/app/pages/admin/conduces-huerfanos/conduces-huerfanos.ts | 1 | Conduce anulado |
 | src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
-| src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |

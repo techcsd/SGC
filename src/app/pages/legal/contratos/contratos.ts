@@ -20,6 +20,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
   en_revision: ['firmado', 'borrador', 'cancelado'],
@@ -42,6 +43,7 @@ export class Contratos implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
 
   readonly TIPOS = CONTRATO_TIPOS;
@@ -112,7 +114,7 @@ export class Contratos implements OnInit {
     ).length;
   });
 
-  drawerTitle = computed(() => (this.editingId() ? 'Editar contrato' : 'Nuevo contrato'));
+  drawerTitle = computed(() => this.i18n.t(this.editingId() ? 'Editar contrato' : 'Nuevo contrato'));
 
   async ngOnInit() {
     await this.loadAll();
@@ -151,7 +153,7 @@ export class Contratos implements OnInit {
       this.proveedores.set(proveedores);
       this.documentosDisponibles.set(documentos);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar los contratos.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los contratos.'));
     } finally {
       this.loading.set(false);
     }
@@ -242,7 +244,7 @@ export class Contratos implements OnInit {
     try {
       this.detalle.set(await this.legalService.contratoDetalle(c.id));
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar el detalle', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el detalle'), e instanceof Error ? e.message : undefined);
     } finally {
       this.detalleLoading.set(false);
     }
@@ -263,9 +265,9 @@ export class Contratos implements OnInit {
       const updated = await this.legalService.getContrato(c.id);
       this.detailContrato.set(updated);
       this.contratos.update((list) => list.map((x) => (x.id === c.id ? updated : x)));
-      this.toast.success('Firmado subido', 'El contrato quedó marcado como firmado.');
+      this.toast.success(this.i18n.t('Firmado subido'), 'El contrato quedó marcado como firmado.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo subir el archivo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir el archivo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.subiendoFirmado.set(false);
       (event.target as HTMLInputElement).value = '';
@@ -280,7 +282,7 @@ export class Contratos implements OnInit {
       this.detailContrato.set(updated);
       this.contratos.update((list) => list.map((item) => (item.id === c.id ? updated : item)));
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar el estado del contrato', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado del contrato'), e instanceof Error ? e.message : undefined);
     }
   }
 
