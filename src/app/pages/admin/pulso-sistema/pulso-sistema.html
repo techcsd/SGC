@@ -17,7 +17,7 @@
           <span class="linea__punto" aria-hidden="true"></span>
           <div class="linea__cuerpo">
             <div class="linea__encabezado">
-              <span class="linea__sistema">{{ fila.sistema }}</span>
+              <span class="linea__sistema">{{ fila.sistema | t }}</span>
               <span class="linea__estado-texto">{{ estadoLabel[fila.estado] | t }}</span>
             </div>
             <span class="linea__detalle">{{ fila.detalle }} — {{ relativo(fila) }}</span>

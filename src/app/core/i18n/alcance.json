@@ -137,7 +137,7 @@
       "enforce": true
     },
     "admin/pulso-sistema": {
-      "enforce": false
+      "enforce": true
     },
     "admin/solicitudes-eliminacion": {
       "enforce": true

@@ -6940,5 +6940,10 @@
   "Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra; desactiva las que no.": "These units appear when creating or editing an inventory item. Add the ones you use on site; deactivate the ones you don't.",
   "Unidades de medida": "Units of measure",
   "Nueva unidad (ej: Cubeta, Rollo, Galón)": "New unit (e.g.: Bucket, Roll, Gallon)",
-  "Sube un Excel o CSV (incluidos los exports de Odoo) para cargar proveedores, vehículos o artículos. El asistente mapea las columnas, muestra una vista previa y puedes deshacer en 24 h.": "Upload an Excel or CSV file (including Odoo exports) to load suppliers, vehicles, or items. The wizard maps the columns, shows a preview, and you can undo within 24 h."
+  "Sube un Excel o CSV (incluidos los exports de Odoo) para cargar proveedores, vehículos o artículos. El asistente mapea las columnas, muestra una vista previa y puedes deshacer en 24 h.": "Upload an Excel or CSV file (including Odoo exports) to load suppliers, vehicles, or items. The wizard maps the columns, shows a preview, and you can undo within 24 h.",
+  "Base de datos": "Database",
+  "Funciones programadas": "Scheduled functions",
+  "Cola de envíos": "Delivery queue",
+  "Voz a texto": "Speech to text",
+  "Lectores de IA": "AI readers"
 }

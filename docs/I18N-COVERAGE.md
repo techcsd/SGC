@@ -52,7 +52,7 @@
 | admin/orden-modulos | enforce | 6 | 6 | 0 | 100% |
 | admin/otros-valores | enforce | 11 | 11 | 0 | 100% |
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |
-| admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
+| admin/pulso-sistema | enforce | 3 | 3 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
 | admin/unidades | enforce | 10 | 10 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
