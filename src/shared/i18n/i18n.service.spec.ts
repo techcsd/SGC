@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { I18nService } from './i18n.service';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { environment } from '../../environments/environment';
 
 function fakeSupabase() {
   return { client: { rpc: async () => ({ data: null, error: null }) } } as unknown as SupabaseService;
@@ -32,7 +33,8 @@ describe('I18nService — DP-07', () => {
     expect(document.documentElement.lang).toBe('ht');
   });
 
-  it('avisa en consola (dev) UNA sola vez por clave sin traducir', async () => {
+  // el aviso solo existe fuera de producción (environment.production=false)
+  it.skipIf(environment.production)('avisa en consola (dev) UNA sola vez por clave sin traducir', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const svc = TestBed.inject(I18nService);
     await svc.setIdioma('en');
