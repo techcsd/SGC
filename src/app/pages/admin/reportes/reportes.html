@@ -14,7 +14,7 @@
       @for (r of misEnProgreso(); track r.id) {
         <!-- CX4 — ya era un <button>, por lo tanto clicable y accesible por teclado; sin cambios. -->
         <button type="button" class="admin-reportes__enprogreso-card" (click)="openDetail(r)">
-          <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
+          <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] | t }}</span>
           <span class="admin-reportes__enprogreso-asunto">{{ r.asunto }}</span>
           <span class="admin-reportes__enprogreso-user">{{ r.usuario?.nombre ?? '—' }}</span>
         </button>
@@ -34,17 +34,17 @@
     aria-label="{{ 'Buscar reportes' | t }}"
   />
   <select class="admin-reportes__select" [value]="filterEstado()" (change)="onFilterEstado($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-    <option value="all">Todos los estados</option>
-    <option value="abierto">Abierto</option>
-    <option value="en_progreso">En progreso</option>
-    <option value="resuelto">Resuelto</option>
-    <option value="descartado">Descartado</option>
+    <option value="all">{{ 'Todos los estados' | t }}</option>
+    <option value="abierto">{{ 'Abierto' | t }}</option>
+    <option value="en_progreso">{{ 'En progreso' | t }}</option>
+    <option value="resuelto">{{ 'Resuelto' | t }}</option>
+    <option value="descartado">{{ 'Descartado' | t }}</option>
   </select>
   <select class="admin-reportes__select" [value]="filterTipo()" (change)="onFilterTipo($any($event.target).value)" aria-label="{{ 'Filtrar por tipo' | t }}">
-    <option value="all">Todos los tipos</option>
-    <option value="comentario">Comentario</option>
-    <option value="bug">Error / Bug</option>
-    <option value="sugerencia">Sugerencia</option>
+    <option value="all">{{ 'Todos los tipos' | t }}</option>
+    <option value="comentario">{{ 'Comentario' | t }}</option>
+    <option value="bug">{{ 'Error / Bug' | t }}</option>
+    <option value="sugerencia">{{ 'Sugerencia' | t }}</option>
   </select>
 </div>
 
@@ -83,7 +83,7 @@
           <tr
             class="admin-reportes__row"
             tabindex="0"
-            [attr.aria-label]="'Ver detalle: ' + r.asunto"
+            [attr.aria-label]="i18n.t('Ver detalle:') + ' ' + r.asunto"
             (click)="openDetail(r)"
             (keydown)="onRowKeydown($event, r)"
           >
@@ -97,7 +97,7 @@
                 [class.sgc-badge--warning]="r.estado === 'en_progreso'"
                 [class.sgc-badge--success]="r.estado === 'resuelto'"
                 [class.sgc-badge--danger]="r.estado === 'descartado'"
-              >{{ ESTADO_LABELS[r.estado] }}</span>
+              >{{ ESTADO_LABELS[r.estado] | t }}</span>
             </td>
             <td class="admin-reportes__date">{{ formatFecha(r.created_at) }}</td>
             <td class="admin-reportes__actions">
@@ -119,7 +119,7 @@
   <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 
   <p class="admin-reportes__count">
-    {{ filtered().length }} reporte{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+    {{ filtered().length }} {{ (filtered().length !== 1 ? 'reportes encontrados' : 'reporte encontrado') | t }}
   </p>
 }
 
@@ -136,7 +136,7 @@
 
       @if ((r.fotos ?? []).length > 0) {
         <div class="admin-reportes__fotos">
-          <h4 class="admin-reportes__fotos-title">Fotos ({{ (r.fotos ?? []).length }})</h4>
+          <h4 class="admin-reportes__fotos-title">{{ 'Fotos' | t }} ({{ (r.fotos ?? []).length }})</h4>
           <div class="admin-reportes__fotos-grid">
             @for (foto of r.fotos; track foto.id; let i = $index) {
               @let url = getFotoUrl(foto);
@@ -166,14 +166,14 @@
         <div class="admin-reportes__ia-acciones">
           @if (!iaResumen()) {
             <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="resumiendo()" (click)="resumir(false)">
-              {{ resumiendo() ? 'Leyendo…' : 'Resumir para ronda' }}
+              {{ (resumiendo() ? 'Leyendo…' : 'Resumir para ronda') | t }}
             </button>
           } @else {
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="resumiendo()" (click)="resumir(true)">
-              {{ resumiendo() ? 'Leyendo…' : 'Volver a leer' }}
+              {{ (resumiendo() ? 'Leyendo…' : 'Volver a leer') | t }}
             </button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="guardandoNota()" (click)="guardarEnDevNotes()">
-              {{ guardandoNota() ? 'Guardando…' : 'Guardar en Dev notes › Ronda próxima' }}
+              {{ (guardandoNota() ? 'Guardando…' : 'Guardar en Dev notes › Ronda próxima') | t }}
             </button>
           }
         </div>
@@ -204,10 +204,10 @@
       <div class="sgc-field">
         <label for="estado">{{ 'Estado' | t }}</label>
         <select id="estado" formControlName="estado">
-          <option value="abierto">Abierto</option>
-          <option value="en_progreso">En progreso</option>
-          <option value="resuelto">Resuelto</option>
-          <option value="descartado">Descartado</option>
+          <option value="abierto">{{ 'Abierto' | t }}</option>
+          <option value="en_progreso">{{ 'En progreso' | t }}</option>
+          <option value="resuelto">{{ 'Resuelto' | t }}</option>
+          <option value="descartado">{{ 'Descartado' | t }}</option>
         </select>
       </div>
 
@@ -223,7 +223,7 @@
       <div class="admin-reportes__drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-          @if (saving()) { Guardando... } @else { Guardar }
+          @if (saving()) { {{ 'Guardando...' | t }} } @else { {{ 'Guardar' | t }} }
         </button>
       </div>
     </form>
