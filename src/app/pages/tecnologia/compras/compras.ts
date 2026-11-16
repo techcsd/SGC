@@ -12,6 +12,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 // CO8 — flujo nuevo de Compras tecnológicas. El flujo viejo (pendiente/convertida/
 // rechazada) se mantiene por si quedan filas históricas.
 const ESTADO_META: Record<SolicitudCompraEstado, { label: string; badge: string }> = {
@@ -26,7 +27,7 @@ const ESTADO_META: Record<SolicitudCompraEstado, { label: string; badge: string 
 
 @Component({
   selector: 'app-tec-compras',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Icon, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Icon, DecimalPipe, TranslatePipe],
   templateUrl: './compras.html',
   styleUrl: './compras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

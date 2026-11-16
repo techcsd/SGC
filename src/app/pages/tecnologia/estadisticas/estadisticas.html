@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
-    <h1 class="page-title">Estadísticas de uso</h1>
-    <p class="page-subtitle">Actividad de la web y la app móvil, dispositivos y versiones.</p>
+    <h1 class="page-title">{{ 'Estadísticas de uso' | t }}</h1>
+    <p class="page-subtitle">{{ 'Actividad de la web y la app móvil, dispositivos y versiones.' | t }}</p>
   </div>
 </div>
 
@@ -13,25 +13,25 @@
   <!-- KPIs -->
   <section class="est-grid">
     <div class="sgc-card est-kpi">
-      <span class="est-kpi__label">Activos hoy</span>
+      <span class="est-kpi__label">{{ 'Activos hoy' | t }}</span>
       <span class="est-kpi__value">{{ d.activos_dia | number }}</span>
     </div>
     <div class="sgc-card est-kpi">
-      <span class="est-kpi__label">Activos (7 días)</span>
+      <span class="est-kpi__label">{{ 'Activos (7 días)' | t }}</span>
       <span class="est-kpi__value">{{ d.activos_semana | number }}</span>
     </div>
     <div class="sgc-card est-kpi">
-      <span class="est-kpi__label">Dispositivos</span>
+      <span class="est-kpi__label">{{ 'Dispositivos' | t }}</span>
       <span class="est-kpi__value">{{ totalDispositivos() | number }}</span>
     </div>
     <div class="sgc-card est-kpi">
-      <span class="est-kpi__label">En la última versión</span>
+      <span class="est-kpi__label">{{ 'En la última versión' | t }}</span>
       <span class="est-kpi__value">
         @if (pctUltimaVersion() === null) { — } @else { {{ pctUltimaVersion() }}% }
       </span>
     </div>
     <div class="sgc-card est-kpi">
-      <span class="est-kpi__label">Plataformas</span>
+      <span class="est-kpi__label">{{ 'Plataformas' | t }}</span>
       <span class="est-kpi__value">{{ numPlataformas() | number }}</span>
     </div>
   </section>
@@ -39,29 +39,29 @@
   <!-- Distribución de versiones + dispositivos -->
   <section class="est-charts">
     <div class="sgc-card est-block">
-      <h2 class="est-block__title">Distribución por versión</h2>
-      <p class="text-muted est-block__sub">Usuarios por versión reportada. En verde, la versión publicada actual.</p>
+      <h2 class="est-block__title">{{ 'Distribución por versión' | t }}</h2>
+      <p class="text-muted est-block__sub">{{ 'Usuarios por versión reportada. En verde, la versión publicada actual.' | t }}</p>
       <app-bar-chart [data]="versionBars()" />
     </div>
     <div class="sgc-card est-block">
-      <h2 class="est-block__title">Web vs. App</h2>
+      <h2 class="est-block__title">{{ 'Web vs. App' | t }}</h2>
       <div class="est-split">
         <div class="est-split__item">
-          <span class="est-split__label">Web (7 días)</span>
+          <span class="est-split__label">{{ 'Web (7 días)' | t }}</span>
           <span class="est-split__value">{{ d.web_semana | number }}</span>
         </div>
         <div class="est-split__item">
-          <span class="est-split__label">App (7 días)</span>
+          <span class="est-split__label">{{ 'App (7 días)' | t }}</span>
           <span class="est-split__value">{{ d.app_semana | number }}</span>
         </div>
         <div class="est-split__item">
-          <span class="est-split__label">Apps Android instaladas</span>
+          <span class="est-split__label">{{ 'Apps Android instaladas' | t }}</span>
           <span class="est-split__value">{{ d.app_android_tokens | number }}</span>
         </div>
       </div>
-      <h3 class="est-block__subtitle">Dispositivos por plataforma</h3>
+      <h3 class="est-block__subtitle">{{ 'Dispositivos por plataforma' | t }}</h3>
       @if (!dispositivoBars().length) {
-        <p class="text-muted">Sin datos de dispositivos.</p>
+        <p class="text-muted">{{ 'Sin datos de dispositivos.' | t }}</p>
       } @else {
         <app-bar-chart [data]="dispositivoBars()" />
       }
@@ -72,8 +72,8 @@
   <section class="sgc-card est-block">
     <div class="est-tabla-head">
       <div>
-        <h2 class="est-block__title">Dispositivos por usuario</h2>
-        <p class="text-muted est-block__sub">Versión de app y última vez visto por usuario. Toca una fila para ver su historial de dispositivos.</p>
+        <h2 class="est-block__title">{{ 'Dispositivos por usuario' | t }}</h2>
+        <p class="text-muted est-block__sub">{{ 'Versión de app y última vez visto por usuario. Toca una fila para ver su historial de dispositivos.' | t }}</p>
       </div>
       <app-export-excel filenameBase="estadisticas-dispositivos"
         [rows]="dispositivosFiltrados()" [allRows]="dispositivos()"
@@ -82,17 +82,17 @@
 
     <div class="filters-bar">
       <div class="filters-bar__search">
-        <input type="search" class="sgc-input" placeholder="Buscar por nombre, correo, modelo, versión o rol…"
-               [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar usuario" />
+        <input type="search" class="sgc-input" placeholder="{{ 'Buscar por nombre, correo, modelo, versión o rol…' | t }}"
+               [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="{{ 'Buscar usuario' | t }}" />
       </div>
       <div class="filters-bar__select">
-        <select class="sgc-input" [ngModel]="filtroPlataforma()" (ngModelChange)="filtroPlataforma.set($event)" aria-label="Filtrar por plataforma">
+        <select class="sgc-input" [ngModel]="filtroPlataforma()" (ngModelChange)="filtroPlataforma.set($event)" aria-label="{{ 'Filtrar por plataforma' | t }}">
           <option value="">Todas las plataformas</option>
           @for (p of plataformas(); track p) { <option [value]="p">{{ plataformaLabel(p) }}</option> }
         </select>
       </div>
       <div class="filters-bar__select">
-        <select class="sgc-input" [ngModel]="filtroRol()" (ngModelChange)="filtroRol.set($event)" aria-label="Filtrar por rol">
+        <select class="sgc-input" [ngModel]="filtroRol()" (ngModelChange)="filtroRol.set($event)" aria-label="{{ 'Filtrar por rol' | t }}">
           <option value="">Todos los roles</option>
           @for (r of roles(); track r) { <option [value]="r">{{ r }}</option> }
         </select>
@@ -100,16 +100,16 @@
     </div>
 
     @if (!dispositivosFiltrados().length) {
-      <p class="text-muted">Ningún usuario coincide con el filtro.</p>
+      <p class="text-muted">{{ 'Ningún usuario coincide con el filtro.' | t }}</p>
     } @else {
       <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
-              <th class="est-th" (click)="ordenar('nombre')">Usuario <span class="est-sort">@if (flecha('nombre'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
-              <th class="est-th" (click)="ordenar('plataforma')">Dispositivo <span class="est-sort">@if (flecha('plataforma'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
-              <th class="est-th" (click)="ordenar('version')">Versión <span class="est-sort">@if (flecha('version'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
-              <th class="est-th" (click)="ordenar('ultimo')">Última vez visto <span class="est-sort">@if (flecha('ultimo'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('nombre')">{{ 'Usuario' | t }} <span class="est-sort">@if (flecha('nombre'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('plataforma')">{{ 'Dispositivo' | t }} <span class="est-sort">@if (flecha('plataforma'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('version')">{{ 'Versión' | t }} <span class="est-sort">@if (flecha('version'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('ultimo')">{{ 'Última vez visto' | t }} <span class="est-sort">@if (flecha('ultimo'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
               <th></th>
             </tr>
           </thead>
@@ -126,14 +126,14 @@
                   @if (u.plataforma) {
                     {{ plataformaLabel(u.plataforma) }}@if (u.modelo) { <span class="text-muted"> · {{ u.modelo }}</span> }
                     @if (u.dispositivos_total > 1) { <span class="sgc-badge sgc-badge--neutral est-cnt">{{ u.dispositivos_total }}</span> }
-                  } @else { <span class="text-muted">Sin reportar</span> }
+                  } @else { <span class="text-muted">{{ 'Sin reportar' | t }}</span> }
                 </td>
                 <td>
                   @if (!u.app_version) {
-                    <span class="sgc-badge sgc-badge--neutral">Sin dato</span>
+                    <span class="sgc-badge sgc-badge--neutral">{{ 'Sin dato' | t }}</span>
                   } @else {
                     <span class="est-ver">v{{ u.app_version }}</span>
-                    @if (u.obsoleta) { <span class="sgc-badge sgc-badge--danger est-cnt">Obsoleta</span> }
+                    @if (u.obsoleta) { <span class="sgc-badge sgc-badge--danger est-cnt">{{ 'Obsoleta' | t }}</span> }
                   }
                 </td>
                 <td class="text-muted">{{ haceCuanto(u.last_seen_at ?? u.ultimo_uso) }}</td>
@@ -143,7 +143,7 @@
                 <tr class="est-fila-hist">
                   <td colspan="5">
                     <div class="est-hist">
-                      <span class="est-hist__title text-muted">Historial de dispositivos</span>
+                      <span class="est-hist__title text-muted">{{ 'Historial de dispositivos' | t }}</span>
                       <ul class="est-hist__list">
                         @for (h of u.historial; track h.visto_at) {
                           <li>
@@ -167,18 +167,18 @@
 
   <!-- Versiones publicadas (catálogo) -->
   <section class="sgc-card est-block">
-    <h2 class="est-block__title">Versiones publicadas (recientes)</h2>
+    <h2 class="est-block__title">{{ 'Versiones publicadas (recientes)' | t }}</h2>
     <div class="table-scroll">
       <table class="data-table">
-        <thead><tr><th>Plataforma</th><th>Versión</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <thead><tr><th>{{ 'Plataforma' | t }}</th><th>{{ 'Versión' | t }}</th><th>{{ 'Estado' | t }}</th><th>{{ 'Fecha' | t }}</th></tr></thead>
         <tbody>
           @for (v of d.versiones; track v.plataforma + v.version) {
             <tr>
               <td>{{ v.plataforma === 'movil' ? 'App móvil' : 'Web' }}</td>
               <td>{{ v.version }}</td>
               <td>
-                @if (v.publicada) { <span class="sgc-badge sgc-badge--success">Publicada</span> }
-                @else { <span class="sgc-badge sgc-badge--neutral">Borrador</span> }
+                @if (v.publicada) { <span class="sgc-badge sgc-badge--success">{{ 'Publicada' | t }}</span> }
+                @else { <span class="sgc-badge sgc-badge--neutral">{{ 'Borrador' | t }}</span> }
               </td>
               <td class="text-muted">{{ v.fecha ?? '—' }}</td>
             </tr>
@@ -190,5 +190,5 @@
 
   <p class="est-footer text-muted">Generado {{ formatFechaHora(d.generado_at) }}.</p>
 } @else {
-  <div class="sgc-card est-empty"><p>No hay estadísticas disponibles.</p></div>
+  <div class="sgc-card est-empty"><p>{{ 'No hay estadísticas disponibles.' | t }}</p></div>
 }

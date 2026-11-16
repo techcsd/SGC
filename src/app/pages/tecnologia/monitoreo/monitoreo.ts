@@ -10,11 +10,12 @@ import {
 } from '../../../../shared/models/monitoring.model';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tab = 'dominios' | 'suscripciones' | 'alertas' | 'historico';
 
 @Component({
   selector: 'app-tec-monitoreo',
-  imports: [ReactiveFormsModule, Icon],
+  imports: [ReactiveFormsModule, Icon, TranslatePipe],
   templateUrl: './monitoreo.html',
   styleUrl: './monitoreo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

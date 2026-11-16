@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Herramientas oficiales de la empresa</h1>
+    <h1 class="page-title">{{ 'Herramientas oficiales de la empresa' | t }}</h1>
     <span class="page-count">{{ herramientas().length }} herramienta{{ herramientas().length !== 1 ? 's' : '' }}</span>
   </div>
   @if (puedeGestionar()) {
@@ -14,7 +14,7 @@
 <!-- ── Intro ── -->
 <div class="guia-intro sgc-card">
   <p>
-    Estas son las herramientas <strong>oficiales homologadas</strong> por Constructora SD.
+    Estas son las herramientas <strong>{{ 'oficiales homologadas' | t }}</strong> por Constructora SD.
     Úsalas para tu trabajo diario según tu puesto: garantizan que la información quede
     resguardada, sea compartible con el equipo y cumpla con los estándares de la empresa.
     Si necesitas una herramienta que no aparezca aquí, coordínala con Tecnología antes de usarla.
@@ -36,7 +36,7 @@
   <app-skeleton variant="cards" [rows]="6" />
 } @else if (herramientas().length === 0) {
   <div class="table-empty sgc-card">
-    <p>Aún no hay herramientas registradas.</p>
+    <p>{{ 'Aún no hay herramientas registradas.' | t }}</p>
   </div>
 } @else {
   @for (grupo of grupos(); track grupo.value) {
@@ -48,13 +48,13 @@
             <h3 class="guia-card__name">{{ h.nombre }}</h3>
             @if (h.para_que) {
               <div class="guia-card__block">
-                <span class="guia-card__label">Para qué</span>
+                <span class="guia-card__label">{{ 'Para qué' | t }}</span>
                 <p class="guia-card__text">{{ h.para_que }}</p>
               </div>
             }
             @if (h.quien_usa) {
               <div class="guia-card__block">
-                <span class="guia-card__label">Quién la usa</span>
+                <span class="guia-card__label">{{ 'Quién la usa' | t }}</span>
                 <p class="guia-card__text">{{ h.quien_usa }}</p>
               </div>
             }

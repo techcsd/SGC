@@ -9,10 +9,11 @@ import {
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** AW9 — Inventario de APIs/servicios del proyecto y su costo estimado/mes. */
 @Component({
   selector: 'app-tec-apis-consumo',
-  imports: [FormsModule, DecimalPipe, Skeleton],
+  imports: [FormsModule, DecimalPipe, Skeleton, TranslatePipe],
   templateUrl: './apis-consumo.html',
   styleUrl: './apis-consumo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

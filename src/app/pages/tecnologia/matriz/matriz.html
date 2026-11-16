@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Matriz puesto × herramienta</h1>
+    <h1 class="page-title">{{ 'Matriz puesto × herramienta' | t }}</h1>
     <span class="page-count">{{ grupos().length }} puesto{{ grupos().length !== 1 ? 's' : '' }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -15,8 +15,8 @@
 <div class="matriz-intro sgc-card">
   <p>
     Define qué herramientas debe usar cada puesto de la empresa. Marca como
-    <strong>obligatorias</strong> las imprescindibles para el rol y como
-    <strong>opcionales</strong> las recomendadas.
+    <strong>{{ 'obligatorias' | t }}</strong> las imprescindibles para el rol y como
+    <strong>{{ 'opcionales' | t }}</strong> las recomendadas.
   </p>
 </div>
 
@@ -35,7 +35,7 @@
   <app-skeleton variant="list" [rows]="5" />
 } @else if (grupos().length === 0) {
   <div class="table-empty sgc-card">
-    <p>No hay asignaciones aún. Agrega la primera herramienta a un puesto.</p>
+    <p>{{ 'No hay asignaciones aún. Agrega la primera herramienta a un puesto.' | t }}</p>
   </div>
 } @else {
   @for (grupo of grupos(); track grupo.puesto) {
@@ -47,9 +47,9 @@
             <div class="matriz-entry__main">
               <span class="matriz-entry__name">{{ entry.herramienta?.nombre ?? '—' }}</span>
               @if (entry.obligatorio) {
-                <span class="sgc-badge sgc-badge--info">Obligatorio</span>
+                <span class="sgc-badge sgc-badge--info">{{ 'Obligatorio' | t }}</span>
               } @else {
-                <span class="sgc-badge sgc-badge--neutral">Opcional</span>
+                <span class="sgc-badge sgc-badge--neutral">{{ 'Opcional' | t }}</span>
               }
             </div>
             @if (entry.notas) {
@@ -60,7 +60,7 @@
               class="matriz-entry__remove"
               (click)="remove(entry)"
               [attr.aria-label]="'Quitar ' + (entry.herramienta?.nombre ?? 'herramienta')"
-              title="Quitar"
+              title="{{ 'Quitar' | t }}"
             ><app-icon name="x" [size]="16" /></button>
           </li>
         }
@@ -70,17 +70,17 @@
 }
 
 <!-- ── Form Drawer ── -->
-<app-form-drawer title="Agregar a la matriz" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer title="{{ 'Agregar a la matriz' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
-      <label for="puesto">Puesto <span class="required">*</span></label>
+      <label for="puesto">{{ 'Puesto' | t }} <span class="required">*</span></label>
       <input
         id="puesto"
         type="text"
         formControlName="puesto"
         list="puestos-sugeridos"
-        placeholder="Ej: Ingeniero de campo"
+        placeholder="{{ 'Ej: Ingeniero de campo' | t }}"
         [class.invalid]="f.puesto.invalid && f.puesto.touched"
       />
       <datalist id="puestos-sugeridos">
@@ -89,12 +89,12 @@
         }
       </datalist>
       @if (f.puesto.invalid && f.puesto.touched) {
-        <span class="field-error">El puesto es obligatorio.</span>
+        <span class="field-error">{{ 'El puesto es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="herramienta_id">Herramienta <span class="required">*</span></label>
+      <label for="herramienta_id">{{ 'Herramienta' | t }} <span class="required">*</span></label>
       <select
         id="herramienta_id"
         formControlName="herramienta_id"
@@ -106,7 +106,7 @@
         }
       </select>
       @if (f.herramienta_id.invalid && f.herramienta_id.touched) {
-        <span class="field-error">La herramienta es obligatoria.</span>
+        <span class="field-error">{{ 'La herramienta es obligatoria.' | t }}</span>
       }
     </div>
 
@@ -119,12 +119,12 @@
     </div>
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
+      <label for="notas">{{ 'Notas' | t }}</label>
       <textarea
         id="notas"
         formControlName="notas"
         rows="2"
-        placeholder="Aclaraciones (opcional)…"
+        placeholder="{{ 'Aclaraciones (opcional)…' | t }}"
       ></textarea>
     </div>
 
@@ -138,7 +138,7 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>

@@ -103,51 +103,6 @@
     "politicas": {
       "enforce": false
     },
-    "tecnologia/apis-consumo": {
-      "enforce": false
-    },
-    "tecnologia/compras": {
-      "enforce": false
-    },
-    "tecnologia/consultas-compa": {
-      "enforce": false
-    },
-    "tecnologia/design-system": {
-      "enforce": false
-    },
-    "tecnologia/estadisticas": {
-      "enforce": false
-    },
-    "tecnologia/guia": {
-      "enforce": false
-    },
-    "tecnologia/homologacion": {
-      "enforce": false
-    },
-    "tecnologia/inventario": {
-      "enforce": false
-    },
-    "tecnologia/matriz": {
-      "enforce": false
-    },
-    "tecnologia/monitoreo": {
-      "enforce": false
-    },
-    "tecnologia/odoo-sync": {
-      "enforce": false
-    },
-    "tecnologia/outbox-atascados": {
-      "enforce": false
-    },
-    "tecnologia/qa": {
-      "enforce": false
-    },
-    "tecnologia/reportes-errores": {
-      "enforce": false
-    },
-    "tecnologia/resumen-operaciones": {
-      "enforce": false
-    },
     "verificar": {
       "enforce": false
     },
@@ -157,13 +112,34 @@
     "admin/empresa": {
       "enforce": false
     },
-    "tecnologia/dev-notes": {
-      "enforce": false
-    },
     "app-movil": {
       "enforce": false
     },
     "auth": {
+      "enforce": false
+    },
+    "tecnologia/compras": {
+      "enforce": false
+    },
+    "tecnologia/guia": {
+      "enforce": false
+    },
+    "tecnologia/matriz": {
+      "enforce": false
+    },
+    "tecnologia/homologacion": {
+      "enforce": false
+    },
+    "tecnologia/dev-notes": {
+      "enforce": false
+    },
+    "tecnologia/design-system": {
+      "enforce": false
+    },
+    "tecnologia/inventario": {
+      "enforce": false
+    },
+    "tecnologia/apis-consumo": {
       "enforce": false
     },
     "practica": {
@@ -172,13 +148,34 @@
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
+    "tecnologia/outbox-atascados": {
+      "enforce": false
+    },
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
     "admin/compa-conversaciones": {
       "enforce": false
     },
+    "tecnologia/qa": {
+      "enforce": false
+    },
+    "tecnologia/reportes-errores": {
+      "enforce": false
+    },
+    "tecnologia/odoo-sync": {
+      "enforce": false
+    },
+    "tecnologia/consultas-compa": {
+      "enforce": false
+    },
+    "tecnologia/resumen-operaciones": {
+      "enforce": false
+    },
     "tecnologia/cotizaciones": {
+      "enforce": false
+    },
+    "tecnologia/monitoreo": {
       "enforce": false
     },
     "admin/vault": {
@@ -188,6 +185,9 @@
       "enforce": false
     },
     "borrador-claude": {
+      "enforce": false
+    },
+    "tecnologia/estadisticas": {
       "enforce": false
     },
     "oauth-consent": {

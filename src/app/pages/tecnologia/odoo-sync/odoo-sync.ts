@@ -14,6 +14,7 @@ import {
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 const REINTENTABLES: OdooEventoEstado[] = ['error', 'incierto', 'bloqueado'];
 const ESTADOS_ORDEN: OdooEventoEstado[] = ['pendiente', 'procesando', 'completado', 'reintento', 'error', 'incierto', 'bloqueado', 'cancelado'];
 
@@ -32,7 +33,7 @@ const ESTADOS_ORDEN: OdooEventoEstado[] = ['pendiente', 'procesando', 'completad
  */
 @Component({
   selector: 'app-tec-odoo-sync',
-  imports: [DatePipe, JsonPipe, FormDrawer, Skeleton],
+  imports: [DatePipe, JsonPipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './odoo-sync.html',
   styleUrl: './odoo-sync.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

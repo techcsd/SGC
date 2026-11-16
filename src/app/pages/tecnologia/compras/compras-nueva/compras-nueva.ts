@@ -13,6 +13,7 @@ import { ButtonDirective } from '../../../../../shared/ui/button/button.directiv
 import { FileUpload } from '../../../../../shared/ui/file-upload/file-upload';
 import { humanizeError } from '../../../../../shared/utils/friendly-error.util';
 
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
 const UNIDADES_FALLBACK: { codigo: string; nombre: string }[] = [
   { codigo: 'unidad', nombre: 'Unidad' },
   { codigo: 'licencia', nombre: 'Licencia' },
@@ -51,7 +52,7 @@ type CotizacionVista =
 
 @Component({
   selector: 'app-tec-compras-nueva',
-  imports: [ReactiveFormsModule, RouterLink, Icon, ButtonDirective, FileUpload, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, Icon, ButtonDirective, FileUpload, DecimalPipe, TranslatePipe],
   templateUrl: './compras-nueva.html',
   styleUrl: './compras-nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * BE2 — "Consultas no atendidas de Compa": el backlog automático de lo que la
  * gente le pide a Compa y no puede responder (sin herramienta / error / sin
@@ -32,7 +33,7 @@ interface Conteos {
 
 @Component({
   selector: 'app-tec-consultas-compa',
-  imports: [DatePipe],
+  imports: [DatePipe, TranslatePipe],
   templateUrl: './consultas-compa.html',
   styleUrl: './consultas-compa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

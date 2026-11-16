@@ -25,6 +25,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { tonoDeEstado } from '../../../../shared/utils/estado-tono';
 import QRCode from 'qrcode';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** AL1 — foto de la galería (existente o pendiente de subir). `key` identifica la
  *  portada (path si es existente, o el preview blob si es nueva). */
 interface FotoItem {
@@ -36,7 +37,7 @@ interface FotoItem {
 
 @Component({
   selector: 'app-tec-inventario',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Lightbox, Icon],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Lightbox, Icon, TranslatePipe],
   templateUrl: './inventario.html',
   styleUrl: './inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

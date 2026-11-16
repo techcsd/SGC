@@ -32,11 +32,12 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type QaTab = 'casos' | 'nueva' | 'ejecutar' | 'historial';
 
 @Component({
   selector: 'app-tec-qa',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, TranslatePipe],
   templateUrl: './qa.html',
   styleUrl: './qa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

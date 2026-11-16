@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Sincronización con Odoo</h1>
+    <h1 class="page-title">{{ 'Sincronización con Odoo' | t }}</h1>
     <span class="page-count">{{ filasVisibles().length }} evento{{ filasVisibles().length !== 1 ? 's' : '' }}</span>
   </div>
 </div>
@@ -24,7 +24,7 @@
 
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">
-    <label for="os-tipo">Tipo</label>
+    <label for="os-tipo">{{ 'Tipo' | t }}</label>
     <select id="os-tipo" [value]="filtroTipo() ?? ''" (change)="setFiltroTipo($any($event.target).value)">
       <option value="">Todos los tipos</option>
       @for (t of tiposPresentes(); track t) {
@@ -33,7 +33,7 @@
     </select>
   </div>
   <div class="sgc-field filters-bar__select">
-    <label for="os-estado">Estado</label>
+    <label for="os-estado">{{ 'Estado' | t }}</label>
     <select id="os-estado" [value]="filtroEstado() ?? ''" (change)="setFiltroEstado($any($event.target).value)">
       <option value="">Todos los estados</option>
       @for (e of estadosPresentes(); track e) {
@@ -48,21 +48,21 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (filasVisibles().length === 0) {
     <div class="table-empty">
-      <p>No hay eventos que coincidan con el filtro.</p>
+      <p>{{ 'No hay eventos que coincidan con el filtro.' | t }}</p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Eventos de sincronización con Odoo">
+      <table class="data-table" aria-label="{{ 'Eventos de sincronización con Odoo' | t }}">
         <thead>
           <tr>
-            <th>Tipo</th>
-            <th>ID del agregado</th>
-            <th>Acción</th>
-            <th class="text-right">Revisión</th>
-            <th>Estado</th>
-            <th class="text-right">Intentos</th>
-            <th>Actualizado</th>
-            <th class="text-center">Acción</th>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'ID del agregado' | t }}</th>
+            <th>{{ 'Acción' | t }}</th>
+            <th class="text-right">{{ 'Revisión' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-right">{{ 'Intentos' | t }}</th>
+            <th>{{ 'Actualizado' | t }}</th>
+            <th class="text-center">{{ 'Acción' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -74,12 +74,12 @@
               <td class="text-right">{{ f.revision }}</td>
               <td>
                 <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] }}</span>
-                @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">Prueba</span> }
+                @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'Prueba' | t }}</span> }
               </td>
               <td class="text-right">{{ f.intentos }}</td>
               <td>{{ f.actualizado_en | date:'dd/MM/yyyy HH:mm' }}</td>
               <td class="text-center">
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetalle(f)">Ver</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetalle(f)">{{ 'Ver' | t }}</button>
               </td>
             </tr>
           }
@@ -90,53 +90,53 @@
 </div>
 
 <!-- ── Detalle del evento ── -->
-<app-form-drawer title="Detalle del evento" [open]="detalleOpen()" (closed)="cerrarDetalle()">
+<app-form-drawer title="{{ 'Detalle del evento' | t }}" [open]="detalleOpen()" (closed)="cerrarDetalle()">
   @if (detalleFila(); as f) {
     <div class="detail-body">
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">Tipo</span>
+          <span class="detail-field__label">{{ 'Tipo' | t }}</span>
           <span>{{ agregadoLabel[f.agregado_tipo] }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Estado</span>
+          <span class="detail-field__label">{{ 'Estado' | t }}</span>
           <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">ID del agregado</span>
+          <span class="detail-field__label">{{ 'ID del agregado' | t }}</span>
           <span>{{ f.agregado_id }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Revisión</span>
+          <span class="detail-field__label">{{ 'Revisión' | t }}</span>
           <span>{{ f.revision }}</span>
         </div>
         @if (f.error) {
           <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Error</span>
+            <span class="detail-field__label">{{ 'Error' | t }}</span>
             <span>{{ f.error }}</span>
           </div>
         }
       </div>
 
       @if (detalleLoading()) {
-        <p class="text-muted">Cargando…</p>
+        <p class="text-muted">{{ 'Cargando…' | t }}</p>
       } @else if (detalleError()) {
         <div class="save-error" role="alert">{{ detalleError() }}</div>
       } @else if (detalle(); as d) {
         <div class="os-payload">
-          <span class="detail-field__label">Payload enviado</span>
+          <span class="detail-field__label">{{ 'Payload enviado' | t }}</span>
           <pre class="os-pre">{{ d.evento.payload | json }}</pre>
         </div>
         @if (d.evento.resultado) {
           <div class="os-payload">
-            <span class="detail-field__label">Resultado</span>
+            <span class="detail-field__label">{{ 'Resultado' | t }}</span>
             <pre class="os-pre">{{ d.evento.resultado | json }}</pre>
           </div>
         }
         <div class="os-intentos">
-          <span class="detail-field__label">Historial de intentos</span>
+          <span class="detail-field__label">{{ 'Historial de intentos' | t }}</span>
           @if (d.intentos.length === 0) {
-            <p class="text-muted">Sin intentos registrados todavía.</p>
+            <p class="text-muted">{{ 'Sin intentos registrados todavía.' | t }}</p>
           } @else {
             <ul class="os-intentos__lista">
               @for (i of d.intentos; track $index) {
@@ -152,7 +152,7 @@
       }
 
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDetalle()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDetalle()">{{ 'Cerrar' | t }}</button>
         @if (esReintentable(f.estado)) {
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="reintentando()" (click)="confirmarReintentar()">
             {{ reintentando() ? 'Reencolando…' : 'Reintentar' }}

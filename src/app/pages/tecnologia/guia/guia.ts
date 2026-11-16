@@ -5,6 +5,7 @@ import { UserService } from '../../../core/services/user.service';
 import { TecHerramienta, TEC_CATEGORIAS } from '../../../../shared/models/tecnologia.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface CategoriaGroup {
   value: string;
   label: string;
@@ -13,7 +14,7 @@ interface CategoriaGroup {
 
 @Component({
   selector: 'app-tec-guia',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './guia.html',
   styleUrl: './guia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

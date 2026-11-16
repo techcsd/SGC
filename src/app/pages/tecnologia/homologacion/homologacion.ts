@@ -13,9 +13,10 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { Paginador } from '../../../../shared/components/paginador/paginador';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-tec-homologacion',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, ConfirmDialog, Paginador],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, ConfirmDialog, Paginador, TranslatePipe],
   templateUrl: './homologacion.html',
   styleUrl: './homologacion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

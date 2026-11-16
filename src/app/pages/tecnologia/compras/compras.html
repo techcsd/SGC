@@ -1,7 +1,7 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Compras tecnológicas</h1>
+    <h1 class="page-title">{{ 'Compras tecnológicas' | t }}</h1>
     <span class="page-count">{{ compras().length }} solicitud{{ compras().length !== 1 ? 'es' : '' }}</span>
   </div>
   <a class="sgc-btn sgc-btn--primary" routerLink="/tecnologia/compras/nueva">
@@ -26,13 +26,13 @@
 }
 
 <!-- ── Filtros por estado (con conteo) ── -->
-<div class="filtros-estado" role="tablist" aria-label="Filtrar por estado">
+<div class="filtros-estado" role="tablist" aria-label="{{ 'Filtrar por estado' | t }}">
   <button
     type="button"
     class="filtro-chip"
     [class.active]="filtroEstado() === 'all'"
     (click)="filtroEstado.set('all')"
-  >Todas <span class="filtro-chip__count">{{ compras().length }}</span></button>
+  >{{ 'Todas' | t }} <span class="filtro-chip__count">{{ compras().length }}</span></button>
   @for (estado of ESTADOS_FILTRO; track estado) {
     <button
       type="button"
@@ -50,7 +50,7 @@
   </div>
 } @else if (comprasFiltradas().length === 0) {
   <div class="table-empty sgc-card">
-    <p>No hay solicitudes en este estado.</p>
+    <p>{{ 'No hay solicitudes en este estado.' | t }}</p>
   </div>
 } @else {
   <div class="compras-grid">
@@ -80,13 +80,13 @@
 }
 
 <!-- ── Ficha (detalle) ── -->
-<app-form-drawer title="Detalle de la compra" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle de la compra' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as c) {
     <div class="compra-detail">
       @if (c.titulo) { <h2 class="compra-detail__titulo">{{ c.titulo }}</h2> }
       <div class="compra-detail__meta">
         <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">{{ getEstadoLabel(c.estado) }}</span>
-        @if (c.urgencia === 'urgente') { <span class="sgc-badge sgc-badge--danger">Urgente</span> }
+        @if (c.urgencia === 'urgente') { <span class="sgc-badge sgc-badge--danger">{{ 'Urgente' | t }}</span> }
         <span class="text-muted">{{ formatTimestamp(c.created_at) }}</span>
         @if (puedeEditar(c)) {
           <a class="sgc-btn sgc-btn--ghost sgc-btn--sm compra-detail__editar" [routerLink]="['/tecnologia/compras', c.id, 'editar']">
@@ -100,12 +100,12 @@
       <ol class="timeline">
         <li class="timeline__step timeline__step--done">
           <span class="timeline__dot"></span>
-          <span class="timeline__label">Creada</span>
+          <span class="timeline__label">{{ 'Creada' | t }}</span>
           <span class="timeline__time text-muted">{{ formatTimestamp(c.created_at) }}</span>
         </li>
         <li class="timeline__step" [class.timeline__step--done]="!!c.enviada_at">
           <span class="timeline__dot"></span>
-          <span class="timeline__label">Enviada a aprobación</span>
+          <span class="timeline__label">{{ 'Enviada a aprobación' | t }}</span>
           <span class="timeline__time text-muted">{{ c.enviada_at ? formatTimestamp(c.enviada_at) : '—' }}</span>
         </li>
         <li class="timeline__step" [class.timeline__step--done]="!!c.decidida_at" [class.timeline__step--rechazada]="c.estado === 'rechazada'">
@@ -115,7 +115,7 @@
         </li>
         <li class="timeline__step" [class.timeline__step--done]="c.estado === 'comprada'">
           <span class="timeline__dot"></span>
-          <span class="timeline__label">Comprada</span>
+          <span class="timeline__label">{{ 'Comprada' | t }}</span>
         </li>
       </ol>
       @if (c.estado === 'rechazada' && c.motivo_rechazo) {
@@ -123,9 +123,9 @@
       }
 
       <!-- Cotizaciones -->
-      <h3 class="compra-detail__title">Cotizaciones</h3>
+      <h3 class="compra-detail__title">{{ 'Cotizaciones' | t }}</h3>
       @if ((c.adjuntos ?? []).length === 0) {
-        <p class="text-muted">Aún no se ha subido ninguna cotización.</p>
+        <p class="text-muted">{{ 'Aún no se ha subido ninguna cotización.' | t }}</p>
       } @else {
         <ul class="cotizaciones-list">
           @for (a of c.adjuntos ?? []; track a.id) {
@@ -139,7 +139,7 @@
                 </span>
               </div>
               @if (cotizacionUrl(a.id); as url) {
-                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="url" target="_blank" rel="noopener">Abrir</a>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="url" target="_blank" rel="noopener">{{ 'Abrir' | t }}</a>
               }
               <!-- DZ-02 (CZ1) — enlace a la biblioteca de Cotizaciones, si quedó registrada -->
               @if (cotizacionBibliotecaId(a.id); as cotId) {
@@ -149,9 +149,9 @@
               }
               @if (c.estado === 'borrador') {
                 @if (a.elegida) {
-                  <span class="sgc-badge sgc-badge--success">Elegida</span>
+                  <span class="sgc-badge sgc-badge--success">{{ 'Elegida' | t }}</span>
                 } @else {
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="elegirCotizacion(a)">Elegir</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="elegirCotizacion(a)">{{ 'Elegir' | t }}</button>
                 }
               }
             </li>
@@ -160,19 +160,19 @@
       }
 
       @if (previewSafeUrl()) {
-        <iframe class="cotizacion-preview" [src]="previewSafeUrl()" title="Vista previa de la cotización"></iframe>
+        <iframe class="cotizacion-preview" [src]="previewSafeUrl()" title="{{ 'Vista previa de la cotización' | t }}"></iframe>
       }
 
       @if (c.estado === 'borrador') {
         <form class="cotizacion-form" [formGroup]="cotizacionForm">
           <div class="cotizacion-form__row">
-            <select formControlName="tipo" class="sgc-input" aria-label="Tipo de adjunto">
+            <select formControlName="tipo" class="sgc-input" aria-label="{{ 'Tipo de adjunto' | t }}">
               <option value="cotizacion">Cotización</option>
               <option value="factura">Factura</option>
               <option value="otro">Otro</option>
             </select>
-            <input class="sgc-input" type="text" placeholder="Proveedor" formControlName="proveedor" />
-            <input class="sgc-input" type="number" min="0" step="0.01" placeholder="Monto" formControlName="monto" />
+            <input class="sgc-input" type="text" placeholder="{{ 'Proveedor' | t }}" formControlName="proveedor" />
+            <input class="sgc-input" type="number" min="0" step="0.01" placeholder="{{ 'Monto' | t }}" formControlName="monto" />
           </div>
           <label class="sgc-btn sgc-btn--ghost foto-picker">
             @if (subiendoCotizacion()) {
@@ -223,31 +223,31 @@
             Enviar a aprobación
           </button>
           @if ((c.adjuntos ?? []).length === 0) {
-            <span class="text-muted">Agrega una cotización antes de enviar.</span>
+            <span class="text-muted">{{ 'Agrega una cotización antes de enviar.' | t }}</span>
           }
         }
         @if (c.estado === 'esperando_aprobacion' && esAprobador()) {
           @if (!mostrandoRechazo()) {
-            <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="aprobar()">Aprobar</button>
-            <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="decidiendo()" (click)="mostrandoRechazo.set(true)">Rechazar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="aprobar()">{{ 'Aprobar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="decidiendo()" (click)="mostrandoRechazo.set(true)">{{ 'Rechazar' | t }}</button>
           } @else {
             <div class="rechazo-form">
               <textarea
                 class="sgc-input"
                 rows="2"
-                placeholder="Motivo del rechazo"
+                placeholder="{{ 'Motivo del rechazo' | t }}"
                 [value]="rechazoMotivo()"
                 (input)="rechazoMotivo.set($any($event.target).value)"
               ></textarea>
               <div class="drawer-actions">
-                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="mostrandoRechazo.set(false)">Cancelar</button>
-                <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="confirmarRechazo()">Confirmar rechazo</button>
+                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="mostrandoRechazo.set(false)">{{ 'Cancelar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="confirmarRechazo()">{{ 'Confirmar rechazo' | t }}</button>
               </div>
             </div>
           }
         }
         @if (c.estado === 'aprobada') {
-          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="marcarComprada()">Marcar como comprada</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="marcarComprada()">{{ 'Marcar como comprada' | t }}</button>
         }
       </div>
     </div>

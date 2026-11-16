@@ -5,6 +5,7 @@ import { ButtonDirective } from '../../../../shared/ui/button/button.directive';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { ICON_PATHS, IconName } from '../../../../shared/ui/icon/icons';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 // BD3 — Component gallery (galería de componentes del design system).
 // Internal, es_tecnologia-gated. Renders the base tokens + shared components live
 // so a token change can be verified in BOTH themes before any module migrates.
@@ -12,7 +13,7 @@ import { ICON_PATHS, IconName } from '../../../../shared/ui/icon/icons';
 // so previewing dark here doesn't flip the whole app.
 @Component({
   selector: 'app-tec-design-system',
-  imports: [Card, Badge, ButtonDirective, Icon],
+  imports: [Card, Badge, ButtonDirective, Icon, TranslatePipe],
   templateUrl: './design-system.html',
   styleUrl: './design-system.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

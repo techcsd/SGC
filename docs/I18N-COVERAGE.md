@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 72%** (7403/10316 literales de 192 pantallas en alcance). **`ht`: 89%**.
+**Alcance `en`: 79%** (8081/10183 literales de 192 pantallas en alcance). **`ht`: 89%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -41,35 +41,35 @@
 | obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
 | politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
 | politicas | scope | 15 | 0 | 15 | 0% |
-| tecnologia/apis-consumo | scope | 44 | 0 | 44 | 0% |
-| tecnologia/compras | scope | 98 | 0 | 98 | 0% |
-| tecnologia/consultas-compa | scope | 24 | 0 | 24 | 0% |
-| tecnologia/design-system | scope | 131 | 0 | 131 | 0% |
-| tecnologia/estadisticas | scope | 41 | 0 | 41 | 0% |
-| tecnologia/guia | scope | 10 | 0 | 10 | 0% |
-| tecnologia/homologacion | scope | 37 | 0 | 37 | 0% |
-| tecnologia/inventario | scope | 240 | 0 | 240 | 0% |
-| tecnologia/matriz | scope | 27 | 0 | 27 | 0% |
-| tecnologia/monitoreo | scope | 69 | 0 | 69 | 0% |
-| tecnologia/odoo-sync | scope | 33 | 0 | 33 | 0% |
-| tecnologia/outbox-atascados | scope | 57 | 0 | 57 | 0% |
-| tecnologia/qa | scope | 83 | 0 | 83 | 0% |
-| tecnologia/reportes-errores | scope | 66 | 0 | 66 | 0% |
-| tecnologia/resumen-operaciones | scope | 70 | 0 | 70 | 0% |
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
-| tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| tecnologia/compras | scope | 81 | 37 | 44 | 46% |
+| tecnologia/guia | scope | 10 | 5 | 5 | 50% |
+| tecnologia/matriz | scope | 23 | 12 | 11 | 52% |
+| tecnologia/homologacion | scope | 28 | 15 | 13 | 54% |
+| tecnologia/dev-notes | scope | 72 | 41 | 31 | 57% |
+| tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
+| tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
+| tecnologia/apis-consumo | scope | 36 | 25 | 11 | 69% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
+| tecnologia/outbox-atascados | scope | 53 | 38 | 15 | 72% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
+| tecnologia/qa | scope | 73 | 56 | 17 | 77% |
+| tecnologia/reportes-errores | scope | 59 | 46 | 13 | 78% |
+| tecnologia/odoo-sync | scope | 31 | 25 | 6 | 81% |
+| tecnologia/consultas-compa | scope | 23 | 19 | 4 | 83% |
+| tecnologia/resumen-operaciones | scope | 70 | 58 | 12 | 83% |
+| tecnologia/cotizaciones | scope | 79 | 67 | 12 | 85% |
+| tecnologia/monitoreo | scope | 68 | 59 | 9 | 87% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
+| tecnologia/estadisticas | scope | 37 | 34 | 3 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |

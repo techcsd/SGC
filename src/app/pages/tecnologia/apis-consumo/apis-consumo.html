@@ -1,24 +1,24 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">APIs y consumo</h1>
+    <h1 class="page-title">{{ 'APIs y consumo' | t }}</h1>
     <span class="page-count">{{ servicios().length }} servicios</span>
   </div>
   <div class="page-header__actions">
-    <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevo()">+ Nuevo servicio</button>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevo()">{{ '+ Nuevo servicio' | t }}</button>
   </div>
 </div>
 
 <p class="ac-lead">
   Inventario de las APIs y servicios externos que usa el sistema (Google Maps/Places/Roads, Supabase,
-  push, Vercel, Resend…), su propósito, dónde se usan y un <strong>costo estimado por mes</strong>. Las
+  push, Vercel, Resend…), su propósito, dónde se usan y un <strong>{{ 'costo estimado por mes' | t }}</strong>. Las
   llaves viven solo en el servidor (edge functions) — aquí nunca se guardan.
 </p>
 
 <!-- AW9 — la extracción automática de usage/facturación (Google Cloud Billing API) queda
      pendiente de un paso manual en la consola de Google. Mientras tanto, el costo es manual. -->
 <div class="ac-note">
-  <strong>Facturación automática (pendiente):</strong> para traer el consumo y costo real por API desde
-  Google Cloud hace falta habilitar la <em>Billing API</em> y crear una cuenta de servicio de solo-lectura
+  <strong>{{ 'Facturación automática (pendiente):' | t }}</strong> para traer el consumo y costo real por API desde
+  Google Cloud hace falta habilitar la <em>{{ 'Billing API' | t }}</em> y crear una cuenta de servicio de solo-lectura
   en la consola. Mientras tanto, registra aquí el monto estimado/mes de forma manual.
 </div>
 
@@ -35,21 +35,21 @@
       </div>
     }
     <div class="kpi-card">
-      <span class="kpi-label">Con costo cargado</span>
+      <span class="kpi-label">{{ 'Con costo cargado' | t }}</span>
       <span class="kpi-value">{{ conCosto() }} / {{ servicios().length }}</span>
     </div>
   </div>
 
   <div class="ac-table-wrap">
-    <table class="data-table" aria-label="APIs y servicios">
+    <table class="data-table" aria-label="{{ 'APIs y servicios' | t }}">
       <thead>
         <tr>
-          <th>Servicio</th>
-          <th>Proveedor</th>
-          <th>Propósito</th>
-          <th>Dónde se usa</th>
-          <th class="text-right">Costo/mes</th>
-          <th class="data-table__actions-h">Acciones</th>
+          <th>{{ 'Servicio' | t }}</th>
+          <th>{{ 'Proveedor' | t }}</th>
+          <th>{{ 'Propósito' | t }}</th>
+          <th>{{ 'Dónde se usa' | t }}</th>
+          <th class="text-right">{{ 'Costo/mes' | t }}</th>
+          <th class="data-table__actions-h">{{ 'Acciones' | t }}</th>
         </tr>
       </thead>
       <tbody>
@@ -58,7 +58,7 @@
             <td>
               <strong>{{ s.nombre }}</strong>
               @if (s.panel_url) {
-                <a class="ac-ext" [href]="s.panel_url" target="_blank" rel="noopener" title="Abrir panel del proveedor">
+                <a class="ac-ext" [href]="s.panel_url" target="_blank" rel="noopener" title="{{ 'Abrir panel del proveedor' | t }}">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                     <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -73,18 +73,18 @@
               @if (s.costo_estimado_mes != null) {
                 {{ s.moneda }} {{ s.costo_estimado_mes | number:'1.0-2' }}
               } @else {
-                <span class="ac-muted">sin cargar</span>
+                <span class="ac-muted">{{ 'sin cargar' | t }}</span>
               }
             </td>
             <td class="data-table__actions">
               <div>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editar(s)">Editar</button>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar(s)">Eliminar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editar(s)">{{ 'Editar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar(s)">{{ 'Eliminar' | t }}</button>
               </div>
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="6" class="ac-muted ac-empty">Sin servicios registrados.</td></tr>
+          <tr><td colspan="6" class="ac-muted ac-empty">{{ 'Sin servicios registrados.' | t }}</td></tr>
         }
       </tbody>
     </table>
@@ -93,44 +93,44 @@
 
 @if (editorOpen()) {
   <div class="ac-backdrop" (click)="cerrarEditor()"></div>
-  <div class="ac-editor" role="dialog" aria-label="Editar servicio">
+  <div class="ac-editor" role="dialog" aria-label="{{ 'Editar servicio' | t }}">
     <h2 class="ac-editor__title">{{ editId() ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
     <label class="ac-field">
-      <span>Nombre *</span>
-      <input type="text" [ngModel]="form().nombre ?? ''" (ngModelChange)="setField('nombre', $event)" placeholder="Ej: Google Maps JavaScript API" />
+      <span>{{ 'Nombre *' | t }}</span>
+      <input type="text" [ngModel]="form().nombre ?? ''" (ngModelChange)="setField('nombre', $event)" placeholder="{{ 'Ej: Google Maps JavaScript API' | t }}" />
     </label>
     <label class="ac-field">
-      <span>Proveedor</span>
-      <input type="text" [ngModel]="form().proveedor ?? ''" (ngModelChange)="setField('proveedor', $event)" placeholder="Google Cloud, Supabase, Vercel…" />
+      <span>{{ 'Proveedor' | t }}</span>
+      <input type="text" [ngModel]="form().proveedor ?? ''" (ngModelChange)="setField('proveedor', $event)" placeholder="{{ 'Google Cloud, Supabase, Vercel…' | t }}" />
     </label>
     <label class="ac-field">
-      <span>Propósito</span>
-      <textarea rows="2" [ngModel]="form().proposito ?? ''" (ngModelChange)="setField('proposito', $event)" placeholder="Para qué se usa"></textarea>
+      <span>{{ 'Propósito' | t }}</span>
+      <textarea rows="2" [ngModel]="form().proposito ?? ''" (ngModelChange)="setField('proposito', $event)" placeholder="{{ 'Para qué se usa' | t }}"></textarea>
     </label>
     <label class="ac-field">
-      <span>Dónde se usa</span>
-      <textarea rows="2" [ngModel]="form().donde_se_usa ?? ''" (ngModelChange)="setField('donde_se_usa', $event)" placeholder="Edge functions / módulos"></textarea>
+      <span>{{ 'Dónde se usa' | t }}</span>
+      <textarea rows="2" [ngModel]="form().donde_se_usa ?? ''" (ngModelChange)="setField('donde_se_usa', $event)" placeholder="{{ 'Edge functions / módulos' | t }}"></textarea>
     </label>
     <div class="ac-field-row">
       <label class="ac-field">
-        <span>Costo estimado/mes</span>
+        <span>{{ 'Costo estimado/mes' | t }}</span>
         <input type="number" min="0" step="0.01" [ngModel]="form().costo_estimado_mes ?? null" (ngModelChange)="setField('costo_estimado_mes', $event)" placeholder="0.00" />
       </label>
       <label class="ac-field ac-field--sm">
-        <span>Moneda</span>
+        <span>{{ 'Moneda' | t }}</span>
         <input type="text" [ngModel]="form().moneda ?? 'USD'" (ngModelChange)="setField('moneda', $event)" />
       </label>
     </div>
     <label class="ac-field">
-      <span>Panel / dashboard (URL)</span>
-      <input type="url" [ngModel]="form().panel_url ?? ''" (ngModelChange)="setField('panel_url', $event)" placeholder="https://…" />
+      <span>{{ 'Panel / dashboard (URL)' | t }}</span>
+      <input type="url" [ngModel]="form().panel_url ?? ''" (ngModelChange)="setField('panel_url', $event)" placeholder="{{ 'https://…' | t }}" />
     </label>
     <label class="ac-field">
-      <span>Notas</span>
+      <span>{{ 'Notas' | t }}</span>
       <textarea rows="2" [ngModel]="form().notas ?? ''" (ngModelChange)="setField('notas', $event)"></textarea>
     </label>
     <div class="ac-editor__actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarEditor()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarEditor()">{{ 'Cancelar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
         {{ saving() ? 'Guardando…' : 'Guardar' }}
       </button>

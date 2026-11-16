@@ -20,9 +20,10 @@ import { Router } from '@angular/router';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { APP_VERSION } from '../../../../environments/version';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-tec-reportes-errores',
-  imports: [DecimalPipe, DateRangeFilter, Skeleton, Icon],
+  imports: [DecimalPipe, DateRangeFilter, Skeleton, Icon, TranslatePipe],
   templateUrl: './reportes-errores.html',
   styleUrl: './reportes-errores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
