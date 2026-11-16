@@ -59,7 +59,7 @@
             @if (g.descripcion) {
               <p class="grupo-info__desc">{{ g.descripcion }}</p>
             }
-            <span class="grupo-info__count">{{ participantes().length }} participantes</span>
+            <span class="grupo-info__count">{{ participantes().length }} {{ 'participantes' | t }}</span>
           </div>
         }
       </div>
@@ -93,15 +93,15 @@
               @if (esAdmin() && !p.es_creador) {
                 <span class="part-item__actions">
                   @if (p.rol === 'admin') {
-                    <button type="button" class="part-item__action" (click)="promover(p, false)" [attr.aria-label]="'Quitar admin a ' + p.nombre" title="{{ 'Quitar admin' | t }}">
+                    <button type="button" class="part-item__action" (click)="promover(p, false)" [attr.aria-label]="i18n.t('Quitar admin a') + ' ' + p.nombre" title="{{ 'Quitar admin' | t }}">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
                     </button>
                   } @else {
-                    <button type="button" class="part-item__action" (click)="promover(p, true)" [attr.aria-label]="'Hacer admin a ' + p.nombre" title="{{ 'Hacer admin' | t }}">
+                    <button type="button" class="part-item__action" (click)="promover(p, true)" [attr.aria-label]="i18n.t('Hacer admin a') + ' ' + p.nombre" title="{{ 'Hacer admin' | t }}">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
                     </button>
                   }
-                  <button type="button" class="part-item__action part-item__action--danger" (click)="quitar(p)" [attr.aria-label]="'Quitar a ' + p.nombre + ' del grupo'" title="{{ 'Quitar del grupo' | t }}">
+                  <button type="button" class="part-item__action part-item__action--danger" (click)="quitar(p)" [attr.aria-label]="i18n.t('Quitar a') + ' ' + p.nombre + ' ' + i18n.t('del grupo')" title="{{ 'Quitar del grupo' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </span>

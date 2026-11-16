@@ -17,6 +17,7 @@ import { GrupoInfo, GrupoParticipante } from '../../../../shared/models/mensaje.
 import { VerFotoDirective } from '../../../../shared/ui/lightbox/ver-foto.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface UsuarioDir {
   id: string;
   nombre: string;
@@ -37,6 +38,7 @@ export class GrupoInfoPanel {
   private mensajeria = inject(MensajeriaService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   conversacionId = input<string | null>(null);
   open = input<boolean>(false);
@@ -107,7 +109,7 @@ export class GrupoInfoPanel {
       this.descripcion.setValue(info.descripcion ?? '');
       this.avatarUrl.set(await this.mensajeria.getAvatarUrl(info.avatar_path));
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar el grupo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el grupo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loading.set(false);
     }
@@ -145,9 +147,9 @@ export class GrupoInfoPanel {
       this.editando.set(false);
       await this.recargar();
       this.changed.emit();
-      this.toast.success('Grupo actualizado');
+      this.toast.success(this.i18n.t('Grupo actualizado'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -165,9 +167,9 @@ export class GrupoInfoPanel {
       await this.mensajeria.subirAvatarGrupo(conv, file);
       await this.recargar();
       this.changed.emit();
-      this.toast.success('Foto del grupo actualizada');
+      this.toast.success(this.i18n.t('Foto del grupo actualizada'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo subir la foto', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir la foto'), e instanceof Error ? e.message : undefined);
     } finally {
       this.subiendoAvatar.set(false);
     }
@@ -183,7 +185,7 @@ export class GrupoInfoPanel {
       await this.recargar();
       this.changed.emit();
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar el rol', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el rol'), e instanceof Error ? e.message : undefined);
     } finally {
       this.accionEnCurso.set(false);
     }
@@ -192,14 +194,14 @@ export class GrupoInfoPanel {
   async quitar(p: GrupoParticipante) {
     const conv = this.conversacionId();
     if (!conv || this.accionEnCurso()) return;
-    if (!confirm(`¿Quitar a ${p.nombre} del grupo?`)) return;
+    if (!confirm(this.i18n.t('¿Quitar a {nombre} del grupo?', { nombre: p.nombre }))) return;
     this.accionEnCurso.set(true);
     try {
       await this.mensajeria.grupoQuitar(conv, p.usuario_id);
       await this.recargar();
       this.changed.emit();
     } catch (e: unknown) {
-      this.toast.error('No se pudo quitar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo quitar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.accionEnCurso.set(false);
     }
@@ -212,7 +214,7 @@ export class GrupoInfoPanel {
       try {
         this.directorio.set(await this.mensajeria.getDirectorioDetalle());
       } catch (e: unknown) {
-        this.toast.error('No se pudo cargar el directorio', e instanceof Error ? e.message : undefined);
+        this.toast.error(this.i18n.t('No se pudo cargar el directorio'), e instanceof Error ? e.message : undefined);
       }
     }
   }
@@ -229,9 +231,9 @@ export class GrupoInfoPanel {
       await this.mensajeria.grupoAgregar(conv, u.id);
       await this.recargar();
       this.changed.emit();
-      this.toast.success(`${u.nombre} agregado al grupo`);
+      this.toast.success(this.i18n.t('{nombre} agregado al grupo', { nombre: u.nombre }));
     } catch (e: unknown) {
-      this.toast.error('No se pudo agregar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo agregar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.accionEnCurso.set(false);
     }
@@ -241,15 +243,15 @@ export class GrupoInfoPanel {
   async salir() {
     const conv = this.conversacionId();
     if (!conv || this.accionEnCurso()) return;
-    if (!confirm('¿Salir de este grupo? Dejarás de recibir sus mensajes.')) return;
+    if (!confirm(this.i18n.t('¿Salir de este grupo? Dejarás de recibir sus mensajes.'))) return;
     this.accionEnCurso.set(true);
     try {
       await this.mensajeria.grupoSalir(conv);
-      this.toast.success('Saliste del grupo');
+      this.toast.success(this.i18n.t('Saliste del grupo'));
       this.salio.emit();
       this.closed.emit();
     } catch (e: unknown) {
-      this.toast.error('No se pudo salir del grupo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo salir del grupo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.accionEnCurso.set(false);
     }

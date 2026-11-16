@@ -75,7 +75,7 @@
       </div>
     } @else {
       @if (selectedConv()!.tipo === 'grupo') {
-        <button type="button" class="thread__header thread__header--clickable" (click)="openGrupoInfo()" [attr.aria-label]="'Ver información del grupo ' + (selectedConv()!.tituloMostrado ?? '')">
+        <button type="button" class="thread__header thread__header--clickable" (click)="openGrupoInfo()" [attr.aria-label]="i18n.t('Ver información del grupo') + ' ' + (selectedConv()!.tituloMostrado ?? '')">
           @if (selectedAvatarUrl(); as avatar) {
             <img class="thread__avatar thread__avatar--img" [src]="avatar" alt="" />
           } @else {
@@ -83,7 +83,7 @@
           }
           <div class="thread__titles">
             <span class="thread__title">{{ selectedConv()!.tituloMostrado }}</span>
-            <span class="thread__sub">{{ selectedConv()!.participantes?.length }} participantes · ver info</span>
+            <span class="thread__sub">{{ selectedConv()!.participantes?.length }} {{ 'participantes · ver info' | t }}</span>
           </div>
         </button>
       } @else {
@@ -152,13 +152,13 @@
                 }
                 @if (m.archivo_path) {
                   @if (esImagen(m)) {
-                    <button type="button" class="msg__img" (click)="verImagen(m)" [attr.aria-label]="'Ver imagen ' + (m.archivo_nombre ?? '')">
+                    <button type="button" class="msg__img" (click)="verImagen(m)" [attr.aria-label]="i18n.t('Ver imagen') + ' ' + (m.archivo_nombre ?? '')">
                       <app-img [src]="thumbUrls().get(m.id) ?? null" [alt]="m.archivo_nombre ?? 'Imagen'" [height]="180" fit="cover" />
                     </button>
                   } @else {
                     <!-- AY14 — card de documento (ícono por tipo + nombre + tamaño + acción) -->
                     <button type="button" class="doc-card" [attr.data-tipo]="docTipo(m)" (click)="abrirDocumento(m)"
-                            [attr.aria-label]="(esPdf(m) ? 'Ver ' : 'Descargar ') + (m.archivo_nombre ?? 'documento')">
+                            [attr.aria-label]="(esPdf(m) ? i18n.t('Ver') : i18n.t('Descargar')) + ' ' + (m.archivo_nombre ?? 'documento')">
                       <span class="doc-card__icon">
                         @switch (docTipo(m)) {
                           @case ('pdf') {
@@ -184,7 +184,7 @@
                       <span class="doc-card__body">
                         <span class="doc-card__name">{{ m.archivo_nombre ?? 'Documento' }}</span>
                         <span class="doc-card__meta">
-                          {{ docTipo(m) | uppercase }}@if (formatSize(m.archivo_size)) { · {{ formatSize(m.archivo_size) }} } · {{ esPdf(m) ? 'Ver' : 'Descargar' }}
+                          {{ docTipo(m) | uppercase }}@if (formatSize(m.archivo_size)) { · {{ formatSize(m.archivo_size) }} } · {{ (esPdf(m) ? 'Ver' : 'Descargar') | t }}
                         </span>
                       </span>
                     </button>
@@ -268,9 +268,9 @@
 
             <label class="sticker-picker__upload" [class.sticker-picker__upload--busy]="stickerUploading()">
               @if (stickerUploading()) {
-                <span class="spinner" aria-hidden="true"></span> Subiendo…
+                <span class="spinner" aria-hidden="true"></span> {{ 'Subiendo…' | t }}
               } @else {
-                ＋ Subir sticker
+                {{ '＋ Subir sticker' | t }}
               }
               <input type="file" class="sr-only" accept="image/*" [disabled]="stickerUploading()" (change)="onStickerFile($event)" />
             </label>
@@ -363,7 +363,7 @@
 }
 
 <!-- ── New conversation drawer ── -->
-<app-form-drawer [title]="nuevoModo() === 'directa' ? 'Nuevo mensaje' : 'Nuevo grupo'" [open]="nuevoOpen()" (closed)="closeNuevo()">
+<app-form-drawer [title]="nuevoModo() === 'directa' ? i18n.t('Nuevo mensaje') : i18n.t('Nuevo grupo')" [open]="nuevoOpen()" (closed)="closeNuevo()">
   <div class="nuevo-body">
     @if (nuevoModo() === 'grupo') {
       <div class="sgc-field">
@@ -373,7 +373,7 @@
     }
 
     <div class="sgc-field">
-      <label for="buscar_usuario">{{ nuevoModo() === 'directa' ? 'Elige a quién escribir' : 'Agregar participantes' }}</label>
+      <label for="buscar_usuario">{{ (nuevoModo() === 'directa' ? 'Elige a quién escribir' : 'Agregar participantes') | t }}</label>
       <input id="buscar_usuario" type="search" placeholder="{{ 'Buscar persona…' | t }}" [value]="nuevoBuscar()" (input)="onBuscarDir($any($event.target).value)" />
     </div>
 
@@ -405,7 +405,7 @@
       <div class="drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeNuevo()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creating() || !grupoNombre.value?.trim() || seleccionados().size === 0" (click)="crearGrupo()">
-          Crear grupo ({{ seleccionados().size }})
+          {{ 'Crear grupo' | t }} ({{ seleccionados().size }})
         </button>
       </div>
     }
@@ -430,7 +430,7 @@
 <ng-template #ticks let-m>
   @if (estadoMensaje(m); as est) {
     <span class="msg__ticks" [class.msg__ticks--leido]="est === 'leido'"
-          [attr.title]="est === 'leido' ? 'Leído' : est === 'entregado' ? 'Entregado' : 'Enviado'">
+          [attr.title]="est === 'leido' ? i18n.t('Leído') : est === 'entregado' ? i18n.t('Entregado') : i18n.t('Enviado')">
       @if (est === 'enviado') {
         <svg width="15" height="10" viewBox="0 0 15 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 5 5 9 12 1"/></svg>
       } @else {

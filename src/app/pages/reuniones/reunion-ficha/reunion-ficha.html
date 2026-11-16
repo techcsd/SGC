@@ -56,7 +56,7 @@
             @if (d.reunion.fireflies_id) { <span class="rf__card-hint">{{ 'De Fireflies · editable' | t }}</span> }
           </div>
           @if (esOrganizadorOAdmin()) {
-            <textarea class="sgc-input" rows="4" [ngModel]="resumenEdit()" (ngModelChange)="resumenEdit.set($event)" placeholder="Resumen de lo tratado en la reunión…"></textarea>
+            <textarea class="sgc-input" rows="4" [ngModel]="resumenEdit()" (ngModelChange)="resumenEdit.set($event)" placeholder="{{ 'Resumen de lo tratado en la reunión…' | t }}"></textarea>
             <div class="rf__card-actions">
               <button type="button" class="sgc-btn sgc-btn--secondary" (click)="guardarActa()" [disabled]="guardandoActa()">
                 {{ (guardandoActa() ? 'Guardando…' : 'Guardar resumen') | t }}
@@ -93,8 +93,8 @@
             </div>
           }
           <div class="rf__acuerdo-add">
-            <input class="sgc-input" type="text" [ngModel]="nuevoAcuerdoTexto()" (ngModelChange)="nuevoAcuerdoTexto.set($event)" placeholder="Nuevo acuerdo…" />
-            <app-user-picker [value]="null" [allowOtro]="false" placeholder="Responsable (opcional)" (selected)="onResponsableElegido($event)" />
+            <input class="sgc-input" type="text" [ngModel]="nuevoAcuerdoTexto()" (ngModelChange)="nuevoAcuerdoTexto.set($event)" placeholder="{{ 'Nuevo acuerdo…' | t }}" />
+            <app-user-picker [value]="null" [allowOtro]="false" [placeholder]="'Responsable (opcional)' | t" (selected)="onResponsableElegido($event)" />
             <input class="sgc-input" type="date" [ngModel]="nuevoAcuerdoFecha()" (ngModelChange)="nuevoAcuerdoFecha.set($event)" />
             <button type="button" class="sgc-btn sgc-btn--secondary" (click)="crearAcuerdo()" [disabled]="creandoAcuerdo() || !nuevoAcuerdoTexto().trim()">{{ '+ Agregar' | t }}</button>
           </div>
@@ -109,7 +109,7 @@
                 <span>{{ n.texto }}</span>
                 @if (n.foto_path && fotosNotas()[n.foto_path]) {
                   <a [href]="fotosNotas()[n.foto_path]" target="_blank" rel="noopener" class="rf__nota-foto">
-                    <img [src]="fotosNotas()[n.foto_path]" alt="Foto de pizarra" />
+                    <img [src]="fotosNotas()[n.foto_path]" alt="{{ 'Foto de pizarra' | t }}" />
                   </a>
                 }
               </div>
@@ -117,7 +117,7 @@
           }
           <label class="sgc-field">
             <span class="sgc-field__label">{{ 'Tu nota' | t }}</span>
-            <textarea class="sgc-input" rows="2" [ngModel]="notaPropia()" (ngModelChange)="notaPropia.set($event)" placeholder="Lo que tú anotaste…"></textarea>
+            <textarea class="sgc-input" rows="2" [ngModel]="notaPropia()" (ngModelChange)="notaPropia.set($event)" placeholder="{{ 'Lo que tú anotaste…' | t }}"></textarea>
           </label>
           <label class="sgc-field">
             <span class="sgc-field__label">{{ 'Foto de pizarra (opcional)' | t }}</span>

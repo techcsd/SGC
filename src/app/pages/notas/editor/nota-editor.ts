@@ -187,7 +187,7 @@ export class NotaEditor implements OnInit, OnDestroy {
       const permiso: NotaPermiso =
         !nota || (miId && nota.owner_id === miId) ? 'editar' : nota.mi_permiso ?? 'ver';
       if (!nota) {
-        this.toast.error('Nota no encontrada', 'Puede que ya no exista o no tengas acceso.');
+        this.toast.error(this.i18n.t('Nota no encontrada'), 'Puede que ya no exista o no tengas acceso.');
         this.router.navigate(['/notas']);
         return;
       }
@@ -410,7 +410,7 @@ export class NotaEditor implements OnInit, OnDestroy {
     try {
       await this.notasSvc.linkChecklistItem(item.id, tareaId ? 'tarea' : null, tareaId || null);
       await this.recargarChecklist();
-      if (tareaId) this.toast.success('Vinculado a la tarea', 'El ítem se marcará solo cuando la tarea se complete.');
+      if (tareaId) this.toast.success(this.i18n.t('Vinculado a la tarea'), 'El ítem se marcará solo cuando la tarea se complete.');
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo vincular');
     }
@@ -448,7 +448,7 @@ export class NotaEditor implements OnInit, OnDestroy {
       await this.notasSvc.compartir(id, usuarioId, this.compartirPermiso());
       this.compartirUsuario.set(null);
       await this.recargarCompartidos();
-      this.toast.success('Nota compartida');
+      this.toast.success(this.i18n.t('Nota compartida'));
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo compartir');
     }
@@ -519,7 +519,7 @@ export class NotaEditor implements OnInit, OnDestroy {
         this.lastUpdatedAt,
       );
       this.lastUpdatedAt = res.nota.updated_at;
-      this.toast.success('Movida a Dev notes');
+      this.toast.success(this.i18n.t('Movida a Dev notes'));
       this.router.navigate(['/tecnologia/dev-notes']);
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo mover a Dev notes');

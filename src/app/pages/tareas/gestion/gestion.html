@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Gestión de tareas' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ 'tarea' | t }}{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="tareas" [rows]="filtered()" [allRows]="tareas()"
@@ -11,7 +11,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva tarea
+      {{ 'Nueva tarea' | t }}
     </button>
   </div>
 </div>
@@ -30,17 +30,17 @@
 
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-      <option value="activas">Activas</option>
-      <option value="all">Todas</option>
+      <option value="activas">{{ 'Activas' | t }}</option>
+      <option value="all">{{ 'Todas' | t }}</option>
       @for (e of ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
 
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedAsignado()" (change)="onAsignadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por responsable' | t }}">
-      <option value="all">Todos los responsables</option>
+      <option value="all">{{ 'Todos los responsables' | t }}</option>
       @for (u of usuarios(); track u.id) {
         <option [value]="u.id">{{ u.nombre }}</option>
       }
@@ -49,7 +49,7 @@
 
   @if (searchQuery() || selectedEstado() !== 'activas' || selectedAsignado() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -97,7 +97,7 @@
               <td><span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span></td>
               <td>
                 <div class="row-actions">
-                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(t)" [attr.aria-label]="'Ver ' + t.titulo" title="{{ 'Ver detalle' | t }}">
+                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(t)" [attr.aria-label]="i18n.t('Ver') + ' ' + t.titulo" title="{{ 'Ver detalle' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -111,7 +111,7 @@
     </div>
     <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
     <div class="table-footer">
-      {{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}
+      {{ filtered().length }} {{ 'tarea' | t }}{{ filtered().length !== 1 ? 's' : '' }}
     </div>
   }
 </div>
@@ -136,7 +136,7 @@
       <div class="sgc-field">
         <label for="asignado_a">{{ 'Responsable' | t }} <span class="required">*</span></label>
         <select id="asignado_a" formControlName="asignado_a" [class.invalid]="f.asignado_a.invalid && f.asignado_a.touched">
-          <option [ngValue]="null">Selecciona…</option>
+          <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
           @for (u of usuarios(); track u.id) {
             <option [value]="u.id">{{ optLabel(u) }}</option>
           }
@@ -149,7 +149,7 @@
         <label for="prioridad">{{ 'Prioridad' | t }} <span class="required">*</span></label>
         <select id="prioridad" formControlName="prioridad">
           @for (p of PRIORIDADES; track p.value) {
-            <option [value]="p.value">{{ p.label }}</option>
+            <option [value]="p.value">{{ p.label | t }}</option>
           }
         </select>
       </div>
@@ -159,7 +159,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">{{ 'Proyecto (opcional)' | t }}</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [ngValue]="null">Sin proyecto</option>
+          <option [ngValue]="null">{{ 'Sin proyecto' | t }}</option>
           @for (p of proyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -180,9 +180,9 @@
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          Crear tarea
+          {{ 'Crear tarea' | t }}
         }
       </button>
     </div>

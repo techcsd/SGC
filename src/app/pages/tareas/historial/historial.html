@@ -2,7 +2,7 @@
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Historial de tareas' | t }}</h1>
     <span class="page-count">
-      {{ esGestor ? 'Todas las tareas del sistema' : 'Tus tareas' }} · {{ completadas() }} completada{{ completadas() !== 1 ? 's' : '' }}
+      {{ (esGestor ? 'Todas las tareas del sistema' : 'Tus tareas') | t }} · {{ completadas() }} {{ 'completada' | t }}{{ completadas() !== 1 ? 's' : '' }}
     </span>
   </div>
   <div class="page-header__actions">
@@ -42,13 +42,13 @@
     </div>
     <div class="sgc-field filters-bar__select">
       <select [value]="selectedEstado()" (change)="onEstado($any($event.target).value)" aria-label="{{ 'Estado' | t }}">
-        <option value="all">Todos los estados</option>
+        <option value="all">{{ 'Todos los estados' | t }}</option>
         @for (e of ESTADOS; track e.value) { <option [value]="e.value">{{ e.label }}</option> }
       </select>
     </div>
     <div class="sgc-field filters-bar__select">
       <select [value]="selectedPrioridad()" (change)="onPrioridad($any($event.target).value)" aria-label="{{ 'Prioridad' | t }}">
-        <option value="all">Todas las prioridades</option>
+        <option value="all">{{ 'Todas las prioridades' | t }}</option>
         @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
       </select>
     </div>
@@ -94,7 +94,7 @@
           </tbody>
         </table>
       </div>
-      <div class="table-footer">{{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}</div>
+      <div class="table-footer">{{ filtered().length }} {{ 'tarea' | t }}{{ filtered().length !== 1 ? 's' : '' }}</div>
     }
   </div>
 }

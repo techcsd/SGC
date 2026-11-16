@@ -160,31 +160,10 @@
     "tecnologia/dev-notes": {
       "enforce": false
     },
-    "tareas/mis-tareas": {
-      "enforce": false
-    },
     "app-movil": {
       "enforce": false
     },
-    "notas": {
-      "enforce": false
-    },
-    "mensajes": {
-      "enforce": false
-    },
     "auth": {
-      "enforce": false
-    },
-    "mensajes/grupo-info": {
-      "enforce": false
-    },
-    "notas/editor": {
-      "enforce": false
-    },
-    "tareas/gestion": {
-      "enforce": false
-    },
-    "tareas/historial": {
       "enforce": false
     },
     "practica": {
@@ -199,16 +178,10 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "reuniones/reuniones-lista": {
-      "enforce": false
-    },
     "tecnologia/cotizaciones": {
       "enforce": false
     },
     "admin/vault": {
-      "enforce": false
-    },
-    "reuniones/reunion-ficha": {
       "enforce": false
     },
     "asistente": {
@@ -496,6 +469,18 @@
     "legal/firmas-pendientes": {
       "enforce": true
     },
+    "mensajes/grupo-info": {
+      "enforce": true
+    },
+    "mensajes": {
+      "enforce": true
+    },
+    "notas/editor": {
+      "enforce": true
+    },
+    "notas": {
+      "enforce": true
+    },
     "perfil": {
       "enforce": true
     },
@@ -527,6 +512,12 @@
       "enforce": true
     },
     "proyectos/personal": {
+      "enforce": true
+    },
+    "reuniones/reunion-ficha": {
+      "enforce": true
+    },
+    "reuniones/reuniones-lista": {
       "enforce": true
     },
     "rrhh/activos": {
@@ -572,6 +563,15 @@
       "enforce": true
     },
     "solicitudes-movimiento": {
+      "enforce": true
+    },
+    "tareas/gestion": {
+      "enforce": true
+    },
+    "tareas/historial": {
+      "enforce": true
+    },
+    "tareas/mis-tareas": {
       "enforce": true
     },
     "trabajos-transporte": {

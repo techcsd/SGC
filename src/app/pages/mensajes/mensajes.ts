@@ -30,6 +30,7 @@ import { VoicePlayer } from '../../../shared/ui/voice-player/voice-player';
 import { Icon } from '../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-mensajes',
   imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer, Icon, TranslatePipe],
@@ -42,6 +43,7 @@ export class Mensajes implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   private threadEnd = viewChild<ElementRef<HTMLElement>>('threadEnd');
 
@@ -317,7 +319,7 @@ export class Mensajes implements OnInit, OnDestroy {
       this.notificaciones.refresh();
     } catch (e: unknown) {
       // QA-031 — no silenciar el fallo; avisar al usuario.
-      this.toast.error('No se pudo abrir la conversación', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir la conversación'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingThread.set(false);
     }
@@ -532,7 +534,7 @@ export class Mensajes implements OnInit, OnDestroy {
       window.open(url, '_blank');
     } catch (e: unknown) {
       // QA-031 — avisar si no se pudo generar el enlace del archivo.
-      this.toast.error('No se pudo abrir el archivo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir el archivo'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -585,7 +587,7 @@ export class Mensajes implements OnInit, OnDestroy {
       const url = await this.mensajeria.getArchivoUrl(m.archivo_path);
       this.lightbox.set(url);
     } catch (e: unknown) {
-      this.toast.error('No se pudo abrir la imagen', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir la imagen'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -622,7 +624,7 @@ export class Mensajes implements OnInit, OnDestroy {
   async iniciarGrabacion() {
     if (this.grabando() || this.sending()) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      this.toast.error('Grabación no disponible', 'Tu navegador no permite grabar audio; adjunta un archivo.');
+      this.toast.error(this.i18n.t('Grabación no disponible'), 'Tu navegador no permite grabar audio; adjunta un archivo.');
       return;
     }
     try {
@@ -647,7 +649,7 @@ export class Mensajes implements OnInit, OnDestroy {
       this.iniciarMedidor(stream);
     } catch {
       this.limpiarGrabacion();
-      this.toast.error('No se pudo acceder al micrófono', 'Revisa los permisos del navegador.');
+      this.toast.error(this.i18n.t('No se pudo acceder al micrófono'), 'Revisa los permisos del navegador.');
     }
   }
 
@@ -684,7 +686,7 @@ export class Mensajes implements OnInit, OnDestroy {
       }
       await this.refreshConversaciones();
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar la nota de voz', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar la nota de voz'), e instanceof Error ? e.message : undefined);
     } finally {
       this.sending.set(false);
     }
@@ -753,7 +755,7 @@ export class Mensajes implements OnInit, OnDestroy {
       this.stickerRecientes.set(recientes);
       this.stickersCargados = true;
     } catch (e: unknown) {
-      this.toast.error('No se pudieron cargar los stickers', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los stickers'), e instanceof Error ? e.message : undefined);
     } finally {
       this.stickerLoading.set(false);
     }
@@ -770,7 +772,7 @@ export class Mensajes implements OnInit, OnDestroy {
       this.stickerPickerOpen.set(false);
       await this.refreshConversaciones();
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar el sticker', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar el sticker'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -786,9 +788,9 @@ export class Mensajes implements OnInit, OnDestroy {
       const packId = activo && !activo.es_sistema ? activo.id : undefined;
       await this.mensajeria.subirSticker(this.miId, file, packId);
       this.stickerPacks.set(await this.mensajeria.getMisStickers());
-      this.toast.success('Sticker agregado');
+      this.toast.success(this.i18n.t('Sticker agregado'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo subir el sticker', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir el sticker'), e instanceof Error ? e.message : undefined);
     } finally {
       this.stickerUploading.set(false);
       input.value = ''; // permite re-subir el mismo archivo
@@ -801,7 +803,7 @@ export class Mensajes implements OnInit, OnDestroy {
       await this.mensajeria.eliminarSticker(stickerId);
       this.stickerPacks.set(await this.mensajeria.getMisStickers());
     } catch (e: unknown) {
-      this.toast.error('No se pudo eliminar el sticker', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar el sticker'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -810,9 +812,9 @@ export class Mensajes implements OnInit, OnDestroy {
     try {
       await this.mensajeria.guardarSticker(ref);
       this.stickersCargados = false; // fuerza recarga la próxima vez que abra el picker
-      this.toast.success('Sticker guardado');
+      this.toast.success(this.i18n.t('Sticker guardado'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar el sticker', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar el sticker'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -871,7 +873,7 @@ export class Mensajes implements OnInit, OnDestroy {
           nombre: m.archivo_nombre ?? 'Documento.pdf',
         });
       } catch (e: unknown) {
-        this.toast.error('No se pudo abrir el PDF', e instanceof Error ? e.message : undefined);
+        this.toast.error(this.i18n.t('No se pudo abrir el PDF'), e instanceof Error ? e.message : undefined);
       }
       return;
     }

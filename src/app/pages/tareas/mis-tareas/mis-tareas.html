@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Mis tareas' | t }}</h1>
-    <span class="page-count">{{ countActivas() }} activa{{ countActivas() !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ countActivas() }} {{ 'activa' | t }}{{ countActivas() !== 1 ? 's' : '' }}</span>
   </div>
 </div>
 
@@ -10,8 +10,8 @@
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-      <option value="activas">Activas</option>
-      <option value="all">Todas</option>
+      <option value="activas">{{ 'Activas' | t }}</option>
+      <option value="all">{{ 'Todas' | t }}</option>
       @for (e of ESTADOS; track e.value) {
         <option [value]="e.value">{{ e.label }}</option>
       }
@@ -53,11 +53,11 @@
           }
           @if (t.fecha_limite) {
             <span class="tarea-card__fecha" [class.text-danger]="isVencida(t)">
-              Vence {{ formatFecha(t.fecha_limite) }}
+              {{ 'Vence' | t }} {{ formatFecha(t.fecha_limite) }}
             </span>
           }
         </div>
-        <span class="tarea-card__asignador">Asignada por {{ t.asignador?.nombre ?? '—' }}</span>
+        <span class="tarea-card__asignador">{{ 'Asignada por' | t }} {{ t.asignador?.nombre ?? '—' }}</span>
       </button>
     }
   </div>

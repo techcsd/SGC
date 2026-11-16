@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 71%** (7297/10331 literales de 192 pantallas en alcance). **`ht`: 87%**.
+**Alcance `en`: 72%** (7403/10316 literales de 192 pantallas en alcance). **`ht`: 89%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -60,23 +60,14 @@
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
-| tareas/mis-tareas | scope | 6 | 1 | 5 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
-| notas | scope | 36 | 10 | 26 | 28% |
-| mensajes | scope | 33 | 11 | 22 | 33% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| mensajes/grupo-info | scope | 31 | 13 | 18 | 42% |
-| notas/editor | scope | 32 | 14 | 18 | 44% |
-| tareas/gestion | scope | 29 | 18 | 11 | 62% |
-| tareas/historial | scope | 13 | 9 | 4 | 69% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
-| reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
@@ -172,6 +163,10 @@
 | legal/contratos | enforce | 60 | 60 | 0 | 100% |
 | legal/expedientes | enforce | 77 | 77 | 0 | 100% |
 | legal/firmas-pendientes | enforce | 11 | 11 | 0 | 100% |
+| mensajes/grupo-info | enforce | 29 | 29 | 0 | 100% |
+| mensajes | enforce | 34 | 34 | 0 | 100% |
+| notas/editor | enforce | 32 | 32 | 0 | 100% |
+| notas | enforce | 37 | 37 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
@@ -183,6 +178,8 @@
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
+| reuniones/reunion-ficha | enforce | 50 | 50 | 0 | 100% |
+| reuniones/reuniones-lista | enforce | 56 | 56 | 0 | 100% |
 | rrhh/activos | enforce | 41 | 41 | 0 | 100% |
 | rrhh/asistencia | enforce | 31 | 31 | 0 | 100% |
 | rrhh/ausencias | enforce | 43 | 43 | 0 | 100% |
@@ -198,25 +195,25 @@
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | rrhh/tramites | enforce | 44 | 44 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
+| tareas/gestion | enforce | 30 | 30 | 0 | 100% |
+| tareas/historial | enforce | 13 | 13 | 0 | 100% |
+| tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**328 literal(es) sin t()** en 46 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**285 literal(es) sin t()** en 42 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
-| src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
-| src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
 | src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
-| src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
 | src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
@@ -232,7 +229,6 @@
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
-| src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |

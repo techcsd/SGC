@@ -15,9 +15,9 @@
     @if (!soloLectura()) {
       <div class="nota-editor__topbar-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePin()" [class.is-active]="pinned()"
-          [title]="pinned() ? 'Quitar fijado' : 'Fijar'"><app-icon name="map-pin" [size]="15" /> {{ pinned() ? 'Fijada' : 'Fijar' }}</button>
+          [title]="pinned() ? i18n.t('Quitar fijado') : i18n.t('Fijar')"><app-icon name="map-pin" [size]="15" /> {{ (pinned() ? 'Fijada' : 'Fijar') | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleArchivar()"
-          [title]="archivada() ? 'Desarchivar' : 'Archivar'"><app-icon name="archive" [size]="15" /> {{ archivada() ? 'Archivada' : 'Archivar' }}</button>
+          [title]="archivada() ? i18n.t('Desarchivar') : i18n.t('Archivar')"><app-icon name="archive" [size]="15" /> {{ (archivada() ? 'Archivada' : 'Archivar') | t }}</button>
         @if (esDesarrollador() && esOwner() && !esNueva()) {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="moverADevNotes()"
             title="{{ 'Mover esta nota a Dev notes (solo Tecnología)' | t }}"><app-icon name="code" [size]="15" /> {{ 'Mover a Dev notes' | t }}</button>
@@ -60,7 +60,7 @@
     <!-- Checklist -->
     <section class="nota-editor__section">
       <div class="nota-editor__section-head">
-        <h2><app-icon name="check" [size]="16" /> Checklist
+        <h2><app-icon name="check" [size]="16" /> {{ 'Checklist' | t }}
           @if (checklistProgreso().total > 0) {
             <span class="nota-editor__progress">{{ checklistProgreso().done }}/{{ checklistProgreso().total }}</span>
           }
@@ -71,13 +71,13 @@
         @for (item of checklist(); track item.id) {
           <li class="nota-editor__check" [class.is-done]="item.done">
             <input type="checkbox" [checked]="item.done" (change)="toggleItem(item)" [disabled]="soloLectura()"
-              [attr.aria-label]="'Marcar ' + item.texto" />
+              [attr.aria-label]="i18n.t('Marcar') + ' ' + item.texto" />
             <input class="nota-editor__check-text" type="text" [value]="item.texto"
               (blur)="editarTextoItem(item, $any($event.target).value)" [disabled]="soloLectura()" />
 
             @if (item.ref_tipo) {
-              <span class="nota-editor__link-chip" [title]="'Vinculado a ' + item.ref_tipo + (item.ref_tipo === 'tarea' ? '; se marca solo al completarse' : '')">
-                <app-icon name="link" [size]="14" /> {{ item.ref_label || (item.ref_tipo === 'issue' ? 'Issue' : item.ref_tipo === 'version' ? 'Versión' : 'Tarea') }}
+              <span class="nota-editor__link-chip" [title]="i18n.t('Vinculado a') + ' ' + item.ref_tipo + (item.ref_tipo === 'tarea' ? i18n.t('; se marca solo al completarse') : '')">
+                <app-icon name="link" [size]="14" /> {{ item.ref_label || ((item.ref_tipo === 'issue' ? 'Issue' : item.ref_tipo === 'version' ? 'Versión' : 'Tarea') | t) }}
                 @if (!soloLectura()) {
                   <button type="button" (click)="desvincularTarea(item)" aria-label="{{ 'Desvincular' | t }}"><app-icon name="x" [size]="14" /></button>
                 }
@@ -99,27 +99,27 @@
               <div class="nota-editor__link-picker">
                 @if (esDesarrollador()) {
                   <select class="nota-editor__link-select" [value]="linkTipo()" (change)="linkTipo.set($any($event.target).value)">
-                    <option value="tarea">Tarea</option>
-                    <option value="issue">Issue</option>
-                    <option value="version">Versión</option>
+                    <option value="tarea">{{ 'Tarea' | t }}</option>
+                    <option value="issue">{{ 'Issue' | t }}</option>
+                    <option value="version">{{ 'Versión' | t }}</option>
                   </select>
                 }
                 @switch (linkTipo()) {
                   @case ('issue') {
                     <select class="nota-editor__link-select" (change)="vincularRef(item, 'issue', $any($event.target).value)">
-                      <option value="">Elige un issue…</option>
+                      <option value="">{{ 'Elige un issue…' | t }}</option>
                       @for (i of issues(); track i.id) { <option [value]="i.id">{{ i.label }}</option> }
                     </select>
                   }
                   @case ('version') {
                     <select class="nota-editor__link-select" (change)="vincularRef(item, 'version', $any($event.target).value)">
-                      <option value="">Elige una versión…</option>
+                      <option value="">{{ 'Elige una versión…' | t }}</option>
                       @for (v of versiones(); track v.id) { <option [value]="v.id">{{ v.label }}</option> }
                     </select>
                   }
                   @default {
                     <select class="nota-editor__link-select" (change)="vincularTarea(item, $any($event.target).value)">
-                      <option value="">Elige una tarea…</option>
+                      <option value="">{{ 'Elige una tarea…' | t }}</option>
                       @for (t of tareas(); track t.id) { <option [value]="t.id">{{ t.titulo }} ({{ t.estado }})</option> }
                     </select>
                   }
@@ -158,7 +158,7 @@
         <div class="nota-editor__section-head"><h2><app-icon name="users" [size]="16" /> {{ 'Compartir con…' | t }}</h2></div>
         <div class="nota-editor__share-add">
           <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
-            <option [value]="''">Elige una persona…</option>
+            <option [value]="''">{{ 'Elige una persona…' | t }}</option>
             @for (u of directorio(); track u.id) {
               <option [value]="u.id">{{ u.nombre }}</option>
             }
@@ -185,8 +185,8 @@
                   }
                 </span>
                 <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
-                  <option value="ver">Puede ver</option>
-                  <option value="editar">Puede editar</option>
+                  <option value="ver">{{ 'Puede ver' | t }}</option>
+                  <option value="editar">{{ 'Puede editar' | t }}</option>
                 </select>
                 <button type="button" (click)="quitarCompartido(c)" aria-label="{{ 'Quitar acceso' | t }}"><app-icon name="x" [size]="14" /></button>
               </li>

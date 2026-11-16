@@ -7,7 +7,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        Nueva nota
+        {{ 'Nueva nota' | t }}
       </button>
     </div>
 
@@ -21,7 +21,7 @@
         [attr.aria-selected]="tab() === 'mias'"
         (click)="cambiarTab('mias')"
       >
-        Mis notas
+        {{ 'Mis notas' | t }}
       </button>
       <button
         type="button"
@@ -31,7 +31,7 @@
         [attr.aria-selected]="tab() === 'compartidas'"
         (click)="cambiarTab('compartidas')"
       >
-        Compartidas conmigo
+        {{ 'Compartidas conmigo' | t }}
       </button>
     </div>
 
@@ -56,7 +56,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <rect x="2" y="4" width="20" height="5" rx="1" /><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9" /><line x1="10" y1="13" x2="14" y2="13" />
           </svg>
-          Archivadas
+          {{ 'Archivadas' | t }}
           @if (countArchivadas() > 0) {
             <span class="notas__archivadas-count">{{ countArchivadas() }}</span>
           }
@@ -79,12 +79,12 @@
       <p>
         @if (tab() === 'mias') {
           @if (verArchivadas()) {
-            No tienes notas archivadas.
+            {{ 'No tienes notas archivadas.' | t }}
           } @else {
-            No tienes notas todavía. Crea la primera con "Nueva nota".
+            {{ 'No tienes notas todavía. Crea la primera con "Nueva nota".' | t }}
           }
         } @else {
-          Nadie ha compartido notas contigo.
+          {{ 'Nadie ha compartido notas contigo.' | t }}
         }
       </p>
     </div>
@@ -98,14 +98,14 @@
           (click)="openNota(n)"
         >
           <div class="nota-card__head">
-            <span class="nota-card__title">{{ n.titulo || 'Sin título' }}</span>
+            <span class="nota-card__title">{{ n.titulo || ('Sin título' | t) }}</span>
             @if (tab() === 'mias') {
               <span
                 class="nota-card__pin"
                 [class.nota-card__pin--on]="n.pinned"
                 role="button"
                 tabindex="0"
-                [attr.aria-label]="n.pinned ? 'Quitar fijado' : 'Fijar nota'"
+                [attr.aria-label]="n.pinned ? i18n.t('Quitar fijado') : i18n.t('Fijar nota')"
                 (click)="togglePinCard(n, $event)"
                 (keydown.enter)="togglePinCard(n, $event)"
               >
@@ -124,13 +124,13 @@
           <span class="nota-card__excerpt">{{ excerpt(n) }}</span>
           <div class="nota-card__foot">
             @if (tab() === 'compartidas') {
-              <span class="nota-card__owner">Compartida por {{ ownerNombre(n) }}</span>
+              <span class="nota-card__owner">{{ 'Compartida por' | t }} {{ ownerNombre(n) }}</span>
               <span
                 class="sgc-badge"
                 [class.sgc-badge--info]="n.mi_permiso === 'editar'"
                 [class.sgc-badge--neutral]="n.mi_permiso !== 'editar'"
               >
-                {{ n.mi_permiso === 'editar' ? 'Puedo editar' : 'Solo ver' }}
+                {{ (n.mi_permiso === 'editar' ? 'Puedo editar' : 'Solo ver') | t }}
               </span>
             } @else {
               @if (n.archivada) {
@@ -147,14 +147,14 @@
 
 <!-- ── Editor (drawer) ── -->
 <app-form-drawer
-  [title]="isNew() ? 'Nueva nota' : soloVer() ? 'Ver nota' : 'Editar nota'"
+  [title]="isNew() ? i18n.t('Nueva nota') : soloVer() ? i18n.t('Ver nota') : i18n.t('Editar nota')"
   [open]="editorOpen()"
   (closed)="closeEditor()"
 >
   <div class="editor">
     @if (soloVer()) {
       <div class="editor__readonly-banner" role="status">
-        Solo lectura — esta nota se compartió contigo con permiso de ver.
+        {{ 'Solo lectura — esta nota se compartió contigo con permiso de ver.' | t }}
       </div>
     }
 
@@ -177,20 +177,20 @@
         <label for="nota_contenido">{{ 'Contenido' | t }}</label>
         @if (!soloVer()) {
           <button type="button" class="editor__mini-btn" (click)="agregarChecklist()">
-            + Ítem de checklist
+            {{ '+ Ítem de checklist' | t }}
           </button>
         }
       </div>
       <textarea
         id="nota_contenido"
         rows="7"
-        placeholder="Escribe aquí. Usa &quot;- [ ] tarea&quot; para una casilla de verificación."
+        placeholder="{{ 'Escribe aquí. Usa &quot;- [ ] tarea&quot; para una casilla de verificación.' | t }}"
         [value]="contenidoText()"
         (input)="onContenidoInput($any($event.target).value)"
         [readOnly]="soloVer()"
       ></textarea>
       <p class="editor__hint">
-        Consejo: una línea que empieza con <code>- [ ]</code> o <code>- [x]</code> se vuelve una casilla marcable abajo.
+        {{ 'Consejo: una línea que empieza con' | t }} <code>- [ ]</code> {{ 'o' | t }} <code>- [x]</code> {{ 'se vuelve una casilla marcable abajo.' | t }}
       </p>
     </div>
 
@@ -319,8 +319,8 @@
                   (change)="onSelectPermiso(c, $any($event.target).value)"
                   aria-label="{{ 'Permiso' | t }}"
                 >
-                  <option value="ver">Solo ver</option>
-                  <option value="editar">Editar</option>
+                  <option value="ver">{{ 'Solo ver' | t }}</option>
+                  <option value="editar">{{ 'Editar' | t }}</option>
                 </select>
                 <button type="button" class="editor__remove" aria-label="{{ 'Quitar acceso' | t }}" (click)="quitarCompartido(c)">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
