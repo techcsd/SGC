@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 81%** (8234/10187 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 81%** (8269/10191 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -47,7 +47,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | tecnologia/compras | scope | 81 | 37 | 44 | 46% |
-| tecnologia/dev-notes | scope | 72 | 41 | 31 | 57% |
 | tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
 | tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
@@ -185,6 +184,7 @@
 | tecnologia/apis-consumo | enforce | 35 | 35 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/cotizaciones | enforce | 79 | 79 | 0 | 100% |
+| tecnologia/dev-notes | enforce | 76 | 76 | 0 | 100% |
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**220 literal(es) sin t()** en 29 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**207 literal(es) sin t()** en 28 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -210,7 +210,6 @@
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
-| src/app/pages/tecnologia/dev-notes/dev-notes.ts | 13 | Imagen copiada · Grupo creado · No se pudo mover el grupo … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |

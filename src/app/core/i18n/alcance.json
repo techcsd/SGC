@@ -121,9 +121,6 @@
     "tecnologia/compras": {
       "enforce": false
     },
-    "tecnologia/dev-notes": {
-      "enforce": false
-    },
     "tecnologia/design-system": {
       "enforce": false
     },
@@ -533,6 +530,9 @@
       "enforce": true
     },
     "tecnologia/cotizaciones": {
+      "enforce": true
+    },
+    "tecnologia/dev-notes": {
       "enforce": true
     },
     "tecnologia/envios-automaticos": {

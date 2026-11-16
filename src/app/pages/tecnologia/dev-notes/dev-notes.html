@@ -24,11 +24,11 @@
         @if (tab() === 'mias') {
           <div class="dev-notes__grupos-bar">
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCrearGrupo(null)">
-              <app-icon name="plus" [size]="14" /> Nuevo grupo
+              <app-icon name="plus" [size]="14" /> {{ 'Nuevo grupo' | t }}
             </button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [class.active]="agruparPorMes()"
               (click)="toggleAgruparPorMes()" title="{{ 'Reagrupa en pantalla lo que no tiene grupo propio' | t }}">
-              Agrupar por mes y año
+              {{ 'Agrupar por mes y año' | t }}
             </button>
           </div>
         }
@@ -157,7 +157,7 @@
                       } @else {
                         <div class="dn-menu dn-menu--nota" role="menu">
                           <button type="button" role="menuitem" (click)="abrirSubmenuMoverA(n.id)">{{ 'Mover a…' | t }}</button>
-                          <button type="button" role="menuitem" (click)="toggleFijarDesdeMenu(n)">{{ n.pinned ? 'Quitar de fijadas' : 'Fijar' }}</button>
+                          <button type="button" role="menuitem" (click)="toggleFijarDesdeMenu(n)">{{ (n.pinned ? 'Quitar de fijadas' : 'Fijar') | t }}</button>
                           <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarNotaDesdeMenu(n)">{{ 'Eliminar' | t }}</button>
                         </div>
                       }
@@ -169,7 +169,7 @@
                     [class.dn-dropzone-vacia--hover]="destinoHover() === g.grupo!.id"
                     (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter(g.grupo!.id, $event)"
                     (dragleave)="onZoneDragLeave(g.grupo!.id)" (drop)="onZoneDrop(g.grupo!.id, $event)">
-                    Arrastra notas aquí para guardarlas en este grupo
+                    {{ 'Arrastra notas aquí para guardarlas en este grupo' | t }}
                   </div>
                 }
               }
@@ -181,13 +181,13 @@
                 <div class="dn-dropzone dn-dropzone--neutra" [class.dn-dropzone--hover]="destinoHover() === 'sin-grupo'"
                   (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter('sin-grupo', $event)"
                   (dragleave)="onZoneDragLeave('sin-grupo')" (drop)="onZoneDrop('sin-grupo', $event)">
-                  Soltar aquí para dejarla sin grupo
+                  {{ 'Soltar aquí para dejarla sin grupo' | t }}
                 </div>
                 @if (d.tipo === 'nota') {
                   <div class="dn-dropzone dn-dropzone--nueva" [class.dn-dropzone--hover]="destinoHover() === 'nuevo-grupo'"
                     (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter('nuevo-grupo', $event)"
                     (dragleave)="onZoneDragLeave('nuevo-grupo')" (drop)="onZoneDrop('nuevo-grupo', $event)">
-                    Soltar aquí para crear un grupo nuevo con esta nota
+                    {{ 'Soltar aquí para crear un grupo nuevo con esta nota' | t }}
                   </div>
                 }
               </div>
@@ -212,7 +212,7 @@
         <span class="dn-grupo-edit__hint">{{ 'Enter para crear · Esc para cancelar' | t }}</span>
         <div class="dn-grupo-edit__btns">
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="cancelarGrupoEditando()">{{ 'Cancelar' | t }}</button>
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ ed.modo === 'crear' ? 'Crear' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ (ed.modo === 'crear' ? 'Crear' : 'Guardar') | t }}</button>
         </div>
       </div>
     }
@@ -225,7 +225,7 @@
       <h1><app-icon name="code" [size]="20" /> {{ 'Dev notes' | t }}</h1>
       <div class="dev-notes__head-actions">
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="{{ 'Importar .md/.txt' | t }}">
-          <app-icon name="upload" [size]="16" /> Importar
+          <app-icon name="upload" [size]="16" /> {{ 'Importar' | t }}
           <input type="file" accept=".md,.txt,text/markdown,text/plain" hidden
             (change)="importarMd($any($event.target))" />
         </label>
@@ -243,11 +243,11 @@
 
       <!-- CV2/CV3 — confirmaciones (reemplazan confirm() nativo). -->
       <app-confirm-dialog [open]="!!grupoAEliminar()" title="{{ '¿Eliminar grupo?' | t }}"
-        [message]="'¿Eliminar el grupo «' + (grupoAEliminar()?.nombre ?? '') + '»? Sus subgrupos y notas suben al nivel de arriba.'"
-        confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminarGrupo()" (cancelled)="cancelarEliminarGrupo()" />
+        [message]="i18n.t('¿Eliminar el grupo «{nombre}»? Sus subgrupos y notas suben al nivel de arriba.', { nombre: grupoAEliminar()?.nombre ?? '' })"
+        [confirmLabel]="'Eliminar' | t" tone="danger" (confirmed)="confirmarEliminarGrupo()" (cancelled)="cancelarEliminarGrupo()" />
       <app-confirm-dialog [open]="!!notaAEliminar()" title="{{ '¿Eliminar nota?' | t }}"
-        [message]="'¿Eliminar «' + (notaAEliminar()?.titulo || '(sin título)') + '»? No se puede deshacer.'"
-        confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminarNotaDesdeMenu()" (cancelled)="cancelarEliminarNota()" />
+        [message]="i18n.t('¿Eliminar «{titulo}»? No se puede deshacer.', { titulo: notaAEliminar()?.titulo || i18n.t('(sin título)') })"
+        [confirmLabel]="'Eliminar' | t" tone="danger" (confirmed)="confirmarEliminarNotaDesdeMenu()" (cancelled)="cancelarEliminarNota()" />
 
       <!-- Placeholder (sin nota abierta) -->
       <section class="dev-notes__editor">
@@ -263,7 +263,7 @@
   <div class="dn-shell" [class.dn-shell--lista-plegada]="listaPlegada()">
     <!-- DG7 — confirmación antes de quitar una imagen (botón, atajo, Supr/Retroceso con selección). -->
     <app-confirm-dialog [open]="!!imagenAQuitar()" [title]="'¿Quitar esta imagen de la nota?' | t"
-      confirmLabel="Quitar" tone="danger" (confirmed)="onImagenAQuitarConfirmada()" (cancelled)="onImagenAQuitarCancelada()" />
+      [confirmLabel]="'Quitar' | t" tone="danger" (confirmed)="onImagenAQuitarConfirmada()" (cancelled)="onImagenAQuitarCancelada()" />
     <aside class="dn-list" [class.dn-list--plegada]="listaPlegada()">
       <div class="dn-list__top">
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm dn-list__nueva" (click)="nueva()">
@@ -278,7 +278,7 @@
     </aside>
 
     <button type="button" class="dn-list-toggle" (click)="toggleListaPlegada()"
-      [attr.aria-label]="listaPlegada() ? 'Mostrar lista' : 'Ocultar lista'" [attr.title]="listaPlegada() ? 'Mostrar lista' : 'Ocultar lista'">
+      [attr.aria-label]="listaPlegada() ? i18n.t('Mostrar lista') : i18n.t('Ocultar lista')" [attr.title]="listaPlegada() ? i18n.t('Mostrar lista') : i18n.t('Ocultar lista')">
       <app-icon [name]="listaPlegada() ? 'chevron-right' : 'chevron-left'" [size]="14" />
     </button>
 
@@ -328,28 +328,28 @@
             <app-icon name="star" [size]="16" />
           </button>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleModoSimple()">
-            {{ modoSimple() ? 'Con formato' : 'Texto simple' }}
+            {{ (modoSimple() ? 'Con formato' : 'Texto simple') | t }}
           </button>
         }
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ciclarAncho()">
-          Ancho: {{ ancho() === 'completo' ? 'completo' : 'cómodo' }}
+          {{ 'Ancho:' | t }} {{ (ancho() === 'completo' ? 'completo' : 'cómodo') | t }}
         </button>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mandarARonda()" title="{{ 'Copiar como texto plano para pegar en la ronda' | t }}">
-          Mandar a ronda
+          {{ 'Mandar a ronda' | t }}
         </button>
         @if (!soloLectura()) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="insertarPlantilla()" title="{{ 'Plantilla HANDOFF' | t }}">{{ 'HANDOFF' | t }}</button>
           @if (puedeCompartir()) {
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="moverANotas()" [disabled]="guardando()" title="{{ 'Mover a Notas (ámbito general)' | t }}">
-              Mover a Notas
+              {{ 'Mover a Notas' | t }}
             </button>
           }
         }
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarMd()" title="{{ 'Exportar .md' | t }}">
-          <app-icon name="download" [size]="16" /> .md
+          <app-icon name="download" [size]="16" /> {{ '.md' | t }}
         </button>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarTxt()" title="{{ 'Exportar .txt' | t }}">
-          <app-icon name="download" [size]="16" /> .txt
+          <app-icon name="download" [size]="16" /> {{ '.txt' | t }}
         </button>
         @if (!soloLectura()) {
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardar()" [disabled]="guardando()">{{ 'Guardar' | t }}</button>
@@ -386,7 +386,7 @@
             <h3><app-icon name="users" [size]="16" /> {{ 'Compartir con…' | t }}</h3>
             <div class="dev-notes__share-add">
               <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
-                <option [value]="''">Elige una persona…</option>
+                <option [value]="''">{{ 'Elige una persona…' | t }}</option>
                 @for (u of directorio(); track u.id) {
                   <option [value]="u.id">{{ u.nombre }}</option>
                 }
@@ -403,12 +403,12 @@
                 @for (c of compartidos(); track c.id) {
                   <li>
                     <span class="dev-notes__share-who">
-                      <span>{{ c.nombre ?? 'Usuario' }}</span>
+                      <span>{{ (c.nombre ?? 'Usuario') | t }}</span>
                       @if (c.rol || c.email) { <small>{{ c.rol || c.email }}</small> }
                     </span>
                     <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
-                      <option value="ver">Puede ver</option>
-                      <option value="editar">Puede editar</option>
+                      <option value="ver">{{ 'Puede ver' | t }}</option>
+                      <option value="editar">{{ 'Puede editar' | t }}</option>
                     </select>
                     <button type="button" (click)="quitarCompartido(c)" aria-label="{{ 'Quitar acceso' | t }}"><app-icon name="x" [size]="14" /></button>
                   </li>
@@ -453,14 +453,14 @@
         @if (!soloLectura()) {
           <div class="dev-notes__editor-foot">
             <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="eliminar()">
-              <app-icon name="trash" [size]="16" /> Eliminar
+              <app-icon name="trash" [size]="16" /> {{ 'Eliminar' | t }}
             </button>
           </div>
         }
       </div>
 
       <div class="dn-editor__status">
-        <span>{{ palabras() }} palabras</span>
+        <span>{{ palabras() }} {{ 'palabras' | t }}</span>
         <span class="dn-editor__status-sep">·</span>
         <span>{{ 'Markdown: **negrita**, # título, - lista funcionan al escribir' | t }}</span>
       </div>
