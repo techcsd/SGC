@@ -61,9 +61,6 @@
     "admin/usuarios": {
       "enforce": false
     },
-    "admin/matriz-notificaciones": {
-      "enforce": false
-    },
     "admin/app-versiones": {
       "enforce": false
     },
@@ -113,6 +110,9 @@
       "enforce": true
     },
     "admin/jira": {
+      "enforce": true
+    },
+    "admin/matriz-notificaciones": {
       "enforce": true
     },
     "admin/orden-modulos": {

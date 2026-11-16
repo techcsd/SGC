@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 90%** (9072/10094 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 90%** (9102/10094 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -27,7 +27,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
-| admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/roles | scope | 153 | 112 | 41 | 73% |
@@ -45,6 +44,7 @@
 | admin/historial-versiones | enforce | 23 | 23 | 0 | 100% |
 | admin/importar | enforce | 2 | 2 | 0 | 100% |
 | admin/jira | enforce | 54 | 54 | 0 | 100% |
+| admin/matriz-notificaciones | enforce | 72 | 72 | 0 | 100% |
 | admin/orden-modulos | enforce | 6 | 6 | 0 | 100% |
 | admin/otros-valores | enforce | 11 | 11 | 0 | 100% |
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |
@@ -202,12 +202,11 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**141 literal(es) sin t()** en 14 archivo(s) (de 134 archivo(s) .ts con algo detectado).
+**125 literal(es) sin t()** en 13 archivo(s) (de 134 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
-| src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
