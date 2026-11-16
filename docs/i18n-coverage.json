@@ -3,24 +3,6 @@
   "pctHt": 96,
   "filas": [
     {
-      "pantalla": "politicas",
-      "total": 15,
-      "cubiertos": 8,
-      "sin": 7,
-      "pct": 53,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Versión",
-        "Vigencia:",
-        "BORRADOR — pendiente de revisión legal",
-        "Este documento no existe. Visita",
-        "&copy; Constructora SD ·",
-        "sgcconstructorasd.com",
-        "Documento"
-      ]
-    },
-    {
       "pantalla": "obra/plan-dia",
       "total": 37,
       "cubiertos": 20,
@@ -1672,6 +1654,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "politicas",
+      "total": 15,
+      "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

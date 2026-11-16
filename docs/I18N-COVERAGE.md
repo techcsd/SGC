@@ -3,11 +3,10 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9776/10017 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9783/10017 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| politicas | scope | 15 | 8 | 7 | 53% |
 | obra/plan-dia | scope | 37 | 20 | 17 | 54% |
 | auth/set-password | scope | 12 | 7 | 5 | 58% |
 | incentivos | scope | 172 | 100 | 72 | 58% |
@@ -148,6 +147,7 @@
 | notas | enforce | 37 | 37 | 0 | 100% |
 | oauth-consent | scope | 19 | 19 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
+| politicas | scope | 15 | 15 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
 | proyectos/compras | enforce | 28 | 28 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**104 literal(es) sin t()** en 10 archivo(s) (de 133 archivo(s) .ts con algo detectado).
+**103 literal(es) sin t()** en 9 archivo(s) (de 133 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -215,4 +215,3 @@
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/politicas/politicas.ts | 1 | Documento |
