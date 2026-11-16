@@ -34,6 +34,14 @@ Regla de seguridad (repo público): sin hosts, usuarios, claves, ids de proyecto
 
 1. Nombre de la **base de datos** de Odoo staging y **usuario/login** de la cuenta dueña de la clave. Añadir a `.env.local` (gitignored): `SGC_INTEGRATION_ODOO_DB=…`, `SGC_INTEGRATION_ODOO_USER=…`, `SGC_INTEGRATION_ODOO_URL=https://…`. La base se ve en la pantalla de login de Odoo o en el selector de bases; si no, pedírsela a Chai.
 
+## Actualización (misma sesión, sin staging)
+
+- **DS-05 (parcial):** migración `sql/2026-11-16-ds5-bodegas-codigo-odoo.sql` (`bodegas.codigo_odoo`, `codigo_odoo_raw`, único por instancia, protegido por `odoo_v1_proteger_campos`). Aplicada en **dev** y en el ledger dev. Falta el data-fix con el mapa de Miranda: depende de verificar cada código contra `stock.warehouse` de staging.
+- **DS-06 (parcial):** migración `sql/2026-11-16-ds6-cuentas-analiticas.sql` (índice único por instancia, tabla hija `proyecto_odoo_analiticas` con RLS solo admin, `proyectos.odoo_analytic_confirmado`, RPC `odoo_analitica_confirmar`). Aplicada en dev. Faltan: data-fix de los 10 proyectos (requiere staging), regla de evidencia de las 4 dudosas, `analytic_distribution` en `compras.crear`, pantalla «Homologación» y test.
+- **DS-10 (parcial):** migración `sql/2026-11-16-ds10-salidas-odoo-picking.sql` (`odoo_picking_salida_id/entrada_id`, `odoo_sync_*`, únicos por instancia). Aplicada en dev. `odoo_sync_intentos` queda fuera de la lista protegida a propósito (su default 0 rompería inserts de usuarios normales). Faltan RPC de despacho con write-through, evento B y pantalla.
+- **DS-08:** búsqueda en disco (Desktop, Downloads, Documents, `C:\developer`), stash y todo el historial/ramas remotas: **no existe código** `odoo-traslados*` ni `resolverAutorOdoo`; solo los docs de Miranda lo mencionan. Hay que reconstruirlo desde el plan (pendiente).
+- El worktree `SGC-ds` tiene una copia local de `.env.local` (gitignored) para que los scripts lean los tokens.
+
 ## Pendiente inmediato
 
 DS-03 (verificación de contrato contra staging), cambio de secrets de dev a staging (reportando antes el host actual), y F2 en adelante. Esta ronda no cabe en una sola sesión: ver número exacto de ítems pendientes en el reporte final.
