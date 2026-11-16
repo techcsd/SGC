@@ -19,6 +19,7 @@ import {
   NACIONALIDADES, TIPOS_DOCUMENTO, NACIONALIDAD_LABEL,
 } from '../../../../shared/models/personal-obra.model';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** AR1 — Wizard de registro de personal: datos → fotos guiadas → firma → carnet → resumen. */
 @Component({
@@ -30,6 +31,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 })
 export class PersonalRegistro implements OnInit {
   private service = inject(PersonalObraService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private proyectos = inject(ProyectosService);
   private plantillasSvc = inject(PlantillasDocumentoService);

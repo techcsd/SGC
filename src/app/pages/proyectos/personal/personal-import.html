@@ -24,7 +24,7 @@
     <div class="pi-tpl">
       <p class="pi-tpl__hint">{{ '¿No tienes el formato? Descarga la plantilla con el encabezado, las columnas y la lista de cargos válidos.' | t }}</p>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla()">
-        <app-icon name="download" [size]="15" /> Descargar plantilla
+        <app-icon name="download" [size]="15" /> {{ 'Descargar plantilla' | t }}
       </button>
       <a routerLink="/proyectos/cargos" class="pi-tpl__link">{{ 'Gestionar cargos y alias' | t }}</a>
     </div>
@@ -45,23 +45,23 @@
       <label class="pi-field">
         <span>{{ 'Importar a la obra' | t }} <b>*</b></span>
         <select class="sgc-select" [value]="obraSeleccionada() ?? ''" (change)="onObraChange($any($event.target).value)">
-          <option value="">Selecciona la obra…</option>
+          <option value="">{{ 'Selecciona la obra…' | t }}</option>
           @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
         </select>
       </label>
       <label class="pi-field">
         <span>{{ 'Si el documento ya existe' | t }}</span>
         <select class="sgc-select" [value]="modo()" (change)="modo.set($any($event.target).value)">
-          <option value="actualizar">Actualizar sus datos</option>
-          <option value="saltar">Saltar (no tocar)</option>
+          <option value="actualizar">{{ 'Actualizar sus datos' | t }}</option>
+          <option value="saltar">{{ 'Saltar (no tocar)' | t }}</option>
         </select>
       </label>
     </div>
 
     <div class="pi-summary">
-      <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
-      @if (errCount()) { <span class="pi-chip pi-chip--err">{{ errCount() }} con error</span> }
-      @if (dupCount()) { <span class="pi-chip pi-chip--dup">{{ dupCount() }} ya existen</span> }
+      <span class="pi-chip pi-chip--ok">{{ okCount() }} {{ 'listas' | t }}</span>
+      @if (errCount()) { <span class="pi-chip pi-chip--err">{{ errCount() }} {{ 'con error' | t }}</span> }
+      @if (dupCount()) { <span class="pi-chip pi-chip--dup">{{ dupCount() }} {{ 'ya existen' | t }}</span> }
     </div>
 
     <div class="table-scroll">
@@ -85,21 +85,21 @@
               <td class="text-muted">{{ f.nacionalidad }}</td>
               <td>
                 <select class="pi-cargo sgc-select" [value]="f.cargo_id ?? ''" (change)="setCargo($index, $any($event.target).value)">
-                  <option value="">Sin cargo</option>
+                  <option value="">{{ 'Sin cargo' | t }}</option>
                   @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
                 </select>
-                @if (f.cargo_origen !== '—') { <small class="pi-cargo-src" [class.pi-cargo-src--warn]="!f.cargo_id">del archivo: {{ f.cargo_origen }}</small> }
+                @if (f.cargo_origen !== '—') { <small class="pi-cargo-src" [class.pi-cargo-src--warn]="!f.cargo_id">{{ 'del archivo:' | t }} {{ f.cargo_origen }}</small> }
                 @if (f.cargo_id && igualesCount($index) > 0) {
-                  <button type="button" class="pi-aplicar" (click)="aplicarATodosIguales($index)" [title]="'Poner este cargo a todas las filas con «' + f.cargo_origen + '»'">
-                    Aplicar a los {{ igualesCount($index) + 1 }} «{{ f.cargo_origen }}»
+                  <button type="button" class="pi-aplicar" (click)="aplicarATodosIguales($index)" [title]="i18n.t('Poner este cargo a todas las filas con «{cargo}»', { cargo: f.cargo_origen })">
+                    {{ i18n.t('Aplicar a los {n} «{cargo}»', { n: igualesCount($index) + 1, cargo: f.cargo_origen }) }}
                   </button>
                 }
               </td>
               <td class="pi-permiso">
                 @if (f.permiso_vencimiento; as pv) {
                   @switch (permisoEstado(pv)) {
-                    @case ('vigente') { <span class="pi-chip pi-chip--ok" [title]="'Vence el ' + pv">{{ 'Vigente' | t }}</span> }
-                    @case ('vencido') { <span class="pi-chip pi-chip--err" [title]="'Venció el ' + pv">{{ 'Vencido' | t }}</span> }
+                    @case ('vigente') { <span class="pi-chip pi-chip--ok" [title]="i18n.t('Vence el {fecha}', { fecha: pv })">{{ 'Vigente' | t }}</span> }
+                    @case ('vencido') { <span class="pi-chip pi-chip--err" [title]="i18n.t('Venció el {fecha}', { fecha: pv })">{{ 'Vencido' | t }}</span> }
                   }
                 } @else { <span class="text-muted">—</span> }
               </td>
@@ -113,7 +113,7 @@
     <div class="pi-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">{{ 'Cambiar archivo' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="verDiff()">
-        {{ procesando() ? 'Calculando…' : 'Revisar cambios (' + okCount() + ')' }}
+        {{ procesando() ? ('Calculando…' | t) : i18n.t('Revisar cambios ({n})', { n: okCount() }) }}
       </button>
     </div>
   }
@@ -122,8 +122,7 @@
   @if (paso() === 'diff' && preview(); as pv) {
     <div class="pi-diff">
       <p class="pi-diff__intro">
-        Comparación del listado con el personal actual de la obra. Confirma qué personas
-        que ya no aparecen se dan de baja (no se inactivan solas).
+        {{ 'Comparación del listado con el personal actual de la obra. Confirma qué personas que ya no aparecen se dan de baja (no se inactivan solas).' | t }}
       </p>
       <div class="pi-diff__nums">
         <div class="pi-num pi-num--ok"><span>{{ pv.altas.length }}</span>{{ 'altas' | t }}</div>
@@ -132,39 +131,39 @@
       </div>
 
       @if (pv.altas.length) {
-        <h3 class="pi-diff__h">Altas ({{ pv.altas.length }})</h3>
+        <h3 class="pi-diff__h">{{ i18n.t('Altas ({n})', { n: pv.altas.length }) }}</h3>
         <ul class="pi-diff__list">
           @for (a of pv.altas; track a.documento_numero || a.nombre) {
             <li><span class="pi-diff__nom">{{ a.nombre }}</span>
-              <span class="pi-diff__meta">{{ a.documento_numero || 'sin documento' }} · cargo: {{ cargoDeDocumento(a.documento_numero) }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
+              <span class="pi-diff__meta">{{ a.documento_numero || ('sin documento' | t) }} · {{ 'cargo:' | t }} {{ cargoDeDocumento(a.documento_numero) }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
           }
         </ul>
       }
 
       @if (pv.actualizaciones.length) {
-        <h3 class="pi-diff__h">Actualizaciones ({{ pv.actualizaciones.length }})</h3>
+        <h3 class="pi-diff__h">{{ i18n.t('Actualizaciones ({n})', { n: pv.actualizaciones.length }) }}</h3>
         <ul class="pi-diff__list">
           @for (u of pv.actualizaciones; track u.id) {
             <li><span class="pi-diff__nom">{{ u.despues.nombre }}</span>
               <span class="pi-diff__meta">
-                {{ u.documento_numero }} · cargo: {{ cargoDeDocumento(u.documento_numero) }}
-                @if (u.antes.nombre !== u.despues.nombre) { · nombre: {{ u.antes.nombre }} → {{ u.despues.nombre }} }
-                @if (u.despues.cuadrilla && u.antes.cuadrilla !== u.despues.cuadrilla) { · cuadrilla: {{ u.antes.cuadrilla || '—' }} → {{ u.despues.cuadrilla }} }
-                @if (!u.antes.activo_en_obra) { · reactiva (volvió al listado) }
+                {{ u.documento_numero }} · {{ 'cargo:' | t }} {{ cargoDeDocumento(u.documento_numero) }}
+                @if (u.antes.nombre !== u.despues.nombre) { · {{ 'nombre:' | t }} {{ u.antes.nombre }} → {{ u.despues.nombre }} }
+                @if (u.despues.cuadrilla && u.antes.cuadrilla !== u.despues.cuadrilla) { · {{ 'cuadrilla:' | t }} {{ u.antes.cuadrilla || '—' }} → {{ u.despues.cuadrilla }} }
+                @if (!u.antes.activo_en_obra) { · {{ 'reactiva (volvió al listado)' | t }} }
               </span></li>
           }
         </ul>
       }
 
       @if (pv.bajas.length) {
-        <h3 class="pi-diff__h">Ya no vienen en el listado ({{ pv.bajas.length }})</h3>
+        <h3 class="pi-diff__h">{{ i18n.t('Ya no vienen en el listado ({n})', { n: pv.bajas.length }) }}</h3>
         <ul class="pi-diff__list pi-diff__list--bajas">
           @for (b of pv.bajas; track b.id) {
             <li>
               <label class="pi-diff__baja">
                 <input type="checkbox" [checked]="esBaja(b.id)" (change)="toggleBaja(b.id)" />
                 <span class="pi-diff__nom">{{ b.nombre }}</span>
-                <span class="pi-diff__meta">{{ b.documento_numero || 'sin documento' }}{{ b.cuadrilla ? ' · ' + b.cuadrilla : '' }}</span>
+                <span class="pi-diff__meta">{{ b.documento_numero || ('sin documento' | t) }}{{ b.cuadrilla ? ' · ' + b.cuadrilla : '' }}</span>
               </label>
             </li>
           }

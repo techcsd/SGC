@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
     <a routerLink="/proyectos/personal" class="pob-back">{{ '← Personal de obra' | t }}</a>
-    <h1 class="page-title">{{ editando() ? 'Editar' : 'Registrar' }} personal</h1>
+    <h1 class="page-title">{{ i18n.t(editando() ? 'Editar personal' : 'Registrar personal') }}</h1>
   </div>
 </div>
 
@@ -63,22 +63,21 @@
       <div class="sgc-field">
         <label for="obra">{{ 'Obra *' | t }}</label>
         <select id="obra" formControlName="proyecto_id">
-          <option [value]="''" disabled>Seleccionar obra…</option>
+          <option [value]="''" disabled>{{ 'Seleccionar obra…' | t }}</option>
           @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
         </select>
         <!-- BO6 (§E-5) — avisa (no bloquea) si la obra es de prueba: el trabajador
              heredaría es_prueba y no aparecería en la lista real. -->
         @if (obraEsPrueba()) {
           <div class="pob-aviso-prueba" role="note">
-            ⚠ Esta es una <strong>{{ 'obra de prueba' | t }}</strong>. El trabajador quedará marcado como prueba y
-            no aparecerá en la lista de personal real. Elige una obra real si es un registro de verdad.
+            {{ '⚠ Esta es una' | t }} <strong>{{ 'obra de prueba' | t }}</strong>. {{ 'El trabajador quedará marcado como prueba y no aparecerá en la lista de personal real. Elige una obra real si es un registro de verdad.' | t }}
           </div>
         }
       </div>
       <div class="sgc-field">
         <label for="cargo">{{ 'Cargo' | t }}</label>
         <select id="cargo" formControlName="cargo_id">
-          <option [value]="''">Sin cargo</option>
+          <option [value]="''">{{ 'Sin cargo' | t }}</option>
           @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }} ({{ c.codigo }})</option> }
         </select>
       </div>
@@ -97,13 +96,13 @@
       <div class="sgc-field">
         <label for="nac">{{ 'Nacionalidad *' | t }}</label>
         <select id="nac" formControlName="nacionalidad">
-          @for (n of nacionalidades; track n.value) { <option [value]="n.value">{{ n.label }}</option> }
+          @for (n of nacionalidades; track n.value) { <option [value]="n.value">{{ n.label | t }}</option> }
         </select>
       </div>
       <div class="sgc-field">
         <label for="tdoc">{{ 'Tipo de documento *' | t }}</label>
         <select id="tdoc" formControlName="tipo_documento">
-          @for (t of tiposDocumento; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          @for (t of tiposDocumento; track t.value) { <option [value]="t.value">{{ t.label | t }}</option> }
         </select>
       </div>
       <div class="sgc-field">
@@ -140,7 +139,7 @@
         <!-- DB5 — si ya está registrado, lo útil hoy es marcarlo presente, no duplicarlo. -->
         @for (d of dupRegistros(); track d.id) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="saving()"
-                  (click)="marcarPresenteHoy(d.id)">Ya está registrado: marcar presente hoy a {{ d.nombre }}</button>
+                  (click)="marcarPresenteHoy(d.id)">{{ i18n.t('Ya está registrado: marcar presente hoy a {nombre}', { nombre: d.nombre }) }}</button>
         }
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="registrarDeTodosModos()">{{ 'Registrar de todos modos' | t }}</button>
       </div>
@@ -157,22 +156,22 @@
 @if (paso() === 2) {
   <section class="sgc-card pob-form">
     <p class="pob-form__hint">
-      Captura las 5 fotos de evidencia.
-      @if (esAdmin) { Como administrador puedes elegir de la galería. } @else { Se toman con la cámara. }
+      {{ 'Captura las 5 fotos de evidencia.' | t }}
+      @if (esAdmin) { {{ 'Como administrador puedes elegir de la galería.' | t }} } @else { {{ 'Se toman con la cámara.' | t }} }
     </p>
     <div class="pob-fotos">
       @for (g of fotosGuia; track g.tipo) {
         <div class="pob-foto" [class.is-done]="fotoPreview()[g.tipo]">
           <div class="pob-foto__prev">
-            @if (fotoPreview()[g.tipo]; as url) { <img [src]="url" [alt]="g.label" /> }
+            @if (fotoPreview()[g.tipo]; as url) { <img [src]="url" [alt]="i18n.t(g.label)" /> }
             @else { <span class="pob-foto__ph"><app-icon name="camera" [size]="28" /></span> }
           </div>
           <div class="pob-foto__meta">
-            <strong>{{ g.label }}</strong>
-            <small>{{ g.ayuda }}</small>
+            <strong>{{ g.label | t }}</strong>
+            <small>{{ g.ayuda | t }}</small>
           </div>
           <label class="sgc-btn sgc-btn--secondary pob-foto__btn">
-            {{ fotoPreview()[g.tipo] ? 'Reemplazar' : 'Tomar foto' }}
+            {{ (fotoPreview()[g.tipo] ? 'Reemplazar' : 'Tomar foto') | t }}
             @if (esAdmin) {
               <input type="file" accept="image/*" hidden (change)="onFoto(g.tipo, $event)" [disabled]="subiendo()" />
             } @else {
@@ -186,12 +185,12 @@
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(1)">{{ 'Atrás' | t }}</button>
       <!-- CE4 — las fotos son opcionales: se puede continuar sin subirlas. -->
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(3)">
-        Continuar
+        {{ 'Continuar' | t }}
       </button>
     </div>
     @if (!fotosCompletas()) {
       <p class="pob-form__nota text-muted">
-        Puedes continuar sin todas las fotos; podrás agregarlas después desde el expediente.
+        {{ 'Puedes continuar sin todas las fotos; podrás agregarlas después desde el expediente.' | t }}
       </p>
     }
   </section>
@@ -204,7 +203,7 @@
       <div class="sgc-field sgc-field--grow">
         <label for="plantilla">{{ 'Documento a firmar (plantilla de Legal, opcional)' | t }}</label>
         <select id="plantilla" [ngModel]="plantillaSel()" (ngModelChange)="onPlantilla($event)">
-          <option [value]="''">— Acuerdo por defecto —</option>
+          <option [value]="''">{{ '— Acuerdo por defecto —' | t }}</option>
           @for (pl of plantillas(); track pl.id) { <option [value]="pl.id">{{ pl.nombre }}</option> }
         </select>
       </div>
@@ -298,7 +297,7 @@
       <div class="pob-resumen">
         <span class="pob-resumen__check"><app-icon name="check" [size]="28" /></span>
         <h2>{{ 'Personal registrado' | t }}</h2>
-        <p class="text-muted">{{ p.nombre }} {{ p.apellido }} — {{ p.cargo?.nombre ?? 'Sin cargo' }}</p>
+        <p class="text-muted">{{ p.nombre }} {{ p.apellido }} — {{ p.cargo?.nombre ?? ('Sin cargo' | t) }}</p>
       </div>
       <!-- BN6 — el carnet vive dentro del expediente; mostrarlo aquí para que no haya que adivinarlo. -->
       @if (p.carnet_numero) {

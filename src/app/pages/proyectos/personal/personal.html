@@ -40,7 +40,7 @@
   <div class="pob-filtros__search">
     <app-icon name="search" [size]="16" />
     <input type="search" class="sgc-input" [placeholder]="'Buscar por nombre, documento, cargo o carnet…' | t"
-           [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" [attr.aria-label]="'Buscar personal' | t" />
+           [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" [attr.aria-label]="i18n.t('Buscar personal')" />
   </div>
   <app-filter-select [label]="'Obra' | t" [options]="obrasOpt()" [value]="filObra()" (valueChange)="filObra.set($event)" [placeholder]="'Todas' | t" />
   <app-filter-select [label]="'Cargo' | t" [options]="cargosOpt()" [value]="filCargo()" (valueChange)="filCargo.set($event)" />

@@ -71,10 +71,10 @@
         <!-- CE9 — solo admin: marcar como prueba / eliminar -->
         @if (esAdmin()) {
           <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="togglePrueba()">
-            {{ p.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+            {{ (p.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba') | t }}
           </button>
           <button type="button" class="sgc-btn sgc-btn--ghost pob-exp__danger" (click)="confirmarEliminar.set(true)">
-            Eliminar
+            {{ 'Eliminar' | t }}
           </button>
         }
       </div>
@@ -86,7 +86,7 @@
     <!-- CE9 — confirmación de eliminación escribiendo el nombre (CF3: form-drawer) -->
     <app-form-drawer title="{{ 'Eliminar registro' | t }}" [open]="confirmarEliminar()" (closed)="confirmarEliminar.set(false)">
       <div class="pob-exp__confirm">
-        <h3>Eliminar a {{ p.nombre }} {{ p.apellido }}</h3>
+        <h3>{{ i18n.t('Eliminar a {nombre} {apellido}', { nombre: p.nombre, apellido: p.apellido ?? '' }) }}</h3>
         <p class="text-muted">{{ 'Se mueve a la papelera (recuperable 30 días). Escribe el nombre completo para confirmar.' | t }}</p>
         <input type="text" class="sgc-input" placeholder="{{ p.nombre }} {{ p.apellido }}"
                [value]="nombreConfirmacion()" (input)="nombreConfirmacion.set($any($event.target).value)" />
@@ -102,9 +102,9 @@
       <section class="sgc-card pob-exp__acceso">
         <h3 class="pob-exp__sub">{{ 'Acceso a la app' | t }}</h3>
         @if (tieneAcceso()) {
-          <p class="text-muted">Ya tiene acceso: inicia sesión en la app con su cédula ({{ p.documento_numero }}) y su PIN. Puedes restablecer el PIN abajo.</p>
+          <p class="text-muted">{{ i18n.t('Ya tiene acceso: inicia sesión en la app con su cédula ({cedula}) y su PIN. Puedes restablecer el PIN abajo.', { cedula: p.documento_numero ?? '' }) }}</p>
         } @else {
-          <p class="text-muted">Crea el acceso para que el capataz entre a la app con su cédula ({{ p.documento_numero || '— sin cédula' }}) y un PIN de 6 dígitos, igual que los choferes.</p>
+          <p class="text-muted">{{ i18n.t('Crea el acceso para que el capataz entre a la app con su cédula ({cedula}) y un PIN de 6 dígitos, igual que los choferes.', { cedula: p.documento_numero || ('— sin cédula' | t) }) }}</p>
         }
         @if (puedeGestionarAcceso()) {
           <div class="pob-exp__acceso-row">
@@ -199,11 +199,11 @@
   }
 
   <!-- AZ1 — documento firmado (snapshot congelado) (CF3: form-drawer compartido) -->
-  <app-form-drawer [title]="docVer()?.documento_nombre ?? 'Documento'" [open]="!!docVer()" [wide]="true" (closed)="docVer.set(null)">
+  <app-form-drawer [title]="docVer()?.documento_nombre ?? i18n.t('Documento')" [open]="!!docVer()" [wide]="true" (closed)="docVer.set(null)">
     @if (docVer(); as f) {
       <div class="pob-docview">
         <div class="pob-docview__actions">
-          <span class="text-muted">Firmado {{ formatFecha(f.firmado_at) }}</span>
+          <span class="text-muted">{{ 'Firmado' | t }} {{ formatFecha(f.firmado_at) }}</span>
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="imprimirDoc()">{{ 'Imprimir / PDF' | t }}</button>
         </div>
         <!-- CE8 — el documento ahora se muestra con la(s) firma(s) incrustada(s). -->
@@ -214,11 +214,11 @@
 
   <!-- CF1 — registrar la firma del empleador o de un testigo -->
   <app-form-drawer
-    [title]="firmarCtx() ? 'Firma de ' + rolLabel[firmarCtx()!.rol] : 'Firma'"
+    [title]="firmarCtx() ? i18n.t('Firma de {rol}', { rol: i18n.t(rolLabel[firmarCtx()!.rol]) }) : i18n.t('Firma')"
     [open]="!!firmarCtx()" (closed)="cerrarFirmarLinea()">
     @if (firmarCtx(); as ctx) {
       <div class="pob-firmar">
-        <p class="text-muted">Documento: {{ ctx.firma.documento_nombre }}</p>
+        <p class="text-muted">{{ 'Documento:' | t }} {{ ctx.firma.documento_nombre }}</p>
 
         @if (esTestigo(ctx.rol)) {
           @if (testigosFrecuentes().length) {

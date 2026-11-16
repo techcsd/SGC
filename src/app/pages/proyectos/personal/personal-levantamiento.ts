@@ -6,6 +6,7 @@ import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos
 import { ToastService } from '../../../../shared/services/toast.service';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * DB5 (Ronda DB) — «Levantamiento de hoy»: quién está hoy en la obra, quién es
@@ -24,6 +25,7 @@ export class PersonalLevantamiento implements OnInit {
   private service = inject(PersonalObraService);
   private proyectos = inject(ProyectosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
 
   obras = signal<ObraRef[]>([]);
@@ -74,7 +76,7 @@ export class PersonalLevantamiento implements OnInit {
       await this.service.levantamientoMarcar(p.personal_id, presente);
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo marcar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo marcar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.marcando.set(null);
     }
@@ -83,14 +85,14 @@ export class PersonalLevantamiento implements OnInit {
   async cerrarDia() {
     const lev = this.lev();
     if (!lev?.id || this.cerrando()) return;
-    if (!confirm(`¿Cerrar el levantamiento de hoy con ${this.presentes().length} presente(s)? Después de cerrar no se puede marcar más.`)) return;
+    if (!confirm(this.i18n.t('¿Cerrar el levantamiento de hoy con {n} presente(s)? Después de cerrar no se puede marcar más.', { n: this.presentes().length }))) return;
     this.cerrando.set(true);
     try {
       await this.service.levantamientoCerrar(lev.id);
       await this.cargar();
-      this.toast.success('Día cerrado', 'El levantamiento de hoy quedó cerrado.');
+      this.toast.success(this.i18n.t('Día cerrado'), 'El levantamiento de hoy quedó cerrado.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo cerrar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo cerrar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.cerrando.set(false);
     }

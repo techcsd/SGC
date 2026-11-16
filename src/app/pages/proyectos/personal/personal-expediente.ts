@@ -23,6 +23,7 @@ import { EmpresaService, TestigoFrecuente } from '../../../../shared/services/em
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { UserService } from '../../../core/services/user.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** AR1 — Expediente completo del personal: datos, galería, carnet e historial. */
 @Component({
@@ -34,6 +35,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 })
 export class PersonalExpediente implements OnInit {
   private service = inject(PersonalObraService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private userService = inject(UserService);
