@@ -11,24 +11,24 @@
     <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === ''" (click)="fSource.set(''); applyFilters()">{{ 'Todos' | t }}</button>
     <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'app'" (click)="fSource.set('app'); applyFilters()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-      App móvil
+      {{ 'App móvil' | t }}
     </button>
     <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'web'" (click)="fSource.set('web'); applyFilters()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      Página web
+      {{ 'Página web' | t }}
     </button>
   </div>
 
   <!-- Filtros -->
   <div class="rep__filters">
     <select class="rep__input" [value]="fTipo()" (change)="fTipo.set($any($event.target).value)">
-      <option value="">Todo tipo</option>
+      <option value="">{{ 'Todo tipo' | t }}</option>
       @for (t of tipos; track t.value) {
-        <option [value]="t.value">{{ t.label }}</option>
+        <option [value]="t.value">{{ t.label | t }}</option>
       }
     </select>
     <select class="rep__input" [value]="fDispositivo()" (change)="fDispositivo.set($any($event.target).value)">
-      <option value="">Todo dispositivo</option>
+      <option value="">{{ 'Todo dispositivo' | t }}</option>
       @for (d of dispositivos(); track d) {
         <option [value]="d">{{ d }}</option>
       }
@@ -48,9 +48,9 @@
     }
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="exportando()"
             title="{{ 'Exportar a Excel lo que coincide con el filtro actual' | t }}">
-      @if (exportando()) { Exportando… } @else {
+      @if (exportando()) { {{ 'Exportando…' | t }} } @else {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Excel
+        {{ 'Excel' | t }}
       }
     </button>
   </div>
@@ -59,11 +59,11 @@
   <div class="rep__tabs">
     <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'agrupado'" (click)="cambiarVista('agrupado')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Agrupado
+      {{ 'Agrupado' | t }}
     </button>
     <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'detalle'" (click)="cambiarVista('detalle')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Detalle
+      {{ 'Detalle' | t }}
     </button>
   </div>
 
@@ -96,7 +96,7 @@
         @for (t of tipos; track t.value) {
           @if (conteoPorTipo()[t.value]) {
             <div class="kpi-card">
-              <span class="kpi-label">{{ t.label }}</span>
+              <span class="kpi-label">{{ t.label | t }}</span>
               <span class="kpi-value">{{ conteoPorTipo()[t.value] | number }}</span>
             </div>
           }
@@ -121,12 +121,12 @@
             @for (g of grupos(); track g.firma) {
               <tr>
                 <td>
-                  <span [class]="estadoBadgeClass(g.estado)">{{ estadoLabel(g.estado) }}</span>
+                  <span [class]="estadoBadgeClass(g.estado)">{{ estadoLabel(g.estado) | t }}</span>
                   @if (g.reabierto_at) {
                     <span class="sgc-badge sgc-badge--warning" title="{{ 'Reapareció tras marcarse como solucionado' | t }}">{{ 'Reabierto' | t }}</span>
                   }
                 </td>
-                <td><span class="rep__badge" [attr.data-tipo]="g.error_type">{{ tipoLabel(g.error_type) }}</span></td>
+                <td><span class="rep__badge" [attr.data-tipo]="g.error_type">{{ tipoLabel(g.error_type) | t }}</span></td>
                 <td class="rep__msg"><code>{{ g.firma }}</code></td>
                 <td class="rep__num">{{ g.ocurrencias | number }}</td>
                 <td class="rep__num">{{ g.dispositivos | number }}</td>
@@ -134,7 +134,7 @@
                 <td class="rep__ts">{{ formatTs(g.ultima_vez) }}</td>
                 <td class="rep__acciones">
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verOcurrencias(g)">
-                    {{ firmaExpandida() === g.firma ? 'Ocultar' : 'Ocurrencias' }}
+                    {{ (firmaExpandida() === g.firma ? 'Ocultar' : 'Ocurrencias') | t }}
                   </button>
                   @if (g.estado !== 'solucionado' && g.estado !== 'regla_negocio') {
                     @if (g.estado !== 'en_revision') {
@@ -156,9 +156,9 @@
                     @if (g.resuelto_por_nombre) {
                       <p class="rep__resuelto">{{ 'Marcado solucionado por' | t }} <strong>{{ g.resuelto_por_nombre }}</strong>@if (g.resuelto_at) { · {{ formatTs(g.resuelto_at) }} }@if (g.resuelto_en_version) { · en versión <strong>{{ g.resuelto_en_version }}</strong> }.</p>
                     }
-                    @if (g.nota) { <p class="rep__resuelto">Nota: {{ g.nota }}</p> }
+                    @if (g.nota) { <p class="rep__resuelto">{{ 'Nota:' | t }} {{ g.nota }}</p> }
                     @if (g.ocurrencias_cliente_viejo && g.ocurrencias_cliente_viejo > 0) {
-                      <p class="rep__resuelto">⚠️ {{ g.ocurrencias_cliente_viejo }} ocurrencia(s) de clientes en versiones anteriores al fix (no reabren el grupo).</p>
+                      <p class="rep__resuelto">⚠️ {{ g.ocurrencias_cliente_viejo }} {{ 'ocurrencia(s) de clientes en versiones anteriores al fix (no reabren el grupo).' | t }}</p>
                     }
                     @if (cargandoOcurrencias()) {
                       <app-skeleton variant="table" [rows]="3" />
@@ -213,7 +213,7 @@
             @for (r of rows(); track r.id) {
               <tr class="rep__row" (click)="toggle(r.id)">
                 <td class="rep__ts">{{ formatTs(r.created_at) }}</td>
-                <td><span class="rep__badge" [attr.data-tipo]="r.error_type">{{ tipoLabel(r.error_type) }}</span></td>
+                <td><span class="rep__badge" [attr.data-tipo]="r.error_type">{{ tipoLabel(r.error_type) | t }}</span></td>
                 <td>{{ r.device_brand }} {{ r.device_model }}</td>
                 <td>{{ r.os_version }}</td>
                 <td>{{ r.app_version }}</td>
@@ -241,7 +241,7 @@
                       <!-- AW14 — crear un issue (bug) desde este reporte -->
                       <div class="rep__detail-actions">
                         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="creandoIssue() === r.id" (click)="crearIssue(r.id)">
-                          {{ creandoIssue() === r.id ? 'Creando…' : 'Crear issue (bug)' }}
+                          {{ (creandoIssue() === r.id ? 'Creando…' : 'Crear issue (bug)') | t }}
                         </button>
                       </div>
                     </div>
@@ -259,7 +259,7 @@
         <div class="rep__pager">
           <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() === 0" (click)="goToPage(page() - 1)">{{ '← Anterior' | t }}</button>
           <span class="rep__pager-info">{{ rangeLabel() }}</span>
-          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() >= totalPages() - 1" (click)="goToPage(page() + 1)">Siguiente →</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() >= totalPages() - 1" (click)="goToPage(page() + 1)">{{ 'Siguiente →' | t }}</button>
         </div>
       }
     }

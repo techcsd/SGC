@@ -145,9 +145,6 @@
     "tecnologia/qa": {
       "enforce": false
     },
-    "tecnologia/reportes-errores": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "tecnologia/oficina-agentes": {
+      "enforce": true
+    },
+    "tecnologia/reportes-errores": {
       "enforce": true
     },
     "tecnologia/resumen-operaciones": {

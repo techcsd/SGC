@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 80%** (8170/10181 literales de 192 pantallas en alcance). **`ht`: 93%**.
+**Alcance `en`: 80%** (8183/10181 literales de 192 pantallas en alcance). **`ht`: 93%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -55,7 +55,6 @@
 | tecnologia/outbox-atascados | scope | 53 | 38 | 15 | 72% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | tecnologia/qa | scope | 73 | 56 | 17 | 77% |
-| tecnologia/reportes-errores | scope | 59 | 46 | 13 | 78% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -188,7 +187,7 @@
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
 | tecnologia/apis-consumo | enforce | 35 | 35 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
-| tecnologia/cotizaciones | scope | 79 | 79 | 0 | 100% |
+| tecnologia/cotizaciones | enforce | 79 | 79 | 0 | 100% |
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
@@ -196,13 +195,14 @@
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
+| tecnologia/reportes-errores | scope | 59 | 59 | 0 | 100% |
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**243 literal(es) sin t()** en 33 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**240 literal(es) sin t()** en 32 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -228,7 +228,6 @@
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
-| src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |
 | src/app/pages/admin/almacenes-duplicados/almacenes-duplicados.ts | 2 | Almacenes fusionados · Vas a FUSIONAR "${duplicadoNombre}" dentro de "${canonicoNombre}".\n\n |
 | src/app/pages/admin/solicitudes-eliminacion/solicitudes-eliminacion.ts | 2 | Listo · ¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible. |
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |

@@ -2514,30 +2514,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/reportes-errores",
-      "total": 59,
-      "cubiertos": 46,
-      "sin": 13,
-      "pct": 78,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "App móvil",
-        "Página web",
-        "Todo tipo",
-        "Todo dispositivo",
-        "Excel }",
-        "Agrupado",
-        "Detalle",
-        "Nota:",
-        "⚠️ ocurrencia(s) de clientes en versiones anteriores al fix (no reabren el grupo).",
-        "Siguiente →",
-        "Issue creado",
-        "No se pudo crear el issue",
-        "Sin ocurrencia de ejemplo"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 73,
       "cubiertos": 65,
@@ -3884,7 +3860,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {
@@ -3955,6 +3931,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/reportes-errores",
+      "total": 59,
+      "cubiertos": 59,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {
