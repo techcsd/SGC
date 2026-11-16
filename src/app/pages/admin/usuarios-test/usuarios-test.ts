@@ -5,6 +5,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * AY7 — Usuarios de prueba (solo admin). Crear usuarios test con rol(es) y sin
  * correo real (email sintético `t-<n>@test.constructorasd.local`, es_prueba=true).
@@ -12,7 +13,7 @@ import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
  */
 @Component({
   selector: 'app-admin-usuarios-test',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './usuarios-test.html',
   styleUrl: './usuarios-test.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

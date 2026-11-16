@@ -6,6 +6,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserPicker } from '../../../../shared/ui/user-picker/user-picker';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface ParamRow extends NotifParam {
   seleccion: Set<string>; // códigos de rol marcados
 }
@@ -14,7 +15,7 @@ interface ParamRow extends NotifParam {
  *  matriz (por rol), sin tocar código. Backend: notif_config / set_notif_param. */
 @Component({
   selector: 'app-admin-matriz-notificaciones',
-  imports: [Skeleton, FormsModule, UserPicker],
+  imports: [Skeleton, FormsModule, UserPicker, TranslatePipe],
   templateUrl: './matriz-notificaciones.html',
   styleUrl: './matriz-notificaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

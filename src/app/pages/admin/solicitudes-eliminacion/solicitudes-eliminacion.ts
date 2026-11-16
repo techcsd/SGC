@@ -4,6 +4,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface SolicitudEliminacion {
   id: string;
   usuario_id: string | null;
@@ -23,7 +24,7 @@ interface SolicitudEliminacion {
  */
 @Component({
   selector: 'app-admin-solicitudes-eliminacion',
-  imports: [DatePipe],
+  imports: [DatePipe, TranslatePipe],
   templateUrl: './solicitudes-eliminacion.html',
   styleUrl: './solicitudes-eliminacion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

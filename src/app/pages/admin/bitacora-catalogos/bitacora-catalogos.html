@@ -1,12 +1,12 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Catálogos de bitácora</h1>
+    <h1 class="page-title">{{ 'Catálogos de bitácora' | t }}</h1>
     <span class="page-count">{{ catalogos().length }} valores</span>
   </div>
 </div>
 
 <p class="bc-lead">
-  Estos catálogos alimentan los desplegables al llenar una <strong>bitácora / incidente</strong>
+  Estos catálogos alimentan los desplegables al llenar una <strong>{{ 'bitácora / incidente' | t }}</strong>
   (web y app de campo). Cada columna abajo dice qué alimenta y dónde aparece. Agrega, reordena o
   desactiva valores; los cambios se reflejan en ambos lados al instante.
 </p>
@@ -22,7 +22,7 @@
     [ngModel]="nuevoValor()"
     (ngModelChange)="nuevoValor.set($event)"
     (keyup.enter)="agregar()"
-    placeholder="Nuevo valor (ej: ESCALERAS)"
+    placeholder="{{ 'Nuevo valor (ej: ESCALERAS)' | t }}"
   />
   <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="agregar()">
     Agregar
@@ -35,8 +35,8 @@
     type="search"
     [ngModel]="busqueda()"
     (ngModelChange)="busqueda.set($event)"
-    placeholder="Buscar un valor en todos los catálogos…"
-    aria-label="Buscar valor"
+    placeholder="{{ 'Buscar un valor en todos los catálogos…' | t }}"
+    aria-label="{{ 'Buscar valor' | t }}"
   />
 </div>
 
@@ -58,14 +58,14 @@
               <button
                 class="sgc-btn sgc-btn--sm sgc-btn--ghost"
                 type="button"
-                title="Subir"
+                title="{{ 'Subir' | t }}"
                 [disabled]="i === 0 || saving()"
                 (click)="mover(c, -1)"
               ><app-icon name="arrow-up" [size]="16" /></button>
               <button
                 class="sgc-btn sgc-btn--sm sgc-btn--ghost"
                 type="button"
-                title="Bajar"
+                title="{{ 'Bajar' | t }}"
                 [disabled]="i === count - 1 || saving()"
                 (click)="mover(c, 1)"
               ><app-icon name="arrow-down" [size]="16" /></button>
@@ -73,9 +73,9 @@
             <span class="bc-item__val">{{ c.valor }}</span>
             <!-- AW1 — solo actividades: permitir "se trabajó" sin cantidad exacta (~). -->
             @if (g.tipo === 'actividad') {
-              <label class="bc-item__aprox" title="Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)">
+              <label class="bc-item__aprox" title="{{ 'Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)' | t }}">
                 <input type="checkbox" [checked]="c.permite_sin_cantidad" (change)="togglePermiteSinCantidad(c)" />
-                <span>~ aprox.</span>
+                <span>{{ '~ aprox.' | t }}</span>
               </label>
             }
             <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(c)">

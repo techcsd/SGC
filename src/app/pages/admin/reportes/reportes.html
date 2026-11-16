@@ -1,15 +1,15 @@
 <!-- Page header -->
 <div class="admin-reportes__header">
   <div class="admin-reportes__title">
-    <h1>Comentarios y Reportes</h1>
-    <p>Comentarios, errores y sugerencias enviados por los usuarios del sistema</p>
+    <h1>{{ 'Comentarios y Reportes' | t }}</h1>
+    <p>{{ 'Comentarios, errores y sugerencias enviados por los usuarios del sistema' | t }}</p>
   </div>
 </div>
 
 <!-- "Working on now" section -->
 @if (misEnProgreso().length > 0) {
   <section class="admin-reportes__enprogreso" aria-labelledby="enprogreso-title">
-    <h2 id="enprogreso-title">En progreso (asignados a mí)</h2>
+    <h2 id="enprogreso-title">{{ 'En progreso (asignados a mí)' | t }}</h2>
     <div class="admin-reportes__enprogreso-list">
       @for (r of misEnProgreso(); track r.id) {
         <!-- CX4 — ya era un <button>, por lo tanto clicable y accesible por teclado; sin cambios. -->
@@ -28,19 +28,19 @@
   <input
     class="admin-reportes__search"
     type="search"
-    placeholder="Buscar por asunto o usuario..."
+    placeholder="{{ 'Buscar por asunto o usuario...' | t }}"
     [value]="searchQuery()"
     (input)="onSearch($any($event.target).value)"
-    aria-label="Buscar reportes"
+    aria-label="{{ 'Buscar reportes' | t }}"
   />
-  <select class="admin-reportes__select" [value]="filterEstado()" (change)="onFilterEstado($any($event.target).value)" aria-label="Filtrar por estado">
+  <select class="admin-reportes__select" [value]="filterEstado()" (change)="onFilterEstado($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
     <option value="all">Todos los estados</option>
     <option value="abierto">Abierto</option>
     <option value="en_progreso">En progreso</option>
     <option value="resuelto">Resuelto</option>
     <option value="descartado">Descartado</option>
   </select>
-  <select class="admin-reportes__select" [value]="filterTipo()" (change)="onFilterTipo($any($event.target).value)" aria-label="Filtrar por tipo">
+  <select class="admin-reportes__select" [value]="filterTipo()" (change)="onFilterTipo($any($event.target).value)" aria-label="{{ 'Filtrar por tipo' | t }}">
     <option value="all">Todos los tipos</option>
     <option value="comentario">Comentario</option>
     <option value="bug">Error / Bug</option>
@@ -61,15 +61,15 @@
 <!-- Table -->
 @if (!loading() && !error()) {
   <div class="admin-reportes__table-wrap">
-    <table class="admin-reportes__table" aria-label="Lista de reportes">
+    <table class="admin-reportes__table" aria-label="{{ 'Lista de reportes' | t }}">
       <thead>
         <tr>
-          <th scope="col">Tipo</th>
-          <th scope="col">Asunto</th>
-          <th scope="col">Usuario</th>
-          <th scope="col">Estado</th>
-          <th scope="col">Fecha</th>
-          <th scope="col"><span class="sr-only">Acciones</span></th>
+          <th scope="col">{{ 'Tipo' | t }}</th>
+          <th scope="col">{{ 'Asunto' | t }}</th>
+          <th scope="col">{{ 'Usuario' | t }}</th>
+          <th scope="col">{{ 'Estado' | t }}</th>
+          <th scope="col">{{ 'Fecha' | t }}</th>
+          <th scope="col"><span class="sr-only">{{ 'Acciones' | t }}</span></th>
         </tr>
       </thead>
       <tbody>
@@ -102,14 +102,14 @@
             <td class="admin-reportes__date">{{ formatFecha(r.created_at) }}</td>
             <td class="admin-reportes__actions">
               @if (r.estado === 'abierto') {
-                <button class="sgc-btn sgc-btn--ghost" type="button" (click)="$event.stopPropagation(); tomar(r)">Tomar</button>
+                <button class="sgc-btn sgc-btn--ghost" type="button" (click)="$event.stopPropagation(); tomar(r)">{{ 'Tomar' | t }}</button>
               }
-              <button class="sgc-btn sgc-btn--ghost" type="button" (click)="$event.stopPropagation(); openDetail(r)">Ver</button>
+              <button class="sgc-btn sgc-btn--ghost" type="button" (click)="$event.stopPropagation(); openDetail(r)">{{ 'Ver' | t }}</button>
             </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="6" class="admin-reportes__empty">No se encontraron reportes con los filtros aplicados.</td>
+            <td colspan="6" class="admin-reportes__empty">{{ 'No se encontraron reportes con los filtros aplicados.' | t }}</td>
           </tr>
         }
       </tbody>
@@ -144,7 +144,7 @@
                 <!-- CX5 — visor de pantalla completa compartido (shared/ui/lightbox),
                      en vez de abrir en otra pestaña; flechas/contador si hay varias. -->
                 <button type="button" class="admin-reportes__foto" (click)="verFoto(i)">
-                  <img [src]="url" alt="Foto del reporte" loading="lazy" />
+                  <img [src]="url" alt="{{ 'Foto del reporte' | t }}" loading="lazy" />
                 </button>
               } @else {
                 <div class="admin-reportes__foto admin-reportes__foto--loading">…</div>
@@ -159,9 +159,9 @@
          (texto plano copiable) y, si parece hotfix, el prompt para Claude Code. -->
     <div class="admin-reportes__ia">
       <div class="admin-reportes__ia-head">
-        <h4 class="admin-reportes__ia-title">Para la ronda</h4>
+        <h4 class="admin-reportes__ia-title">{{ 'Para la ronda' | t }}</h4>
         @if (iaResumen()?.es_hotfix) {
-          <span class="admin-reportes__ia-chip"><span class="admin-reportes__ia-punto" aria-hidden="true"></span>Parece hotfix</span>
+          <span class="admin-reportes__ia-chip"><span class="admin-reportes__ia-punto" aria-hidden="true"></span>{{ 'Parece hotfix' | t }}</span>
         }
         <div class="admin-reportes__ia-acciones">
           @if (!iaResumen()) {
@@ -182,8 +182,8 @@
       @if (iaResumen(); as ia) {
         <div class="admin-reportes__ia-caja">
           <div class="admin-reportes__ia-caja-head">
-            <span>Nota de ronda</span>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(ia.resumen_ronda, 'Resumen')">Copiar</button>
+            <span>{{ 'Nota de ronda' | t }}</span>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(ia.resumen_ronda, 'Resumen')">{{ 'Copiar' | t }}</button>
           </div>
           <pre class="admin-reportes__ia-texto">{{ ia.resumen_ronda }}</pre>
           @if (ia.motivo) { <p class="admin-reportes__ia-motivo">{{ ia.motivo }}</p> }
@@ -191,8 +191,8 @@
         @if (ia.prompt_hotfix) {
           <div class="admin-reportes__ia-caja admin-reportes__ia-caja--hotfix">
             <div class="admin-reportes__ia-caja-head">
-              <span>Prompt de hotfix (para Claude Code)</span>
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(ia.prompt_hotfix, 'Prompt')">Copiar</button>
+              <span>{{ 'Prompt de hotfix (para Claude Code)' | t }}</span>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(ia.prompt_hotfix, 'Prompt')">{{ 'Copiar' | t }}</button>
             </div>
             <pre class="admin-reportes__ia-texto">{{ ia.prompt_hotfix }}</pre>
           </div>
@@ -202,7 +202,7 @@
 
     <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
       <div class="sgc-field">
-        <label for="estado">Estado</label>
+        <label for="estado">{{ 'Estado' | t }}</label>
         <select id="estado" formControlName="estado">
           <option value="abierto">Abierto</option>
           <option value="en_progreso">En progreso</option>
@@ -212,8 +212,8 @@
       </div>
 
       <div class="sgc-field">
-        <label for="respuesta_admin">Respuesta (opcional, visible para el usuario)</label>
-        <textarea id="respuesta_admin" rows="4" formControlName="respuesta_admin" placeholder="Escribe una respuesta o nota de resolución..."></textarea>
+        <label for="respuesta_admin">{{ 'Respuesta (opcional, visible para el usuario)' | t }}</label>
+        <textarea id="respuesta_admin" rows="4" formControlName="respuesta_admin" placeholder="{{ 'Escribe una respuesta o nota de resolución...' | t }}"></textarea>
       </div>
 
       @if (saveError()) {
@@ -221,7 +221,7 @@
       }
 
       <div class="admin-reportes__drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
           @if (saving()) { Guardando... } @else { Guardar }
         </button>

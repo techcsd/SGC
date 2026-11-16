@@ -1,63 +1,6 @@
 {
   "_doc": "DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).",
   "pantallas": {
-    "admin/almacenes-duplicados": {
-      "enforce": false
-    },
-    "admin/animaciones": {
-      "enforce": false
-    },
-    "admin/app-versiones": {
-      "enforce": false
-    },
-    "admin/bitacora-catalogos": {
-      "enforce": false
-    },
-    "admin/conduces-huerfanos": {
-      "enforce": false
-    },
-    "admin/historial-versiones": {
-      "enforce": false
-    },
-    "admin/importar": {
-      "enforce": false
-    },
-    "admin/jira": {
-      "enforce": false
-    },
-    "admin/matriz-notificaciones": {
-      "enforce": false
-    },
-    "admin/orden-modulos": {
-      "enforce": false
-    },
-    "admin/otros-valores": {
-      "enforce": false
-    },
-    "admin/parametros": {
-      "enforce": false
-    },
-    "admin/reportes": {
-      "enforce": false
-    },
-    "admin/roles": {
-      "enforce": false
-    },
-    "admin/solicitudes-eliminacion": {
-      "enforce": false
-    },
-    "admin/unidades": {
-      "enforce": false
-    },
-    "admin/usuarios": {
-      "enforce": false
-    },
-    "admin/usuarios-duplicados": {
-      "enforce": false
-    },
-    "admin/usuarios-test": {
-      "enforce": false
-    },
     "auth/set-password": {
       "enforce": false
     },
@@ -109,19 +52,73 @@
     "soporte": {
       "enforce": false
     },
-    "admin/empresa": {
+    "app-movil": {
       "enforce": false
     },
-    "app-movil": {
+    "admin/almacenes-duplicados": {
       "enforce": false
     },
     "auth": {
       "enforce": false
     },
+    "admin/bitacora-catalogos": {
+      "enforce": false
+    },
+    "admin/jira": {
+      "enforce": false
+    },
+    "admin/conduces-huerfanos": {
+      "enforce": false
+    },
+    "admin/solicitudes-eliminacion": {
+      "enforce": false
+    },
+    "admin/usuarios": {
+      "enforce": false
+    },
+    "admin/parametros": {
+      "enforce": false
+    },
+    "admin/animaciones": {
+      "enforce": false
+    },
+    "admin/reportes": {
+      "enforce": false
+    },
+    "admin/matriz-notificaciones": {
+      "enforce": false
+    },
+    "admin/orden-modulos": {
+      "enforce": false
+    },
+    "admin/app-versiones": {
+      "enforce": false
+    },
+    "admin/otros-valores": {
+      "enforce": false
+    },
+    "admin/unidades": {
+      "enforce": false
+    },
     "practica": {
       "enforce": false
     },
+    "admin/roles": {
+      "enforce": false
+    },
+    "admin/usuarios-test": {
+      "enforce": false
+    },
+    "admin/empresa": {
+      "enforce": false
+    },
+    "admin/usuarios-duplicados": {
+      "enforce": false
+    },
     "admin/compa-conversaciones": {
+      "enforce": false
+    },
+    "admin/historial-versiones": {
       "enforce": false
     },
     "admin/vault": {
@@ -141,6 +138,9 @@
     },
     "admin/claude": {
       "enforce": true
+    },
+    "admin/importar": {
+      "enforce": false
     },
     "admin/pulso-sistema": {
       "enforce": false

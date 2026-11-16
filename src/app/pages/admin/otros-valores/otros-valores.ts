@@ -4,6 +4,7 @@ import { OtrosValoresService, OtroValorFrecuente } from '../../../../shared/serv
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface GrupoContexto {
   contexto: string;
   valores: OtroValorFrecuente[];
@@ -16,7 +17,7 @@ interface GrupoContexto {
  */
 @Component({
   selector: 'app-admin-otros-valores',
-  imports: [Skeleton, DecimalPipe],
+  imports: [Skeleton, DecimalPipe, TranslatePipe],
   templateUrl: './otros-valores.html',
   styleUrl: './otros-valores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -9,6 +9,7 @@ import {
 import { identidadLabel } from '../../../../shared/utils/identidad.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * BI6 / AU18 — Detección y fusión de personas duplicadas.
  * El índice único de BH4 no puede atrapar dos filas con cédulas DISTINTAS que son
@@ -18,7 +19,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-admin-usuarios-duplicados',
-  imports: [Skeleton, DecimalPipe],
+  imports: [Skeleton, DecimalPipe, TranslatePipe],
   templateUrl: './usuarios-duplicados.html',
   styleUrl: './usuarios-duplicados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

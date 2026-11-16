@@ -4,6 +4,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * AF38 — Orden de los módulos/secciones del menú lateral. El admin reordena con
  * las flechas y guarda; el shell aplica el orden (las secciones sin configurar
@@ -11,7 +12,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-admin-orden-modulos',
-  imports: [Skeleton, Icon],
+  imports: [Skeleton, Icon, TranslatePipe],
   templateUrl: './orden-modulos.html',
   styleUrl: './orden-modulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

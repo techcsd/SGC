@@ -4,10 +4,11 @@ import { UnidadesService } from '../../../../shared/services/unidades.service';
 import { Unidad } from '../../../../shared/models/unidad.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** Admin management of the unidades de medida used by the artículo form. */
 @Component({
   selector: 'app-admin-unidades',
-  imports: [FormsModule, Skeleton],
+  imports: [FormsModule, Skeleton, TranslatePipe],
   templateUrl: './unidades.html',
   styleUrl: './unidades.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

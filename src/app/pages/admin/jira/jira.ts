@@ -8,6 +8,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 const COLUMNAS: { estado: JiraEstado; label: string }[] = [
   { estado: 'backlog', label: 'Backlog' },
   { estado: 'por_hacer', label: 'Por hacer' },
@@ -23,7 +24,7 @@ const COLUMNAS: { estado: JiraEstado; label: string }[] = [
  */
 @Component({
   selector: 'app-admin-jira',
-  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './jira.html',
   styleUrl: './jira.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

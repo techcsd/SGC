@@ -1,26 +1,26 @@
 <div class="page an-page">
   <header class="page-header">
     <div class="page-header__left">
-      <h1 class="page-title">Animaciones</h1>
-      <p class="page-sub">Catálogo del movimiento del sistema (web y app). Solo consulta.</p>
+      <h1 class="page-title">{{ 'Animaciones' | t }}</h1>
+      <p class="page-sub">{{ 'Catálogo del movimiento del sistema (web y app). Solo consulta.' | t }}</p>
     </div>
   </header>
 
   @if (loading()) {
-    <div class="sgc-card">Cargando…</div>
+    <div class="sgc-card">{{ 'Cargando…' | t }}</div>
   } @else if (error()) {
     <div class="page-error" role="alert">{{ error() }}</div>
   } @else {
     <!-- Contadores -->
     <div class="an-counts">
-      <div class="an-count"><span class="an-count__n">{{ rows().length }}</span><span class="an-count__l">animaciones</span></div>
-      <div class="an-count"><span class="an-count__n">{{ enUso() }}</span><span class="an-count__l">en uso</span></div>
-      <div class="an-count"><span class="an-count__n">{{ pantallasTotal() }}</span><span class="an-count__l">pantallas</span></div>
+      <div class="an-count"><span class="an-count__n">{{ rows().length }}</span><span class="an-count__l">{{ 'animaciones' | t }}</span></div>
+      <div class="an-count"><span class="an-count__n">{{ enUso() }}</span><span class="an-count__l">{{ 'en uso' | t }}</span></div>
+      <div class="an-count"><span class="an-count__n">{{ pantallasTotal() }}</span><span class="an-count__l">{{ 'pantallas' | t }}</span></div>
     </div>
 
     <!-- Filtros -->
     <div class="filters-bar an-filters">
-      <input class="sgc-input an-search" placeholder="Buscar animación…" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+      <input class="sgc-input an-search" placeholder="{{ 'Buscar animación…' | t }}" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
       <select class="sgc-select" [value]="filtroNivel()" (change)="filtroNivel.set($any($event.target).value)">
         <option value="todos">Todos los niveles</option>
         <option value="grande">Grande</option>
@@ -40,7 +40,7 @@
         <div class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Animación</th><th>Sistema</th><th>Nivel</th><th>Dónde sale</th><th>Dura</th></tr>
+              <tr><th>{{ 'Animación' | t }}</th><th>{{ 'Sistema' | t }}</th><th>{{ 'Nivel' | t }}</th><th>{{ 'Dónde sale' | t }}</th><th>{{ 'Dura' | t }}</th></tr>
             </thead>
             <tbody>
               @for (r of filtradas(); track r.sistema + r.id) {
@@ -72,7 +72,7 @@
             @if (r.sistema !== 'web') {
               <div class="an-appnote">
                 <app-icon name="smartphone" [size]="22" />
-                <p>Vista de la app. Se reproduce en la CSD App; aquí solo el dato del catálogo.</p>
+                <p>{{ 'Vista de la app. Se reproduce en la CSD App; aquí solo el dato del catálogo.' | t }}</p>
               </div>
             } @else if (r.nivel === 'base') {
               @switch (r.id) {
@@ -101,21 +101,21 @@
 
           <div class="an-preview__actions">
             @if (r.sistema === 'web') {
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reproducir()">Reproducir</button>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reproducir()">{{ 'Reproducir' | t }}</button>
             }
             <label class="an-reducida">
               <input type="checkbox" [checked]="verReducida()" (change)="toggleReducida($any($event.target).checked)" />
-              <span>Ver reducida</span>
+              <span>{{ 'Ver reducida' | t }}</span>
             </label>
           </div>
 
           <dl class="an-kv">
-            <div><dt>Duración</dt><dd>{{ r.duracion_ms }} ms</dd></div>
+            <div><dt>{{ 'Duración' | t }}</dt><dd>{{ r.duracion_ms }} ms</dd></div>
             <div><dt>Curva</dt><dd><code>{{ r.curva }}</code></dd></div>
-            <div><dt>Reducida</dt><dd>{{ r.reducido }}</dd></div>
-            <div><dt>Dónde</dt><dd>{{ r.donde }}</dd></div>
-            <div><dt>Pantallas</dt><dd>{{ r.pantallas.join(', ') || '—' }}</dd></div>
-            <div><dt>Estado</dt><dd>{{ r.estado === 'en_uso' ? 'En uso' : 'Pendiente' }}</dd></div>
+            <div><dt>{{ 'Reducida' | t }}</dt><dd>{{ r.reducido }}</dd></div>
+            <div><dt>{{ 'Dónde' | t }}</dt><dd>{{ r.donde }}</dd></div>
+            <div><dt>{{ 'Pantallas' | t }}</dt><dd>{{ r.pantallas.join(', ') || '—' }}</dd></div>
+            <div><dt>{{ 'Estado' | t }}</dt><dd>{{ r.estado === 'en_uso' ? 'En uso' : 'Pendiente' }}</dd></div>
           </dl>
           <p class="an-doc">Detalle y mapa completo en <code>docs/MOVIMIENTO.md</code>.</p>
         </aside>

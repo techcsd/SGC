@@ -1,12 +1,12 @@
 <!-- Page header -->
 <div class="admin-usuarios__header">
   <div class="admin-usuarios__title">
-    <h1>Gestión de Usuarios</h1>
-    <p>Administra los accesos y roles del sistema</p>
+    <h1>{{ 'Gestión de Usuarios' | t }}</h1>
+    <p>{{ 'Administra los accesos y roles del sistema' | t }}</p>
   </div>
   <div class="admin-usuarios__header-actions">
     <a class="sgc-btn sgc-btn--ghost" routerLink="/admin/usuarios-duplicados"
-      title="Detectar y fusionar usuarios duplicados">
+      title="{{ 'Detectar y fusionar usuarios duplicados' | t }}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
       </svg>
@@ -28,16 +28,16 @@
   <input
     class="admin-usuarios__search"
     type="search"
-    placeholder="Buscar por nombre o correo..."
+    placeholder="{{ 'Buscar por nombre o correo...' | t }}"
     [value]="searchQuery()"
     (input)="onSearch($any($event.target).value)"
-    aria-label="Buscar usuarios"
+    aria-label="{{ 'Buscar usuarios' | t }}"
   />
   <select
     class="admin-usuarios__select"
     [value]="selectedStatus()"
     (change)="onStatusChange($any($event.target).value)"
-    aria-label="Filtrar por estado"
+    aria-label="{{ 'Filtrar por estado' | t }}"
   >
     <option value="all">Todos los estados</option>
     <option value="active">Activos</option>
@@ -76,7 +76,7 @@
       <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
     </svg>
     <span>{{ accionError() }}</span>
-    <button type="button" class="admin-usuarios__error-cerrar" aria-label="Cerrar aviso" (click)="accionError.set('')">
+    <button type="button" class="admin-usuarios__error-cerrar" aria-label="{{ 'Cerrar aviso' | t }}" (click)="accionError.set('')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
   </div>
@@ -85,7 +85,7 @@
 <!-- Table -->
 @if (!loading() && !error()) {
   <div class="admin-usuarios__table-wrap">
-    <table class="admin-usuarios__table" aria-label="Lista de usuarios">
+    <table class="admin-usuarios__table" aria-label="{{ 'Lista de usuarios' | t }}">
       <thead>
         <tr>
           <th scope="col">
@@ -93,9 +93,9 @@
               Usuario @if (sortKey() === 'nombre') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
-          <th scope="col">Correo</th>
-          <th scope="col">Roles</th>
-          <th scope="col">Estado</th>
+          <th scope="col">{{ 'Correo' | t }}</th>
+          <th scope="col">{{ 'Roles' | t }}</th>
+          <th scope="col">{{ 'Estado' | t }}</th>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('web')">
               Última vez web @if (sortKey() === 'web') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
@@ -106,7 +106,7 @@
               Última vez app @if (sortKey() === 'app') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
-          <th scope="col"><span class="sr-only">Acciones</span></th>
+          <th scope="col"><span class="sr-only">{{ 'Acciones' | t }}</span></th>
         </tr>
       </thead>
       <tbody>
@@ -126,7 +126,7 @@
               }
               <span>{{ usuario.nombre }}</span>
               @if (usuario.es_prueba) {
-                <span class="sgc-badge sgc-badge--neutral" title="Usuario de prueba (fuera de KPIs/correos/incentivos)">PRUEBA</span>
+                <span class="sgc-badge sgc-badge--neutral" title="{{ 'Usuario de prueba (fuera de KPIs/correos/incentivos)' | t }}">{{ 'PRUEBA' | t }}</span>
               }
             </td>
             <td class="admin-usuarios__email">{{ identidad(usuario) }}</td>
@@ -137,7 +137,7 @@
                     (click)="filtrarPorRol(ur.rol.codigo, $event)"
                     [title]="'Filtrar por ' + ur.rol.nombre">{{ ur.rol.nombre }}</button>
                 } @empty {
-                  <span class="sgc-badge sgc-badge--neutral">Sin rol</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'Sin rol' | t }}</span>
                 }
                 @if (usuario.roles.length > 2) {
                   <span class="sgc-badge sgc-badge--neutral"
@@ -147,12 +147,12 @@
             </td>
             <td>
               @if (usuario.activo) {
-                <span class="sgc-badge sgc-badge--success">Activo</span>
+                <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span>
               } @else {
-                <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+                <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span>
               }
               @if (usuario.pendiente) {
-                <span class="sgc-badge sgc-badge--warning" title="Invitado pero aún no ha entrado">Pendiente</span>
+                <span class="sgc-badge sgc-badge--warning" title="{{ 'Invitado pero aún no ha entrado' | t }}">{{ 'Pendiente' | t }}</span>
               }
             </td>
             <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_web ? formatFecha(usuario.ultima_actividad_web) : 'Sin actividad web registrada'">
@@ -208,23 +208,23 @@
     [style.top.px]="menuPos()?.top"
     [style.right.px]="menuPos()?.right"
   >
-    <button type="button" role="menuitem" (click)="openEdit(u); closeMenu()">Editar</button>
+    <button type="button" role="menuitem" (click)="openEdit(u); closeMenu()">{{ 'Editar' | t }}</button>
     <button type="button" role="menuitem" (click)="verAccesos(u); closeMenu()"
-      title="Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.">Ver accesos efectivos</button>
+      title="{{ 'Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.' | t }}">{{ 'Ver accesos efectivos' | t }}</button>
     <!-- CG8/CK7 — ya es conductor: ver ficha; si no, crear/vincular ficha de conductor -->
     @if (conductorDe(u); as c) {
       <button type="button" role="menuitem" (click)="irAConductor(c.id); closeMenu()"
-        title="Este usuario ya es conductor — abre su ficha.">
+        title="{{ 'Este usuario ya es conductor — abre su ficha.' | t }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
           <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
         </svg>
         Ver ficha de conductor
       </button>
-      <span class="admin-usuarios__menu-hint">Este usuario ya es conductor</span>
+      <span class="admin-usuarios__menu-hint">{{ 'Este usuario ya es conductor' | t }}</span>
     } @else {
       <button type="button" role="menuitem" (click)="abrirHacerConductor(u)"
-        title="Crea (o reutiliza) una ficha de conductor para este usuario y le asigna un rol de chofer.">
+        title="{{ 'Crea (o reutiliza) una ficha de conductor para este usuario y le asigna un rol de chofer.' | t }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
           <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
@@ -234,10 +234,10 @@
     }
     @if (u.pendiente) {
       <button type="button" role="menuitem" (click)="resendInvite(u); closeMenu()"
-        [disabled]="resettingId() === u.id"><app-icon name="mail" [size]="16" /> Reenviar invitación</button>
+        [disabled]="resettingId() === u.id"><app-icon name="mail" [size]="16" /> {{ 'Reenviar invitación' | t }}</button>
     }
     @if (esSintetico(u)) {
-      <button type="button" role="menuitem" (click)="abrirFijarPin(u)">Fijar PIN</button>
+      <button type="button" role="menuitem" (click)="abrirFijarPin(u)">{{ 'Fijar PIN' | t }}</button>
     } @else {
       <button type="button" role="menuitem" (click)="resetPassword(u); closeMenu()"
         [disabled]="resettingId() === u.id || correoNoRecibe(u)"
@@ -245,7 +245,7 @@
         Restablecer contraseña</button>
     }
     @if (!esSintetico(u)) {
-      <button type="button" role="menuitem" (click)="abrirEstablecerPassword(u)">Establecer contraseña</button>
+      <button type="button" role="menuitem" (click)="abrirEstablecerPassword(u)">{{ 'Establecer contraseña' | t }}</button>
     }
     <button type="button" role="menuitem" (click)="toggleActivo(u); closeMenu()"
       [disabled]="isSelf(u)"
@@ -275,7 +275,7 @@
 
 <!-- W10 — Detalle de usuario -->
 <app-form-drawer
-  title="Detalle del usuario"
+  title="{{ 'Detalle del usuario' | t }}"
   [open]="detailOpen()"
   (closed)="closeDetail()"
 >
@@ -295,27 +295,27 @@
           <p class="admin-usuarios__detail-email">{{ identidad(u) }}</p>
           <div class="admin-usuarios__detail-badges">
             @if (u.activo) {
-              <span class="sgc-badge sgc-badge--success">Activo</span>
+              <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span>
             } @else {
-              <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+              <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span>
             }
-            @if (u.pendiente) { <span class="sgc-badge sgc-badge--warning">Pendiente</span> }
+            @if (u.pendiente) { <span class="sgc-badge sgc-badge--warning">{{ 'Pendiente' | t }}</span> }
           </div>
         </div>
       </div>
 
       <!-- Roles / módulos -->
       <div class="admin-usuarios__detail-section">
-        <span class="admin-usuarios__detail-label">Roles</span>
+        <span class="admin-usuarios__detail-label">{{ 'Roles' | t }}</span>
         <div class="admin-usuarios__roles">
           @for (ur of u.roles; track ur.rol.id) {
             <span class="sgc-badge sgc-badge--info">{{ ur.rol.nombre }}</span>
           } @empty {
-            <span class="sgc-badge sgc-badge--neutral">Sin rol</span>
+            <span class="sgc-badge sgc-badge--neutral">{{ 'Sin rol' | t }}</span>
           }
         </div>
         <button type="button" class="admin-usuarios__accesos-link" (click)="verAccesos(u)"
-          title="Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.">
+          title="{{ 'Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.' | t }}">
           Ver accesos efectivos →
         </button>
       </div>
@@ -323,19 +323,19 @@
       <!-- Última actividad -->
       <div class="admin-usuarios__detail-grid">
         <div>
-          <span class="admin-usuarios__detail-label">Última vez en web</span>
+          <span class="admin-usuarios__detail-label">{{ 'Última vez en web' | t }}</span>
           <span [title]="u.ultima_actividad_web ? formatFecha(u.ultima_actividad_web) : ''">
             {{ actividad(u.ultima_actividad_web) }}
           </span>
         </div>
         <div>
-          <span class="admin-usuarios__detail-label">Última vez en app</span>
+          <span class="admin-usuarios__detail-label">{{ 'Última vez en app' | t }}</span>
           <span [title]="u.ultima_actividad_app ? formatFecha(u.ultima_actividad_app) : ''">
             {{ actividad(u.ultima_actividad_app) }}
           </span>
         </div>
         <div>
-          <span class="admin-usuarios__detail-label">Miembro desde</span>
+          <span class="admin-usuarios__detail-label">{{ 'Miembro desde' | t }}</span>
           <span>{{ formatFecha(u.created_at) }}</span>
         </div>
       </div>
@@ -356,14 +356,14 @@
 
       <!-- BV8 — materiales a cargo (responsable de obras con material recibido) -->
       @if (cargandoCargo()) {
-        <p class="admin-usuarios__cargo-hint">Cargando materiales a su cargo…</p>
+        <p class="admin-usuarios__cargo-hint">{{ 'Cargando materiales a su cargo…' | t }}</p>
       } @else if (cargoUsuario().length) {
         <div class="admin-usuarios__cargo">
           <h3 class="admin-usuarios__cargo-title">A su cargo ({{ cargoUsuario().length }})</h3>
-          <p class="admin-usuarios__cargo-hint">Material recibido en sus obras que aún no se ha devuelto.</p>
+          <p class="admin-usuarios__cargo-hint">{{ 'Material recibido en sus obras que aún no se ha devuelto.' | t }}</p>
           <div class="table-scroll">
             <table class="data-table">
-              <thead><tr><th>Obra</th><th>Artículo</th><th class="text-right">Cantidad</th></tr></thead>
+              <thead><tr><th>{{ 'Obra' | t }}</th><th>{{ 'Artículo' | t }}</th><th class="text-right">{{ 'Cantidad' | t }}</th></tr></thead>
               <tbody>
                 @for (m of cargoUsuario(); track m.proyecto_id + m.articulo_id) {
                   <tr><td>{{ m.proyecto }}</td><td>{{ m.articulo }}</td><td class="text-right">{{ m.cantidad }} {{ m.unidad ?? '' }}</td></tr>
@@ -414,7 +414,7 @@
 
     <!-- Name -->
     <div class="sgc-field">
-      <label for="nombre">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+      <label for="nombre">{{ 'Nombre completo' | t }} <span class="required" aria-hidden="true">*</span></label>
       <input
         id="nombre"
         type="text"
@@ -424,13 +424,13 @@
         aria-required="true"
       />
       @if (f.nombre.invalid && f.nombre.touched) {
-        <span class="field-error" role="alert">El nombre es requerido.</span>
+        <span class="field-error" role="alert">{{ 'El nombre es requerido.' | t }}</span>
       }
     </div>
 
     <!-- Status -->
     <div class="sgc-field">
-      <label>Estado de la cuenta</label>
+      <label>{{ 'Estado de la cuenta' | t }}</label>
       <div class="admin-usuarios__status-toggle">
         <button
           type="button"
@@ -447,8 +447,8 @@
 
     <!-- Roles -->
     <div class="admin-usuarios__roles-section">
-      <p class="admin-usuarios__roles-label">Roles asignados</p>
-      <div class="admin-usuarios__roles-grid" role="group" aria-label="Seleccionar roles">
+      <p class="admin-usuarios__roles-label">{{ 'Roles asignados' | t }}</p>
+      <div class="admin-usuarios__roles-grid" role="group" aria-label="{{ 'Seleccionar roles' | t }}">
         @for (rol of roles(); track rol.id) {
           <label class="admin-usuarios__role-option" [class.selected]="isRolSelected(rol.id)">
             <input
@@ -476,8 +476,8 @@
           (change)="toggleAutoaprobarReq()"
         />
         <div class="admin-usuarios__role-info">
-          <span class="admin-usuarios__role-name">Puede aprobar sus propias requisiciones</span>
-          <span class="admin-usuarios__role-code">Por defecto nadie aprueba lo suyo (control de 4 ojos); este permiso lo levanta solo para este usuario.</span>
+          <span class="admin-usuarios__role-name">{{ 'Puede aprobar sus propias requisiciones' | t }}</span>
+          <span class="admin-usuarios__role-code">{{ 'Por defecto nadie aprueba lo suyo (control de 4 ojos); este permiso lo levanta solo para este usuario.' | t }}</span>
         </div>
       </label>
     </div>
@@ -502,14 +502,14 @@
 
 <!-- Create Drawer -->
 <app-form-drawer
-  title="Crear Usuario"
+  title="{{ 'Crear Usuario' | t }}"
   [open]="createDrawerOpen()"
   (closed)="closeCreateDrawer()"
 >
   <form [formGroup]="createForm" (ngSubmit)="onCreateSave()" novalidate>
 
     <!-- AZ7 — un solo lugar para crear ambos tipos -->
-    <div class="admin-usuarios__tipo-toggle" role="tablist" aria-label="Tipo de usuario">
+    <div class="admin-usuarios__tipo-toggle" role="tablist" aria-label="{{ 'Tipo de usuario' | t }}">
       <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'invitacion'"
         [class.active]="createTipo() === 'invitacion'" (click)="createTipo.set('invitacion')">
         Invitación por correo
@@ -528,38 +528,38 @@
       <!-- Credenciales del usuario de prueba recién creado (se muestran una sola vez) -->
       <div class="admin-usuarios__test-cred">
         @if (createTipo() === 'cedula') {
-          <p><strong>Acceso por cédula creado.</strong> Entrégale a la persona su cédula y este PIN (no se vuelve a mostrar):</p>
-          <p>Entra con: <strong>su cédula</strong> + el PIN.</p>
+          <p><strong>{{ 'Acceso por cédula creado.' | t }}</strong> {{ 'Entrégale a la persona su cédula y este PIN (no se vuelve a mostrar):' | t }}</p>
+          <p>{{ 'Entra con:' | t }} <strong>{{ 'su cédula' | t }}</strong> {{ '+ el PIN.' | t }}</p>
           <p>PIN: <code>{{ res.password }}</code></p>
         } @else {
-          <p><strong>Usuario de prueba creado.</strong> Guarda estas credenciales (no se vuelven a mostrar):</p>
+          <p><strong>{{ 'Usuario de prueba creado.' | t }}</strong> {{ 'Guarda estas credenciales (no se vuelven a mostrar):' | t }}</p>
           <p>Correo: <code>{{ res.email }}</code></p>
           <p>Contraseña: <code>{{ res.password }}</code></p>
         }
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeCreateDrawer()">Listo</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeCreateDrawer()">{{ 'Listo' | t }}</button>
       </div>
     } @else if (createTipo() === 'cedula') {
       <!-- BH4 — alta directa por cédula + PIN (reutiliza la edge acceso-cedula) -->
       <div [formGroup]="cedulaForm">
         <p class="admin-usuarios__create-hint">
-          Para personal de campo sin correo de empresa. Entra en la app móvil con su <strong>cédula + PIN de 6 dígitos</strong>.
+          Para personal de campo sin correo de empresa. Entra en la app móvil con su <strong>{{ 'cédula + PIN de 6 dígitos' | t }}</strong>.
           Si la cédula ya existe, el sistema lo avisa en vez de duplicar a la persona.
         </p>
         <div class="sgc-field">
-          <label for="ced-nombre">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+          <label for="ced-nombre">{{ 'Nombre completo' | t }} <span class="required" aria-hidden="true">*</span></label>
           <input id="ced-nombre" type="text" formControlName="nombre" autocomplete="off" aria-required="true"
             [class.invalid]="cedulaForm.controls.nombre.invalid && cedulaForm.controls.nombre.touched" />
         </div>
         <div class="sgc-field">
-          <label for="ced-cedula">Cédula <span class="required" aria-hidden="true">*</span></label>
+          <label for="ced-cedula">{{ 'Cédula' | t }} <span class="required" aria-hidden="true">*</span></label>
           <input id="ced-cedula" type="text" inputmode="numeric" appCedula formControlName="cedula" autocomplete="off" aria-required="true"
             placeholder="000-0000000-0" [class.invalid]="cedulaForm.controls.cedula.invalid && cedulaForm.controls.cedula.touched" />
           @if (cedulaForm.controls.cedula.invalid && cedulaForm.controls.cedula.touched) {
-            <span class="field-error" role="alert">Ingresa la cédula (solo dígitos y guiones).</span>
+            <span class="field-error" role="alert">{{ 'Ingresa la cédula (solo dígitos y guiones).' | t }}</span>
           }
         </div>
         <div class="sgc-field">
-          <label for="ced-tipo">Tipo de acceso <span class="required" aria-hidden="true">*</span></label>
+          <label for="ced-tipo">{{ 'Tipo de acceso' | t }} <span class="required" aria-hidden="true">*</span></label>
           <select id="ced-tipo" formControlName="tipo">
             <option value="capataz">Capataz (rol capataz)</option>
             <option value="conductor">Chofer (rol chofer_transportista)</option>
@@ -568,11 +568,11 @@
           </select>
         </div>
         <div class="sgc-field">
-          <label for="ced-pin">PIN de 6 dígitos <span class="required" aria-hidden="true">*</span></label>
+          <label for="ced-pin">{{ 'PIN de 6 dígitos' | t }} <span class="required" aria-hidden="true">*</span></label>
           <input id="ced-pin" type="text" inputmode="numeric" maxlength="6" formControlName="pin" autocomplete="off" aria-required="true"
-            placeholder="Ej. 471025" [class.invalid]="cedulaForm.controls.pin.invalid && cedulaForm.controls.pin.touched" />
+            placeholder="{{ 'Ej. 471025' | t }}" [class.invalid]="cedulaForm.controls.pin.invalid && cedulaForm.controls.pin.touched" />
           @if (cedulaForm.controls.pin.invalid && cedulaForm.controls.pin.touched) {
-            <span class="field-error" role="alert">El PIN debe ser exactamente 6 dígitos.</span>
+            <span class="field-error" role="alert">{{ 'El PIN debe ser exactamente 6 dígitos.' | t }}</span>
           }
         </div>
       </div>
@@ -580,7 +580,7 @@
         <p class="admin-usuarios__save-error" role="alert">{{ createError() }}</p>
       }
       <div class="admin-usuarios__drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
           {{ creating() ? 'Creando…' : 'Crear acceso' }}
         </button>
@@ -591,11 +591,11 @@
           Se enviará una invitación por correo para que el usuario elija su propia contraseña — nunca la verás ni la definirás tú.
         </p>
         <div class="sgc-field">
-          <label for="create-email">Correo electrónico <span class="required" aria-hidden="true">*</span></label>
+          <label for="create-email">{{ 'Correo electrónico' | t }} <span class="required" aria-hidden="true">*</span></label>
           <input id="create-email" type="email" formControlName="email"
             [class.invalid]="cf.email.invalid && cf.email.touched" autocomplete="off" aria-required="true" />
           @if (cf.email.invalid && cf.email.touched) {
-            <span class="field-error" role="alert">Ingresa un correo válido.</span>
+            <span class="field-error" role="alert">{{ 'Ingresa un correo válido.' | t }}</span>
           }
         </div>
       } @else {
@@ -605,17 +605,17 @@
       }
 
       <div class="sgc-field">
-        <label for="create-fullname">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+        <label for="create-fullname">{{ 'Nombre completo' | t }} <span class="required" aria-hidden="true">*</span></label>
         <input id="create-fullname" type="text" formControlName="fullName"
           [class.invalid]="cf.fullName.invalid && cf.fullName.touched" autocomplete="off" aria-required="true" />
         @if (cf.fullName.invalid && cf.fullName.touched) {
-          <span class="field-error" role="alert">El nombre es requerido.</span>
+          <span class="field-error" role="alert">{{ 'El nombre es requerido.' | t }}</span>
         }
       </div>
 
       @if (createTipo() === 'invitacion') {
         <div class="sgc-field">
-          <label for="create-role">Rol inicial</label>
+          <label for="create-role">{{ 'Rol inicial' | t }}</label>
           <select id="create-role" formControlName="roleId">
             <option [ngValue]="null">Sin rol (asignar después)</option>
             @for (rol of roles(); track rol.id) { <option [ngValue]="rol.id">{{ rol.nombre }}</option> }
@@ -623,7 +623,7 @@
         </div>
       } @else {
         <div class="sgc-field">
-          <label>Roles (uno o varios)</label>
+          <label>{{ 'Roles (uno o varios)' | t }}</label>
           <div class="admin-usuarios__rol-checks">
             @for (rol of roles(); track rol.id) {
               <label class="admin-usuarios__rol-check">
@@ -641,7 +641,7 @@
       }
 
       <div class="admin-usuarios__drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
           @if (creating()) { Creando... } @else if (createTipo() === 'prueba') { Crear usuario de prueba } @else { Enviar invitación }
         </button>
@@ -653,7 +653,7 @@
 
 <!-- BI5 — Fijar PIN (usuarios que entran por cédula, sin correo real) -->
 <app-form-drawer
-  title="Fijar PIN de acceso"
+  title="{{ 'Fijar PIN de acceso' | t }}"
   [open]="pinDrawerOpen()"
   (closed)="cerrarFijarPin()"
 >
@@ -661,14 +661,14 @@
     @if (pinResult(); as pin) {
       <!-- El PIN se muestra una sola vez, con copia al portapapeles -->
       <div class="admin-usuarios__test-cred">
-        <p><strong>PIN fijado para {{ u.nombre }}.</strong> Entrégaselo (no se vuelve a mostrar):</p>
-        <p>Entra con: <strong>{{ identidad(u) }}</strong> + este PIN.</p>
+        <p><strong>PIN fijado para {{ u.nombre }}.</strong> {{ 'Entrégaselo (no se vuelve a mostrar):' | t }}</p>
+        <p>{{ 'Entra con:' | t }} <strong>{{ identidad(u) }}</strong> {{ '+ este PIN.' | t }}</p>
         <p>PIN: <code>{{ pin }}</code>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarPin()">
             {{ pinCopied() ? 'Copiado ✓' : 'Copiar' }}
           </button>
         </p>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrarFijarPin()">Listo</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrarFijarPin()">{{ 'Listo' | t }}</button>
       </div>
     } @else {
       <form [formGroup]="pinForm" (ngSubmit)="guardarPin()" novalidate>
@@ -677,22 +677,22 @@
           El PIN se genera solo; puedes teclear otro. El cambio queda registrado en la auditoría.
         </p>
         <div class="sgc-field">
-          <label for="fijar-pin">PIN de 6 dígitos <span class="required" aria-hidden="true">*</span></label>
+          <label for="fijar-pin">{{ 'PIN de 6 dígitos' | t }} <span class="required" aria-hidden="true">*</span></label>
           <div class="admin-usuarios__pin-row">
             <input id="fijar-pin" type="text" inputmode="numeric" maxlength="6" formControlName="pin"
-              autocomplete="off" aria-required="true" placeholder="Ej. 481973"
+              autocomplete="off" aria-required="true" placeholder="{{ 'Ej. 481973' | t }}"
               [class.invalid]="pinForm.controls.pin.invalid && pinForm.controls.pin.touched" />
-            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="regenerarPin()">Generar otro</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="regenerarPin()">{{ 'Generar otro' | t }}</button>
           </div>
           @if (pinForm.controls.pin.invalid && pinForm.controls.pin.touched) {
-            <span class="field-error" role="alert">El PIN debe ser exactamente 6 dígitos.</span>
+            <span class="field-error" role="alert">{{ 'El PIN debe ser exactamente 6 dígitos.' | t }}</span>
           }
         </div>
         @if (pinError()) {
           <p class="admin-usuarios__save-error" role="alert">{{ pinError() }}</p>
         }
         <div class="admin-usuarios__drawer-actions">
-          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarFijarPin()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarFijarPin()">{{ 'Cancelar' | t }}</button>
           <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="pinSaving()">
             {{ pinSaving() ? 'Fijando…' : 'Fijar PIN' }}
           </button>
@@ -704,7 +704,7 @@
 
 <!-- CC3 — Establecer contraseña (cuentas sin buzón: qa_/sintéticas/prueba) -->
 <app-form-drawer
-  title="Establecer contraseña"
+  title="{{ 'Establecer contraseña' | t }}"
   [open]="pwDrawerOpen()"
   (closed)="cerrarEstablecerPassword()"
 >
@@ -712,30 +712,30 @@
     @if (pwResult(); as pw) {
       <!-- La contraseña generada se muestra una sola vez, con copia -->
       <div class="admin-usuarios__test-cred">
-        <p><strong>Contraseña generada para {{ u.nombre }}.</strong> Entrégasela (no se vuelve a mostrar):</p>
-        <p>Entra con: <strong>{{ identidad(u) }}</strong> + esta contraseña.</p>
+        <p><strong>Contraseña generada para {{ u.nombre }}.</strong> {{ 'Entrégasela (no se vuelve a mostrar):' | t }}</p>
+        <p>{{ 'Entra con:' | t }} <strong>{{ identidad(u) }}</strong> {{ '+ esta contraseña.' | t }}</p>
         <p>Contraseña: <code>{{ pw }}</code>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarPassword()">
             {{ pwCopied() ? 'Copiado ✓' : 'Copiar' }}
           </button>
         </p>
         @if (pwNote()) { <p class="admin-usuarios__create-hint">{{ pwNote() }}</p> }
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrarEstablecerPassword()">Listo</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrarEstablecerPassword()">{{ 'Listo' | t }}</button>
       </div>
     } @else {
       <form [formGroup]="pwForm" (ngSubmit)="guardarPassword()" novalidate>
         <p class="admin-usuarios__create-hint">
           Fija la contraseña de <strong>{{ identidad(u) }}</strong>. Útil para cuentas sin correo real
-          (prueba/QA). Escribe una o deja que el sistema la <strong>genere</strong>. Queda en la auditoría
+          (prueba/QA). Escribe una o deja que el sistema la <strong>{{ 'genere' | t }}</strong>. Queda en la auditoría
           (nunca se guarda la contraseña).
         </p>
         <div class="sgc-field">
-          <label for="set-pw">Contraseña <span class="required" aria-hidden="true">*</span></label>
+          <label for="set-pw">{{ 'Contraseña' | t }} <span class="required" aria-hidden="true">*</span></label>
           <input id="set-pw" type="text" formControlName="password" autocomplete="off"
-            placeholder="Al menos 10 caracteres, con un número"
+            placeholder="{{ 'Al menos 10 caracteres, con un número' | t }}"
             [class.invalid]="pwForm.controls.password.invalid && pwForm.controls.password.touched" />
           @if (pwForm.controls.password.invalid && pwForm.controls.password.touched) {
-            <span class="field-error" role="alert">La contraseña debe tener al menos 10 caracteres.</span>
+            <span class="field-error" role="alert">{{ 'La contraseña debe tener al menos 10 caracteres.' | t }}</span>
           }
         </div>
         @if (pwNote()) { <p class="admin-usuarios__reset-message" role="status">{{ pwNote() }}</p> }
@@ -755,7 +755,7 @@
 
 <!-- CG8 — Hacer conductor (elegir tipo de chofer) -->
 <app-form-drawer
-  title="Hacer conductor"
+  title="{{ 'Hacer conductor' | t }}"
   [open]="conductorDrawerOpen()"
   (closed)="cerrarHacerConductor()"
 >

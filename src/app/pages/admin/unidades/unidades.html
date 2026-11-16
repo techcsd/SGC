@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Unidades de medida</h1>
+    <h1 class="page-title">{{ 'Unidades de medida' | t }}</h1>
     <span class="page-count">{{ unidades().length }} unidad{{ unidades().length !== 1 ? 'es' : '' }}</span>
   </div>
 </div>
@@ -17,7 +17,7 @@
     [ngModel]="nuevoNombre()"
     (ngModelChange)="nuevoNombre.set($event)"
     (keyup.enter)="agregar()"
-    placeholder="Nueva unidad (ej: Cubeta, Rollo, Galón)"
+    placeholder="{{ 'Nueva unidad (ej: Cubeta, Rollo, Galón)' | t }}"
   />
   <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="agregar()">
     Agregar
@@ -34,7 +34,7 @@
   <div class="table-scroll">
   <table class="und-table">
     <thead>
-      <tr><th>Nombre</th><th>Código</th><th>Estado</th><th></th></tr>
+      <tr><th>{{ 'Nombre' | t }}</th><th>{{ 'Código' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr>
     </thead>
     <tbody>
       @for (u of unidades(); track u.id) {
@@ -52,10 +52,10 @@
           </td>
           <td class="und-actions">
             @if (editingId() === u.id) {
-              <button class="sgc-btn sgc-btn--sm" type="button" (click)="guardarNombre(u)">Guardar</button>
-              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="cancelEdit()">Cancelar</button>
+              <button class="sgc-btn sgc-btn--sm" type="button" (click)="guardarNombre(u)">{{ 'Guardar' | t }}</button>
+              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="cancelEdit()">{{ 'Cancelar' | t }}</button>
             } @else {
-              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="startEdit(u)">Editar</button>
+              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="startEdit(u)">{{ 'Editar' | t }}</button>
               <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(u)">
                 {{ u.activo ? 'Desactivar' : 'Activar' }}
               </button>

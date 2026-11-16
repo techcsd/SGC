@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Configuración del sistema</h1>
+    <h1 class="page-title">{{ 'Configuración del sistema' | t }}</h1>
     <span class="page-count">{{ total() }} parámetro{{ total() !== 1 ? 's' : '' }}</span>
   </div>
 </div>
@@ -18,7 +18,7 @@
 @if (loading()) {
   <app-skeleton variant="table" [rows]="8" />
 } @else if (total() === 0) {
-  <p class="param-muted">No hay parámetros configurados.</p>
+  <p class="param-muted">{{ 'No hay parámetros configurados.' | t }}</p>
 } @else {
   @for (g of grupos(); track g.grupo) {
     <section class="param-group">
@@ -26,9 +26,9 @@
       <table class="param-table">
         <thead>
           <tr>
-            <th>Clave</th>
-            <th>Descripción</th>
-            <th>Valor</th>
+            <th>{{ 'Clave' | t }}</th>
+            <th>{{ 'Descripción' | t }}</th>
+            <th>{{ 'Valor' | t }}</th>
             <th></th>
           </tr>
         </thead>
@@ -38,7 +38,7 @@
               <td>
                 <code class="param-clave">{{ r.clave }}</code>
                 @if (r.fuente === 'flota') {
-                  <span class="param-tag" title="Se guarda en flota_config vía RPC">flota</span>
+                  <span class="param-tag" title="{{ 'Se guarda en flota_config vía RPC' | t }}">{{ 'flota' | t }}</span>
                 }
               </td>
               <td class="param-desc">{{ r.meta.descripcion || '—' }}</td>

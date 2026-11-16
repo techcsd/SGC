@@ -30,7 +30,7 @@
   <div class="ccv__body">
     <div class="ccv__list-panel">
       <div class="ccv__filters">
-        <input class="sgc-input ccv__filter-usuario" type="search" placeholder="Usuario…"
+        <input class="sgc-input ccv__filter-usuario" type="search" placeholder="{{ 'Usuario…' | t }}"
           [ngModel]="filtroUsuario()" (ngModelChange)="filtroUsuario.set($event)" name="filtroUsuario" />
         <button type="button" class="ccv__chip" [class.ccv__chip--active]="soloConProblemas()" (click)="toggleConProblemas()">
           {{ 'Con problemas' | t }} @if (soloConProblemas()) { ✕ }

@@ -1,9 +1,9 @@
 <div class="dup-head">
   <div>
-    <h1>Usuarios duplicados</h1>
-    <p>Personas que aparecen en dos filas (a veces con cédulas distintas). Fusiónalas en una sola para no repartir su actividad ni su incentivo. Todo queda en la auditoría.</p>
+    <h1>{{ 'Usuarios duplicados' | t }}</h1>
+    <p>{{ 'Personas que aparecen en dos filas (a veces con cédulas distintas). Fusiónalas en una sola para no repartir su actividad ni su incentivo. Todo queda en la auditoría.' | t }}</p>
   </div>
-  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="recargar()" [disabled]="loading()">Actualizar</button>
+  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="recargar()" [disabled]="loading()">{{ 'Actualizar' | t }}</button>
 </div>
 
 @if (loading()) {
@@ -11,7 +11,7 @@
 } @else if (error()) {
   <div class="dup-error" role="alert">{{ error() }}</div>
 } @else if (candidatos().length === 0) {
-  <div class="dup-empty">No se detectaron personas duplicadas. 🎉</div>
+  <div class="dup-empty">{{ 'No se detectaron personas duplicadas. 🎉' | t }}</div>
 } @else {
   <p class="dup-count">{{ candidatos().length }} par(es) candidato(s) a fusión.</p>
   <ul class="dup-list">
@@ -23,13 +23,13 @@
             <span class="dup-person">
               <strong>{{ c.nombre_a }}</strong>
               <span class="dup-meta">{{ c.cedula_a ? 'Cédula ' + c.cedula_a : identidad({ email: c.email_a, cedula: c.cedula_a }) }}</span>
-              @if (!c.activo_a) { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+              @if (!c.activo_a) { <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span> }
             </span>
             <span class="dup-vs">↔</span>
             <span class="dup-person">
               <strong>{{ c.nombre_b }}</strong>
               <span class="dup-meta">{{ c.cedula_b ? 'Cédula ' + c.cedula_b : identidad({ email: c.email_b, cedula: c.cedula_b }) }}</span>
-              @if (!c.activo_b) { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+              @if (!c.activo_b) { <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span> }
             </span>
           </div>
           <span class="dup-card__score">{{ c.motivo }} · {{ (c.score * 100) | number:'1.0-0' }}%</span>
@@ -39,13 +39,13 @@
           <div class="dup-card__body">
             @if (resultado(); as r) {
               <div class="dup-result">
-                <p>✓ Fusión hecha. Se re-apuntaron <strong>{{ r.tablas_reapuntadas.length }}</strong> tabla(s).</p>
+                <p>{{ '✓ Fusión hecha. Se re-apuntaron' | t }} <strong>{{ r.tablas_reapuntadas.length }}</strong> {{ 'tabla(s).' | t }}</p>
                 @if (r.conflictos.length) {
                   <p class="dup-conflict">⚠️ Requieren revisión manual (no se borró nada): {{ r.conflictos.join(', ') }}</p>
                 }
               </div>
             } @else {
-              <p class="dup-choose-label">Elige cuál es el usuario <strong>canónico</strong> (el que se queda):</p>
+              <p class="dup-choose-label">{{ 'Elige cuál es el usuario' | t }} <strong>{{ 'canónico' | t }}</strong> {{ '(el que se queda):' | t }}</p>
               <div class="dup-choose">
                 <label class="dup-choose__opt" [class.active]="canonicoId() === c.id_a">
                   <input type="radio" [checked]="canonicoId() === c.id_a" (change)="elegirCanonico(c, c.id_a)" />
@@ -57,11 +57,11 @@
                 </label>
               </div>
 
-              <p class="dup-preview-label">Actividad del duplicado que se re-apuntaría al canónico:</p>
+              <p class="dup-preview-label">{{ 'Actividad del duplicado que se re-apuntaría al canónico:' | t }}</p>
               @if (previewLoading()) {
-                <p class="dup-meta">Calculando…</p>
+                <p class="dup-meta">{{ 'Calculando…' | t }}</p>
               } @else if (preview().length === 0) {
-                <p class="dup-meta">El duplicado no tiene actividad registrada.</p>
+                <p class="dup-meta">{{ 'El duplicado no tiene actividad registrada.' | t }}</p>
               } @else {
                 <div class="dup-preview">
                   @for (f of preview(); track f.tabla) {

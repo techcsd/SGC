@@ -5,6 +5,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * AY5 — Reporte de almacenes duplicados (fuzzy por nombre + misma obra). ⏸ La fusión
  * es irreversible-con-cuidado (mueve stock/movimientos/aperturas al canónico y
@@ -12,7 +13,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-admin-almacenes-duplicados',
-  imports: [Skeleton, DecimalPipe, Icon],
+  imports: [Skeleton, DecimalPipe, Icon, TranslatePipe],
   templateUrl: './almacenes-duplicados.html',
   styleUrl: './almacenes-duplicados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -25,11 +25,12 @@ import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 import { VerFotoDirective } from '../../../../shared/ui/lightbox/ver-foto.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Paginator, ExportExcel, Icon, CedulaMask, FilterSelect, VerFotoDirective],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Paginator, ExportExcel, Icon, CedulaMask, FilterSelect, VerFotoDirective, TranslatePipe],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -11,9 +11,10 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-admin-app-versiones',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe, Icon, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe, Icon, Paginator, TranslatePipe],
   templateUrl: './app-versiones.html',
   styleUrl: './app-versiones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

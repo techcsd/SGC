@@ -1,7 +1,7 @@
 <section class="mn">
   <header class="mn__head">
-    <h1 class="mn__title">Matriz de notificaciones</h1>
-    <p class="mn__sub">Ajusta <strong>quién recibe</strong> cada notificación con matriz, por rol, sin tocar código. Cambiar un grupo afecta a la vez quién recibe el aviso y quién puede confirmar.</p>
+    <h1 class="mn__title">{{ 'Matriz de notificaciones' | t }}</h1>
+    <p class="mn__sub">{{ 'Ajusta' | t }} <strong>{{ 'quién recibe' | t }}</strong> {{ 'cada notificación con matriz, por rol, sin tocar código. Cambiar un grupo afecta a la vez quién recibe el aviso y quién puede confirmar.' | t }}</p>
   </header>
 
   @if (loading()) {
@@ -34,14 +34,14 @@
     <!-- BF4 — Reglas por tipo de aviso (el admin apaga un tipo, global) -->
     <section class="mn-card">
       <div class="mn-card__head">
-        <h2 class="mn-card__title">Tipos de aviso (habilitar / deshabilitar)</h2>
+        <h2 class="mn-card__title">{{ 'Tipos de aviso (habilitar / deshabilitar)' | t }}</h2>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleReglas()">
           {{ mostrarReglas() ? 'Ocultar' : 'Administrar tipos' }}
         </button>
       </div>
       <p class="mn-card__desc">
-        <strong>Encendido</strong> = el aviso se emite (apágalo para silenciarlo a todos, sin tocar código).
-        <strong>Canales</strong> = por dónde sale ese tipo (campana, push, correo). Las <strong>informativas</strong>
+        <strong>{{ 'Encendido' | t }}</strong> = el aviso se emite (apágalo para silenciarlo a todos, sin tocar código).
+        <strong>{{ 'Canales' | t }}</strong> {{ '= por dónde sale ese tipo (campana, push, correo). Las' | t }} <strong>{{ 'informativas' | t }}</strong>
         el usuario también puede silenciarlas en su perfil.
       </p>
       @if (mostrarReglas()) {
@@ -49,8 +49,8 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Tipo de aviso</th>
-                <th style="text-align:center;">Encendido</th>
+                <th>{{ 'Tipo de aviso' | t }}</th>
+                <th style="text-align:center;">{{ 'Encendido' | t }}</th>
                 @for (c of CANALES; track c.key) { <th style="text-align:center;">{{ c.label }}</th> }
               </tr>
             </thead>
@@ -58,11 +58,11 @@
               @for (t of tipos(); track t.tipo) {
                 <tr>
                   <td>
-                    {{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> · operativa</em> }
+                    {{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> {{ '· operativa' | t }}</em> }
                     <!-- BQ2 — canales que respetan la regla (incluye correo desde que las emails la respetan). -->
                     <div class="mn-chips">
                       @for (c of canalesActivos(t.tipo); track c) { <span class="mn-chip">{{ c }}</span> }
-                      @if (canalesActivos(t.tipo).length === 0) { <span class="mn-chip mn-chip--off">sin canales</span> }
+                      @if (canalesActivos(t.tipo).length === 0) { <span class="mn-chip mn-chip--off">{{ 'sin canales' | t }}</span> }
                     </div>
                   </td>
                   <td style="text-align:center;">
@@ -87,9 +87,9 @@
     @if (mostrarReglas() && tiposOperativos().length) {
       <section class="mn-card">
         <div class="mn-card__head">
-          <h2 class="mn-card__title">Pueden silenciarla</h2>
+          <h2 class="mn-card__title">{{ 'Pueden silenciarla' | t }}</h2>
         </div>
-        <p class="mn-card__desc">Las alarmas operativas están <strong>siempre activas</strong> para todos. Aquí eliges qué <strong>roles</strong> y qué <strong>personas</strong> pueden apagarlas para sí mismos (desde Configuración › Notificaciones). El resto las sigue recibiendo siempre.</p>
+        <p class="mn-card__desc">{{ 'Las alarmas operativas están' | t }} <strong>{{ 'siempre activas' | t }}</strong> {{ 'para todos. Aquí eliges qué' | t }} <strong>{{ 'roles' | t }}</strong> {{ 'y qué' | t }} <strong>{{ 'personas' | t }}</strong> {{ 'pueden apagarlas para sí mismos (desde Configuración › Notificaciones). El resto las sigue recibiendo siempre.' | t }}</p>
         @for (t of tiposOperativos(); track t.tipo) {
           <div class="mn-sil">
             <div class="mn-sil__label">{{ t.etiqueta }}</div>
@@ -104,25 +104,25 @@
             <div class="mn-sil__users">
               @for (u of silUsuarios(t.tipo); track u.id) {
                 <span class="mn-chip mn-chip--user">{{ u.nombre }}
-                  <button type="button" class="mn-chip__x" aria-label="Quitar"
+                  <button type="button" class="mn-chip__x" aria-label="{{ 'Quitar' | t }}"
                           (click)="removeSilUsuario(t.tipo, u.id)">×</button>
                 </span>
               }
               <!-- BW2 — picker de "agregar": no retiene selección (cada elección se agrega como chip y vuelve a vacío). -->
-              <app-user-picker placeholder="Agregar persona…" [value]="null"
+              <app-user-picker placeholder="{{ 'Agregar persona…' | t }}" [value]="null"
                 (selected)="addSilUsuario(t.tipo, $event.usuario_id ? { id: $event.usuario_id, nombre: $event.nombre } : null)" />
             </div>
             <!-- CA1 — "Silenciada para": el admin la apaga PARA una persona (aunque no pueda apagarla sola). -->
             <div class="mn-sil__silfor">
-              <span class="mn-sil__silfor-label">Silenciada para:</span>
+              <span class="mn-sil__silfor-label">{{ 'Silenciada para:' | t }}</span>
               @for (u of silFor(t.tipo); track u.id) {
                 <span class="mn-chip mn-chip--user mn-chip--muted">{{ u.nombre }}
-                  <button type="button" class="mn-chip__x" aria-label="Reactivar"
+                  <button type="button" class="mn-chip__x" aria-label="{{ 'Reactivar' | t }}"
                           [disabled]="guardandoSil() === t.tipo"
                           (click)="quitarSilenciadaPara(t.tipo, u.id)">×</button>
                 </span>
               }
-              <app-user-picker placeholder="Silenciar para…" [value]="null"
+              <app-user-picker placeholder="{{ 'Silenciar para…' | t }}" [value]="null"
                 (selected)="agregarSilenciadaPara(t.tipo, $event.usuario_id ? { id: $event.usuario_id, nombre: $event.nombre } : null)" />
             </div>
           </div>
@@ -134,7 +134,7 @@
     @if (mostrarReglas()) {
       <section class="mn-card">
         <div class="mn-card__head">
-          <h2 class="mn-card__title">Reglas por rol y por usuario</h2>
+          <h2 class="mn-card__title">{{ 'Reglas por rol y por usuario' | t }}</h2>
         </div>
         <p class="mn-card__desc">Apaga (o vuelve a encender) un tipo de aviso para <strong>un rol</strong> o para <strong>una persona</strong> concreta. Gana la más específica: usuario &gt; rol &gt; global. Afecta al push <strong>y</strong> a la campanita/bandeja.</p>
 
@@ -161,7 +161,7 @@
             </select>
           } @else {
             <div class="mn-userpick">
-              <input class="mn-input" type="search" placeholder="Buscar persona…"
+              <input class="mn-input" type="search" placeholder="{{ 'Buscar persona…' | t }}"
                      [ngModel]="nrBusqueda()" (ngModelChange)="nrBusqueda.set($event); nrUsuarioId.set('')" />
               @if (nrBusqueda() && !nrUsuarioId()) {
                 <ul class="mn-userlist">
@@ -186,18 +186,18 @@
 
         <!-- Reglas específicas existentes -->
         @if (reglasEspecificas().length === 0) {
-          <p class="mn-card__desc">No hay reglas por rol ni por usuario todavía.</p>
+          <p class="mn-card__desc">{{ 'No hay reglas por rol ni por usuario todavía.' | t }}</p>
         } @else {
           <div class="table-scroll">
             <table class="data-table">
-              <thead><tr><th>Tipo</th><th>Ámbito</th><th>Estado</th><th></th></tr></thead>
+              <thead><tr><th>{{ 'Tipo' | t }}</th><th>{{ 'Ámbito' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr></thead>
               <tbody>
                 @for (r of reglasEspecificas(); track $index) {
                   <tr>
                     <td>{{ etiquetaTipo(r.tipo) }}</td>
                     <td class="text-muted">
-                      @if (r.usuario_id) { <strong>Usuario:</strong> {{ r.usuario_nombre ?? 'usuario' }} }
-                      @else { <strong>Rol:</strong> {{ nombreRol(r.rol ?? '') }} }
+                      @if (r.usuario_id) { <strong>{{ 'Usuario:' | t }}</strong> {{ r.usuario_nombre ?? 'usuario' }} }
+                      @else { <strong>{{ 'Rol:' | t }}</strong> {{ nombreRol(r.rol ?? '') }} }
                     </td>
                     <td>
                       <span class="sgc-badge" [class]="'sgc-badge--' + (r.habilitado ? 'success' : 'danger')">
@@ -222,21 +222,21 @@
     <!-- BF4 — Traza de entregas (diagnóstico "no me llegó") -->
     <section class="mn-card">
       <div class="mn-card__head">
-        <h2 class="mn-card__title">Entregas de notificaciones (traza)</h2>
+        <h2 class="mn-card__title">{{ 'Entregas de notificaciones (traza)' | t }}</h2>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleEntregas()">
           {{ mostrarEntregas() ? 'Ocultar' : 'Ver entregas recientes' }}
         </button>
       </div>
-      <p class="mn-card__desc">Cada push deja rastro: enviada, fallida (token vencido) u omitida (sin dispositivo / silenciada / FCM apagado). Sirve para diagnosticar por qué una alerta no llegó a alguien.</p>
+      <p class="mn-card__desc">{{ 'Cada push deja rastro: enviada, fallida (token vencido) u omitida (sin dispositivo / silenciada / FCM apagado). Sirve para diagnosticar por qué una alerta no llegó a alguien.' | t }}</p>
       @if (mostrarEntregas()) {
         @if (cargandoEntregas()) {
           <app-skeleton [rows]="4" />
         } @else if (entregas().length === 0) {
-          <p class="mn-card__desc">Sin entregas registradas todavía (se registran al enviarse pushes tras aplicar BF4).</p>
+          <p class="mn-card__desc">{{ 'Sin entregas registradas todavía (se registran al enviarse pushes tras aplicar BF4).' | t }}</p>
         } @else {
           <div class="table-scroll">
             <table class="data-table">
-              <thead><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Título</th><th>Estado</th><th>Motivo</th></tr></thead>
+              <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Usuario' | t }}</th><th>{{ 'Tipo' | t }}</th><th>{{ 'Título' | t }}</th><th>{{ 'Estado' | t }}</th><th>{{ 'Motivo' | t }}</th></tr></thead>
               <tbody>
                 @for (e of entregas(); track $index) {
                   <tr>
@@ -257,11 +257,11 @@
 
     <!-- Referencia (solo lectura) -->
     <section class="mn-card mn-card--ref">
-      <h2 class="mn-card__title">Otros eventos (referencia)</h2>
-      <p class="mn-card__desc">Estos eventos no se editan aquí; su destino está fijado por su módulo o por diseño. Documentación completa en el repositorio (NOTIFICACIONES-MATRIZ.md).</p>
+      <h2 class="mn-card__title">{{ 'Otros eventos (referencia)' | t }}</h2>
+      <p class="mn-card__desc">{{ 'Estos eventos no se editan aquí; su destino está fijado por su módulo o por diseño. Documentación completa en el repositorio (NOTIFICACIONES-MATRIZ.md).' | t }}</p>
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th>Evento</th><th>A quién le llega</th></tr></thead>
+          <thead><tr><th>{{ 'Evento' | t }}</th><th>{{ 'A quién le llega' | t }}</th></tr></thead>
           <tbody>
             @for (e of eventos; track e.evento) {
               <tr><td>{{ e.evento }}</td><td class="text-muted">{{ e.quien }}</td></tr>

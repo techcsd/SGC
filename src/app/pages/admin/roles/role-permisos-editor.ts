@@ -7,6 +7,7 @@ import {
 } from '../../../../shared/services/roles.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** Nivel homologado que se muestra en el control de 3 posiciones. */
 type NivelUI = '' | 'ver' | 'operar';
 /** AS4 — estado del módulo completo en el encabezado tri-estado. */
@@ -37,7 +38,7 @@ interface GrupoModulo {
  */
 @Component({
   selector: 'app-role-permisos-editor',
-  imports: [Icon],
+  imports: [Icon, TranslatePipe],
   templateUrl: './role-permisos-editor.html',
   styleUrl: './role-permisos-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

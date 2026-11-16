@@ -124,7 +124,7 @@
       <!-- DH4 — Responsable: persona SGC a cargo (select, ya no texto libre). -->
       <div class="sgc-field">
         <label>{{ 'Responsable' | t }}</label>
-        <app-user-picker [value]="responsableId()" placeholder="¿Quién es responsable?" (selected)="onResponsableSeleccionado($event)" />
+        <app-user-picker [value]="responsableId()" placeholder="{{ '¿Quién es responsable?' | t }}" (selected)="onResponsableSeleccionado($event)" />
       </div>
       @if (form.getRawValue().tipo !== 'archivo' && form.getRawValue().tipo !== 'nota') {
         <div class="form-row">

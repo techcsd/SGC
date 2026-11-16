@@ -12,6 +12,7 @@ import {
   validarValor,
 } from '../../../../shared/config/parametros-catalogo';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** Fila de configuración con su metadato resuelto y la tabla de origen. */
 interface ConfigRow {
   clave: string;
@@ -33,7 +34,7 @@ interface ConfigGrupo {
  */
 @Component({
   selector: 'app-admin-parametros',
-  imports: [FormsModule, Skeleton],
+  imports: [FormsModule, Skeleton, TranslatePipe],
   templateUrl: './parametros.html',
   styleUrl: './parametros.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

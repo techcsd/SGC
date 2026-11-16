@@ -18,9 +18,10 @@ import { formatFechaMedia, formatFechaHumana } from '../../../../shared/utils/fe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-admin-reportes',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, TranslatePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

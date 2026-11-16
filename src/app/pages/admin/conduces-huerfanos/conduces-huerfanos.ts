@@ -5,6 +5,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * CW1 — Conduces huérfanos: lista de solo lectura (ensayo en seco) de conduces que
  * se quedaron atascados en "despachado" sin confirmación ni recepción. Nace del
@@ -18,7 +19,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-admin-conduces-huerfanos',
-  imports: [Skeleton, DatePipe, Icon],
+  imports: [Skeleton, DatePipe, Icon, TranslatePipe],
   templateUrl: './conduces-huerfanos.html',
   styleUrl: './conduces-huerfanos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

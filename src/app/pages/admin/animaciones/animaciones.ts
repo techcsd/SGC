@@ -7,6 +7,7 @@ import { CountUpDirective } from '../../../../shared/motion/count-up.directive';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface CatRow {
   sistema: 'web' | 'app';
   id: string;
@@ -30,7 +31,7 @@ interface CatRow {
  */
 @Component({
   selector: 'app-admin-animaciones',
-  imports: [StaggerDirective, CountUpDirective, EstadoPulseDirective, Icon],
+  imports: [StaggerDirective, CountUpDirective, EstadoPulseDirective, Icon, TranslatePipe],
   templateUrl: './animaciones.html',
   styleUrl: './animaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -30,6 +30,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { RolePermisosEditor } from './role-permisos-editor';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** Fila de la vista "accesos efectivos" ya resuelta a etiquetas legibles. */
 interface AccesoModuloVista {
   key: string;
@@ -56,7 +57,7 @@ interface DiffPermisos {
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, FormDrawer, Skeleton, Paginator, RolePermisosEditor],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, FormDrawer, Skeleton, Paginator, RolePermisosEditor, TranslatePipe],
   templateUrl: './roles.html',
   styleUrl: './roles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

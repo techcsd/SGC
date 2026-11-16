@@ -3,29 +3,10 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 83%** (8419/10188 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 88%** (8933/10095 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| admin/almacenes-duplicados | scope | 14 | 0 | 14 | 0% |
-| admin/animaciones | scope | 35 | 0 | 35 | 0% |
-| admin/app-versiones | scope | 134 | 0 | 134 | 0% |
-| admin/bitacora-catalogos | scope | 13 | 0 | 13 | 0% |
-| admin/conduces-huerfanos | scope | 16 | 0 | 16 | 0% |
-| admin/historial-versiones | scope | 25 | 0 | 25 | 0% |
-| admin/importar | scope | 2 | 0 | 2 | 0% |
-| admin/jira | scope | 69 | 0 | 69 | 0% |
-| admin/matriz-notificaciones | scope | 77 | 0 | 77 | 0% |
-| admin/orden-modulos | scope | 7 | 0 | 7 | 0% |
-| admin/otros-valores | scope | 10 | 0 | 10 | 0% |
-| admin/parametros | scope | 12 | 0 | 12 | 0% |
-| admin/reportes | scope | 44 | 0 | 44 | 0% |
-| admin/roles | scope | 166 | 0 | 166 | 0% |
-| admin/solicitudes-eliminacion | scope | 8 | 0 | 8 | 0% |
-| admin/unidades | scope | 11 | 0 | 11 | 0% |
-| admin/usuarios | scope | 163 | 0 | 163 | 0% |
-| admin/usuarios-duplicados | scope | 18 | 0 | 18 | 0% |
-| admin/usuarios-test | scope | 37 | 0 | 37 | 0% |
 | auth/set-password | scope | 13 | 0 | 13 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
 | dudas | scope | 15 | 0 | 15 | 0% |
@@ -43,17 +24,36 @@
 | politicas | scope | 15 | 0 | 15 | 0% |
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
-| admin/empresa | scope | 50 | 2 | 48 | 4% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
+| admin/almacenes-duplicados | scope | 14 | 4 | 10 | 29% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| admin/bitacora-catalogos | scope | 7 | 3 | 4 | 43% |
+| admin/jira | scope | 56 | 24 | 32 | 43% |
+| admin/conduces-huerfanos | scope | 15 | 7 | 8 | 47% |
+| admin/solicitudes-eliminacion | scope | 8 | 4 | 4 | 50% |
+| admin/usuarios | scope | 141 | 74 | 67 | 52% |
+| admin/parametros | scope | 11 | 6 | 5 | 55% |
+| admin/animaciones | scope | 34 | 19 | 15 | 56% |
+| admin/reportes | scope | 37 | 21 | 16 | 57% |
+| admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
+| admin/orden-modulos | scope | 5 | 3 | 2 | 60% |
+| admin/app-versiones | scope | 130 | 91 | 39 | 70% |
+| admin/otros-valores | scope | 10 | 7 | 3 | 70% |
+| admin/unidades | scope | 10 | 7 | 3 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
-| admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| admin/vault | scope | 73 | 65 | 8 | 89% |
+| admin/roles | scope | 153 | 112 | 41 | 73% |
+| admin/usuarios-test | scope | 33 | 24 | 9 | 73% |
+| admin/empresa | scope | 41 | 32 | 9 | 78% |
+| admin/usuarios-duplicados | scope | 18 | 14 | 4 | 78% |
+| admin/compa-conversaciones | scope | 25 | 20 | 5 | 80% |
+| admin/historial-versiones | scope | 23 | 20 | 3 | 87% |
+| admin/vault | scope | 72 | 65 | 7 | 90% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
+| admin/importar | scope | 2 | 2 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |

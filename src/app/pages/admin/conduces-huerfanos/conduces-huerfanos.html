@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Conduces huérfanos</h1>
+    <h1 class="page-title">{{ 'Conduces huérfanos' | t }}</h1>
     <span class="page-count">{{ filas().length }} conduce{{ filas().length !== 1 ? 's' : '' }}</span>
   </div>
 </div>
@@ -13,7 +13,7 @@
 </p>
 
 <div class="ch-filtros">
-  <span class="cp-muted">Atascados hace al menos:</span>
+  <span class="cp-muted">{{ 'Atascados hace al menos:' | t }}</span>
   @for (d of [3, 7, 14, 30]; track d) {
     <button type="button" class="sgc-btn sgc-btn--sm"
             [class.sgc-btn--primary]="diasMin() === d" [class.sgc-btn--ghost]="diasMin() !== d"
@@ -24,7 +24,7 @@
 @if (loading()) {
   <app-skeleton variant="list" [rows]="4" />
 } @else if (!filas().length) {
-  <p class="cp-empty">No hay conduces huérfanos con ese filtro.</p>
+  <p class="cp-empty">{{ 'No hay conduces huérfanos con ese filtro.' | t }}</p>
 } @else {
   <div class="ch-list">
     @for (f of filas(); track f.id) {
@@ -43,16 +43,16 @@
               <app-icon name="trash" [size]="14" /> Anular con motivo
             </button>
           } @else {
-            <span class="ch-badge ch-badge--bloqueado" title="Tiene confirmaciones de entrega — no se puede anular desde aquí">
+            <span class="ch-badge ch-badge--bloqueado" title="{{ 'Tiene confirmaciones de entrega — no se puede anular desde aquí' | t }}">
               Tiene confirmaciones
             </span>
           }
         </div>
         <div class="ch-card__body">
-          <span><strong>Chofer:</strong> {{ f.chofer_nombre ?? '—' }}</span>
-          <span><strong>Creado por:</strong> {{ f.creado_por_nombre ?? '—' }}</span>
-          <span><strong>Destino:</strong> {{ f.destino_texto ?? '—' }}</span>
-          <span><strong>Estado:</strong> {{ f.estado }}</span>
+          <span><strong>{{ 'Chofer:' | t }}</strong> {{ f.chofer_nombre ?? '—' }}</span>
+          <span><strong>{{ 'Creado por:' | t }}</strong> {{ f.creado_por_nombre ?? '—' }}</span>
+          <span><strong>{{ 'Destino:' | t }}</strong> {{ f.destino_texto ?? '—' }}</span>
+          <span><strong>{{ 'Estado:' | t }}</strong> {{ f.estado }}</span>
         </div>
       </div>
     }

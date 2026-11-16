@@ -8,6 +8,7 @@ import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 const TAGS: CambioTag[] = ['nuevo', 'mejora', 'arreglo', 'seguridad'];
 
 /** Z27 — colores por tipo de cambio (paridad con los chips del historial). */
@@ -37,7 +38,7 @@ export interface GrupoCambios {
  */
 @Component({
   selector: 'app-historial-versiones',
-  imports: [Skeleton, BarChart, DonutChart, Icon],
+  imports: [Skeleton, BarChart, DonutChart, Icon, TranslatePipe],
   templateUrl: './historial-versiones.html',
   styleUrl: './historial-versiones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
