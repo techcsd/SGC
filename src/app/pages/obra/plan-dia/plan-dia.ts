@@ -15,6 +15,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface BrigadaGrupo {
   brigada: string;
   tareas: PlanTarea[];
@@ -33,6 +34,7 @@ export class ObraPlanDia implements OnInit {
   private tareasService = inject(TareasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
   formatDur = formatearDuracion; // AQ2 — duración humanizada "X h Y min" (helper único)
@@ -55,7 +57,7 @@ export class ObraPlanDia implements OnInit {
   grupos = computed<BrigadaGrupo[]>(() => {
     const map = new Map<string, PlanTarea[]>();
     for (const t of this.tareas()) {
-      const key = t.brigada?.trim() || 'Sin brigada';
+      const key = t.brigada?.trim() || this.i18n.t('Sin brigada');
       const arr = map.get(key) ?? [];
       arr.push(t);
       map.set(key, arr);
@@ -93,7 +95,7 @@ export class ObraPlanDia implements OnInit {
         await this.loadPlan();
       }
     } catch (e: unknown) {
-      this.toast.error('Error al cargar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingInit.set(false);
     }
@@ -116,7 +118,7 @@ export class ObraPlanDia implements OnInit {
       this.charla.set(plan.charla);
       this.tareas.set(plan.tareas ?? []);
     } catch (e: unknown) {
-      this.toast.error('Error al cargar el plan', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar el plan'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loading.set(false);
     }
@@ -156,11 +158,11 @@ export class ObraPlanDia implements OnInit {
         fotos: [...existentes, ...paths],
         firmas: this.charla()?.firmas ?? [],
       });
-      this.toast.success('Charla de seguridad registrada');
+      this.toast.success(this.i18n.t('Charla de seguridad registrada'));
       this.charlaOpen.set(false);
       await this.loadPlan();
     } catch (e: unknown) {
-      this.toast.error('No se pudo registrar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo registrar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -176,7 +178,7 @@ export class ObraPlanDia implements OnInit {
     this.tareaForm.markAllAsTouched();
     if (this.tareaForm.invalid || this.saving()) return;
     const userId = this.userService.profile()?.id;
-    if (!userId) { this.toast.error('No se pudo identificar el usuario.'); return; }
+    if (!userId) { this.toast.error(this.i18n.t('No se pudo identificar el usuario.')); return; }
     this.saving.set(true);
     try {
       const v = this.tareaForm.value;
@@ -190,11 +192,11 @@ export class ObraPlanDia implements OnInit {
         fechaLimite: this.fecha(),
         brigada: v.brigada || null,
       });
-      this.toast.success('Tarea asignada al día');
+      this.toast.success(this.i18n.t('Tarea asignada al día'));
       this.tareaOpen.set(false);
       await this.loadPlan();
     } catch (e: unknown) {
-      this.toast.error('No se pudo asignar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo asignar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }

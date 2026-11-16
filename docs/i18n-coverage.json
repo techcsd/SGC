@@ -3,34 +3,6 @@
   "pctHt": 97,
   "filas": [
     {
-      "pantalla": "obra/plan-dia",
-      "total": 37,
-      "cubiertos": 20,
-      "sin": 17,
-      "pct": 54,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Charla de seguridad ·",
-        "asistentes",
-        "Asignar tarea",
-        "Guardando… } @else { Guardar charla }",
-        "Baja",
-        "Media",
-        "Alta",
-        "Urgente",
-        "Selecciona…",
-        "Guardando… } @else { Asignar }",
-        "Error al cargar",
-        "Error al cargar el plan",
-        "Charla de seguridad registrada",
-        "No se pudo registrar",
-        "No se pudo identificar el usuario.",
-        "Tarea asignada al día",
-        "No se pudo asignar"
-      ]
-    },
-    {
       "pantalla": "incentivos",
       "total": 172,
       "cubiertos": 100,
@@ -1492,6 +1464,16 @@
       "pantalla": "obra/informes",
       "total": 46,
       "cubiertos": 46,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "obra/plan-dia",
+      "total": 37,
+      "cubiertos": 37,
       "sin": 0,
       "pct": 100,
       "enScope": true,
