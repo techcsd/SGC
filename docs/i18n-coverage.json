@@ -316,19 +316,6 @@
       ]
     },
     {
-      "pantalla": "direccion",
-      "total": 16,
-      "cubiertos": 14,
-      "sin": 2,
-      "pct": 88,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Control de materiales — alertas ( )",
-        "Fase"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 33,
       "cubiertos": 29,
@@ -912,6 +899,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "direccion",
+      "total": 16,
+      "cubiertos": 16,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
       "faltantes": []
     },
     {

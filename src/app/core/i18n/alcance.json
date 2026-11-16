@@ -31,9 +31,6 @@
     "soporte": {
       "enforce": false
     },
-    "direccion": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -204,6 +201,9 @@
     },
     "demo/progreso": {
       "enforce": false
+    },
+    "direccion": {
+      "enforce": true
     },
     "documentos/generar": {
       "enforce": true

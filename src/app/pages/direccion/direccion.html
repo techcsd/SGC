@@ -55,7 +55,7 @@
         @for (a of alertas(); track a.texto) {
           <a class="alerta" [class]="alertaClass(a.nivel)" [routerLink]="a.ruta">
             <span class="alerta__icono" aria-hidden="true"><app-icon [name]="a.icono" [size]="18" /></span>
-            <span class="alerta__texto">{{ a.texto }}</span>
+            <span class="alerta__texto">{{ a.texto | t }}</span>
             <span class="alerta__cantidad">{{ a.cantidad }}</span>
           </a>
         }
@@ -66,14 +66,14 @@
   <!-- A4 — Alertas de control de materiales (antifraude, solo Dirección/Gerencia) -->
   @if (alertasControl().length > 0) {
     <section class="direccion-alertas sgc-card">
-      <h3 class="direccion-alertas__title">Control de materiales — alertas ({{ alertasControl().length }})</h3>
+      <h3 class="direccion-alertas__title">{{ 'Control de materiales — alertas' | t }} ({{ alertasControl().length }})</h3>
       <div class="control-alertas">
         @for (a of alertasControl(); track a.id) {
           <div class="control-alerta" [class.control-alerta--danger]="a.severidad === 'alerta'">
             <div class="control-alerta__main">
-              <span class="sgc-badge" [class]="'sgc-badge--' + ALERTA_SEV[a.severidad].badge">{{ ALERTA_SEV[a.severidad].label }}</span>
+              <span class="sgc-badge" [class]="'sgc-badge--' + ALERTA_SEV[a.severidad].badge">{{ ALERTA_SEV[a.severidad].label | t }}</span>
               <span class="control-alerta__proyecto">{{ a.proyecto?.nombre ?? a.bodega?.nombre ?? '—' }}</span>
-              @if (a.fase) { <span class="control-alerta__fase">Fase {{ a.fase }}</span> }
+              @if (a.fase) { <span class="control-alerta__fase">{{ 'Fase' | t }} {{ a.fase }}</span> }
               @if (a.tipo === 'chequeo_diferencia') { <span class="control-alerta__fase">{{ 'Chequeo' | t }}</span> }
               @if (a.estado === 'en_revision') { <span class="sgc-badge sgc-badge--warning">{{ 'En revisión' | t }}</span> }
             </div>
@@ -96,20 +96,20 @@
   <!-- Charts -->
   <div class="direccion-charts">
     <div class="sgc-card chart-card">
-      <app-donut-chart titulo="Proyectos por estado" [data]="proyectosPorEstado()" />
+      <app-donut-chart [titulo]="'Proyectos por estado' | t" [data]="proyectosPorEstado()" />
     </div>
     <div class="sgc-card chart-card">
-      <app-donut-chart titulo="Tareas por estado" [data]="tareasPorEstado()" />
+      <app-donut-chart [titulo]="'Tareas por estado' | t" [data]="tareasPorEstado()" />
     </div>
     <div class="sgc-card chart-card">
-      <app-donut-chart titulo="Empleados por departamento" [data]="empleadosPorDepto()" />
+      <app-donut-chart [titulo]="'Empleados por departamento' | t" [data]="empleadosPorDepto()" />
     </div>
     <div class="sgc-card chart-card chart-card--wide">
-      <app-bar-chart titulo="Desempeño por proyecto (0-100)" [data]="scoresBars()" />
+      <app-bar-chart [titulo]="'Desempeño por proyecto (0-100)' | t" [data]="scoresBars()" />
     </div>
     @if (presupuestoBars().length > 0) {
       <div class="sgc-card chart-card chart-card--wide">
-        <app-bar-chart titulo="Uso de presupuesto por proyecto (% gastado)" [data]="presupuestoBars()" sufijo="%" />
+        <app-bar-chart [titulo]="'Uso de presupuesto por proyecto (% gastado)' | t" [data]="presupuestoBars()" sufijo="%" />
       </div>
     }
   </div>

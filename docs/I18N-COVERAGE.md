@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9803/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9805/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -17,7 +17,6 @@
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | soporte | scope | 35 | 29 | 6 | 83% |
-| direccion | scope | 16 | 14 | 2 | 88% |
 | practica | scope | 33 | 29 | 4 | 88% |
 | app-movil | scope | 35 | 31 | 4 | 89% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -75,6 +74,7 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| direccion | enforce | 16 | 16 | 0 | 100% |
 | documentos/generar | enforce | 9 | 9 | 0 | 100% |
 | documentos/historial | enforce | 9 | 9 | 0 | 100% |
 | documentos/plantillas | enforce | 43 | 43 | 0 | 100% |
