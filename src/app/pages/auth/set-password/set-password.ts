@@ -7,6 +7,7 @@ import { UserService } from '../../../core/services/user.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 // Lands here from an invite or password-recovery email link. Supabase's JS
 // client parses the access/refresh tokens out of the URL hash on load
 // (detectSessionInUrl, on by default) and turns them into a real session —
@@ -24,6 +25,7 @@ export class SetPassword implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   checking = signal(true);
   ready = signal(false);
@@ -89,7 +91,7 @@ export class SetPassword implements OnInit, OnDestroy {
 
     const { password, confirmPassword } = this.form.value as { password: string; confirmPassword: string };
     if (password !== confirmPassword) {
-      this.errorMessage.set('Las contraseñas no coinciden.');
+      this.errorMessage.set(this.i18n.t('Las contraseñas no coinciden.'));
       return;
     }
 
@@ -99,7 +101,7 @@ export class SetPassword implements OnInit, OnDestroy {
     const { error } = await this.authService.updateUser(password);
     if (error) {
       this.loading.set(false);
-      this.errorMessage.set('No se pudo establecer la contraseña. Intenta de nuevo.');
+      this.errorMessage.set(this.i18n.t('No se pudo establecer la contraseña. Intenta de nuevo.'));
       return;
     }
 

@@ -4,9 +4,6 @@
     "obra/plan-dia": {
       "enforce": false
     },
-    "auth/set-password": {
-      "enforce": false
-    },
     "incentivos": {
       "enforce": false
     },
@@ -140,6 +137,9 @@
       "enforce": true
     },
     "apoyo-transporte": {
+      "enforce": true
+    },
+    "auth/set-password": {
       "enforce": true
     },
     "bitacora/cartillas": {

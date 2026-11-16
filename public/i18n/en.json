@@ -7639,5 +7639,21 @@
   "Documento no encontrado": "Document not found",
   "privacidad": "privacy",
   "términos": "terms",
-  "Términos": "Terms"
+  "Términos": "Terms",
+  "Verificando enlace…": "Verifying link…",
+  "Este enlace no es válido o ya expiró. Solicita uno nuevo a tu administrador.": "This link is invalid or has expired. Request a new one from your administrator.",
+  "Ocultar contraseña": "Hide password",
+  "Mostrar contraseña": "Show password",
+  "Guardar contraseña": "Save password",
+  "¿Problemas para acceder? Contacta a": "Trouble logging in? Contact",
+  "La contraseña es obligatoria.": "The password is required.",
+  "Debe tener al menos 8 caracteres.": "Must have at least 8 characters.",
+  "Las contraseñas no coinciden.": "The passwords do not match.",
+  "No se pudo establecer la contraseña. Intenta de nuevo.": "The password could not be set. Try again.",
+  "CSD Logo": "CSD Logo",
+  "Elige una contraseña para tu cuenta de SGC.": "Choose a password for your SGC account.",
+  "Nueva contraseña": "New password",
+  "Confirmar contraseña": "Confirm password",
+  "Confirma tu contraseña.": "Confirm your password.",
+  "Tecnología CSD": "CSD Technology"
 }
