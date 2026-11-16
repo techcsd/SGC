@@ -337,7 +337,7 @@
                   <li class="roles-hist__item">
                     <div class="roles-hist__head">
                       <span class="roles-hist__rol">{{ h.rol_nombre }}</span>
-                      <span class="roles-hist__meta">{{ h.actor_nombre }} · {{ h.at | date:'dd/MM/yyyy HH:mm' }}</span>
+                      <span class="roles-hist__meta">{{ h.actor_nombre }} · {{ h.at | fecha:'dd/MM/yyyy HH:mm' }}</span>
                     </div>
                     <div class="roles-hist__body">
                       @for (g of histLista(h.cambio, 'gana'); track g) {

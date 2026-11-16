@@ -38,7 +38,7 @@
                 <a [routerLink]="['/inventario/salidas', f.salida_id, 'conduce']">{{ f.conduce_numero }}</a>
                 @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }
               </td>
-              <td class="text-muted">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+              <td class="text-muted">{{ f.fecha | fecha:'dd/MM/yyyy' }}</td>
               <td class="text-muted">{{ f.proyecto || '—' }}</td>
               <td class="text-muted">{{ f.bodega || '—' }}</td>
               <td class="text-muted">{{ f.creado_por || '—' }}</td>

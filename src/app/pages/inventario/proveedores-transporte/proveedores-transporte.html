@@ -60,7 +60,7 @@
                   <tbody appStagger>
                     @for (v of viajes(); track v.viaje_id) {
                       <tr>
-                        <td>{{ v.fecha | date: 'dd/MM/yyyy' }}</td>
+                        <td>{{ v.fecha | fecha: 'dd/MM/yyyy' }}</td>
                         <td>{{ v.origen || '—' }} → {{ v.destino || '—' }}</td>
                         <td>{{ v.material || '—' }}</td>
                         <td>

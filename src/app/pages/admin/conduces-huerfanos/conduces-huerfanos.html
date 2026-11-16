@@ -30,7 +30,7 @@
           <div>
             <h3 class="ch-card__codigo">{{ f.codigo }}</h3>
             <div class="ch-card__meta">
-              <span>{{ 'Creado:' | t }} {{ f.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span>{{ 'Creado:' | t }} {{ f.created_at | fecha: 'dd/MM/yyyy HH:mm' }}</span>
               <span class="ch-badge ch-badge--atascado">{{ f.dias_atascado }} {{ 'días atascado' | t }}</span>
             </div>
           </div>

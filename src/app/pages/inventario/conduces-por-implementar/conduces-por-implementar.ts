@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+
 import { SalidasService, ConducePorImplementar } from '../../../../shared/services/salidas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /**
  * AY13 — "Conduces por implementar": conduces que tienen ≥1 item libre (material no
@@ -15,7 +16,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
  */
 @Component({
   selector: 'app-conduces-por-implementar',
-  imports: [RouterLink, DatePipe, Skeleton, TranslatePipe],
+  imports: [RouterLink, FechaPipe, Skeleton, TranslatePipe],
   templateUrl: './conduces-por-implementar.html',
   styleUrl: './conduces-por-implementar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

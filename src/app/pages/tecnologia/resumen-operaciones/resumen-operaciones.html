@@ -176,7 +176,7 @@
             @for (h of historial(); track $index) {
               <tr>
                 <td>{{ h.semana }}/{{ h.anio }}</td>
-                <td>{{ h.enviado_at | date: 'dd/MM/yy HH:mm' }}</td>
+                <td>{{ h.enviado_at | fecha: 'dd/MM/yy HH:mm' }}</td>
                 <td>
                   @if (h.ok) { <span class="rso-tag rso-tag--ok">{{ 'Enviado' | t }}</span> }
                   @else { <span class="rso-tag rso-tag--err" [title]="h.error || ''">{{ 'Error' | t }}</span> }

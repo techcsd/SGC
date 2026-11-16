@@ -6,7 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -19,6 +19,7 @@ import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm
 
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../shared/i18n/fecha.pipe';
 type NotasTab = 'mias' | 'compartidas';
 
 /** Línea del cuerpo interpretada para el preview: texto plano o ítem de checklist. */
@@ -33,7 +34,7 @@ const CHECK_RE = /^(\s*-\s*\[)( |x|X)(\]\s?)(.*)$/;
 
 @Component({
   selector: 'app-notas',
-  imports: [DatePipe, FormDrawer, Skeleton, ConfirmDialog, TranslatePipe],
+  imports: [FechaPipe, FormDrawer, Skeleton, ConfirmDialog, TranslatePipe],
   templateUrl: './notas.html',
   styleUrl: './notas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

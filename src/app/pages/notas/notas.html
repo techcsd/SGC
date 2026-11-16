@@ -136,7 +136,7 @@
               @if (n.archivada) {
                 <span class="sgc-badge sgc-badge--neutral">{{ 'Archivada' | t }}</span>
               }
-              <span class="nota-card__date">{{ n.updated_at | date: 'dd/MM/yy HH:mm' }}</span>
+              <span class="nota-card__date">{{ n.updated_at | fecha: 'dd/MM/yy HH:mm' }}</span>
             }
           </div>
         </button>

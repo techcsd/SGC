@@ -170,7 +170,7 @@
       <h3 class="jira-det__h">{{ 'Comentarios' | t }}</h3>
       @for (c of d.comentarios; track c.id) {
         <div class="jira-com">
-          <div class="jira-com__head"><strong>{{ c.autor || ('Usuario' | t) }}</strong> <span class="text-muted">{{ c.at | date:'dd/MM HH:mm' }}</span></div>
+          <div class="jira-com__head"><strong>{{ c.autor || ('Usuario' | t) }}</strong> <span class="text-muted">{{ c.at | fecha:'dd/MM HH:mm' }}</span></div>
           <p class="jira-com__txt">{{ c.texto }}</p>
         </div>
       } @empty {
@@ -185,7 +185,7 @@
         <h3 class="jira-det__h">{{ 'Historial' | t }}</h3>
         <ul class="jira-hist">
           @for (h of d.historial; track $index) {
-            <li><span class="text-muted">{{ h.at | date:'dd/MM HH:mm' }}</span> — {{ h.actor || ('Alguien' | t) }} {{ 'cambió' | t }} <strong>{{ h.campo }}</strong>: {{ h.antes || '—' }} → {{ h.despues || '—' }}</li>
+            <li><span class="text-muted">{{ h.at | fecha:'dd/MM HH:mm' }}</span> — {{ h.actor || ('Alguien' | t) }} {{ 'cambió' | t }} <strong>{{ h.campo }}</strong>: {{ h.antes || '—' }} → {{ h.despues || '—' }}</li>
           }
         </ul>
       }

@@ -16,7 +16,7 @@
  * Baseline como verify-tokens: la web arranca en español y se traduce incremental.
  * Portado del hijo (csd-app) — ver PARIDAD.md.
  */
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
@@ -132,9 +132,15 @@ console.log(
   `\x1b[32m✓ verify-i18n:\x1b[0m ${usadosGlobal.size} textos con t() · en.json cubre ${usadosGlobal.size - sinTraducirEn.length} ` +
   `· ht.json cubre ${usadosGlobal.size - sinTraducirHt.length} · ${PANTALLAS_ENFORCE.size} pantalla(s) enforce (0 fallos).`,
 );
+if (process.env.I18N_DUMP) writeFileSync(process.env.I18N_DUMP, JSON.stringify([...new Set([...sinTraducirEn, ...sinTraducirHt])], null, 1));
 if (sinTraducirEn.length) {
   console.log(`\x1b[33m  aviso: ${sinTraducirEn.length} sin traducir en 'en' (caen a español):\x1b[0m`);
   for (const s of sinTraducirEn.slice(0, 10)) console.log(`    · ${s}`);
   if (sinTraducirEn.length > 10) console.log(`    … y ${sinTraducirEn.length - 10} más`);
+}
+// DR — guardia estricta (F7.2): toda clave usada debe existir en en y ht.
+if (sinTraducirEn.length || sinTraducirHt.length) {
+  console.error('[31m✗ verify-i18n: hay claves usadas sin traducir en en/ht (ver aviso arriba; I18N_DUMP=ruta.json las vuelca completas).[0m');
+  process.exit(1);
 }
 process.exit(0);

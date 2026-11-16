@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   SolicitudesMovimientoService,
@@ -25,6 +25,7 @@ import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../shared/ui/articulo-picker/articulo-picker';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../shared/i18n/fecha.pipe';
 
 /**
  * AY11 — Solicitud de movimiento. El ingeniero solicita mover material/equipo; los
@@ -34,7 +35,7 @@ import { I18nService } from '../../../shared/i18n/i18n.service';
  */
 @Component({
   selector: 'app-solicitudes-movimiento',
-  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, ArticuloPicker, TranslatePipe],
+  imports: [ReactiveFormsModule, FechaPipe, FormDrawer, Skeleton, ArticuloPicker, TranslatePipe],
   templateUrl: './solicitudes-movimiento.html',
   styleUrl: './solicitudes-movimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

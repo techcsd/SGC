@@ -79,8 +79,8 @@
                 <td>{{ t.titulo }}</td>
                 @if (esGestor) { <td>{{ t.asignado?.nombre ?? '—' }}</td> }
                 <td>{{ prioridadLabel(t.prioridad) }}</td>
-                <td>{{ t.created_at | date:'dd/MM/yyyy' }}</td>
-                <td>{{ t.fecha_completada ? (t.fecha_completada | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ t.created_at | fecha:'dd/MM/yyyy' }}</td>
+                <td>{{ t.fecha_completada ? (t.fecha_completada | fecha:'dd/MM/yyyy') : '—' }}</td>
                 <td><span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span></td>
                 <td class="text-center">
                   <button type="button" class="action-btn" (click)="$event.stopPropagation(); openDetail(t)" aria-label="{{ 'Ver' | t }}" title="{{ 'Ver detalle' | t }}">

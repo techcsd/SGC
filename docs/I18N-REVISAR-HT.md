@@ -36,3 +36,10 @@ Cada lote de F3/F4 que termine añade aquí su sección (módulo + fecha + nº d
 claves + notas de términos dudosos). Cuando Xaviel consiga a alguien que
 hable Kreyòl (paso físico 3), esa persona revisa tanda por tanda contra
 `public/i18n/ht.json` y marca el checklist de arriba.
+
+## Añadido en la ronda DR (16-nov-2026)
+Se agregaron ~670 claves en `ht.json`. Las más visibles para que un hablante las
+revise primero: «Cerrar sesión» (Dekonekte), «Hoy, en vivo», «Flota en vivo»,
+textos del modo práctica (`MODO PRÁCTICA`, «Ya terminé», «Puedes mejorar») y los
+errores amigables (permiso, sesión expirada, conexión). Siguen sin validar por
+una persona.

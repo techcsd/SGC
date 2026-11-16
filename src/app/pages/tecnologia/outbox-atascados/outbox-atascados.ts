@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe, JsonPipe } from '@angular/common';
+import { JsonPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 /**
  * BG2 — "Outbox atascado": registros que la app móvil no pudo enviar por errores
  * de SISTEMA (RLS/constraint/5xx) — data real de obra que se quedó en el teléfono.
@@ -82,7 +83,7 @@ interface OutboxDetalle {
 
 @Component({
   selector: 'app-tec-outbox-atascados',
-  imports: [DatePipe, JsonPipe, TranslatePipe],
+  imports: [FechaPipe, JsonPipe, TranslatePipe],
   templateUrl: './outbox-atascados.html',
   styleUrl: './outbox-atascados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

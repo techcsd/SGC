@@ -4,7 +4,7 @@
     <h1 class="page-title">{{ 'Inspección de vehículo' | t }}</h1>
     @if (semanaActual(); as g) {
       <span class="page-count">
-        {{ 'Semana' | t }} {{ g.semana }} · {{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }}
+        {{ 'Semana' | t }} {{ g.semana }} · {{ toDate(g.semana_inicio) | fecha:'dd/MM' }}–{{ toDate(g.semana_fin) | fecha:'dd/MM' }}
       </span>
     }
   </div>
@@ -94,7 +94,7 @@
               </td>
               <td>
                 @if (f.tiene_reporte) {
-                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
+                  {{ toDate(f.reporte_fecha) | fecha:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
                   <span class="rs-muted rs-small">{{ 'por' | t }} {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} {{ 'km' | t }} }</span>
                   @if (f.reportado_fuera_de_dia) {
                     <span class="sgc-badge sgc-badge--warning" [title]="i18n.t('Reportado fuera del día programado ({dia})', { dia: diaLabel(f.dia_reporte_dow) })">{{ 'Fuera de día' | t }}</span>
@@ -126,7 +126,7 @@
                     (click)="toggle(g.key)" [attr.aria-expanded]="expandida() === g.key">
               <span class="rs-acc-title">
                 {{ 'Semana' | t }} {{ g.semana }}/{{ g.anio }}
-                <span class="rs-muted">({{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }})</span>
+                <span class="rs-muted">({{ toDate(g.semana_inicio) | fecha:'dd/MM' }}–{{ toDate(g.semana_fin) | fecha:'dd/MM' }})</span>
               </span>
               <span class="rs-acc-count">{{ g.reportados }}/{{ g.total }} {{ 'reportados' | t }}</span>
               <span class="rs-acc-chevron" aria-hidden="true">@if (expandida() === g.key) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> }</span>
@@ -147,7 +147,7 @@
                         </td>
                         <td>
                 @if (f.tiene_reporte) {
-                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
+                  {{ toDate(f.reporte_fecha) | fecha:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
                   <span class="rs-muted rs-small">{{ 'por' | t }} {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} {{ 'km' | t }} }</span>
                   @if (f.reportado_fuera_de_dia) {
                     <span class="sgc-badge sgc-badge--warning" [title]="i18n.t('Reportado fuera del día programado ({dia})', { dia: diaLabel(f.dia_reporte_dow) })">{{ 'Fuera de día' | t }}</span>
@@ -206,7 +206,7 @@
             } @else {
               <span class="rs-reportado">
                 {{ 'Ya reportado por' | t }} <strong>{{ f.reportado_por ?? f.chofer_nombre ?? '—' }}</strong>
-                @if (f.reporte_fecha) { · {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }} }@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
+                @if (f.reporte_fecha) { · {{ toDate(f.reporte_fecha) | fecha:'dd/MM/yyyy' }} }@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
                 @if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} {{ 'km' | t }} }
               </span>
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">

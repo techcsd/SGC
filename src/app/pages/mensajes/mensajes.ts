@@ -10,7 +10,7 @@ import {
   ElementRef,
   effect,
 } from '@angular/core';
-import { DatePipe, NgTemplateOutlet, UpperCasePipe } from '@angular/common';
+import { NgTemplateOutlet, UpperCasePipe } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -31,9 +31,10 @@ import { Icon } from '../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../shared/i18n/fecha.pipe';
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer, Icon, TranslatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, FechaPipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer, Icon, TranslatePipe],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

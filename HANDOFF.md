@@ -1,6 +1,8 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DP (13/14-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN `feature/dp-ronda-13nov`, NO dev/main todavía
+## ✅ Ronda DP/DQ/DR (13–16-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN `main` v1.217.0 (barrido 192/192); cierre DR en `feature/dr-idioma-cierre` → dev
+
+**Estado al 16-nov:** DP/DQ ya están en `main` (1.217.0). La ronda DR cerró lo que faltaba: `ht` 97→100 % (+670 claves), guardia estricta en `verify-i18n`, `| date`→`| fecha` (55) y `toLocale*` de fecha con `localeActual`. Detalle en `docs/I18N-AVANCE.md` § Cierre. Pendiente físico: `qa/visual/login.mjs` + `npm run i18n:smoke`; revisión humana del Kreyòl. Lo de abajo es el histórico de mitad de ronda (14-nov), ya superado.
 
 **TL;DR (actualizado 14-nov):** módulo Claude (CSS DP-01..DP-05) **100% hecho y verificado visualmente**. Idioma: infraestructura completa (DP-07..DP-13) + **lote 1 (Claude+shell) + lote 2 (Configuración/perfil) + lote 3 (Dashboard) + MÓDULO 4 (Inventario) COMPLETO (35/35 pantallas, lotes 4-14)** — los 4 primeros módulos de 17 están al 100% real, con `enforce:true` y verificados (`verify-i18n.mjs` 0 fallos, build + 368 tests verdes, smoke Playwright pasando en `en`/`ht`). Quedan **13 módulos** (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, resto) — ver tabla de lotes en `docs/I18N-AVANCE.md`. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 13112026\CONTEXTO-ACTUALIZACION-72.md`. Worktree `SGC-dp`, rama `feature/dp-ronda-13nov` desde `origin/main` (`056082b8`). **No se abrió PR todavía** — avisar a Xaviel antes de abrirlo/mergearlo a `dev`.
 

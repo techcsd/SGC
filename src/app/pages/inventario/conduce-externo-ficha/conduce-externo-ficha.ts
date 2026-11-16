@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -9,6 +9,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/services/transporte-v3.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /**
  * CC5 — Ficha (detalle completo) del conduce externo: CE-000123, transportista,
@@ -18,7 +19,7 @@ import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/s
  */
 @Component({
   selector: 'app-conduce-externo-ficha',
-  imports: [DatePipe, RouterLink, TranslatePipe, EstadoPulseDirective],
+  imports: [FechaPipe, RouterLink, TranslatePipe, EstadoPulseDirective],
   templateUrl: './conduce-externo-ficha.html',
   styleUrl: './conduce-externo-ficha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

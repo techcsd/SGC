@@ -8,6 +8,8 @@ import { UserService } from '../../core/services/user.service';
 import { CountUpDirective } from '../../../shared/motion/count-up.directive';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { etaMinutos } from '../../../shared/utils/geo.util';
+import { I18nService } from '../../../shared/i18n/i18n.service';
+import { localeActual } from '../../../shared/i18n/locale.util';
 
 /** DG3 — a partir de esta edad (min) la posición se pinta "sin señal" (mismo
  *  concepto que AV1 en Flota › Seguimiento, umbral propio de este tablero). */
@@ -31,6 +33,7 @@ const SIN_SENAL_MIN = 15;
 export class TableroVivoComponent implements OnInit, OnDestroy {
   private service = inject(TableroVivoService);
   private user = inject(UserService);
+  private i18n = inject(I18nService);
 
   datos = signal<TableroVivo | null>(null);
   error = signal('');
@@ -195,7 +198,7 @@ export class TableroVivoComponent implements OnInit, OnDestroy {
 
   hora(at: string): string {
     try {
-      return new Date(at).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+      return new Date(at).toLocaleTimeString(localeActual(this.i18n.idioma()), { hour: '2-digit', minute: '2-digit' });
     } catch { return ''; }
   }
 

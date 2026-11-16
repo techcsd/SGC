@@ -54,7 +54,7 @@
             <td>{{ f.proyecto ?? '—' }}
               @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }
             </td>
-            <td class="text-muted">{{ f.fecha | date:'d MMM y' }}</td>
+            <td class="text-muted">{{ f.fecha | fecha:'d MMM y' }}</td>
             <td class="otl-desc">{{ f.descripcion }}</td>
             <td class="text-muted">{{ f.responsable ?? '—' }}</td>
             <td>
