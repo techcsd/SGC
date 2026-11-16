@@ -243,7 +243,13 @@ function cambiarEstadoReal(odoo: () => OdooClient, accion: AccionBoton): Adaptad
         (accion === "confirmar" ? "confirmar" : "cancelar") + " desde SGC.", CODIGO_YA_RECIBIDA);
     }
 
-    await c.call("purchase.order", accion === "confirmar" ? "button_confirm" : "button_cancel", [[oc.id]]);
+    try {
+      await c.call("purchase.order", accion === "confirmar" ? "button_confirm" : "button_cancel", [[oc.id]]);
+    } catch (e) {
+      // DS-15 (medido en staging): button_cancel devuelve None y XML-RPC lo reporta como fault «cannot marshal None»
+      // aunque la OC SÍ quedó cancelada. No es un rechazo: se relee el estado y se decide por lo que Odoo dejó.
+      if (!(e instanceof OdooError && e.fault && /cannot marshal None/i.test(e.message))) throw e;
+    }
 
     const despues = await leerOc(c, [["id", "=", oc.id]]);
     if (!despues) return error("Odoo no devolvió la orden tras la operación; requiere conciliación.", CODIGO_ESTADO_INVALIDO);

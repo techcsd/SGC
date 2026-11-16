@@ -304,3 +304,20 @@ Deno.test("DS-06 cuenta analitica: una sola, varias (principal/elegida), prod ex
   assertEquals(resolverCuentaAnalitica({ cuentas_analiticas: [{ odoo_analytic_id: 29, rol: "principal", confirmado: true }], odoo_entorno: "prod" }), { id: 29 });
   assertEquals("error" in resolverCuentaAnalitica({}), true);
 });
+
+Deno.test("DS-15 cancelar: Odoo aplica button_cancel pero XML-RPC falla con «cannot marshal None» -> se relee y es éxito", async () => {
+  let cancelada = false;
+  const { adaptadores } = odooSimulado((c) => {
+    if (c.method === "button_cancel") { cancelada = true; return { fault: "Traceback\nTypeError: cannot marshal None unless allow_none is enabled" }; }
+    return oc(cancelada ? "cancel" : "purchase");
+  });
+  const r = await adaptadores.cancelar({ odoo_id: 900 });
+  assertEquals([r.estado, r.resultado?.estado_odoo], ["completado", "cancel"]);
+});
+
+Deno.test("DS-15 cancelar: «cannot marshal None» pero Odoo NO la canceló -> error (no se da por buena)", async () => {
+  const { adaptadores } = odooSimulado((c) =>
+    c.method === "button_cancel" ? { fault: "TypeError: cannot marshal None unless allow_none is enabled" } : oc("purchase")
+  );
+  assertEquals((await adaptadores.cancelar({ odoo_id: 900 })).estado, "error");
+});
