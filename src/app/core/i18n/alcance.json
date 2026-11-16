@@ -569,7 +569,7 @@
       "enforce": true
     },
     "rrhh/reportes": {
-      "enforce": false
+      "enforce": true
     },
     "solicitudes-movimiento": {
       "enforce": true
