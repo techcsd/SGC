@@ -58,9 +58,6 @@
     "auth": {
       "enforce": false
     },
-    "admin/bitacora-catalogos": {
-      "enforce": false
-    },
     "admin/jira": {
       "enforce": false
     },
@@ -134,6 +131,9 @@
       "enforce": false
     },
     "admin/almacenes-duplicados": {
+      "enforce": true
+    },
+    "admin/bitacora-catalogos": {
       "enforce": true
     },
     "admin/claude": {

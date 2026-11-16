@@ -1041,21 +1041,6 @@
       ]
     },
     {
-      "pantalla": "admin/bitacora-catalogos",
-      "total": 7,
-      "cubiertos": 3,
-      "sin": 4,
-      "pct": 43,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "valores",
-        "Estos catálogos alimentan los desplegables al llenar una",
-        "(web y app de campo). Cada columna abajo dice qué alimenta y dónde aparece. Agrega, reordena o desactiva valores; los cambios se reflejan en ambos lados al instante.",
-        "Agregar"
-      ]
-    },
-    {
       "pantalla": "admin/jira",
       "total": 56,
       "cubiertos": 24,
@@ -1642,6 +1627,16 @@
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/bitacora-catalogos",
+      "total": 7,
+      "cubiertos": 7,
       "sin": 0,
       "pct": 100,
       "enScope": true,

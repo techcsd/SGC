@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8944/10096 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8948/10096 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -26,7 +26,6 @@
 | soporte | scope | 39 | 1 | 38 | 3% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| admin/bitacora-catalogos | scope | 7 | 3 | 4 | 43% |
 | admin/jira | scope | 56 | 24 | 32 | 43% |
 | admin/conduces-huerfanos | scope | 15 | 7 | 8 | 47% |
 | admin/solicitudes-eliminacion | scope | 8 | 4 | 4 | 50% |
@@ -52,6 +51,7 @@
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
+| admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/importar | scope | 2 | 2 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
