@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 65%** (6815/10456 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 65%** (6823/10457 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -89,7 +89,6 @@
 | rrhh/empleados | scope | 134 | 99 | 35 | 74% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| rrhh/proveedores | scope | 32 | 25 | 7 | 78% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
@@ -196,13 +195,14 @@
 | rrhh/contratos | enforce | 32 | 32 | 0 | 100% |
 | rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
+| rrhh/proveedores | scope | 33 | 33 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**422 literal(es) sin t()** en 59 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**415 literal(es) sin t()** en 58 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -233,7 +233,6 @@
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
 | src/app/pages/rrhh/activos/activos.ts | 7 | No se pudieron cargar los activos · Falta el nombre · Activo guardado … |
 | src/app/pages/rrhh/nomina/nomina.ts | 7 | No se pudo cargar Nómina · Valor inválido · Parámetro actualizado … |
-| src/app/pages/rrhh/proveedores/proveedores.ts | 7 | No se pudieron cargar los proveedores · Falta el nombre · Proveedor guardado … |
 | src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |
 | src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |

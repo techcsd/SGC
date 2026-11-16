@@ -4477,24 +4477,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/proveedores",
-      "total": 32,
-      "cubiertos": 25,
-      "sin": 7,
-      "pct": 78,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "No se pudieron cargar los proveedores",
-        "Falta el nombre",
-        "Proveedor guardado",
-        "No se pudo guardar",
-        "No se pudo actualizar",
-        "Proveedor eliminado",
-        "No se pudo eliminar"
-      ]
-    },
-    {
       "pantalla": "ingenieria/pagos",
       "total": 68,
       "cubiertos": 54,
@@ -5624,6 +5606,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/proveedores",
+      "total": 33,
+      "cubiertos": 33,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

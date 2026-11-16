@@ -247,9 +247,6 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "rrhh/proveedores": {
-      "enforce": false
-    },
     "ingenieria/pagos": {
       "enforce": false
     },
@@ -567,6 +564,9 @@
     },
     "rrhh/organigrama": {
       "enforce": true
+    },
+    "rrhh/proveedores": {
+      "enforce": false
     },
     "rrhh/reportes": {
       "enforce": true
