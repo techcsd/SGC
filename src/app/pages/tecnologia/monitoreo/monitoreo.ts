@@ -11,6 +11,7 @@ import {
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 type Tab = 'dominios' | 'suscripciones' | 'alertas' | 'historico';
 
 @Component({
@@ -23,6 +24,7 @@ type Tab = 'dominios' | 'suscripciones' | 'alertas' | 'historico';
 export class TecMonitoreo implements OnInit {
   private service = inject(MonitoringService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly sevLabel = SEVERITY_LABEL;
   readonly checkLabel = CHECK_TYPE_LABEL;
@@ -84,7 +86,7 @@ export class TecMonitoreo implements OnInit {
       this.subscriptions.set(s);
       this.alerts.set(a);
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar el monitoreo.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar el monitoreo.'));
     } finally {
       this.loading.set(false);
     }
@@ -110,15 +112,15 @@ export class TecMonitoreo implements OnInit {
     try {
       await this.service.acknowledge(a.id);
       this.alerts.set(await this.service.getAlerts(this.alertasSoloActivas()));
-      this.toast.success('Alerta reconocida.');
+      this.toast.success(this.i18n.t('Alerta reconocida.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo reconocer.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo reconocer.'));
     }
   }
 
   nombreFuente(a: InfraAlert): string {
-    if (a.source_type === 'domain') return this.domains().find((d) => d.id === a.source_id)?.domain ?? 'dominio';
-    return this.subscriptions().find((s) => s.id === a.source_id)?.name ?? 'suscripción';
+    if (a.source_type === 'domain') return this.domains().find((d) => d.id === a.source_id)?.domain ?? this.i18n.t('dominio');
+    return this.subscriptions().find((s) => s.id === a.source_id)?.name ?? this.i18n.t('suscripción');
   }
 
   // ── Histórico ──
@@ -165,21 +167,21 @@ export class TecMonitoreo implements OnInit {
       await this.service.saveSubscription({ id: this.editingSubId() ?? undefined, ...this.subForm.getRawValue() } as Partial<Subscription>);
       this.subDrawerOpen.set(false);
       this.subscriptions.set(await this.service.getSubscriptions());
-      this.toast.success('Suscripción guardada.');
+      this.toast.success(this.i18n.t('Suscripción guardada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo guardar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo guardar.'));
     } finally {
       this.guardando.set(false);
     }
   }
   async eliminarSub(s: Subscription) {
-    if (!confirm(`¿Eliminar la suscripción «${s.name}»?`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar la suscripción «{nombre}»?', { nombre: s.name }))) return;
     try {
       await this.service.deleteSubscription(s.id);
       this.subscriptions.set(await this.service.getSubscriptions());
-      this.toast.success('Suscripción eliminada.');
+      this.toast.success(this.i18n.t('Suscripción eliminada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo eliminar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo eliminar.'));
     }
   }
 }

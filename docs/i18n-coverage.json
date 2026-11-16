@@ -2648,26 +2648,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/monitoreo",
-      "total": 68,
-      "cubiertos": 59,
-      "sin": 9,
-      "pct": 87,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Alertas {",
-        "( días)",
-        "( d)",
-        "Todos los dominios",
-        "Todo tipo de check",
-        "Alerta reconocida.",
-        "Suscripción guardada.",
-        "Suscripción eliminada.",
-        "¿Eliminar la suscripción «${s.name}»?"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 73,
       "cubiertos": 65,
@@ -4021,6 +4001,16 @@
       "pantalla": "tecnologia/guia",
       "total": 9,
       "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/monitoreo",
+      "total": 65,
+      "cubiertos": 65,
       "sin": 0,
       "pct": 100,
       "enScope": true,

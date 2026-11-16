@@ -163,9 +163,6 @@
     "tecnologia/cotizaciones": {
       "enforce": false
     },
-    "tecnologia/monitoreo": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "tecnologia/guia": {
+      "enforce": true
+    },
+    "tecnologia/monitoreo": {
       "enforce": true
     },
     "tecnologia/odoo-sync": {
