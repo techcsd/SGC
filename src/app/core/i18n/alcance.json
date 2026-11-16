@@ -58,9 +58,6 @@
     "auth": {
       "enforce": false
     },
-    "admin/usuarios": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -134,6 +131,9 @@
       "enforce": true
     },
     "admin/unidades": {
+      "enforce": true
+    },
+    "admin/usuarios": {
       "enforce": true
     },
     "admin/usuarios-duplicados": {

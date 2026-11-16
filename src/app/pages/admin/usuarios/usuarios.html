@@ -10,7 +10,7 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
       </svg>
-      Usuarios duplicados
+      {{ 'Usuarios duplicados' | t }}
     </a>
     <app-export-excel filenameBase="usuarios" [rows]="filtered()" [allRows]="usuarios()"
       [columns]="exportCols" [sections]="exportSecciones" />
@@ -18,7 +18,7 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Crear Usuario
+      {{ 'Crear Usuario' | t }}
     </button>
   </div>
 </div>
@@ -39,9 +39,9 @@
     (change)="onStatusChange($any($event.target).value)"
     aria-label="{{ 'Filtrar por estado' | t }}"
   >
-    <option value="all">Todos los estados</option>
-    <option value="active">Activos</option>
-    <option value="inactive">Inactivos</option>
+    <option value="all">{{ 'Todos los estados' | t }}</option>
+    <option value="active">{{ 'Activos' | t }}</option>
+    <option value="inactive">{{ 'Inactivos' | t }}</option>
   </select>
   <!-- CK9 — filtro por rol (multi, con búsqueda y conteo) -->
   <app-filter-select
@@ -90,7 +90,7 @@
         <tr>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('nombre')">
-              Usuario @if (sortKey() === 'nombre') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
+              {{ 'Usuario' | t }} @if (sortKey() === 'nombre') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
           <th scope="col">{{ 'Correo' | t }}</th>
@@ -98,12 +98,12 @@
           <th scope="col">{{ 'Estado' | t }}</th>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('web')">
-              Última vez web @if (sortKey() === 'web') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
+              {{ 'Última vez web' | t }} @if (sortKey() === 'web') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('app')">
-              Última vez app @if (sortKey() === 'app') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
+              {{ 'Última vez app' | t }} @if (sortKey() === 'app') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
           <th scope="col"><span class="sr-only">{{ 'Acciones' | t }}</span></th>
@@ -114,7 +114,7 @@
           <tr [class.inactive]="!usuario.activo" class="admin-usuarios__row"
               (click)="openDetail(usuario)"
               tabindex="0" role="button"
-              [attr.aria-label]="'Ver detalle de ' + usuario.nombre">
+              [attr.aria-label]="i18n.t('Ver detalle de') + ' ' + usuario.nombre">
             <td class="admin-usuarios__name-cell">
               @if (avatarUrlDe(usuario); as av) {
                 <img class="admin-usuarios__avatar admin-usuarios__avatar--img" [src]="av"
@@ -135,7 +135,7 @@
                 @for (ur of usuario.roles.slice(0, 2); track ur.rol.id) {
                   <button type="button" class="sgc-badge sgc-badge--info admin-usuarios__rol-chip"
                     (click)="filtrarPorRol(ur.rol.codigo, $event)"
-                    [title]="'Filtrar por ' + ur.rol.nombre">{{ ur.rol.nombre }}</button>
+                    [title]="i18n.t('Filtrar por') + ' ' + ur.rol.nombre">{{ ur.rol.nombre }}</button>
                 } @empty {
                   <span class="sgc-badge sgc-badge--neutral">{{ 'Sin rol' | t }}</span>
                 }
@@ -155,10 +155,10 @@
                 <span class="sgc-badge sgc-badge--warning" title="{{ 'Invitado pero aún no ha entrado' | t }}">{{ 'Pendiente' | t }}</span>
               }
             </td>
-            <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_web ? formatFecha(usuario.ultima_actividad_web) : 'Sin actividad web registrada'">
+            <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_web ? formatFecha(usuario.ultima_actividad_web) : i18n.t('Sin actividad web registrada')">
               {{ actividad(usuario.ultima_actividad_web) }}
             </td>
-            <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_app ? formatFecha(usuario.ultima_actividad_app) : 'Sin actividad app registrada'">
+            <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_app ? formatFecha(usuario.ultima_actividad_app) : i18n.t('Sin actividad app registrada')">
               {{ actividad(usuario.ultima_actividad_app) }}
             </td>
             <td class="admin-usuarios__actions">
@@ -168,7 +168,7 @@
                 (click)="openMenu(usuario, $event); $event.stopPropagation()"
                 [attr.aria-expanded]="openMenuId() === usuario.id"
                 aria-haspopup="menu"
-                [attr.aria-label]="'Acciones para ' + usuario.nombre"
+                [attr.aria-label]="i18n.t('Acciones para') + ' ' + usuario.nombre"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>
@@ -184,7 +184,7 @@
         } @empty {
           <tr>
             <td colspan="7" class="admin-usuarios__empty">
-              No se encontraron usuarios con los filtros aplicados.
+              {{ 'No se encontraron usuarios con los filtros aplicados.' | t }}
             </td>
           </tr>
         }
@@ -195,7 +195,7 @@
   <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 
   <p class="admin-usuarios__count">
-    {{ filtered().length }} usuario{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+    {{ filtered().length === 1 ? i18n.t('{n} usuario encontrado', { n: filtered().length }) : i18n.t('{n} usuarios encontrados', { n: filtered().length }) }}
   </p>
 }
 
@@ -219,7 +219,7 @@
           <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
           <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
         </svg>
-        Ver ficha de conductor
+        {{ 'Ver ficha de conductor' | t }}
       </button>
       <span class="admin-usuarios__menu-hint">{{ 'Este usuario ya es conductor' | t }}</span>
     } @else {
@@ -229,7 +229,7 @@
           <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
           <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
         </svg>
-        Hacer conductor
+        {{ 'Hacer conductor' | t }}
       </button>
     }
     @if (u.pendiente) {
@@ -241,34 +241,34 @@
     } @else {
       <button type="button" role="menuitem" (click)="resetPassword(u); closeMenu()"
         [disabled]="resettingId() === u.id || correoNoRecibe(u)"
-        [attr.title]="correoNoRecibe(u) ? 'Esta cuenta no recibe correo. Usa &quot;Establecer contraseña&quot;.' : null">
-        Restablecer contraseña</button>
+        [attr.title]="correoNoRecibe(u) ? i18n.t('Esta cuenta no recibe correo. Usa «Establecer contraseña».') : null">
+        {{ 'Restablecer contraseña' | t }}</button>
     }
     @if (!esSintetico(u)) {
       <button type="button" role="menuitem" (click)="abrirEstablecerPassword(u)">{{ 'Establecer contraseña' | t }}</button>
     }
     <button type="button" role="menuitem" (click)="toggleActivo(u); closeMenu()"
       [disabled]="isSelf(u)"
-      [attr.title]="isSelf(u) ? 'No puedes desactivar tu propia cuenta' : null">
-      {{ u.activo ? 'Desactivar' : 'Activar' }}
+      [attr.title]="isSelf(u) ? i18n.t('No puedes desactivar tu propia cuenta') : null">
+      {{ (u.activo ? 'Desactivar' : 'Activar') | t }}
     </button>
     <!-- AZ7 — marcar/desmarcar como prueba -->
     <button type="button" role="menuitem" (click)="togglePrueba(u)"
       [disabled]="isSelf(u) || marcandoId() === u.id"
-      [attr.title]="isSelf(u) ? 'No puedes marcarte a ti mismo' : null">
-      {{ u.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+      [attr.title]="isSelf(u) ? i18n.t('No puedes marcarte a ti mismo') : null">
+      {{ (u.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba') | t }}
     </button>
     <!-- AZ10 — entrar como (impersonación de soporte, auditada) -->
     <button type="button" role="menuitem" (click)="entrarComo(u)"
       [disabled]="isSelf(u) || esUsuarioAdmin(u) || entrandoComoId() === u.id"
-      [attr.title]="esUsuarioAdmin(u) ? 'No se puede entrar como otro administrador' : (isSelf(u) ? 'Ya eres tú' : 'Entra como este usuario para dar soporte (queda auditado)')">
-      {{ entrandoComoId() === u.id ? 'Entrando…' : 'Entrar como' }}
+      [attr.title]="esUsuarioAdmin(u) ? i18n.t('No se puede entrar como otro administrador') : (isSelf(u) ? i18n.t('Ya eres tú') : i18n.t('Entra como este usuario para dar soporte (queda auditado)'))">
+      {{ (entrandoComoId() === u.id ? 'Entrando…' : 'Entrar como') | t }}
     </button>
     <button type="button" role="menuitem" class="admin-usuarios__menu-item--danger"
       (click)="deleteUsuario(u); closeMenu()"
       [disabled]="isSelf(u) || deletingId() === u.id"
-      [attr.title]="isSelf(u) ? 'No puedes eliminar tu propia cuenta' : 'Solo se puede eliminar un usuario sin actividad registrada'">
-      Eliminar
+      [attr.title]="isSelf(u) ? i18n.t('No puedes eliminar tu propia cuenta') : i18n.t('Solo se puede eliminar un usuario sin actividad registrada')">
+      {{ 'Eliminar' | t }}
     </button>
   </div>
 }
@@ -316,7 +316,7 @@
         </div>
         <button type="button" class="admin-usuarios__accesos-link" (click)="verAccesos(u)"
           title="{{ 'Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.' | t }}">
-          Ver accesos efectivos →
+          {{ 'Ver accesos efectivos →' | t }}
         </button>
       </div>
 
@@ -344,12 +344,12 @@
       @if (conductorDe(u); as c) {
         <div class="admin-usuarios__detail-section">
           <span class="admin-usuarios__detail-label">
-            Perfil de conductor
+            {{ 'Perfil de conductor' | t }}
             <!-- CK7 — ya es conductor: chip con el tipo (privado/flota) -->
-            <span class="sgc-badge sgc-badge--success">Ya es conductor · {{ tipoConductorLabel(u) }}</span>
+            <span class="sgc-badge sgc-badge--success">{{ 'Ya es conductor ·' | t }} {{ tipoConductorLabel(u) }}</span>
           </span>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="irAConductor(c.id)">
-            <app-icon name="truck" [size]="16" /> Ver perfil de {{ c.nombre }}
+            <app-icon name="truck" [size]="16" /> {{ 'Ver perfil de' | t }} {{ c.nombre }}
           </button>
         </div>
       }
@@ -359,7 +359,7 @@
         <p class="admin-usuarios__cargo-hint">{{ 'Cargando materiales a su cargo…' | t }}</p>
       } @else if (cargoUsuario().length) {
         <div class="admin-usuarios__cargo">
-          <h3 class="admin-usuarios__cargo-title">A su cargo ({{ cargoUsuario().length }})</h3>
+          <h3 class="admin-usuarios__cargo-title">{{ i18n.t('A su cargo ({n})', { n: cargoUsuario().length }) }}</h3>
           <p class="admin-usuarios__cargo-hint">{{ 'Material recibido en sus obras que aún no se ha devuelto.' | t }}</p>
           <div class="table-scroll">
             <table class="data-table">
@@ -379,22 +379,22 @@
         @if (esSintetico(u)) {
           <button type="button" class="sgc-btn sgc-btn--ghost"
             (click)="closeDetail(); abrirFijarPin(u)">
-            Fijar PIN
+            {{ 'Fijar PIN' | t }}
           </button>
         } @else {
           <button type="button" class="sgc-btn sgc-btn--ghost"
             (click)="resetPassword(u)" [disabled]="resettingId() === u.id || correoNoRecibe(u)"
-            [attr.title]="correoNoRecibe(u) ? 'Esta cuenta no recibe correo. Usa &quot;Establecer contraseña&quot;.' : null">
-            Restablecer contraseña
+            [attr.title]="correoNoRecibe(u) ? i18n.t('Esta cuenta no recibe correo. Usa «Establecer contraseña».') : null">
+            {{ 'Restablecer contraseña' | t }}
           </button>
           <button type="button" class="sgc-btn sgc-btn--ghost"
             (click)="closeDetail(); abrirEstablecerPassword(u)">
-            Establecer contraseña
+            {{ 'Establecer contraseña' | t }}
           </button>
         }
         <button type="button" class="sgc-btn sgc-btn--primary"
           (click)="closeDetail(); openEdit(u)">
-          Editar
+          {{ 'Editar' | t }}
         </button>
       </div>
       @if (resetMessage() && resetMessage()?.userId === u.id) {
@@ -441,7 +441,7 @@
         >
           <span class="admin-usuarios__status-knob"></span>
         </button>
-        <span>{{ f.activo.value ? 'Cuenta activa' : 'Cuenta inactiva' }}</span>
+        <span>{{ (f.activo.value ? 'Cuenta activa' : 'Cuenta inactiva') | t }}</span>
       </div>
     </div>
 
@@ -490,10 +490,10 @@
     <!-- Actions -->
     <div class="admin-usuarios__drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { Guardando... } @else { Guardar cambios }
+        @if (saving()) { {{ 'Guardando...' | t }} } @else { {{ 'Guardar cambios' | t }} }
       </button>
     </div>
 
@@ -512,15 +512,15 @@
     <div class="admin-usuarios__tipo-toggle" role="tablist" aria-label="{{ 'Tipo de usuario' | t }}">
       <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'invitacion'"
         [class.active]="createTipo() === 'invitacion'" (click)="createTipo.set('invitacion')">
-        Invitación por correo
+        {{ 'Invitación por correo' | t }}
       </button>
       <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'cedula'"
         [class.active]="createTipo() === 'cedula'" (click)="createTipo.set('cedula')">
-        Acceso por cédula (sin correo)
+        {{ 'Acceso por cédula (sin correo)' | t }}
       </button>
       <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'prueba'"
         [class.active]="createTipo() === 'prueba'" (click)="createTipo.set('prueba')">
-        Usuario de prueba (sin correo)
+        {{ 'Usuario de prueba (sin correo)' | t }}
       </button>
     </div>
 
@@ -530,11 +530,11 @@
         @if (createTipo() === 'cedula') {
           <p><strong>{{ 'Acceso por cédula creado.' | t }}</strong> {{ 'Entrégale a la persona su cédula y este PIN (no se vuelve a mostrar):' | t }}</p>
           <p>{{ 'Entra con:' | t }} <strong>{{ 'su cédula' | t }}</strong> {{ '+ el PIN.' | t }}</p>
-          <p>PIN: <code>{{ res.password }}</code></p>
+          <p>{{ 'PIN:' | t }} <code>{{ res.password }}</code></p>
         } @else {
           <p><strong>{{ 'Usuario de prueba creado.' | t }}</strong> {{ 'Guarda estas credenciales (no se vuelven a mostrar):' | t }}</p>
-          <p>Correo: <code>{{ res.email }}</code></p>
-          <p>Contraseña: <code>{{ res.password }}</code></p>
+          <p>{{ 'Correo:' | t }} <code>{{ res.email }}</code></p>
+          <p>{{ 'Contraseña:' | t }} <code>{{ res.password }}</code></p>
         }
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeCreateDrawer()">{{ 'Listo' | t }}</button>
       </div>
@@ -542,8 +542,7 @@
       <!-- BH4 — alta directa por cédula + PIN (reutiliza la edge acceso-cedula) -->
       <div [formGroup]="cedulaForm">
         <p class="admin-usuarios__create-hint">
-          Para personal de campo sin correo de empresa. Entra en la app móvil con su <strong>{{ 'cédula + PIN de 6 dígitos' | t }}</strong>.
-          Si la cédula ya existe, el sistema lo avisa en vez de duplicar a la persona.
+          {{ 'Para personal de campo sin correo de empresa. Entra en la app móvil con su' | t }} <strong>{{ 'cédula + PIN de 6 dígitos' | t }}</strong>{{ '. Si la cédula ya existe, el sistema lo avisa en vez de duplicar a la persona.' | t }}
         </p>
         <div class="sgc-field">
           <label for="ced-nombre">{{ 'Nombre completo' | t }} <span class="required" aria-hidden="true">*</span></label>
@@ -561,10 +560,10 @@
         <div class="sgc-field">
           <label for="ced-tipo">{{ 'Tipo de acceso' | t }} <span class="required" aria-hidden="true">*</span></label>
           <select id="ced-tipo" formControlName="tipo">
-            <option value="capataz">Capataz (rol capataz)</option>
-            <option value="conductor">Chofer (rol chofer_transportista)</option>
-            <option value="chofer_privado">Chofer privado — personal de gerencia (rol chofer_privado)</option>
-            <option value="encargado">Encargado de patio (rol encargado_patio)</option>
+            <option value="capataz">{{ 'Capataz (rol capataz)' | t }}</option>
+            <option value="conductor">{{ 'Chofer (rol chofer_transportista)' | t }}</option>
+            <option value="chofer_privado">{{ 'Chofer privado — personal de gerencia (rol chofer_privado)' | t }}</option>
+            <option value="encargado">{{ 'Encargado de patio (rol encargado_patio)' | t }}</option>
           </select>
         </div>
         <div class="sgc-field">
@@ -582,13 +581,13 @@
       <div class="admin-usuarios__drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
-          {{ creating() ? 'Creando…' : 'Crear acceso' }}
+          {{ (creating() ? 'Creando…' : 'Crear acceso') | t }}
         </button>
       </div>
     } @else {
       @if (createTipo() === 'invitacion') {
         <p class="admin-usuarios__create-hint">
-          Se enviará una invitación por correo para que el usuario elija su propia contraseña — nunca la verás ni la definirás tú.
+          {{ 'Se enviará una invitación por correo para que el usuario elija su propia contraseña — nunca la verás ni la definirás tú.' | t }}
         </p>
         <div class="sgc-field">
           <label for="create-email">{{ 'Correo electrónico' | t }} <span class="required" aria-hidden="true">*</span></label>
@@ -600,7 +599,7 @@
         </div>
       } @else {
         <p class="admin-usuarios__create-hint">
-          Se crea un usuario de prueba sin correo (login sintético). Queda fuera de KPIs, correos e incentivos y puedes "Entrar como" él para probar.
+          {{ 'Se crea un usuario de prueba sin correo (login sintético). Queda fuera de KPIs, correos e incentivos y puedes "Entrar como" él para probar.' | t }}
         </p>
       }
 
@@ -617,7 +616,7 @@
         <div class="sgc-field">
           <label for="create-role">{{ 'Rol inicial' | t }}</label>
           <select id="create-role" formControlName="roleId">
-            <option [ngValue]="null">Sin rol (asignar después)</option>
+            <option [ngValue]="null">{{ 'Sin rol (asignar después)' | t }}</option>
             @for (rol of roles(); track rol.id) { <option [ngValue]="rol.id">{{ rol.nombre }}</option> }
           </select>
         </div>
@@ -643,7 +642,7 @@
       <div class="admin-usuarios__drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">{{ 'Cancelar' | t }}</button>
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
-          @if (creating()) { Creando... } @else if (createTipo() === 'prueba') { Crear usuario de prueba } @else { Enviar invitación }
+          @if (creating()) { {{ 'Creando...' | t }} } @else if (createTipo() === 'prueba') { {{ 'Crear usuario de prueba' | t }} } @else { {{ 'Enviar invitación' | t }} }
         </button>
       </div>
     }
@@ -661,11 +660,11 @@
     @if (pinResult(); as pin) {
       <!-- El PIN se muestra una sola vez, con copia al portapapeles -->
       <div class="admin-usuarios__test-cred">
-        <p><strong>PIN fijado para {{ u.nombre }}.</strong> {{ 'Entrégaselo (no se vuelve a mostrar):' | t }}</p>
+        <p><strong>{{ 'PIN fijado para' | t }} {{ u.nombre }}.</strong> {{ 'Entrégaselo (no se vuelve a mostrar):' | t }}</p>
         <p>{{ 'Entra con:' | t }} <strong>{{ identidad(u) }}</strong> {{ '+ este PIN.' | t }}</p>
-        <p>PIN: <code>{{ pin }}</code>
+        <p>{{ 'PIN:' | t }} <code>{{ pin }}</code>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarPin()">
-            {{ pinCopied() ? 'Copiado ✓' : 'Copiar' }}
+            {{ (pinCopied() ? 'Copiado ✓' : 'Copiar') | t }}
           </button>
         </p>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrarFijarPin()">{{ 'Listo' | t }}</button>
@@ -673,8 +672,7 @@
     } @else {
       <form [formGroup]="pinForm" (ngSubmit)="guardarPin()" novalidate>
         <p class="admin-usuarios__create-hint">
-          {{ u.nombre }} entra con <strong>{{ identidad(u) }}</strong> + un PIN de 6 dígitos (no tiene correo).
-          El PIN se genera solo; puedes teclear otro. El cambio queda registrado en la auditoría.
+          {{ u.nombre }} {{ 'entra con' | t }} <strong>{{ identidad(u) }}</strong> {{ '+ un PIN de 6 dígitos (no tiene correo). El PIN se genera solo; puedes teclear otro. El cambio queda registrado en la auditoría.' | t }}
         </p>
         <div class="sgc-field">
           <label for="fijar-pin">{{ 'PIN de 6 dígitos' | t }} <span class="required" aria-hidden="true">*</span></label>
@@ -694,7 +692,7 @@
         <div class="admin-usuarios__drawer-actions">
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarFijarPin()">{{ 'Cancelar' | t }}</button>
           <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="pinSaving()">
-            {{ pinSaving() ? 'Fijando…' : 'Fijar PIN' }}
+            {{ (pinSaving() ? 'Fijando…' : 'Fijar PIN') | t }}
           </button>
         </div>
       </form>
@@ -712,11 +710,11 @@
     @if (pwResult(); as pw) {
       <!-- La contraseña generada se muestra una sola vez, con copia -->
       <div class="admin-usuarios__test-cred">
-        <p><strong>Contraseña generada para {{ u.nombre }}.</strong> {{ 'Entrégasela (no se vuelve a mostrar):' | t }}</p>
+        <p><strong>{{ 'Contraseña generada para' | t }} {{ u.nombre }}.</strong> {{ 'Entrégasela (no se vuelve a mostrar):' | t }}</p>
         <p>{{ 'Entra con:' | t }} <strong>{{ identidad(u) }}</strong> {{ '+ esta contraseña.' | t }}</p>
-        <p>Contraseña: <code>{{ pw }}</code>
+        <p>{{ 'Contraseña:' | t }} <code>{{ pw }}</code>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarPassword()">
-            {{ pwCopied() ? 'Copiado ✓' : 'Copiar' }}
+            {{ (pwCopied() ? 'Copiado ✓' : 'Copiar') | t }}
           </button>
         </p>
         @if (pwNote()) { <p class="admin-usuarios__create-hint">{{ pwNote() }}</p> }
@@ -725,9 +723,7 @@
     } @else {
       <form [formGroup]="pwForm" (ngSubmit)="guardarPassword()" novalidate>
         <p class="admin-usuarios__create-hint">
-          Fija la contraseña de <strong>{{ identidad(u) }}</strong>. Útil para cuentas sin correo real
-          (prueba/QA). Escribe una o deja que el sistema la <strong>{{ 'genere' | t }}</strong>. Queda en la auditoría
-          (nunca se guarda la contraseña).
+          {{ 'Fija la contraseña de' | t }} <strong>{{ identidad(u) }}</strong>{{ '. Útil para cuentas sin correo real (prueba/QA). Escribe una o deja que el sistema la' | t }} <strong>{{ 'genere' | t }}</strong>{{ '. Queda en la auditoría (nunca se guarda la contraseña).' | t }}
         </p>
         <div class="sgc-field">
           <label for="set-pw">{{ 'Contraseña' | t }} <span class="required" aria-hidden="true">*</span></label>
@@ -742,10 +738,10 @@
         @if (pwError()) { <p class="admin-usuarios__save-error" role="alert">{{ pwError() }}</p> }
         <div class="admin-usuarios__drawer-actions">
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="generarPassword()" [disabled]="pwSaving()">
-            {{ pwSaving() ? 'Trabajando…' : 'Generar' }}
+            {{ (pwSaving() ? 'Trabajando…' : 'Generar') | t }}
           </button>
           <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="pwSaving()">
-            {{ pwSaving() ? 'Guardando…' : 'Establecer' }}
+            {{ (pwSaving() ? 'Guardando…' : 'Establecer') | t }}
           </button>
         </div>
       </form>
@@ -761,12 +757,11 @@
 >
   @if (conductorUser(); as u) {
     <p class="admin-usuarios__create-hint">
-      Se creará (o reutilizará) una ficha de conductor para <strong>{{ u.nombre }}</strong>, sin vehículo asignado,
-      y se le asignará el rol de chofer que elijas. Luego podrás asignarle vehículos desde Flota.
+      {{ 'Se creará (o reutilizará) una ficha de conductor para' | t }} <strong>{{ u.nombre }}</strong>{{ ', sin vehículo asignado, y se le asignará el rol de chofer que elijas. Luego podrás asignarle vehículos desde Flota.' | t }}
     </p>
     @if (u.conductores?.length) {
       <p class="admin-usuarios__create-hint">
-        Este usuario ya tiene una ficha de conductor; se reutilizará esa misma ficha.
+        {{ 'Este usuario ya tiene una ficha de conductor; se reutilizará esa misma ficha.' | t }}
       </p>
     }
     @if (conductorError()) {
@@ -775,16 +770,16 @@
     <div class="admin-usuarios__conductor-choices">
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="conductorSaving()"
         (click)="hacerConductor('chofer_transportista')">
-        Chofer de flota (transportista)
+        {{ 'Chofer de flota (transportista)' | t }}
       </button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="conductorSaving()"
         (click)="hacerConductor('chofer_privado')">
-        Chofer privado (gerencia)
+        {{ 'Chofer privado (gerencia)' | t }}
       </button>
     </div>
     <div class="admin-usuarios__drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarHacerConductor()" [disabled]="conductorSaving()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
     </div>
   }

@@ -26,6 +26,7 @@ import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/
 import { VerFotoDirective } from '../../../../shared/ui/lightbox/ver-foto.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
@@ -47,6 +48,7 @@ export class AdminUsuarios implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
 
   // AZ10 — "Entrar como" (impersonación de soporte).
   entrandoComoId = signal<string | null>(null);
@@ -59,14 +61,14 @@ export class AdminUsuarios implements OnInit {
   async entrarComo(u: UsuarioAdmin) {
     this.closeMenu();
     if (this.isSelf(u) || this.esUsuarioAdmin(u) || this.entrandoComoId()) return;
-    if (!confirm(`¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior.`)) return;
+    if (!confirm(this.i18n.t('¿Entrar como "{nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior.', { nombre: u.nombre }))) return;
     this.entrandoComoId.set(u.id);
     try {
       const { error } = await this.auth.entrarComoUsuario(u.id);
       if (error) { this.accionError.set(error); this.entrandoComoId.set(null); return; }
       window.location.assign('/'); // recarga completa para cargar el perfil del objetivo
     } catch (e: unknown) {
-      this.accionError.set(e instanceof Error ? e.message : 'No se pudo entrar como el usuario.');
+      this.accionError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo entrar como el usuario.'));
       this.entrandoComoId.set(null);
     }
   }
@@ -224,7 +226,7 @@ export class AdminUsuarios implements OnInit {
     if (this.pinForm.invalid) return;
     const pin = this.pinForm.value.pin!;
     if (this.esPinTrivial(pin)) {
-      this.pinError.set('Ese PIN es demasiado fácil de adivinar (repetido o secuencia). Elige otro o genera uno.');
+      this.pinError.set(this.i18n.t('Ese PIN es demasiado fácil de adivinar (repetido o secuencia). Elige otro o genera uno.'));
       return;
     }
     this.pinSaving.set(true);
@@ -233,7 +235,7 @@ export class AdminUsuarios implements OnInit {
       await this.adminService.fijarPinUsuario(u.id, pin);
       this.pinResult.set(pin); // se muestra una sola vez
     } catch (e: unknown) {
-      this.pinError.set(e instanceof Error ? e.message : 'No se pudo fijar el PIN.');
+      this.pinError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo fijar el PIN.'));
     } finally {
       this.pinSaving.set(false);
     }
@@ -293,18 +295,18 @@ export class AdminUsuarios implements OnInit {
     this.pwForm.markAllAsTouched();
     const pw = this.pwForm.value.password ?? '';
     if (!this.passwordFuerte(pw)) {
-      this.pwError.set('La contraseña debe tener al menos 10 caracteres e incluir un número.');
+      this.pwError.set(this.i18n.t('La contraseña debe tener al menos 10 caracteres e incluir un número.'));
       return;
     }
     this.pwSaving.set(true);
     this.pwError.set('');
     try {
       const res = await this.adminService.setPassword(u.id, { password: pw });
-      this.pwNote.set(res.debeCambiar ? 'La cuenta deberá cambiarla al entrar.' : 'Contraseña actualizada.');
+      this.pwNote.set(res.debeCambiar ? this.i18n.t('La cuenta deberá cambiarla al entrar.') : this.i18n.t('Contraseña actualizada.'));
       this.pwResult.set(null); // no se muestra la que tecleó el admin
       this.pwForm.reset({ password: '' });
     } catch (e: unknown) {
-      this.pwError.set(e instanceof Error ? e.message : 'No se pudo establecer la contraseña.');
+      this.pwError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo establecer la contraseña.'));
     } finally {
       this.pwSaving.set(false);
     }
@@ -319,10 +321,10 @@ export class AdminUsuarios implements OnInit {
     try {
       const res = await this.adminService.setPassword(u.id, { generate: true });
       this.pwResult.set(res.password ?? null);
-      this.pwNote.set(res.debeCambiar ? 'La cuenta deberá cambiarla al entrar.' : 'Contraseña actualizada.');
+      this.pwNote.set(res.debeCambiar ? this.i18n.t('La cuenta deberá cambiarla al entrar.') : this.i18n.t('Contraseña actualizada.'));
       this.pwCopied.set(false);
     } catch (e: unknown) {
-      this.pwError.set(e instanceof Error ? e.message : 'No se pudo generar la contraseña.');
+      this.pwError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo generar la contraseña.'));
     } finally {
       this.pwSaving.set(false);
     }
@@ -528,7 +530,7 @@ export class AdminUsuarios implements OnInit {
       this.conductorUser.set(null);
       void this.router.navigate(['/flota/conductores', res.conductor_id]);
     } catch (e: unknown) {
-      this.conductorError.set(e instanceof Error ? e.message : 'No se pudo convertir en conductor.');
+      this.conductorError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo convertir en conductor.'));
     } finally {
       this.conductorSaving.set(false);
     }
@@ -552,7 +554,7 @@ export class AdminUsuarios implements OnInit {
 
   drawerTitle = computed(() => {
     const u = this.editingUser();
-    return u ? `Editar: ${u.nombre}` : 'Editar usuario';
+    return u ? this.i18n.t('Editar: {nombre}', { nombre: u.nombre }) : this.i18n.t('Editar usuario');
   });
 
   async ngOnInit() {
@@ -573,7 +575,7 @@ export class AdminUsuarios implements OnInit {
       this.usuarios.set(usuarios);
       this.roles.set(roles);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar datos.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar datos.'));
     } finally {
       this.loading.set(false);
     }
@@ -610,9 +612,9 @@ export class AdminUsuarios implements OnInit {
   /** CK7 — tipo de chofer según el rol (privado vs flota), para el chip "Ya es conductor · {tipo}". */
   tipoConductorLabel(u: UsuarioAdmin): string {
     const cods = this.codigosDe(u);
-    if (cods.includes('chofer_privado')) return 'privado';
-    if (cods.includes('chofer_transportista')) return 'flota';
-    return 'conductor';
+    if (cods.includes('chofer_privado')) return this.i18n.t('privado');
+    if (cods.includes('chofer_transportista')) return this.i18n.t('flota');
+    return this.i18n.t('conductor');
   }
 
   // CO4 — permiso puntual "puede aprobar sus propias requisiciones" (independiente de roles).
@@ -648,7 +650,7 @@ export class AdminUsuarios implements OnInit {
       if (error) throw new Error(error.message);
       this.autoaprobarReq.set(nuevo);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'No se pudo cambiar el permiso.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cambiar el permiso.'));
     } finally {
       this.autoaprobarReqSaving.set(false);
     }
@@ -690,7 +692,7 @@ export class AdminUsuarios implements OnInit {
         this.createResult.set({ email: res.email, password: v.pin! });
         this.usuarios.set(await this.adminService.getAllUsuarios());
       } catch (e: unknown) {
-        this.createError.set(e instanceof Error ? e.message : 'Error al crear el acceso por cédula.');
+        this.createError.set(e instanceof Error ? e.message : this.i18n.t('Error al crear el acceso por cédula.'));
       } finally {
         this.creating.set(false);
       }
@@ -708,7 +710,7 @@ export class AdminUsuarios implements OnInit {
         this.createResult.set({ email: cred.email, password: cred.password });
         this.usuarios.set(await this.adminService.getAllUsuarios());
       } catch (e: unknown) {
-        this.createError.set(e instanceof Error ? e.message : 'Error al crear el usuario de prueba.');
+        this.createError.set(e instanceof Error ? e.message : this.i18n.t('Error al crear el usuario de prueba.'));
       } finally {
         this.creating.set(false);
       }
@@ -730,7 +732,7 @@ export class AdminUsuarios implements OnInit {
       this.usuarios.set(updated);
       this.createDrawerOpen.set(false);
     } catch (e: unknown) {
-      this.createError.set(e instanceof Error ? e.message : 'Error al crear el usuario.');
+      this.createError.set(e instanceof Error ? e.message : this.i18n.t('Error al crear el usuario.'));
     } finally {
       this.creating.set(false);
     }
@@ -742,15 +744,15 @@ export class AdminUsuarios implements OnInit {
     if (this.isSelf(usuario)) return;
     const marcar = !usuario.es_prueba;
     const msg = marcar
-      ? `¿Marcar a "${usuario.nombre}" como usuario de PRUEBA? Quedará fuera de KPIs, correos e incentivos, y oculto de los listados salvo el toggle de datos de prueba.`
-      : `¿Quitar la marca de prueba a "${usuario.nombre}"? Volverá a contar como usuario real (KPIs, correos, incentivos).`;
+      ? this.i18n.t('¿Marcar a "{nombre}" como usuario de PRUEBA? Quedará fuera de KPIs, correos e incentivos, y oculto de los listados salvo el toggle de datos de prueba.', { nombre: usuario.nombre })
+      : this.i18n.t('¿Quitar la marca de prueba a "{nombre}"? Volverá a contar como usuario real (KPIs, correos, incentivos).', { nombre: usuario.nombre });
     if (!confirm(msg)) return;
     this.marcandoId.set(usuario.id);
     try {
       await this.adminService.marcarUsuarioPrueba(usuario.id, marcar);
       this.usuarios.update((list) => list.map((u) => (u.id === usuario.id ? { ...u, es_prueba: marcar } : u)));
     } catch (e: unknown) {
-      this.accionError.set(e instanceof Error ? e.message : 'No se pudo cambiar la marca de prueba.');
+      this.accionError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cambiar la marca de prueba.'));
     } finally {
       this.marcandoId.set(null);
     }
@@ -764,13 +766,13 @@ export class AdminUsuarios implements OnInit {
       this.resetMessage.set({
         userId: usuario.id,
         text: result.sent
-          ? 'Correo de restablecimiento enviado.'
-          : `No se pudo enviar el correo. Enlace: ${result.actionLink}`,
+          ? this.i18n.t('Correo de restablecimiento enviado.')
+          : this.i18n.t('No se pudo enviar el correo. Enlace: {link}', { link: result.actionLink ?? '' }),
       });
     } catch (e: unknown) {
       this.resetMessage.set({
         userId: usuario.id,
-        text: e instanceof Error ? e.message : 'Error al restablecer la contraseña.',
+        text: e instanceof Error ? e.message : this.i18n.t('Error al restablecer la contraseña.'),
       });
     } finally {
       this.resettingId.set(null);
@@ -786,13 +788,13 @@ export class AdminUsuarios implements OnInit {
       this.resetMessage.set({
         userId: usuario.id,
         text: result.sent
-          ? 'Invitación reenviada por correo (válida 24 h).'
-          : `No se pudo enviar el correo. Enlace: ${result.actionLink}`,
+          ? this.i18n.t('Invitación reenviada por correo (válida 24 h).')
+          : this.i18n.t('No se pudo enviar el correo. Enlace: {link}', { link: result.actionLink ?? '' }),
       });
     } catch (e: unknown) {
       this.resetMessage.set({
         userId: usuario.id,
-        text: e instanceof Error ? e.message : 'Error al reenviar la invitación.',
+        text: e instanceof Error ? e.message : this.i18n.t('Error al reenviar la invitación.'),
       });
     } finally {
       this.resettingId.set(null);
@@ -802,7 +804,7 @@ export class AdminUsuarios implements OnInit {
   /** Only actually removes the user if they have zero associated records anywhere — Postgres enforces this. */
   async deleteUsuario(usuario: UsuarioAdmin) {
     if (this.isSelf(usuario)) return;
-    if (!confirm(`¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar permanentemente a "{nombre}"? Esta acción no se puede deshacer.', { nombre: usuario.nombre }))) return;
 
     this.deletingId.set(usuario.id);
     this.accionError.set('');
@@ -810,7 +812,7 @@ export class AdminUsuarios implements OnInit {
       await this.adminService.deleteUsuario(usuario.id);
       this.usuarios.update((list) => list.filter((u) => u.id !== usuario.id));
     } catch (e: unknown) {
-      this.accionError.set(e instanceof Error ? e.message : 'Error al eliminar el usuario.');
+      this.accionError.set(e instanceof Error ? e.message : this.i18n.t('Error al eliminar el usuario.'));
     } finally {
       this.deletingId.set(null);
     }
@@ -846,7 +848,7 @@ export class AdminUsuarios implements OnInit {
         .filter((r) => this.selectedRolIds().includes(r.id))
         .some((r) => r.codigo === 'admin');
       if (!this.form.value.activo || !keepsAdmin) {
-        this.saveError.set('No puedes desactivar tu propia cuenta ni quitarte el rol de administrador a ti mismo.');
+        this.saveError.set(this.i18n.t('No puedes desactivar tu propia cuenta ni quitarte el rol de administrador a ti mismo.'));
         return;
       }
     }
@@ -870,7 +872,7 @@ export class AdminUsuarios implements OnInit {
       this.usuarios.set(updated);
       this.drawerOpen.set(false);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar.'));
     } finally {
       this.saving.set(false);
     }

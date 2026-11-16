@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 91%** (9197/10109 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 92%** (9265/10110 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -26,7 +26,6 @@
 | soporte | scope | 39 | 1 | 38 | 3% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| admin/usuarios | scope | 141 | 74 | 67 | 52% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -52,6 +51,7 @@
 | admin/roles | enforce | 167 | 167 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
 | admin/unidades | enforce | 10 | 10 | 0 | 100% |
+| admin/usuarios | enforce | 142 | 142 | 0 | 100% |
 | admin/usuarios-duplicados | enforce | 17 | 17 | 0 | 100% |
 | admin/usuarios-test | enforce | 32 | 32 | 0 | 100% |
 | admin/vault | enforce | 72 | 72 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**106 literal(es) sin t()** en 11 archivo(s) (de 134 archivo(s) .ts con algo detectado).
+**104 literal(es) sin t()** en 10 archivo(s) (de 133 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -213,7 +213,6 @@
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
