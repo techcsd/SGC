@@ -33,7 +33,7 @@ const ESCRITURAS = new Set(["create", "write", "button_confirm", "button_cancel"
 const escrituras = (ll: Llamada[]) => ll.filter((c) => ESCRITURAS.has(c.method));
 
 const PUBLICAR = {
-  orden_id: "11111111-1111-1111-1111-111111111111", numero: "OC-0042", odoo_proveedor_id: 55,
+  orden_id: "11111111-1111-1111-1111-111111111111", numero: "OC-0042", odoo_proveedor_id: 55, odoo_analytic_id: 23,
   fecha: "2026-11-01", fecha_entrega_esperada: "2026-11-10", notas: "Entregar <temprano>",
   lineas: [
     { odoo_product_id: 4821, odoo_uom_id: 1, cantidad: 10, precio_unitario: 250.5, descripcion: "Cemento" },
@@ -290,4 +290,17 @@ Deno.test("selección: mock salvo ODOO_ESCRITURA_HABILITADA=true", async () => {
   const r = await mock.crear(PUBLICAR);
   assertEquals(r.estado, "completado");
   assert(String(r.resultado?.nota).includes("MOCK"));
+});
+
+// ── DS-06: cuenta analitica por linea ──────────────────────────────────────
+import { resolverCuentaAnalitica } from "./odoo-oc.ts";
+Deno.test("DS-06 cuenta analitica: una sola, varias (principal/elegida), prod exige confirmada, sin cuenta = error", () => {
+  assertEquals(resolverCuentaAnalitica({ odoo_analytic_id: 23 }), { id: 23 });
+  const dos = { cuentas_analiticas: [{ odoo_analytic_id: 29, rol: "principal", confirmado: false }, { odoo_analytic_id: 37, rol: "adicional", confirmado: false }] };
+  assertEquals(resolverCuentaAnalitica(dos), { id: 29 });
+  assertEquals(resolverCuentaAnalitica({ ...dos, odoo_analytic_elegida: 37 }), { id: 37 });
+  assertEquals("error" in resolverCuentaAnalitica({ ...dos, odoo_analytic_elegida: 99 }), true);
+  assertEquals("error" in resolverCuentaAnalitica({ ...dos, odoo_entorno: "prod" }), true); // no confirmada en prod
+  assertEquals(resolverCuentaAnalitica({ cuentas_analiticas: [{ odoo_analytic_id: 29, rol: "principal", confirmado: true }], odoo_entorno: "prod" }), { id: 29 });
+  assertEquals("error" in resolverCuentaAnalitica({}), true);
 });

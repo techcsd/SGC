@@ -1921,6 +1921,16 @@
       "enScope": true,
       "enforce": true,
       "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/odoo-homologacion",
+      "total": 21,
+      "cubiertos": 21,
+      "sin": 0,
+      "pct": 100,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": []
     }
   ]
 }

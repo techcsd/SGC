@@ -1,0 +1,101 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Homologación con Odoo' | t }}</h1>
+    <span class="page-count">{{ i18n.t('{n} cuenta(s) por confirmar', { n: pendientes() }) }}</span>
+  </div>
+</div>
+
+<p class="oh-lead">
+  {{ 'Cada obra se imputa a una cuenta analítica de Odoo y cada almacén a su código de Odoo. En producción solo se usan cuentas confirmadas por un administrador.' | t }}
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- Cuentas analíticas -->
+<h2 class="oh-h2">{{ 'Cuentas analíticas por obra' | t }}</h2>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="6" />
+  } @else if (cuentas().length === 0) {
+    <div class="table-empty"><p>{{ 'Todavía no hay cuentas analíticas vinculadas.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Cuentas analíticas por obra' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Obra' | t }}</th>
+            <th class="text-right">{{ 'Cuenta Odoo' | t }}</th>
+            <th>{{ 'Rol' | t }}</th>
+            <th class="text-right">{{ 'Líneas de compra' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cuentas(); track c.id) {
+            <tr>
+              <td>{{ c.proyectos?.codigo }} · {{ c.proyectos?.nombre }}</td>
+              <td class="text-right">{{ c.odoo_analytic_id }}</td>
+              <td>{{ (c.rol === 'principal' ? 'Principal' : 'Adicional') | t }}</td>
+              <td class="text-right">{{ usoLineas(c) ?? '—' }}</td>
+              <td>
+                @if (c.confirmado) {
+                  <span class="badge badge--success">{{ 'Confirmada' | t }}</span>
+                } @else {
+                  <span class="badge badge--warning">{{ 'Por confirmar' | t }}</span>
+                }
+              </td>
+              <td class="text-right">
+                @if (c.confirmado) {
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="trabajando() === c.id" (click)="decidir(c, false)">{{ 'Retirar confirmación' | t }}</button>
+                } @else {
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="trabajando() === c.id" (click)="decidir(c, true)">{{ 'Confirmar' | t }}</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Almacenes -->
+<h2 class="oh-h2">{{ 'Almacenes' | t }}</h2>
+<p class="oh-lead">{{ i18n.t('{n} almacén(es) activo(s) sin código de Odoo', { n: bodegasSinCodigo() }) }}</p>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="6" />
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Almacenes' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Almacén' | t }}</th>
+            <th>{{ 'Código en Odoo' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of bodegas(); track b.id) {
+            <tr>
+              <td>{{ b.nombre }}</td>
+              <td>{{ b.codigo_odoo ?? '—' }}</td>
+              <td>
+                @if (!b.activo) {
+                  <span class="badge">{{ 'Inactivo' | t }}</span>
+                } @else if (b.codigo_odoo) {
+                  <span class="badge badge--success">{{ 'Vinculado' | t }}</span>
+                } @else {
+                  <span class="badge badge--warning">{{ 'Sin vincular' | t }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -163,6 +163,13 @@ export const tecnologiaRoutes: Routes = [
     title: 'Sincronización con Odoo — Tecnología',
   },
   {
+    // DS-05/DS-06 — homologación de almacenes y cuentas analíticas con Odoo (confirmar = solo admin, lo exige el RPC).
+    path: 'odoo-homologacion',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./odoo-homologacion/odoo-homologacion').then((m) => m.TecOdooHomologacion),
+    title: 'Homologación con Odoo — Tecnología',
+  },
+  {
     // BD3 — Galería de componentes / design system (tokens + componentes base en
     // ambos temas). Interna: es_tecnologia. Contrato visual del rollout.
     path: 'design-system',

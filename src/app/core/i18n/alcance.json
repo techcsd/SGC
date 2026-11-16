@@ -576,6 +576,9 @@
     },
     "verificar": {
       "enforce": true
+    },
+    "tecnologia/odoo-homologacion": {
+      "enforce": false
     }
   }
 }

@@ -8663,5 +8663,19 @@
   "Ocurrió un problema procesando la solicitud. Ya lo estamos revisando.": "There was a problem processing the request. We're already looking into it.",
   "No pudimos cargar esta información. Ya fue reportado y lo estamos revisando.": "We couldn't load this information. It's been reported and we're looking into it.",
   "Ocurrió un error inesperado. Ya lo estamos revisando.": "An unexpected error occurred. We're already looking into it.",
-  "Ocurrió un error inesperado.": "An unexpected error occurred."
+  "Ocurrió un error inesperado.": "An unexpected error occurred.",
+  "Homologación con Odoo": "Odoo mapping",
+  "{n} cuenta(s) por confirmar": "{n} account(s) to confirm",
+  "Cada obra se imputa a una cuenta analítica de Odoo y cada almacén a su código de Odoo. En producción solo se usan cuentas confirmadas por un administrador.": "Each project is charged to an Odoo analytic account and each warehouse maps to its Odoo code. In production only accounts confirmed by an administrator are used.",
+  "Cuentas analíticas por obra": "Analytic accounts by project",
+  "Todavía no hay cuentas analíticas vinculadas.": "No analytic accounts linked yet.",
+  "Cuenta Odoo": "Odoo account",
+  "Líneas de compra": "Purchase lines",
+  "Adicional": "Additional",
+  "Confirmada": "Confirmed",
+  "Retirar confirmación": "Withdraw confirmation",
+  "{n} almacén(es) activo(s) sin código de Odoo": "{n} active warehouse(s) without an Odoo code",
+  "Código en Odoo": "Code in Odoo",
+  "Cuenta analítica confirmada": "Analytic account confirmed",
+  "Confirmación retirada": "Confirmation withdrawn"
 }

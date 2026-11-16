@@ -8663,5 +8663,19 @@
   "Ocurrió un problema procesando la solicitud. Ya lo estamos revisando.": "Te gen yon pwoblèm pou trete demann lan. N ap gade sa deja.",
   "No pudimos cargar esta información. Ya fue reportado y lo estamos revisando.": "Nou pa t kapab chaje enfòmasyon sa a. Yo deja rapòte l epi n ap gade sa.",
   "Ocurrió un error inesperado. Ya lo estamos revisando.": "Yon erè inatandi rive. N ap gade sa deja.",
-  "Ocurrió un error inesperado.": "Yon erè inatandi rive."
+  "Ocurrió un error inesperado.": "Yon erè inatandi rive.",
+  "Homologación con Odoo": "Omolojasyon ak Odoo",
+  "{n} cuenta(s) por confirmar": "{n} kont pou konfime",
+  "Cada obra se imputa a una cuenta analítica de Odoo y cada almacén a su código de Odoo. En producción solo se usan cuentas confirmadas por un administrador.": "Chak pwojè chaje sou yon kont analitik Odoo e chak depo gen kòd Odoo li. Nan pwodiksyon sèlman kont yon administratè konfime yo itilize.",
+  "Cuentas analíticas por obra": "Kont analitik pa pwojè",
+  "Todavía no hay cuentas analíticas vinculadas.": "Poko gen kont analitik ki lye.",
+  "Cuenta Odoo": "Kont Odoo",
+  "Líneas de compra": "Liy acha",
+  "Adicional": "Adisyonèl",
+  "Confirmada": "Konfime",
+  "Retirar confirmación": "Retire konfimasyon",
+  "{n} almacén(es) activo(s) sin código de Odoo": "{n} depo aktif san kòd Odoo",
+  "Código en Odoo": "Kòd nan Odoo",
+  "Cuenta analítica confirmada": "Kont analitik konfime",
+  "Confirmación retirada": "Konfimasyon retire"
 }
