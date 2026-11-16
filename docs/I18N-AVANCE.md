@@ -403,6 +403,70 @@ verificación de un fork).
 **Módulo 8 (Transporte/apoyo) CERRADO: 3/3 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Proyectos (#9).
 
+## Proyectos — 100% COMPLETO (10/10 pantallas, 15-nov-2026)
+
+10 pantallas (15 archivos `.html` incl. las 5 de `personal/`), 768
+literales totales. Lotes 42-46 (commits `84212977`..`7873a48a`):
+
+- **Lote 42** (`84212977`): codemod masivo: 499 envueltos, 46 saltados
+  a mano. **Segundo bug del codemod encontrado y corregido** (el
+  primero fue el `@if` numérico de Flota/lote 20): el
+  import-insertion de `asegurarTranslatePipe()` asumía que todo import
+  existente es de 1 línea — insertó el nuevo `import { TranslatePipe }`
+  EN MEDIO de un import multilínea ya existente en
+  `personal-registro.ts` (`import {\n  Cargo, PersonalObra, ...\n}
+  from '...'`), partiéndolo en dos bloques inválidos (38 errores de
+  build en cascada, todo símbolo del import roto reportado como "no
+  encontrado"). **Corregido en el script mismo** (no solo en el
+  archivo): ahora busca el CIERRE real de cada import statement
+  (`... from '...';`, multilínea incluido vía regex no-greedy) en vez
+  de la última línea que empieza con "import", para que no vuelva a
+  pasar en los módulos que faltan.
+- **Lote 43** (`e25fc52b`): `costos` ya estaba al 100% tras el
+  codemod — solo traducir + enforce.
+- **Lote 44-45**: 8 pantallas más (kpi, cargos, cronograma-import,
+  clima, cronograma, historial, compras, lista) cerradas por 2 forks
+  secuenciales, cada uno verificado independientemente antes de
+  aceptar — ambos dejaron 1 pantalla sin terminar al quedarse sin
+  presupuesto (compras al 100% sin commitear; cronograma mid-edición
+  real, confirmado por dos mediciones seguidas con el coverage subiendo).
+- **Lote 46** (`91ed2f9b` + `7873a48a`): `personal` (5 archivos:
+  `personal`, `personal-registro`, `personal-expediente`,
+  `personal-import`, `personal-carnet`) cierra el módulo. El fork se
+  quedó a 98% (4 fragmentos) sin commitear — terminado a mano.
+  - **Gotcha nuevo**: un catálogo-arreglo envuelto en paréntesis y
+    encadenado con `.filter()` dentro del propio `computed()`
+    (`computed(() => ([...] as const).filter(...))`) NO calza con el
+    regex de catálogo-exento del escáner (que solo reconoce `=>`/`=`
+    seguido DIRECTAMENTE de `[`, sin paréntesis de por medio) — los
+    labels se contaban como copy suelto. Fix: refactorizar a un
+    catálogo constante a nivel de módulo + un `computed()` que solo
+    adjunta los valores dinámicos (counts), separando la forma
+    estática del cálculo — mejor código además de calzar con el
+    escáner.
+  - **Hallazgo mayor, fuera del árbol de pantallas**: `verify-i18n.mjs`
+    exigía traducción para labels de catálogo que SÍ estaban
+    correctamente exentas en su declaración — resultó ser que el
+    componente COMPARTIDO `app-filter-select` (usado en Personal,
+    Conductores, Requisiciones, Almacenes y más) **nunca había tenido
+    `TranslatePipe`/`I18nService`**: `{{ o.label }}` (opciones), el
+    placeholder de búsqueda, "Sin opciones" y "Quitar filtro" se
+    mostraban siempre en español sin importar el idioma, en TODAS las
+    pantallas que usan el componente — invisible a ambos escáneres
+    porque viven fuera de `src/app/pages/**` (lo que escanean por
+    pantalla). Corregido en el componente compartido (`filter-select.
+    html`/`.ts`): beneficia TODAS las pantallas que ya lo usan
+    (incluidas las de Flota/Compras/Bitácora ya cerradas) sin tocar
+    ninguna de ellas ni requerir que agreguen nada.
+- `public/i18n/en.json`/`ht.json`: crecieron de ~4651/~3961 a
+  **~5136/~4512** claves.
+- `alcance.json`: 10 pantallas nuevas `enforce:true` (total **90**).
+  `verify-i18n.mjs`: 90 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 9 (Proyectos) CERRADO: 10/10 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: RRHH (#10).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -440,7 +504,7 @@ Admin, resto.
 | 6 | Flota | 23/23 pantallas 100% (ver detalle arriba) | 1377 (codemod) + ~730 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | a28cbf05..1a82044c | **true** |
 | 7 | Bitácora | 11/11 pantallas 100% (ver detalle arriba) | 474 (codemod) + ~230 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 8255e835..665235da | **true** |
 | 8 | Transporte/apoyo | 3/3 pantallas 100% (ver detalle arriba) | 103 (codemod) + ~72 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 405507d3..3b044583 | **true** |
-| 9 | Proyectos | — | — | — | ⏳ pendiente | — | false |
+| 9 | Proyectos | 10/10 pantallas 100% (ver detalle arriba) | 499 (codemod) + ~190 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 84212977..7873a48a | **true** |
 | 10 | RRHH | — | — | — | ⏳ pendiente | — | false |
 | 11 | Legal | — | — | — | ⏳ pendiente | — | false |
 | 12 | Documentos | — | — | — | ⏳ pendiente | — | false |
