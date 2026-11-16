@@ -7,9 +7,6 @@
     "obra/no-conformidades": {
       "enforce": false
     },
-    "obra/subcontratistas": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -404,6 +401,9 @@
       "enforce": true
     },
     "obra/plan-dia": {
+      "enforce": true
+    },
+    "obra/subcontratistas": {
       "enforce": true
     },
     "perfil": {

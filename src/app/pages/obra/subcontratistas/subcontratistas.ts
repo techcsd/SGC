@@ -5,6 +5,7 @@ import { ObraProduccionService } from '../../../../shared/services/obra-producci
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import {
   ObraSubcontratista, SubcontratistaFrente, ObraCubicacion, CubicacionEvento,
@@ -29,6 +30,7 @@ export class ObraSubcontratistas implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly CUB_ESTADOS = CUBICACION_ESTADOS;
   formatFecha = formatFechaDisplay;
@@ -102,7 +104,7 @@ export class ObraSubcontratistas implements OnInit {
       this.proyectos.set(proyectos);
       this.cubicaciones.set(cubs);
     } catch (e: unknown) {
-      this.toast.error('Error al cargar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loading.set(false);
     }
@@ -120,9 +122,9 @@ export class ObraSubcontratistas implements OnInit {
       const s = await this.service.crearSubcontratista(this.subForm.value as Partial<ObraSubcontratista>);
       this.subcontratistas.update((l) => [...l, s].sort((a, b) => a.nombre.localeCompare(b.nombre)));
       this.subOpen.set(false);
-      this.toast.success('Subcontratista registrado');
+      this.toast.success(this.i18n.t('Subcontratista registrado'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -151,9 +153,9 @@ export class ObraSubcontratistas implements OnInit {
       });
       this.frentes.set(await this.service.getFrentes(s.id));
       this.frenteOpen.set(false);
-      this.toast.success('Frente asignado');
+      this.toast.success(this.i18n.t('Frente asignado'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -164,7 +166,7 @@ export class ObraSubcontratistas implements OnInit {
       await this.service.actualizarAvanceFrente(f.id, n);
       this.frentes.update((l) => l.map((x) => (x.id === f.id ? { ...x, avance_pct: n } : x)));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -186,11 +188,11 @@ export class ObraSubcontratistas implements OnInit {
         avancePct: v.avance_pct ?? null,
         soportes: [],
       });
-      this.toast.success('Cubicación creada (borrador)');
+      this.toast.success(this.i18n.t('Cubicación creada (borrador)'));
       this.cubOpen.set(false);
       await this.reloadCubs();
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -206,21 +208,21 @@ export class ObraSubcontratistas implements OnInit {
   async enviar(c: ObraCubicacion) {
     try {
       await this.service.enviarCubicacion(c.id);
-      this.toast.success('Enviada a revisión');
+      this.toast.success(this.i18n.t('Enviada a revisión'));
       await this.reloadCubs();
       if (this.detailCub()?.id === c.id) await this.openDetailCub({ ...c, estado: 'en_revision' });
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
   async aprobar(c: ObraCubicacion) {
     try {
       await this.service.revisarCubicacion(c.id, 'aprobada', null);
-      this.toast.success('Cubicación aprobada');
+      this.toast.success(this.i18n.t('Cubicación aprobada'));
       this.closeDetailCub();
       await this.reloadCubs();
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
   openRechazar() { this.rechazarForm.reset({ nota: '' }); this.rechazarOpen.set(true); }
@@ -230,12 +232,12 @@ export class ObraSubcontratistas implements OnInit {
     if (!c || this.rechazarForm.invalid) return;
     try {
       await this.service.revisarCubicacion(c.id, 'rechazada', this.rechazarForm.value.nota!);
-      this.toast.success('Cubicación rechazada');
+      this.toast.success(this.i18n.t('Cubicación rechazada'));
       this.rechazarOpen.set(false);
       this.closeDetailCub();
       await this.reloadCubs();
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 

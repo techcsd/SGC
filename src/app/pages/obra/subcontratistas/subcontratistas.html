@@ -58,8 +58,8 @@
     <div class="filters-bar">
       <div class="sgc-field filters-bar__select">
         <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-          <option value="all">Todos los estados</option>
-          @for (e of CUB_ESTADOS; track e.value) { <option [value]="e.value">{{ e.label }}</option> }
+          <option value="all">{{ 'Todos los estados' | t }}</option>
+          @for (e of CUB_ESTADOS; track e.value) { <option [value]="e.value">{{ e.label | t }}</option> }
         </select>
       </div>
     </div>
@@ -78,7 +78,7 @@
                   <td>@if (c.periodo_inicio) { {{ formatFecha(c.periodo_inicio) }} @if (c.periodo_fin) { – {{ formatFecha(c.periodo_fin) }} } } @else { — }</td>
                   <td class="text-right">RD$ {{ c.monto | number:'1.0-0' }}</td>
                   <td>{{ c.avance_pct != null ? c.avance_pct + '%' : '—' }}</td>
-                  <td><span [class]="cubEstadoBadge(c.estado)">{{ cubEstadoLabel(c.estado) }}</span></td>
+                  <td><span [class]="cubEstadoBadge(c.estado)">{{ cubEstadoLabel(c.estado) | t }}</span></td>
                   <td class="text-center">
                     <button type="button" class="action-btn action-btn--view" (click)="openDetailCub(c)" aria-label="{{ 'Ver' | t }}">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -117,7 +117,7 @@
 </app-form-drawer>
 
 <!-- ── Detalle subcontratista (frentes) ── -->
-<app-form-drawer [title]="detailSub()?.nombre ?? 'Subcontratista'" [open]="!!detailSub()" (closed)="closeDetailSub()">
+<app-form-drawer [title]="detailSub()?.nombre ?? i18n.t('Subcontratista')" [open]="!!detailSub()" (closed)="closeDetailSub()">
   @if (detailSub(); as s) {
     <div class="sub-detail">
       <div class="sub-detail__head">
@@ -152,7 +152,7 @@
     <div class="sgc-field">
       <label for="f-proy">{{ 'Obra' | t }} <span class="required">*</span></label>
       <select id="f-proy" formControlName="proyecto_id" [class.invalid]="fF.proyecto_id.invalid && fF.proyecto_id.touched">
-        <option [ngValue]="null">Selecciona…</option>
+        <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
         @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
       </select>
     </div>
@@ -172,14 +172,14 @@
       <div class="sgc-field">
         <label for="c-sub">{{ 'Subcontratista' | t }} <span class="required">*</span></label>
         <select id="c-sub" formControlName="subcontratista_id" [class.invalid]="fC.subcontratista_id.invalid && fC.subcontratista_id.touched">
-          <option [ngValue]="null">Selecciona…</option>
+          <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
           @for (s of subcontratistas(); track s.id) { <option [value]="s.id">{{ s.nombre }}</option> }
         </select>
       </div>
       <div class="sgc-field">
         <label for="c-proy">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="c-proy" formControlName="proyecto_id" [class.invalid]="fC.proyecto_id.invalid && fC.proyecto_id.touched">
-          <option [ngValue]="null">Selecciona…</option>
+          <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
           @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
         </select>
       </div>
@@ -205,7 +205,7 @@
   @if (detailCub(); as c) {
     <div class="cub-detail">
       <div class="cub-detail__head">
-        <span [class]="cubEstadoBadge(c.estado)">{{ cubEstadoLabel(c.estado) }}</span>
+        <span [class]="cubEstadoBadge(c.estado)">{{ cubEstadoLabel(c.estado) | t }}</span>
       </div>
       <dl class="nc-detail__meta">
         <div><dt>{{ 'Subcontratista' | t }}</dt><dd>{{ c.subcontratista?.nombre ?? '—' }}</dd></div>

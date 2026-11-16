@@ -131,36 +131,6 @@
       ]
     },
     {
-      "pantalla": "obra/subcontratistas",
-      "total": 75,
-      "cubiertos": 56,
-      "sin": 19,
-      "pct": 75,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Todos los estados",
-        "Selecciona…",
-        "Selecciona…",
-        "Selecciona…",
-        "Subcontratista",
-        "Error al cargar",
-        "Subcontratista registrado",
-        "Error",
-        "Frente asignado",
-        "Error",
-        "Error",
-        "Cubicación creada (borrador)",
-        "Error",
-        "Enviada a revisión",
-        "Error",
-        "Cubicación aprobada",
-        "Error",
-        "Cubicación rechazada",
-        "Error"
-      ]
-    },
-    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
@@ -1474,6 +1444,16 @@
       "pantalla": "obra/plan-dia",
       "total": 37,
       "cubiertos": 37,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "obra/subcontratistas",
+      "total": 75,
+      "cubiertos": 75,
       "sin": 0,
       "pct": 100,
       "enScope": true,
