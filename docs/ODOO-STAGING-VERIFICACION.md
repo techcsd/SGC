@@ -59,6 +59,18 @@ Para prod (ADR 9) el usuario dedicado «SGC Integración» debe tener solo: Inve
 
 La guardia de host (DS-02) impide que esta cuenta escriba fuera de `ODOO_HOSTS_ESCRITURA`.
 
+## DS-23 — Equipos / activos (decisión)
+
+`account_asset` y `account.asset` existen y son legibles con la clave de integración; `fleet` y `maintenance` no están instalados. **Decisión: ningún vínculo** entre equipos/vehículos de SGC y activos de Odoo. Los activos de Odoo son contables (depreciación) y los equipos de SGC son operativos; mezclarlos no aporta y obligaría a mantener dos fuentes. Se revisa solo si Contabilidad lo pide.
+
+## Hallazgos medidos con escrituras de prueba (staging)
+
+- **Stock negativo permitido:** se validó un traslado de 9.999.999 unidades sin error → SGC verifica disponibilidad antes de validar.
+- **`button_cancel` de `purchase.order` devuelve None:** XML-RPC lo reporta como fault «cannot marshal None» aunque la OC queda cancelada → el adaptador relee el estado.
+- **`button_confirm` deja la OC en «done» (bloqueada)** → una OC confirmada ya no se puede cancelar desde SGC.
+- **`analytic_distribution`** por línea (`{cuenta: 100}`) funciona.
+- Un picking creado y fallido por falta de stock queda en borrador → el publicador lo cancela.
+
 ## Lo que no se midió aún
 
 Escritura de prueba (crear/validar un picking con `origin` de prueba): se hace en F3 con limpieza (`SGC-TRAS-TEST-<run>`), no en esta verificación de solo lectura.

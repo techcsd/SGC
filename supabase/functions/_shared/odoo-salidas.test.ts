@@ -118,3 +118,10 @@ Deno.test("salida de prueba no publica; salida inexistente es error", async () =
   assertEquals((await publicarSalida(armar({ esPrueba: true }).deps, "s1", 1)).resultado, { omitido: "es_prueba" });
   assertEquals((await publicarSalida(armar(null).deps, "s1", 1)).estado, "error");
 });
+
+Deno.test("sin stock al validar A recien creado: se cancela el borrador huerfano (hallazgo del soak)", async () => {
+  const { deps, log } = armar({});
+  deps.lib.validar = () => Promise.reject(new TrasladoError("sin_stock", "No hay existencias suficientes en el almacén de origen para este despacho.", "{}"));
+  const r = await publicarSalida(deps, "s1", 1);
+  assertEquals([r.estado, log.includes("cancelar 100")], ["error", true]);
+});

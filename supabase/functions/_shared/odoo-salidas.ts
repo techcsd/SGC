@@ -75,7 +75,15 @@ export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: 
     if (!itemsA.length) throw new TrasladoError("datos", "El conduce no tiene cantidades a trasladar.");
     const pa = A ? { pickingId: A.id } : await d.lib.crear({ salidaId: s.id, paso: "A", origenLocationId: s.origenLocationId, destinoLocationId: transito, pickingTypeId: tipo, companyId: s.companyId, items: itemsA, folio: s.folio });
     a = pa.pickingId;
-    if (!A || A.state !== "done") await d.lib.validar(a);
+    if (!A || A.state !== "done") {
+      try {
+        await d.lib.validar(a);
+      } catch (e) {
+        // Sin stock: el picking A recien creado quedaria huerfano en borrador (encontrado en el soak). Se cancela y se reporta el error.
+        if (!A && e instanceof TrasladoError && e.codigo === "sin_stock") { try { await d.lib.cancelar(a); } catch { /* best-effort */ } a = undefined; }
+        throw e;
+      }
+    }
 
     // Paso B: parada entregada (ADR 4) o recepcion confirmada
     const quiereB = s.paradaEntregada || s.estado === "entregado" || s.estado === "entregado_incompleto";
