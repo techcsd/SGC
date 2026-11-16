@@ -13,7 +13,7 @@
       <div class="pol__borrador" role="status" style="background: rgba(34,197,94,0.15); color: #22c55e;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <path d="M20 6 9 17l-5-5"/></svg>
-        Recibimos tu solicitud. Si tus datos corresponden a una cuenta, la procesaremos en un máximo de 30 días.
+        {{ 'Recibimos tu solicitud. Si tus datos corresponden a una cuenta, la procesaremos en un máximo de 30 días.' | t }}
       </div>
     } @else {
       <form class="pol__form" (ngSubmit)="enviar()">
@@ -32,7 +32,7 @@
                [ngModel]="website()" (ngModelChange)="website.set($event)" aria-hidden="true" />
 
         <button type="submit" class="pol__print" [disabled]="enviando() || !identificador().trim()">
-          {{ enviando() ? 'Enviando…' : 'Solicitar eliminación' }}
+          {{ (enviando() ? 'Enviando…' : 'Solicitar eliminación') | t }}
         </button>
       </form>
     }
@@ -43,7 +43,7 @@
         <a href="/politicas/terminos">{{ 'Términos' | t }}</a>
         <a href="/politicas/soporte">{{ 'Soporte' | t }}</a>
       </nav>
-      <p>&copy; Constructora SD · <a href="https://sgcconstructorasd.com">sgcconstructorasd.com</a></p>
+      <p>{{ '© Constructora SD ·' | t }} <a href="https://sgcconstructorasd.com">{{ 'sgcconstructorasd.com' | t }}</a></p>
     </footer>
   </div>
 </div>

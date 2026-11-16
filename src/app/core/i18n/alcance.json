@@ -10,9 +10,6 @@
     "obra/no-conformidades": {
       "enforce": false
     },
-    "politicas/eliminar-cuenta": {
-      "enforce": false
-    },
     "verificar": {
       "enforce": false
     },
@@ -419,6 +416,9 @@
       "enforce": false
     },
     "perfil": {
+      "enforce": true
+    },
+    "politicas/eliminar-cuenta": {
       "enforce": true
     },
     "politicas": {

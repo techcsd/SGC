@@ -3,14 +3,13 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9794/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9797/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | obra/plan-dia | scope | 37 | 20 | 17 | 54% |
 | incentivos | scope | 172 | 100 | 72 | 58% |
 | obra/no-conformidades | scope | 95 | 61 | 34 | 64% |
-| politicas/eliminar-cuenta | scope | 9 | 6 | 3 | 67% |
 | verificar | scope | 9 | 6 | 3 | 67% |
 | obra/checklists | scope | 48 | 33 | 15 | 69% |
 | auth | scope | 37 | 26 | 11 | 70% |
@@ -142,11 +141,12 @@
 | legal/firmas-pendientes | enforce | 11 | 11 | 0 | 100% |
 | mensajes/grupo-info | enforce | 29 | 29 | 0 | 100% |
 | mensajes | enforce | 34 | 34 | 0 | 100% |
-| mis-choferes | scope | 9 | 9 | 0 | 100% |
+| mis-choferes | enforce | 9 | 9 | 0 | 100% |
 | notas/editor | enforce | 32 | 32 | 0 | 100% |
 | notas | enforce | 37 | 37 | 0 | 100% |
 | oauth-consent | scope | 19 | 19 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
+| politicas/eliminar-cuenta | scope | 9 | 9 | 0 | 100% |
 | politicas | enforce | 15 | 15 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |

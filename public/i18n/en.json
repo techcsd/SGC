@@ -7664,5 +7664,12 @@
   "Sin estado": "No status",
   "Estado de cada chofer, su trabajo de hoy y su última señal.": "Status of each driver, their work today, and their last signal.",
   "No hay choferes activos.": "There are no active drivers.",
-  "Llamar": "Call"
+  "Llamar": "Call",
+  "Recibimos tu solicitud. Si tus datos corresponden a una cuenta, la procesaremos en un máximo de 30 días.": "We received your request. If your data matches an account, we will process it within a maximum of 30 days.",
+  "Solicitar eliminación": "Request deletion",
+  "Eliminar cuenta": "Delete account",
+  "Solicita la eliminación de tu cuenta de la CSD App de Constructora SD.": "Request the deletion of your CSD App account from Constructora SD.",
+  "Correo o cédula asociada a tu cuenta": "Email or ID associated with your account",
+  "correo@ejemplo.com o 000-0000000-0": "email@example.com or 000-0000000-0",
+  "Cuéntanos por qué deseas eliminar tu cuenta": "Tell us why you want to delete your account"
 }
