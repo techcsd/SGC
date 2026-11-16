@@ -4396,25 +4396,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/capacitacion",
-      "total": 31,
-      "cubiertos": 23,
-      "sin": 8,
-      "pct": 74,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Elige un empleado…",
-        "No se pudo cargar Capacitación",
-        "No se pudieron cargar las capacitaciones",
-        "Falta el curso",
-        "Capacitación guardada",
-        "No se pudo guardar",
-        "Capacitación eliminada",
-        "No se pudo eliminar"
-      ]
-    },
-    {
       "pantalla": "rrhh/empleados",
       "total": 134,
       "cubiertos": 99,
@@ -5616,6 +5597,16 @@
     },
     {
       "pantalla": "rrhh/asistencia",
+      "total": 31,
+      "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/capacitacion",
       "total": 31,
       "cubiertos": 31,
       "sin": 0,

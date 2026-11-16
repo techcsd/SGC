@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 65%** (6799/10456 literales de 192 pantallas en alcance). **`ht`: 85%**.
+**Alcance `en`: 65%** (6807/10456 literales de 192 pantallas en alcance). **`ht`: 85%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -86,7 +86,6 @@
 | rrhh/nomina | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | rrhh/activos | scope | 41 | 30 | 11 | 73% |
-| rrhh/capacitacion | scope | 31 | 23 | 8 | 74% |
 | rrhh/empleados | scope | 134 | 99 | 35 | 74% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | rrhh/contratos | scope | 32 | 24 | 8 | 75% |
@@ -194,6 +193,7 @@
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
 | rrhh/asistencia | enforce | 31 | 31 | 0 | 100% |
+| rrhh/capacitacion | enforce | 31 | 31 | 0 | 100% |
 | rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**433 literal(es) sin t()** en 61 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**426 literal(es) sin t()** en 60 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -232,7 +232,6 @@
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
 | src/app/pages/rrhh/activos/activos.ts | 7 | No se pudieron cargar los activos · Falta el nombre · Activo guardado … |
-| src/app/pages/rrhh/capacitacion/capacitacion.ts | 7 | No se pudo cargar Capacitación · No se pudieron cargar las capacitaciones · Falta el curso … |
 | src/app/pages/rrhh/nomina/nomina.ts | 7 | No se pudo cargar Nómina · Valor inválido · Parámetro actualizado … |
 | src/app/pages/rrhh/proveedores/proveedores.ts | 7 | No se pudieron cargar los proveedores · Falta el nombre · Proveedor guardado … |
 | src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |

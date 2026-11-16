@@ -238,9 +238,6 @@
     "rrhh/activos": {
       "enforce": false
     },
-    "rrhh/capacitacion": {
-      "enforce": false
-    },
     "rrhh/empleados": {
       "enforce": false
     },
@@ -560,6 +557,9 @@
       "enforce": true
     },
     "rrhh/asistencia": {
+      "enforce": true
+    },
+    "rrhh/capacitacion": {
       "enforce": true
     },
     "rrhh/evaluaciones": {

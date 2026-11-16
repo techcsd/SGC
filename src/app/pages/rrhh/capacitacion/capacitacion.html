@@ -29,7 +29,7 @@
     <label class="cp-field">
       <span>{{ 'Empleado' | t }}</span>
       <select [value]="empleadoSeleccionadoId()" (change)="seleccionarEmpleado($any($event.target).value)">
-        <option value="">Elige un empleado…</option>
+        <option value="">{{ 'Elige un empleado…' | t }}</option>
         @for (e of empleados(); track e.id) { <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option> }
       </select>
     </label>
@@ -52,7 +52,7 @@
             <input type="date" [value]="fFechaVencimiento()" (input)="fFechaVencimiento.set($any($event.target).value)" />
           </label>
           <div class="cp-add__acciones">
-            <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+            <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">{{ 'Cancelar' | t }}</button>
           </div>
         </form>
@@ -86,5 +86,5 @@
 
 <app-confirm-dialog [open]="!!aEliminar()" title="{{ '¿Eliminar esta capacitación?' | t }}"
   [message]="aEliminar() ? ('«' + aEliminar()!.curso + '»') : ''"
-  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Eliminar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />
