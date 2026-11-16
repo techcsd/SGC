@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from '../../../shared/ui/button/button.directive';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -44,6 +45,7 @@ export class OauthConsent implements OnInit {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private privacidad = inject(PrivacidadService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   error = signal<string | null>(null);
@@ -60,7 +62,7 @@ export class OauthConsent implements OnInit {
     this.authorizationId = this.route.snapshot.queryParamMap.get('authorization_id') ?? '';
     if (!this.authorizationId) {
       this.cargando.set(false);
-      this.error.set('Falta authorization_id en el enlace. Vuelve a intentar conectar desde Claude.');
+      this.error.set(this.i18n.t('Falta authorization_id en el enlace. Vuelve a intentar conectar desde Claude.'));
       return;
     }
 
@@ -95,8 +97,8 @@ export class OauthConsent implements OnInit {
     } catch (e) {
       this.error.set(
         e instanceof Error
-          ? `No se pudo cargar la solicitud de autorización: ${e.message}`
-          : 'No se pudo cargar la solicitud de autorización.',
+          ? this.i18n.t('No se pudo cargar la solicitud de autorización: {mensaje}', { mensaje: e.message })
+          : this.i18n.t('No se pudo cargar la solicitud de autorización.'),
       );
     } finally {
       this.cargando.set(false);
@@ -130,7 +132,7 @@ export class OauthConsent implements OnInit {
       window.location.href = (data as { redirect_url: string }).redirect_url;
     } catch (e) {
       this.enviando.set(false);
-      this.error.set(e instanceof Error ? e.message : 'No se pudo autorizar a Claude.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo autorizar a Claude.'));
     }
   }
 

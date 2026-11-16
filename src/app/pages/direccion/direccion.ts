@@ -14,6 +14,8 @@ import { AlertaCuadre, AlertaEstado, ALERTA_SEVERIDADES } from '../../../shared/
 import { todayIso, daysFromNowIso, formatTimestampDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 interface Alerta {
   icono: IconName;
   texto: string;
@@ -24,7 +26,7 @@ interface Alerta {
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +37,7 @@ export class Direccion implements OnInit {
   private obrasClimaService = inject(ObrasClimaService);
   private alertasCuadreService = inject(AlertasCuadreService);
   private notificaciones = inject(NotificacionesService);
+  protected i18n = inject(I18nService);
 
   // A4 — panel de alertas antifraude (silenciosas para obra; visibles aquí).
   alertasControl = signal<AlertaCuadre[]>([]);
@@ -191,7 +194,7 @@ export class Direccion implements OnInit {
       this.solicitudesMaterial.set(solMat.count ?? 0);
       this.solicitudesCompra.set(solCom.count ?? 0);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar el panel de dirección.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar el panel de dirección.'));
     } finally {
       this.loading.set(false);
     }

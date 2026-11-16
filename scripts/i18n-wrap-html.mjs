@@ -108,6 +108,16 @@ for (const file of files) {
       saltadosArchivo++;
       continue;
     }
+    // `@if (d > 10 || d < -10) {` / `@else if (...)` / `@for (...)` /
+    // `@switch (...)` con un `<`/`>` de COMPARACIÓN dentro de la condición
+    // (no delimita etiqueta) — el regex de nodos de texto de abajo no lo
+    // distingue de un cierre/apertura real y corrompe la línea (visto en
+    // flota/combustible.html: `@if (d > 10 || d < -10)` → `@if (d >
+    // {{ '10 || d' | t }} < -10)`, NG5002). Se salta toda la línea.
+    if (/@(if|else if|for|switch)\s*\([^)]*[<>]/.test(line)) {
+      saltadosArchivo++;
+      continue;
+    }
 
     // 1) Atributos visibles con literal plano (sin `{{` en el valor).
     for (const attr of ATTRS_VISIBLES) {

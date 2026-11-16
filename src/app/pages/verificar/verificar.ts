@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { ActivatedRoute } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase.service';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 interface CarnetPublico {
   encontrado: boolean;
   nombre?: string;
@@ -14,7 +15,7 @@ interface CarnetPublico {
 /** CE5 — Página PÚBLICA de verificación de carnet (QR). Sin login; solo datos mínimos. */
 @Component({
   selector: 'app-verificar',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './verificar.html',
   styleUrl: './verificar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

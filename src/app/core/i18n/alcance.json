@@ -1,75 +1,6 @@
 {
   "_doc": "DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).",
   "pantallas": {
-    "auth/set-password": {
-      "enforce": false
-    },
-    "direccion": {
-      "enforce": false
-    },
-    "dudas": {
-      "enforce": false
-    },
-    "forbidden": {
-      "enforce": false
-    },
-    "incentivos": {
-      "enforce": false
-    },
-    "mi-rendimiento": {
-      "enforce": false
-    },
-    "mis-choferes": {
-      "enforce": false
-    },
-    "obra/avance": {
-      "enforce": false
-    },
-    "obra/checklists": {
-      "enforce": false
-    },
-    "obra/informes": {
-      "enforce": false
-    },
-    "obra/no-conformidades": {
-      "enforce": false
-    },
-    "obra/plan-dia": {
-      "enforce": false
-    },
-    "obra/subcontratistas": {
-      "enforce": false
-    },
-    "politicas/eliminar-cuenta": {
-      "enforce": false
-    },
-    "politicas": {
-      "enforce": false
-    },
-    "verificar": {
-      "enforce": false
-    },
-    "soporte": {
-      "enforce": false
-    },
-    "app-movil": {
-      "enforce": false
-    },
-    "auth": {
-      "enforce": false
-    },
-    "practica": {
-      "enforce": false
-    },
-    "asistente": {
-      "enforce": false
-    },
-    "borrador-claude": {
-      "enforce": false
-    },
-    "oauth-consent": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -151,6 +82,18 @@
     "apoyo-transporte": {
       "enforce": true
     },
+    "app-movil": {
+      "enforce": true
+    },
+    "asistente": {
+      "enforce": true
+    },
+    "auth": {
+      "enforce": true
+    },
+    "auth/set-password": {
+      "enforce": true
+    },
     "bitacora/cartillas": {
       "enforce": true
     },
@@ -182,6 +125,9 @@
       "enforce": true
     },
     "bitacora/solicitudes-material": {
+      "enforce": true
+    },
+    "borrador-claude": {
       "enforce": true
     },
     "claude": {
@@ -221,10 +167,13 @@
       "enforce": true
     },
     "demo/escenarios": {
-      "enforce": false
+      "enforce": true
     },
     "demo/progreso": {
-      "enforce": false
+      "enforce": true
+    },
+    "direccion": {
+      "enforce": true
     },
     "documentos/generar": {
       "enforce": true
@@ -236,6 +185,9 @@
       "enforce": true
     },
     "documentos/ver": {
+      "enforce": true
+    },
+    "dudas": {
       "enforce": true
     },
     "flota/accidentes": {
@@ -305,6 +257,12 @@
       "enforce": true
     },
     "flota/vehiculos": {
+      "enforce": true
+    },
+    "forbidden": {
+      "enforce": true
+    },
+    "incentivos": {
       "enforce": true
     },
     "ingenieria/pagos": {
@@ -415,13 +373,49 @@
     "mensajes": {
       "enforce": true
     },
+    "mi-rendimiento": {
+      "enforce": true
+    },
+    "mis-choferes": {
+      "enforce": true
+    },
     "notas/editor": {
       "enforce": true
     },
     "notas": {
       "enforce": true
     },
+    "oauth-consent": {
+      "enforce": true
+    },
+    "obra/avance": {
+      "enforce": true
+    },
+    "obra/checklists": {
+      "enforce": true
+    },
+    "obra/informes": {
+      "enforce": true
+    },
+    "obra/no-conformidades": {
+      "enforce": true
+    },
+    "obra/plan-dia": {
+      "enforce": true
+    },
+    "obra/subcontratistas": {
+      "enforce": true
+    },
     "perfil": {
+      "enforce": true
+    },
+    "politicas/eliminar-cuenta": {
+      "enforce": true
+    },
+    "politicas": {
+      "enforce": true
+    },
+    "practica": {
       "enforce": true
     },
     "proyectos/cargos": {
@@ -505,6 +499,9 @@
     "solicitudes-movimiento": {
       "enforce": true
     },
+    "soporte": {
+      "enforce": true
+    },
     "tareas/gestion": {
       "enforce": true
     },
@@ -575,6 +572,9 @@
       "enforce": true
     },
     "trabajos-transporte": {
+      "enforce": true
+    },
+    "verificar": {
       "enforce": true
     }
   }

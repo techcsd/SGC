@@ -749,6 +749,83 @@ total. Lote 62 (codemod, `9deccdab`) + 3 lotes de cierre por pantalla
 **Módulo 16 (Admin) CERRADO: 25/25 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Resto (#17).
 
+## Resto — 100% COMPLETO (23/23 pantallas) — BARRIDO COMPLETO DE LA APP (192/192), 16-nov-2026
+
+Último módulo: 28 pantallas que no caían en ningún módulo nombrado (5 ya
+cerradas de antes — `apoyo-transporte`/`solicitudes-movimiento`/
+`trabajos-transporte` del módulo 8, más `demo/escenarios`/`demo/progreso`
+que resultaron estar al 100% sin enforce — ver cierre final abajo). 167 →
+**192** pantallas enforce en total — **TODA pantalla medida por
+`i18n-coverage.mjs` tiene `enforce:true`**. Lote 63 (codemod, `a3cc5a66`)
++ fix de codemod (`dcb7644`) + 3 batches de cierre (`8e461924`..`562b0559`)
++ cierre final de 2 pantallas sueltas (`059814dc`):
+
+- **Quinto bug del codemod, encontrado ANTES de aceptar el resultado**
+  (primero: `@if` numérico de Flota/lote 20; segundo: import multilínea
+  de Proyectos; tercero: `imports: []` faltante de RRHH; cuarto: `data-*`
+  de Reuniones): al correr `i18n-wrap-html.mjs --write` SIN `--modulo`
+  (resto no tiene una carpeta común — abarca `incentivos`, `obra/*`,
+  `auth`, `direccion`, `dudas`, `politicas`, etc.), el codemod reprodujo
+  EXACTO el bug original de Flota lote 20 (`@if (d > 10 || d < -10)` →
+  `@if (d > {{ '10 || d' | t }} < -10)`, NG5002) en el MISMO archivo
+  (`flota/combustible.html`) — resultó que el "fix" documentado en el
+  lote 20 nunca se aplicó al script, solo se corrigió el archivo a mano
+  esa vez. Esta vez sí se corrigió en el script (`dcb7644`): nuevo guard
+  que salta toda la línea si detecta `@if`/`@else if`/`@for`/`@switch`
+  con un `<`/`>` de comparación dentro de la condición. Se revirtió el
+  write completo, se aplicó el fix, y se re-corrió limpio (confirmado:
+  `flota/combustible.html` ya no aparece en la lista de archivos
+  tocados). **Lección: un "corregido" en este documento para el CODEMOD
+  DE ESCRITURA debe verificarse releyendo el script, no solo la nota —
+  la nota puede describir un parche al archivo, no al script.**
+- **Batch 1** (13 pantallas pequeñas, `8e461924`..`a62f5d18`): `forbidden`,
+  `politicas`, `auth/set-password`, `mis-choferes`,
+  `politicas/eliminar-cuenta`, `verificar`, `dudas`, `direccion`,
+  `practica`, `app-movil`, `borrador-claude`, `asistente`,
+  `oauth-consent`. **Gotcha nuevo** (`0e342c5a`): un carácter `©` crudo
+  dentro de una plantilla (contenido visible normal, no un ícono) activó
+  el guard `AW12` de emoji-icono porque `©` cae en la categoría Unicode
+  `Extended_Pictographic` — el guard no distingue "ícono de botón" de
+  "símbolo de copyright en texto". Fix: usar la entidad `&copy;` en vez
+  del carácter crudo, fuera de cualquier string traducido.
+- **Batch 2** (7 pantallas medianas, `4f963ee7`..`4f5bf99c`):
+  `mi-rendimiento`, `auth`, `soporte`, `obra/informes`, `obra/avance`,
+  `obra/checklists`, `obra/plan-dia` — pantallas de bitácora/seguimiento
+  de obra en campo (checklists, avance, plan del día). Mismos gotchas
+  recurrentes de siempre (etiquetas de catálogo sin `| t`, fallback
+  estático sin traducir dentro de un binding `[title]`, agrupación por
+  clave de fallback — `'Sin brigada'` — traducida en el `.ts` antes de
+  llegar a la plantilla).
+- **Batch 3** (las 3 más grandes, cierra el módulo, `eb8e4b35`..`562b0559`):
+  `obra/subcontratistas`, `obra/no-conformidades`, `incentivos` (la
+  pantalla más grande de TODO el barrido completo, 72 literales:
+  catálogos de tier/umbral/estado del programa de incentivos). Una línea
+  de historial que mezclaba varios fragmentos literales alrededor de
+  interpolaciones (`decision`/`decidido_por_nombre`) se colapsó en una
+  sola llamada `i18n.t()` con placeholders en vez de fragmentos sueltos
+  con puntuación suelta sin traducir entre medio.
+- **Cierre final** (`059814dc`): al terminar el batch 3, `verify-i18n.mjs`
+  reportaba 190/192 pantallas enforce — quedaban 2 sueltas
+  (`demo/escenarios`, `demo/progreso`) que YA estaban al 100% de
+  cobertura (wrapeadas por trabajo previo del módulo `practica`/demo)
+  pero nunca se habían flippeado a `enforce:true` ni tenían sus 15 claves
+  en `ht.json`. Se completaron las traducciones faltantes y se activó el
+  guard — con esto, **TODA pantalla que mide `i18n-coverage.mjs` tiene
+  `enforce:true`**, cerrando el barrido completo de la app.
+- `public/i18n/en.json`: → **7.930** claves. `public/i18n/ht.json`: →
+  **7.831** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+- `verify-i18n.mjs`: **192 pantallas enforce, 0 fallos — TODA la app.**
+  Build + 368/368 tests verdes en todo momento (verificado
+  independientemente, no solo reportado por los agentes).
+
+**Módulo 17 (Resto) CERRADO: 23/23 pantallas con `enforce:true`.**
+**BARRIDO COMPLETO DE LA APP: 192/192 pantallas con `enforce:true`,
+0 fallos. No queda ninguna pantalla sin `enforce:true`.** Trabajo
+realizado en `feature/dq-compras-i18n`; los módulos 5-16 (Compras hasta
+Admin) ya se mergearon a `dev` vía PR #150 — el resto de este trabajo
+(módulo 17) sigue pendiente de mergear.
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -794,7 +871,7 @@ Admin, resto.
 | 14 | Reuniones/Tareas/Notas/Mensajes | 9/9 pantallas 100% (ver detalle arriba) | 176 (codemod) + ~120 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | b2e99b45..f04be843 | **true** |
 | 15 | Tecnología | 20/20 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 180dfc09..318739d5 | **true** |
 | 16 | Admin | 25/25 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 9deccdab..d3b254bf | **true** |
-| 17 | Resto | — | — | — | ⏳ pendiente | — | false |
+| 17 | Resto | 23/23 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho (192/192 TODA la app)** | a3cc5a66..059814dc | **true** |
 
 ## F7 — selector honesto + guardias estrictas (13-nov-2026)
 

@@ -4,6 +4,8 @@ import { TrabajosTransporteService, ChoferPanel } from '../../../shared/services
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaRelativa } from '../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 const ESTADO_LABEL: Record<string, string> = {
   en_ruta: 'En ruta', disponible: 'Disponible', descanso: 'Descanso',
   almuerzo: 'Almuerzo', inactivo: 'Inactivo', otros: 'Otros', sin_estado: 'Sin estado',
@@ -11,13 +13,14 @@ const ESTADO_LABEL: Record<string, string> = {
 
 @Component({
   selector: 'app-mis-choferes',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './mis-choferes.html',
   styleUrl: './mis-choferes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MisChoferes implements OnInit {
   private svc = inject(TrabajosTransporteService);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   choferes = signal<ChoferPanel[]>([]);
@@ -41,7 +44,7 @@ export class MisChoferes implements OnInit {
   }
 
   senalTexto(c: ChoferPanel): string {
-    if (!c.ultima_senal) return 'Sin señal';
+    if (!c.ultima_senal) return this.i18n.t('Sin señal');
     return this.rel(c.ultima_senal);
   }
 

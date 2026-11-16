@@ -60,7 +60,7 @@
           @if (viendoCompartida(); as c) {
             {{ 'Compartida por' | t }} {{ c.compartida_por_nombre }} — {{ 'solo lectura' | t }}
           } @else {
-            {{ subtitulo() }}
+            {{ subtitulo() | t }}
           }
         </p>
       </div>
@@ -119,11 +119,11 @@
       <div class="compa__messages">
         @if (vacio()) {
           <div class="compa__welcome">
-            <p class="compa__welcome-hi">{{ saludo() }}</p>
+            <p class="compa__welcome-hi">{{ saludo() | t }}</p>
             <p class="compa__welcome-sub">{{ 'Pregúntame lo que necesites del sistema. También puedo prepararte una tarea, requisición o conduce — siempre te muestro un resumen para que confirmes antes de crear nada.' | t }}</p>
             <div class="compa__chips">
               @for (s of sugerencias(); track s) {
-                <button type="button" class="compa__chip" (click)="usarSugerencia(s)">{{ s }}</button>
+                <button type="button" class="compa__chip" (click)="usarSugerencia(s)">{{ s | t }}</button>
               }
             </div>
           </div>
@@ -136,7 +136,7 @@
           <div class="compa__msg compa__msg--{{ m.rol }}">
             <div class="compa__bubble">{{ m.contenido }}</div>
             @if (m.rol === 'assistant' && m.herramientas && m.herramientas.length) {
-              <div class="compa__tools" title="Herramientas que consultó Compa para responder">
+              <div class="compa__tools" title="{{ 'Herramientas que consultó Compa para responder' | t }}">
                 @for (t of m.herramientas; track $index) {
                   <span class="compa__tool-chip" [class.compa__tool-chip--fail]="!t.ok">{{ t.tool }}</span>
                 }

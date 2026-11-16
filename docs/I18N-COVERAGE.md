@@ -3,33 +3,10 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 92%** (9265/10110 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 100%** (10023/10023 literales de 192 pantallas en alcance). **`ht`: 97%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| auth/set-password | scope | 13 | 0 | 13 | 0% |
-| direccion | scope | 16 | 0 | 16 | 0% |
-| dudas | scope | 15 | 0 | 15 | 0% |
-| forbidden | scope | 4 | 0 | 4 | 0% |
-| incentivos | scope | 184 | 0 | 184 | 0% |
-| mi-rendimiento | scope | 17 | 0 | 17 | 0% |
-| mis-choferes | scope | 9 | 0 | 9 | 0% |
-| obra/avance | scope | 85 | 0 | 85 | 0% |
-| obra/checklists | scope | 57 | 0 | 57 | 0% |
-| obra/informes | scope | 49 | 0 | 49 | 0% |
-| obra/no-conformidades | scope | 117 | 0 | 117 | 0% |
-| obra/plan-dia | scope | 44 | 0 | 44 | 0% |
-| obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
-| politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
-| politicas | scope | 15 | 0 | 15 | 0% |
-| verificar | scope | 9 | 0 | 9 | 0% |
-| soporte | scope | 39 | 1 | 38 | 3% |
-| app-movil | scope | 42 | 8 | 34 | 19% |
-| auth | scope | 42 | 15 | 27 | 36% |
-| practica | scope | 34 | 24 | 10 | 71% |
-| asistente | scope | 36 | 33 | 3 | 92% |
-| borrador-claude | scope | 25 | 23 | 2 | 92% |
-| oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
@@ -57,6 +34,10 @@
 | admin/vault | enforce | 72 | 72 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
+| app-movil | enforce | 36 | 36 | 0 | 100% |
+| asistente | enforce | 35 | 35 | 0 | 100% |
+| auth | enforce | 43 | 43 | 0 | 100% |
+| auth/set-password | enforce | 15 | 15 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
 | bitacora/cobertura | enforce | 20 | 20 | 0 | 100% |
 | bitacora/dashboard | enforce | 14 | 14 | 0 | 100% |
@@ -68,6 +49,7 @@
 | bitacora/orden-trabajo | enforce | 81 | 81 | 0 | 100% |
 | bitacora/solicitudes-compra | enforce | 26 | 26 | 0 | 100% |
 | bitacora/solicitudes-material | enforce | 75 | 75 | 0 | 100% |
+| borrador-claude | enforce | 25 | 25 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/ordenes | enforce | 111 | 111 | 0 | 100% |
@@ -80,12 +62,14 @@
 | configuracion/claude | enforce | 32 | 32 | 0 | 100% |
 | configuracion | enforce | 58 | 58 | 0 | 100% |
 | dashboard | enforce | 70 | 70 | 0 | 100% |
-| demo/escenarios | scope | 14 | 14 | 0 | 100% |
-| demo/progreso | scope | 9 | 9 | 0 | 100% |
+| demo/escenarios | enforce | 14 | 14 | 0 | 100% |
+| demo/progreso | enforce | 9 | 9 | 0 | 100% |
+| direccion | enforce | 16 | 16 | 0 | 100% |
 | documentos/generar | enforce | 9 | 9 | 0 | 100% |
 | documentos/historial | enforce | 9 | 9 | 0 | 100% |
 | documentos/plantillas | enforce | 43 | 43 | 0 | 100% |
 | documentos/ver | enforce | 9 | 9 | 0 | 100% |
+| dudas | enforce | 13 | 13 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
 | flota/checklists | enforce | 104 | 104 | 0 | 100% |
@@ -109,6 +93,8 @@
 | flota/seguimiento | enforce | 23 | 23 | 0 | 100% |
 | flota/transferencias | enforce | 12 | 12 | 0 | 100% |
 | flota/vehiculos | enforce | 378 | 378 | 0 | 100% |
+| forbidden | enforce | 4 | 4 | 0 | 100% |
+| incentivos | enforce | 167 | 167 | 0 | 100% |
 | ingenieria/pagos | enforce | 68 | 68 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
@@ -145,9 +131,21 @@
 | legal/firmas-pendientes | enforce | 11 | 11 | 0 | 100% |
 | mensajes/grupo-info | enforce | 29 | 29 | 0 | 100% |
 | mensajes | enforce | 34 | 34 | 0 | 100% |
+| mi-rendimiento | enforce | 12 | 12 | 0 | 100% |
+| mis-choferes | enforce | 9 | 9 | 0 | 100% |
 | notas/editor | enforce | 32 | 32 | 0 | 100% |
 | notas | enforce | 37 | 37 | 0 | 100% |
+| oauth-consent | enforce | 19 | 19 | 0 | 100% |
+| obra/avance | enforce | 77 | 77 | 0 | 100% |
+| obra/checklists | enforce | 49 | 49 | 0 | 100% |
+| obra/informes | enforce | 46 | 46 | 0 | 100% |
+| obra/no-conformidades | enforce | 98 | 98 | 0 | 100% |
+| obra/plan-dia | enforce | 37 | 37 | 0 | 100% |
+| obra/subcontratistas | enforce | 75 | 75 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
+| politicas/eliminar-cuenta | enforce | 9 | 9 | 0 | 100% |
+| politicas | enforce | 15 | 15 | 0 | 100% |
+| practica | enforce | 33 | 33 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
 | proyectos/compras | enforce | 28 | 28 | 0 | 100% |
@@ -175,6 +173,7 @@
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | rrhh/tramites | enforce | 44 | 44 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
+| soporte | enforce | 38 | 38 | 0 | 100% |
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
@@ -199,20 +198,4 @@
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
-
-## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
-
-**104 literal(es) sin t()** en 10 archivo(s) (de 133 archivo(s) .ts con algo detectado).
-
-| Archivo | sin t() | ejemplos |
-|---|---:|---|
-| src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
-| src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
-| src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
-| src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
-| src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
-| src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
-| src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
-| src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/politicas/politicas.ts | 1 | Documento |
+| verificar | enforce | 9 | 9 | 0 | 100% |

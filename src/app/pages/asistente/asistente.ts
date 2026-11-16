@@ -7,6 +7,7 @@ import { PrivacidadService } from '../../../shared/services/privacidad.service';
 import { UserPicker, UserPickerSelection } from '../../../shared/ui/user-picker/user-picker';
 import { ToastService } from '../../../shared/services/toast.service';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 /**
  * AW4 — "Compa", el asistente conversacional de SGC (v1 solo-lectura). La UI es
@@ -27,6 +28,7 @@ export class Asistente implements OnInit {
   private privacidad = inject(PrivacidadService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   /** DG — modo compacto: embebido dentro de `app-compa-flotante` (ventana chica).
    *  Oculta la lista de conversaciones y el enlace a Claude Desktop vía CSS
@@ -219,7 +221,7 @@ export class Asistente implements OnInit {
       this.archivos.set(res.archivos ?? (res.archivo ? [res.archivo] : []));
       this.conversaciones.set(await this.service.conversacionesRecientes());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo contactar al asistente.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo contactar al asistente.'));
     } finally {
       this.enviando.set(false);
       this.scrollAlFinal();
@@ -239,7 +241,7 @@ export class Asistente implements OnInit {
       this.mensajes.update((m) => [...m, { rol: 'assistant', contenido: res.respuesta }]);
       this.propuesta.set(null);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo ejecutar la acción.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo ejecutar la acción.'));
     } finally {
       this.ejecutando.set(false);
       this.scrollAlFinal();
@@ -284,10 +286,10 @@ export class Asistente implements OnInit {
     this.compartiendo.set(true);
     try {
       await this.service.compartir(convId, [destino.usuario_id], this.compartirMensaje().trim() || null);
-      this.toast.success('Conversación compartida', `${destino.nombre} ya puede verla en "Compartidas conmigo".`);
+      this.toast.success(this.i18n.t('Conversación compartida'), `${destino.nombre} ya puede verla en "Compartidas conmigo".`);
       this.mostrarCompartir.set(false);
     } catch (e: unknown) {
-      this.toast.error('No se pudo compartir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo compartir'), e instanceof Error ? e.message : undefined);
     } finally {
       this.compartiendo.set(false);
     }
@@ -307,7 +309,7 @@ export class Asistente implements OnInit {
       // ya no es "Nueva" tras verla — refleja localmente sin re-pedir la lista.
       this.compartidas.update((list) => list.map((x) => (x.id === c.id ? { ...x, vista_at: x.vista_at ?? new Date().toISOString() } : x)));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo abrir esta conversación.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo abrir esta conversación.'));
     } finally {
       this.cargandoCompartida.set(false);
       this.scrollAlFinal();

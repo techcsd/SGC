@@ -8,12 +8,14 @@ import {
 } from '../../../shared/services/incentivos.service';
 import { ConductoresService } from '../../../shared/services/conductores.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 import { UserService } from '../../core/services/user.service';
 import { SignedUrlCache } from '../../../shared/services/signed-url-cache.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../shared/utils/exportar-excel.util';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 /** BQ9 — grupo de incidencias del mismo tipo (para el masivo). */
 export interface IncidenciaGrupo {
   tipo: string;
@@ -31,7 +33,7 @@ export type IncDetalleState =
 
 @Component({
   selector: 'app-incentivos',
-  imports: [FormsModule, RouterLink, Skeleton],
+  imports: [FormsModule, RouterLink, Skeleton, TranslatePipe],
   templateUrl: './incentivos.html',
   styleUrl: './incentivos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +42,7 @@ export class Incentivos implements OnInit {
   private service = inject(IncentivosService);
   private conductores = inject(ConductoresService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   private userService = inject(UserService);
   private signedUrls = inject(SignedUrlCache);
@@ -184,11 +187,11 @@ export class Incentivos implements OnInit {
     this.busy.set(true);
     try {
       await this.service.decidirIncidencia(anio, semana, refTipo, fl.ref_id, decision);
-      this.toast.success(decision === 'aceptada' ? 'Incidencia aceptada' : 'Incidencia excluida',
+      this.toast.success(decision === 'aceptada' ? this.i18n.t('Incidencia aceptada') : this.i18n.t('Incidencia excluida'),
         decision === 'aceptada' ? 'Ahora cuenta para el puntaje.' : 'No cuenta para el puntaje.');
       await this.cargarFilas();
     } catch (e) {
-      this.toast.error('No se pudo registrar la decisión', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo registrar la decisión'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -206,7 +209,7 @@ export class Incentivos implements OnInit {
       if (refTipo === 'echada') {
         const e = await this.service.echadaDetalleIncidencia(id);
         if ('error' in e) {
-          this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: 'No tienes acceso a este registro.' } }));
+          this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: this.i18n.t('No tienes acceso a este registro.') } }));
           return;
         }
         const fotos = await this.resolverFotos(e);
@@ -214,13 +217,13 @@ export class Incentivos implements OnInit {
       } else {
         const r = await this.service.rutaDetalleIncidencia(id);
         if (!r?.ruta) {
-          this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: 'No se pudo cargar la ruta.' } }));
+          this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: this.i18n.t('No se pudo cargar la ruta.') } }));
           return;
         }
         this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'ruta', ruta: r.ruta } }));
       }
     } catch (err) {
-      this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: err instanceof Error ? err.message : 'No se pudo cargar el detalle.' } }));
+      this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: err instanceof Error ? err.message : this.i18n.t('No se pudo cargar el detalle.') } }));
     }
   }
 
@@ -245,9 +248,11 @@ export class Incentivos implements OnInit {
     const anio = this.selAnio(), semana = this.selSemana();
     if (!anio || !semana || this.busy()) return;
     const pend = g.items.filter((i) => (i.decision ?? 'cuarentena') === 'cuarentena');
-    if (!pend.length) { this.toast.warning('Nada que decidir', 'No hay incidencias en cuarentena en este grupo.'); return; }
+    if (!pend.length) { this.toast.warning(this.i18n.t('Nada que decidir'), 'No hay incidencias en cuarentena en este grupo.'); return; }
     const verbo = decision === 'aceptada' ? 'Aceptar' : 'Excluir';
-    if (!confirm(`¿${verbo} las ${pend.length} incidencias en cuarentena de "${g.label}" (${f.nombre})?`)) return;
+    if (!confirm(this.i18n.t('¿{verbo} las {n} incidencias en cuarentena de "{grupo}" ({nombre})?', {
+      verbo: this.i18n.t(verbo), n: pend.length, grupo: this.i18n.t(g.label), nombre: f.nombre,
+    }))) return;
     const motivo = prompt(`Motivo (opcional) para ${verbo.toLowerCase()} en lote:`);
     if (motivo === null) return; // canceló
     const items = pend.map((i) => ({ ref_tipo: this.refTipoDe(i), ref_id: i.ref_id }));
@@ -255,12 +260,12 @@ export class Incentivos implements OnInit {
     try {
       const n = await this.service.decidirIncidencias(anio, semana, items, decision, motivo.trim() || null);
       this.toast.success(
-        `${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'}`,
+        this.i18n.t('{n} incidencia(s) {estado}', { n, estado: decision === 'aceptada' ? this.i18n.t('aceptadas') : this.i18n.t('excluidas') }),
         decision === 'aceptada' ? 'Ahora cuentan para el puntaje.' : 'No cuentan para el puntaje.',
       );
       await this.cargarFilas();
     } catch (e) {
-      this.toast.error('No se pudo procesar en lote', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo procesar en lote'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -286,7 +291,7 @@ export class Incentivos implements OnInit {
       const target = (qa && qs) ? { anio: qa, semana: qs } : (semanas[0] ?? null);
       if (target) { this.selAnio.set(target.anio); this.selSemana.set(target.semana); await this.cargarFilas(); }
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar.'));
     } finally {
       this.loading.set(false);
     }
@@ -311,7 +316,7 @@ export class Incentivos implements OnInit {
       }
       this.filas.set(await this.service.listado(anio, semana));
     } catch (e) {
-      this.toast.error('No se pudo cargar la semana', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar la semana'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingFilas.set(false);
     }
@@ -370,7 +375,7 @@ export class Incentivos implements OnInit {
 
   async confirmarDeclinar(f: IncentivoFila) {
     const motivo = this.motivoDeclina().trim();
-    if (!motivo) { this.toast.warning('Motivo requerido', 'Al declinar debes indicar el motivo.'); return; }
+    if (!motivo) { this.toast.warning(this.i18n.t('Motivo requerido'), 'Al declinar debes indicar el motivo.'); return; }
     await this.decidir(f, 'declinado', motivo);
     this.declinandoId.set(null);
   }
@@ -380,11 +385,11 @@ export class Incentivos implements OnInit {
     this.busy.set(true);
     try {
       await this.service.decidir(f.informe_id, decision, motivo);
-      this.toast.success(decision === 'aprobado' ? 'Incentivo aprobado' : 'Incentivo declinado', `${f.nombre} — semana ${this.selSemana()}`);
+      this.toast.success(decision === 'aprobado' ? this.i18n.t('Incentivo aprobado') : this.i18n.t('Incentivo declinado'), `${f.nombre} — semana ${this.selSemana()}`);
       await this.cargarFilas();
       this.historial.update((m) => { const c = { ...m }; delete c[f.informe_id]; return c; });
     } catch (e) {
-      this.toast.error('No se pudo registrar la decisión', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo registrar la decisión'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -393,14 +398,14 @@ export class Incentivos implements OnInit {
   async aprobarTodos() {
     const anio = this.selAnio(), semana = this.selSemana();
     if (!anio || !semana || this.busy()) return;
-    if (!confirm(`¿Aprobar el incentivo de los ${this.pendientes()} choferes que cumplieron y siguen pendientes?`)) return;
+    if (!confirm(this.i18n.t('¿Aprobar el incentivo de los {n} choferes que cumplieron y siguen pendientes?', { n: this.pendientes() }))) return;
     this.busy.set(true);
     try {
       const n = await this.service.aprobarCumplieron(anio, semana);
-      this.toast.success('Aprobación masiva', `Se aprobaron ${n} incentivos.`);
+      this.toast.success(this.i18n.t('Aprobación masiva'), `Se aprobaron ${n} incentivos.`);
       await this.cargarFilas();
     } catch (e) {
-      this.toast.error('No se pudo aprobar en lote', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo aprobar en lote'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -413,9 +418,9 @@ export class Incentivos implements OnInit {
     try {
       await this.service.generar(anio, semana);
       await this.cargarFilas();
-      this.toast.success('Informe recalculado', `Semana ${semana}/${anio}.`);
+      this.toast.success(this.i18n.t('Informe recalculado'), `Semana ${semana}/${anio}.`);
     } catch (e) {
-      this.toast.error('No se pudo recalcular', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo recalcular'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -441,7 +446,7 @@ export class Incentivos implements OnInit {
       this.reenvioDest.set(dest.map((d) => ({ email: d.email, nombre: d.nombre, incluir: true })));
       this.versiones.set(vers);
     } catch (e) {
-      this.toast.error('No se pudo preparar el reenvío', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo preparar el reenvío'), e instanceof Error ? e.message : undefined);
     }
   }
   toggleReenvioDest(email: string) {
@@ -452,14 +457,14 @@ export class Incentivos implements OnInit {
     const anio = this.selAnio(), semana = this.selSemana();
     if (!anio || !semana || this.busy()) return;
     const motivo = this.reenvioMotivo().trim();
-    if (!motivo) { this.toast.warning('Falta el motivo', 'Escribe por qué reenvías — queda en el historial de versiones.'); return; }
+    if (!motivo) { this.toast.warning(this.i18n.t('Falta el motivo'), 'Escribe por qué reenvías — queda en el historial de versiones.'); return; }
     const incluidos = this.reenvioDest().filter((d) => d.incluir).map((d) => ({ email: d.email, nombre: d.nombre }));
-    if (!incluidos.length) { this.toast.warning('Sin destinatarios', 'Selecciona al menos un destinatario.'); return; }
+    if (!incluidos.length) { this.toast.warning(this.i18n.t('Sin destinatarios'), 'Selecciona al menos un destinatario.'); return; }
     this.busy.set(true);
     try {
       const r = await this.service.reenviarVersion(anio, semana, motivo, incluidos);
       this.toast.success(
-        `Informe reenviado (v${r.version})`,
+        this.i18n.t('Informe reenviado (v{v})', { v: r.version }),
         r.reemplaza_version
           ? `Reemplaza a la v${r.reemplaza_version}. Enviado a ${r.destinatarios} destinatario(s).`
           : `Enviado a ${r.destinatarios} destinatario(s).`,
@@ -467,7 +472,7 @@ export class Incentivos implements OnInit {
       this.versiones.set(await this.service.versiones(anio, semana));
       this.reenvioMotivo.set('');
     } catch (e) {
-      this.toast.error('No se pudo reenviar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo reenviar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -508,7 +513,7 @@ export class Incentivos implements OnInit {
       try {
         this.destinatarios.set(await this.service.destinatariosInforme());
       } catch (e) {
-        this.toast.error('No se pudo cargar la lista de destinatarios', e instanceof Error ? e.message : undefined);
+        this.toast.error(this.i18n.t('No se pudo cargar la lista de destinatarios'), e instanceof Error ? e.message : undefined);
       }
     }
   }
@@ -529,7 +534,7 @@ export class Incentivos implements OnInit {
     try {
       this.participantes.set(await this.service.participantes());
     } catch (e) {
-      this.toast.error('No se pudieron cargar los participantes', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los participantes'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoParticipantes.set(false);
     }
@@ -554,11 +559,11 @@ export class Incentivos implements OnInit {
       );
       await this.cargarFilas();
       this.toast.success(
-        next ? 'Participante agregado' : 'Participante quitado',
+        next ? this.i18n.t('Participante agregado') : this.i18n.t('Participante quitado'),
         `${p.nombre}. Recalcula o reenvía el informe para que refleje el cambio.`,
       );
     } catch (e) {
-      this.toast.error('No se pudo cambiar la participación', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar la participación'), e instanceof Error ? e.message : undefined);
     } finally {
       this.participanteBusy.set(null);
     }
@@ -580,10 +585,10 @@ export class Incentivos implements OnInit {
         list.map((x) => (x.usuario_id === p.usuario_id ? { ...x, es_chofer: next } : x)),
       );
       await this.cargarFilas();
-      this.toast.success(next ? 'Marcado como chofer' : 'Ya no es chofer',
+      this.toast.success(next ? this.i18n.t('Marcado como chofer') : this.i18n.t('Ya no es chofer'),
         `${p.nombre}. Recalcula el informe para reflejar el cambio.`);
     } catch (e) {
-      this.toast.error('No se pudo cambiar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.participanteBusy.set(null);
     }
@@ -610,9 +615,9 @@ export class Incentivos implements OnInit {
       await this.service.setParticipante(c.usuario_id, true, false, 'Agregado al padrón');
       await this.cargarParticipantes();
       this.candidatos.update((l) => l.filter((x) => x.usuario_id !== c.usuario_id));
-      this.toast.success('Persona agregada', `${c.nombre}. Márcala como chofer si aplica.`);
+      this.toast.success(this.i18n.t('Persona agregada'), `${c.nombre}. Márcala como chofer si aplica.`);
     } catch (e) {
-      this.toast.error('No se pudo agregar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo agregar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.participanteBusy.set(null);
     }
@@ -645,7 +650,7 @@ export class Incentivos implements OnInit {
     try {
       this.diaFilas.set(await this.service.diaListado(this.diaFecha()));
     } catch (e) {
-      this.toast.error('No se pudo cargar la actividad diaria', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar la actividad diaria'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoDia.set(false);
     }
@@ -684,9 +689,9 @@ export class Incentivos implements OnInit {
       await this.service.setDiarioDestinatario(u.id, true);
       this.diarioBusqueda.set('');
       await this.cargarDiarioDest();
-      this.toast.success('Destinatario agregado', u.nombre);
+      this.toast.success(this.i18n.t('Destinatario agregado'), u.nombre);
     } catch (e) {
-      this.toast.error('No se pudo agregar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo agregar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.diarioBusy.set(null);
     }
@@ -697,9 +702,9 @@ export class Incentivos implements OnInit {
     try {
       await this.service.setDiarioDestinatario(d.usuario_id, false);
       await this.cargarDiarioDest();
-      this.toast.success('Destinatario quitado', d.nombre);
+      this.toast.success(this.i18n.t('Destinatario quitado'), d.nombre);
     } catch (e) {
-      this.toast.error('No se pudo quitar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo quitar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.diarioBusy.set(null);
     }
@@ -733,13 +738,13 @@ export class Incentivos implements OnInit {
     try {
       const sug = await this.service.sugerirTopes();
       if (!Object.keys(sug).length) {
-        this.toast.info('Sin datos suficientes', 'Aún no hay semanas generadas para sugerir topes.');
+        this.toast.info(this.i18n.t('Sin datos suficientes'), 'Aún no hay semanas generadas para sugerir topes.');
         return;
       }
       this.cfgTopes.set({ ...sug });
-      this.toast.success('Topes sugeridos', 'Revísalos y guarda una nueva versión para aplicarlos.');
+      this.toast.success(this.i18n.t('Topes sugeridos'), 'Revísalos y guarda una nueva versión para aplicarlos.');
     } catch (e) {
-      this.toast.error('No se pudo sugerir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo sugerir'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -759,10 +764,10 @@ export class Incentivos implements OnInit {
         this.cfgMaximo(), topes,
       );
       this.config.set(await this.service.configActual());
-      this.toast.success('Configuración guardada', 'Los informes futuros usarán estos pesos y topes; los anteriores conservan los suyos. Recalcula una semana para aplicarlos.');
+      this.toast.success(this.i18n.t('Configuración guardada'), 'Los informes futuros usarán estos pesos y topes; los anteriores conservan los suyos. Recalcula una semana para aplicarlos.');
       this.mostrarConfig.set(false);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }
@@ -775,10 +780,10 @@ export class Incentivos implements OnInit {
     try {
       await this.service.setPenalizacion(this.cfgPenalGracia(), this.cfgPenalPts(), this.cfgPenalTope());
       this.config.set(await this.service.configActual());
-      const estado = this.cfgPenalPts() > 0 ? 'activada' : 'apagada';
-      this.toast.success(`Penalización ${estado}`, 'Aplica al recalcular la semana. Recalcula para verla reflejada.');
+      const estadoEs = this.cfgPenalPts() > 0 ? 'activada' : 'apagada';
+      this.toast.success(this.i18n.t('Penalización {estado}', { estado: this.i18n.t(estadoEs) }), 'Aplica al recalcular la semana. Recalcula para verla reflejada.');
     } catch (e) {
-      this.toast.error('No se pudo guardar la penalización', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar la penalización'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }

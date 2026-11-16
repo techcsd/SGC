@@ -15,13 +15,15 @@ import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 type Tab = 'ejecutar' | 'plantillas';
 interface Respuesta { cumple: ChecklistCumple; comentario: string; }
 interface Hallazgo { etiqueta: string; comentario: string; ncCreada: boolean; }
 
 @Component({
   selector: 'app-obra-checklists',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon, TranslatePipe],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +33,7 @@ export class ObraChecklists implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
 
@@ -81,7 +84,7 @@ export class ObraChecklists implements OnInit {
       this.ejecutados.set(ejecutados);
       if (proyectos.length) this.proyectoId.set(proyectos[0].id);
     } catch (e: unknown) {
-      this.toast.error('Error al cargar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingInit.set(false);
     }
@@ -101,7 +104,7 @@ export class ObraChecklists implements OnInit {
       for (const it of items) r[it.id] = { cumple: 'ok', comentario: '' };
       this.respuestas.set(r);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -116,7 +119,7 @@ export class ObraChecklists implements OnInit {
 
   async guardarChecklist() {
     if (!this.proyectoId() || !this.plantillaId() || this.saving()) {
-      this.toast.warning('Selecciona obra y checklist');
+      this.toast.warning(this.i18n.t('Selecciona obra y checklist'));
       return;
     }
     this.saving.set(true);
@@ -144,7 +147,7 @@ export class ObraChecklists implements OnInit {
         .map((it) => ({ etiqueta: it.etiqueta, comentario: r[it.id].comentario, ncCreada: false }));
       this.hallazgos.set(hall);
       this.ultimoProyecto.set(this.proyectoId());
-      this.toast.success('Checklist registrado', hall.length ? `${hall.length} hallazgo(s)` : undefined);
+      this.toast.success(this.i18n.t('Checklist registrado'), hall.length ? `${hall.length} hallazgo(s)` : undefined);
       // Reset ejecución (deja hallazgos visibles)
       this.observaciones.set('');
       this.fotos.set([]);
@@ -152,7 +155,7 @@ export class ObraChecklists implements OnInit {
       this.items.set([]);
       this.ejecutados.set(await this.service.getChecklistsEjecutados());
     } catch (e: unknown) {
-      this.toast.error('No se pudo registrar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo registrar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -174,9 +177,9 @@ export class ObraChecklists implements OnInit {
         [],
       );
       this.hallazgos.update((list) => list.map((x) => (x === h ? { ...x, ncCreada: true } : x)));
-      this.toast.success('No conformidad levantada');
+      this.toast.success(this.i18n.t('No conformidad levantada'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo levantar la NC', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo levantar la NC'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -206,9 +209,9 @@ export class ObraChecklists implements OnInit {
       this.plantillas.update((l) => [...l, p]);
       this.nuevaPlantillaOpen.set(false);
       this.openEditor(p);
-      this.toast.success('Plantilla creada');
+      this.toast.success(this.i18n.t('Plantilla creada'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -229,9 +232,9 @@ export class ObraChecklists implements OnInit {
       await this.service.agregarItemPlantilla(p.id, v.seccion || null, v.etiqueta!, orden);
       this.editorItems.set(await this.service.getPlantillaItems(p.id));
       this.nuevoItemOpen.set(false);
-      this.toast.success('Ítem agregado');
+      this.toast.success(this.i18n.t('Ítem agregado'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -241,7 +244,7 @@ export class ObraChecklists implements OnInit {
       await this.service.eliminarItemPlantilla(item.id);
       this.editorItems.update((l) => l.filter((x) => x.id !== item.id));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
