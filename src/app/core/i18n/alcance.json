@@ -76,9 +76,6 @@
     "admin/roles": {
       "enforce": false
     },
-    "admin/usuarios-duplicados": {
-      "enforce": false
-    },
     "admin/compa-conversaciones": {
       "enforce": false
     },
@@ -140,6 +137,9 @@
       "enforce": true
     },
     "admin/unidades": {
+      "enforce": true
+    },
+    "admin/usuarios-duplicados": {
       "enforce": true
     },
     "admin/usuarios-test": {

@@ -1326,21 +1326,6 @@
       ]
     },
     {
-      "pantalla": "admin/usuarios-duplicados",
-      "total": 18,
-      "cubiertos": 14,
-      "sin": 4,
-      "pct": 78,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "par(es) candidato(s) a fusión.",
-        "⚠️ Requieren revisión manual (no se borró nada):",
-        "registros en total.",
-        "¿Fusionar \"${nombreDup}\" dentro de \"${nombreCanon}\"?\\n\\n"
-      ]
-    },
-    {
       "pantalla": "admin/compa-conversaciones",
       "total": 25,
       "cubiertos": 20,
@@ -1571,6 +1556,16 @@
       "pantalla": "admin/unidades",
       "total": 10,
       "cubiertos": 10,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/usuarios-duplicados",
+      "total": 17,
+      "cubiertos": 17,
       "sin": 0,
       "pct": 100,
       "enScope": true,

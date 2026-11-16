@@ -7064,5 +7064,22 @@
   "República Dominicana": "Dominican Republic",
   "Vista previa (encabezado de documento)": "Preview (document header)",
   "LOGO": "LOGO",
-  "Así se verá el bloque de identidad en los PDF, conduces y carnets.": "This is how the identity block will look on PDFs, delivery notes and ID cards."
+  "Así se verá el bloque de identidad en los PDF, conduces y carnets.": "This is how the identity block will look on PDFs, delivery notes and ID cards.",
+  "par(es) candidato(s) a fusión.": "candidate pair(s) for merging.",
+  "⚠️ Requieren revisión manual (no se borró nada):": "⚠️ Require manual review (nothing was deleted):",
+  "registros en total.": "records total.",
+  "Fusionando…": "Merging…",
+  "Fusionar en el canónico": "Merge into the canonical",
+  "Sin correo": "No email",
+  "Personas que aparecen en dos filas (a veces con cédulas distintas). Fusiónalas en una sola para no repartir su actividad ni su incentivo. Todo queda en la auditoría.": "People who appear in two rows (sometimes with different ID numbers). Merge them into one so their activity and incentives aren't split. Everything is recorded in the audit log.",
+  "No se detectaron personas duplicadas. 🎉": "No duplicate people detected. 🎉",
+  "✓ Fusión hecha. Se re-apuntaron": "✓ Merge done. Re-pointed",
+  "tabla(s).": "table(s).",
+  "Elige cuál es el usuario": "Choose which user is the",
+  "canónico": "canonical one",
+  "(el que se queda):": "(the one that stays):",
+  "Actividad del duplicado que se re-apuntaría al canónico:": "Activity of the duplicate that would be re-pointed to the canonical one:",
+  "El duplicado no tiene actividad registrada.": "The duplicate has no recorded activity.",
+  "¿Fusionar \"{nombreDup}\" dentro de \"{nombreCanon}\"?": "Merge \"{nombreDup}\" into \"{nombreCanon}\"?",
+  "Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.": "{nombreDup}'s activity ({registros} records) is re-pointed to {nombreCanon}, and {nombreDup} becomes inactive. Anything that clashes is left for manual review (nothing is deleted). It's recorded in the audit log."
 }

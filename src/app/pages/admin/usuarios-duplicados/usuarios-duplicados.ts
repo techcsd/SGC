@@ -10,6 +10,7 @@ import { identidadLabel } from '../../../../shared/utils/identidad.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * BI6 / AU18 — Detección y fusión de personas duplicadas.
  * El índice único de BH4 no puede atrapar dos filas con cédulas DISTINTAS que son
@@ -26,6 +27,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 })
 export class AdminUsuariosDuplicados implements OnInit {
   private admin = inject(AdminService);
+  protected i18n = inject(I18nService);
   identidad = identidadLabel;
 
   candidatos = signal<DuplicadoCandidato[]>([]);
@@ -107,10 +109,12 @@ export class AdminUsuariosDuplicados implements OnInit {
     const nombreCanon = canonico === c.id_a ? c.nombre_a : c.nombre_b;
     const nombreDup = canonico === c.id_a ? c.nombre_b : c.nombre_a;
     if (!confirm(
-      `¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n` +
-      `Se re-apunta la actividad de ${nombreDup} (${this.totalFilas()} registros) a ${nombreCanon}, ` +
-      `y ${nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). ` +
-      `Queda en la auditoría.`,
+      this.i18n.t('¿Fusionar "{nombreDup}" dentro de "{nombreCanon}"?', { nombreDup, nombreCanon }) +
+      '\n\n' +
+      this.i18n.t(
+        'Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.',
+        { nombreDup, nombreCanon, registros: this.totalFilas() },
+      ),
     )) return;
     this.fusionando.set(true);
     this.fusionError.set('');

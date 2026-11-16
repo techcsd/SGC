@@ -6714,5 +6714,22 @@
   "República Dominicana": "Repiblik Dominikèn",
   "Vista previa (encabezado de documento)": "Apèsi (antèt dokiman)",
   "LOGO": "LOGO",
-  "Así se verá el bloque de identidad en los PDF, conduces y carnets.": "Konsa bloke idantite a ap parèt sou PDF, kondui ak kat idantite yo."
+  "Así se verá el bloque de identidad en los PDF, conduces y carnets.": "Konsa bloke idantite a ap parèt sou PDF, kondui ak kat idantite yo.",
+  "par(es) candidato(s) a fusión.": "pè(y) kandida pou fusyon.",
+  "⚠️ Requieren revisión manual (no se borró nada):": "⚠️ Mande revizyon manyèl (anyen pa t efase):",
+  "registros en total.": "rejis an total.",
+  "Fusionando…": "Ap fusyone…",
+  "Fusionar en el canónico": "Fusyone nan kanonik la",
+  "Sin correo": "San imel",
+  "Personas que aparecen en dos filas (a veces con cédulas distintas). Fusiónalas en una sola para no repartir su actividad ni su incentivo. Todo queda en la auditoría.": "Moun ki parèt nan de liy (pafwa ak diferan sedil). Fusyone yo nan youn sèl pou aktivite ak ensantif yo pa divize. Tout bagay rete nan odit la.",
+  "No se detectaron personas duplicadas. 🎉": "Pa gen moun doub detekte. 🎉",
+  "✓ Fusión hecha. Se re-apuntaron": "✓ Fusyon fèt. Re-pwente",
+  "tabla(s).": "tab la.",
+  "Elige cuál es el usuario": "Chwazi ki itilizatè ki",
+  "canónico": "kanonik",
+  "(el que se queda):": "(sa ki rete a):",
+  "Actividad del duplicado que se re-apuntaría al canónico:": "Aktivite doub la ki ta re-pwente nan kanonik la:",
+  "El duplicado no tiene actividad registrada.": "Doub la pa gen aktivite anrejistre.",
+  "¿Fusionar \"{nombreDup}\" dentro de \"{nombreCanon}\"?": "Fusyone \"{nombreDup}\" nan \"{nombreCanon}\"?",
+  "Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.": "Aktivite {nombreDup} ({registros} rejis) ap re-pwente nan {nombreCanon}, epi {nombreDup} vin inaktif. Sa ki chwoke rete pou revizyon manyèl (anyen pa efase). Sa rete nan odit la."
 }
