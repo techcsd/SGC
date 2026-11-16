@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { TareasService } from '../../../../shared/services/tareas.service';
 import { UserService } from '../../../core/services/user.service';
 import { Tarea, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../../../shared/models/tarea.model';
@@ -12,9 +12,10 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 @Component({
   selector: 'app-tareas-historial',
-  imports: [DatePipe, TareaDetalle, DonutChart, BarChart, Skeleton, Icon, TranslatePipe],
+  imports: [FechaPipe, TareaDetalle, DonutChart, BarChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

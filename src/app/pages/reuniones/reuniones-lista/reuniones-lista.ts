@@ -11,6 +11,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { localeActual } from '../../../../shared/i18n/locale.util';
 import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 
 interface ProyectoOpcion { id: string; nombre: string }
@@ -275,7 +276,7 @@ export class ReunionesLista implements OnInit {
 
   fechaCorta(iso: string): string { return formatFechaRelativa(iso); }
   hora(iso: string): string {
-    return new Date(iso).toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit' });
+    return new Date(iso).toLocaleTimeString(localeActual(this.i18n.idioma()), { hour: 'numeric', minute: '2-digit' });
   }
   duracion(inicio: string, fin: string): string {
     const min = Math.round((new Date(fin).getTime() - new Date(inicio).getTime()) / 60000);

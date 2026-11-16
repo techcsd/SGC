@@ -20,6 +20,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { localeActual } from '../../../../shared/i18n/locale.util';
 @Component({
   selector: 'app-admin-reportes',
   imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, TranslatePipe],
@@ -204,7 +205,7 @@ export class AdminReportes implements OnInit {
     if (!r || !resumen || !miId || this.guardandoNota()) return;
     this.guardandoNota.set(true);
     try {
-      const mes = new Date().toLocaleDateString('es-DO', { month: 'long', year: 'numeric' });
+      const mes = new Date().toLocaleDateString(localeActual(this.i18n.idioma()), { month: 'long', year: 'numeric' });
       const titulo = `Ronda próxima — ${mes}`;
       const notas = await this.notasSvc.getMisNotas(miId, false, 'dev');
       const existente = notas.find((n) => (n.titulo ?? '').trim() === titulo);

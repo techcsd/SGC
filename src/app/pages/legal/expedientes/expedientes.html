@@ -359,7 +359,7 @@
           <div class="detail-section">
             <span class="detail-section__title">{{ 'Última nota' | t }}</span>
             <div class="exp-nota-card">
-              <span class="exp-nota-card__meta"><b>{{ ultimaNota.usuario?.nombre ?? 'Usuario' }}</b> · {{ ultimaNota.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              <span class="exp-nota-card__meta"><b>{{ ultimaNota.usuario?.nombre ?? 'Usuario' }}</b> · {{ ultimaNota.created_at | fecha:'dd/MM/yyyy HH:mm' }}</span>
               @if (notaExpandidaId() === ultimaNota.id || ultimaNota.nota.length <= 140) {
                 <span class="exp-nota-card__texto">{{ ultimaNota.nota }}</span>
               } @else {
@@ -403,7 +403,7 @@
                 <li class="nota-item">
                   <div class="nota-item__meta">
                     <span class="nota-item__autor">{{ n.usuario?.nombre ?? 'Usuario' }}</span>
-                    <span class="nota-item__fecha">{{ n.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="nota-item__fecha">{{ n.created_at | fecha:'dd/MM/yyyy HH:mm' }}</span>
                   </div>
                   <p class="nota-item__texto">{{ n.nota }}</p>
                 </li>

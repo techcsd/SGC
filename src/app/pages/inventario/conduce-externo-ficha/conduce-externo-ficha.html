@@ -47,14 +47,14 @@
       }
 
       <dl class="ce-kv">
-        <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ d.fecha | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+        <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ d.fecha | fecha: 'dd/MM/yyyy HH:mm' }}</dd></div>
         <div><dt>{{ 'Transporta' | t }}</dt><dd>{{ d.transporta || '—' }} @if (!d.es_proveedor_formal && d.transporta) { <span class="ce-otro">{{ '«Otro»' | t }}</span> }</dd></div>
         <div><dt>{{ 'Origen' | t }}</dt><dd>{{ d.origen || d.origen_bodega || d.origen_proyecto || '—' }}</dd></div>
         <div><dt>{{ 'Destino' | t }}</dt><dd>{{ d.destino || d.destino_bodega || d.destino_proyecto || '—' }}</dd></div>
         <div><dt>{{ 'Material' | t }}</dt><dd>{{ d.material || (d.afecta_inventario ? i18n.t('Material de catálogo') : '—') }}</dd></div>
         <div><dt>{{ 'Emisor' | t }}</dt><dd>{{ d.emisor || '—' }}</dd></div>
         <div><dt>{{ 'Receptor' | t }}</dt><dd>{{ d.receptor || '—' }}</dd></div>
-        @if (d.recibido_en) { <div><dt>{{ 'Recibido' | t }}</dt><dd>{{ d.recibido_en | date: 'dd/MM/yyyy HH:mm' }}</dd></div> }
+        @if (d.recibido_en) { <div><dt>{{ 'Recibido' | t }}</dt><dd>{{ d.recibido_en | fecha: 'dd/MM/yyyy HH:mm' }}</dd></div> }
         @if (d.notas) { <div><dt>{{ 'Notas' | t }}</dt><dd>{{ d.notas }}</dd></div> }
         @if (d.notas_recepcion) { <div><dt>{{ 'Notas de recepción' | t }}</dt><dd>{{ d.notas_recepcion }}</dd></div> }
       </dl>
@@ -66,7 +66,7 @@
             <span class="ce-linea-vida__punto" [appEstadoPulse]="nodo.activo"></span>
             <span class="ce-linea-vida__label">{{ nodo.label | t }}</span>
             @if (nodo.at) {
-              <span class="ce-linea-vida__fecha">{{ nodo.at | date: 'dd/MM HH:mm' }}</span>
+              <span class="ce-linea-vida__fecha">{{ nodo.at | fecha: 'dd/MM HH:mm' }}</span>
             }
           </li>
         }
@@ -109,7 +109,7 @@
           <h2 class="ce-doc__sub">{{ 'Historial' | t }}</h2>
           <ul>
             @for (h of d.historial; track $index) {
-              <li><span class="sgc-status-pill">{{ histLabel(h.estado) | t }}</span> {{ h.at | date: 'dd/MM/yyyy HH:mm' }}</li>
+              <li><span class="sgc-status-pill">{{ histLabel(h.estado) | t }}</span> {{ h.at | fecha: 'dd/MM/yyyy HH:mm' }}</li>
             }
           </ul>
         </div>

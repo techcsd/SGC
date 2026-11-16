@@ -45,7 +45,7 @@
                   {{ 'desde bitácora' | t }}
                 </a>
               }
-              <span class="ret-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+              <span class="ret-fecha">{{ f.created_at | fecha: 'dd/MM/yy HH:mm' }}</span>
             </div>
             <div class="ret-item-body">
               <strong>{{ f.proyecto_nombre || '—' }}</strong>
@@ -80,7 +80,7 @@
                 <td>{{ c.articulo_nombre || '—' }}</td>
                 <td>{{ c.codigo || '—' }}</td>
                 <td class="num">{{ c.cantidad }}</td>
-                <td>{{ c.updated_at | date: 'dd/MM/yy' }}</td>
+                <td>{{ c.updated_at | fecha: 'dd/MM/yy' }}</td>
               </tr>
             }
           </tbody>

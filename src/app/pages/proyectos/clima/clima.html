@@ -103,7 +103,7 @@
                     {{ o.pctAdverso }}%
                   </span>
                 </td>
-                <td>{{ o.ultimaLectura ? (o.ultimaLectura | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+                <td>{{ o.ultimaLectura ? (o.ultimaLectura | fecha:'dd/MM/yyyy HH:mm') : '—' }}</td>
               </tr>
             }
           </tbody>
@@ -127,7 +127,7 @@
             @for (b of detalleBitacoras(); track b.id) {
               <li>
                 <a [routerLink]="['/bitacora/historial']" [queryParams]="{ item: b.id }">
-                  {{ b.fecha | date:'dd/MM/yyyy' }} · {{ b.usuario?.nombre ?? b.ingeniero_responsable ?? '—' }}
+                  {{ b.fecha | fecha:'dd/MM/yyyy' }} · {{ b.usuario?.nombre ?? b.ingeniero_responsable ?? '—' }}
                 </a>
                 @if (b.horas_lluvia) { <span class="text-muted"> · {{ b.horas_lluvia }}{{ 'h lluvia' | t }}</span> }
                 @if (b.lluvia_detalle) { <span class="text-muted"> · {{ b.lluvia_detalle }}</span> }

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe, JsonPipe } from '@angular/common';
+import { JsonPipe } from '@angular/common';
 import { OdooSyncService } from '../../../../shared/services/odoo-sync.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
@@ -16,6 +16,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 const REINTENTABLES: OdooEventoEstado[] = ['error', 'incierto', 'bloqueado'];
 const ESTADOS_ORDEN: OdooEventoEstado[] = ['pendiente', 'procesando', 'completado', 'reintento', 'error', 'incierto', 'bloqueado', 'cancelado'];
 
@@ -34,7 +35,7 @@ const ESTADOS_ORDEN: OdooEventoEstado[] = ['pendiente', 'procesando', 'completad
  */
 @Component({
   selector: 'app-tec-odoo-sync',
-  imports: [DatePipe, JsonPipe, FormDrawer, Skeleton, TranslatePipe],
+  imports: [FechaPipe, JsonPipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './odoo-sync.html',
   styleUrl: './odoo-sync.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

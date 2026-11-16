@@ -43,6 +43,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { localeActual } from '../../../../shared/i18n/locale.util';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -847,7 +848,7 @@ export class Rutas implements OnInit {
     if (!iso) return '—';
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '—';
-    return d.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit' });
+    return d.toLocaleTimeString(localeActual(this.i18n.idioma()), { hour: 'numeric', minute: '2-digit' });
   }
 
   /** AV13 — fecha + hora ("18/08 · 3:42 p. m.") para "(modificada)" e historial. */
@@ -855,7 +856,7 @@ export class Rutas implements OnInit {
     if (!iso) return '—';
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '—';
-    return d.toLocaleString('es-DO', {
+    return d.toLocaleString(localeActual(this.i18n.idioma()), {
       day: '2-digit', month: '2-digit', hour: 'numeric', minute: '2-digit',
     });
   }

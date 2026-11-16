@@ -62,7 +62,7 @@
               <td class="text-muted">{{ s.busqueda_previa || '—' }}</td>
               <td>{{ s.solicitado_por_nombre ?? '—' }}</td>
               <td class="text-muted">{{ s.orden?.numero ?? '—' }}</td>
-              <td>{{ s.solicitado_en | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ s.solicitado_en | fecha:'dd/MM/yyyy HH:mm' }}</td>
               <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) | t }}</span></td>
               <td class="text-center">
                 @if (s.estado === 'pendiente' && puedeResolver()) {
@@ -221,7 +221,7 @@
           </div>
           <div class="detail-field">
             <span class="detail-field__label">{{ 'Fecha de resolución' | t }}</span>
-            <span>{{ s.resuelto_en ? (s.resuelto_en | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+            <span>{{ s.resuelto_en ? (s.resuelto_en | fecha:'dd/MM/yyyy HH:mm') : '—' }}</span>
           </div>
           @if (s.articulo_resultante) {
             <div class="detail-field">

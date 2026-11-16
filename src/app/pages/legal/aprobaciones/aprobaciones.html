@@ -58,7 +58,7 @@
                 }
               </td>
               <td>{{ a.solicitante?.nombre ?? '—' }}</td>
-              <td>{{ a.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ a.fecha_solicitud | fecha:'dd/MM/yyyy HH:mm' }}</td>
               <td><span [class]="estadoBadgeClass(a.estado)">{{ estadoLabel(a.estado) }}</span></td>
               <td>
                 @if (a.estado !== 'pendiente' && a.comentario_revisor) {
@@ -120,7 +120,7 @@
         <div class="apro-doc__head">
           <span class="detail-field__label">{{ 'Documento' | t }}</span>
           @if (docPreview(); as doc) {
-            <span class="text-muted">{{ doc.nombre }} {{ '· v.' | t }} {{ doc.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="text-muted">{{ doc.nombre }} {{ '· v.' | t }} {{ doc.created_at | fecha:'dd/MM/yyyy HH:mm' }}</span>
           }
         </div>
         @if (docLoading()) {
@@ -174,7 +174,7 @@
           </div>
           <div class="detail-field">
             <span class="detail-field__label">{{ 'Fecha de resolución' | t }}</span>
-            <span>{{ a.fecha_resolucion ? (a.fecha_resolucion | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+            <span>{{ a.fecha_resolucion ? (a.fecha_resolucion | fecha:'dd/MM/yyyy HH:mm') : '—' }}</span>
           </div>
           <div class="detail-field detail-field--full">
             <span class="detail-field__label">{{ 'Comentario del revisor' | t }}</span>

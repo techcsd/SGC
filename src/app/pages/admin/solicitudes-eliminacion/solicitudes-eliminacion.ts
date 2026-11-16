@@ -1,11 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 interface SolicitudEliminacion {
   id: string;
   usuario_id: string | null;
@@ -25,7 +26,7 @@ interface SolicitudEliminacion {
  */
 @Component({
   selector: 'app-admin-solicitudes-eliminacion',
-  imports: [DatePipe, TranslatePipe],
+  imports: [FechaPipe, TranslatePipe],
   templateUrl: './solicitudes-eliminacion.html',
   styleUrl: './solicitudes-eliminacion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

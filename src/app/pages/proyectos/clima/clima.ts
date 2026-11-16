@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import { WeatherBiService, ReporteClima, ReporteObra, BitacoraLluvia } from '../../../../shared/context/weather-bi.service';
 import { WeatherAlertsService, WeatherAlerta } from '../../../../shared/context/weather-alerts.service';
@@ -8,12 +8,13 @@ import { daysAgoIso, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 type RangoDias = 7 | 30 | 90;
 
 @Component({
   selector: 'app-proyectos-clima',
-  imports: [DatePipe, BarChart, Skeleton, RouterLink, TranslatePipe],
+  imports: [FechaPipe, BarChart, Skeleton, RouterLink, TranslatePipe],
   templateUrl: './clima.html',
   styleUrl: './clima.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

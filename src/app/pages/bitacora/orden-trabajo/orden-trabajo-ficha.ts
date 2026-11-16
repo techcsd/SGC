@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { OrdenTrabajoPdfService } from '../../../../shared/services/orden-trabajo-pdf.service';
@@ -8,6 +8,7 @@ import { OrdenTrabajoDetalle } from '../../../../shared/models/bitacora.model';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /**
  * BN1/BW1 — Ficha de una orden de trabajo: detalle + las dos firmas (ingeniero y
@@ -18,7 +19,7 @@ import { I18nService } from '../../../../shared/i18n/i18n.service';
  */
 @Component({
   selector: 'app-orden-trabajo-ficha',
-  imports: [DatePipe, DecimalPipe, RouterLink, UserPicker, TranslatePipe],
+  imports: [FechaPipe, DecimalPipe, RouterLink, UserPicker, TranslatePipe],
   templateUrl: './orden-trabajo-ficha.html',
   styleUrl: './orden-trabajo-ficha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

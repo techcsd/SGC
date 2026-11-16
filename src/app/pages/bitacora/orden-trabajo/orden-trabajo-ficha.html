@@ -11,7 +11,7 @@
       }
     </h1>
     @if (orden()?.bitacora; as b) {
-      <span class="page-count">{{ b.proyecto ?? '—' }} · {{ b.fecha | date:'d MMM y' }}</span>
+      <span class="page-count">{{ b.proyecto ?? '—' }} · {{ b.fecha | fecha:'d MMM y' }}</span>
     }
   </div>
   <a routerLink="/bitacora/ordenes-trabajo" class="sgc-btn sgc-btn--ghost sgc-btn--sm">← {{ 'Órdenes de trabajo' | t }}</a>
