@@ -57,7 +57,7 @@
       @if (loading()) {
         <app-skeleton variant="list" [rows]="3" />
       } @else if (info(); as v) {
-        <p class="am-version">Versión {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} MB</p>
+        <p class="am-version">{{ 'Versión' | t }} {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} {{ 'MB' | t }}</p>
         @if (!playStoreUrl()) { <p class="am-changelog">{{ v.changelog }}</p> }
         <a class="sgc-btn sgc-btn--primary am-download" [href]="v.url" download><app-icon name="download" [size]="16" /> {{ 'Descargar APK' | t }}</a>
         @if (!playStoreUrl()) {
@@ -75,7 +75,7 @@
       @if (tieneVideo('instalar-android')) {
         <button type="button" class="sgc-btn sgc-btn--secondary am-vervideo" (click)="verVideo('instalar-android')">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-          Ver video de instalación
+          {{ 'Ver video de instalación' | t }}
         </button>
       }
     </div>
@@ -97,7 +97,7 @@
       <!-- Fallback PWA (mientras no exista la ficha del App Store). -->
       <p class="am-changelog">{{ 'En iPhone se instala como app web (PWA), sin App Store.' | t }}</p>
       <a class="sgc-btn sgc-btn--primary am-download" [href]="pwaUrl" target="_blank" rel="noopener">
-        Abrir app web
+        {{ 'Abrir app web' | t }}
       </a>
       <img class="am-qr" [src]="pwaQr()" alt="{{ 'QR para abrir la app web' | t }}" />
       <p class="am-hint">{{ 'Escanea con el iPhone, o abre' | t }} <b>{{ pwaUrl }}</b> {{ 'en Safari.' | t }}</p>
@@ -110,7 +110,7 @@
     @if (tieneVideo('instalar-iphone')) {
       <button type="button" class="sgc-btn sgc-btn--secondary am-vervideo" (click)="verVideo('instalar-iphone')">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        Ver video de instalación
+        {{ 'Ver video de instalación' | t }}
       </button>
     }
   </section>

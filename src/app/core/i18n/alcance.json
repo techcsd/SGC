@@ -31,9 +31,6 @@
     "soporte": {
       "enforce": false
     },
-    "app-movil": {
-      "enforce": false
-    },
     "borrador-claude": {
       "enforce": false
     },
@@ -119,6 +116,9 @@
       "enforce": true
     },
     "apoyo-transporte": {
+      "enforce": true
+    },
+    "app-movil": {
       "enforce": true
     },
     "auth/set-password": {

@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9809/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9814/10021 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -17,7 +17,6 @@
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | soporte | scope | 35 | 29 | 6 | 83% |
-| app-movil | scope | 35 | 31 | 4 | 89% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | asistente | scope | 35 | 33 | 2 | 94% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
@@ -47,6 +46,7 @@
 | admin/vault | enforce | 72 | 72 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
+| app-movil | enforce | 36 | 36 | 0 | 100% |
 | auth/set-password | enforce | 15 | 15 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
 | bitacora/cobertura | enforce | 20 | 20 | 0 | 100% |

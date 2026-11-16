@@ -316,21 +316,6 @@
       ]
     },
     {
-      "pantalla": "app-movil",
-      "total": 35,
-      "cubiertos": 31,
-      "sin": 4,
-      "pct": 89,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Versión · MB",
-        "Ver video de instalación",
-        "Abrir app web",
-        "Ver video de instalación"
-      ]
-    },
-    {
       "pantalla": "borrador-claude",
       "total": 25,
       "cubiertos": 23,
@@ -620,6 +605,16 @@
       "pantalla": "apoyo-transporte",
       "total": 51,
       "cubiertos": 51,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "app-movil",
+      "total": 36,
+      "cubiertos": 36,
       "sin": 0,
       "pct": 100,
       "enScope": true,
