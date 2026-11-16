@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9844/10025 literales de 192 pantallas en alcance). **`ht`: 97%**.
+**Alcance `en`: 98%** (9853/10024 literales de 192 pantallas en alcance). **`ht`: 97%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,7 +12,6 @@
 | obra/no-conformidades | scope | 95 | 61 | 34 | 64% |
 | obra/checklists | scope | 48 | 33 | 15 | 69% |
 | obra/subcontratistas | scope | 75 | 56 | 19 | 75% |
-| obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
@@ -142,6 +141,7 @@
 | notas/editor | enforce | 32 | 32 | 0 | 100% |
 | notas | enforce | 37 | 37 | 0 | 100% |
 | oauth-consent | enforce | 19 | 19 | 0 | 100% |
+| obra/informes | enforce | 46 | 46 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | politicas/eliminar-cuenta | enforce | 9 | 9 | 0 | 100% |
 | politicas | enforce | 15 | 15 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**99 literal(es) sin t()** en 7 archivo(s) (de 133 archivo(s) .ts con algo detectado).
+**92 literal(es) sin t()** en 6 archivo(s) (de 133 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -211,5 +211,4 @@
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
-| src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |

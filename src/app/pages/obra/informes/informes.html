@@ -16,7 +16,7 @@
   <div class="sgc-field"><label class="sr-only" for="in-ini">{{ 'Desde' | t }}</label><input id="in-ini" type="date" [value]="periodoInicio()" (change)="periodoInicio.set($any($event.target).value)" /></div>
   <div class="sgc-field"><label class="sr-only" for="in-fin">{{ 'Hasta' | t }}</label><input id="in-fin" type="date" [value]="periodoFin()" (change)="periodoFin.set($any($event.target).value)" /></div>
   <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="generando()" (click)="generar()">
-    @if (generando()) { <span class="spinner" aria-hidden="true"></span> Generando… } @else { Generar informe }
+    @if (generando()) { <span class="spinner" aria-hidden="true"></span> {{ 'Generando…' | t }} } @else { {{ 'Generar informe' | t }} }
   </button>
 </div>
 
@@ -30,10 +30,10 @@
     <div class="informe sgc-card">
       <div class="informe__head">
         <div>
-          <h2>Informe semanal · {{ inf.proyecto?.nombre ?? 'Obra' }}</h2>
-          <p class="informe__periodo">Período: {{ inf.periodo_inicio ? formatFecha(inf.periodo_inicio) : '' }} – {{ inf.periodo_fin ? formatFecha(inf.periodo_fin) : '' }}</p>
+          <h2>{{ i18n.t('Informe semanal · {n}', { n: inf.proyecto?.nombre ?? i18n.t('Obra') }) }}</h2>
+          <p class="informe__periodo">{{ i18n.t('Período: {ini} – {fin}', { ini: inf.periodo_inicio ? formatFecha(inf.periodo_inicio) : '', fin: inf.periodo_fin ? formatFecha(inf.periodo_fin) : '' }) }}</p>
         </div>
-        <span class="sgc-badge" [class.sgc-badge--success]="inf.estado === 'enviado'" [class.sgc-badge--neutral]="inf.estado !== 'enviado'">{{ inf.estado === 'enviado' ? 'Enviado' : 'Borrador' }}</span>
+        <span class="sgc-badge" [class.sgc-badge--success]="inf.estado === 'enviado'" [class.sgc-badge--neutral]="inf.estado !== 'enviado'">{{ (inf.estado === 'enviado' ? 'Enviado' : 'Borrador') | t }}</span>
       </div>
 
       <!-- KPIs auto -->
@@ -71,7 +71,7 @@
           <ul>@for (d of sec().danos; track $index) {
             <li>
               @if (d.fecha) { {{ formatFecha(d.fecha) }} · }
-              {{ d.tipo === 'material' ? 'Material' : 'Equipo propio' }} — {{ d.descripcion }}
+              {{ (d.tipo === 'material' ? 'Material' : 'Equipo propio') | t }} — {{ d.descripcion }}
               @if (d.cantidad) { ({{ d.cantidad }} {{ d.unidad }}) }
               @if (d.solicita_retiro) { <span class="sgc-badge sgc-badge--warning">{{ 'Solicitó retiro' | t }}</span> }
               @if (d.tiene_foto) { <span class="sgc-badge sgc-badge--neutral">{{ 'Con foto' | t }}</span> }

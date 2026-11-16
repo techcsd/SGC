@@ -12,6 +12,7 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 function isoDaysAgo(days: number): string {
   const t = todayIso(); // YYYY-MM-DD
   const [y, m, d] = t.split('-').map(Number);
@@ -32,6 +33,7 @@ export class ObraInformes implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
 
@@ -67,7 +69,7 @@ export class ObraInformes implements OnInit {
         await this.loadHistorial();
       }
     } catch (e: unknown) {
-      this.toast.error('Error al cargar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingInit.set(false);
     }
@@ -91,10 +93,10 @@ export class ObraInformes implements OnInit {
     try {
       const id = await this.service.compilarInforme(this.proyectoId(), this.periodoInicio(), this.periodoFin());
       await this.abrirInforme(id);
-      this.toast.success('Informe generado');
+      this.toast.success(this.i18n.t('Informe generado'));
       await this.loadHistorial();
     } catch (e: unknown) {
-      this.toast.error('No se pudo generar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo generar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.generando.set(false);
     }
@@ -128,9 +130,9 @@ export class ObraInformes implements OnInit {
         decisiones: v.decisiones ?? '',
         necesidades: v.necesidades ?? '',
       }, v.resumen ?? null);
-      this.toast.success('Cambios guardados');
+      this.toast.success(this.i18n.t('Cambios guardados'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -146,11 +148,11 @@ export class ObraInformes implements OnInit {
       if (this.esBorrador()) await this.guardar();
       this.saving.set(true); // guardar() interno limpia la bandera en su `finally`
       await this.service.enviarInforme(inf.id);
-      this.toast.success('Informe enviado a Gerencia');
+      this.toast.success(this.i18n.t('Informe enviado a Gerencia'));
       await this.abrirInforme(inf.id);
       await this.loadHistorial();
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }

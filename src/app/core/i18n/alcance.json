@@ -16,9 +16,6 @@
     "obra/subcontratistas": {
       "enforce": false
     },
-    "obra/informes": {
-      "enforce": false
-    },
     "obra/avance": {
       "enforce": false
     },
@@ -404,6 +401,9 @@
       "enforce": true
     },
     "oauth-consent": {
+      "enforce": true
+    },
+    "obra/informes": {
       "enforce": true
     },
     "perfil": {

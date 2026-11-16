@@ -215,27 +215,6 @@
       ]
     },
     {
-      "pantalla": "obra/informes",
-      "total": 47,
-      "cubiertos": 37,
-      "sin": 10,
-      "pct": 79,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Generando… } @else { Generar informe }",
-        "Informe semanal ·",
-        "Período: –",
-        "Error al cargar",
-        "Informe generado",
-        "No se pudo generar",
-        "Cambios guardados",
-        "Error",
-        "Informe enviado a Gerencia",
-        "No se pudo enviar"
-      ]
-    },
-    {
       "pantalla": "obra/avance",
       "total": 77,
       "cubiertos": 63,
@@ -1534,6 +1513,16 @@
       "pantalla": "oauth-consent",
       "total": 19,
       "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "obra/informes",
+      "total": 46,
+      "cubiertos": 46,
       "sin": 0,
       "pct": 100,
       "enScope": true,
