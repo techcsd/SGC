@@ -10,9 +10,6 @@
     "obra/no-conformidades": {
       "enforce": false
     },
-    "obra/checklists": {
-      "enforce": false
-    },
     "obra/subcontratistas": {
       "enforce": false
     },
@@ -401,6 +398,9 @@
       "enforce": true
     },
     "obra/avance": {
+      "enforce": true
+    },
+    "obra/checklists": {
       "enforce": true
     },
     "obra/informes": {

@@ -3,14 +3,13 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9867/10024 literales de 192 pantallas en alcance). **`ht`: 97%**.
+**Alcance `en`: 99%** (9883/10025 literales de 192 pantallas en alcance). **`ht`: 97%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | obra/plan-dia | scope | 37 | 20 | 17 | 54% |
 | incentivos | scope | 172 | 100 | 72 | 58% |
 | obra/no-conformidades | scope | 95 | 61 | 34 | 64% |
-| obra/checklists | scope | 48 | 33 | 15 | 69% |
 | obra/subcontratistas | scope | 75 | 56 | 19 | 75% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
@@ -141,6 +140,7 @@
 | notas | enforce | 37 | 37 | 0 | 100% |
 | oauth-consent | enforce | 19 | 19 | 0 | 100% |
 | obra/avance | enforce | 77 | 77 | 0 | 100% |
+| obra/checklists | enforce | 49 | 49 | 0 | 100% |
 | obra/informes | enforce | 46 | 46 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | politicas/eliminar-cuenta | enforce | 9 | 9 | 0 | 100% |
@@ -202,12 +202,11 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**83 literal(es) sin t()** en 5 archivo(s) (de 133 archivo(s) .ts con algo detectado).
+**71 literal(es) sin t()** en 4 archivo(s) (de 133 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
-| src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |

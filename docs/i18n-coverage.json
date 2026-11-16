@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 98,
+  "pctScopeEn": 99,
   "pctHt": 97,
   "filas": [
     {
@@ -155,32 +155,6 @@
         "Incidente registrado",
         "No se pudo registrar",
         "Incidente cerrado",
-        "Error"
-      ]
-    },
-    {
-      "pantalla": "obra/checklists",
-      "total": 48,
-      "cubiertos": 33,
-      "sin": 15,
-      "pct": 69,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Selecciona una plantilla…",
-        "Guardando… } @else { Registrar checklist }",
-        "Plantilla",
-        "Error al cargar",
-        "Error",
-        "Selecciona obra y checklist",
-        "Checklist registrado",
-        "No se pudo registrar",
-        "No conformidad levantada",
-        "No se pudo levantar la NC",
-        "Plantilla creada",
-        "Error",
-        "Ítem agregado",
-        "Error",
         "Error"
       ]
     },
@@ -1498,6 +1472,16 @@
       "pantalla": "obra/avance",
       "total": 77,
       "cubiertos": 77,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "obra/checklists",
+      "total": 49,
+      "cubiertos": 49,
       "sin": 0,
       "pct": 100,
       "enScope": true,
