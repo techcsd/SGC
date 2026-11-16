@@ -4333,23 +4333,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/evaluaciones",
-      "total": 21,
-      "cubiertos": 15,
-      "sin": 6,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Elige un empleado…",
-        "No se pudo cargar Evaluaciones",
-        "No se pudieron cargar las evaluaciones",
-        "Falta el período",
-        "Evaluación guardada",
-        "No se pudo guardar"
-      ]
-    },
-    {
       "pantalla": "rrhh/nomina",
       "total": 34,
       "cubiertos": 24,
@@ -5645,6 +5628,16 @@
       "pantalla": "proyectos/personal",
       "total": 252,
       "cubiertos": 252,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/evaluaciones",
+      "total": 21,
+      "cubiertos": 21,
       "sin": 0,
       "pct": 100,
       "enScope": true,

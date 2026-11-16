@@ -229,9 +229,6 @@
     "practica": {
       "enforce": false
     },
-    "rrhh/evaluaciones": {
-      "enforce": false
-    },
     "rrhh/nomina": {
       "enforce": false
     },
@@ -563,6 +560,9 @@
       "enforce": true
     },
     "proyectos/personal": {
+      "enforce": true
+    },
+    "rrhh/evaluaciones": {
       "enforce": true
     },
     "rrhh/organigrama": {

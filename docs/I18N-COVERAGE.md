@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 65%** (6785/10457 literales de 192 pantallas en alcance). **`ht`: 85%**.
+**Alcance `en`: 65%** (6791/10457 literales de 192 pantallas en alcance). **`ht`: 85%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -83,7 +83,6 @@
 | rrhh/onboarding | scope | 40 | 27 | 13 | 68% |
 | rrhh/tramites | scope | 44 | 31 | 13 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
-| rrhh/evaluaciones | scope | 21 | 15 | 6 | 71% |
 | rrhh/nomina | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | rrhh/asistencia | scope | 32 | 23 | 9 | 72% |
@@ -195,6 +194,7 @@
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
+| rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**438 literal(es) sin t()** en 62 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**433 literal(es) sin t()** en 61 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -240,7 +240,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/rrhh/evaluaciones/evaluaciones.ts | 5 | No se pudo cargar Evaluaciones · No se pudieron cargar las evaluaciones · Falta el período … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |

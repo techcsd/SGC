@@ -5388,5 +5388,17 @@
   "Estructura de la empresa: quién reporta a quién, según el cargo y el jefe de cada empleado.": "Company structure: who reports to whom, based on each employee's position and manager.",
   "Aún no hay empleados cargados.": "No employees loaded yet.",
   "Algunos empleados no tienen jefe asignado (o su jefe no está activo) — aparecen como raíz.": "Some employees have no assigned manager (or their manager is inactive) — they appear as root nodes.",
-  "inactivo": "inactive"
+  "inactivo": "inactive",
+  "Agregar evaluación": "Add evaluation",
+  "Ej: 2026-H2": "E.g: 2026-H2",
+  "Elige un empleado…": "Choose an employee…",
+  "Este empleado no tiene evaluaciones registradas.": "This employee has no evaluations registered.",
+  "Evaluaciones de desempeño del personal. Dato sensible: solo RRHH/Gerencia pueden verlas, y cada lectura queda auditada.": "Staff performance evaluations. Sensitive data: only HR/Management can view them, and every access is audited.",
+  "Evaluación guardada": "Evaluation saved",
+  "Falta el período": "Missing period",
+  "No se pudieron cargar las evaluaciones": "Couldn't load the evaluations",
+  "No se pudo cargar Evaluaciones": "Couldn't load Evaluations",
+  "Período": "Period",
+  "Puntaje": "Score",
+  "Puntaje (1-100)": "Score (1-100)"
 }

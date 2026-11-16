@@ -4596,5 +4596,17 @@
   "Estructura de la empresa: quién reporta a quién, según el cargo y el jefe de cada empleado.": "Estrikti konpayi a: ki moun k ap rapòte ak ki moun, selon pozisyon ak chèf chak anplwaye.",
   "Aún no hay empleados cargados.": "Poko gen anplwaye chaje.",
   "Algunos empleados no tienen jefe asignado (o su jefe no está activo) — aparecen como raíz.": "Gen kèk anplwaye ki pa gen chèf asiyen (oswa chèf yo pa aktif) — yo parèt kòm rasin.",
-  "inactivo": "inaktif"
+  "inactivo": "inaktif",
+  "Agregar evaluación": "Ajoute evalyasyon",
+  "Ej: 2026-H2": "Pa egz: 2026-H2",
+  "Elige un empleado…": "Chwazi yon anplwaye…",
+  "Este empleado no tiene evaluaciones registradas.": "Anplwaye sa a pa gen evalyasyon anrejistre.",
+  "Evaluaciones de desempeño del personal. Dato sensible: solo RRHH/Gerencia pueden verlas, y cada lectura queda auditada.": "Evalyasyon pèfòmans pèsonèl. Done sansib: sèlman RH/Jesyon ka wè yo, epi chak aksè anrejistre.",
+  "Evaluación guardada": "Evalyasyon sove",
+  "Falta el período": "Manke peryòd la",
+  "No se pudieron cargar las evaluaciones": "Pa t kapab chaje evalyasyon yo",
+  "No se pudo cargar Evaluaciones": "Pa t kapab chaje Evalyasyon",
+  "Período": "Peryòd",
+  "Puntaje": "Nòt",
+  "Puntaje (1-100)": "Nòt (1-100)"
 }
