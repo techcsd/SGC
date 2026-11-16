@@ -48,7 +48,7 @@
 | admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
-| admin/importar | scope | 2 | 2 | 0 | 100% |
+| admin/importar | enforce | 2 | 2 | 0 | 100% |
 | admin/orden-modulos | enforce | 6 | 6 | 0 | 100% |
 | admin/otros-valores | enforce | 11 | 11 | 0 | 100% |
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |

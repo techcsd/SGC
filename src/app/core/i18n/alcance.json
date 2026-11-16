@@ -125,7 +125,7 @@
       "enforce": true
     },
     "admin/importar": {
-      "enforce": false
+      "enforce": true
     },
     "admin/orden-modulos": {
       "enforce": true
