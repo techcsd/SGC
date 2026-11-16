@@ -8,7 +8,7 @@ Regla de seguridad (repo público): sin hosts, usuarios, claves, ids de proyecto
 | Fase | Ítems | Estado |
 |---|---|---|
 | F0 Verificar | DS-01, DS-31 | Parcial: worktree creado, docs de Miranda integrados (cherry-pick `d2ea987d`), grafo actualizado, issues #2–#24 en `docs/ODOO-ISSUES-ESTADO.md` (en curso) |
-| F1 Staging conectado | DS-02 ✅ · DS-03 ⏳ · DS-04 ⏳ | DS-02 hecho (commit `0bf8931e`). DS-03/DS-04 bloqueados: falta el nombre de la base y el usuario de Odoo staging en `.env.local` |
+| F1 Staging conectado | DS-02 ✅ · DS-03 ✅ · DS-04 ✅ (doc) | DS-02 commit `0bf8931e`; DS-03/04 en `docs/ODOO-STAGING-VERIFICACION.md`. Falta cambiar secrets de dev a staging (reportar host actual antes) |
 | F2 Homologación | DS-05…DS-08 | Pendiente |
 | F3 Traslados A/B | DS-09…DS-12 | Pendiente |
 | F4 Sombra/conciliador | DS-13, DS-14 | Pendiente |
