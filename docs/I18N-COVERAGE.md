@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 81%** (8269/10191 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 82%** (8313/10191 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -46,7 +46,6 @@
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| tecnologia/compras | scope | 81 | 37 | 44 | 46% |
 | tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
 | tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
@@ -182,6 +181,7 @@
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
 | tecnologia/apis-consumo | enforce | 35 | 35 | 0 | 100% |
+| tecnologia/compras | enforce | 81 | 81 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/cotizaciones | enforce | 79 | 79 | 0 | 100% |
 | tecnologia/dev-notes | enforce | 76 | 76 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**207 literal(es) sin t()** en 28 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**192 literal(es) sin t()** en 26 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -214,12 +214,10 @@
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
-| src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |

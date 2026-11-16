@@ -118,9 +118,6 @@
     "auth": {
       "enforce": false
     },
-    "tecnologia/compras": {
-      "enforce": false
-    },
     "tecnologia/design-system": {
       "enforce": false
     },
@@ -524,6 +521,9 @@
       "enforce": true
     },
     "tecnologia/apis-consumo": {
+      "enforce": true
+    },
+    "tecnologia/compras": {
       "enforce": true
     },
     "tecnologia/consultas-compa": {

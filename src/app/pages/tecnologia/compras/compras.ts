@@ -13,6 +13,7 @@ import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 // CO8 — flujo nuevo de Compras tecnológicas. El flujo viejo (pendiente/convertida/
 // rechazada) se mantiene por si quedan filas históricas.
 const ESTADO_META: Record<SolicitudCompraEstado, { label: string; badge: string }> = {
@@ -39,6 +40,7 @@ export class TecCompras implements OnInit {
   private sanitizer = inject(DomSanitizer);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   formatTimestamp = formatTimestampDisplay;
 
@@ -55,6 +57,17 @@ export class TecCompras implements OnInit {
   });
   conteoPorEstado(estado: SolicitudCompraEstado): number {
     return this.compras().filter((c) => c.estado === estado).length;
+  }
+  solicitudesLabel(): string {
+    const n = this.compras().length;
+    return n === 1 ? this.i18n.t('{n} solicitud', { n }) : this.i18n.t('{n} solicitudes', { n });
+  }
+  renglonesLabel(c: SolicitudCompra): string {
+    const n = (c.items ?? []).length;
+    return n === 1 ? this.i18n.t('{n} renglón', { n }) : this.i18n.t('{n} renglones', { n });
+  }
+  cotizacionBtnLabel(c: SolicitudCompra): string {
+    return (c.adjuntos ?? []).length > 0 ? this.i18n.t('Otra cotización') : this.i18n.t('Agregar cotización');
   }
 
   detailOpen = signal(false);
@@ -114,8 +127,10 @@ export class TecCompras implements OnInit {
   }
   /** "Esperando a Eduardo" — el mock pide el nombre de a quién, no solo el estado genérico. */
   estadoTarjeta(c: SolicitudCompra): string {
-    if (c.estado === 'esperando_aprobacion' && c.aprobador?.nombre) return `Esperando a ${c.aprobador.nombre.split(' ')[0]}`;
-    return this.getEstadoLabel(c.estado);
+    if (c.estado === 'esperando_aprobacion' && c.aprobador?.nombre) {
+      return this.i18n.t('Esperando a {nombre}', { nombre: c.aprobador.nombre.split(' ')[0] });
+    }
+    return this.i18n.t(this.getEstadoLabel(c.estado));
   }
   totalDe(c: SolicitudCompra): number {
     if (c.total != null) return c.total; // CQ1 — total calculado en servidor (preferido).
@@ -193,9 +208,9 @@ export class TecCompras implements OnInit {
       this.compras.set(compras);
       const actualizada = compras.find((x) => x.id === c.id);
       if (actualizada) await this.openDetail(actualizada);
-      this.toast.success('Cotización agregada', 'Ya puedes enviarla a aprobación.');
+      this.toast.success(this.i18n.t('Cotización agregada'), 'Ya puedes enviarla a aprobación.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo subir la cotización', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir la cotización'), e instanceof Error ? e.message : undefined);
     } finally {
       this.subiendoCotizacion.set(false);
       (event.target as HTMLInputElement).value = '';
@@ -212,7 +227,7 @@ export class TecCompras implements OnInit {
       const actualizada = compras.find((x) => x.id === c.id);
       if (actualizada) await this.openDetail(actualizada);
     } catch (e: unknown) {
-      this.toast.error('No se pudo elegir la cotización', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo elegir la cotización'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -225,9 +240,9 @@ export class TecCompras implements OnInit {
       await this.loadAll();
       const actualizada = this.compras().find((x) => x.id === c.id);
       if (actualizada) this.detail.set(actualizada);
-      this.toast.success('Enviada', 'Ya está esperando aprobación.');
+      this.toast.success(this.i18n.t('Enviada'), 'Ya está esperando aprobación.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.decidiendo.set(false);
     }
@@ -238,7 +253,7 @@ export class TecCompras implements OnInit {
   }
   confirmarRechazo() {
     const motivo = this.rechazoMotivo().trim();
-    if (!motivo) { this.toast.error('Escribe el motivo del rechazo'); return; }
+    if (!motivo) { this.toast.error(this.i18n.t('Escribe el motivo del rechazo')); return; }
     void this.decidir(false, motivo);
   }
   private async decidir(aprobar: boolean, motivo: string | null) {
@@ -251,9 +266,9 @@ export class TecCompras implements OnInit {
       const actualizada = this.compras().find((x) => x.id === c.id);
       if (actualizada) this.detail.set(actualizada);
       this.mostrandoRechazo.set(false);
-      this.toast.success(aprobar ? 'Aprobada' : 'Rechazada', aprobar ? 'El solicitante ya puede comprar.' : 'Se avisó al solicitante.');
+      this.toast.success(aprobar ? this.i18n.t('Aprobada') : this.i18n.t('Rechazada'), aprobar ? 'El solicitante ya puede comprar.' : 'Se avisó al solicitante.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo decidir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo decidir'), e instanceof Error ? e.message : undefined);
     } finally {
       this.decidiendo.set(false);
     }
@@ -268,9 +283,9 @@ export class TecCompras implements OnInit {
       await this.loadAll();
       const actualizada = this.compras().find((x) => x.id === c.id);
       if (actualizada) this.detail.set(actualizada);
-      this.toast.success('Marcada como comprada');
+      this.toast.success(this.i18n.t('Marcada como comprada'));
     } catch (e: unknown) {
-      this.toast.error('No se pudo marcar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo marcar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.decidiendo.set(false);
     }

@@ -2,17 +2,17 @@
 <div class="cn-header">
   <div class="cn-header__left">
     <a routerLink="/tecnologia/compras" class="cn-back">
-      <app-icon name="chevron-left" [size]="14" /> Compras tecnológicas
+      <app-icon name="chevron-left" [size]="14" /> {{ 'Compras tecnológicas' | t }}
     </a>
-    <h1 class="page-title">{{ modoEdicion() ? 'Editar compra tecnológica' : 'Nueva compra tecnológica' }}</h1>
+    <h1 class="page-title">{{ (modoEdicion() ? 'Editar compra tecnológica' : 'Nueva compra tecnológica') | t }}</h1>
   </div>
   <div class="cn-header__actions">
     <button type="button" appButton variant="secondary" [disabled]="guardando() || enviando() || cargando()" (click)="guardarBorrador()">
-      @if (guardando()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar borrador }
+      @if (guardando()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Guardar borrador' | t }} }
     </button>
     <button type="button" appButton variant="accent" [disabled]="!puedeEnviar() || guardando() || enviando() || cargando()" (click)="enviarAprobacion()">
       @if (enviando()) {
-        <span class="spinner" aria-hidden="true"></span> Enviando…
+        <span class="spinner" aria-hidden="true"></span> {{ 'Enviando…' | t }}
       } @else {
         {{ envioLabel() }}
       }
@@ -48,14 +48,14 @@
           <div class="sgc-field">
             <label for="cn-urg">{{ 'Urgencia' | t }}</label>
             <select id="cn-urg" formControlName="urgencia">
-              <option value="normal">Normal</option>
-              <option value="urgente">Urgente</option>
+              <option value="normal">{{ 'Normal' | t }}</option>
+              <option value="urgente">{{ 'Urgente' | t }}</option>
             </select>
           </div>
           <div class="sgc-field">
             <label for="cn-obra">{{ 'Obra (opcional)' | t }}</label>
             <select id="cn-obra" formControlName="proyectoId">
-              <option [ngValue]="null">Oficina central / ninguna</option>
+              <option [ngValue]="null">{{ 'Oficina central / ninguna' | t }}</option>
               @for (p of proyectos(); track p.id) {
                 <option [ngValue]="p.id">{{ p.nombre }}</option>
               }
@@ -121,20 +121,20 @@
         <div class="cn-items__footer">
           <button type="button" class="cn-items__add" (click)="addItem()">{{ '+ Agregar artículo (Enter)' | t }}</button>
           <div class="cn-items__totales">
-            <span class="text-muted">Subtotal {{ subtotal() | number: '1.2-2' }} · ITBIS 18 % {{ itbisCalc() | number: '1.2-2' }}</span>
-            <b>Total RD$ {{ total() | number: '1.2-2' }}</b>
+            <span class="text-muted">{{ 'Subtotal' | t }} {{ subtotal() | number: '1.2-2' }} {{ '· ITBIS 18 %' | t }} {{ itbisCalc() | number: '1.2-2' }}</span>
+            <b>{{ 'Total RD$' | t }} {{ total() | number: '1.2-2' }}</b>
           </div>
         </div>
 
         <label class="cn-itbis-check">
           <input type="checkbox" [checked]="itbisIncluido()" (change)="toggleItbisIncluido($any($event.target).checked)" />
-          Los precios ya incluyen ITBIS
+          {{ 'Los precios ya incluyen ITBIS' | t }}
         </label>
 
-        @if (descuadre(); as d) {
+        @if (descuadre()) {
           <div class="cn-warning" role="alert">
             <app-icon name="alert-triangle" [size]="14" />
-            El total de los artículos ({{ total() | number: '1.2-2' }}) difiere de la cotización elegida ({{ d.ref | number: '1.2-2' }}) en {{ d.diff * 100 | number: '1.0-1' }}%. Revisa antes de enviar.
+            {{ descuadreMensaje() }}
           </div>
         }
       </div>
@@ -150,8 +150,8 @@
         [accept]="'application/pdf,image/*'"
         [max]="6"
         [showList]="false"
-        label="Arrastra el PDF o la foto aquí"
-        hint="o búscalo · el sistema lee proveedor, artículos y precios"
+        [label]="'Arrastra el PDF o la foto aquí' | t"
+        [hint]="'o búscalo · el sistema lee proveedor, artículos y precios' | t"
         (add)="onCotizacionFiles($event)"
       />
 
@@ -165,10 +165,10 @@
                 @if (c.tipo === 'pendiente' && c.data.leyendo) {
                   <span class="text-muted">{{ 'Leyendo…' | t }}</span>
                 } @else if (c.tipo === 'pendiente' && c.data.error) {
-                  <span class="cn-cotizacion__error">{{ c.data.error }} — llena los artículos a mano.</span>
+                  <span class="cn-cotizacion__error">{{ c.data.error }} {{ '— llena los artículos a mano.' | t }}</span>
                 } @else {
                   <span class="text-muted">
-                    {{ (c.tipo === 'existente' ? c.adjunto.proveedor : c.data.proveedor) || 'Sin proveedor' }}
+                    {{ ((c.tipo === 'existente' ? c.adjunto.proveedor : c.data.proveedor) || 'Sin proveedor') | t }}
                     @if ((c.tipo === 'existente' ? c.adjunto.monto : c.data.monto); as monto) { · {{ monto | number: '1.2-2' }} }
                   </span>
                 }
@@ -191,11 +191,11 @@
 
     <div class="cn-requisitos">
       <b>{{ 'Para enviar a aprobar hace falta:' | t }}</b>
-      <span [class.cn-requisitos__ok]="items().some((i) => i.descripcion.trim() && (i.precio_unitario ?? 0) > 0)">
-        {{ items().some((i) => i.descripcion.trim() && (i.precio_unitario ?? 0) > 0) ? '✓' : '—' }} al menos un artículo con precio
+      <span [class.cn-requisitos__ok]="tieneItemConPrecio()">
+        {{ tieneItemConPrecio() ? '✓' : '—' }} {{ 'al menos un artículo con precio' | t }}
       </span>
       <span [class.cn-requisitos__ok]="hayCotizaciones()">
-        {{ hayCotizaciones() ? '✓' : '—' }} una cotización adjunta
+        {{ hayCotizaciones() ? '✓' : '—' }} {{ 'una cotización adjunta' | t }}
       </span>
     </div>
   </div>
