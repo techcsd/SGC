@@ -1,14 +1,12 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Configuración del sistema' | t }}</h1>
-    <span class="page-count">{{ total() }} parámetro{{ total() !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ total() }} {{ 'parámetro' | t }}{{ total() !== 1 ? 's' : '' }}</span>
   </div>
 </div>
 
 <p class="param-lead">
-  Umbrales, roles y flags que controlan la app: alertas antifraude del cuadre, validación de
-  combustible, capacidades de tanque, tracking GPS, vencimientos, destinatarios de avisos y más.
-  Ajústalos con cuidado; afectan a todos los proyectos.
+  {{ 'Umbrales, roles y flags que controlan la app: alertas antifraude del cuadre, validación de combustible, capacidades de tanque, tracking GPS, vencimientos, destinatarios de avisos y más. Ajústalos con cuidado; afectan a todos los proyectos.' | t }}
 </p>
 
 @if (error()) {
@@ -22,7 +20,7 @@
 } @else {
   @for (g of grupos(); track g.grupo) {
     <section class="param-group">
-      <h2 class="param-group__title">{{ g.grupo }}</h2>
+      <h2 class="param-group__title">{{ g.grupo | t }}</h2>
       <table class="param-table">
         <thead>
           <tr>
@@ -41,7 +39,7 @@
                   <span class="param-tag" title="{{ 'Se guarda en flota_config vía RPC' | t }}">{{ 'flota' | t }}</span>
                 }
               </td>
-              <td class="param-desc">{{ r.meta.descripcion || '—' }}</td>
+              <td class="param-desc">{{ (r.meta.descripcion || '—') | t }}</td>
               <td>
                 @if (r.meta.tipo === 'bool') {
                   <select
@@ -83,7 +81,7 @@
                   [disabled]="!isDirty(r) || !!errorDe(r) || savingClave() === r.clave"
                   (click)="guardar(r)"
                 >
-                  @if (savingClave() === r.clave) { Guardando… } @else { Guardar }
+                  @if (savingClave() === r.clave) { {{ 'Guardando…' | t }} } @else { {{ 'Guardar' | t }} }
                 </button>
               </td>
             </tr>

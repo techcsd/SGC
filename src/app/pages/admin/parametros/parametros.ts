@@ -13,6 +13,7 @@ import {
 } from '../../../../shared/config/parametros-catalogo';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** Fila de configuración con su metadato resuelto y la tabla de origen. */
 interface ConfigRow {
   clave: string;
@@ -42,6 +43,7 @@ interface ConfigGrupo {
 export class AdminParametros implements OnInit {
   private service = inject(AlertasCuadreService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   private rows = signal<ConfigRow[]>([]);
   loading = signal(true);
@@ -124,7 +126,7 @@ export class AdminParametros implements OnInit {
     if (valor === r.valor) return;
     const err = validarValor(r.meta, valor);
     if (err) {
-      this.toast.error('Valor inválido', `${r.clave}: ${err}`);
+      this.toast.error(this.i18n.t('Valor inválido'), `${r.clave}: ${err}`);
       return;
     }
     this.savingClave.set(r.clave);
@@ -136,9 +138,9 @@ export class AdminParametros implements OnInit {
         await this.service.updateParametro(r.clave, valor);
       }
       this.rows.update((list) => list.map((x) => (x.clave === r.clave ? { ...x, valor } : x)));
-      this.toast.success('Parámetro actualizado', r.clave);
+      this.toast.success(this.i18n.t('Parámetro actualizado'), r.clave);
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.savingClave.set(null);
     }

@@ -64,9 +64,6 @@
     "admin/usuarios": {
       "enforce": false
     },
-    "admin/parametros": {
-      "enforce": false
-    },
     "admin/animaciones": {
       "enforce": false
     },
@@ -138,6 +135,9 @@
     },
     "admin/importar": {
       "enforce": false
+    },
+    "admin/parametros": {
+      "enforce": true
     },
     "admin/pulso-sistema": {
       "enforce": false

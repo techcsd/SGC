@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8959/10095 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8966/10097 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -28,7 +28,6 @@
 | auth | scope | 42 | 15 | 27 | 36% |
 | admin/jira | scope | 56 | 24 | 32 | 43% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
-| admin/parametros | scope | 11 | 6 | 5 | 55% |
 | admin/animaciones | scope | 34 | 19 | 15 | 56% |
 | admin/reportes | scope | 37 | 21 | 16 | 57% |
 | admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
@@ -53,6 +52,7 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
 | admin/importar | scope | 2 | 2 | 0 | 100% |
+| admin/parametros | enforce | 13 | 13 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**167 literal(es) sin t()** en 22 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**164 literal(es) sin t()** en 21 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -220,7 +220,6 @@
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
-| src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |

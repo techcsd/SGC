@@ -6514,5 +6514,18 @@
   "Atascados hace al menos:": "Bloke pou pi piti:",
   "No hay conduces huérfanos con ese filtro.": "Pa gen bòdwo òfelen ak filtè sa a.",
   "Tiene confirmaciones de entrega — no se puede anular desde aquí": "Gen konfimasyon livrezon — pa ka anile apati isit la",
-  "Creado por:": "Kreye pa:"
+  "Creado por:": "Kreye pa:",
+  "parámetro": "paramèt",
+  "Umbrales, roles y flags que controlan la app: alertas antifraude del cuadre, validación de combustible, capacidades de tanque, tracking GPS, vencimientos, destinatarios de avisos y más. Ajústalos con cuidado; afectan a todos los proyectos.": "Sèy, wòl ak drapo ki kontwole aplikasyon an: alèt kont fwod pou kalkil la, validasyon gazolin, kapasite tank, swiv GPS, dat ekspirasyon, moun ki resevwa avi yo, ak plis. Ajiste yo ak prekosyon; yo afekte tout pwojè yo.",
+  "Cuadre / antifraude": "Kalkil / kont fwod",
+  "GPS / tracking": "GPS / swiv",
+  "Estado del conductor": "Estati chofè",
+  "Vencimientos": "Dat ekspirasyon",
+  "Roles y permisos": "Wòl ak pèmisyon",
+  "Flags de funciones": "Drapo fonksyon",
+  "Integraciones": "Entegrasyon",
+  "No hay parámetros configurados.": "Pa gen paramèt konfigire.",
+  "Clave": "Kle",
+  "Se guarda en flota_config vía RPC": "Anrejistre nan flota_config via RPC",
+  "flota": "flòt"
 }

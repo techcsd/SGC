@@ -1162,22 +1162,6 @@
       ]
     },
     {
-      "pantalla": "admin/parametros",
-      "total": 11,
-      "cubiertos": 6,
-      "sin": 5,
-      "pct": 55,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "parámetro",
-        "Umbrales, roles y flags que controlan la app: alertas antifraude del cuadre, validación de combustible, capacidades de tanque, tracking GPS, vencimientos, destinatarios de avisos y más. Ajústalos con cuidado; afectan a todos los proyectos.",
-        "Valor inválido",
-        "Parámetro actualizado",
-        "No se pudo guardar"
-      ]
-    },
-    {
       "pantalla": "admin/animaciones",
       "total": 34,
       "cubiertos": 19,
@@ -1637,6 +1621,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/parametros",
+      "total": 13,
+      "cubiertos": 13,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
       "faltantes": []
     },
     {
