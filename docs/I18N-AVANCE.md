@@ -467,6 +467,48 @@ literales totales. Lotes 42-46 (commits `84212977`..`7873a48a`):
 **Módulo 9 (Proyectos) CERRADO: 10/10 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: RRHH (#10).
 
+## RRHH — 100% COMPLETO (14/14 pantallas, 15-nov-2026)
+
+14 pantallas, 627 literales totales. Lotes 47-51 (commits
+`96846157`..`657519bf`):
+
+- **Lote 47** (`96846157`): codemod masivo: 469 envueltos, 12
+  saltados a mano. **Tercer bug del codemod encontrado y corregido**
+  (primero: `@if` numérico de Flota/lote 20; segundo: import
+  multilínea de Proyectos/lote 42): `asegurarTranslatePipe()` solo
+  sabía agregar `TranslatePipe` a un `imports: [...]` YA EXISTENTE —
+  si el `@Component` no tenía NINGÚN array `imports` (standalone sin
+  dependencias hasta ahora), el import se agregaba pero el array
+  nunca se creaba, dejando `NG8004` en TODO el archivo. Afectó 3/14
+  pantallas (`contratos`, `evaluaciones`, `nomina`); corregido en el
+  script: si no hay array `imports`, ahora inserta
+  `imports: [TranslatePipe],` justo después de `selector: '...'`.
+- **Lote 48**: `reportes` ya estaba al 100% tras el codemod — solo
+  traducir + enforce.
+- **Lotes 49-50**: 8 pantallas más (organigrama, evaluaciones,
+  asistencia, capacitacion, contratos, proveedores, nomina,
+  candidatos) cerradas por un fork en un solo pase, verificado
+  independientemente antes de aceptar.
+- **Lote 51** (`657519bf`): últimas 5 (ausencias, onboarding,
+  tramites, activos, empleados — la más grande del módulo, 134
+  literales) cerradas por un segundo fork. Se quedó sin presupuesto
+  justo antes de traducir las 76 claves nuevas de `empleados` (HTML/
+  TS ya al 100%, `enforce:true` ya flipeado) — terminado a mano. Dato
+  curioso: 74 de esas 76 claves YA EXISTÍAN en `en.json`/`ht.json` de
+  módulos anteriores (términos genéricos como "Banco"/"Supervisor"/
+  "Correo electrónico" reaparecen en RRHH) — solo 2 eran genuinamente
+  nuevas, confirmando que el solapamiento de vocabulario entre
+  módulos reduce el trabajo de traducción real a medida que avanza el
+  barrido completo de la app.
+- `public/i18n/en.json`/`ht.json`: crecieron de ~5156/~4530 a
+  **~5454/~4835** claves.
+- `alcance.json`: 14 pantallas nuevas `enforce:true` (total **104**).
+  `verify-i18n.mjs`: 104 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 10 (RRHH) CERRADO: 14/14 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Legal (#11).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -505,7 +547,7 @@ Admin, resto.
 | 7 | Bitácora | 11/11 pantallas 100% (ver detalle arriba) | 474 (codemod) + ~230 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 8255e835..665235da | **true** |
 | 8 | Transporte/apoyo | 3/3 pantallas 100% (ver detalle arriba) | 103 (codemod) + ~72 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 405507d3..3b044583 | **true** |
 | 9 | Proyectos | 10/10 pantallas 100% (ver detalle arriba) | 499 (codemod) + ~190 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 84212977..7873a48a | **true** |
-| 10 | RRHH | — | — | — | ⏳ pendiente | — | false |
+| 10 | RRHH | 14/14 pantallas 100% (ver detalle arriba) | 469 (codemod) + ~160 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 96846157..657519bf | **true** |
 | 11 | Legal | — | — | — | ⏳ pendiente | — | false |
 | 12 | Documentos | — | — | — | ⏳ pendiente | — | false |
 | 13 | Ingeniería | — | — | — | ⏳ pendiente | — | false |
