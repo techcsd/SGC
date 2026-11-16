@@ -4205,30 +4205,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/tramites",
-      "total": 44,
-      "cubiertos": 31,
-      "sin": 13,
-      "pct": 70,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Permiso",
-        "Licencia",
-        "Seguro",
-        "Impuesto",
-        "Otro",
-        "No se pudieron cargar los trámites",
-        "Falta el nombre",
-        "Trámite guardado",
-        "No se pudo guardar",
-        "Marcado como vigente",
-        "No se pudo actualizar",
-        "Trámite eliminado",
-        "No se pudo eliminar"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -5558,6 +5534,16 @@
       "pantalla": "rrhh/reportes",
       "total": 19,
       "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/tramites",
+      "total": 44,
+      "cubiertos": 44,
       "sin": 0,
       "pct": 100,
       "enScope": true,

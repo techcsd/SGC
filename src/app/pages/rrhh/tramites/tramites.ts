@@ -6,6 +6,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** DN-29 (P2 de Administración) — Trámites y cumplimiento: permisos, licencias,
  *  seguros e impuestos de la empresa, con vencimientos. No sensible (igual que
  *  Proveedores/Activos: logística de oficina, no dato personal del empleado). */
@@ -19,6 +20,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class RrhhTramites implements OnInit {
   private svc = inject(RrhhAdministracionService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   tramites = signal<RrhhTramite[]>([]);
@@ -62,7 +64,7 @@ export class RrhhTramites implements OnInit {
     try {
       this.tramites.set(await this.svc.listarTramites());
     } catch (e) {
-      this.toast.error('No se pudieron cargar los trámites', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los trámites'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -76,7 +78,7 @@ export class RrhhTramites implements OnInit {
 
   async guardar() {
     const nombre = this.fNombre().trim();
-    if (!nombre) { this.toast.warning('Falta el nombre', 'Escribe a qué trámite corresponde.'); return; }
+    if (!nombre) { this.toast.warning(this.i18n.t('Falta el nombre'), 'Escribe a qué trámite corresponde.'); return; }
     this.guardando.set(true);
     try {
       await this.svc.crearTramite({
@@ -84,11 +86,11 @@ export class RrhhTramites implements OnInit {
         numero_referencia: this.fNumero().trim() || null, fecha_emision: this.fEmision() || null,
         fecha_vencimiento: this.fVencimiento() || null, notas: this.fNotas().trim() || null,
       });
-      this.toast.success('Trámite guardado');
+      this.toast.success(this.i18n.t('Trámite guardado'));
       this.mostrarForm.set(false);
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -98,9 +100,9 @@ export class RrhhTramites implements OnInit {
     try {
       await this.svc.actualizarEstadoTramite(t.id, 'vigente');
       await this.cargar();
-      this.toast.success('Marcado como vigente');
+      this.toast.success(this.i18n.t('Marcado como vigente'));
     } catch (e) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -113,10 +115,10 @@ export class RrhhTramites implements OnInit {
     if (!t) return;
     try {
       await this.svc.eliminarTramite(t.id);
-      this.toast.success('Trámite eliminado');
+      this.toast.success(this.i18n.t('Trámite eliminado'));
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.aEliminar.set(null);
     }

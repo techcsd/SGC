@@ -214,9 +214,6 @@
     "auth": {
       "enforce": false
     },
-    "rrhh/tramites": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "rrhh/reportes": {
+      "enforce": true
+    },
+    "rrhh/tramites": {
       "enforce": true
     },
     "solicitudes-movimiento": {

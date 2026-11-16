@@ -19,11 +19,11 @@
         <label class="tr-field">
           <span>{{ 'Tipo' | t }}</span>
           <select [value]="fTipo()" (change)="fTipo.set($any($event.target).value)">
-            <option value="permiso">Permiso</option>
-            <option value="licencia">Licencia</option>
-            <option value="seguro">Seguro</option>
-            <option value="impuesto">Impuesto</option>
-            <option value="otro">Otro</option>
+            <option value="permiso">{{ 'Permiso' | t }}</option>
+            <option value="licencia">{{ 'Licencia' | t }}</option>
+            <option value="seguro">{{ 'Seguro' | t }}</option>
+            <option value="impuesto">{{ 'Impuesto' | t }}</option>
+            <option value="otro">{{ 'Otro' | t }}</option>
           </select>
         </label>
         <label class="tr-field">
@@ -47,7 +47,7 @@
           <textarea rows="2" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
         </label>
         <div class="tr-add__acciones">
-          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">{{ 'Cancelar' | t }}</button>
         </div>
       </form>
@@ -119,5 +119,5 @@
 
 <app-confirm-dialog [open]="!!aEliminar()" title="{{ '¿Eliminar este trámite?' | t }}"
   [message]="aEliminar() ? ('«' + aEliminar()!.nombre + '»') : ''"
-  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Eliminar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />

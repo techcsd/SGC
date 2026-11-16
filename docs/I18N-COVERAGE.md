@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 66%** (6888/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 66%** (6901/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -78,7 +78,6 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| rrhh/tramites | scope | 44 | 31 | 13 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | rrhh/activos | scope | 41 | 30 | 11 | 73% |
@@ -197,12 +196,13 @@
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
 | rrhh/proveedores | enforce | 33 | 33 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
+| rrhh/tramites | enforce | 44 | 44 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**377 literal(es) sin t()** en 54 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**369 literal(es) sin t()** en 53 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -222,7 +222,6 @@
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
 | src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
-| src/app/pages/rrhh/tramites/tramites.ts | 8 | No se pudieron cargar los trámites · Falta el nombre · Trámite guardado … |
 | src/app/pages/tecnologia/cotizaciones/cotizaciones.ts | 8 | El título es obligatorio · Cotización guardada · Renglones guardados … |
 | src/app/pages/tecnologia/oficina-agentes/oficina-agentes.ts | 8 | Ejecutado · No se pudo ejecutar · Deshecho … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
