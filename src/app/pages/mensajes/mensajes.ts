@@ -29,9 +29,10 @@ import { Lightbox } from '../../../shared/ui/lightbox/lightbox';
 import { VoicePlayer } from '../../../shared/ui/voice-player/voice-player';
 import { Icon } from '../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer, Icon, TranslatePipe],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -73,22 +73,10 @@
     "incentivos": {
       "enforce": false
     },
-    "mensajes/grupo-info": {
-      "enforce": false
-    },
-    "mensajes": {
-      "enforce": false
-    },
     "mi-rendimiento": {
       "enforce": false
     },
     "mis-choferes": {
-      "enforce": false
-    },
-    "notas/editor": {
-      "enforce": false
-    },
-    "notas": {
       "enforce": false
     },
     "obra/avance": {
@@ -113,15 +101,6 @@
       "enforce": false
     },
     "politicas": {
-      "enforce": false
-    },
-    "tareas/gestion": {
-      "enforce": false
-    },
-    "tareas/historial": {
-      "enforce": false
-    },
-    "tareas/mis-tareas": {
       "enforce": false
     },
     "tecnologia/apis-consumo": {
@@ -181,10 +160,31 @@
     "tecnologia/dev-notes": {
       "enforce": false
     },
+    "tareas/mis-tareas": {
+      "enforce": false
+    },
     "app-movil": {
       "enforce": false
     },
+    "notas": {
+      "enforce": false
+    },
+    "mensajes": {
+      "enforce": false
+    },
     "auth": {
+      "enforce": false
+    },
+    "mensajes/grupo-info": {
+      "enforce": false
+    },
+    "notas/editor": {
+      "enforce": false
+    },
+    "tareas/gestion": {
+      "enforce": false
+    },
+    "tareas/historial": {
       "enforce": false
     },
     "practica": {

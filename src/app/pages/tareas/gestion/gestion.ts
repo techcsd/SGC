@@ -16,9 +16,10 @@ import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/com
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator, ExportExcel],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator, ExportExcel, TranslatePipe],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -111,7 +111,16 @@ for (const file of files) {
 
     // 1) Atributos visibles con literal plano (sin `{{` en el valor).
     for (const attr of ATTRS_VISIBLES) {
-      const re = new RegExp(`\\b(${attr})="([^"{}]*)"`, 'g');
+      // DP-21 — \b por sí solo matchea "placeholder" dentro de "data-placeholder"
+      // (el '-' no es de palabra, así que hay un límite de palabra justo antes
+      // de la "p"). Un atributo `data-*` custom (ej. placeholder de
+      // contenteditable vía CSS `content: attr(data-placeholder)`) terminaba
+      // envuelto como `data-placeholder="{{ '...' | t }}"`, y Angular reescribe
+      // CUALQUIER atributo interpolado cuyo nombre (tras quitar "data-") calce
+      // con una propiedad DOM conocida como binding de propiedad — rompiendo
+      // el build con NG8002 ("Can't bind to 'placeholder' … of 'div'").
+      // (?<!-) excluye el caso en que el atributo real tiene un '-' justo antes.
+      const re = new RegExp(`(?<!-)\\b(${attr})="([^"{}]*)"`, 'g');
       line = line.replace(re, (m, nombre, valor) => {
         if (esRuido(valor)) return m;
         envueltosArchivo++;

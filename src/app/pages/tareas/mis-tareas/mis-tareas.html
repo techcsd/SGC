@@ -1,7 +1,7 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Mis tareas</h1>
+    <h1 class="page-title">{{ 'Mis tareas' | t }}</h1>
     <span class="page-count">{{ countActivas() }} activa{{ countActivas() !== 1 ? 's' : '' }}</span>
   </div>
 </div>
@@ -9,7 +9,7 @@
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="Filtrar por estado">
+    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
       <option value="activas">Activas</option>
       <option value="all">Todas</option>
       @for (e of ESTADOS; track e.value) {

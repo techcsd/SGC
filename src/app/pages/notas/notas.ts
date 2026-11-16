@@ -17,6 +17,7 @@ import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 type NotasTab = 'mias' | 'compartidas';
 
 /** Línea del cuerpo interpretada para el preview: texto plano o ítem de checklist. */
@@ -31,7 +32,7 @@ const CHECK_RE = /^(\s*-\s*\[)( |x|X)(\]\s?)(.*)$/;
 
 @Component({
   selector: 'app-notas',
-  imports: [DatePipe, FormDrawer, Skeleton, ConfirmDialog],
+  imports: [DatePipe, FormDrawer, Skeleton, ConfirmDialog, TranslatePipe],
   templateUrl: './notas.html',
   styleUrl: './notas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

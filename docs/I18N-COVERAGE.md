@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 69%** (7221/10431 literales de 192 pantallas en alcance). **`ht`: 87%**.
+**Alcance `en`: 71%** (7297/10331 literales de 192 pantallas en alcance). **`ht`: 87%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -31,12 +31,8 @@
 | dudas | scope | 15 | 0 | 15 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
 | incentivos | scope | 184 | 0 | 184 | 0% |
-| mensajes/grupo-info | scope | 44 | 0 | 44 | 0% |
-| mensajes | scope | 68 | 0 | 68 | 0% |
 | mi-rendimiento | scope | 17 | 0 | 17 | 0% |
 | mis-choferes | scope | 9 | 0 | 9 | 0% |
-| notas/editor | scope | 54 | 0 | 54 | 0% |
-| notas | scope | 47 | 0 | 47 | 0% |
 | obra/avance | scope | 85 | 0 | 85 | 0% |
 | obra/checklists | scope | 57 | 0 | 57 | 0% |
 | obra/informes | scope | 49 | 0 | 49 | 0% |
@@ -45,9 +41,6 @@
 | obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
 | politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
 | politicas | scope | 15 | 0 | 15 | 0% |
-| tareas/gestion | scope | 38 | 0 | 38 | 0% |
-| tareas/historial | scope | 22 | 0 | 22 | 0% |
-| tareas/mis-tareas | scope | 7 | 0 | 7 | 0% |
 | tecnologia/apis-consumo | scope | 44 | 0 | 44 | 0% |
 | tecnologia/compras | scope | 98 | 0 | 98 | 0% |
 | tecnologia/consultas-compa | scope | 24 | 0 | 24 | 0% |
@@ -67,8 +60,15 @@
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
+| tareas/mis-tareas | scope | 6 | 1 | 5 | 17% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
+| notas | scope | 36 | 10 | 26 | 28% |
+| mensajes | scope | 33 | 11 | 22 | 33% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| mensajes/grupo-info | scope | 31 | 13 | 18 | 42% |
+| notas/editor | scope | 32 | 14 | 18 | 44% |
+| tareas/gestion | scope | 29 | 18 | 11 | 62% |
+| tareas/historial | scope | 13 | 9 | 4 | 69% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |

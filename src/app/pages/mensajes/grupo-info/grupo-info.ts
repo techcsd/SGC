@@ -16,6 +16,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { GrupoInfo, GrupoParticipante } from '../../../../shared/models/mensaje.model';
 import { VerFotoDirective } from '../../../../shared/ui/lightbox/ver-foto.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface UsuarioDir {
   id: string;
   nombre: string;
@@ -27,7 +28,7 @@ interface UsuarioDir {
 
 @Component({
   selector: 'app-grupo-info',
-  imports: [ReactiveFormsModule, FormDrawer, VerFotoDirective],
+  imports: [ReactiveFormsModule, FormDrawer, VerFotoDirective, TranslatePipe],
   templateUrl: './grupo-info.html',
   styleUrl: './grupo-info.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

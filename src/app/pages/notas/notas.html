@@ -2,7 +2,7 @@
   <!-- ── Encabezado ── -->
   <div class="notas__header">
     <div class="notas__title-row">
-      <h1 class="page-title">Notas</h1>
+      <h1 class="page-title">{{ 'Notas' | t }}</h1>
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="openNueva()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Tabs -->
-    <div class="notas__tabs" role="tablist" aria-label="Tipo de notas">
+    <div class="notas__tabs" role="tablist" aria-label="{{ 'Tipo de notas' | t }}">
       <button
         type="button"
         role="tab"
@@ -40,10 +40,10 @@
       <div class="sgc-field notas__search">
         <input
           type="search"
-          placeholder="Buscar por título o contenido…"
+          placeholder="{{ 'Buscar por título o contenido…' | t }}"
           [value]="searchQuery()"
           (input)="searchQuery.set($any($event.target).value)"
-          aria-label="Buscar notas"
+          aria-label="{{ 'Buscar notas' | t }}"
         />
       </div>
       @if (tab() === 'mias') {
@@ -134,7 +134,7 @@
               </span>
             } @else {
               @if (n.archivada) {
-                <span class="sgc-badge sgc-badge--neutral">Archivada</span>
+                <span class="sgc-badge sgc-badge--neutral">{{ 'Archivada' | t }}</span>
               }
               <span class="nota-card__date">{{ n.updated_at | date: 'dd/MM/yy HH:mm' }}</span>
             }
@@ -160,11 +160,11 @@
 
     <!-- Título -->
     <div class="sgc-field">
-      <label for="nota_titulo">Título</label>
+      <label for="nota_titulo">{{ 'Título' | t }}</label>
       <input
         id="nota_titulo"
         type="text"
-        placeholder="Título de la nota"
+        placeholder="{{ 'Título de la nota' | t }}"
         [value]="tituloText()"
         (input)="onTituloInput($any($event.target).value)"
         [readOnly]="soloVer()"
@@ -174,7 +174,7 @@
     <!-- Contenido -->
     <div class="sgc-field">
       <div class="editor__label-row">
-        <label for="nota_contenido">Contenido</label>
+        <label for="nota_contenido">{{ 'Contenido' | t }}</label>
         @if (!soloVer()) {
           <button type="button" class="editor__mini-btn" (click)="agregarChecklist()">
             + Ítem de checklist
@@ -196,7 +196,7 @@
 
     <!-- Preview con checklist interactivo -->
     @if (contenidoText().trim()) {
-      <div class="editor__preview" aria-label="Vista previa">
+      <div class="editor__preview" aria-label="{{ 'Vista previa' | t }}">
         @for (l of lineasPreview(); track l.idx) {
           @if (l.tipo === 'check') {
             <label class="editor__check">
@@ -217,14 +217,14 @@
 
     <!-- Color -->
     <div class="editor__block">
-      <span class="editor__block-label">Color</span>
+      <span class="editor__block-label">{{ 'Color' | t }}</span>
       <div class="editor__swatches">
         <button
           type="button"
           class="editor__swatch editor__swatch--none"
           [class.editor__swatch--active]="!colorSel()"
           [disabled]="soloVer()"
-          aria-label="Sin color"
+          aria-label="{{ 'Sin color' | t }}"
           (click)="seleccionarColor(null)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5" /></svg>
@@ -275,15 +275,15 @@
     <!-- Compartir (solo dueño y nota guardada) -->
     @if (puedeCompartir()) {
       <div class="editor__block editor__share">
-        <span class="editor__block-label">Compartir con</span>
+        <span class="editor__block-label">{{ 'Compartir con' | t }}</span>
 
         <div class="sgc-field">
           <input
             type="search"
-            placeholder="Buscar persona…"
+            placeholder="{{ 'Buscar persona…' | t }}"
             [value]="shareBuscar()"
             (input)="onShareBuscar($any($event.target).value)"
-            aria-label="Buscar persona para compartir"
+            aria-label="{{ 'Buscar persona para compartir' | t }}"
           />
         </div>
 
@@ -294,8 +294,8 @@
                 <span class="editor__avatar">{{ iniciales(u.nombre) }}</span>
                 <span class="editor__share-name">{{ u.nombre }}</span>
                 <span class="editor__share-add">
-                  <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="sharing()" (click)="agregarCompartido(u, 'ver')">Ver</button>
-                  <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" [disabled]="sharing()" (click)="agregarCompartido(u, 'editar')">Editar</button>
+                  <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="sharing()" (click)="agregarCompartido(u, 'ver')">{{ 'Ver' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" [disabled]="sharing()" (click)="agregarCompartido(u, 'editar')">{{ 'Editar' | t }}</button>
                 </span>
               </li>
             }
@@ -317,19 +317,19 @@
                   class="editor__perm-select"
                   [value]="c.permiso"
                   (change)="onSelectPermiso(c, $any($event.target).value)"
-                  aria-label="Permiso"
+                  aria-label="{{ 'Permiso' | t }}"
                 >
                   <option value="ver">Solo ver</option>
                   <option value="editar">Editar</option>
                 </select>
-                <button type="button" class="editor__remove" aria-label="Quitar acceso" (click)="quitarCompartido(c)">
+                <button type="button" class="editor__remove" aria-label="{{ 'Quitar acceso' | t }}" (click)="quitarCompartido(c)">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </button>
               </li>
             }
           </ul>
         } @else {
-          <p class="editor__share-empty">Aún no la has compartido con nadie.</p>
+          <p class="editor__share-empty">{{ 'Aún no la has compartido con nadie.' | t }}</p>
         }
       </div>
     }
@@ -337,7 +337,7 @@
     <!-- Acciones -->
     <div class="drawer-actions editor__actions">
       @if (esOwner() && !isNew()) {
-        <button type="button" class="sgc-btn sgc-btn--danger" (click)="pedirEliminar()">Eliminar</button>
+        <button type="button" class="sgc-btn sgc-btn--danger" (click)="pedirEliminar()">{{ 'Eliminar' | t }}</button>
       }
       <span class="editor__actions-spacer"></span>
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeEditor()">
@@ -359,7 +359,7 @@
 <!-- Confirmar eliminación -->
 <app-confirm-dialog
   [open]="confirmDeleteOpen()"
-  title="Eliminar nota"
+  title="{{ 'Eliminar nota' | t }}"
   message="¿Seguro que quieres eliminar esta nota? Esta acción no se puede deshacer."
   confirmLabel="Eliminar"
   cancelLabel="Cancelar"

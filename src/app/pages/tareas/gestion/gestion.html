@@ -1,7 +1,7 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Gestión de tareas</h1>
+    <h1 class="page-title">{{ 'Gestión de tareas' | t }}</h1>
     <span class="page-count">{{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
@@ -21,15 +21,15 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por título o responsable…"
+      placeholder="{{ 'Buscar por título o responsable…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar tareas"
+      aria-label="{{ 'Buscar tareas' | t }}"
     />
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="Filtrar por estado">
+    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
       <option value="activas">Activas</option>
       <option value="all">Todas</option>
       @for (e of ESTADOS; track e.value) {
@@ -39,7 +39,7 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedAsignado()" (change)="onAsignadoChange($any($event.target).value)" aria-label="Filtrar por responsable">
+    <select [value]="selectedAsignado()" (change)="onAsignadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por responsable' | t }}">
       <option value="all">Todos los responsables</option>
       @for (u of usuarios(); track u.id) {
         <option [value]="u.id">{{ u.nombre }}</option>
@@ -64,20 +64,20 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (filtered().length === 0) {
     <div class="table-empty">
-      <p>No hay tareas con los filtros aplicados.</p>
+      <p>{{ 'No hay tareas con los filtros aplicados.' | t }}</p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de tareas">
+      <table class="data-table" aria-label="{{ 'Lista de tareas' | t }}">
         <thead>
           <tr>
-            <th>Título</th>
-            <th>Responsable</th>
-            <th>Prioridad</th>
-            <th>Proyecto</th>
-            <th>Fecha límite</th>
-            <th>Estado</th>
-            <th class="text-center">Ver</th>
+            <th>{{ 'Título' | t }}</th>
+            <th>{{ 'Responsable' | t }}</th>
+            <th>{{ 'Prioridad' | t }}</th>
+            <th>{{ 'Proyecto' | t }}</th>
+            <th>{{ 'Fecha límite' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Ver' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -97,7 +97,7 @@
               <td><span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span></td>
               <td>
                 <div class="row-actions">
-                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(t)" [attr.aria-label]="'Ver ' + t.titulo" title="Ver detalle">
+                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(t)" [attr.aria-label]="'Ver ' + t.titulo" title="{{ 'Ver detalle' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -117,24 +117,24 @@
 </div>
 
 <!-- ── Create Drawer ── -->
-<app-form-drawer title="Nueva tarea" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer title="{{ 'Nueva tarea' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
     <div class="sgc-field">
-      <label for="titulo">Título <span class="required">*</span></label>
-      <input id="titulo" type="text" formControlName="titulo" placeholder="Ej: Preparar informe de avance semanal" [class.invalid]="f.titulo.invalid && f.titulo.touched" />
+      <label for="titulo">{{ 'Título' | t }} <span class="required">*</span></label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="{{ 'Ej: Preparar informe de avance semanal' | t }}" [class.invalid]="f.titulo.invalid && f.titulo.touched" />
       @if (f.titulo.invalid && f.titulo.touched) {
-        <span class="field-error">El título es obligatorio.</span>
+        <span class="field-error">{{ 'El título es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="descripcion">Descripción</label>
-      <textarea id="descripcion" formControlName="descripcion" rows="3" placeholder="Detalle de lo que se debe hacer…"></textarea>
+      <label for="descripcion">{{ 'Descripción' | t }}</label>
+      <textarea id="descripcion" formControlName="descripcion" rows="3" placeholder="{{ 'Detalle de lo que se debe hacer…' | t }}"></textarea>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="asignado_a">Responsable <span class="required">*</span></label>
+        <label for="asignado_a">{{ 'Responsable' | t }} <span class="required">*</span></label>
         <select id="asignado_a" formControlName="asignado_a" [class.invalid]="f.asignado_a.invalid && f.asignado_a.touched">
           <option [ngValue]="null">Selecciona…</option>
           @for (u of usuarios(); track u.id) {
@@ -142,11 +142,11 @@
           }
         </select>
         @if (f.asignado_a.invalid && f.asignado_a.touched) {
-          <span class="field-error">Selecciona un responsable.</span>
+          <span class="field-error">{{ 'Selecciona un responsable.' | t }}</span>
         }
       </div>
       <div class="sgc-field">
-        <label for="prioridad">Prioridad <span class="required">*</span></label>
+        <label for="prioridad">{{ 'Prioridad' | t }} <span class="required">*</span></label>
         <select id="prioridad" formControlName="prioridad">
           @for (p of PRIORIDADES; track p.value) {
             <option [value]="p.value">{{ p.label }}</option>
@@ -157,7 +157,7 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="proyecto_id">Proyecto (opcional)</label>
+        <label for="proyecto_id">{{ 'Proyecto (opcional)' | t }}</label>
         <select id="proyecto_id" formControlName="proyecto_id">
           <option [ngValue]="null">Sin proyecto</option>
           @for (p of proyectos(); track p.id) {
@@ -166,7 +166,7 @@
         </select>
       </div>
       <div class="sgc-field">
-        <label for="fecha_limite">Fecha límite</label>
+        <label for="fecha_limite">{{ 'Fecha límite' | t }}</label>
         <input id="fecha_limite" type="date" formControlName="fecha_limite" />
       </div>
     </div>
@@ -176,7 +176,7 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
