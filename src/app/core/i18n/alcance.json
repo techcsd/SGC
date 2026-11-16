@@ -139,9 +139,6 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "tecnologia/qa": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -563,6 +560,9 @@
       "enforce": true
     },
     "tecnologia/oficina-agentes": {
+      "enforce": true
+    },
+    "tecnologia/qa": {
       "enforce": true
     },
     "tecnologia/reportes-errores": {

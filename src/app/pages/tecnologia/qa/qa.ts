@@ -33,6 +33,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 type QaTab = 'casos' | 'nueva' | 'ejecutar' | 'historial';
 
 @Component({
@@ -45,6 +46,7 @@ type QaTab = 'casos' | 'nueva' | 'ejecutar' | 'historial';
 export class TecQa implements OnInit {
   private qa = inject(QaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly MODULOS = QA_MODULOS;
   readonly PRIORIDADES = QA_PRIORIDADES;
@@ -279,10 +281,10 @@ export class TecQa implements OnInit {
       const id = this.editingId();
       if (id) {
         await this.qa.updateCase(id, input);
-        this.toast.success('Caso actualizado.');
+        this.toast.success(this.i18n.t('Caso actualizado.'));
       } else {
         await this.qa.createCase(input);
-        this.toast.success('Caso creado.');
+        this.toast.success(this.i18n.t('Caso creado.'));
       }
       this.drawerOpen.set(false);
       await this.loadCasos();
@@ -336,7 +338,7 @@ export class TecQa implements OnInit {
   async crearCorrida() {
     const ids = [...this.seleccionados()];
     if (ids.length === 0) {
-      this.toast.warning('Selecciona al menos un caso.');
+      this.toast.warning(this.i18n.t('Selecciona al menos un caso.'));
       return;
     }
     this.creando.set(true);
@@ -347,7 +349,7 @@ export class TecQa implements OnInit {
         this.nuevaTitulo().trim(),
         ids,
       );
-      this.toast.success('Corrida creada.');
+      this.toast.success(this.i18n.t('Corrida creada.'));
       // Reset del formulario de nueva corrida.
       this.nuevaVersion.set('');
       this.nuevaTitulo.set('');
@@ -439,7 +441,7 @@ export class TecQa implements OnInit {
       this.replaceResultado(updated);
       const url = await this.qa.getEvidenciaUrl(path);
       this.evidenciaUrls.update((m) => ({ ...m, [r.id]: url }));
-      this.toast.success('Evidencia subida.');
+      this.toast.success(this.i18n.t('Evidencia subida.'));
     } catch (e) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo subir la evidencia.');
     } finally {
@@ -461,7 +463,7 @@ export class TecQa implements OnInit {
       });
       const updated = await this.qa.setResultado(r.id, { error_report_id: reporteId });
       this.replaceResultado(updated);
-      this.toast.success('Reporte de error creado y enlazado.');
+      this.toast.success(this.i18n.t('Reporte de error creado y enlazado.'));
     } catch (e) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo crear el reporte.');
     }
@@ -474,7 +476,7 @@ export class TecQa implements OnInit {
     try {
       const updated = await this.qa.setResultado(r.id, { error_report_id: id });
       this.replaceResultado(updated);
-      this.toast.success('Reporte enlazado.');
+      this.toast.success(this.i18n.t('Reporte enlazado.'));
     } catch (e) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo enlazar el reporte.');
     }
@@ -486,13 +488,13 @@ export class TecQa implements OnInit {
     const run = this.activeRun();
     if (!run) return;
     if (this.conteos().pendiente > 0) {
-      if (!confirm(`Quedan ${this.conteos().pendiente} casos pendientes. ¿Marcar la corrida como completada de todos modos?`))
+      if (!confirm(this.i18n.t('Quedan {n} casos pendientes. ¿Marcar la corrida como completada de todos modos?', { n: this.conteos().pendiente })))
         return;
     }
     try {
       await this.qa.completarCorrida(run.id);
       this.activeRun.set({ ...run, estado: 'completada' });
-      this.toast.success('Corrida marcada como completada.');
+      this.toast.success(this.i18n.t('Corrida marcada como completada.'));
     } catch (e) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo completar la corrida.');
     }

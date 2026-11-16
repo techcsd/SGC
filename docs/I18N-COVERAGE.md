@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 81%** (8196/10181 literales de 192 pantallas en alcance). **`ht`: 93%**.
+**Alcance `en`: 81%** (8217/10185 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -53,7 +53,6 @@
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/outbox-atascados | scope | 53 | 38 | 15 | 72% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| tecnologia/qa | scope | 73 | 56 | 17 | 77% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -190,11 +189,12 @@
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
-| tecnologia/homologacion | scope | 28 | 28 | 0 | 100% |
+| tecnologia/homologacion | enforce | 28 | 28 | 0 | 100% |
 | tecnologia/matriz | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
+| tecnologia/qa | enforce | 77 | 77 | 0 | 100% |
 | tecnologia/reportes-errores | enforce | 59 | 59 | 0 | 100% |
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**236 literal(es) sin t()** en 31 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**227 literal(es) sin t()** en 30 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -216,7 +216,6 @@
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
-| src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |

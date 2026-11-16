@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 81,
-  "pctHt": 93,
+  "pctHt": 94,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -2462,34 +2462,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/qa",
-      "total": 73,
-      "cubiertos": 56,
-      "sin": 17,
-      "pct": 77,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Todo módulo",
-        "Toda plataforma",
-        "Toda prioridad",
-        "Activos e inactivos",
-        "Solo activos",
-        "Solo inactivos",
-        "Todos los módulos",
-        "Editar caso",
-        "Caso actualizado.",
-        "Caso creado.",
-        "Selecciona al menos un caso.",
-        "Corrida creada.",
-        "Evidencia subida.",
-        "Reporte de error creado y enlazado.",
-        "Reporte enlazado.",
-        "Corrida marcada como completada.",
-        "Quedan ${this.conteos().pendiente} casos pendientes. ¿Marcar la corrida como completada de todos modos?"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 73,
       "cubiertos": 65,
@@ -3876,7 +3848,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {
@@ -3913,6 +3885,16 @@
       "pantalla": "tecnologia/oficina-agentes",
       "total": 31,
       "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/qa",
+      "total": 77,
+      "cubiertos": 77,
       "sin": 0,
       "pct": 100,
       "enScope": true,

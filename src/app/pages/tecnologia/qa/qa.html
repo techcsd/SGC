@@ -22,21 +22,21 @@
   @if (tab() === 'casos') {
     <div class="qa__filters">
       <select class="qa__input" [value]="fModulo()" (change)="fModulo.set($any($event.target).value)">
-        <option value="">Todo módulo</option>
+        <option value="">{{ 'Todo módulo' | t }}</option>
         @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
       </select>
       <select class="qa__input" [value]="fPlataforma()" (change)="fPlataforma.set($any($event.target).value)">
-        <option value="">Toda plataforma</option>
-        @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        <option value="">{{ 'Toda plataforma' | t }}</option>
+        @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
       </select>
       <select class="qa__input" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)">
-        <option value="">Toda prioridad</option>
-        @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        <option value="">{{ 'Toda prioridad' | t }}</option>
+        @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
       </select>
       <select class="qa__input" [value]="fActivo()" (change)="fActivo.set($any($event.target).value)">
-        <option value="">Activos e inactivos</option>
-        <option value="si">Solo activos</option>
-        <option value="no">Solo inactivos</option>
+        <option value="">{{ 'Activos e inactivos' | t }}</option>
+        <option value="si">{{ 'Solo activos' | t }}</option>
+        <option value="no">{{ 'Solo inactivos' | t }}</option>
       </select>
       @if (hasCaseFilters()) {
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearCaseFilters()">{{ 'Limpiar' | t }}</button>
@@ -68,8 +68,8 @@
                       <button type="button" class="qa__linkbtn" (click)="editarCaso(c)">{{ c.titulo }}</button>
                       @if (c.pasos) { <span class="qa__hint" [title]="c.pasos">{{ '· pasos' | t }}</span> }
                     </td>
-                    <td><span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) }}</span></td>
-                    <td>{{ plataformaLabel(c.plataforma) }}</td>
+                    <td><span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) | t }}</span></td>
+                    <td>{{ plataformaLabel(c.plataforma) | t }}</td>
                     <td>
                       @if (c.activo) { <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span> }
                       @else { <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span> }
@@ -77,7 +77,7 @@
                     <td class="qa__actions">
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editarCaso(c)">{{ 'Editar' | t }}</button>
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleActivo(c)">
-                        {{ c.activo ? 'Desactivar' : 'Activar' }}
+                        {{ (c.activo ? 'Desactivar' : 'Activar') | t }}
                       </button>
                     </td>
                   </tr>
@@ -99,7 +99,7 @@
         <label class="qa__field">
           <span class="qa__label">{{ 'Plataforma objetivo' | t }}</span>
           <select class="qa__input" [value]="nuevaPlataforma()" (change)="onNuevaPlataforma($any($event.target).value)">
-            @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+            @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
           </select>
         </label>
         <label class="qa__field">
@@ -114,13 +114,13 @@
 
       <div class="qa__sel-head">
         <select class="qa__input" [value]="selModulo()" (change)="selModulo.set($any($event.target).value)">
-          <option value="">Todos los módulos</option>
+          <option value="">{{ 'Todos los módulos' | t }}</option>
           @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
         </select>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTodos()" [disabled]="casosElegibles().length === 0">
-          {{ todosElegiblesSeleccionados() ? 'Quitar todos' : 'Seleccionar todos' }}
+          {{ (todosElegiblesSeleccionados() ? 'Quitar todos' : 'Seleccionar todos') | t }}
         </button>
-        <span class="qa__sel-count">{{ seleccionadosCount() }} seleccionado(s)</span>
+        <span class="qa__sel-count">{{ seleccionadosCount() }} {{ 'seleccionado(s)' | t }}</span>
       </div>
 
       <div class="qa__checklist">
@@ -131,8 +131,8 @@
               <span class="qa__check-title">{{ c.titulo }}</span>
               <span class="qa__check-meta">
                 <span class="qa__chip">{{ c.modulo }}</span>
-                <span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) }}</span>
-                <span class="qa__chip">{{ plataformaLabel(c.plataforma) }}</span>
+                <span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) | t }}</span>
+                <span class="qa__chip">{{ plataformaLabel(c.plataforma) | t }}</span>
               </span>
             </span>
           </label>
@@ -143,7 +143,7 @@
 
       <div class="qa__panel-foot">
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearCorrida()" [disabled]="creando() || seleccionadosCount() === 0">
-          @if (creando()) { Creando… } @else { Crear corrida con {{ seleccionadosCount() }} caso(s) }
+          @if (creando()) { {{ 'Creando…' | t }} } @else { {{ 'Crear corrida con' | t }} {{ seleccionadosCount() }} {{ 'caso(s)' | t }} }
         </button>
       </div>
     </div>
@@ -156,12 +156,12 @@
     } @else if (activeRun(); as run) {
       <div class="qa__run-head">
         <div>
-          <h2 class="qa__run-title">{{ run.titulo || 'Corrida' }}</h2>
+          <h2 class="qa__run-title">{{ run.titulo || ('Corrida' | t) }}</h2>
           <p class="qa__run-sub">
-            {{ plataformaLabel(run.plataforma) }}
+            {{ plataformaLabel(run.plataforma) | t }}
             @if (run.version_objetivo) { · <strong>{{ run.version_objetivo }}</strong> }
             · {{ formatFecha(run.fecha) }}
-            · <span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) }}</span>
+            · <span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) | t }}</span>
           </p>
         </div>
         @if (!corridaCerrada()) {
@@ -210,7 +210,7 @@
                 <span class="qa__chip">{{ r.modulo }}</span>
                 <span class="qa__exec-title">{{ r.caso_titulo }}</span>
               </div>
-              <span [class]="resultadoBadge(r.resultado)">{{ resultadoLabel(r.resultado) }}</span>
+              <span [class]="resultadoBadge(r.resultado)">{{ resultadoLabel(r.resultado) | t }}</span>
             </div>
 
             <div class="qa__exec-btns">
@@ -219,7 +219,7 @@
                         [class.qa__res-btn--active]="r.resultado === e"
                         [disabled]="corridaCerrada()"
                         (click)="setEstado(r, e)">
-                  {{ resultadoLabel(e) }}
+                  {{ resultadoLabel(e) | t }}
                 </button>
               }
             </div>
@@ -238,7 +238,7 @@
               }
               @if (!corridaCerrada()) {
                 <label class="sgc-btn sgc-btn--ghost sgc-btn--sm qa__upload">
-                  @if (subiendo() === r.id) { Subiendo… } @else { <app-icon name="paperclip" [size]="14" /> {{ r.evidencia_path ? 'Cambiar' : 'Evidencia' }} }
+                  @if (subiendo() === r.id) { {{ 'Subiendo…' | t }} } @else { <app-icon name="paperclip" [size]="14" /> {{ (r.evidencia_path ? 'Cambiar' : 'Evidencia') | t }} }
                   <input type="file" accept="image/*" hidden (change)="onEvidencia(r, $event)" [disabled]="subiendo() === r.id" />
                 </label>
               }
@@ -283,10 +283,10 @@
               <tr class="qa__row">
                 <td class="qa__ts">{{ formatFecha(run.fecha) }}</td>
                 <td>{{ run.titulo || '—' }}</td>
-                <td>{{ plataformaLabel(run.plataforma) }}</td>
+                <td>{{ plataformaLabel(run.plataforma) | t }}</td>
                 <td>{{ run.version_objetivo || '—' }}</td>
                 <td class="qa__num">{{ pctDe(run.id) }}%</td>
-                <td><span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) }}</span></td>
+                <td><span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) | t }}</span></td>
                 <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCorrida(run.id)">{{ 'Abrir →' | t }}</button></td>
               </tr>
             } @empty {
@@ -300,7 +300,7 @@
 </div>
 
 <!-- Drawer: crear/editar caso -->
-<app-form-drawer [open]="drawerOpen()" [title]="editingId() ? 'Editar caso' : 'Nuevo caso'" (closed)="cerrarDrawer()">
+<app-form-drawer [open]="drawerOpen()" [title]="i18n.t(editingId() ? 'Editar caso' : 'Nuevo caso')" (closed)="cerrarDrawer()">
   <form class="qa__drawer-form" [formGroup]="form" (ngSubmit)="guardarCaso()">
     <div class="qa__form-row">
       <label class="qa__field qa__field--grow">
@@ -339,13 +339,13 @@
       <label class="qa__field">
         <span class="qa__label">{{ 'Prioridad *' | t }}</span>
         <select class="qa__input" formControlName="prioridad">
-          @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+          @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
         </select>
       </label>
       <label class="qa__field">
         <span class="qa__label">{{ 'Plataforma *' | t }}</span>
         <select class="qa__input" formControlName="plataforma">
-          @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+          @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
         </select>
       </label>
     </div>
@@ -358,7 +358,7 @@
     <div class="qa__drawer-foot">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { Guardando… } @else { Guardar }
+        @if (saving()) { {{ 'Guardando…' | t }} } @else { {{ 'Guardar' | t }} }
       </button>
     </div>
   </form>
