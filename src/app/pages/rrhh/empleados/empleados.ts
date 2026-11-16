@@ -42,6 +42,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-empleados',
   imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, CedulaMask, ExportExcel, StaggerDirective, TranslatePipe],
@@ -57,6 +58,7 @@ export class Empleados implements OnInit {
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   // Z5(d) — datos de prueba (marcar/badge/toggle/eliminar), solo admin.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -415,9 +417,9 @@ export class Empleados implements OnInit {
       });
       await this.loadAsignaciones(emp.id);
       this.asigDrawer.set(false);
-      this.toast.success('Item asignado', `Se asignó "${v.item_nombre}" a ${emp.nombre}.`);
+      this.toast.success(this.i18n.t('Item asignado'), `Se asignó "${v.item_nombre}" a ${emp.nombre}.`);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo asignar el item.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo asignar el item.');
     } finally {
       this.asigGuardando.set(false);
     }
@@ -426,14 +428,14 @@ export class Empleados implements OnInit {
   async cambiarEstadoAsig(a: EmpleadoAsignacion, estado: AsignacionEstado) {
     const emp = this.detailEmpleado();
     if (!emp || a.estado === estado) return;
-    const label = this.estadoAsigMeta(estado).label.toLowerCase();
-    if (!confirm(`¿Marcar "${a.item_nombre}" como ${label}?`)) return;
+    const label = this.i18n.t(this.estadoAsigMeta(estado).label).toLowerCase();
+    if (!confirm(this.i18n.t('¿Marcar "{item}" como {label}?', { item: a.item_nombre, label }))) return;
     try {
       await this.asignacionesService.cambiarEstado(a.id, estado);
       await this.loadAsignaciones(emp.id);
-      this.toast.success('Actualizado', `"${a.item_nombre}" → ${label}.`);
+      this.toast.success(this.i18n.t('Actualizado'), `"${a.item_nombre}" → ${label}.`);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo actualizar.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo actualizar.');
     }
   }
 
@@ -532,7 +534,7 @@ export class Empleados implements OnInit {
     const idEdit = this.editingId();
     if (idEdit && this.form.value.es_prueba) {
       const n = await this.datosPrueba.contarDerivados('empleados', idEdit, true);
-      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+      if (n > 0 && !confirm(this.i18n.t('Esto también marcará como prueba {n} registro(s) relacionado(s). ¿Continuar?', { n }))) {
         this.saving.set(false);
         return;
       }
@@ -605,13 +607,13 @@ export class Empleados implements OnInit {
   /** Z5(d) — elimina definitivamente un empleado marcado como dato de prueba (solo admin). */
   async eliminarPrueba(emp: Empleado) {
     if (!this.esAdmin() || !emp.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${emp.nombre} ${emp.apellido}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{nombre}"? Esta acción no se puede deshacer.', { nombre: `${emp.nombre} ${emp.apellido}` }))) return;
     try {
       await this.datosPrueba.eliminar('empleados', emp.id);
       this.empleados.update((list) => list.filter((x) => x.id !== emp.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${emp.nombre} ${emp.apellido}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), `Se eliminó "${emp.nombre} ${emp.apellido}".`);
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

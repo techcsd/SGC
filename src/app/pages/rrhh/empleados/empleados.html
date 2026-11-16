@@ -18,7 +18,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Empleados' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} empleado{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'empleados' : 'empleado') | t }}</span>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="empleados" [rows]="filtered()" [allRows]="empleados()"
@@ -27,7 +27,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo empleado
+      {{ 'Nuevo empleado' | t }}
     </button>
   </div>
 </div>
@@ -50,7 +50,7 @@
       (change)="onDepartamentoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por departamento' | t }}"
     >
-      <option value="">Todos los departamentos</option>
+      <option value="">{{ 'Todos los departamentos' | t }}</option>
       @for (dept of DEPARTAMENTOS; track dept) {
         <option [value]="dept">{{ dept }}</option>
       }
@@ -63,9 +63,9 @@
       (change)="onTipoContratoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por tipo de contrato' | t }}"
     >
-      <option value="">Todos los contratos</option>
+      <option value="">{{ 'Todos los contratos' | t }}</option>
       @for (tipo of TIPOS_CONTRATO; track tipo.value) {
-        <option [value]="tipo.value">{{ tipo.label }}</option>
+        <option [value]="tipo.value">{{ tipo.label | t }}</option>
       }
     </select>
   </div>
@@ -76,22 +76,22 @@
       (change)="onActivoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="all">Todos los estados</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
+      <option value="all">{{ 'Todos los estados' | t }}</option>
+      <option value="active">{{ 'Activos' | t }}</option>
+      <option value="inactive">{{ 'Inactivos' | t }}</option>
     </select>
   </div>
 
   @if (hasFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
   @if (esAdmin()) {
     <label class="empleados__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -145,7 +145,7 @@
           @for (emp of paginated(); track emp.id) {
             <tr class="row--link" [class.row--inactive]="!emp.activo" (click)="openDetail(emp)"
                 role="button" tabindex="0" (keydown.enter)="openDetail(emp)"
-                [attr.aria-label]="'Ver detalle de ' + emp.nombre + ' ' + emp.apellido">
+                [attr.aria-label]="i18n.t('Ver detalle de') + ' ' + emp.nombre + ' ' + emp.apellido">
               <td>
                 <div class="empleados__name-cell">
                   <span class="empleados__name">
@@ -164,7 +164,7 @@
               <td>{{ emp.departamento ?? '—' }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getTipoContratoBadge(emp.tipo_contrato)">
-                  {{ getTipoContratoLabel(emp.tipo_contrato) }}
+                  {{ getTipoContratoLabel(emp.tipo_contrato) | t }}
                 </span>
               </td>
               <td class="text-right">
@@ -184,7 +184,7 @@
                     type="button"
                     class="action-btn action-btn--view"
                     (click)="$event.stopPropagation(); openDetail(emp)"
-                    [attr.aria-label]="'Ver ' + emp.nombre + ' ' + emp.apellido"
+                    [attr.aria-label]="i18n.t('Ver') + ' ' + emp.nombre + ' ' + emp.apellido"
                     title="{{ 'Ver detalle' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -196,7 +196,7 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="$event.stopPropagation(); openEdit(emp)"
-                    [attr.aria-label]="'Editar ' + emp.nombre + ' ' + emp.apellido"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + emp.nombre + ' ' + emp.apellido"
                     title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -210,8 +210,8 @@
                     [class.action-btn--deactivate]="emp.activo"
                     [class.action-btn--activate]="!emp.activo"
                     (click)="$event.stopPropagation(); toggleActivo(emp)"
-                    [attr.aria-label]="(emp.activo ? 'Desactivar' : 'Activar') + ' ' + emp.nombre"
-                    [title]="emp.activo ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="i18n.t(emp.activo ? 'Desactivar' : 'Activar') + ' ' + emp.nombre"
+                    [title]="i18n.t(emp.activo ? 'Desactivar' : 'Activar')"
                   >
                     @if (emp.activo) {
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -224,7 +224,7 @@
                     }
                   </button>
                   @if (esAdmin() && emp.es_prueba) {
-                    <button class="empleados__delete-prueba" type="button" (click)="$event.stopPropagation(); eliminarPrueba(emp)" title="{{ 'Eliminar dato de prueba' | t }}" [attr.aria-label]="'Eliminar dato de prueba ' + emp.nombre">
+                    <button class="empleados__delete-prueba" type="button" (click)="$event.stopPropagation(); eliminarPrueba(emp)" title="{{ 'Eliminar dato de prueba' | t }}" [attr.aria-label]="i18n.t('Eliminar dato de prueba') + ' ' + emp.nombre">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>
@@ -243,7 +243,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -382,7 +382,7 @@
       <div class="sgc-field">
         <label for="departamento">{{ 'Departamento' | t }}</label>
         <select id="departamento" formControlName="departamento">
-          <option [ngValue]="null">Sin departamento</option>
+          <option [ngValue]="null">{{ 'Sin departamento' | t }}</option>
           @for (dept of DEPARTAMENTOS; track dept) {
             <option [value]="dept">{{ dept }}</option>
           }
@@ -488,7 +488,7 @@
       <div class="sgc-field">
         <label for="jefe_id">{{ 'Supervisor / Jefe directo' | t }}</label>
         <select id="jefe_id" formControlName="jefe_id">
-          <option [ngValue]="null">Sin supervisor</option>
+          <option [ngValue]="null">{{ 'Sin supervisor' | t }}</option>
           @for (j of jefeOptions(); track j.id) {
             <option [value]="j.id">{{ j.nombre }} {{ j.apellido }}</option>
           }
@@ -551,7 +551,7 @@
           class="toggle-input"
         />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Empleado activo
+        {{ 'Empleado activo' | t }}
       </label>
     </div>
 
@@ -575,14 +575,14 @@
       <div class="doc-upload-row">
         <select [formControl]="docTipo" aria-label="{{ 'Tipo de documento' | t }}" class="doc-tipo-select">
           @for (t of TIPOS_DOCUMENTO; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+            <option [value]="t.value">{{ t.label | t }}</option>
           }
         </select>
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm doc-upload-btn">
           @if (uploadingDoc()) {
-            <span class="spinner" aria-hidden="true"></span> Subiendo…
+            <span class="spinner" aria-hidden="true"></span> {{ 'Subiendo…' | t }}
           } @else {
-            Adjuntar documento
+            {{ 'Adjuntar documento' | t }}
           }
           <input type="file" class="sr-only" (change)="onDocSelected($event)" [disabled]="uploadingDoc()" />
         </label>
@@ -595,9 +595,9 @@
         <ul class="doc-list">
           @for (d of documentos(); track d.id) {
             <li class="doc-item">
-              <span class="doc-item__tipo">{{ docTipoLabel(d.tipo) }}</span>
+              <span class="doc-item__tipo">{{ docTipoLabel(d.tipo) | t }}</span>
               <button type="button" class="doc-item__name" (click)="descargarDoc(d)">{{ d.nombre }}</button>
-              <button type="button" class="doc-item__remove" (click)="eliminarDoc(d)" [attr.aria-label]="'Eliminar ' + d.nombre" title="{{ 'Eliminar' | t }}">
+              <button type="button" class="doc-item__remove" (click)="eliminarDoc(d)" [attr.aria-label]="i18n.t('Eliminar') + ' ' + d.nombre" title="{{ 'Eliminar' | t }}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -613,7 +613,7 @@
         <label class="toggle-label" for="emp-es-prueba">
           <input id="emp-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Dato de prueba
+          {{ 'Dato de prueba' | t }}
         </label>
         <small class="sgc-field__hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
       </div>
@@ -630,14 +630,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear empleado' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear empleado') | t }}
         }
       </button>
     </div>
@@ -680,7 +680,7 @@
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Tipo de contrato' | t }}</span>
           <span class="sgc-badge" [class]="'sgc-badge--' + getTipoContratoBadge(emp.tipo_contrato)">
-            {{ getTipoContratoLabel(emp.tipo_contrato) }}
+            {{ getTipoContratoLabel(emp.tipo_contrato) | t }}
           </span>
         </div>
         <div class="detail-field">
@@ -739,11 +739,11 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Género' | t }}</span>
-          <span>{{ generoLabel(emp.genero) }}</span>
+          <span>{{ generoLabel(emp.genero) | t }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Estado civil' | t }}</span>
-          <span>{{ estadoCivilLabel(emp.estado_civil) }}</span>
+          <span>{{ estadoCivilLabel(emp.estado_civil) | t }}</span>
         </div>
       </div>
 
@@ -807,7 +807,7 @@
 
       <!-- AF33 — Asignaciones de la empresa (equipos, uniformes, cascos…) -->
       <div class="detail-section-title detail-section-title--action">
-        Asignaciones de la empresa
+        {{ 'Asignaciones de la empresa' | t }}
         @if (puedeGestionarRrhh()) {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openAsignar()">{{ '＋ Asignar' | t }}</button>
         }
@@ -827,9 +827,9 @@
                 <div class="asig-item__top">
                   <span class="asig-item__nombre">{{ a.item_nombre }}</span>
                   @if (a.categoria) { <span class="sgc-badge sgc-badge--neutral">{{ a.categoria }}</span> }
-                  <span class="sgc-badge sgc-badge--{{ estadoAsigMeta(a.estado).badge }}">{{ estadoAsigMeta(a.estado).label }}</span>
+                  <span class="sgc-badge sgc-badge--{{ estadoAsigMeta(a.estado).badge }}">{{ estadoAsigMeta(a.estado).label | t }}</span>
                 </div>
-                <div class="asig-item__meta">Asignado: {{ formatFecha(a.asignado_en) }}@if (a.devuelto_en) { · Devuelto: {{ formatFecha(a.devuelto_en) }} }</div>
+                <div class="asig-item__meta">{{ 'Asignado:' | t }} {{ formatFecha(a.asignado_en) }}@if (a.devuelto_en) { · {{ 'Devuelto:' | t }} {{ formatFecha(a.devuelto_en) }} }</div>
                 @if (puedeGestionarRrhh() && a.estado === 'asignado') {
                   <div class="asig-item__actions">
                     <button type="button" class="asig-link" (click)="cambiarEstadoAsig(a, 'devuelto')">{{ 'Devolver' | t }}</button>
@@ -876,7 +876,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAsignar()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="asigGuardando()">
-        @if (asigGuardando()) { Guardando… } @else { Asignar }
+        @if (asigGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Asignar' | t }} }
       </button>
     </div>
   </form>

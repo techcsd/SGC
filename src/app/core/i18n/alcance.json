@@ -220,9 +220,6 @@
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
-    "rrhh/empleados": {
-      "enforce": false
-    },
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
@@ -548,6 +545,9 @@
       "enforce": true
     },
     "rrhh/contratos": {
+      "enforce": true
+    },
+    "rrhh/empleados": {
       "enforce": true
     },
     "rrhh/evaluaciones": {
