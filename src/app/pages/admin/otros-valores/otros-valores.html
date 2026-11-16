@@ -2,15 +2,14 @@
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Valores "Otro" frecuentes' | t }}</h1>
     <span class="page-count">
-      @if (sugerencias() > 0) { {{ sugerencias() }} sugerencia{{ sugerencias() !== 1 ? 's' : '' }} de opción oficial }
-      @else { Inteligencia de texto libre }
+      @if (sugerencias() > 0) { {{ sugerencias() }} {{ 'sugerencia' | t }}{{ sugerencias() !== 1 ? 's' : '' }} {{ 'de opción oficial' | t }} }
+      @else { {{ 'Inteligencia de texto libre' | t }} }
     </span>
   </div>
 </div>
 
 <p class="ov-lead">
-  Cuando los usuarios escriben en un campo "Otro", su valor se registra aquí. Si un mismo valor
-  se repite mucho, conviene crearlo como opción oficial del selector.
+  {{ 'Cuando los usuarios escriben en un campo "Otro", su valor se registra aquí. Si un mismo valor se repite mucho, conviene crearlo como opción oficial del selector.' | t }}
 </p>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
@@ -24,7 +23,7 @@
     <div class="sgc-card ov-grupo">
       <h2 class="ov-grupo__title">{{ contextoLabel(g.contexto) }}</h2>
       <div class="table-scroll">
-        <table class="data-table" aria-label="Valores de {{ g.contexto }}">
+        <table class="data-table" aria-label="{{ 'Valores de' | t }} {{ g.contexto }}">
           <thead>
             <tr><th>{{ 'Valor escrito' | t }}</th><th class="text-right">{{ 'Veces' | t }}</th><th>{{ 'Última vez' | t }}</th><th>{{ 'Sugerencia' | t }}</th></tr>
           </thead>

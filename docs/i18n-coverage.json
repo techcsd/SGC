@@ -1306,20 +1306,6 @@
       ]
     },
     {
-      "pantalla": "admin/otros-valores",
-      "total": 10,
-      "cubiertos": 7,
-      "sin": 3,
-      "pct": 70,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "{ sugerencia de opción oficial } @else { Inteligencia de texto libre }",
-        "Cuando los usuarios escriben en un campo \"Otro\", su valor se registra aquí. Si un mismo valor se repite mucho, conviene crearlo como opción oficial del selector.",
-        "Valores de"
-      ]
-    },
-    {
       "pantalla": "admin/unidades",
       "total": 10,
       "cubiertos": 7,
@@ -1614,6 +1600,16 @@
       "pantalla": "admin/orden-modulos",
       "total": 6,
       "cubiertos": 6,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/otros-valores",
+      "total": 11,
+      "cubiertos": 11,
       "sin": 0,
       "pct": 100,
       "enScope": true,

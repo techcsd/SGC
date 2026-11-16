@@ -6531,5 +6531,16 @@
   "Guardar orden": "Anrejistre lòd",
   "Orden guardado": "Lòd anrejistre",
   "Reordena las secciones del menú lateral. \"Administración\" queda siempre al final.": "Reòdone seksyon meni sou kote a. \"Administrasyon\" toujou rete an dènye pozisyon.",
-  "Restablecer": "Reinisyalize"
+  "Restablecer": "Reinisyalize",
+  "sugerencia": "sijesyon",
+  "de opción oficial": "pou yon opsyon ofisyèl",
+  "Inteligencia de texto libre": "Entèlijans tèks lib",
+  "Cuando los usuarios escriben en un campo \"Otro\", su valor se registra aquí. Si un mismo valor se repite mucho, conviene crearlo como opción oficial del selector.": "Lè itilizatè yo ekri nan yon chan \"Lòt\", valè yo anrejistre isit la. Si menm valè a repete anpil, li ta bon pou kreye li kòm yon opsyon ofisyèl nan selektè a.",
+  "Valores de": "Valè pou",
+  "Valores \"Otro\" frecuentes": "Valè \"Lòt\" frekan",
+  "Aún no hay valores \"Otro\" registrados en el período.": "Poko gen valè \"Lòt\" anrejistre pou peryòd la.",
+  "Valor escrito": "Valè ki ekri",
+  "Veces": "Fwa",
+  "Sugerencia": "Sijesyon",
+  "Crear opción oficial": "Kreye opsyon ofisyèl"
 }

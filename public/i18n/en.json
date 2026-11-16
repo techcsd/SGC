@@ -6924,5 +6924,16 @@
   "Guardar orden": "Save order",
   "Orden guardado": "Order saved",
   "Reordena las secciones del menú lateral. \"Administración\" queda siempre al final.": "Reorder the sidebar sections. \"Administration\" always stays last.",
-  "Restablecer": "Reset"
+  "Restablecer": "Reset",
+  "sugerencia": "suggestion",
+  "de opción oficial": "for an official option",
+  "Inteligencia de texto libre": "Free-text intelligence",
+  "Cuando los usuarios escriben en un campo \"Otro\", su valor se registra aquí. Si un mismo valor se repite mucho, conviene crearlo como opción oficial del selector.": "When users type into an \"Other\" field, their value is logged here. If the same value repeats a lot, it's worth creating it as an official option in the selector.",
+  "Valores de": "Values for",
+  "Valores \"Otro\" frecuentes": "Frequent \"Other\" values",
+  "Aún no hay valores \"Otro\" registrados en el período.": "There are no \"Other\" values logged yet for the period.",
+  "Valor escrito": "Entered value",
+  "Veces": "Times",
+  "Sugerencia": "Suggestion",
+  "Crear opción oficial": "Create official option"
 }
