@@ -17,10 +17,10 @@
         </label>
         <label class="av-field"><span>{{ 'Categoría' | t }}</span>
           <select [value]="fCategoria()" (change)="fCategoria.set($any($event.target).value)">
-            <option value="mobiliario">Mobiliario</option>
-            <option value="suministro">Suministro</option>
-            <option value="equipo_oficina">Equipo de oficina</option>
-            <option value="otro">Otro</option>
+            <option value="mobiliario">{{ 'Mobiliario' | t }}</option>
+            <option value="suministro">{{ 'Suministro' | t }}</option>
+            <option value="equipo_oficina">{{ 'Equipo de oficina' | t }}</option>
+            <option value="otro">{{ 'Otro' | t }}</option>
           </select>
         </label>
         <label class="av-field"><span>{{ 'Ubicación' | t }}</span>
@@ -39,7 +39,7 @@
           <textarea rows="2" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
         </label>
         <div class="av-add__acciones">
-          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">{{ 'Cancelar' | t }}</button>
         </div>
       </form>
@@ -97,5 +97,5 @@
 
 <app-confirm-dialog [open]="!!aEliminar()" title="{{ '¿Eliminar este activo?' | t }}"
   [message]="aEliminar() ? ('«' + aEliminar()!.nombre + '»') : ''"
-  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Eliminar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />

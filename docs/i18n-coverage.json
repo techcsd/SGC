@@ -4246,28 +4246,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/activos",
-      "total": 41,
-      "cubiertos": 30,
-      "sin": 11,
-      "pct": 73,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Mobiliario",
-        "Suministro",
-        "Equipo de oficina",
-        "Otro",
-        "No se pudieron cargar los activos",
-        "Falta el nombre",
-        "Activo guardado",
-        "No se pudo guardar",
-        "No se pudo actualizar",
-        "Activo eliminado",
-        "No se pudo eliminar"
-      ]
-    },
-    {
       "pantalla": "rrhh/empleados",
       "total": 134,
       "cubiertos": 99,
@@ -5424,6 +5402,16 @@
       "pantalla": "proyectos/personal",
       "total": 252,
       "cubiertos": 252,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/activos",
+      "total": 41,
+      "cubiertos": 41,
       "sin": 0,
       "pct": 100,
       "enScope": true,

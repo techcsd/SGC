@@ -220,9 +220,6 @@
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
-    "rrhh/activos": {
-      "enforce": false
-    },
     "rrhh/empleados": {
       "enforce": false
     },
@@ -533,6 +530,9 @@
       "enforce": true
     },
     "proyectos/personal": {
+      "enforce": true
+    },
+    "rrhh/activos": {
       "enforce": true
     },
     "rrhh/asistencia": {

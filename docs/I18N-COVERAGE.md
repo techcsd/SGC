@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 66%** (6901/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 66%** (6912/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -80,7 +80,6 @@
 | auth | scope | 42 | 15 | 27 | 36% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
-| rrhh/activos | scope | 41 | 30 | 11 | 73% |
 | rrhh/empleados | scope | 134 | 99 | 35 | 74% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
@@ -185,6 +184,7 @@
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
+| rrhh/activos | enforce | 41 | 41 | 0 | 100% |
 | rrhh/asistencia | enforce | 31 | 31 | 0 | 100% |
 | rrhh/ausencias | enforce | 43 | 43 | 0 | 100% |
 | rrhh/candidatos | enforce | 58 | 58 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**369 literal(es) sin t()** en 53 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**362 literal(es) sin t()** en 52 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -228,7 +228,6 @@
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/rrhh/activos/activos.ts | 7 | No se pudieron cargar los activos · Falta el nombre · Activo guardado … |
 | src/app/pages/tecnologia/envios-automaticos/envios-automaticos.ts | 7 | Falta el motivo · No se pudo cambiar · Prueba enviada … |
 | src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
