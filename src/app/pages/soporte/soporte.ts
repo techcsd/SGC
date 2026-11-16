@@ -13,6 +13,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { BienvenidaService } from '../../../shared/services/bienvenida.service';
 import { imagenesDePortapapeles } from '../../../shared/utils/clipboard-imagen.util';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-soporte',
@@ -25,6 +26,7 @@ export class Soporte implements OnInit {
   private reportesService = inject(ReportesUsuarioService);
   private userService = inject(UserService);
   private bienvenida = inject(BienvenidaService);
+  protected i18n = inject(I18nService);
 
   formatFechaHora = formatFechaHumana; // U9
 
@@ -85,7 +87,7 @@ export class Soporte implements OnInit {
     try {
       this.reportes.set(await this.reportesService.getMisReportes());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar tus reportes.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar tus reportes.'));
     } finally {
       this.loading.set(false);
     }
@@ -156,7 +158,7 @@ export class Soporte implements OnInit {
       this.fotos.set([]);
       this.sent.set(true);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al enviar tu reporte.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al enviar tu reporte.'));
     } finally {
       this.saving.set(false);
     }

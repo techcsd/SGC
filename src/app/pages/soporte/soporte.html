@@ -13,11 +13,10 @@
     <button type="button" class="soporte__guia" (click)="verGuia()">{{ '▶ Ver la guía de bienvenida' | t }}</button>
     <p class="soporte__ayuda-titulo">{{ '¿Dudas de cómo usar algo?' | t }}</p>
     <p class="soporte__ayuda-texto">
-      Antes de reportar, revisa <a routerLink="/dudas">{{ 'Dudas' | t }}</a> — ahí explicamos cada módulo y
-      qué puede hacer cada rol. Novedades recientes: <strong>{{ 'Tareas' | t }}</strong> (asignar y dar seguimiento),
-      <strong>{{ 'Mensajería' | t }}</strong> {{ 'interna en tiempo real,' | t }} <strong>{{ 'Legal' | t }}</strong> (expedientes, contratos y aprobaciones),
-      <strong>{{ 'Ausencias y vacaciones' | t }}</strong> {{ 'en RRHH,' | t }} <strong>{{ 'Ranking de Encargados' | t }}</strong> e <strong>{{ 'Historial' | t }}</strong> en Proyectos,
-      el <strong>{{ 'Panel de Dirección' | t }}</strong>{{ ', avisos emergentes de notificaciones y tu' | t }} <a routerLink="/perfil">{{ 'perfil' | t }}</a> con foto.
+      {{ 'Antes de reportar, revisa' | t }} <a routerLink="/dudas">{{ 'Dudas' | t }}</a> {{ '— ahí explicamos cada módulo y qué puede hacer cada rol. Novedades recientes:' | t }} <strong>{{ 'Tareas' | t }}</strong> {{ '(asignar y dar seguimiento),' | t }}
+      <strong>{{ 'Mensajería' | t }}</strong> {{ 'interna en tiempo real,' | t }} <strong>{{ 'Legal' | t }}</strong> {{ '(expedientes, contratos y aprobaciones),' | t }}
+      <strong>{{ 'Ausencias y vacaciones' | t }}</strong> {{ 'en RRHH,' | t }} <strong>{{ 'Ranking de Encargados' | t }}</strong> {{ 'e' | t }} <strong>{{ 'Historial' | t }}</strong> {{ 'en Proyectos,' | t }}
+      {{ 'el' | t }} <strong>{{ 'Panel de Dirección' | t }}</strong>{{ ', avisos emergentes de notificaciones y tu' | t }} <a routerLink="/perfil">{{ 'perfil' | t }}</a> {{ 'con foto.' | t }}
     </p>
   </section>
 
@@ -36,10 +35,10 @@
       </div>
       <div class="soporte__dash-charts">
         <div class="soporte__dash-card">
-          <app-donut-chart titulo="Por estado" [data]="porEstado()" />
+          <app-donut-chart [titulo]="'Por estado' | t" [data]="porEstado()" />
         </div>
         <div class="soporte__dash-card">
-          <app-bar-chart titulo="Por tipo" [data]="porTipo()" />
+          <app-bar-chart [titulo]="'Por tipo' | t" [data]="porTipo()" />
         </div>
       </div>
     </section>
@@ -53,7 +52,7 @@
         <label for="tipo">{{ 'Tipo' | t }}</label>
         <select id="tipo" formControlName="tipo">
           @for (t of TIPOS; track t) {
-            <option [value]="t">{{ TIPO_LABELS[t] }}</option>
+            <option [value]="t">{{ TIPO_LABELS[t] | t }}</option>
           }
         </select>
       </div>
@@ -117,7 +116,7 @@
 
       <div class="soporte__form-actions">
         <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-          @if (saving()) { Enviando... } @else { Enviar }
+          @if (saving()) { {{ 'Enviando...' | t }} } @else { {{ 'Enviar' | t }} }
         </button>
       </div>
 
@@ -139,14 +138,14 @@
         @for (r of reportes(); track r.id) {
           <li class="soporte__item">
             <div class="soporte__item-top">
-              <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
+              <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] | t }}</span>
               <span
                 class="sgc-badge"
                 [class.sgc-badge--neutral]="r.estado === 'abierto'"
                 [class.sgc-badge--warning]="r.estado === 'en_progreso'"
                 [class.sgc-badge--success]="r.estado === 'resuelto'"
                 [class.sgc-badge--danger]="r.estado === 'descartado'"
-              >{{ ESTADO_LABELS[r.estado] }}</span>
+              >{{ ESTADO_LABELS[r.estado] | t }}</span>
               <span class="soporte__item-date">{{ formatFechaHora(r.created_at) }}</span>
             </div>
             <p class="soporte__item-asunto">{{ r.asunto }}</p>

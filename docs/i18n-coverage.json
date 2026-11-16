@@ -261,23 +261,6 @@
       ]
     },
     {
-      "pantalla": "soporte",
-      "total": 35,
-      "cubiertos": 29,
-      "sin": 6,
-      "pct": 83,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Antes de reportar, revisa",
-        "— ahí explicamos cada módulo y qué puede hacer cada rol. Novedades recientes:",
-        "(asignar y dar seguimiento),",
-        "(expedientes, contratos y aprobaciones),",
-        "en Proyectos, el",
-        "con foto."
-      ]
-    },
-    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
@@ -1861,6 +1844,16 @@
       "pantalla": "solicitudes-movimiento",
       "total": 82,
       "cubiertos": 82,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "soporte",
+      "total": 38,
+      "cubiertos": 38,
       "sin": 0,
       "pct": 100,
       "enScope": true,

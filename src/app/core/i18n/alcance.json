@@ -22,9 +22,6 @@
     "obra/avance": {
       "enforce": false
     },
-    "soporte": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -500,6 +497,9 @@
       "enforce": true
     },
     "solicitudes-movimiento": {
+      "enforce": true
+    },
+    "soporte": {
       "enforce": true
     },
     "tareas/gestion": {

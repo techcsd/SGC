@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9835/10022 literales de 192 pantallas en alcance). **`ht`: 97%**.
+**Alcance `en`: 98%** (9844/10025 literales de 192 pantallas en alcance). **`ht`: 97%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -14,7 +14,6 @@
 | obra/subcontratistas | scope | 75 | 56 | 19 | 75% |
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
-| soporte | scope | 35 | 29 | 6 | 83% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
@@ -174,6 +173,7 @@
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | rrhh/tramites | enforce | 44 | 44 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
+| soporte | enforce | 38 | 38 | 0 | 100% |
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
