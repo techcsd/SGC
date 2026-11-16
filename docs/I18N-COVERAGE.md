@@ -3,11 +3,10 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 99%** (9956/10028 literales de 192 pantallas en alcance). **`ht`: 97%**.
+**Alcance `en`: 100%** (10023/10023 literales de 192 pantallas en alcance). **`ht`: 97%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| incentivos | scope | 172 | 100 | 72 | 58% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
@@ -95,6 +94,7 @@
 | flota/transferencias | enforce | 12 | 12 | 0 | 100% |
 | flota/vehiculos | enforce | 378 | 378 | 0 | 100% |
 | forbidden | enforce | 4 | 4 | 0 | 100% |
+| incentivos | enforce | 167 | 167 | 0 | 100% |
 | ingenieria/pagos | enforce | 68 | 68 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
@@ -199,11 +199,3 @@
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 | verificar | enforce | 9 | 9 | 0 | 100% |
-
-## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
-
-**38 literal(es) sin t()** en 1 archivo(s) (de 133 archivo(s) .ts con algo detectado).
-
-| Archivo | sin t() | ejemplos |
-|---|---:|---|
-| src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |

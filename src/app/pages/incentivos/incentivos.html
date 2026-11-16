@@ -7,19 +7,19 @@
     <div class="incentivos__head-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDestinatarios()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Quién recibe
+        {{ 'Quién recibe' | t }}
       </button>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleParticipantes()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Gestionar participantes
+        {{ 'Gestionar participantes' | t }}
       </button>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleConfig()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Configurar puntaje
+        {{ 'Configurar puntaje' | t }}
       </button>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDiario()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Actividad diaria
+        {{ 'Actividad diaria' | t }}
       </button>
     </div>
   </header>
@@ -29,11 +29,9 @@
     <section class="inc-config">
       <h2 class="inc-config__title">{{ 'Participantes del Desempeño' | t }}</h2>
       <p class="inc-config__hint">
-        Quién aparece en el Desempeño, el correo, el PDF y las herramientas de Compa. Puedes
+        {{ 'Quién aparece en el Desempeño, el correo, el PDF y las herramientas de Compa. Puedes' | t }}
         <strong>{{ 'agregar a cualquier persona' | t }}</strong> {{ '(no solo choferes) y marcar quién' | t }} <strong>{{ 'es chofer' | t }}</strong>
-        para el incentivo — marcar "chofer" NO otorga el rol, solo lo declara aquí. Apaga a alguien
-        para sacarlo sin borrar su historial pagado. Cada cambio queda auditado. Recalcula o reenvía
-        el informe para reflejarlo.
+        {{ 'para el incentivo — marcar "chofer" NO otorga el rol, solo lo declara aquí. Apaga a alguien para sacarlo sin borrar su historial pagado. Cada cambio queda auditado. Recalcula o reenvía el informe para reflejarlo.' | t }}
       </p>
       @if (cargandoParticipantes()) {
         <app-skeleton [rows]="4" />
@@ -99,12 +97,12 @@
     <section class="inc-config">
       <h2 class="inc-config__title">{{ 'Actividad diaria' | t }}</h2>
       <p class="inc-config__hint">
-        Actividad de choferes por día (reportes, inspecciones, echadas con foto, rutas y conduces).
-        Es el mismo contenido del correo informativo de las 8am. <strong>{{ 'No es el puntaje de pago' | t }}</strong>
-        (ese se calcula por semana, los lunes).
+        {{ 'Actividad de choferes por día (reportes, inspecciones, echadas con foto, rutas y conduces). Es el mismo contenido del correo informativo de las 8am.' | t }}
+        <strong>{{ 'No es el puntaje de pago' | t }}</strong>
+        {{ '(ese se calcula por semana, los lunes).' | t }}
       </p>
       <div class="inc-config__row">
-        <label>Fecha
+        <label>{{ 'Fecha' | t }}
           <input type="date" [ngModel]="diaFecha()" (ngModelChange)="setDiaFecha($event)" />
         </label>
       </div>
@@ -118,7 +116,7 @@
             <thead>
               <tr>
                 <th>{{ 'Chofer' | t }}</th>
-                @for (r of diaRenglones; track r.key) { <th style="text-align:center;">{{ r.label }}</th> }
+                @for (r of diaRenglones; track r.key) { <th style="text-align:center;">{{ r.label | t }}</th> }
                 <th style="text-align:center;">{{ 'Puntos' | t }}</th>
               </tr>
             </thead>
@@ -180,10 +178,10 @@
     <section class="inc-config">
       <h2 class="inc-config__title">{{ 'Quién recibe este informe' | t }}</h2>
       <p class="inc-config__hint">
-        El "Incentivo semanal de choferes" es información sensible (comparativa con montos):
-        se envía y se ve <strong>{{ 'solo' | t }}</strong> por rol elevado — Administración, Dirección, Gerencia,
-        Logística y Jefe de flota. La lista se ajusta sin código desde el parámetro
-        <code>incentivo_informe_roles</code>.
+        {{ 'El "Incentivo semanal de choferes" es información sensible (comparativa con montos): se envía y se ve' | t }}
+        <strong>{{ 'solo' | t }}</strong>
+        {{ 'por rol elevado — Administración, Dirección, Gerencia, Logística y Jefe de flota. La lista se ajusta sin código desde el parámetro' | t }}
+        <code>{{ 'incentivo_informe_roles' | t }}</code>.
       </p>
       @if (destinatarios().length === 0) {
         <p class="inc-config__hint">{{ 'Sin destinatarios configurados.' | t }}</p>
@@ -209,7 +207,7 @@
     <!-- Configuración de puntaje (versionada) -->
     @if (mostrarConfig()) {
       <section class="inc-config">
-        <h2 class="inc-config__title">Configuración de puntaje (versión {{ config()?.version }})</h2>
+        <h2 class="inc-config__title">{{ i18n.t('Configuración de puntaje (versión {v})', { v: config()?.version ?? '' }) }}</h2>
         <p class="inc-config__hint">{{ 'Al guardar se crea una nueva versión. Los informes ya generados conservan los pesos con que se calcularon.' | t }}</p>
         <div class="inc-config__grid">
           <label class="inc-config__field">
@@ -222,7 +220,7 @@
           </label>
           @for (r of renglones; track r) {
             <label class="inc-config__field">
-              <span>Peso · {{ RENGLON_LABELS[r] }}</span>
+              <span>{{ 'Peso ·' | t }} {{ RENGLON_LABELS[r] | t }}</span>
               <input type="number" min="0" step="0.5" [value]="cfgPesos()[r] ?? 0" (input)="setPeso(r, $any($event.target).value)" />
             </label>
           }
@@ -268,7 +266,7 @@
           </div>
           @for (r of renglones; track r) {
             <div class="inc-topes__row" role="row">
-              <span role="cell">{{ RENGLON_LABELS[r] }}</span>
+              <span role="cell">{{ RENGLON_LABELS[r] | t }}</span>
               <input type="number" min="0" step="1" placeholder="—" role="cell"
                      [value]="topeDe(r, 'dia') ?? ''" (input)="setTope(r, 'dia', $any($event.target).value)" />
               <input type="number" min="0" step="1" placeholder="—" role="cell"
@@ -306,15 +304,15 @@
       <div class="inc-toolbar__actions">
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="regenerar()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
-          Recalcular
+          {{ 'Recalcular' | t }}
         </button>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="toggleReenvio()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-          Reenviar con cambios
+          {{ 'Reenviar con cambios' | t }}
         </button>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">{{ 'Exportar (nómina)' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes() || esSemanaEnCurso()" (click)="aprobarTodos()">
-          Aprobar los que cumplieron ({{ pendientes() }})
+          {{ i18n.t('Aprobar los que cumplieron ({n})', { n: pendientes() }) }}
         </button>
       </div>
     </div>
@@ -322,11 +320,11 @@
     <!-- BF3 — Reenviar con cambios (recalcula, versiona y reenvía; motivo obligatorio) -->
     @if (mostrarReenvio()) {
       <section class="inc-config">
-        <h2 class="inc-config__title">Reenviar informe — Semana {{ selSemana() }}/{{ selAnio() }}</h2>
+        <h2 class="inc-config__title">{{ i18n.t('Reenviar informe — Semana {s}/{a}', { s: selSemana() ?? '', a: selAnio() ?? '' }) }}</h2>
         <p class="inc-config__hint">
-          Recalcula con el estado actual (participantes, pesos, incidencias) y reenvía como
-          <strong>{{ 'versión nueva' | t }}</strong> marcada "reemplaza al anterior". Las decisiones ya tomadas
-          (aprobado/declinado) se conservan. El motivo es obligatorio y queda en el historial.
+          {{ 'Recalcula con el estado actual (participantes, pesos, incidencias) y reenvía como' | t }}
+          <strong>{{ 'versión nueva' | t }}</strong>
+          {{ 'marcada "reemplaza al anterior". Las decisiones ya tomadas (aprobado/declinado) se conservan. El motivo es obligatorio y queda en el historial.' | t }}
         </p>
         <label class="inc-config__field">
           <span>{{ 'Motivo del reenvío *' | t }}</span>
@@ -359,7 +357,7 @@
                 <li class="inc-part__row">
                   <span class="inc-part__nombre">v{{ v.version }}</span>
                   <span class="inc-part__badges">
-                    @if (v.reemplaza_version) { <span class="sgc-badge sgc-badge--neutral">reemplaza v{{ v.reemplaza_version }}</span> }
+                    @if (v.reemplaza_version) { <span class="sgc-badge sgc-badge--neutral">{{ 'reemplaza v' | t }}{{ v.reemplaza_version }}</span> }
                     <span class="inc-part__audit">
                       {{ formatFechaHora(v.enviado_en) }}@if (v.enviado_por) { · {{ v.enviado_por }} } · {{ v.destinatarios.length }} dest.@if (v.motivo) { · "{{ v.motivo }}" }
                     </span>
@@ -375,7 +373,7 @@
     <!-- BB8c — la semana en curso es solo avance: no se aprueba hasta cerrar el corte -->
     @if (esSemanaEnCurso()) {
       <div class="inc-encurso" role="note">
-        <strong>{{ 'Semana en curso (avance).' | t }}</strong> Es una vista de cómo van hoy; el corte se cierra el lunes. Aún no se aprueba.
+        <strong>{{ 'Semana en curso (avance).' | t }}</strong> {{ 'Es una vista de cómo van hoy; el corte se cierra el lunes. Aún no se aprueba.' | t }}
       </div>
     }
 
@@ -406,14 +404,14 @@
             <thead>
               <tr>
                 <th class="inc-matriz__chofer">{{ 'Chofer' | t }}</th>
-                @for (r of renglones; track r) { <th>{{ RENGLON_LABELS[r] }}</th> }
+                @for (r of renglones; track r) { <th>{{ RENGLON_LABELS[r] | t }}</th> }
                 <th>{{ 'Total' | t }}</th>
                 <th>{{ 'Estado' | t }}</th>
               </tr>
             </thead>
             <tbody>
               @for (f of filas(); track f.informe_id) {
-                <tr class="inc-matriz__row" (click)="abrirDesglose(f)" [title]="'Ver desglose de ' + f.nombre">
+                <tr class="inc-matriz__row" (click)="abrirDesglose(f)" [title]="i18n.t('Ver desglose de') + ' ' + f.nombre">
                   <td class="inc-matriz__chofer">{{ f.nombre }}</td>
                   @for (r of renglones; track r) {
                     <td class="inc-matriz__cell" [class.inc-matriz__cell--zero]="puntosDe(f, r) === 0">{{ puntosDe(f, r) }}</td>
@@ -464,13 +462,13 @@
                     @if (conteoDe(f, r); as c) {
                       <div class="inc-renglon">
                         <div class="inc-renglon__head">
-                          <span class="inc-renglon__label">{{ RENGLON_LABELS[r] }}</span>
-                          <span class="inc-renglon__count">{{ c.propio }}@if (c.ayudante) { <em>+{{ c.ayudante }} ayud.</em> } · {{ c.puntos }} pts</span>
+                          <span class="inc-renglon__label">{{ RENGLON_LABELS[r] | t }}</span>
+                          <span class="inc-renglon__count">{{ c.propio }}@if (c.ayudante) { <em>+{{ c.ayudante }} {{ 'ayud.' | t }}</em> } · {{ c.puntos }} {{ 'pts' | t }}</span>
                         </div>
                         <div class="inc-renglon__refs">
                           @for (ref of c.refs; track ref.id) {
-                            <a class="inc-ref" [routerLink]="refRuta(ref.tipo, ref.id)" [class.inc-ref--ayud]="ref.ayudante" [title]="ref.ayudante ? 'Como ayudante' : 'Actividad propia'">
-                              {{ formatFecha(ref.fecha) }}@if (ref.ayudante) { · ayud. }
+                            <a class="inc-ref" [routerLink]="refRuta(ref.tipo, ref.id)" [class.inc-ref--ayud]="ref.ayudante" [title]="ref.ayudante ? i18n.t('Como ayudante') : i18n.t('Actividad propia')">
+                              {{ formatFecha(ref.fecha) }}@if (ref.ayudante) { · {{ 'ayud.' | t }} }
                             </a>
                           }
                         </div>
@@ -482,8 +480,8 @@
                     @if (pen.puntos !== 0) {
                       <div class="inc-renglon inc-renglon--penal">
                         <div class="inc-renglon__head">
-                          <span class="inc-renglon__label">{{ labelRenglon('estancamiento') }}</span>
-                          <span class="inc-renglon__count" style="color:var(--sgc-danger);">{{ pen.puntos }} pts</span>
+                          <span class="inc-renglon__label">{{ labelRenglon('estancamiento') | t }}</span>
+                          <span class="inc-renglon__count" style="color:var(--sgc-danger);">{{ pen.puntos }} {{ 'pts' | t }}</span>
                         </div>
                         <div class="inc-renglon__refs">
                           @for (ref of pen.refs; track ref.id) {
@@ -501,18 +499,18 @@
                   <div class="inc-flags">
                     <div class="inc-flags__title">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                      Para revisar — en cuarentena no puntúan hasta que las aceptes
+                      {{ 'Para revisar — en cuarentena no puntúan hasta que las aceptes' | t }}
                     </div>
                     @for (g of incidenciasDe(f); track g.tipo) {
                       <div class="inc-inci-group">
                         <div class="inc-inci-group__head">
-                          <span>{{ g.items.length }} · {{ g.label }}</span>
-                          @if (g.pendientes) { <span class="inc-inci-pend">{{ g.pendientes }} en cuarentena</span> }
+                          <span>{{ g.items.length }} · {{ g.label | t }}</span>
+                          @if (g.pendientes) { <span class="inc-inci-pend">{{ g.pendientes }} {{ 'en cuarentena' | t }}</span> }
                           <!-- BQ9 — masivo por grupo: decide todas las que siguen en cuarentena -->
                           @if (puedeDecidir() && g.pendientes) {
                             <span class="inc-inci-group__bulk">
-                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="decidirGrupo(f, g, 'excluida')">Excluir las {{ g.pendientes }}</button>
-                              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="decidirGrupo(f, g, 'aceptada')">Aceptar las {{ g.pendientes }}</button>
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="decidirGrupo(f, g, 'excluida')">{{ 'Excluir las' | t }} {{ g.pendientes }}</button>
+                              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="decidirGrupo(f, g, 'aceptada')">{{ 'Aceptar las' | t }} {{ g.pendientes }}</button>
                             </span>
                           }
                         </div>
@@ -530,7 +528,7 @@
                                 </button>
                                 <!-- BQ9 — link aparte que navega al objeto (deep-link ?ruta=/?echada=) -->
                                 <a class="inc-inci__open" [routerLink]="refIncidencia(fl).link" [queryParams]="refIncidencia(fl).query" title="{{ 'Abrir el registro en su módulo' | t }}">
-                                  Abrir
+                                  {{ 'Abrir' | t }}
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
                                 </a>
                                 @switch (fl.decision ?? 'cuarentena') {
@@ -571,14 +569,14 @@
                                           <div class="inc-det-item"><dt>{{ 'Galones' | t }}</dt><dd>{{ det.echada.galones }} ({{ det.echada.producto || '—' }})</dd></div>
                                           <div class="inc-det-item"><dt>{{ 'Kilometraje' | t }}</dt><dd>{{ det.echada.kilometraje }}</dd></div>
                                           <div class="inc-det-item"><dt>{{ 'Km recorridos' | t }}</dt><dd>{{ det.echada.km_recorridos }}</dd></div>
-                                          <div class="inc-det-item"><dt>{{ 'Rendimiento' | t }}</dt><dd>{{ det.echada.rendimiento_km_gal }} km/gal</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Rendimiento' | t }}</dt><dd>{{ det.echada.rendimiento_km_gal }} {{ 'km/gal' | t }}</dd></div>
                                         </dl>
                                         @if (det.fotos.length) {
                                           <div class="inc-echada-fotos">
                                             @for (foto of det.fotos; track foto.label) {
-                                              <a class="inc-echada-foto" [href]="foto.url" target="_blank" rel="noopener" [title]="foto.label">
-                                                <img [src]="foto.url" [alt]="'Foto de ' + foto.label" loading="lazy" />
-                                                <span>{{ foto.label }}</span>
+                                              <a class="inc-echada-foto" [href]="foto.url" target="_blank" rel="noopener" [title]="foto.label | t">
+                                                <img [src]="foto.url" [alt]="i18n.t('Foto de') + ' ' + (foto.label | t)" loading="lazy" />
+                                                <span>{{ foto.label | t }}</span>
                                               </a>
                                             }
                                           </div>
@@ -622,9 +620,9 @@
                     <span class="inc-hist__title">{{ 'Historial de decisiones' | t }}</span>
                     @for (h of historial()[f.informe_id]; track h.decidido_en) {
                       <div class="inc-hist__item">
-                        <span class="inc-hist__badge inc-hist__badge--{{ h.decision }}">{{ h.decision }}</span>
-                        {{ h.decidido_por_nombre ?? '—' }} · {{ formatFechaHora(h.decidido_en) }} · {{ h.puntaje }} pts (v{{ h.config_version }})
-                        @if (h.motivo) { — {{ h.motivo }} }
+                        <span class="inc-hist__badge inc-hist__badge--{{ h.decision }}">{{ h.decision | t }}</span>
+                        {{ i18n.t('{quien} · {fecha} · {pts} pts (v{v})', { quien: h.decidido_por_nombre ?? '—', fecha: formatFechaHora(h.decidido_en), pts: h.puntaje, v: h.config_version }) }}
+                        @if (h.motivo) { {{ '—' | t }} {{ h.motivo }} }
                       </div>
                     }
                   </div>
