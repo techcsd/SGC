@@ -12,3 +12,4 @@
 - [x] Migración sql/2026-11-16-hf-kardex-excluye-conteo-fisico.sql en ledger dev y prod.
 - [ ] Raykler re-prueba un conteo físico y confirma el kardex (pendiente, post-deploy).
 - [ ] Smoke i18n en navegador (pendiente).
+- [x] Kreyòl revisado por una persona haitiana de la empresa — OK (2026-11-16, según Xaviel).
