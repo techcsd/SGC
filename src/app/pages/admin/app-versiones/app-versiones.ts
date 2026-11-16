@@ -12,6 +12,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-admin-app-versiones',
   imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe, Icon, Paginator, TranslatePipe],
@@ -23,6 +24,7 @@ export class AdminAppVersiones implements OnInit {
   private service = inject(AppVersionesService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
+  protected i18n = inject(I18nService);
 
   /** Y11b — crear/editar/eliminar versiones = solo admin (futuro rol "Desarrollador
    *  de software"). El rol tecnología solo puede marcar publicada/mínima. */
@@ -68,7 +70,7 @@ export class AdminAppVersiones implements OnInit {
 
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
-  drawerTitle = computed(() => (this.editingId() ? 'Editar versión' : 'Nueva versión'));
+  drawerTitle = computed(() => this.i18n.t(this.editingId() ? 'Editar versión' : 'Nueva versión'));
 
   /** Subida de APK (V3). */
   apkFile = signal<File | null>(null);
@@ -133,9 +135,9 @@ export class AdminAppVersiones implements OnInit {
     ].join('\n\n');
     try {
       await navigator.clipboard.writeText(mensaje);
-      this.toast.success('Copiado', `Mensaje para ${d.usuario_nombre} listo para pegar en WhatsApp.`);
+      this.toast.success(this.i18n.t('Copiado'), `Mensaje para ${d.usuario_nombre} listo para pegar en WhatsApp.`);
     } catch {
-      this.toast.error('No se pudo copiar', 'Tu navegador bloqueó el acceso al portapapeles.');
+      this.toast.error(this.i18n.t('No se pudo copiar'), 'Tu navegador bloqueó el acceso al portapapeles.');
     }
   }
 
@@ -171,7 +173,7 @@ export class AdminAppVersiones implements OnInit {
     try {
       this.versiones.set(await this.service.getAll());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las versiones.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar las versiones.'));
     } finally {
       this.loading.set(false);
     }
@@ -249,14 +251,14 @@ export class AdminAppVersiones implements OnInit {
       await this.load();
       this.drawerOpen.set(false);
       this.apkFile.set(null);
-      this.toast.success('Guardado', 'La versión se guardó correctamente.');
+      this.toast.success(this.i18n.t('Guardado'), 'La versión se guardó correctamente.');
 
       // 3) Notifica a todos si esta acción publicó la versión.
       if (seAcabaDePublicar) {
         await this.notificarPublicacion(v.version, v.notas, v.apk_url);
       }
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo guardar.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo guardar.');
     } finally {
       this.saving.set(false);
     }
@@ -267,12 +269,12 @@ export class AdminAppVersiones implements OnInit {
     try {
       await this.service.setPublicada(v.id, publicando);
       await this.load();
-      this.toast.success(publicando ? 'Versión publicada' : 'Versión despublicada', `v${v.version}`);
+      this.toast.success(publicando ? this.i18n.t('Versión publicada') : this.i18n.t('Versión despublicada'), `v${v.version}`);
       if (publicando) {
         await this.notificarPublicacion(v.version, v.notas, v.apk_url);
       }
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo cambiar el estado.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo cambiar el estado.');
     }
   }
 
@@ -280,11 +282,11 @@ export class AdminAppVersiones implements OnInit {
   private async notificarPublicacion(version: string, notas: string | null, apkUrl: string | null) {
     try {
       await this.service.notificarPublicacion(version, notas, apkUrl);
-      this.toast.info('Usuarios notificados', `Se avisó a todos de la versión ${version}.`);
+      this.toast.info(this.i18n.t('Usuarios notificados'), `Se avisó a todos de la versión ${version}.`);
     } catch (e: unknown) {
       // No revertimos la publicación por un fallo de notificación.
       this.toast.error(
-        'Publicado, pero sin avisar',
+        this.i18n.t('Publicado, pero sin avisar'),
         e instanceof Error ? e.message : 'No se pudo notificar a los usuarios.',
       );
     }
@@ -294,20 +296,20 @@ export class AdminAppVersiones implements OnInit {
     try {
       await this.service.setMinima(v.id, !v.minima);
       await this.load();
-      this.toast.success('Versión mínima actualizada', `v${v.version}`);
+      this.toast.success(this.i18n.t('Versión mínima actualizada'), `v${v.version}`);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo cambiar la mínima.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo cambiar la mínima.');
     }
   }
 
   async eliminar(v: AppVersion) {
-    if (!confirm(`¿Eliminar la versión ${v.version}?`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar la versión {version}?', { version: v.version }))) return;
     try {
       await this.service.remove(v.id);
       await this.load();
-      this.toast.success('Versión eliminada', `v${v.version}`);
+      this.toast.success(this.i18n.t('Versión eliminada'), `v${v.version}`);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo eliminar.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo eliminar.');
     }
   }
 }

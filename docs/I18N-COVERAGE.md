@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 90%** (9102/10094 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 91%** (9142/10095 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -27,7 +27,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
-| admin/app-versiones | scope | 130 | 91 | 39 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/roles | scope | 153 | 112 | 41 | 73% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -35,6 +34,7 @@
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
+| admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
 | admin/auditoria | enforce | 62 | 62 | 0 | 100% |
 | admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
@@ -202,13 +202,12 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**125 literal(es) sin t()** en 13 archivo(s) (de 134 archivo(s) .ts con algo detectado).
+**113 literal(es) sin t()** en 12 archivo(s) (de 134 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
-| src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |

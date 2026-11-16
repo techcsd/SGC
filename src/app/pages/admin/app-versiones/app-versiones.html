@@ -6,7 +6,7 @@
   <div class="page-header__actions">
     @if (ultima()?.apk_url; as apk) {
       <a class="sgc-btn sgc-btn--secondary" [href]="apk" target="_blank" rel="noopener">
-        <app-icon name="download" [size]="16" /> Descargar última versión (v{{ ultima()!.version }})
+        <app-icon name="download" [size]="16" /> {{ i18n.t('Descargar última versión (v{version})', { version: ultima()!.version }) }}
       </a>
     }
     @if (esAdmin()) {
@@ -16,8 +16,8 @@
 </div>
 
 <p class="av-lead">
-  La versión que se ofrece a los usuarios de campo es independiente de la que está en desarrollo.
-  Publica una versión cuando el equipo esté listo; marca la <strong>{{ 'mínima' | t }}</strong> para forzar actualización.
+  {{ 'La versión que se ofrece a los usuarios de campo es independiente de la que está en desarrollo.' | t }}
+  {{ 'Publica una versión cuando el equipo esté listo; marca la' | t }} <strong>{{ 'mínima' | t }}</strong> {{ 'para forzar actualización.' | t }}
 </p>
 
 <!-- Guía: cómo funciona este módulo -->
@@ -34,11 +34,8 @@
 @if (guiaAbierta()) {
   <div class="av-guia sgc-card">
     <p class="av-guia__intro">
-      Este módulo controla <strong>{{ 'qué versión de la app móvil ven los usuarios de campo' | t }}</strong>.
-      La clave: la versión que tú desarrollas <strong>{{ 'no' | t }}</strong> es automáticamente la que ellos
-      reciben — tú decides desde aquí cuándo mostrarles una nueva y cuándo obligarlos a actualizar.
-      Así el desarrollo puede ir adelante mientras los choferes se quedan tranquilos en su versión
-      hasta que la dominen.
+      {{ 'Este módulo controla' | t }} <strong>{{ 'qué versión de la app móvil ven los usuarios de campo' | t }}</strong>.
+      {{ 'La clave: la versión que tú desarrollas' | t }} <strong>{{ 'no' | t }}</strong> {{ 'es automáticamente la que ellos reciben — tú decides desde aquí cuándo mostrarles una nueva y cuándo obligarlos a actualizar. Así el desarrollo puede ir adelante mientras los choferes se quedan tranquilos en su versión hasta que la dominen.' | t }}
     </p>
 
     <div class="av-guia__grid">
@@ -47,20 +44,17 @@
         <h3 class="av-guia__h">{{ 'Los dos estados de una versión' | t }}</h3>
         <p>
           <span class="sgc-badge sgc-badge--success">{{ 'Publicada' | t }}</span>
-          Los usuarios la ven como <em>{{ '“actualización disponible”' | t }}</em> y la pueden descargar. La
-          <strong>{{ 'más reciente' | t }}</strong> marcada como Publicada es la que se les ofrece. Si una
-          versión no está publicada, para ellos <strong>{{ 'no existe' | t }}</strong>: siguen con la que tienen.
+          {{ 'Los usuarios la ven como' | t }} <em>{{ '“actualización disponible”' | t }}</em> {{ 'y la pueden descargar. La' | t }}
+          <strong>{{ 'más reciente' | t }}</strong> {{ 'marcada como Publicada es la que se les ofrece. Si una versión no está publicada, para ellos' | t }} <strong>{{ 'no existe' | t }}</strong>{{ ': siguen con la que tienen.' | t }}
         </p>
         <p>
           <span class="sgc-badge sgc-badge--warning">{{ 'Mínima' | t }}</span>
-          Es el <strong>{{ 'piso obligatorio' | t }}</strong>{{ '. Si el teléfono tiene una versión' | t }} <em>{{ 'menor' | t }}</em>
-          que la mínima, la app lo <strong>{{ 'obliga a actualizar' | t }}</strong> y no lo deja seguir usándola.
-          Úsala solo para forzar (bug crítico, cambio de backend incompatible). Si no hay mínima,
-          nadie se ve forzado.
+          {{ 'Es el' | t }} <strong>{{ 'piso obligatorio' | t }}</strong>{{ '. Si el teléfono tiene una versión' | t }} <em>{{ 'menor' | t }}</em>
+          {{ 'que la mínima, la app lo' | t }} <strong>{{ 'obliga a actualizar' | t }}</strong> {{ 'y no lo deja seguir usándola. Úsala solo para forzar (bug crítico, cambio de backend incompatible). Si no hay mínima, nadie se ve forzado.' | t }}
         </p>
         <p>
           <span class="sgc-badge sgc-badge--neutral">{{ 'Borrador' | t }}</span>
-          Ni publicada ni mínima. Sirve para preparar/probar una versión sin que los usuarios la vean.
+          {{ 'Ni publicada ni mínima. Sirve para preparar/probar una versión sin que los usuarios la vean.' | t }}
         </p>
       </section>
 
@@ -68,12 +62,10 @@
       <section class="av-guia__box">
         <h3 class="av-guia__h">{{ 'Las tarjetas de arriba' | t }}</h3>
         <p>
-          <strong>{{ 'Publicada actual:' | t }}</strong> la versión que en este momento se les ofrece a los
-          usuarios de campo (la más reciente marcada Publicada).
+          <strong>{{ 'Publicada actual:' | t }}</strong> {{ 'la versión que en este momento se les ofrece a los usuarios de campo (la más reciente marcada Publicada).' | t }}
         </p>
         <p>
-          <strong>{{ 'Versión mínima:' | t }}</strong> la más antigua permitida. Cualquiera por debajo de esta
-          queda forzado a actualizar. Un “—” significa que no hay piso y nadie está forzado.
+          <strong>{{ 'Versión mínima:' | t }}</strong> {{ 'la más antigua permitida. Cualquiera por debajo de esta queda forzado a actualizar. Un "—" significa que no hay piso y nadie está forzado.' | t }}
         </p>
       </section>
 
@@ -109,9 +101,7 @@
     </section>
 
     <p class="av-guia__note">
-      <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Ojo:' | t }}</strong> {{ 'subir el APK al servidor solo lo hace' | t }} <em>{{ 'descargable' | t }}</em>. Lo que
-      decide qué ven los usuarios es el botón <strong>{{ 'Publicar' | t }}</strong> de aquí — son dos cosas
-      distintas. Puedes tener un APK subido y sin publicar: nadie se entera hasta que lo publiques.
+      <app-icon name="alert-triangle" [size]="16" /> <strong>{{ 'Ojo:' | t }}</strong> {{ 'subir el APK al servidor solo lo hace' | t }} <em>{{ 'descargable' | t }}</em>{{ '. Lo que decide qué ven los usuarios es el botón' | t }} <strong>{{ 'Publicar' | t }}</strong> {{ 'de aquí — son dos cosas distintas. Puedes tener un APK subido y sin publicar: nadie se entera hasta que lo publiques.' | t }}
     </p>
   </div>
 }
@@ -157,10 +147,10 @@
                     <a class="sgc-btn sgc-btn--ghost" [href]="v.apk_url" target="_blank" rel="noopener"><app-icon name="download" [size]="16" /> {{ 'Descargar' | t }}</a>
                   }
                   <button class="sgc-btn sgc-btn--secondary" type="button" (click)="togglePublicada(v)">
-                    {{ v.publicada ? 'Despublicar' : 'Publicar' }}
+                    {{ (v.publicada ? 'Despublicar' : 'Publicar') | t }}
                   </button>
                   <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleMinima(v)">
-                    {{ v.minima ? 'Quitar mínima' : 'Marcar mínima' }}
+                    {{ (v.minima ? 'Quitar mínima' : 'Marcar mínima') | t }}
                   </button>
                   @if (esAdmin()) {
                     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openEdit(v)">{{ 'Editar' | t }}</button>
@@ -184,9 +174,9 @@
 </div>
 @if (pushWebResumen().length) {
   <p class="av-dispositivos__push-resumen">
-    Web Push activo:
+    {{ 'Web Push activo:' | t }}
     @for (r of pushWebResumen(); track r.plataforma) {
-      <span class="sgc-badge sgc-badge--info">{{ r.plataforma }}: {{ r.activas }} ({{ r.usuarios }} usuarios)</span>
+      <span class="sgc-badge sgc-badge--info">{{ r.plataforma }}: {{ r.activas }} ({{ r.usuarios }} {{ 'usuarios' | t }})</span>
     }
   </p>
 }
@@ -196,7 +186,7 @@
     <span>{{ 'Solo atascados' | t }}</span>
   </label>
   <select class="sgc-select" [value]="filtroPlataformaDisp()" (change)="filtroPlataformaDisp.set($any($event.target).value)">
-    <option value="">Todas las plataformas</option>
+    <option value="">{{ 'Todas las plataformas' | t }}</option>
     @for (p of plataformasDisponibles(); track p) { <option [value]="p">{{ p }}</option> }
   </select>
 </div>
@@ -229,7 +219,7 @@
                    instalar encima a mano lo arregla; este botón copia el mensaje. -->
               @if (esAndroidRoto(d)) {
                 <button type="button" class="sgc-btn sgc-btn--secondary" (click)="copiarMensajeWhatsapp(d)">
-                  Copiar mensaje de WhatsApp
+                  {{ 'Copiar mensaje de WhatsApp' | t }}
                 </button>
               }
             </td>
@@ -266,16 +256,16 @@
       />
       @if (apkFile()) {
         <span class="av-file-hint">
-          {{ apkFile()!.name }} ({{ (apkFile()!.size / 1048576) | number: '1.1-1' }} MB)
+          {{ apkFile()!.name }} ({{ (apkFile()!.size / 1048576) | number: '1.1-1' }} {{ 'MB' | t }})
         </span>
       }
       @if (uploading()) {
         <div class="av-progress" role="progressbar" [attr.aria-valuenow]="uploadPct()">
           <div class="av-progress__bar" [style.width.%]="uploadPct()"></div>
-          <span class="av-progress__label">Subiendo… {{ uploadPct() }}%</span>
+          <span class="av-progress__label">{{ 'Subiendo…' | t }} {{ uploadPct() }}%</span>
         </div>
       }
-      <span class="field-hint">Se guarda como <code>csd-app-&lt;versión&gt;.apk</code> en el servidor y se usa como enlace de descarga.</span>
+      <span class="field-hint">{{ 'Se guarda como' | t }} <code>{{ 'csd-app-«versión».apk' | t }}</code> {{ 'en el servidor y se usa como enlace de descarga.' | t }}</span>
     </div>
 
     <div class="sgc-field">
@@ -295,7 +285,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { Guardando… } @else { Guardar }
+        @if (saving()) { {{ 'Guardando…' | t }} } @else { {{ 'Guardar' | t }} }
       </button>
     </div>
   </form>

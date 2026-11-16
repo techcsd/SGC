@@ -61,9 +61,6 @@
     "admin/usuarios": {
       "enforce": false
     },
-    "admin/app-versiones": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -83,6 +80,9 @@
       "enforce": true
     },
     "admin/animaciones": {
+      "enforce": true
+    },
+    "admin/app-versiones": {
       "enforce": true
     },
     "admin/auditoria": {
