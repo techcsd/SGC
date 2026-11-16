@@ -3,19 +3,6 @@
   "pctHt": 96,
   "filas": [
     {
-      "pantalla": "forbidden",
-      "total": 4,
-      "cubiertos": 2,
-      "sin": 2,
-      "pct": 50,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "No tienes permiso para acceder a este módulo.",
-        "Contacta al administrador si crees que es un error."
-      ]
-    },
-    {
       "pantalla": "politicas",
       "total": 15,
       "cubiertos": 8,
@@ -1271,6 +1258,16 @@
       "pantalla": "flota/vehiculos",
       "total": 378,
       "cubiertos": 378,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "forbidden",
+      "total": 4,
+      "cubiertos": 4,
       "sin": 0,
       "pct": 100,
       "enScope": true,

@@ -7313,5 +7313,9 @@
   "No puedes desactivar tu propia cuenta ni quitarte el rol de administrador a ti mismo.": "Ou pa ka dezaktive pwòp kont ou ni retire pwòp wòl administratè ou.",
   "Acceso conductor": "Aksè chofè",
   "Última actividad web": "Dènye aktivite web",
-  "Última actividad app": "Dènye aktivite app"
+  "Última actividad app": "Dènye aktivite app",
+  "No tienes permiso para acceder a este módulo.": "Ou pa gen pèmisyon pou w aksede modil sa a.",
+  "Contacta al administrador si crees que es un error.": "Kontakte administratè a si w panse se yon erè.",
+  "Acceso restringido": "Aksè restrenn",
+  "Volver al inicio": "Tounen nan paj prensipal"
 }

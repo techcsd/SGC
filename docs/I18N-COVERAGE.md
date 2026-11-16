@@ -3,11 +3,10 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9774/10017 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9776/10017 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| forbidden | scope | 4 | 2 | 2 | 50% |
 | politicas | scope | 15 | 8 | 7 | 53% |
 | obra/plan-dia | scope | 37 | 20 | 17 | 54% |
 | auth/set-password | scope | 12 | 7 | 5 | 58% |
@@ -108,6 +107,7 @@
 | flota/seguimiento | enforce | 23 | 23 | 0 | 100% |
 | flota/transferencias | enforce | 12 | 12 | 0 | 100% |
 | flota/vehiculos | enforce | 378 | 378 | 0 | 100% |
+| forbidden | enforce | 4 | 4 | 0 | 100% |
 | ingenieria/pagos | enforce | 68 | 68 | 0 | 100% |
 | inventario/activos | enforce | 70 | 70 | 0 | 100% |
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |

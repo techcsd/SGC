@@ -7626,5 +7626,9 @@
   "No puedes desactivar tu propia cuenta ni quitarte el rol de administrador a ti mismo.": "You cannot deactivate your own account or remove your own administrator role.",
   "Acceso conductor": "Driver access",
   "Última actividad web": "Last web activity",
-  "Última actividad app": "Last app activity"
+  "Última actividad app": "Last app activity",
+  "No tienes permiso para acceder a este módulo.": "You do not have permission to access this module.",
+  "Contacta al administrador si crees que es un error.": "Contact the administrator if you think this is an error.",
+  "Acceso restringido": "Access restricted",
+  "Volver al inicio": "Back to home"
 }
