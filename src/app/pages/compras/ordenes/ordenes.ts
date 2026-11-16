@@ -106,6 +106,9 @@ export class Ordenes implements OnInit {
 
   // ── Z6 — destino, ITBIS y dato de prueba (signals para reactividad OnPush) ──
   destino = signal<'proyecto' | 'oficina'>('proyecto');
+  // W2 (DS-06) — cuentas analíticas de la obra elegida; el selector solo aparece si hay más de una.
+  cuentasAnaliticas = signal<{ odoo_analytic_id: number; rol: string; confirmado: boolean }[]>([]);
+  cuentaAnaliticaElegida = signal<number | null>(null);
   aplicaImpuesto = signal(true);
   esPruebaOrden = signal(false);
 
@@ -445,6 +448,8 @@ export class Ordenes implements OnInit {
     this.form.reset();
     this.formItems.set([NUEVO_OC_ITEM()]);
     this.destino.set('proyecto');
+    this.cuentasAnaliticas.set([]);
+    this.cuentaAnaliticaElegida.set(null);
     this.aplicaImpuesto.set(true);
     this.esPruebaOrden.set(false);
     this.showNuevoProveedor.set(false);
@@ -618,6 +623,17 @@ export class Ordenes implements OnInit {
    * de todas formas (misma descripción/cantidad/precio). Falla de vinculación
    * = aviso, nunca revierte la OC ya creada (ya existe, ya es válida sin esto).
    */
+  /** W2 (DS-06) — si la obra tiene varias cuentas analíticas, guarda la elegida; un fallo no bloquea la OC (queda la principal). */
+  private async guardarCuentaAnaliticaElegida(created: OrdenCompra): Promise<void> {
+    const elegida = this.cuentaAnaliticaElegida();
+    if (elegida == null || this.cuentasAnaliticas().length < 2) return;
+    try {
+      await this.ordenesService.elegirCuentaAnalitica(created.id, elegida);
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo guardar la cuenta analítica elegida'), e instanceof Error ? e.message : undefined);
+    }
+  }
+
   private async vincularProductosOdooTrasCrear(validItems: ItemRow[], created: OrdenCompra): Promise<void> {
     const pendientes = validItems.filter((i) => i.odoo_product);
     if (pendientes.length === 0) return;
@@ -635,6 +651,18 @@ export class Ordenes implements OnInit {
     const fallos = resultados.filter((r) => r.status === 'rejected').length;
     if (fallos > 0) {
       this.toast.error(this.i18n.t('Algunos renglones no quedaron vinculados a Odoo'), 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
+    }
+  }
+
+  async onProyectoCambiado() {
+    this.cuentaAnaliticaElegida.set(null);
+    this.cuentasAnaliticas.set([]);
+    const id = this.form.value.proyecto_id;
+    if (!id) return;
+    try {
+      this.cuentasAnaliticas.set(await this.ordenesService.cuentasAnaliticasProyecto(id));
+    } catch {
+      this.cuentasAnaliticas.set([]);
     }
   }
 
@@ -723,6 +751,7 @@ export class Ordenes implements OnInit {
         created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }
       await this.vincularProductosOdooTrasCrear(validItems, created);
+      await this.guardarCuentaAnaliticaElegida(created);
       this.ordenes.update((list) => [created, ...list]);
       this.motion.momento('documento');
 

@@ -138,3 +138,85 @@
     </div>
   }
 </div>
+
+<!-- Categorías: propuestas por aprobar -->
+<h2 class="oh-h2">{{ 'Categorías: propuestas por aprobar' | t }}</h2>
+<p class="oh-lead">{{ 'Las categorías de Odoo se proponen por nombre parecido. Nada se vincula sin tu aprobación; revisa que la categoría de Odoo sea realmente la misma.' | t }}</p>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (categoriasProp().length === 0) {
+    <div class="table-empty"><p>{{ 'No hay propuestas pendientes.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Categorías: propuestas por aprobar' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Categoría SGC' | t }}</th>
+            <th>{{ 'Categoría en Odoo' | t }}</th>
+            <th>{{ 'Ruta en Odoo' | t }}</th>
+            <th>{{ 'Método' | t }}</th>
+            <th class="text-right">{{ 'Similitud' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of categoriasProp(); track m.id) {
+            <tr>
+              <td>{{ m.nombre_sgc }}</td>
+              <td>{{ m.nombre_odoo }}</td>
+              <td>{{ m.detalle_odoo ?? '—' }}</td>
+              <td>{{ metodoMaestro(m) | t }}</td>
+              <td class="text-right">{{ (m.score * 100) | number: '1.0-0' }}%</td>
+              <td class="text-right">
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="trabajando() === m.id" (click)="decidirMaestro(m, true)">{{ 'Aprobar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="trabajando() === m.id" (click)="decidirMaestro(m, false)">{{ 'Rechazar' | t }}</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Unidades de medida: propuestas por aprobar -->
+<h2 class="oh-h2">{{ 'Unidades de medida: propuestas por aprobar' | t }}</h2>
+<p class="oh-lead">{{ 'Revisa que la unidad de Odoo mida lo mismo (peso, longitud, volumen…). Una unidad de otra categoría de medida no es equivalente aunque se llame parecido.' | t }}</p>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (unidadesProp().length === 0) {
+    <div class="table-empty"><p>{{ 'No hay propuestas pendientes.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Unidades de medida: propuestas por aprobar' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Unidad SGC' | t }}</th>
+            <th>{{ 'Unidad en Odoo' | t }}</th>
+            <th>{{ 'Categoría de medida' | t }}</th>
+            <th>{{ 'Método' | t }}</th>
+            <th class="text-right">{{ 'Similitud' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of unidadesProp(); track m.id) {
+            <tr>
+              <td>{{ m.nombre_sgc }}</td>
+              <td>{{ m.nombre_odoo }}</td>
+              <td>{{ m.detalle_odoo ?? '—' }}</td>
+              <td>{{ metodoMaestro(m) | t }}</td>
+              <td class="text-right">{{ (m.score * 100) | number: '1.0-0' }}%</td>
+              <td class="text-right">
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="trabajando() === m.id" (click)="decidirMaestro(m, true)">{{ 'Aprobar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="trabajando() === m.id" (click)="decidirMaestro(m, false)">{{ 'Rechazar' | t }}</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

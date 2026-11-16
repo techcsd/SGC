@@ -41,6 +41,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { OdooSyncEstado } from '../../../../shared/ui/odoo-sync-estado/odoo-sync-estado';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
 
@@ -65,7 +66,7 @@ interface EstadoEntradas {
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective, ArticuloPicker, TranslatePipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective, ArticuloPicker, TranslatePipe, OdooSyncEstado],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

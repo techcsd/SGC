@@ -187,3 +187,4 @@ momento, no antes.
 - **Cuenta de integración.** Hoy una cuenta de Tecnología con permisos amplios; para producción se pide un usuario dedicado con permisos mínimos (paso físico con el proveedor de Odoo).
 - **QR en el conduce.** Token firmado con vencimiento que abre la pantalla de recibir/firmar; no contiene datos personales.
 - 🔴 Revisar: Política de Privacidad y formularios de tienda deben mencionar que nombres de empleados pueden aparecer en el chatter de Odoo.
+- **PDF firmado del conduce como adjunto en Odoo (ADR 19):** cuando se encienda la fase de expansión, el PDF del conduce (con firmas) se adjunta como `ir.attachment` al traslado en Odoo. 🔴 Revisar política de privacidad y formularios de tienda.

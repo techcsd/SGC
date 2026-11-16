@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { BodegaOdooFila, CuentaAnaliticaFila, OdooHomologacionService, PropuestaCatalogoFila } from '../../../../shared/services/odoo-homologacion.service';
+import { BodegaOdooFila, CuentaAnaliticaFila, OdooHomologacionService, PropuestaCatalogoFila, PropuestaMaestroFila } from '../../../../shared/services/odoo-homologacion.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DecimalPipe } from '@angular/common';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -23,11 +23,14 @@ export class TecOdooHomologacion implements OnInit {
   cuentas = signal<CuentaAnaliticaFila[]>([]);
   bodegas = signal<BodegaOdooFila[]>([]);
   propuestas = signal<PropuestaCatalogoFila[]>([]);
+  maestros = signal<PropuestaMaestroFila[]>([]);
   loading = signal(true);
   error = signal('');
   trabajando = signal<string | null>(null);
 
   pendientes = computed(() => this.cuentas().filter((c) => !c.confirmado).length);
+  categoriasProp = computed(() => this.maestros().filter((m) => m.tipo === 'categoria'));
+  unidadesProp = computed(() => this.maestros().filter((m) => m.tipo === 'unidad'));
   bodegasSinCodigo = computed(() => this.bodegas().filter((b) => b.activo && !b.codigo_odoo).length);
 
   async ngOnInit() {
@@ -38,9 +41,10 @@ export class TecOdooHomologacion implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [c, b, p] = await Promise.all([this.svc.cuentasAnaliticas(), this.svc.bodegas(), this.svc.propuestasCatalogo()]);
+      const [c, b, p, m] = await Promise.all([this.svc.cuentasAnaliticas(), this.svc.bodegas(), this.svc.propuestasCatalogo(), this.svc.propuestasMaestros()]);
       this.cuentas.set(c);
       this.propuestas.set(p);
+      this.maestros.set(m);
       this.bodegas.set(b);
     } catch (e) {
       this.error.set(presentarError(e, { pantalla: 'la homologación' }).mensajeUsuario);
@@ -65,6 +69,23 @@ export class TecOdooHomologacion implements OnInit {
     } finally {
       this.trabajando.set(null);
     }
+  }
+
+  async decidirMaestro(m: PropuestaMaestroFila, aprobar: boolean) {
+    this.trabajando.set(m.id);
+    try {
+      await this.svc.decidirMaestro(m.id, aprobar);
+      this.toast.success(this.i18n.t(aprobar ? 'Vínculo aprobado' : 'Propuesta rechazada'));
+      await this.cargar();
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo guardar'), presentarError(e, { pantalla: 'la propuesta', accion: 'guardar la decisión' }).mensajeUsuario);
+    } finally {
+      this.trabajando.set(null);
+    }
+  }
+
+  metodoMaestro(m: PropuestaMaestroFila): string {
+    return m.metodo === 'nombre' ? 'Nombre' : m.metodo === 'sinonimo' ? 'Sinónimo' : 'Similitud';
   }
 
   async decidir(c: CuentaAnaliticaFila, confirmar: boolean) {

@@ -35,6 +35,22 @@ export interface PropuestaCatalogoFila {
   articulos: { codigo: string | null; nombre: string } | null;
 }
 
+/** DS-07 — propuesta de vínculo categoría/unidad SGC ↔ Odoo, pendiente de aprobación humana. */
+export interface PropuestaMaestroFila {
+  id: string;
+  tipo: 'categoria' | 'unidad';
+  sgc_id: number;
+  odoo_id: number;
+  nombre_odoo: string;
+  detalle_odoo: string | null;
+  datos: Record<string, unknown>;
+  metodo: 'nombre' | 'sinonimo' | 'similitud';
+  score: number;
+  estado: 'propuesta' | 'aprobada' | 'rechazada';
+  /** Se completa en el cliente con el nombre del registro de SGC. */
+  nombre_sgc?: string;
+}
+
 /**
  * Homologación SGC ↔ Odoo (almacenes y cuentas analíticas). La confirmación pasa por el RPC
  * `odoo_analitica_confirmar` (solo admin; deja quién y cuándo). TODO: catálogo de productos (DS-07).
@@ -76,6 +92,33 @@ export class OdooHomologacionService {
 
   async decidirPropuesta(id: string, aprobar: boolean): Promise<void> {
     const { error } = await this.supabase.client.rpc('odoo_propuesta_decidir', { p_id: id, p_aprobar: aprobar });
+    if (error) throw new Error(error.message);
+  }
+
+  /** DS-07: propuestas de categorías y unidades pendientes, con el nombre del registro de SGC. */
+  async propuestasMaestros(): Promise<PropuestaMaestroFila[]> {
+    const { data, error } = await this.supabase.client
+      .from('odoo_homologacion_maestros')
+      .select('id, tipo, sgc_id, odoo_id, nombre_odoo, detalle_odoo, datos, metodo, score, estado')
+      .eq('estado', 'propuesta')
+      .order('tipo')
+      .order('score', { ascending: false })
+      .limit(300);
+    if (error) throw new Error(error.message);
+    const filas = (data ?? []) as unknown as PropuestaMaestroFila[];
+    const [cat, uni] = await Promise.all([
+      this.supabase.client.from('categorias_inventario').select('id, nombre'),
+      this.supabase.client.from('unidades').select('id, nombre'),
+    ]);
+    const nombres = (r: { data: unknown }) => new Map(((r.data ?? []) as { id: number; nombre: string }[]).map((x) => [x.id, x.nombre]));
+    const nc = nombres(cat);
+    const nu = nombres(uni);
+    return filas.map((f) => ({ ...f, nombre_sgc: (f.tipo === 'categoria' ? nc : nu).get(f.sgc_id) ?? `#${f.sgc_id}` }));
+  }
+
+  /** Aprobar vincula el registro de SGC con el de Odoo; rechazar solo marca la propuesta. Nada se vincula sin esta decisión. */
+  async decidirMaestro(id: string, aprobar: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('odoo_maestro_propuesta_decidir', { p_id: id, p_aprobar: aprobar });
     if (error) throw new Error(error.message);
   }
 

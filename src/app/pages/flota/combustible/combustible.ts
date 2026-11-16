@@ -15,7 +15,7 @@ import { Observable, combineLatest, of, from, startWith, debounceTime, switchMap
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
-import { CombustibleService, LecturaRecibo } from '../../../../shared/services/combustible.service';
+import { CombustibleService, LecturaRecibo, SaludCombustible } from '../../../../shared/services/combustible.service';
 import { ValidacionKm } from '../../../../shared/services/mantenimientos.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -672,7 +672,11 @@ export class Combustible implements OnInit {
   conductoresVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.conductores()));
   proyectosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.proyectos()));
 
+  // W2 (DS-37/#60) — salud de la importación de estación y del km pendiente.
+  salud = signal<SaludCombustible | null>(null);
+
   async ngOnInit() {
+    void this.combustibleService.saludCombustible().then((s) => this.salud.set(s)).catch(() => this.salud.set(null));
     await this.loadAll();
     this.procesarQueryParamsCompa();
   }

@@ -80,3 +80,16 @@ export const ODOO_ESTADO_LABEL: Record<OdooEventoEstado, string> = {
   bloqueado: 'Bloqueado',
   cancelado: 'Cancelado',
 };
+
+// W2 — estado de sync por documento (circuito 2)
+export type OdooDocumentoTipo = 'entrada_inventario' | 'retiro_material' | 'conduce_externo' | 'conteo_inventario';
+
+export interface OdooDocumentoSyncEstado {
+  tipo: OdooDocumentoTipo;
+  documento_id: string;
+  estado: 'pendiente' | 'sincronizado' | 'incierto' | 'error';
+  error: string | null;
+  picking_id: number | null;
+  intentos: number;
+  actualizado_en: string | null;
+}

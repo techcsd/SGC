@@ -5,6 +5,8 @@ import type { DatosConteo, DepsConteo } from "../_shared/odoo-ajustes.ts";
 import type { DatosRetiro, DepsRetiro } from "../_shared/odoo-retiros.ts";
 import type { DatosConduceExterno, DepsExterno } from "../_shared/odoo-externos.ts";
 import type { Marcar } from "../_shared/odoo-evento.ts";
+import type { DatosAjusteFaltante, DepsAjusteFaltante } from "../_shared/odoo-faltantes.ts";
+import { bibliotecaReal } from "./salidas.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -114,5 +116,29 @@ export function depsExterno(admin: SupabaseClient, instanciaId: string): DepsExt
       if (error) console.error("[odoo-sync] encolar salida:", error.message);
     },
     encolarEntrada: (eid) => enc("entrada_inventario", eid, "conduce_externo"),
+  };
+}
+
+// DS-17/DS-28: decision sobre un faltante en transito (ajuste / devolucion a origen).
+export function depsAjusteFaltante(admin: SupabaseClient, odoo: OdooClient, instanciaId: string): DepsAjusteFaltante {
+  return {
+    c: odoo,
+    lib: bibliotecaReal(odoo),
+    async cargar(id): Promise<DatosAjusteFaltante | null> {
+      const { data: a } = await admin.from("odoo_solicitudes_ajuste").select("*").eq("id", id).maybeSingle();
+      if (!a) return null;
+      const { data: s } = await admin.from("salidas_inventario").select("bodega_id, es_prueba").eq("id", a.salida_id).maybeSingle();
+      const { data: ar } = await admin.from("articulos").select("nombre, odoo_product_id").eq("id", a.articulo_id).maybeSingle();
+      const { data: bo } = s?.bodega_id ? await admin.from("bodegas").select("odoo_location_id, odoo_warehouse_id").eq("id", s.bodega_id).maybeSingle() : { data: null };
+      return {
+        id, salidaId: a.salida_id, folio: `CND-${String(a.salida_id).slice(0, 8).toUpperCase()}`, estado: a.estado, accion: a.accion, esPrueba: !!s?.es_prueba,
+        faltante: Number(a.faltante), articuloNombre: ar?.nombre ?? "artículo", odooProductId: n(ar?.odoo_product_id),
+        origenLocationId: n(bo?.odoo_location_id), origenWarehouseId: n(bo?.odoo_warehouse_id), companyId: odoo.companyId,
+      };
+    },
+    marcar: async (id, m) => {
+      const { error } = await admin.rpc("odoo_v1_marcar_ajuste_sync", { p_id: id, p_instancia: instanciaId, p_picking: m.picking ?? null, p_estado: m.estado, p_error: m.error ?? null });
+      if (error) console.error("[odoo-sync] marcar ajuste:", error.message);
+    },
   };
 }

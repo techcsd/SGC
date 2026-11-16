@@ -37,6 +37,8 @@ export interface DepsSalida {
   lib: Biblioteca;
   cargar(salidaId: string): Promise<DatosSalida | null>;
   marcar(salidaId: string, m: { a?: number; b?: number; estado: "pendiente" | "sincronizado" | "incierto" | "error"; error?: string }): Promise<void>;
+  /** DS-28 (ADR 19): adjunta el PDF firmado del conduce al picking (`ir.attachment`). Devuelve null si no hay PDF o la fase expansion esta apagada. */
+  adjuntarPdf?(pickingId: number, paso: PasoTraslado, s: DatosSalida): Promise<{ id: number; creado: boolean } | null>;
 }
 export interface ResultadoEvento { estado: "completado" | "reintento" | "error" | "incierto"; resultado?: Record<string, unknown>; error?: string; reintentarEnMs?: number }
 
@@ -157,8 +159,17 @@ export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: 
         }
       }
     }
+    // DS-28: el PDF firmado viaja como adjunto de los pickings. Un fallo aqui NO deshace la publicacion: queda visible en el aviso.
+    let avisoAdjunto: string | undefined;
+    if (d.adjuntarPdf) {
+      for (const [p, pid] of [["A", a], ["B", b]] as Array<[PasoTraslado, number | undefined]>) {
+        if (!pid) continue;
+        try { const r = await d.adjuntarPdf(pid, p, s); if (r) comp[`adjunto_${p.toLowerCase()}`] = r.id; } catch (e) { avisoAdjunto = `No se pudo adjuntar el PDF firmado en Odoo (${e instanceof Error ? e.message.slice(0, 80) : "error"}).`; }
+      }
+    }
     // Un faltante real se queda en transito: queda visible (AT11) y espera la solicitud de ajuste aprobada (ADR 5).
-    await d.marcar(s.id, { a, b, estado: "sincronizado", error: faltante ? "Faltante en tránsito: pendiente de ajuste aprobado." : undefined });
+    const avisoFaltante = faltante ? "Faltante en tránsito: pendiente de ajuste aprobado." : undefined;
+    await d.marcar(s.id, { a, b, estado: "sincronizado", error: [avisoFaltante, avisoAdjunto].filter(Boolean).join(" ") || undefined });
     return { estado: "completado", resultado: { picking_a: a, picking_b: b ?? null, faltante_en_transito: faltante, ...comp } };
   } catch (e) {
     if (e instanceof OdooError) {

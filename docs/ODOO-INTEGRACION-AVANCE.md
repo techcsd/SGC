@@ -94,3 +94,16 @@ Detalle por lote con archivo:línea en `docs/avance-lotes/` (F5, F6F7, F8abc, F8
 **Pendientes transversales:** UI de estado/«Reintentar» en entradas, retiros, conteos y externos; KPI de solicitudes atascadas en el Dashboard; botones Aprobar/Rechazar en push; probar QR en vivo con sesión real; selector de cuenta analítica al crear OC con varias; acciones `traslados.*` del gateway.
 
 **NO verificado:** dos semanas reales de sombra; usuario dedicado de integración (Chai); confirmación de Contabilidad; confirmación de Operaciones de las 4 obras; qué tablas de Realtime usa csd-app; cualquier cifra de prod (salvo las del análisis del 01-nov).
+
+---
+## Actualización tras la ola W2 (16-nov-2026): 41 hechos · 6 parciales · 0 sin empezar
+Detalle: `docs/avance-lotes/W2-ui.md`, `W2-backend.md`, `W2-rls-gw.md`; arranque de app en `docs/ARRANQUE-APP-DS45.md`. Todo en dev; nada en prod; Odoo apagado por política.
+**Cerrados en W2:** DS-17, DS-19, DS-20, DS-29, DS-37, DS-46 (todas las políticas RLS migradas a `(select …)` con smoke de permisos y reversa por lote; quedan 0), gateway `traslados.*`, UI de estado/«Reintentar», selector de cuenta en crear OC (solo `compras/ordenes`), KPI de atascadas, entradas con OC.
+**Parciales (6):**
+- DS-07: 12 propuestas de catálogo dudosas pendientes de decisión de Xaviel; 17 propuestas de categorías/unidades por aprobar en pantalla.
+- DS-28: backend hecho; falta que el cliente suba el PDF firmado del conduce al bucket `conduces` y llame `salida_pdf_firmado_registrar` (hoy se imprime con `window.print()`).
+- DS-41: #76 (voz) depende de entrevista; 4 vistas sin filtro `es_prueba` por decisión de producto; depurar prod con script + OK.
+- DS-42: instrumentar `/auth/pin` y `/home` (app, PROMPT-149).
+- DS-45: la app debe llamar `mi_arranque()` y leer `zonas_horarias`.
+- DS-47: #77 (app, entrevista).
+**Otros pendientes:** selector de cuenta en `ordenes-odoo` y aprobación de solicitud de compra; apertura DS-29 sin botón a propósito; deploy de `odoo-api` hecho en dev; migraciones RLS/`mi_arranque`/`ds07b`/`w2*` solo dev.

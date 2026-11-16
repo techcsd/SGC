@@ -30,6 +30,8 @@ export class AdminAdopcion implements OnInit {
   roles = signal<AdopcionRol[]>([]);
   inactivos = signal<UsuarioInactivo[]>([]);
   soloNunca = signal(true);
+  // DS-35/DS-38 — entradas de los últimos 30 días que nacieron de una orden de compra.
+  entradasOc = signal<{ total: number; con_oc: number; pct: number } | null>(null);
 
   async ngOnInit() {
     await this.cargar();
@@ -43,11 +45,14 @@ export class AdminAdopcion implements OnInit {
   private async cargar() {
     this.loading.set(true);
     try {
-      const [r, i] = await Promise.all([
+      const [r, i, eo] = await Promise.all([
         this.supabase.client.rpc('adopcion_por_rol'),
         this.supabase.client.rpc('adopcion_usuarios_inactivos', { p_solo_nunca: this.soloNunca() }),
+        this.supabase.client.rpc('adopcion_entradas_con_oc'),
       ]);
       if (r.error) throw new Error(r.error.message);
+      const fila = ((eo.data ?? []) as { total: number; con_oc: number; pct: number }[])[0];
+      this.entradasOc.set(eo.error || !fila ? null : { total: Number(fila.total), con_oc: Number(fila.con_oc), pct: Number(fila.pct) });
       this.roles.set((r.data ?? []) as AdopcionRol[]);
       // La lista nominal es solo para admin: si el RPC la niega (dirección), el resumen por rol sigue visible.
       this.inactivos.set(i.error ? [] : ((i.data ?? []) as UsuarioInactivo[]));

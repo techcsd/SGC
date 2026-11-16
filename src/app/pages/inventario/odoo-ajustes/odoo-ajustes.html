@@ -1,0 +1,158 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Faltantes y corte con Odoo' | t }}</h1>
+    <span class="page-count">{{ i18n.t('{n} faltante(s) por resolver', { n: pendientes() }) }}</span>
+  </div>
+</div>
+
+<p class="oa-lead">
+  {{ 'Cuando un conduce llega incompleto, lo que falta queda en tránsito en Odoo hasta que el jefe de inventario decide: aprobar el ajuste (se da de baja) o devolver el material al almacén de origen.' | t }}
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- Faltantes en tránsito -->
+<h2 class="oa-h2">{{ 'Faltantes en tránsito' | t }}</h2>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (ajustes().length === 0) {
+    <div class="table-empty"><p>{{ 'No hay faltantes registrados.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Faltantes en tránsito' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Conduce' | t }}</th>
+            <th>{{ 'Artículo' | t }}</th>
+            <th>{{ 'Faltante' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th>{{ 'En Odoo' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of ajustes(); track a.id) {
+            <tr>
+              <td>{{ a.folio }}</td>
+              <td>{{ a.articulo }}</td>
+              <td>{{ a.faltante | number: '1.0-2' }}</td>
+              <td>
+                @if (a.estado === 'pendiente') {
+                  <span class="badge badge--warning">{{ 'Pendiente' | t }}</span>
+                } @else if (a.estado === 'aprobada') {
+                  <span class="badge badge--success">{{ 'Ajuste aprobado' | t }}</span>
+                } @else {
+                  <span class="badge badge--info">{{ 'Devuelto al origen' | t }}</span>
+                }
+                @if (a.nota) { <div class="oa-nota">{{ a.nota }}</div> }
+              </td>
+              <td>
+                {{ estadoSync(a.odoo_sync_estado) }}
+                @if (a.odoo_sync_error) { <div class="oa-nota">{{ a.odoo_sync_error }}</div> }
+              </td>
+              <td class="oa-acciones">
+                @if (a.estado === 'pendiente') {
+                  @if (rechazando() === a.id) {
+                    <textarea class="sgc-input" rows="2" [placeholder]="'Motivo (mínimo 10 caracteres)' | t" [value]="motivo()" (input)="motivo.set(valor($event))"></textarea>
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="trabajando() === a.id" (click)="rechazar(a)">{{ 'Devolver al origen' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="rechazando.set(null)">{{ 'Cancelar' | t }}</button>
+                  } @else {
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="trabajando() === a.id" (click)="aprobar(a)">{{ 'Aprobar ajuste' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="trabajando() === a.id" (click)="abrirRechazo(a)">{{ 'Rechazar y devolver' | t }}</button>
+                  }
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Corte por almacén (solo lectura salvo admin) -->
+<h2 class="oa-h2">{{ 'Corte por almacén' | t }}</h2>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="3" />
+  } @else if (corte().length === 0) {
+    <div class="table-empty"><p>{{ 'No hay almacenes vinculados con Odoo.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Corte por almacén' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Almacén' | t }}</th>
+            <th>{{ 'Fecha de corte' | t }}</th>
+            <th>{{ 'Apertura' | t }}</th>
+            <th>{{ 'Stock lo gobierna' | t }}</th>
+            <th>{{ 'Contingencia' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of corte(); track b.bodega_id) {
+            <tr>
+              <td>{{ b.bodega }} <span class="oa-nota">{{ b.codigo_odoo }}</span></td>
+              <td>
+                @if (esAdmin()) {
+                  <input type="date" class="sgc-input" [value]="b.fecha_corte ?? ''" (change)="fijarCorte(b, valor($event))" [attr.aria-label]="'Fecha de corte' | t" />
+                } @else {
+                  {{ b.fecha_corte ? (b.fecha_corte | fecha: 'dd/MM/yyyy') : '—' }}
+                }
+              </td>
+              <td>
+                @if (b.apertura_hecha) {
+                  <span class="badge badge--success">{{ 'Hecha' | t }}</span>
+                } @else {
+                  <span class="badge badge--warning">{{ 'Pendiente' | t }}</span>
+                }
+                @if (b.apertura_error) { <div class="oa-nota">{{ b.apertura_error }}</div> }
+              </td>
+              <td>{{ (b.fuente_odoo ? 'Odoo' : 'SGC') | t }}</td>
+              <td>
+                @if (b.contingencia_hasta) {
+                  {{ i18n.t('Vigente hasta {h}', { h: (b.contingencia_hasta | fecha: 'dd/MM HH:mm') ?? '' }) }}
+                } @else if (esAdmin() && b.fuente_odoo) {
+                  <input type="text" class="sgc-input" #mot [placeholder]="'Motivo (mínimo 10 caracteres)' | t" />
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="contingencia(b, mot.value)">{{ 'Aprobar contingencia' | t }}</button>
+                } @else {
+                  —
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Autorización prueba → real (solo admin; el servidor lo exige) -->
+@if (esAdmin()) {
+  <h2 class="oa-h2">{{ 'Pasar un documento de prueba a real' | t }}</h2>
+  <div class="sgc-card oa-form">
+    <p class="oa-lead">{{ 'Cuando ese tipo de documento ya se publica en Odoo, pasarlo de prueba a real crea un movimiento real. Autorízalo aquí con el motivo (vale 2 horas y un solo uso).' | t }}</p>
+    <label class="oa-campo">
+      <span>{{ 'Tipo de documento' | t }}</span>
+      <select class="sgc-input" (change)="tablaPR.set($any(valor($event)))">
+        <option value="salidas_inventario">{{ 'Conduce' | t }}</option>
+        <option value="entradas_inventario">{{ 'Entrada' | t }}</option>
+        <option value="retiros_material">{{ 'Retiro de material' | t }}</option>
+        <option value="conduces_externos">{{ 'Conduce externo' | t }}</option>
+        <option value="conteos_inventario">{{ 'Conteo de inventario' | t }}</option>
+      </select>
+    </label>
+    <label class="oa-campo">
+      <span>{{ 'Identificador del documento' | t }}</span>
+      <input type="text" class="sgc-input" [value]="idPR()" (input)="idPR.set(valor($event))" />
+    </label>
+    <label class="oa-campo">
+      <span>{{ 'Motivo' | t }}</span>
+      <textarea class="sgc-input" rows="2" [value]="motivoPR()" (input)="motivoPR.set(valor($event))"></textarea>
+    </label>
+    <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="!idPR().trim() || motivoPR().trim().length < 10" (click)="autorizarPruebaReal()">{{ 'Autorizar' | t }}</button>
+  </div>
+}

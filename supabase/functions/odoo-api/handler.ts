@@ -10,6 +10,10 @@ import type { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import type { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { conReintentoLectura } from "../_shared/odoo-backoff.ts";
 import { ACCIONES, ACCIONES_SIN_CACHE, type Accion, DEFINICIONES, ParamError } from "./acciones.ts";
+import {
+  DEFINICIONES_TRASLADOS_ESCRITURA, DEFINICIONES_TRASLADOS_LECTURA, esAccionTrasladoEscritura, esAccionTrasladoLectura,
+  esErrorDeNegocioTraslado, type OdooTraslados,
+} from "./acciones-traslados.ts";
 import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresEscritura, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
 
 export const MODULO_REQUERIDO = "inventario";
@@ -35,6 +39,12 @@ export interface Deps {
   admin(): SupabaseClient;
   /** Adaptador hacia Odoo para las escrituras de OC (mock hoy, D-08). Inyectable en tests. */
   adaptadorOc?: Partial<AdaptadoresEscritura>;
+  /**
+   * DS-08 — política de ESCRITURA de traslados (traslados.crear/validar/cancelar/devolver): devuelve null si se puede
+   * escribir (host autorizado por la guardia DS-02 + ODOO_ESCRITURA_HABILITADA) o el motivo del bloqueo. Sin esta dependencia
+   * NO se escribe. Se evalúa ANTES de tocar Odoo; la guardia del cliente sigue aplicándose en cada write.
+   */
+  bloqueoEscrituraTraslados?(): string | null;
 }
 
 const CODIGOS_FALLO_INFRA = new Set(["odoo_timeout", "odoo_no_disponible"]);
@@ -117,7 +127,8 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
   const { accion, params: rawParams } = body as { accion?: unknown; params?: unknown };
   const esEscritura = typeof accion === "string" && (ACCIONES_ESCRITURA as readonly string[]).includes(accion);
   const esLectura = typeof accion === "string" && (ACCIONES as readonly string[]).includes(accion);
-  if (typeof accion !== "string" || !(esEscritura || esLectura)) {
+  const esTraslado = typeof accion === "string" && (esAccionTrasladoLectura(accion) || esAccionTrasladoEscritura(accion));
+  if (typeof accion !== "string" || !(esEscritura || esLectura || esTraslado)) {
     return json({ error: "Acción no permitida." }, 400);
   }
   // Las lecturas de OC (`compras.*`) las ve también quien trabaja en Compras, no solo Inventario.
@@ -133,6 +144,45 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
   }
   const { refrescar, ...params } = rawParams && typeof rawParams === "object" && !Array.isArray(rawParams)
     ? rawParams as Record<string, unknown> : {} as Record<string, unknown>;
+
+  // DS-08 — traslados (lectura y escritura): módulo `inventario`, sin caché, escritura sujeta a la política del host.
+  if (esTraslado) {
+    try {
+      if (esAccionTrasladoEscritura(accion)) {
+        const def = DEFINICIONES_TRASLADOS_ESCRITURA[accion] as unknown as {
+          normalizar(p: Record<string, unknown>): unknown;
+          ejecutar(ctx: { odoo: OdooTraslados; admin: SupabaseClient; usuarioId: string }, p: unknown): Promise<unknown>;
+        };
+        const norm = def.normalizar(params); // valida ANTES de consultar la política u Odoo
+        const bloqueo = deps.bloqueoEscrituraTraslados ? deps.bloqueoEscrituraTraslados() : "La escritura hacia Odoo no está configurada.";
+        if (bloqueo) return json({ error: bloqueo, error_code: "escritura_bloqueada" }, 403);
+        const data = await conResiliencia(deps, () => def.ejecutar({ odoo: deps.odoo(), admin: deps.admin(), usuarioId: cap.usuario_id }, norm), { reintentar: false });
+        return json({ data });
+      }
+      const def = DEFINICIONES_TRASLADOS_LECTURA[accion as "traslados.obtener"] as unknown as {
+        normalizar(p: Record<string, unknown>): unknown;
+        ejecutar(o: OdooTraslados, p: unknown): Promise<unknown>;
+      };
+      const norm = def.normalizar(params);
+      const data = await conResiliencia(deps, () => def.ejecutar(deps.odoo(), norm));
+      return json({ data, consultado_en: new Date().toISOString(), cache: "miss" });
+    } catch (e) {
+      if (e instanceof ParamError) return json({ error: e.message }, 400);
+      if (esErrorDeNegocioTraslado(e)) {
+        console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.causa ?? ""}`);
+        return json({ error: e.message, error_code: e.codigo }, 400);
+      }
+      if (e instanceof OdooError) {
+        console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
+        if (esAccionTrasladoEscritura(accion) && CODIGOS_REINTENTABLES.has(e.codigo)) {
+          return json({ error: MENSAJE_REINTENTAR, error_code: CODIGO_REINTENTAR }, STATUS_ODOO[e.codigo] ?? 502);
+        }
+        return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
+      }
+      console.error(`[odoo-api] ${accion}:`, e);
+      return json({ error: "Error interno del gateway.", error_code: "interno" }, 500);
+    }
+  }
 
   // CY24 Fase C — acciones de ESCRITURA: nunca pasan por caché (D3 ya las hace
   // idempotentes vía sgc.odoo_comandos_oc), siempre con service role (D5).

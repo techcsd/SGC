@@ -97,6 +97,12 @@ export const inventarioRoutes: Routes = [
   // noChoferGuard) porque es un inbox personal que no debe heredar el guard del
   // módulo Inventario. Ver app.routes.ts. /inventario/por-firmar redirige allí.
   {
+    // DS-17/DS-28/DS-29 — faltantes en tránsito, corte por almacén y autorización prueba → real (gate real server-side).
+    path: 'ajustes-odoo',
+    loadComponent: () => import('./odoo-ajustes/odoo-ajustes').then((m) => m.OdooAjustes),
+    title: 'Faltantes y corte con Odoo — Inventario',
+  },
+  {
     // AU4 — bandeja de material no catalogado (admin/inventario; gate real server-side).
     path: 'material-no-catalogado',
     loadComponent: () =>

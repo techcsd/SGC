@@ -343,6 +343,9 @@
     "inventario/movimientos": {
       "enforce": true
     },
+    "inventario/odoo-ajustes": {
+      "enforce": false
+    },
     "inventario/pendientes-cierre": {
       "enforce": false
     },

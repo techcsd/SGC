@@ -699,6 +699,13 @@ export class SalidasService {
     this.notificaciones.refresh();
   }
 
+  /** DS-20 — explica si el vínculo es posible (unidades incompatibles / coincidencia ambigua) sin escribir nada. */
+  async evaluarVinculoLibre(itemLibreId: string, articuloId: string | null): Promise<{ ok: boolean; codigo: string; mensaje: string | null }> {
+    const { data, error } = await this.supabase.client.rpc('odoo_vinculo_libre_evaluar', { p_item_libre_id: itemLibreId, p_articulo_id: articuloId });
+    if (error) throw new Error(error.message);
+    return data as { ok: boolean; codigo: string; mensaje: string | null };
+  }
+
   /** BW2 — crea el artículo del catálogo desde el material libre y lo vincula en una
    *  sola operación atómica (gate es_flota_elevado() OR inventario). Devuelve el id/código. */
   async crearArticuloDesdeLibre(

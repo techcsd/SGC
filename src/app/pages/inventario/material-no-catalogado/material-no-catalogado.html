@@ -125,6 +125,9 @@
             [value]="vincularArticuloId()"
             (selectionChange)="onVincularSel($event)"
           />
+          @if (avisoVinculo()) {
+            <p class="mnc-note mnc-note--warn" role="alert">{{ avisoVinculo() }}</p>
+          }
         } @else {
           <!-- AT11 — Declinar: motivo + (si "ya existe") apuntar el artículo correcto -->
           <div class="sgc-field">

@@ -119,4 +119,16 @@ export class OrdenesCompraService {
     });
     if (error) throw new Error(error.message);
   }
+  /** W2 (DS-06) — cuentas analíticas de Odoo de la obra (para elegir cuando hay más de una). */
+  async cuentasAnaliticasProyecto(proyectoId: string): Promise<{ odoo_analytic_id: number; rol: string; confirmado: boolean }[]> {
+    const { data, error } = await this.supabase.client.rpc('proyecto_cuentas_analiticas_para_oc', { p_proyecto_id: proyectoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { odoo_analytic_id: number; rol: string; confirmado: boolean }[];
+  }
+
+  /** W2 (DS-06) — guarda la cuenta analítica elegida en la OC (validada contra la obra en el servidor). */
+  async elegirCuentaAnalitica(ordenId: string, analyticId: number | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('oc_elegir_cuenta_analitica', { p_orden_id: ordenId, p_analytic_id: analyticId });
+    if (error) throw new Error(error.message);
+  }
 }

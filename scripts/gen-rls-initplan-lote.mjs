@@ -53,16 +53,17 @@ const q = (s) => `"${s.replace(/"/g, '""')}"`;
 const sql = [`-- DS-46 (#71) lote ${lote}: politicas RLS con funciones estables en InitPlan (select ...). Generado por scripts/gen-rls-initplan-lote.mjs.`,
   `-- Tablas: ${tablas.join(', ')}. Semantica identica; reversa en sql/_reversa/.`, ''];
 const rev = [`-- Reversa de DS-46 lote ${lote}: restaura las expresiones originales de las politicas.`, ''];
-let n = 0;
+let n = 0; const cambiadas = new Set();
 for (const p of pols) {
   const u = envolver(p.using_expr), c = envolver(p.check_expr);
   if (u === p.using_expr && c === p.check_expr) continue;
   const clausulas = (uu, cc) => [uu ? `using (${uu})` : null, cc ? `with check (${cc})` : null].filter(Boolean).join('\n  ');
   sql.push(`alter policy ${q(p.nombre)} on sgc.${p.tabla}\n  ${clausulas(u, c)};\n`);
   rev.push(`alter policy ${q(p.nombre)} on sgc.${p.tabla}\n  ${clausulas(p.using_expr, p.check_expr)};\n`);
-  n++;
+  n++; cambiadas.add(p.tabla);
 }
 console.log(`lote ${lote}: ${pols.length} politicas en ${tablas.length} tablas, ${n} reescritas, ${envueltas} llamadas envueltas.`);
+if (argv.includes('--listar')) { console.log([...cambiadas].join(',')); process.exit(0); }
 if (argv.includes('--dry')) process.exit(0);
 mkdirSync('sql/_reversa', { recursive: true });
 writeFileSync(`sql/2026-11-16-ds46-rls-initplan-lote${lote}.sql`, sql.join('\n'));

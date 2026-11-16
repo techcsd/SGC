@@ -14,15 +14,18 @@ import { publicarMock } from "../_shared/odoo-inventario.ts";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
 import { publicarSalida } from "../_shared/odoo-salidas.ts";
 import { depsReales } from "./salidas.ts";
-import { depsConteo, depsEntrada, depsExterno, depsRetiro } from "./documentos.ts";
+import { depsAjusteFaltante, depsConteo, depsEntrada, depsExterno, depsRetiro } from "./documentos.ts";
 import { publicarEntrada } from "../_shared/odoo-recepciones.ts";
 import { publicarConteo } from "../_shared/odoo-ajustes.ts";
 import { publicarRetiro } from "../_shared/odoo-retiros.ts";
 import { publicarConduceExterno } from "../_shared/odoo-externos.ts";
+import { publicarAjusteFaltante } from "../_shared/odoo-faltantes.ts";
+import { aplicarAperturaBodega } from "../_shared/odoo-corte.ts";
+import { TrasladoError } from "../_shared/odoo-traslados.ts";
 
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = envRequerido("SUPABASE_SERVICE_ROLE_KEY");
-const TIPOS_CIRCUITO2 = new Set(["entrada_inventario", "conteo_inventario", "retiro_material", "conduce_externo"]);
+const TIPOS_CIRCUITO2 = new Set(["entrada_inventario", "conteo_inventario", "retiro_material", "conduce_externo", "ajuste_faltante"]);
 const SYNC_SECRET = Deno.env.get("ODOO_SYNC_SECRET"); // igual patrón que infra/weather/cronograma sync secrets
 
 Deno.serve(async (req: Request) => {
@@ -37,12 +40,34 @@ Deno.serve(async (req: Request) => {
     return json({ error: "No autorizado." }, 401);
   }
 
-  let body: { instancia_id?: string; limite?: number } = {};
+  let body: { instancia_id?: string; limite?: number; accion?: string; bodega_id?: string; modo?: string; tope?: number } = {};
   try { body = await req.json(); } catch { /* body vacío también es válido */ }
   const instanciaId = body.instancia_id;
   if (!instanciaId) return json({ error: "Falta instancia_id." }, 400);
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" } });
+
+  // DS-29: apertura de UNA bodega en Odoo. Solo por servidor-a-servidor CON secreto (nunca abierta), con la fase corte encendida y ambos sentidos permitidos.
+  // modo "plan" (por defecto) solo calcula; "aplicar" escribe en Odoo con la accion de negocio de inventario.
+  if (body.accion === "apertura") {
+    if (!SYNC_SECRET) return json({ error: "La apertura exige ODOO_SYNC_SECRET configurado." }, 403);
+    if (!body.bodega_id) return json({ error: "Falta bodega_id." }, 400);
+    const modo = body.modo === "aplicar" ? "aplicar" : "plan";
+    const { data: ins } = await admin.from("odoo_instancias").select("permitir_salida, permitir_entrada").eq("id", instanciaId).maybeSingle();
+    if (modo === "aplicar" && !(ins?.permitir_entrada && ins?.permitir_salida)) return json({ error: "La instancia no permite movimientos de inventario todavía." }, 409);
+    try {
+      const { data: datos, error: eDatos } = await admin.rpc("odoo_corte_apertura_preparar", { p_bodega: body.bodega_id });
+      if (eDatos || !datos) return json({ error: "No se pudo preparar la apertura." }, 500);
+      const cliente = new OdooClient(configDesdeEntorno());
+      const r = await aplicarAperturaBodega(cliente, body.bodega_id, datos, modo, typeof body.tope === "number" && body.tope > 0 ? body.tope : 0.5);
+      if (modo === "aplicar") await admin.rpc("odoo_corte_apertura_marcar", { p_bodega: body.bodega_id, p_ok: true, p_resultado: { ajustes: r.ajustes.length, aplicadas: r.aplicadas, solo_odoo: r.solo_odoo, fecha_corte: r.fecha_corte }, p_error: null });
+      return json({ ok: true, ...r });
+    } catch (e) {
+      const msg = e instanceof TrasladoError ? e.message : "No se pudo aplicar la apertura en Odoo.";
+      if (modo === "aplicar") await admin.rpc("odoo_corte_apertura_marcar", { p_bodega: body.bodega_id, p_ok: false, p_resultado: null, p_error: msg });
+      return json({ ok: false, error: msg }, e instanceof TrasladoError ? 422 : 502);
+    }
+  }
 
   const { data: eventos, error: errReclamar } = await admin.rpc("odoo_v1_reclamar_eventos", {
     p_instancia: instanciaId,
@@ -84,6 +109,7 @@ Deno.serve(async (req: Request) => {
             const intentos = evento.intentos ?? 1;
             switch (evento.agregado_tipo) {
               case "entrada_inventario": r = await publicarEntrada(depsEntrada(admin, odooCliente!, instanciaId), evento.agregado_id, intentos); break;
+              case "ajuste_faltante": r = await publicarAjusteFaltante(depsAjusteFaltante(admin, odooCliente!, instanciaId), evento.agregado_id, intentos); break;
               case "conteo_inventario": r = await publicarConteo(depsConteo(admin, odooCliente!, instanciaId), evento.agregado_id, intentos); break;
               case "retiro_material": r = await publicarRetiro(depsRetiro(admin, odooCliente!, instanciaId), evento.agregado_id, intentos); break;
               default: r = await publicarConduceExterno(depsExterno(admin, instanciaId), evento.agregado_id, intentos);

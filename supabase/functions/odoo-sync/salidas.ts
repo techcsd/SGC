@@ -2,6 +2,12 @@
 import type { OdooClient } from "../_shared/odoo-client.ts";
 import { cancelarTraslado, crearTraslado, devolverTraslado, validarTraslado, buscarPickingPorOrigin, type LlamadorOdoo } from "../_shared/odoo-traslados.ts";
 import type { Biblioteca, DatosSalida, DepsSalida } from "../_shared/odoo-salidas.ts";
+import { adjuntarPdfAPicking, nombreAdjuntoConduce } from "../_shared/odoo-adjuntos.ts";
+
+function aBase64(b: Uint8Array): string {
+  let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
+  return btoa(s);
+}
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -78,6 +84,17 @@ export function depsReales(admin: SupabaseClient, odoo: OdooClient, instanciaId:
         origenLocationId: bo?.odoo_location_id ?? null, origenWarehouseId: bo?.odoo_warehouse_id ?? null, destinoLocationId: destinoId,
         companyId: odoo.companyId,
       };
+    },
+    // DS-28 (ADR 19): PDF firmado como adjunto del picking. Solo con la fase `expansion` encendida y si el conduce ya tiene su PDF guardado.
+    async adjuntarPdf(pickingId, paso, s) {
+      const { data: fase } = await admin.from("odoo_fases").select("habilitada").eq("clave", "expansion").maybeSingle();
+      if (!fase?.habilitada) return null;
+      const { data: fila } = await admin.from("salidas_inventario").select("pdf_firmado_path").eq("id", s.id).maybeSingle();
+      if (!fila?.pdf_firmado_path) return null;
+      const { data: blob, error } = await admin.storage.from("conduces").download(fila.pdf_firmado_path);
+      if (error || !blob) throw new Error("No se pudo leer el PDF firmado.");
+      const folio = `CND-${s.id.slice(0, 8).toUpperCase()}`;
+      return await adjuntarPdfAPicking(odoo, pickingId, { nombre: nombreAdjuntoConduce(folio, paso), base64: aBase64(new Uint8Array(await blob.arrayBuffer())) });
     },
     async marcar(id, m) {
       const { error } = await admin.rpc("odoo_v1_marcar_salida_sync", {

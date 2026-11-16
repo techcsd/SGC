@@ -191,6 +191,7 @@ export class Shell implements OnInit {
         { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones', submodulo: 'inventario.salidas' },
         { label: 'Pendientes de cierre', route: '/inventario/pendientes-cierre', submodulo: 'inventario.salidas' },
         { label: 'Material no catalogado', route: '/inventario/material-no-catalogado', modulo: 'inventario', badgeKey: 'inventario.material_no_catalogado' },
+        { label: 'Faltantes y corte con Odoo', route: '/inventario/ajustes-odoo', modulo: 'inventario' }, // DS-17/28/29
         { label: 'Conduces por implementar', route: '/inventario/conduces-por-implementar', modulo: 'inventario', badgeKey: 'inventario.conduces_por_implementar' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
         { label: 'Apertura de inventario', route: '/inventario/apertura', soloAdmin: true },

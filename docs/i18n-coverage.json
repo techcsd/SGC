@@ -16,8 +16,8 @@
     },
     {
       "pantalla": "admin/adopcion",
-      "total": 11,
-      "cubiertos": 11,
+      "total": 14,
+      "cubiertos": 14,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -476,8 +476,8 @@
     },
     {
       "pantalla": "compras/ordenes",
-      "total": 111,
-      "cubiertos": 111,
+      "total": 114,
+      "cubiertos": 114,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -596,8 +596,8 @@
     },
     {
       "pantalla": "dashboard",
-      "total": 70,
-      "cubiertos": 70,
+      "total": 71,
+      "cubiertos": 71,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -726,8 +726,8 @@
     },
     {
       "pantalla": "flota/combustible",
-      "total": 209,
-      "cubiertos": 209,
+      "total": 213,
+      "cubiertos": 213,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1142,6 +1142,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/odoo-ajustes",
+      "total": 49,
+      "cubiertos": 49,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {
@@ -1896,8 +1906,8 @@
     },
     {
       "pantalla": "tecnologia/odoo-homologacion",
-      "total": 31,
-      "cubiertos": 31,
+      "total": 52,
+      "cubiertos": 52,
       "sin": 0,
       "pct": 100,
       "enScope": true,
