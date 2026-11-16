@@ -5831,5 +5831,14 @@
   "¿Eliminar la plantilla \"{nombre}\"? Esta acción no se puede deshacer.": "Delete template \"{nombre}\"? This action can't be undone.",
   "¿Restaurar la versión {version} de \"{nombre}\"? La versión actual se guarda antes de restaurar.": "Restore version {version} of \"{nombre}\"? The current version is saved before restoring.",
   "← Volver al historial": "← Back to history",
-  "★ La que se usa": "★ The one in use"
+  "★ La que se usa": "★ The one in use",
+  "Complemento creado": "Supplement created",
+  "Descargo firmado": "Release form signed",
+  "Falta la firma": "Missing signature",
+  "No se pudo crear el complemento": "Couldn't create the supplement",
+  "No se pudo crear la semana": "Couldn't create the week",
+  "No se pudo enviar": "Couldn't send",
+  "No se pudo guardar la firma": "Couldn't save the signature",
+  "No se pudo reabrir": "Couldn't reopen",
+  "Reporte enviado": "Report sent"
 }

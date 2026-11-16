@@ -3891,31 +3891,6 @@
       ]
     },
     {
-      "pantalla": "ingenieria/pagos",
-      "total": 68,
-      "cubiertos": 54,
-      "sin": 14,
-      "pct": 79,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "No se pudo crear la semana",
-        "No se pudo crear la semana",
-        "No se pudo guardar",
-        "No se pudo guardar",
-        "No se pudo marcar",
-        "Falta la firma",
-        "Descargo firmado",
-        "No se pudo guardar la firma",
-        "Reporte enviado",
-        "No se pudo enviar",
-        "Complemento creado",
-        "No se pudo crear el complemento",
-        "No se pudo reabrir",
-        "No se pudo abrir el PDF"
-      ]
-    },
-    {
       "pantalla": "reuniones/reuniones-lista",
       "total": 68,
       "cubiertos": 56,
@@ -4616,6 +4591,16 @@
       "pantalla": "flota/vehiculos",
       "total": 378,
       "cubiertos": 378,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "ingenieria/pagos",
+      "total": 68,
+      "cubiertos": 68,
       "sin": 0,
       "pct": 100,
       "enScope": true,

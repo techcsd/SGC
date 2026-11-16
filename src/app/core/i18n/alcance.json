@@ -199,9 +199,6 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "ingenieria/pagos": {
-      "enforce": false
-    },
     "reuniones/reuniones-lista": {
       "enforce": false
     },
@@ -395,6 +392,9 @@
       "enforce": true
     },
     "flota/vehiculos": {
+      "enforce": true
+    },
+    "ingenieria/pagos": {
       "enforce": true
     },
     "inventario/activos": {
