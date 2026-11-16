@@ -1306,20 +1306,6 @@
       ]
     },
     {
-      "pantalla": "admin/unidades",
-      "total": 10,
-      "cubiertos": 7,
-      "sin": 3,
-      "pct": 70,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "unidad",
-        "Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra; desactiva las que no.",
-        "Agregar"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -1640,6 +1626,16 @@
       "pantalla": "admin/solicitudes-eliminacion",
       "total": 7,
       "cubiertos": 7,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/unidades",
+      "total": 10,
+      "cubiertos": 10,
       "sin": 0,
       "pct": 100,
       "enScope": true,

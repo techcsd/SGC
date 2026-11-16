@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8973/10099 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8976/10099 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -32,7 +32,6 @@
 | admin/reportes | scope | 37 | 21 | 16 | 57% |
 | admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
-| admin/unidades | scope | 10 | 7 | 3 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/roles | scope | 153 | 112 | 41 | 73% |
 | admin/usuarios-test | scope | 33 | 24 | 9 | 73% |
@@ -55,6 +54,7 @@
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
+| admin/unidades | enforce | 10 | 10 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |

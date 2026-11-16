@@ -1,13 +1,12 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Unidades de medida' | t }}</h1>
-    <span class="page-count">{{ unidades().length }} unidad{{ unidades().length !== 1 ? 'es' : '' }}</span>
+    <span class="page-count">{{ unidades().length }} {{ 'unidad' | t }}{{ unidades().length !== 1 ? 'es' : '' }}</span>
   </div>
 </div>
 
 <p class="und-lead">
-  Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra;
-  desactiva las que no.
+  {{ 'Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra; desactiva las que no.' | t }}
 </p>
 
 <div class="und-add">
@@ -20,7 +19,7 @@
     placeholder="{{ 'Nueva unidad (ej: Cubeta, Rollo, Galón)' | t }}"
   />
   <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="agregar()">
-    Agregar
+    {{ 'Agregar' | t }}
   </button>
 </div>
 
@@ -48,7 +47,7 @@
           </td>
           <td><code>{{ u.codigo }}</code></td>
           <td>
-            <span class="und-badge" [class.und-badge--on]="u.activo">{{ u.activo ? 'Activa' : 'Inactiva' }}</span>
+            <span class="und-badge" [class.und-badge--on]="u.activo">{{ (u.activo ? 'Activa' : 'Inactiva') | t }}</span>
           </td>
           <td class="und-actions">
             @if (editingId() === u.id) {
@@ -57,7 +56,7 @@
             } @else {
               <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="startEdit(u)">{{ 'Editar' | t }}</button>
               <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(u)">
-                {{ u.activo ? 'Desactivar' : 'Activar' }}
+                {{ (u.activo ? 'Desactivar' : 'Activar') | t }}
               </button>
             }
           </td>

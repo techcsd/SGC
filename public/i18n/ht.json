@@ -6542,5 +6542,9 @@
   "Valor escrito": "Valè ki ekri",
   "Veces": "Fwa",
   "Sugerencia": "Sijesyon",
-  "Crear opción oficial": "Kreye opsyon ofisyèl"
+  "Crear opción oficial": "Kreye opsyon ofisyèl",
+  "unidad": "inite",
+  "Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra; desactiva las que no.": "Inite sa yo parèt lè w kreye oswa modifye yon atik nan envantè a. Ajoute sa yo w itilize sou chantye; dezaktive sa yo w pa itilize.",
+  "Unidades de medida": "Inite mezi",
+  "Nueva unidad (ej: Cubeta, Rollo, Galón)": "Nouvo inite (eg: Bokit, Woulo, Galon)"
 }

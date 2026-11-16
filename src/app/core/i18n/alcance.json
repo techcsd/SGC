@@ -76,9 +76,6 @@
     "admin/app-versiones": {
       "enforce": false
     },
-    "admin/unidades": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -143,6 +140,9 @@
       "enforce": false
     },
     "admin/solicitudes-eliminacion": {
+      "enforce": true
+    },
+    "admin/unidades": {
       "enforce": true
     },
     "ajustes-notificaciones": {

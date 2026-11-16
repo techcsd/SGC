@@ -6935,5 +6935,9 @@
   "Valor escrito": "Entered value",
   "Veces": "Times",
   "Sugerencia": "Suggestion",
-  "Crear opción oficial": "Create official option"
+  "Crear opción oficial": "Create official option",
+  "unidad": "unit",
+  "Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra; desactiva las que no.": "These units appear when creating or editing an inventory item. Add the ones you use on site; deactivate the ones you don't.",
+  "Unidades de medida": "Units of measure",
+  "Nueva unidad (ej: Cubeta, Rollo, Galón)": "New unit (e.g.: Bucket, Roll, Gallon)"
 }
