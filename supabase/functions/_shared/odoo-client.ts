@@ -185,6 +185,8 @@ export interface OdooConfig {
   companyId: number;
   timeoutMs?: number;
   fetchFn?: typeof fetch;
+  /** Lector de variables para la guardia de host (tests). Por defecto Deno.env. */
+  entorno?: (k: string) => string | undefined;
   /** Allowlist de llamadas. Por defecto POLITICA_POR_DEFECTO (lo que usa el gateway). */
   politica?: PoliticaOdoo;
   /** Transporte alternativo (p. ej. JSON-2 en Odoo >= 19). Por defecto XML-RPC. */
@@ -230,6 +232,31 @@ export function validarUrl(raw: string): string {
     throw new OdooError("odoo_config", "ODOO_URL debe usar https.");
   }
   return raw.replace(/\/+$/, "");
+}
+
+// ── DS-02: guardia de host de escritura ────────────────────────────────────
+// Una ESCRITURA solo sale hacia un host de `ODOO_HOSTS_ESCRITURA` (lista separada
+// por comas, secret del servidor; nunca va escrita en el repo). Sin la variable no
+// se escribe a ningún host (falla cerrado). Si el host además está en
+// `ODOO_HOSTS_PROD`, exige `ODOO_PERMITIR_PROD=true` (OK explícito de Xaviel).
+// Las lecturas no pasan por aquí: leer del Odoo real sigue permitido.
+type LeerEnv = (k: string) => string | undefined;
+const envDeno: LeerEnv = (k) => {
+  try { return Deno.env.get(k); } catch { return undefined; }
+};
+const listaHosts = (v: string | undefined) =>
+  (v ?? "").split(",").map((h) => h.trim().toLowerCase()).filter(Boolean);
+
+export function verificarHostEscritura(url: string, env: LeerEnv = envDeno): void {
+  let host: string;
+  try { host = new URL(url).host.toLowerCase(); } catch { throw new OdooError("odoo_config", "ODOO_URL no es una URL válida."); }
+  const permitidos = listaHosts(env("ODOO_HOSTS_ESCRITURA"));
+  if (!permitidos.includes(host)) {
+    throw new OdooError("odoo_config", "Escritura bloqueada: el servidor Odoo configurado no está autorizado para escritura.");
+  }
+  if (listaHosts(env("ODOO_HOSTS_PROD")).includes(host) && env("ODOO_PERMITIR_PROD") !== "true") {
+    throw new OdooError("odoo_config", "Escritura bloqueada: el Odoo de producción exige autorización explícita.");
+  }
 }
 
 export function configDesdeEntorno(): OdooConfig {
@@ -332,6 +359,7 @@ export class TransporteXmlRpc implements TransporteOdoo {
    * Un fault de Odoo (fault=true) es un rechazo cierto.
    */
   private async escribir(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue>): Promise<XmlRpcValue> {
+    verificarHostEscritura(this.cfg.url, this.cfg.entorno); // DS-02: antes de autenticar o enviar nada
     const uid = await this.autenticar(); // si falla aquí, todavía no se envió nada
     try {
       return await this.rpc("object", "execute_kw", [this.cfg.db, uid, this.cfg.apiKey, model, method, args, kwargs]);

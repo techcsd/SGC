@@ -25,7 +25,7 @@ function odooSimulado(responder: (c: Llamada) => Valor | { fault: string } | Pro
     if (r && typeof r === "object" && "fault" in r) return new Response(fault((r as { fault: string }).fault), { status: 200 });
     return new Response(respuesta(r), { status: 200 });
   }) as typeof fetch;
-  const cliente = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn });
+  const cliente = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn });
   return { cliente, llamadas, adaptadores: crearAdaptadoresOcReales(() => cliente) };
 }
 
@@ -178,7 +178,7 @@ Deno.test("escritura: timeout -> OdooError odoo_timeout y UN solo intento (sin r
     envios++;
     return await new Promise<Response>((_, rej) => init?.signal?.addEventListener("abort", () => rej(new DOMException("abort", "AbortError"))));
   }) as typeof fetch;
-  const c = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn, timeoutMs: 20 });
+  const c = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn, timeoutMs: 20 });
   const e = await c.call("purchase.order", "create", [{ partner_id: 1 }]).catch((x) => x);
   assert(e instanceof OdooError);
   assertEquals(e.codigo, "odoo_timeout");
@@ -189,7 +189,7 @@ Deno.test("escritura: caída (red) y respuesta ilegible -> odoo_no_disponible, u
   let envios = 0;
   const mk = (resp: () => Promise<Response>) =>
     new OdooClient({
-      url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1,
+      url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined,
       fetchFn: (async (_u: unknown, init?: RequestInit) => {
         if (String(init?.body).includes("authenticate")) return new Response(respuesta(7));
         envios++;
@@ -239,7 +239,7 @@ Deno.test("política inyectada: la escritura se detecta por la política, no por
   }) as typeof fetch;
   // "refrescar_x" declarado como escritura: ilegible => odoo_no_disponible (trato de escritura); como lectura sería odoo_error.
   const c = new OdooClient({
-    url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn,
+    url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn,
     politica: { lectura: { "m": ["leer"] }, escritura: { "m": ["refrescar_x"] } },
   });
   assertEquals((await c.call("m", "refrescar_x", []).catch((x) => x)).codigo, "odoo_no_disponible");
@@ -250,7 +250,7 @@ Deno.test("política inyectada: la escritura se detecta por la política, no por
 Deno.test("transporte inyectable: OdooClient delega en TransporteOdoo (listo para JSON-2)", async () => {
   const vistas: unknown[][] = [];
   const c = new OdooClient({
-    url: "https://x", db: "d", user: "u", apiKey: "k", companyId: 1,
+    url: "https://x", db: "d", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined,
     transporte: { call: (...a) => { vistas.push(a); return Promise.resolve(42); }, version: () => Promise.resolve({ server_version: "17.0" }) },
   });
   assertEquals(await c.call("purchase.order", "button_cancel", [[3]]), 42);
