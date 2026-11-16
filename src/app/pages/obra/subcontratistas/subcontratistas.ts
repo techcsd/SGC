@@ -14,11 +14,12 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tab = 'subcontratistas' | 'cubicaciones';
 
 @Component({
   selector: 'app-obra-subcontratistas',
-  imports: [ReactiveFormsModule, DecimalPipe, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, DecimalPipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './subcontratistas.html',
   styleUrl: './subcontratistas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

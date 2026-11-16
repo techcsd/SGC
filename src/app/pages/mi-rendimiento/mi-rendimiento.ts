@@ -4,11 +4,12 @@ import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 // AT2 — "Mi rendimiento": el chofer ve SOLO su propio puntaje semanal e histórico
 // (no ve el módulo Incentivos). La RLS garantiza que solo llegan sus filas.
 @Component({
   selector: 'app-mi-rendimiento',
-  imports: [Skeleton, Icon],
+  imports: [Skeleton, Icon, TranslatePipe],
   templateUrl: './mi-rendimiento.html',
   styleUrl: './mi-rendimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

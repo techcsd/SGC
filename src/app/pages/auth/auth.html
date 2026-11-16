@@ -5,7 +5,7 @@
     <div class="auth-brand">
       <img
         ngSrc="/assets/imgs/logos/csd-logo-simbolo.svg"
-        alt="CSD Logo"
+        alt="{{ 'CSD Logo' | t }}"
         width="72"
         height="72"
         priority
@@ -21,7 +21,7 @@
 
     @if (!forgotMode()) {
       <!-- P5 — selector de modo de acceso -->
-      <div class="auth-mode" role="tablist" aria-label="Tipo de acceso">
+      <div class="auth-mode" role="tablist" aria-label="{{ 'Tipo de acceso' | t }}">
         <button
           type="button"
           class="auth-mode__tab"
@@ -61,7 +61,7 @@
             [class.invalid]="cedula.invalid && cedula.touched"
           />
           @if (cedula.invalid && cedula.touched) {
-            <span class="field-error">La cédula es obligatoria.</span>
+            <span class="field-error">{{ 'La cédula es obligatoria.' | t }}</span>
           }
         </div>
 
@@ -74,7 +74,7 @@
               inputmode="numeric"
               maxlength="6"
               formControlName="pin"
-              placeholder="6 dígitos"
+              placeholder="{{ '6 dígitos' | t }}"
               autocomplete="current-password"
               [class.invalid]="pin.invalid && pin.touched"
             />
@@ -138,7 +138,7 @@
             id="email"
             type="email"
             formControlName="email"
-            placeholder="usuario@constructorasd.com"
+            placeholder="{{ 'usuario@constructorasd.com' | t }}"
             autocomplete="email"
             [class.invalid]="email.invalid && email.touched"
           />
@@ -184,7 +184,7 @@
             </button>
           </div>
           @if (password.invalid && password.touched) {
-            <span class="field-error">La contraseña es obligatoria.</span>
+            <span class="field-error">{{ 'La contraseña es obligatoria.' | t }}</span>
           }
         </div>
 
@@ -225,19 +225,19 @@
         </div>
         <button type="button" class="auth-submit" (click)="closeForgot()">{{ 'Volver a iniciar sesión' | t }}</button>
       } @else {
-        <p class="auth-intro">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+        <p class="auth-intro">{{ 'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.' | t }}</p>
         <div class="sgc-field">
-          <label for="forgot-email">Correo electrónico <span class="required">*</span></label>
+          <label for="forgot-email">{{ 'Correo electrónico' | t }} <span class="required">*</span></label>
           <input
             id="forgot-email"
             type="email"
             [formControl]="email"
-            placeholder="usuario@constructorasd.com"
+            placeholder="{{ 'usuario@constructorasd.com' | t }}"
             autocomplete="email"
             [class.invalid]="email.invalid && email.touched"
           />
           @if (email.invalid && email.touched) {
-            <span class="field-error">Ingresa un correo válido.</span>
+            <span class="field-error">{{ 'Ingresa un correo válido.' | t }}</span>
           }
         </div>
         <button
@@ -262,7 +262,7 @@
     @if (esDev && !forgotMode() && mode() === 'empleado') {
       <div class="auth-dev">
         <p class="auth-dev__hint">
-          <span class="auth-dev__tag">DEV</span>
+          <span class="auth-dev__tag">{{ 'DEV' | t }}</span>
           Entorno de desarrollo. El acceso está restringido a Tecnología.
         </p>
         @if (magicSent()) {
@@ -275,7 +275,7 @@
             @if (magicLoading()) { Enviando… } @else { Enviarme un enlace mágico }
           </button>
           <p class="auth-dev__hint auth-dev__hint--sm">
-            Escribe tu correo arriba. Choferes de prueba: entran por <strong>Con cédula</strong> (cédula + PIN).
+            Escribe tu correo arriba. Choferes de prueba: entran por <strong>{{ 'Con cédula' | t }}</strong> (cédula + PIN).
           </p>
         }
       </div>
@@ -283,16 +283,16 @@
 
     <p class="auth-footer">
       ¿Problemas para acceder? Contacta a
-      <a href="mailto:tecnologia@constructorasd.com">Tecnología CSD</a>
+      <a href="mailto:tecnologia@constructorasd.com">{{ 'Tecnología CSD' | t }}</a>
     </p>
 
     <!-- CI2/CI3 — enlaces legales públicos (requisito de tiendas). -->
     <p class="auth-footer auth-footer--legal">
-      <a href="/politicas/privacidad" target="_blank" rel="noopener">Privacidad</a>
+      <a href="/politicas/privacidad" target="_blank" rel="noopener">{{ 'Privacidad' | t }}</a>
       <span aria-hidden="true">·</span>
-      <a href="/politicas/terminos" target="_blank" rel="noopener">Términos</a>
+      <a href="/politicas/terminos" target="_blank" rel="noopener">{{ 'Términos' | t }}</a>
       <span aria-hidden="true">·</span>
-      <a href="/politicas/soporte" target="_blank" rel="noopener">Soporte</a>
+      <a href="/politicas/soporte" target="_blank" rel="noopener">{{ 'Soporte' | t }}</a>
     </p>
 
   </div>

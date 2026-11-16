@@ -14,6 +14,7 @@ import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../shared/utils/exportar-excel.util';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 /** BQ9 — grupo de incidencias del mismo tipo (para el masivo). */
 export interface IncidenciaGrupo {
   tipo: string;
@@ -31,7 +32,7 @@ export type IncDetalleState =
 
 @Component({
   selector: 'app-incentivos',
-  imports: [FormsModule, RouterLink, Skeleton],
+  imports: [FormsModule, RouterLink, Skeleton, TranslatePipe],
   templateUrl: './incentivos.html',
   styleUrl: './incentivos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

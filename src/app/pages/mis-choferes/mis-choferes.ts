@@ -4,6 +4,7 @@ import { TrabajosTransporteService, ChoferPanel } from '../../../shared/services
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaRelativa } from '../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 const ESTADO_LABEL: Record<string, string> = {
   en_ruta: 'En ruta', disponible: 'Disponible', descanso: 'Descanso',
   almuerzo: 'Almuerzo', inactivo: 'Inactivo', otros: 'Otros', sin_estado: 'Sin estado',
@@ -11,7 +12,7 @@ const ESTADO_LABEL: Record<string, string> = {
 
 @Component({
   selector: 'app-mis-choferes',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './mis-choferes.html',
   styleUrl: './mis-choferes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

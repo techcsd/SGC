@@ -5,6 +5,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /**
  * CI4 — Página PÚBLICA (sin login) para solicitar la eliminación de cuenta, para
  * quien ya no tiene acceso a la app. Renderiza eliminar-cuenta.md + un formulario
@@ -12,7 +13,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
  */
 @Component({
   selector: 'app-eliminar-cuenta',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './eliminar-cuenta.html',
   styleUrl: '../politicas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

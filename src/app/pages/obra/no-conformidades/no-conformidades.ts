@@ -17,11 +17,12 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tab = 'nc' | 'incidentes';
 
 @Component({
   selector: 'app-obra-no-conformidades',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Lightbox, Skeleton, Icon],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Lightbox, Skeleton, Icon, TranslatePipe],
   templateUrl: './no-conformidades.html',
   styleUrl: './no-conformidades.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

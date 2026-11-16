@@ -14,6 +14,7 @@ import { AlertaCuadre, AlertaEstado, ALERTA_SEVERIDADES } from '../../../shared/
 import { todayIso, daysFromNowIso, formatTimestampDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 interface Alerta {
   icono: IconName;
   texto: string;
@@ -24,7 +25,7 @@ interface Alerta {
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

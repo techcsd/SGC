@@ -15,13 +15,14 @@ import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tab = 'ejecutar' | 'plantillas';
 interface Respuesta { cumple: ChecklistCumple; comentario: string; }
 interface Hallazgo { etiqueta: string; comentario: string; ncCreada: boolean; }
 
 @Component({
   selector: 'app-obra-checklists',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon, TranslatePipe],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

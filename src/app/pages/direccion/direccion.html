@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Panel de Gerencia</h1>
-    <span class="page-count">Vista ejecutiva del negocio</span>
+    <h1 class="page-title">{{ 'Panel de Gerencia' | t }}</h1>
+    <span class="page-count">{{ 'Vista ejecutiva del negocio' | t }}</span>
   </div>
 </div>
 
@@ -16,33 +16,33 @@
   <!-- Q3 — métricas clicables hacia su listado de origen -->
   <div class="kpi-grid">
     <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/proyectos" [queryParams]="{ estado: 'en_progreso' }">
-      <span class="kpi-label">Proyectos activos</span>
+      <span class="kpi-label">{{ 'Proyectos activos' | t }}</span>
       <span class="kpi-value">{{ proyectosActivos() }}</span>
     </a>
     <a class="kpi-card kpi-card--success kpi-card--link" routerLink="/rrhh/empleados">
-      <span class="kpi-label">Empleados activos</span>
+      <span class="kpi-label">{{ 'Empleados activos' | t }}</span>
       <span class="kpi-value">{{ empleadosActivos() }}</span>
     </a>
     <a class="kpi-card kpi-card--link" [class.kpi-card--danger]="incidentesTotal() > 0" [class.kpi-card--success]="incidentesTotal() === 0"
        routerLink="/bitacora/historial" [queryParams]="{ tipo: 'incidente' }">
-      <span class="kpi-label">Incidentes (90 días)</span>
+      <span class="kpi-label">{{ 'Incidentes (90 días)' | t }}</span>
       <span class="kpi-value">{{ incidentesTotal() }}</span>
     </a>
     <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/legal/expedientes">
-      <span class="kpi-label">Expedientes legales abiertos</span>
+      <span class="kpi-label">{{ 'Expedientes legales abiertos' | t }}</span>
       <span class="kpi-value">{{ expedientesAbiertos() }}</span>
     </a>
     <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/proyectos">
-      <span class="kpi-label">Presupuesto total (activos)</span>
+      <span class="kpi-label">{{ 'Presupuesto total (activos)' | t }}</span>
       <span class="kpi-value">RD$ {{ presupuestoTotal() | number:'1.0-0' }}</span>
     </a>
     <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/compras/ordenes">
-      <span class="kpi-label">Gasto en compras (activos)</span>
+      <span class="kpi-label">{{ 'Gasto en compras (activos)' | t }}</span>
       <span class="kpi-value">RD$ {{ gastoTotal() | number:'1.0-0' }}</span>
     </a>
     <a class="kpi-card kpi-card--link" [class.kpi-card--danger]="tareasVencidas() > 0" [class.kpi-card--success]="tareasVencidas() === 0"
        routerLink="/tareas/gestion">
-      <span class="kpi-label">Tareas vencidas</span>
+      <span class="kpi-label">{{ 'Tareas vencidas' | t }}</span>
       <span class="kpi-value">{{ tareasVencidas() }}</span>
     </a>
   </div>
@@ -50,7 +50,7 @@
   <!-- Alertas que requieren atención -->
   @if (alertas().length > 0) {
     <section class="direccion-alertas sgc-card">
-      <h3 class="direccion-alertas__title">Requiere atención</h3>
+      <h3 class="direccion-alertas__title">{{ 'Requiere atención' | t }}</h3>
       <div class="direccion-alertas__list">
         @for (a of alertas(); track a.texto) {
           <a class="alerta" [class]="alertaClass(a.nivel)" [routerLink]="a.ruta">
@@ -74,15 +74,15 @@
               <span class="sgc-badge" [class]="'sgc-badge--' + ALERTA_SEV[a.severidad].badge">{{ ALERTA_SEV[a.severidad].label }}</span>
               <span class="control-alerta__proyecto">{{ a.proyecto?.nombre ?? a.bodega?.nombre ?? '—' }}</span>
               @if (a.fase) { <span class="control-alerta__fase">Fase {{ a.fase }}</span> }
-              @if (a.tipo === 'chequeo_diferencia') { <span class="control-alerta__fase">Chequeo</span> }
-              @if (a.estado === 'en_revision') { <span class="sgc-badge sgc-badge--warning">En revisión</span> }
+              @if (a.tipo === 'chequeo_diferencia') { <span class="control-alerta__fase">{{ 'Chequeo' | t }}</span> }
+              @if (a.estado === 'en_revision') { <span class="sgc-badge sgc-badge--warning">{{ 'En revisión' | t }}</span> }
             </div>
             <p class="control-alerta__msg">{{ a.mensaje }}</p>
             <div class="control-alerta__actions">
               @if (a.estado === 'nueva') {
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="atenderAlerta(a, 'en_revision')">Marcar en revisión</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="atenderAlerta(a, 'en_revision')">{{ 'Marcar en revisión' | t }}</button>
               }
-              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="atenderAlerta(a, 'resuelta')">Resolver</button>
+              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="atenderAlerta(a, 'resuelta')">{{ 'Resolver' | t }}</button>
             </div>
           </div>
         }

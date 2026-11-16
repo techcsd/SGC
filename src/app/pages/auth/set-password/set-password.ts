@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 // Lands here from an invite or password-recovery email link. Supabase's JS
 // client parses the access/refresh tokens out of the URL hash on load
 // (detectSessionInUrl, on by default) and turns them into a real session —
@@ -13,7 +14,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 // waits for that session to appear before letting the user set a password.
 @Component({
   selector: 'app-set-password',
-  imports: [ReactiveFormsModule, NgOptimizedImage, RouterLink],
+  imports: [ReactiveFormsModule, NgOptimizedImage, RouterLink, TranslatePipe],
   templateUrl: './set-password.html',
   styleUrl: './set-password.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -61,20 +61,20 @@
                     <option value="">— Elige un material —</option>
                     @for (a of c.opciones; track trackOpcion($index, a)) { <option [value]="a.id">{{ a.nombre }} (stock {{ a.stock }})</option> }
                   </select>
-                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarMaterial(c)">+ Agregar</button>
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarMaterial(c)">{{ '+ Agregar' | t }}</button>
                 </div>
                 @for (it of materialesDe(c.id); track it.id) {
                   <div class="pr-item">
                     <span class="pr-item__n">{{ it.nombre }}</span>
                     <input class="sgc-input pr-item__q" type="number" min="0" [value]="it.cantidad" (input)="setCantidadMat(c.id, it.id, $any($event.target).value)" />
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarMaterial(c.id, it.id)">Quitar</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarMaterial(c.id, it.id)">{{ 'Quitar' | t }}</button>
                   </div>
                 }
               }
               @case ('conteo') {
                 <div class="pr-conteo">
                   <div class="pr-conteo__head">
-                    <span>Material</span><span>Sistema</span><span>Contado</span>
+                    <span>{{ 'Material' | t }}</span><span>{{ 'Sistema' | t }}</span><span>{{ 'Contado' | t }}</span>
                   </div>
                   @for (it of conteoDe(c.id); track it.id) {
                     <div class="pr-conteo__row">
@@ -130,7 +130,7 @@
       <div class="pr-ring" [class.pr-ring--ok]="r.aprobada" [style.--pct]="r.nota">
         <span class="pr-ring__num">{{ r.nota }}</span>
       </div>
-      <div class="pr-stars" aria-label="estrellas">
+      <div class="pr-stars" aria-label="{{ 'estrellas' | t }}">
         @for (on of estrellasArr(r.estrellas); track $index) {
           <svg viewBox="0 0 24 24" [class.pr-star--on]="on" class="pr-star" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
         }

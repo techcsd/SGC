@@ -3,21 +3,21 @@
   <!-- Page header -->
   <div class="soporte__header">
     <div>
-      <h1>Soporte y Comentarios</h1>
-      <p>Reporta un error, envía una sugerencia o déjanos un comentario sobre el sistema.</p>
+      <h1>{{ 'Soporte y Comentarios' | t }}</h1>
+      <p>{{ 'Reporta un error, envía una sugerencia o déjanos un comentario sobre el sistema.' | t }}</p>
     </div>
   </div>
 
   <!-- Ayuda rápida / novedades -->
   <section class="soporte__ayuda">
-    <button type="button" class="soporte__guia" (click)="verGuia()">▶ Ver la guía de bienvenida</button>
-    <p class="soporte__ayuda-titulo">¿Dudas de cómo usar algo?</p>
+    <button type="button" class="soporte__guia" (click)="verGuia()">{{ '▶ Ver la guía de bienvenida' | t }}</button>
+    <p class="soporte__ayuda-titulo">{{ '¿Dudas de cómo usar algo?' | t }}</p>
     <p class="soporte__ayuda-texto">
-      Antes de reportar, revisa <a routerLink="/dudas">Dudas</a> — ahí explicamos cada módulo y
-      qué puede hacer cada rol. Novedades recientes: <strong>Tareas</strong> (asignar y dar seguimiento),
-      <strong>Mensajería</strong> interna en tiempo real, <strong>Legal</strong> (expedientes, contratos y aprobaciones),
-      <strong>Ausencias y vacaciones</strong> en RRHH, <strong>Ranking de Encargados</strong> e <strong>Historial</strong> en Proyectos,
-      el <strong>Panel de Dirección</strong>, avisos emergentes de notificaciones y tu <a routerLink="/perfil">perfil</a> con foto.
+      Antes de reportar, revisa <a routerLink="/dudas">{{ 'Dudas' | t }}</a> — ahí explicamos cada módulo y
+      qué puede hacer cada rol. Novedades recientes: <strong>{{ 'Tareas' | t }}</strong> (asignar y dar seguimiento),
+      <strong>{{ 'Mensajería' | t }}</strong> {{ 'interna en tiempo real,' | t }} <strong>{{ 'Legal' | t }}</strong> (expedientes, contratos y aprobaciones),
+      <strong>{{ 'Ausencias y vacaciones' | t }}</strong> {{ 'en RRHH,' | t }} <strong>{{ 'Ranking de Encargados' | t }}</strong> e <strong>{{ 'Historial' | t }}</strong> en Proyectos,
+      el <strong>{{ 'Panel de Dirección' | t }}</strong>{{ ', avisos emergentes de notificaciones y tu' | t }} <a routerLink="/perfil">{{ 'perfil' | t }}</a> con foto.
     </p>
   </section>
 
@@ -27,11 +27,11 @@
       <div class="soporte__dash-tiles">
         <div class="soporte__dash-tile">
           <span class="soporte__dash-num">{{ total() }}</span>
-          <span class="soporte__dash-lbl">Reportes enviados</span>
+          <span class="soporte__dash-lbl">{{ 'Reportes enviados' | t }}</span>
         </div>
         <div class="soporte__dash-tile">
           <span class="soporte__dash-num">{{ resueltos() }}</span>
-          <span class="soporte__dash-lbl">Resueltos</span>
+          <span class="soporte__dash-lbl">{{ 'Resueltos' | t }}</span>
         </div>
       </div>
       <div class="soporte__dash-charts">
@@ -50,7 +50,7 @@
     <form [formGroup]="form" (ngSubmit)="onSave()" (paste)="onPaste($event)" novalidate>
 
       <div class="sgc-field">
-        <label for="tipo">Tipo</label>
+        <label for="tipo">{{ 'Tipo' | t }}</label>
         <select id="tipo" formControlName="tipo">
           @for (t of TIPOS; track t) {
             <option [value]="t">{{ TIPO_LABELS[t] }}</option>
@@ -59,45 +59,45 @@
       </div>
 
       <div class="sgc-field">
-        <label for="asunto">Asunto <span class="required" aria-hidden="true">*</span></label>
+        <label for="asunto">{{ 'Asunto' | t }} <span class="required" aria-hidden="true">*</span></label>
         <input
           id="asunto"
           type="text"
           formControlName="asunto"
           [class.invalid]="f.asunto.invalid && f.asunto.touched"
-          placeholder="Resumen breve"
+          placeholder="{{ 'Resumen breve' | t }}"
           aria-required="true"
         />
         @if (f.asunto.invalid && f.asunto.touched) {
-          <span class="field-error" role="alert">El asunto es requerido.</span>
+          <span class="field-error" role="alert">{{ 'El asunto es requerido.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="descripcion">Descripción <span class="required" aria-hidden="true">*</span></label>
+        <label for="descripcion">{{ 'Descripción' | t }} <span class="required" aria-hidden="true">*</span></label>
         <textarea
           id="descripcion"
           rows="4"
           formControlName="descripcion"
           [class.invalid]="f.descripcion.invalid && f.descripcion.touched"
-          placeholder="Cuéntanos con detalle qué pasó o qué sugieres..."
+          placeholder="{{ 'Cuéntanos con detalle qué pasó o qué sugieres...' | t }}"
           aria-required="true"
         ></textarea>
         @if (f.descripcion.invalid && f.descripcion.touched) {
-          <span class="field-error" role="alert">La descripción es requerida.</span>
+          <span class="field-error" role="alert">{{ 'La descripción es requerida.' | t }}</span>
         }
       </div>
 
       <!-- Fotos adjuntas (opcional) — paridad con la app de campo. CS2 — también se
            pueden pegar (Ctrl+V) desde cualquier parte del formulario o arrastrar aquí. -->
       <div class="sgc-field">
-        <label>Fotos (opcional)</label>
+        <label>{{ 'Fotos (opcional)' | t }}</label>
         <div class="soporte__fotos soporte__fotos--drop" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
           @for (foto of fotos(); track foto.preview) {
             <div class="soporte__foto">
-              <img [src]="foto.preview" alt="Foto adjunta" />
+              <img [src]="foto.preview" alt="{{ 'Foto adjunta' | t }}" />
               <button type="button" class="soporte__foto-quitar" (click)="quitarFoto($index)"
-                aria-label="Quitar foto"><app-icon name="x" [size]="16" /></button>
+                aria-label="{{ 'Quitar foto' | t }}"><app-icon name="x" [size]="16" /></button>
             </div>
           }
           <label class="soporte__foto-add">
@@ -112,7 +112,7 @@
         <p class="soporte__save-error" role="alert">{{ saveError() }}</p>
       }
       @if (sent()) {
-        <p class="soporte__sent" role="status">¡Gracias! Tu reporte fue enviado.</p>
+        <p class="soporte__sent" role="status">{{ '¡Gracias! Tu reporte fue enviado.' | t }}</p>
       }
 
       <div class="soporte__form-actions">
@@ -126,14 +126,14 @@
 
   <!-- History -->
   <section class="soporte__history">
-    <h2>Mis reportes</h2>
+    <h2>{{ 'Mis reportes' | t }}</h2>
 
     @if (loading()) {
       <app-skeleton variant="list" />
     } @else if (error()) {
       <p class="soporte__save-error" role="alert">{{ error() }}</p>
     } @else if (reportes().length === 0) {
-      <p class="soporte__empty">Aún no has enviado ningún reporte.</p>
+      <p class="soporte__empty">{{ 'Aún no has enviado ningún reporte.' | t }}</p>
     } @else {
       <ul class="soporte__list">
         @for (r of reportes(); track r.id) {
@@ -153,7 +153,7 @@
             <p class="soporte__item-desc">{{ r.descripcion }}</p>
             @if (r.respuesta_admin) {
               <div class="soporte__item-respuesta">
-                <strong>Respuesta del equipo:</strong>
+                <strong>{{ 'Respuesta del equipo:' | t }}</strong>
                 <p>{{ r.respuesta_admin }}</p>
               </div>
             }

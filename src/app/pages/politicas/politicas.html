@@ -23,24 +23,24 @@
     </header>
 
     @if (loading()) {
-      <p class="pol__msg">Cargando…</p>
+      <p class="pol__msg">{{ 'Cargando…' | t }}</p>
     } @else if (notFound()) {
       <p class="pol__msg">Este documento no existe. Visita
-        <a href="/politicas/privacidad">privacidad</a>,
-        <a href="/politicas/terminos">términos</a> o
-        <a href="/politicas/soporte">soporte</a>.</p>
+        <a href="/politicas/privacidad">{{ 'privacidad' | t }}</a>,
+        <a href="/politicas/terminos">{{ 'términos' | t }}</a> o
+        <a href="/politicas/soporte">{{ 'soporte' | t }}</a>.</p>
     } @else {
       <article class="pol__body" [innerHTML]="html()"></article>
       <div class="pol__acciones">
-        <button type="button" class="pol__print" (click)="imprimir()">Imprimir</button>
+        <button type="button" class="pol__print" (click)="imprimir()">{{ 'Imprimir' | t }}</button>
       </div>
     }
 
     <footer class="pol__pie">
       <nav class="pol__links">
-        <a href="/politicas/privacidad">Privacidad</a>
-        <a href="/politicas/terminos">Términos</a>
-        <a href="/politicas/soporte">Soporte</a>
+        <a href="/politicas/privacidad">{{ 'Privacidad' | t }}</a>
+        <a href="/politicas/terminos">{{ 'Términos' | t }}</a>
+        <a href="/politicas/soporte">{{ 'Soporte' | t }}</a>
       </nav>
       <p>&copy; Constructora SD · <a href="https://sgcconstructorasd.com">sgcconstructorasd.com</a></p>
     </footer>

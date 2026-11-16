@@ -1,73 +1,70 @@
 {
   "_doc": "DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).",
   "pantallas": {
-    "auth/set-password": {
-      "enforce": false
-    },
-    "direccion": {
-      "enforce": false
-    },
-    "dudas": {
-      "enforce": false
-    },
     "forbidden": {
-      "enforce": false
-    },
-    "incentivos": {
-      "enforce": false
-    },
-    "mi-rendimiento": {
-      "enforce": false
-    },
-    "mis-choferes": {
-      "enforce": false
-    },
-    "obra/avance": {
-      "enforce": false
-    },
-    "obra/checklists": {
-      "enforce": false
-    },
-    "obra/informes": {
-      "enforce": false
-    },
-    "obra/no-conformidades": {
-      "enforce": false
-    },
-    "obra/plan-dia": {
-      "enforce": false
-    },
-    "obra/subcontratistas": {
-      "enforce": false
-    },
-    "politicas/eliminar-cuenta": {
       "enforce": false
     },
     "politicas": {
       "enforce": false
     },
+    "obra/plan-dia": {
+      "enforce": false
+    },
+    "auth/set-password": {
+      "enforce": false
+    },
+    "incentivos": {
+      "enforce": false
+    },
+    "obra/no-conformidades": {
+      "enforce": false
+    },
+    "mis-choferes": {
+      "enforce": false
+    },
+    "politicas/eliminar-cuenta": {
+      "enforce": false
+    },
     "verificar": {
       "enforce": false
     },
-    "soporte": {
-      "enforce": false
-    },
-    "app-movil": {
+    "obra/checklists": {
       "enforce": false
     },
     "auth": {
       "enforce": false
     },
+    "mi-rendimiento": {
+      "enforce": false
+    },
+    "obra/subcontratistas": {
+      "enforce": false
+    },
+    "dudas": {
+      "enforce": false
+    },
+    "obra/informes": {
+      "enforce": false
+    },
+    "obra/avance": {
+      "enforce": false
+    },
+    "soporte": {
+      "enforce": false
+    },
+    "direccion": {
+      "enforce": false
+    },
     "practica": {
       "enforce": false
     },
-    "asistente": {
+    "app-movil": {
       "enforce": false
     },
     "borrador-claude": {
       "enforce": false
     },
-    "oauth-consent": {
+    "asistente": {
       "enforce": false
     },
     "admin/almacenes-duplicados": {
@@ -420,6 +417,9 @@
     },
     "notas": {
       "enforce": true
+    },
+    "oauth-consent": {
+      "enforce": false
     },
     "perfil": {
       "enforce": true

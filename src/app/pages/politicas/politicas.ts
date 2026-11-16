@@ -4,6 +4,7 @@ import { Title, Meta } from '@angular/platform-browser';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 /** CI2 — Documento legal público (markdown). Front-matter mínimo. */
 interface DocMeta {
   titulo: string;
@@ -35,7 +36,7 @@ const DOCS: Record<string, { file: string; desc: string }> = {
  */
 @Component({
   selector: 'app-politicas',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './politicas.html',
   styleUrl: './politicas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

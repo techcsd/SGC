@@ -8,6 +8,7 @@ import { VideoTeatro } from '../../../shared/ui/video-teatro/video-teatro';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { DudaCategoria, GuiaVisual } from './dudas-content';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 interface VideoActivo { video: string; vtt: string | null; poster: string | null; titulo: string; slug: string; }
 
 /** CK5 — URLs firmadas del video de una guía (bucket privado `tutoriales`). */
@@ -18,7 +19,7 @@ export interface GuiaVideoUrls { video: string; poster: string | null; vtt: stri
 // origen de los tipos.
 @Component({
   selector: 'app-dudas',
-  imports: [RouterLink, VideoTeatro, Skeleton],
+  imports: [RouterLink, VideoTeatro, Skeleton, TranslatePipe],
   templateUrl: './dudas.html',
   styleUrl: './dudas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

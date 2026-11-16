@@ -15,11 +15,12 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tab = 'avance' | 'costos' | 'logistica';
 
 @Component({
   selector: 'app-obra-avance',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, DecimalPipe, FormDrawer, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, DecimalPipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './avance.html',
   styleUrl: './avance.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

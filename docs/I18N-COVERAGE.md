@@ -3,33 +3,32 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 92%** (9265/10110 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9774/10017 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| auth/set-password | scope | 13 | 0 | 13 | 0% |
-| direccion | scope | 16 | 0 | 16 | 0% |
-| dudas | scope | 15 | 0 | 15 | 0% |
-| forbidden | scope | 4 | 0 | 4 | 0% |
-| incentivos | scope | 184 | 0 | 184 | 0% |
-| mi-rendimiento | scope | 17 | 0 | 17 | 0% |
-| mis-choferes | scope | 9 | 0 | 9 | 0% |
-| obra/avance | scope | 85 | 0 | 85 | 0% |
-| obra/checklists | scope | 57 | 0 | 57 | 0% |
-| obra/informes | scope | 49 | 0 | 49 | 0% |
-| obra/no-conformidades | scope | 117 | 0 | 117 | 0% |
-| obra/plan-dia | scope | 44 | 0 | 44 | 0% |
-| obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
-| politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
-| politicas | scope | 15 | 0 | 15 | 0% |
-| verificar | scope | 9 | 0 | 9 | 0% |
-| soporte | scope | 39 | 1 | 38 | 3% |
-| app-movil | scope | 42 | 8 | 34 | 19% |
-| auth | scope | 42 | 15 | 27 | 36% |
-| practica | scope | 34 | 24 | 10 | 71% |
-| asistente | scope | 36 | 33 | 3 | 92% |
+| forbidden | scope | 4 | 2 | 2 | 50% |
+| politicas | scope | 15 | 8 | 7 | 53% |
+| obra/plan-dia | scope | 37 | 20 | 17 | 54% |
+| auth/set-password | scope | 12 | 7 | 5 | 58% |
+| incentivos | scope | 172 | 100 | 72 | 58% |
+| obra/no-conformidades | scope | 95 | 61 | 34 | 64% |
+| mis-choferes | scope | 9 | 6 | 3 | 67% |
+| politicas/eliminar-cuenta | scope | 9 | 6 | 3 | 67% |
+| verificar | scope | 9 | 6 | 3 | 67% |
+| obra/checklists | scope | 48 | 33 | 15 | 69% |
+| auth | scope | 37 | 26 | 11 | 70% |
+| mi-rendimiento | scope | 17 | 12 | 5 | 71% |
+| obra/subcontratistas | scope | 75 | 56 | 19 | 75% |
+| dudas | scope | 13 | 10 | 3 | 77% |
+| obra/informes | scope | 47 | 37 | 10 | 79% |
+| obra/avance | scope | 77 | 63 | 14 | 82% |
+| soporte | scope | 35 | 29 | 6 | 83% |
+| direccion | scope | 16 | 14 | 2 | 88% |
+| practica | scope | 33 | 29 | 4 | 88% |
+| app-movil | scope | 35 | 31 | 4 | 89% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
-| oauth-consent | scope | 19 | 18 | 1 | 95% |
+| asistente | scope | 35 | 33 | 2 | 94% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
@@ -147,6 +146,7 @@
 | mensajes | enforce | 34 | 34 | 0 | 100% |
 | notas/editor | enforce | 32 | 32 | 0 | 100% |
 | notas | enforce | 37 | 37 | 0 | 100% |
+| oauth-consent | scope | 19 | 19 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |

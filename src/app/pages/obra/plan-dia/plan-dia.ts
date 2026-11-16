@@ -14,6 +14,7 @@ import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface BrigadaGrupo {
   brigada: string;
   tareas: PlanTarea[];
@@ -21,7 +22,7 @@ interface BrigadaGrupo {
 
 @Component({
   selector: 'app-obra-plan-dia',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon, TranslatePipe],
   templateUrl: './plan-dia.html',
   styleUrl: './plan-dia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

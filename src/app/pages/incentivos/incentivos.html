@@ -1,8 +1,8 @@
 <div class="incentivos">
   <header class="incentivos__head">
     <div>
-      <h1 class="incentivos__title">Incentivos — Choferes</h1>
-      <p class="incentivos__sub">Informe semanal de desempeño. Aprobar o declinar es una decisión humana que queda registrada — el informe no paga solo.</p>
+      <h1 class="incentivos__title">{{ 'Incentivos — Choferes' | t }}</h1>
+      <p class="incentivos__sub">{{ 'Informe semanal de desempeño. Aprobar o declinar es una decisión humana que queda registrada — el informe no paga solo.' | t }}</p>
     </div>
     <div class="incentivos__head-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDestinatarios()">
@@ -27,10 +27,10 @@
   <!-- BF5 — Gestionar participantes del Desempeño (flag participa_incentivo, auditado) -->
   @if (mostrarParticipantes()) {
     <section class="inc-config">
-      <h2 class="inc-config__title">Participantes del Desempeño</h2>
+      <h2 class="inc-config__title">{{ 'Participantes del Desempeño' | t }}</h2>
       <p class="inc-config__hint">
         Quién aparece en el Desempeño, el correo, el PDF y las herramientas de Compa. Puedes
-        <strong>agregar a cualquier persona</strong> (no solo choferes) y marcar quién <strong>es chofer</strong>
+        <strong>{{ 'agregar a cualquier persona' | t }}</strong> {{ '(no solo choferes) y marcar quién' | t }} <strong>{{ 'es chofer' | t }}</strong>
         para el incentivo — marcar "chofer" NO otorga el rol, solo lo declara aquí. Apaga a alguien
         para sacarlo sin borrar su historial pagado. Cada cambio queda auditado. Recalcula o reenvía
         el informe para reflejarlo.
@@ -38,7 +38,7 @@
       @if (cargandoParticipantes()) {
         <app-skeleton [rows]="4" />
       } @else if (participantes().length === 0) {
-        <p class="inc-config__hint">No hay personas en el padrón todavía.</p>
+        <p class="inc-config__hint">{{ 'No hay personas en el padrón todavía.' | t }}</p>
       } @else {
         <ul class="inc-part">
           @for (p of participantes(); track p.usuario_id) {
@@ -50,18 +50,18 @@
                 <span class="inc-part__nombre">{{ p.nombre }}</span>
               </label>
               <span class="inc-part__badges">
-                @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                 <button type="button"
                         class="sgc-badge"
                         [class.sgc-badge--success]="p.es_chofer"
                         [class.sgc-badge--warning]="!p.es_chofer"
                         [disabled]="participanteBusy() === p.usuario_id"
                         (click)="toggleEsChofer(p)"
-                        title="Marcar si es chofer para el incentivo (no otorga el rol)">
+                        title="{{ 'Marcar si es chofer para el incentivo (no otorga el rol)' | t }}">
                   {{ p.es_chofer ? 'Chofer' : 'No chofer' }}
                 </button>
                 @if (p.ultimo_cambio_en) {
-                  <span class="inc-part__audit" title="Último cambio">
+                  <span class="inc-part__audit" title="{{ 'Último cambio' | t }}">
                     {{ formatFecha(p.ultimo_cambio_en) }}@if (p.ultimo_cambio_por) { · {{ p.ultimo_cambio_por }} }@if (p.ultimo_motivo) { · "{{ p.ultimo_motivo }}" }
                   </span>
                 }
@@ -74,22 +74,22 @@
       <!-- BK3 — Agregar persona (picker sobre usuarios) -->
       @if (mostrarAgregar()) {
         <div class="inc-part__add">
-          <input class="inc-input" type="search" placeholder="Buscar persona…"
+          <input class="inc-input" type="search" placeholder="{{ 'Buscar persona…' | t }}"
                  [ngModel]="candidatoBusqueda()" (ngModelChange)="candidatoBusqueda.set($event)" />
           <ul class="inc-part__addlist">
             @for (c of candidatosFiltrados(); track c.usuario_id) {
               <li><button type="button" [disabled]="participanteBusy() === c.usuario_id"
                           (click)="agregarPersona(c)">{{ c.nombre }}</button></li>
             } @empty {
-              <li class="inc-config__hint">Sin coincidencias.</li>
+              <li class="inc-config__hint">{{ 'Sin coincidencias.' | t }}</li>
             }
           </ul>
         </div>
       }
 
       <div class="inc-config__actions">
-        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirAgregar()">Agregar persona</button>
-        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleParticipantes()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirAgregar()">{{ 'Agregar persona' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleParticipantes()">{{ 'Cerrar' | t }}</button>
       </div>
     </section>
   }
@@ -97,10 +97,10 @@
   <!-- BK4 — Actividad diaria (lo que va en el correo informativo de las 8am) -->
   @if (mostrarDiario()) {
     <section class="inc-config">
-      <h2 class="inc-config__title">Actividad diaria</h2>
+      <h2 class="inc-config__title">{{ 'Actividad diaria' | t }}</h2>
       <p class="inc-config__hint">
         Actividad de choferes por día (reportes, inspecciones, echadas con foto, rutas y conduces).
-        Es el mismo contenido del correo informativo de las 8am. <strong>No es el puntaje de pago</strong>
+        Es el mismo contenido del correo informativo de las 8am. <strong>{{ 'No es el puntaje de pago' | t }}</strong>
         (ese se calcula por semana, los lunes).
       </p>
       <div class="inc-config__row">
@@ -111,15 +111,15 @@
       @if (cargandoDia()) {
         <app-skeleton [rows]="4" />
       } @else if (diaFilas().length === 0) {
-        <p class="inc-config__hint">Sin actividad de choferes ese día.</p>
+        <p class="inc-config__hint">{{ 'Sin actividad de choferes ese día.' | t }}</p>
       } @else {
         <div class="table-scroll">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Chofer</th>
+                <th>{{ 'Chofer' | t }}</th>
                 @for (r of diaRenglones; track r.key) { <th style="text-align:center;">{{ r.label }}</th> }
-                <th style="text-align:center;">Puntos</th>
+                <th style="text-align:center;">{{ 'Puntos' | t }}</th>
               </tr>
             </thead>
             <tbody>
@@ -138,23 +138,23 @@
       }
       <!-- BK4 — Destinatarios del correo diario (lista de usuarios, editable) -->
       <div class="inc-diario-dest">
-        <h3 class="inc-diario-dest__title">Quién recibe el correo diario</h3>
-        <p class="inc-config__hint">El informe de las 8am se envía a estas personas. Agrega o quita quien quieras.</p>
+        <h3 class="inc-diario-dest__title">{{ 'Quién recibe el correo diario' | t }}</h3>
+        <p class="inc-config__hint">{{ 'El informe de las 8am se envía a estas personas. Agrega o quita quien quieras.' | t }}</p>
         @if (diarioDest().length === 0) {
-          <p class="inc-config__hint">Nadie configurado — nadie recibirá el correo diario.</p>
+          <p class="inc-config__hint">{{ 'Nadie configurado — nadie recibirá el correo diario.' | t }}</p>
         } @else {
           <ul class="inc-part">
             @for (d of diarioDest(); track d.usuario_id) {
               <li class="inc-part__row">
                 <span class="inc-part__nombre">{{ d.nombre }} <span class="inc-part__audit">{{ d.email }}</span></span>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                        [disabled]="diarioBusy() === d.usuario_id" (click)="quitarDiarioDest(d)">Quitar</button>
+                        [disabled]="diarioBusy() === d.usuario_id" (click)="quitarDiarioDest(d)">{{ 'Quitar' | t }}</button>
               </li>
             }
           </ul>
         }
         <div class="inc-part__add">
-          <input class="inc-input" type="search" placeholder="Agregar persona…"
+          <input class="inc-input" type="search" placeholder="{{ 'Agregar persona…' | t }}"
                  [ngModel]="diarioBusqueda()" (ngModelChange)="diarioBusqueda.set($event)" />
           @if (diarioBusqueda()) {
             <ul class="inc-part__addlist">
@@ -162,7 +162,7 @@
                 <li><button type="button" [disabled]="diarioBusy() === u.id"
                             (click)="agregarDiarioDest(u)">{{ u.nombre }}</button></li>
               } @empty {
-                <li class="inc-config__hint">Sin coincidencias.</li>
+                <li class="inc-config__hint">{{ 'Sin coincidencias.' | t }}</li>
               }
             </ul>
           }
@@ -170,7 +170,7 @@
       </div>
 
       <div class="inc-config__actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDiario()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDiario()">{{ 'Cerrar' | t }}</button>
       </div>
     </section>
   }
@@ -178,15 +178,15 @@
   <!-- AV7 — Quién recibe este informe (destinatarios por rol elevado, parametrizable) -->
   @if (mostrarDestinatarios()) {
     <section class="inc-config">
-      <h2 class="inc-config__title">Quién recibe este informe</h2>
+      <h2 class="inc-config__title">{{ 'Quién recibe este informe' | t }}</h2>
       <p class="inc-config__hint">
         El "Incentivo semanal de choferes" es información sensible (comparativa con montos):
-        se envía y se ve <strong>solo</strong> por rol elevado — Administración, Dirección, Gerencia,
+        se envía y se ve <strong>{{ 'solo' | t }}</strong> por rol elevado — Administración, Dirección, Gerencia,
         Logística y Jefe de flota. La lista se ajusta sin código desde el parámetro
         <code>incentivo_informe_roles</code>.
       </p>
       @if (destinatarios().length === 0) {
-        <p class="inc-config__hint">Sin destinatarios configurados.</p>
+        <p class="inc-config__hint">{{ 'Sin destinatarios configurados.' | t }}</p>
       } @else {
         <ul class="inc-dest">
           @for (d of destinatarios(); track d.email) {
@@ -195,7 +195,7 @@
         </ul>
       }
       <div class="inc-config__actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDestinatarios()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDestinatarios()">{{ 'Cerrar' | t }}</button>
       </div>
     </section>
   }
@@ -210,14 +210,14 @@
     @if (mostrarConfig()) {
       <section class="inc-config">
         <h2 class="inc-config__title">Configuración de puntaje (versión {{ config()?.version }})</h2>
-        <p class="inc-config__hint">Al guardar se crea una nueva versión. Los informes ya generados conservan los pesos con que se calcularon.</p>
+        <p class="inc-config__hint">{{ 'Al guardar se crea una nueva versión. Los informes ya generados conservan los pesos con que se calcularon.' | t }}</p>
         <div class="inc-config__grid">
           <label class="inc-config__field">
-            <span>Mínimo semanal para cumplir</span>
+            <span>{{ 'Mínimo semanal para cumplir' | t }}</span>
             <input type="number" min="0" [ngModel]="cfgMinimo()" (ngModelChange)="cfgMinimo.set($event)" />
           </label>
           <label class="inc-config__field">
-            <span>Factor del ayudante</span>
+            <span>{{ 'Factor del ayudante' | t }}</span>
             <input type="number" min="0" step="0.5" [ngModel]="cfgFactor()" (ngModelChange)="cfgFactor.set($event)" />
           </label>
           @for (r of renglones; track r) {
@@ -230,41 +230,41 @@
 
         <!-- AX4 — Penalización por estancamiento (renglón negativo). No premia
              cambiar de estado: RESTA por días laborables sin señal. -->
-        <h3 class="inc-config__title" style="font-size:15px;margin-top:18px;">Penalización por estancamiento</h3>
-        <p class="inc-config__hint">Resta puntos por cada día laborable (lun–sáb) sin ninguna señal del chofer (ni cambio de estado ni actividad). Deja <strong>Puntos por día = 0</strong> para dejarla apagada. No se dan puntos por cambiar de estado.</p>
+        <h3 class="inc-config__title" style="font-size:15px;margin-top:18px;">{{ 'Penalización por estancamiento' | t }}</h3>
+        <p class="inc-config__hint">{{ 'Resta puntos por cada día laborable (lun–sáb) sin ninguna señal del chofer (ni cambio de estado ni actividad). Deja' | t }} <strong>{{ 'Puntos por día = 0' | t }}</strong> {{ 'para dejarla apagada. No se dan puntos por cambiar de estado.' | t }}</p>
         <div class="inc-config__grid">
           <label class="inc-config__field">
-            <span>Días de gracia</span>
+            <span>{{ 'Días de gracia' | t }}</span>
             <input type="number" min="0" [ngModel]="cfgPenalGracia()" (ngModelChange)="cfgPenalGracia.set($event)" />
           </label>
           <label class="inc-config__field">
-            <span>Puntos por día (0 = apagada)</span>
+            <span>{{ 'Puntos por día (0 = apagada)' | t }}</span>
             <input type="number" min="0" step="0.5" [ngModel]="cfgPenalPts()" (ngModelChange)="cfgPenalPts.set($event)" />
           </label>
           <label class="inc-config__field">
-            <span>Tope semanal de penalización</span>
+            <span>{{ 'Tope semanal de penalización' | t }}</span>
             <input type="number" min="0" step="0.5" [ngModel]="cfgPenalTope()" (ngModelChange)="cfgPenalTope.set($event)" />
           </label>
         </div>
         <div class="inc-config__actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="guardarPenalizacion()">Guardar penalización</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="guardarPenalizacion()">{{ 'Guardar penalización' | t }}</button>
         </div>
 
         <!-- CM6 — Topes: cuántas veces cuenta cada actividad + tope total de puntos. -->
-        <h3 class="inc-config__title" style="font-size:15px;margin-top:18px;">Topes</h3>
-        <p class="inc-config__hint">Limita cuántas veces cuenta cada actividad (por día y por semana) y el total de puntos de la semana. Deja un campo <strong>en blanco</strong> para no poner tope. El ayudante cuenta en el mismo tope que lo propio (lo propio primero) y el factor se aplica después del tope. Aplica a los informes que generes/recalcules a partir de ahora.</p>
+        <h3 class="inc-config__title" style="font-size:15px;margin-top:18px;">{{ 'Topes' | t }}</h3>
+        <p class="inc-config__hint">{{ 'Limita cuántas veces cuenta cada actividad (por día y por semana) y el total de puntos de la semana. Deja un campo' | t }} <strong>{{ 'en blanco' | t }}</strong> {{ 'para no poner tope. El ayudante cuenta en el mismo tope que lo propio (lo propio primero) y el factor se aplica después del tope. Aplica a los informes que generes/recalcules a partir de ahora.' | t }}</p>
         <div class="inc-config__grid">
           <label class="inc-config__field">
-            <span>Tope total de puntos por semana</span>
-            <input type="number" min="0" step="1" placeholder="Sin tope"
+            <span>{{ 'Tope total de puntos por semana' | t }}</span>
+            <input type="number" min="0" step="1" placeholder="{{ 'Sin tope' | t }}"
                    [value]="cfgMaximo() ?? ''" (input)="setMaximo($any($event.target).value)" />
           </label>
         </div>
-        <div class="inc-topes" role="table" aria-label="Topes por actividad">
+        <div class="inc-topes" role="table" aria-label="{{ 'Topes por actividad' | t }}">
           <div class="inc-topes__head" role="row">
-            <span role="columnheader">Actividad</span>
-            <span role="columnheader">Veces por día</span>
-            <span role="columnheader">Veces por semana</span>
+            <span role="columnheader">{{ 'Actividad' | t }}</span>
+            <span role="columnheader">{{ 'Veces por día' | t }}</span>
+            <span role="columnheader">{{ 'Veces por semana' | t }}</span>
           </div>
           @for (r of renglones; track r) {
             <div class="inc-topes__row" role="row">
@@ -277,12 +277,12 @@
           }
         </div>
         <div class="inc-config__actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="sugerirTopes()">Sugerir topes (según historial)</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="sugerirTopes()">{{ 'Sugerir topes (según historial)' | t }}</button>
         </div>
 
         <div class="inc-config__actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleConfig()">Cerrar</button>
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="guardarConfig()">Guardar nueva versión</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleConfig()">{{ 'Cerrar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="guardarConfig()">{{ 'Guardar nueva versión' | t }}</button>
         </div>
       </section>
     }
@@ -290,7 +290,7 @@
     <!-- Selector de semana + acciones -->
     <div class="inc-toolbar">
       <label class="inc-toolbar__week">
-        <span>Semana</span>
+        <span>{{ 'Semana' | t }}</span>
         <select [value]="selAnio() + '-' + selSemana()" (change)="onSemanaChange($any($event.target).value)">
           @for (s of opcionesSemana(); track s.anio + '-' + s.semana) {
             <option [value]="s.anio + '-' + s.semana">
@@ -312,7 +312,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
           Reenviar con cambios
         </button>
-        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">Exportar (nómina)</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">{{ 'Exportar (nómina)' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes() || esSemanaEnCurso()" (click)="aprobarTodos()">
           Aprobar los que cumplieron ({{ pendientes() }})
         </button>
@@ -325,18 +325,18 @@
         <h2 class="inc-config__title">Reenviar informe — Semana {{ selSemana() }}/{{ selAnio() }}</h2>
         <p class="inc-config__hint">
           Recalcula con el estado actual (participantes, pesos, incidencias) y reenvía como
-          <strong>versión nueva</strong> marcada "reemplaza al anterior". Las decisiones ya tomadas
+          <strong>{{ 'versión nueva' | t }}</strong> marcada "reemplaza al anterior". Las decisiones ya tomadas
           (aprobado/declinado) se conservan. El motivo es obligatorio y queda en el historial.
         </p>
         <label class="inc-config__field">
-          <span>Motivo del reenvío *</span>
+          <span>{{ 'Motivo del reenvío *' | t }}</span>
           <input type="text" [ngModel]="reenvioMotivo()" (ngModelChange)="reenvioMotivo.set($event)"
-                 placeholder="Ej.: se agregó al chofer Pérez / se corrigió una incidencia" />
+                 placeholder="{{ 'Ej.: se agregó al chofer Pérez / se corrigió una incidencia' | t }}" />
         </label>
         <div class="inc-reenvio__dest">
-          <span class="inc-reenvio__dest-title">Destinatarios (destildar para acotar):</span>
+          <span class="inc-reenvio__dest-title">{{ 'Destinatarios (destildar para acotar):' | t }}</span>
           @if (reenvioDest().length === 0) {
-            <p class="inc-config__hint">No hay destinatarios configurados para el informe.</p>
+            <p class="inc-config__hint">{{ 'No hay destinatarios configurados para el informe.' | t }}</p>
           } @else {
             @for (d of reenvioDest(); track d.email) {
               <label class="inc-reenvio__dest-item">
@@ -347,13 +347,13 @@
           }
         </div>
         <div class="inc-config__actions">
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="confirmarReenvio()">Reenviar (nueva versión)</button>
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleReenvio()">Cerrar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="confirmarReenvio()">{{ 'Reenviar (nueva versión)' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleReenvio()">{{ 'Cerrar' | t }}</button>
         </div>
 
         @if (versiones().length) {
           <div class="inc-reenvio__hist">
-            <span class="inc-reenvio__dest-title">Historial de versiones enviadas</span>
+            <span class="inc-reenvio__dest-title">{{ 'Historial de versiones enviadas' | t }}</span>
             <ul class="inc-part">
               @for (v of versiones(); track v.version) {
                 <li class="inc-part__row">
@@ -375,28 +375,28 @@
     <!-- BB8c — la semana en curso es solo avance: no se aprueba hasta cerrar el corte -->
     @if (esSemanaEnCurso()) {
       <div class="inc-encurso" role="note">
-        <strong>Semana en curso (avance).</strong> Es una vista de cómo van hoy; el corte se cierra el lunes. Aún no se aprueba.
+        <strong>{{ 'Semana en curso (avance).' | t }}</strong> Es una vista de cómo van hoy; el corte se cierra el lunes. Aún no se aprueba.
       </div>
     }
 
     @if (semanas().length === 0) {
       <div class="inc-empty">
-        <p>Aún no hay informes de incentivo generados. Se generan automáticamente los lunes 10:00 AM, o puedes recalcular una semana con el botón «Recalcular».</p>
+        <p>{{ 'Aún no hay informes de incentivo generados. Se generan automáticamente los lunes 10:00 AM, o puedes recalcular una semana con el botón «Recalcular».' | t }}</p>
       </div>
     } @else if (loadingFilas()) {
       <app-skeleton [rows]="5" />
     } @else {
       <!-- KPIs -->
       <div class="inc-kpis">
-        <div class="inc-kpi"><span class="inc-kpi__value">{{ filas().length }}</span><span class="inc-kpi__label">Choferes</span></div>
-        <div class="inc-kpi inc-kpi--ok"><span class="inc-kpi__value">{{ totalCumplieron() }}</span><span class="inc-kpi__label">Cumplieron</span></div>
-        <div class="inc-kpi inc-kpi--warn"><span class="inc-kpi__value">{{ pendientes() }}</span><span class="inc-kpi__label">Pendientes de aprobar</span></div>
+        <div class="inc-kpi"><span class="inc-kpi__value">{{ filas().length }}</span><span class="inc-kpi__label">{{ 'Choferes' | t }}</span></div>
+        <div class="inc-kpi inc-kpi--ok"><span class="inc-kpi__value">{{ totalCumplieron() }}</span><span class="inc-kpi__label">{{ 'Cumplieron' | t }}</span></div>
+        <div class="inc-kpi inc-kpi--warn"><span class="inc-kpi__value">{{ pendientes() }}</span><span class="inc-kpi__label">{{ 'Pendientes de aprobar' | t }}</span></div>
       </div>
 
       <!-- AU7 — selector de vista: matriz comparativa vs. detalle por chofer -->
       <div class="inc-vista">
-        <button type="button" class="inc-vista__btn" [class.inc-vista__btn--active]="vista() === 'matriz'" (click)="vista.set('matriz')">Matriz comparativa</button>
-        <button type="button" class="inc-vista__btn" [class.inc-vista__btn--active]="vista() === 'detalle'" (click)="vista.set('detalle')">Detalle por chofer</button>
+        <button type="button" class="inc-vista__btn" [class.inc-vista__btn--active]="vista() === 'matriz'" (click)="vista.set('matriz')">{{ 'Matriz comparativa' | t }}</button>
+        <button type="button" class="inc-vista__btn" [class.inc-vista__btn--active]="vista() === 'detalle'" (click)="vista.set('detalle')">{{ 'Detalle por chofer' | t }}</button>
       </div>
 
       <!-- AU7 — Matriz: choferes (filas) × categorías (columnas), cada número clickable -->
@@ -405,10 +405,10 @@
           <table class="inc-matriz">
             <thead>
               <tr>
-                <th class="inc-matriz__chofer">Chofer</th>
+                <th class="inc-matriz__chofer">{{ 'Chofer' | t }}</th>
                 @for (r of renglones; track r) { <th>{{ RENGLON_LABELS[r] }}</th> }
-                <th>Total</th>
-                <th>Estado</th>
+                <th>{{ 'Total' | t }}</th>
+                <th>{{ 'Estado' | t }}</th>
               </tr>
             </thead>
             <tbody>
@@ -422,18 +422,18 @@
                     <strong>{{ f.puntaje }}</strong><small> / {{ f.minimo }}</small>
                   </td>
                   <td>
-                    @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
-                    @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
-                    @else if (f.cumplio) { <span class="inc-badge inc-badge--ok">Cumplió</span> }
-                    @else { <span class="inc-badge inc-badge--bad">Bajo</span> }
-                    @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ f.flags.length }}</span> }
+                    @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">{{ 'Aprobado' | t }}</span> }
+                    @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">{{ 'Declinado' | t }}</span> }
+                    @else if (f.cumplio) { <span class="inc-badge inc-badge--ok">{{ 'Cumplió' | t }}</span> }
+                    @else { <span class="inc-badge inc-badge--bad">{{ 'Bajo' | t }}</span> }
+                    @if (f.flags?.length) { <span class="inc-row__flag" title="{{ 'Marcado para revisión' | t }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ f.flags.length }}</span> }
                   </td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-        <p class="inc-matriz__hint">Toca una fila para ver el desglose de ese chofer y aprobar/declinar.</p>
+        <p class="inc-matriz__hint">{{ 'Toca una fila para ver el desglose de ese chofer y aprobar/declinar.' | t }}</p>
       }
 
       <!-- Tabla por chofer -->
@@ -445,14 +445,14 @@
               <span class="inc-row__name">{{ f.nombre }}</span>
               <span class="inc-row__score">{{ f.puntaje }} <small>/ {{ f.minimo }}</small></span>
               @if (f.cumplio) {
-                <span class="inc-badge inc-badge--ok">Cumplió</span>
+                <span class="inc-badge inc-badge--ok">{{ 'Cumplió' | t }}</span>
               } @else {
-                <span class="inc-badge inc-badge--bad">Rendimiento bajo</span>
+                <span class="inc-badge inc-badge--bad">{{ 'Rendimiento bajo' | t }}</span>
               }
-              @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
-              @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
-              @else { <span class="inc-badge inc-badge--pending">Pendiente</span> }
-              @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión (anti-inflado)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ f.flags.length }}</span> }
+              @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">{{ 'Aprobado' | t }}</span> }
+              @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">{{ 'Declinado' | t }}</span> }
+              @else { <span class="inc-badge inc-badge--pending">{{ 'Pendiente' | t }}</span> }
+              @if (f.flags?.length) { <span class="inc-row__flag" title="{{ 'Marcado para revisión (anti-inflado)' | t }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ f.flags.length }}</span> }
               <span class="inc-row__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
             </button>
 
@@ -487,7 +487,7 @@
                         </div>
                         <div class="inc-renglon__refs">
                           @for (ref of pen.refs; track ref.id) {
-                            <span class="inc-ref" title="Día laborable sin señal del chofer">{{ formatFecha(ref.fecha) }}</span>
+                            <span class="inc-ref" title="{{ 'Día laborable sin señal del chofer' | t }}">{{ formatFecha(ref.fecha) }}</span>
                           }
                         </div>
                       </div>
@@ -529,18 +529,18 @@
                                   <span class="inc-inci__txt">{{ fl.fecha ? formatFecha(fl.fecha) : '—' }} · {{ limpiarTexto(fl.msg) }}</span>
                                 </button>
                                 <!-- BQ9 — link aparte que navega al objeto (deep-link ?ruta=/?echada=) -->
-                                <a class="inc-inci__open" [routerLink]="refIncidencia(fl).link" [queryParams]="refIncidencia(fl).query" title="Abrir el registro en su módulo">
+                                <a class="inc-inci__open" [routerLink]="refIncidencia(fl).link" [queryParams]="refIncidencia(fl).query" title="{{ 'Abrir el registro en su módulo' | t }}">
                                   Abrir
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
                                 </a>
                                 @switch (fl.decision ?? 'cuarentena') {
-                                  @case ('aceptada') { <span class="inc-badge inc-badge--approved">Aceptada (cuenta)</span> }
-                                  @case ('excluida') { <span class="inc-badge inc-badge--declined">Excluida (no cuenta)</span> }
+                                  @case ('aceptada') { <span class="inc-badge inc-badge--approved">{{ 'Aceptada (cuenta)' | t }}</span> }
+                                  @case ('excluida') { <span class="inc-badge inc-badge--declined">{{ 'Excluida (no cuenta)' | t }}</span> }
                                   @default {
                                     @if (puedeDecidir()) {
                                       <span class="inc-inci__actions">
-                                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">Excluir</button>
-                                        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">Aceptar</button>
+                                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">{{ 'Excluir' | t }}</button>
+                                        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">{{ 'Aceptar' | t }}</button>
                                       </span>
                                     }
                                   }
@@ -556,22 +556,22 @@
                                       @case ('error') { <p class="inc-inci__detail-empty">{{ det.mensaje }}</p> }
                                       @case ('ruta') {
                                         <dl class="inc-det-grid">
-                                          <div class="inc-det-item"><dt>Recorrido</dt><dd>{{ det.ruta.origen }} → {{ det.ruta.destino }}</dd></div>
-                                          <div class="inc-det-item"><dt>Estado</dt><dd>{{ det.ruta.estado }}</dd></div>
-                                          <div class="inc-det-item"><dt>Inicio</dt><dd>{{ det.ruta.iniciada_at ? formatFechaHora(det.ruta.iniciada_at) : '—' }}</dd></div>
-                                          <div class="inc-det-item"><dt>Fin</dt><dd>{{ det.ruta.finalizada_at ? formatFechaHora(det.ruta.finalizada_at) : '—' }}</dd></div>
-                                          <div class="inc-det-item"><dt>Km (est./real)</dt><dd>{{ det.ruta.km_estimado ?? '—' }} / {{ det.ruta.km_real ?? '—' }}</dd></div>
-                                          <div class="inc-det-item"><dt>Duración</dt><dd>{{ det.ruta.duracion_min ?? det.ruta.tiempo_real_min ?? '—' }}@if (det.ruta.duracion_min ?? det.ruta.tiempo_real_min) { min }</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Recorrido' | t }}</dt><dd>{{ det.ruta.origen }} → {{ det.ruta.destino }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Estado' | t }}</dt><dd>{{ det.ruta.estado }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Inicio' | t }}</dt><dd>{{ det.ruta.iniciada_at ? formatFechaHora(det.ruta.iniciada_at) : '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Fin' | t }}</dt><dd>{{ det.ruta.finalizada_at ? formatFechaHora(det.ruta.finalizada_at) : '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Km (est./real)' | t }}</dt><dd>{{ det.ruta.km_estimado ?? '—' }} / {{ det.ruta.km_real ?? '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Duración' | t }}</dt><dd>{{ det.ruta.duracion_min ?? det.ruta.tiempo_real_min ?? '—' }}@if (det.ruta.duracion_min ?? det.ruta.tiempo_real_min) { min }</dd></div>
                                         </dl>
                                       }
                                       @case ('echada') {
                                         <dl class="inc-det-grid">
-                                          <div class="inc-det-item"><dt>Vehículo</dt><dd>{{ det.echada.marca }} · {{ det.echada.placa }}</dd></div>
-                                          <div class="inc-det-item"><dt>Estación</dt><dd>{{ det.echada.estacion || '—' }}</dd></div>
-                                          <div class="inc-det-item"><dt>Galones</dt><dd>{{ det.echada.galones }} ({{ det.echada.producto || '—' }})</dd></div>
-                                          <div class="inc-det-item"><dt>Kilometraje</dt><dd>{{ det.echada.kilometraje }}</dd></div>
-                                          <div class="inc-det-item"><dt>Km recorridos</dt><dd>{{ det.echada.km_recorridos }}</dd></div>
-                                          <div class="inc-det-item"><dt>Rendimiento</dt><dd>{{ det.echada.rendimiento_km_gal }} km/gal</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Vehículo' | t }}</dt><dd>{{ det.echada.marca }} · {{ det.echada.placa }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Estación' | t }}</dt><dd>{{ det.echada.estacion || '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Galones' | t }}</dt><dd>{{ det.echada.galones }} ({{ det.echada.producto || '—' }})</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Kilometraje' | t }}</dt><dd>{{ det.echada.kilometraje }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Km recorridos' | t }}</dt><dd>{{ det.echada.km_recorridos }}</dd></div>
+                                          <div class="inc-det-item"><dt>{{ 'Rendimiento' | t }}</dt><dd>{{ det.echada.rendimiento_km_gal }} km/gal</dd></div>
                                         </dl>
                                         @if (det.fotos.length) {
                                           <div class="inc-echada-fotos">
@@ -589,8 +589,8 @@
                                   <!-- BQ9 — acciones también dentro del panel, para quien pueda gestionar -->
                                   @if (puedeDecidir() && (fl.decision ?? 'cuarentena') === 'cuarentena') {
                                     <div class="inc-inci__detail-actions">
-                                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">Excluir</button>
-                                      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">Aceptar</button>
+                                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">{{ 'Excluir' | t }}</button>
+                                      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">{{ 'Aceptar' | t }}</button>
                                     </div>
                                   }
                                 </div>
@@ -606,20 +606,20 @@
                 <!-- Acciones de decisión -->
                 <div class="inc-decide">
                   @if (declinandoId() === f.informe_id) {
-                    <input type="text" class="inc-decide__motivo" placeholder="Motivo del rechazo (obligatorio)…"
+                    <input type="text" class="inc-decide__motivo" placeholder="{{ 'Motivo del rechazo (obligatorio)…' | t }}"
                       [ngModel]="motivoDeclina()" (ngModelChange)="motivoDeclina.set($event)" />
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="declinandoId.set(null)">Cancelar</button>
-                    <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="busy()" (click)="confirmarDeclinar(f)">Confirmar rechazo</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="declinandoId.set(null)">{{ 'Cancelar' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="busy()" (click)="confirmarDeclinar(f)">{{ 'Confirmar rechazo' | t }}</button>
                   } @else {
-                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="abrirDeclinar(f)">Declinar</button>
-                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="aprobar(f)">Aprobar incentivo</button>
+                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="abrirDeclinar(f)">{{ 'Declinar' | t }}</button>
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="aprobar(f)">{{ 'Aprobar incentivo' | t }}</button>
                   }
                 </div>
 
                 <!-- Historial append-only -->
                 @if (historial()[f.informe_id]?.length) {
                   <div class="inc-hist">
-                    <span class="inc-hist__title">Historial de decisiones</span>
+                    <span class="inc-hist__title">{{ 'Historial de decisiones' | t }}</span>
                     @for (h of historial()[f.informe_id]; track h.decidido_en) {
                       <div class="inc-hist__item">
                         <span class="inc-hist__badge inc-hist__badge--{{ h.decision }}">{{ h.decision }}</span>

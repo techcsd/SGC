@@ -1,18 +1,18 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Mis choferes</h1>
-    <p class="page-subtitle">Estado de cada chofer, su trabajo de hoy y su última señal.</p>
+    <h1 class="page-title">{{ 'Mis choferes' | t }}</h1>
+    <p class="page-subtitle">{{ 'Estado de cada chofer, su trabajo de hoy y su última señal.' | t }}</p>
   </div>
   <div class="page-header__right">
-    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="recargar()">Actualizar</button>
-    <a class="sgc-btn sgc-btn--secondary" routerLink="/flota/seguimiento">Ver en el mapa</a>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="recargar()">{{ 'Actualizar' | t }}</button>
+    <a class="sgc-btn sgc-btn--secondary" routerLink="/flota/seguimiento">{{ 'Ver en el mapa' | t }}</a>
   </div>
 </div>
 
 @if (loading()) {
   <app-skeleton variant="table" [rows]="6" />
 } @else if (choferes().length === 0) {
-  <p class="mc-vacio">No hay choferes activos.</p>
+  <p class="mc-vacio">{{ 'No hay choferes activos.' | t }}</p>
 } @else {
   <div class="mc-grid">
     @for (c of choferes(); track c.conductor_id) {
@@ -32,7 +32,7 @@
         </div>
         @if (c.vehiculo_en_uso) { <div class="mc-card__meta">Vehículo: {{ c.vehiculo_en_uso }}</div> }
         <div class="mc-card__actions">
-          @if (c.telefono) { <a class="sgc-btn sgc-btn--ghost" [href]="'tel:' + c.telefono">Llamar</a> }
+          @if (c.telefono) { <a class="sgc-btn sgc-btn--ghost" [href]="'tel:' + c.telefono">{{ 'Llamar' | t }}</a> }
         </div>
       </div>
     }

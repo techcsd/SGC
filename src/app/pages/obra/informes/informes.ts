@@ -11,6 +11,7 @@ import { InformeSemanal } from '../../../../shared/models/obra-produccion.model'
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 function isoDaysAgo(days: number): string {
   const t = todayIso(); // YYYY-MM-DD
   const [y, m, d] = t.split('-').map(Number);
@@ -21,7 +22,7 @@ function isoDaysAgo(days: number): string {
 
 @Component({
   selector: 'app-obra-informes',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, DecimalPipe, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, DecimalPipe, Skeleton, TranslatePipe],
   templateUrl: './informes.html',
   styleUrl: './informes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

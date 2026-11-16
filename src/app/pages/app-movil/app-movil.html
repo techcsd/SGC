@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">CSD App (móvil)</h1>
+    <h1 class="page-title">{{ 'CSD App (móvil)' | t }}</h1>
   </div>
 </div>
 
@@ -11,7 +11,7 @@
 <!-- CL4 — Rescate: Android 2.44/2.45 no puede actualizar desde la app (el updater recarga como
      PWA y no pasa nada). La salida es instalar el APK nuevo ENCIMA, una sola vez: no borra datos. -->
 @if (info(); as v) {
-  <section class="am-rescue" role="note" aria-label="Rescate de actualización para Android">
+  <section class="am-rescue" role="note" aria-label="{{ 'Rescate de actualización para Android' | t }}">
     <div class="am-rescue__icon"><app-icon name="alert-triangle" [size]="22" /></div>
     <div class="am-rescue__body">
       <h2 class="am-rescue__title">{{ '¿El botón Actualizar de la app no hace nada?' | t }}</h2>
@@ -36,41 +36,41 @@
 <div class="am-grid">
   <!-- Android -->
   <section class="am-card">
-    <h2 class="am-card__title"><app-icon name="smartphone" [size]="18" /> Android</h2>
+    <h2 class="am-card__title"><app-icon name="smartphone" [size]="18" /> {{ 'Android' | t }}</h2>
 
     <!-- CI1/CI7 — canal oficial: Google Play (cuando exista la ficha). -->
     @if (playStoreUrl(); as play) {
       <!-- Xaviel: reemplazar por el badge oficial de Google Play cuando suba la ficha (asset oficial, sin modificar). -->
-      <a class="am-badge" [href]="play" target="_blank" rel="noopener" aria-label="Disponible en Google Play">
+      <a class="am-badge" [href]="play" target="_blank" rel="noopener" aria-label="{{ 'Disponible en Google Play' | t }}">
         <app-icon name="smartphone" [size]="20" />
-        <span><small>Disponible en</small><strong>Google Play</strong></span>
+        <span><small>{{ 'Disponible en' | t }}</small><strong>{{ 'Google Play' | t }}</strong></span>
       </a>
-      <img class="am-qr" [src]="playQr()" alt="QR de Google Play" />
-      <p class="am-hint">Escanea para abrir la ficha en Google Play.</p>
+      <img class="am-qr" [src]="playQr()" alt="{{ 'QR de Google Play' | t }}" />
+      <p class="am-hint">{{ 'Escanea para abrir la ficha en Google Play.' | t }}</p>
     }
 
     <!-- Canal APK (teléfonos sin Google Play). Secundario cuando Play existe. -->
     <div class="am-apk" [class.am-apk--secondary]="playStoreUrl()">
       @if (playStoreUrl()) {
-        <h3 class="am-sub">Teléfonos sin Google Play</h3>
+        <h3 class="am-sub">{{ 'Teléfonos sin Google Play' | t }}</h3>
       }
       @if (loading()) {
         <app-skeleton variant="list" [rows]="3" />
       } @else if (info(); as v) {
         <p class="am-version">Versión {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} MB</p>
         @if (!playStoreUrl()) { <p class="am-changelog">{{ v.changelog }}</p> }
-        <a class="sgc-btn sgc-btn--primary am-download" [href]="v.url" download><app-icon name="download" [size]="16" /> Descargar APK</a>
+        <a class="sgc-btn sgc-btn--primary am-download" [href]="v.url" download><app-icon name="download" [size]="16" /> {{ 'Descargar APK' | t }}</a>
         @if (!playStoreUrl()) {
-          <img class="am-qr" [src]="apkQr()" alt="QR para descargar el APK" />
-          <p class="am-hint">Escanea el código con el teléfono para descargar e instalar.</p>
+          <img class="am-qr" [src]="apkQr()" alt="{{ 'QR para descargar el APK' | t }}" />
+          <p class="am-hint">{{ 'Escanea el código con el teléfono para descargar e instalar.' | t }}</p>
         }
         <ol class="am-steps">
-          <li>Abre el archivo descargado.</li>
-          <li>Si te lo pide, permite “instalar de orígenes desconocidos”.</li>
-          <li>Instala y abre CSD App. Entra con tu usuario del sistema.</li>
+          <li>{{ 'Abre el archivo descargado.' | t }}</li>
+          <li>{{ 'Si te lo pide, permite “instalar de orígenes desconocidos”.' | t }}</li>
+          <li>{{ 'Instala y abre CSD App. Entra con tu usuario del sistema.' | t }}</li>
         </ol>
       } @else {
-        <p class="am-muted">Aún no hay un APK publicado.</p>
+        <p class="am-muted">{{ 'Aún no hay un APK publicado.' | t }}</p>
       }
       @if (tieneVideo('instalar-android')) {
         <button type="button" class="sgc-btn sgc-btn--secondary am-vervideo" (click)="verVideo('instalar-android')">
@@ -83,28 +83,28 @@
 
   <!-- iPhone -->
   <section class="am-card">
-    <h2 class="am-card__title"><app-icon name="smartphone" [size]="18" /> iPhone</h2>
+    <h2 class="am-card__title"><app-icon name="smartphone" [size]="18" /> {{ 'iPhone' | t }}</h2>
 
     @if (appStoreUrl(); as store) {
       <!-- CI1/CI7 — canal oficial: App Store. Xaviel: reemplazar por el badge oficial de Apple cuando suba la ficha. -->
-      <a class="am-badge" [href]="store" target="_blank" rel="noopener" aria-label="Descárgala en el App Store">
+      <a class="am-badge" [href]="store" target="_blank" rel="noopener" aria-label="{{ 'Descárgala en el App Store' | t }}">
         <app-icon name="smartphone" [size]="20" />
-        <span><small>Descárgala en el</small><strong>App Store</strong></span>
+        <span><small>{{ 'Descárgala en el' | t }}</small><strong>{{ 'App Store' | t }}</strong></span>
       </a>
-      <img class="am-qr" [src]="appStoreQr()" alt="QR del App Store" />
-      <p class="am-hint">Escanea con el iPhone para abrir la ficha en el App Store.</p>
+      <img class="am-qr" [src]="appStoreQr()" alt="{{ 'QR del App Store' | t }}" />
+      <p class="am-hint">{{ 'Escanea con el iPhone para abrir la ficha en el App Store.' | t }}</p>
     } @else {
       <!-- Fallback PWA (mientras no exista la ficha del App Store). -->
-      <p class="am-changelog">En iPhone se instala como app web (PWA), sin App Store.</p>
+      <p class="am-changelog">{{ 'En iPhone se instala como app web (PWA), sin App Store.' | t }}</p>
       <a class="sgc-btn sgc-btn--primary am-download" [href]="pwaUrl" target="_blank" rel="noopener">
         Abrir app web
       </a>
-      <img class="am-qr" [src]="pwaQr()" alt="QR para abrir la app web" />
-      <p class="am-hint">Escanea con el iPhone, o abre <b>{{ pwaUrl }}</b> en Safari.</p>
+      <img class="am-qr" [src]="pwaQr()" alt="{{ 'QR para abrir la app web' | t }}" />
+      <p class="am-hint">{{ 'Escanea con el iPhone, o abre' | t }} <b>{{ pwaUrl }}</b> {{ 'en Safari.' | t }}</p>
       <ol class="am-steps">
-        <li>Abre el enlace en <b>Safari</b>.</li>
-        <li>Toca “Compartir” → “Añadir a pantalla de inicio”.</li>
-        <li>Ábrela desde el ícono. Entra con tu usuario del sistema.</li>
+        <li>{{ 'Abre el enlace en' | t }} <b>{{ 'Safari' | t }}</b>.</li>
+        <li>{{ 'Toca “Compartir” → “Añadir a pantalla de inicio”.' | t }}</li>
+        <li>{{ 'Ábrela desde el ícono. Entra con tu usuario del sistema.' | t }}</li>
       </ol>
     }
     @if (tieneVideo('instalar-iphone')) {
