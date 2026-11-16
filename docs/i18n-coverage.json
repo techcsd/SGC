@@ -1326,22 +1326,6 @@
       ]
     },
     {
-      "pantalla": "admin/compa-conversaciones",
-      "total": 25,
-      "cubiertos": 20,
-      "sin": 5,
-      "pct": 80,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "No se pudo abrir",
-        "Guardado",
-        "No se pudo guardar",
-        "Enviado",
-        "No se pudo enviar"
-      ]
-    },
-    {
       "pantalla": "admin/historial-versiones",
       "total": 23,
       "cubiertos": 20,
@@ -1456,6 +1440,16 @@
       "pantalla": "admin/claude",
       "total": 27,
       "cubiertos": 27,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/compa-conversaciones",
+      "total": 25,
+      "cubiertos": 25,
       "sin": 0,
       "pct": 100,
       "enScope": true,

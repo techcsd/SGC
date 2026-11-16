@@ -76,9 +76,6 @@
     "admin/roles": {
       "enforce": false
     },
-    "admin/compa-conversaciones": {
-      "enforce": false
-    },
     "admin/historial-versiones": {
       "enforce": false
     },
@@ -107,6 +104,9 @@
       "enforce": true
     },
     "admin/claude": {
+      "enforce": true
+    },
+    "admin/compa-conversaciones": {
       "enforce": true
     },
     "admin/conduces-huerfanos": {

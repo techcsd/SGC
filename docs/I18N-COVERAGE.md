@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (9027/10096 literales de 192 pantallas en alcance). **`ht`: 95%**.
+**Alcance `en`: 89%** (9032/10096 literales de 192 pantallas en alcance). **`ht`: 95%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -32,7 +32,6 @@
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/roles | scope | 153 | 112 | 41 | 73% |
-| admin/compa-conversaciones | scope | 25 | 20 | 5 | 80% |
 | admin/historial-versiones | scope | 23 | 20 | 3 | 87% |
 | admin/vault | scope | 72 | 65 | 7 | 90% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -43,6 +42,7 @@
 | admin/auditoria | enforce | 62 | 62 | 0 | 100% |
 | admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
+| admin/compa-conversaciones | enforce | 25 | 25 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
 | admin/empresa | enforce | 41 | 41 | 0 | 100% |
 | admin/importar | enforce | 2 | 2 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**158 literal(es) sin t()** en 17 archivo(s) (de 134 archivo(s) .ts con algo detectado).
+**153 literal(es) sin t()** en 16 archivo(s) (de 134 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -217,7 +217,6 @@
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |

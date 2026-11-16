@@ -7081,5 +7081,22 @@
   "Actividad del duplicado que se re-apuntaría al canónico:": "Activity of the duplicate that would be re-pointed to the canonical one:",
   "El duplicado no tiene actividad registrada.": "The duplicate has no recorded activity.",
   "¿Fusionar \"{nombreDup}\" dentro de \"{nombreCanon}\"?": "Merge \"{nombreDup}\" into \"{nombreCanon}\"?",
-  "Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.": "{nombreDup}'s activity ({registros} records) is re-pointed to {nombreCanon}, and {nombreDup} becomes inactive. Anything that clashes is left for manual review (nothing is deleted). It's recorded in the audit log."
+  "Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.": "{nombreDup}'s activity ({registros} records) is re-pointed to {nombreCanon}, and {nombreDup} becomes inactive. Anything that clashes is left for manual review (nothing is deleted). It's recorded in the audit log.",
+  "Conversación": "Conversation",
+  "Sistema · solo admin · cada vez que abres una queda en la auditoría": "System · admin only · every time you open one it's recorded in the audit log",
+  "Conversaciones (7 días)": "Conversations (7 days)",
+  "Con contradicción": "With contradiction",
+  "Prometió y no hizo": "Promised and didn't do it",
+  "Herramienta con error": "Tool with error",
+  "Usuario…": "User…",
+  "Con problemas": "With issues",
+  "No hay conversaciones con ese filtro.": "No conversations with that filter.",
+  "Contradicción": "Contradiction",
+  "Elige una conversación de la lista.": "Choose a conversation from the list.",
+  "mensajes": "messages",
+  "modelo y herramientas por mensaje": "model and tools per message",
+  "Dijo que no tenía una herramienta que sí tenía (o anunció algo que no verificó)": "Said it didn't have a tool it actually had (or announced something it didn't verify)",
+  "Anunció una acción y terminó el turno sin ejecutarla": "Announced an action and ended the turn without executing it",
+  "Guardar como caso de prueba": "Save as test case",
+  "Enviar a Consultas de Compa": "Send to Compa Queries"
 }

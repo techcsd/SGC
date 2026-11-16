@@ -6731,5 +6731,22 @@
   "Actividad del duplicado que se re-apuntaría al canónico:": "Aktivite doub la ki ta re-pwente nan kanonik la:",
   "El duplicado no tiene actividad registrada.": "Doub la pa gen aktivite anrejistre.",
   "¿Fusionar \"{nombreDup}\" dentro de \"{nombreCanon}\"?": "Fusyone \"{nombreDup}\" nan \"{nombreCanon}\"?",
-  "Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.": "Aktivite {nombreDup} ({registros} rejis) ap re-pwente nan {nombreCanon}, epi {nombreDup} vin inaktif. Sa ki chwoke rete pou revizyon manyèl (anyen pa efase). Sa rete nan odit la."
+  "Se re-apunta la actividad de {nombreDup} ({registros} registros) a {nombreCanon}, y {nombreDup} queda inactivo. Lo que choque se deja para revisión manual (no se borra nada). Queda en la auditoría.": "Aktivite {nombreDup} ({registros} rejis) ap re-pwente nan {nombreCanon}, epi {nombreDup} vin inaktif. Sa ki chwoke rete pou revizyon manyèl (anyen pa efase). Sa rete nan odit la.",
+  "Conversación": "Konvèsasyon",
+  "Sistema · solo admin · cada vez que abres una queda en la auditoría": "Sistèm · sèlman admin · chak fwa ou louvri youn li rete nan odit la",
+  "Conversaciones (7 días)": "Konvèsasyon (7 jou)",
+  "Con contradicción": "Ak kontradiksyon",
+  "Prometió y no hizo": "Te pwomèt epi pa t fè l",
+  "Herramienta con error": "Zouti ak erè",
+  "Usuario…": "Itilizatè…",
+  "Con problemas": "Ak pwoblèm",
+  "No hay conversaciones con ese filtro.": "Pa gen konvèsasyon ak filtè sa a.",
+  "Contradicción": "Kontradiksyon",
+  "Elige una conversación de la lista.": "Chwazi yon konvèsasyon nan lis la.",
+  "mensajes": "mesaj",
+  "modelo y herramientas por mensaje": "modèl ak zouti pa mesaj",
+  "Dijo que no tenía una herramienta que sí tenía (o anunció algo que no verificó)": "Li te di li pa t gen yon zouti li te genyen (oswa li te anonse yon bagay li pa t verifye)",
+  "Anunció una acción y terminó el turno sin ejecutarla": "Li te anonse yon aksyon epi li fini tou san li pa egzekite l",
+  "Guardar como caso de prueba": "Sove kòm ka tès",
+  "Enviar a Consultas de Compa": "Voye nan Kesyon Compa"
 }
