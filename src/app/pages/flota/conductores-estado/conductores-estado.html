@@ -1,9 +1,9 @@
 <app-flota-subnav grupo="conductores" />
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Estado de conductores</h1>
+    <h1 class="page-title">{{ 'Estado de conductores' | t }}</h1>
     <span class="page-count">
-      {{ filtered().length }} de {{ conductores().length }} conductor{{ conductores().length !== 1 ? 'es' : '' }}
+      {{ filtered().length }} {{ 'de' | t }} {{ conductores().length }} {{ (conductores().length !== 1 ? 'conductores' : 'conductor') | t }}
     </span>
   </div>
 </div>
@@ -22,7 +22,7 @@
       [attr.aria-pressed]="filtroEstado() === 'vigente'"
       (click)="toggleFiltro('vigente')"
     >
-      <span class="stat-card__label">Licencias vigentes</span>
+      <span class="stat-card__label">{{ 'Licencias vigentes' | t }}</span>
       <span class="stat-card__value">{{ vigentes() }}</span>
     </button>
     <button
@@ -32,7 +32,7 @@
       [attr.aria-pressed]="filtroEstado() === 'por_vencer'"
       (click)="toggleFiltro('por_vencer')"
     >
-      <span class="stat-card__label">Por vencer</span>
+      <span class="stat-card__label">{{ 'Por vencer' | t }}</span>
       <span class="stat-card__value">{{ porVencer() }}</span>
     </button>
     <button
@@ -42,7 +42,7 @@
       [attr.aria-pressed]="filtroEstado() === 'vencida'"
       (click)="toggleFiltro('vencida')"
     >
-      <span class="stat-card__label">Vencidas</span>
+      <span class="stat-card__label">{{ 'Vencidas' | t }}</span>
       <span class="stat-card__value">{{ vencidas() }}</span>
     </button>
     @if (sinDato() > 0) {
@@ -53,7 +53,7 @@
         [attr.aria-pressed]="filtroEstado() === 'sin_dato'"
         (click)="toggleFiltro('sin_dato')"
       >
-        <span class="stat-card__label">Sin dato de licencia</span>
+        <span class="stat-card__label">{{ 'Sin dato de licencia' | t }}</span>
         <span class="stat-card__value">{{ sinDato() }}</span>
       </button>
     }
@@ -64,15 +64,15 @@
     <div class="sgc-field filters-bar__search">
       <input
         type="search"
-        placeholder="Buscar conductor por nombre…"
+        placeholder="{{ 'Buscar conductor por nombre…' | t }}"
         [value]="search()"
         (input)="onSearch($any($event.target).value)"
-        aria-label="Buscar conductor por nombre"
+        aria-label="{{ 'Buscar conductor por nombre' | t }}"
       />
     </div>
     @if (filtroEstado() || search()) {
       <button type="button" class="sgc-btn sgc-btn--ghost filters-bar__clear" (click)="limpiarFiltros()">
-        Limpiar filtros
+        {{ 'Limpiar filtros' | t }}
       </button>
     }
   </div>
@@ -82,22 +82,22 @@
       <div class="table-empty">
         <p>
           @if (filtroEstado() || search()) {
-            No hay conductores que coincidan con los filtros.
+            {{ 'No hay conductores que coincidan con los filtros.' | t }}
           } @else {
-            No hay conductores registrados.
+            {{ 'No hay conductores registrados.' | t }}
           }
         </p>
       </div>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Estado de conductores">
+        <table class="data-table" aria-label="{{ 'Estado de conductores' | t }}">
           <thead>
             <tr>
-              <th>Conductor</th>
-              <th>Vencimiento licencia</th>
-              <th>Estado</th>
-              <th class="text-right">Checklists</th>
-              <th>Última actividad</th>
+              <th>{{ 'Conductor' | t }}</th>
+              <th>{{ 'Vencimiento licencia' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
+              <th class="text-right">{{ 'Checklists' | t }}</th>
+              <th>{{ 'Última actividad' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -108,7 +108,7 @@
                 tabindex="0"
                 (click)="abrirConductor(c.conductor_id)"
                 (keyup.enter)="abrirConductor(c.conductor_id)"
-                [attr.aria-label]="'Ver perfil de ' + c.nombre"
+                [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + c.nombre"
               >
                 <td>
                   <div class="ce-conductor">
@@ -116,7 +116,7 @@
                     <div class="ce-conductor__text">
                       <span class="ce-conductor__name">{{ c.nombre }}</span>
                       @if (c.vehiculos_usados > 0) {
-                        <span class="ce-conductor__sub">{{ c.vehiculos_usados }} vehículo{{ c.vehiculos_usados !== 1 ? 's' : '' }} usado{{ c.vehiculos_usados !== 1 ? 's' : '' }}</span>
+                        <span class="ce-conductor__sub">{{ c.vehiculos_usados }} {{ (c.vehiculos_usados !== 1 ? 'vehículos usados' : 'vehículo usado') | t }}</span>
                       }
                     </div>
                   </div>
@@ -124,7 +124,7 @@
                 <td>{{ c.licencia_vencimiento ? formatFecha(c.licencia_vencimiento) : '—' }}</td>
                 <td>
                   <span class="sgc-badge sgc-badge--{{ estadoBadge[c.estado_licencia] }}">
-                    {{ estadoLabel[c.estado_licencia] }}
+                    {{ estadoLabel[c.estado_licencia] | t }}
                   </span>
                 </td>
                 <td class="text-right">{{ c.checklists_total }}</td>

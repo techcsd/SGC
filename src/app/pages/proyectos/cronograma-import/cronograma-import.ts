@@ -5,6 +5,8 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { ToastService } from '../../../../shared/services/toast.service';
 import { CronogramaTarea } from '../../../../shared/models/cronograma.model';
 import { FaseProyecto } from '../../../../shared/models/proyecto.model';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** AS21 — actividad parseada de una hoja del Excel. */
 interface TareaImport {
@@ -77,7 +79,7 @@ interface HojaDiff {
  */
 @Component({
   selector: 'app-cronograma-import',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './cronograma-import.html',
   styleUrl: './cronograma-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,6 +90,7 @@ export class CronogramaImport implements OnInit {
   private service = inject(CronogramaService);
   private proyectosService = inject(ProyectosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   proyectoId = signal('');
   fileName = signal('');
@@ -440,7 +443,7 @@ export class CronogramaImport implements OnInit {
         reemplazadas += res.reemplazadas ?? 0;
       }
       this.toast.success(
-        'Cronograma importado',
+        this.i18n.t('Cronograma importado'),
         `${creadas} actividad(es) en ${hojas.length} torre(s)${reemplazadas ? `, ${reemplazadas} reemplazada(s)` : ''}.`,
       );
       this.router.navigate(['/proyectos', this.proyectoId(), 'cronograma']);

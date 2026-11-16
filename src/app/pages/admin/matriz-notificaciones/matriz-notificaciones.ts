@@ -6,6 +6,8 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserPicker } from '../../../../shared/ui/user-picker/user-picker';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface ParamRow extends NotifParam {
   seleccion: Set<string>; // códigos de rol marcados
 }
@@ -14,7 +16,7 @@ interface ParamRow extends NotifParam {
  *  matriz (por rol), sin tocar código. Backend: notif_config / set_notif_param. */
 @Component({
   selector: 'app-admin-matriz-notificaciones',
-  imports: [Skeleton, FormsModule, UserPicker],
+  imports: [Skeleton, FormsModule, UserPicker, TranslatePipe],
   templateUrl: './matriz-notificaciones.html',
   styleUrl: './matriz-notificaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +25,7 @@ export class AdminMatrizNotificaciones implements OnInit {
   private svc = inject(NotifMatrizService);
   private rolesSvc = inject(RolesService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   params = signal<ParamRow[]>([]);
   roles = signal<Rol[]>([]);
@@ -52,7 +55,7 @@ export class AdminMatrizNotificaciones implements OnInit {
         })),
       );
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar la matriz.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar la matriz.'));
     } finally {
       this.loading.set(false);
     }
@@ -104,7 +107,7 @@ export class AdminMatrizNotificaciones implements OnInit {
       await this.svc.setTipoCanales(t.tipo, [...set], true);
       this.canalesMap.update((m) => new Map(m).set(t.tipo, set));
     } catch (e) {
-      this.toast.error('No se pudo guardar el canal', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar el canal'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoRegla.set(null);
     }
@@ -152,9 +155,9 @@ export class AdminMatrizNotificaciones implements OnInit {
     try {
       await this.svc.setNotifPrefDe(u.id, tipo, false); // false = silenciar
       this.silForMap.update((m) => new Map(m).set(tipo, [...this.silFor(tipo), u]));
-      this.toast.success('Silenciada para', u.nombre);
+      this.toast.success(this.i18n.t('Silenciada para'), u.nombre);
     } catch (e) {
-      this.toast.error('No se pudo silenciar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo silenciar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoSil.set(null);
     }
@@ -165,7 +168,7 @@ export class AdminMatrizNotificaciones implements OnInit {
       await this.svc.setNotifPrefDe(id, tipo, true); // true = reactivar
       this.silForMap.update((m) => new Map(m).set(tipo, this.silFor(tipo).filter((x) => x.id !== id)));
     } catch (e) {
-      this.toast.error('No se pudo reactivar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo reactivar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoSil.set(null);
     }
@@ -226,7 +229,7 @@ export class AdminMatrizNotificaciones implements OnInit {
         tipo, [...(this.silRolesMap().get(tipo) ?? [])], this.silUsuariosMap().get(tipo) ?? [],
       );
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoSil.set(null);
     }
@@ -245,7 +248,7 @@ export class AdminMatrizNotificaciones implements OnInit {
       this.cargarMapasReglas(cat, reglas);
       await this.cargarSilenciadaPara(cat);
     } catch (e) {
-      this.toast.error('No se pudieron cargar las reglas', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar las reglas'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -263,12 +266,12 @@ export class AdminMatrizNotificaciones implements OnInit {
   async agregarReglaEspecifica() {
     if (this.guardandoEspecifica()) return;
     const tipo = this.nrTipo();
-    if (!tipo) { this.toast.error('Elige un tipo de aviso'); return; }
+    if (!tipo) { this.toast.error(this.i18n.t('Elige un tipo de aviso')); return; }
     const esUsuario = this.nrAmbito() === 'usuario';
     const rol = esUsuario ? null : (this.nrRol() || null);
     const usuarioId = esUsuario ? (this.nrUsuarioId() || null) : null;
-    if (esUsuario && !usuarioId) { this.toast.error('Elige un usuario'); return; }
-    if (!esUsuario && !rol) { this.toast.error('Elige un rol'); return; }
+    if (esUsuario && !usuarioId) { this.toast.error(this.i18n.t('Elige un usuario')); return; }
+    if (!esUsuario && !rol) { this.toast.error(this.i18n.t('Elige un rol')); return; }
     this.guardandoEspecifica.set(true);
     try {
       await this.svc.setRegla(tipo, rol, this.nrHabilitado(), usuarioId);
@@ -277,9 +280,9 @@ export class AdminMatrizNotificaciones implements OnInit {
       this.cargarMapasReglas(cat, reglas);
       // Reset del formulario.
       this.nrTipo.set(''); this.nrRol.set(''); this.nrUsuarioId.set(''); this.nrBusqueda.set('');
-      this.toast.success('Regla guardada');
+      this.toast.success(this.i18n.t('Regla guardada'));
     } catch (e) {
-      this.toast.error('No se pudo guardar la regla', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar la regla'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoEspecifica.set(false);
     }
@@ -294,7 +297,7 @@ export class AdminMatrizNotificaciones implements OnInit {
       this.tipos.set(cat);
       this.cargarMapasReglas(cat, reglas);
     } catch (e) {
-      this.toast.error('No se pudo cambiar la regla', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar la regla'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoEspecifica.set(false);
     }
@@ -309,9 +312,9 @@ export class AdminMatrizNotificaciones implements OnInit {
     try {
       await this.svc.setRegla(t.tipo, null, next);
       this.reglasMap.update((m) => new Map(m).set(t.tipo, next));
-      this.toast.success(next ? 'Aviso habilitado' : 'Aviso deshabilitado', t.etiqueta);
+      this.toast.success(next ? this.i18n.t('Aviso habilitado') : this.i18n.t('Aviso deshabilitado'), t.etiqueta);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoRegla.set(null);
     }
@@ -332,13 +335,16 @@ export class AdminMatrizNotificaciones implements OnInit {
     try {
       this.entregas.set(await this.svc.entregasRecientes(150));
     } catch (e) {
-      this.toast.error('No se pudo cargar la traza de entregas', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar la traza de entregas'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoEntregas.set(false);
     }
   }
   estadoEntregaBadge(e: string): string {
     return e === 'enviada' || e === 'entregada' ? 'success' : e === 'fallida' ? 'danger' : 'neutral';
+  }
+  estadoEntregaLabel(e: string): string {
+    return { enviada: 'Enviada', entregada: 'Entregada', fallida: 'Fallida', omitida: 'Omitida' }[e] ?? e;
   }
 
   async guardar(p: ParamRow) {
@@ -352,9 +358,9 @@ export class AdminMatrizNotificaciones implements OnInit {
         .join(',');
       await this.svc.setParam(p.clave, csv);
       this.params.update((list) => list.map((x) => (x.clave === p.clave ? { ...x, valor: csv } : x)));
-      this.toast.success('Guardado', p.etiqueta);
+      this.toast.success(this.i18n.t('Guardado'), p.etiqueta);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(null);
     }

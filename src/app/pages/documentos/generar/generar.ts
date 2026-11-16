@@ -10,15 +10,18 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-documentos-generar',
-  imports: [Skeleton],
+  imports: [Skeleton, TranslatePipe],
   templateUrl: './generar.html',
   styleUrl: './generar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Generar implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);

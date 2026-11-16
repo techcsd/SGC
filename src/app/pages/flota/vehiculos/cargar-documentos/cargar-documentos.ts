@@ -16,6 +16,7 @@ import { displayVehiculoCompleto } from '../../../../../shared/utils/vehiculo-di
 import { humanizeError } from '../../../../../shared/utils/friendly-error.util';
 import { Icon } from '../../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../../shared/i18n/i18n.service';
 import { AsignarDocumentoPanel, FilaParaAsignar } from './asignar-documento-panel/asignar-documento-panel';
 
 /** DB3 — una fila de la tabla de revisión (página leída + decisión humana). */
@@ -52,6 +53,7 @@ export class FlotaCargarDocumentos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
 
   paso = signal<'inicio' | 'leyendo' | 'revision' | 'aplicando' | 'resultado'>('inicio');
@@ -120,15 +122,15 @@ export class FlotaCargarDocumentos implements OnInit {
     const lista = Array.from(files);
     const esPdf = lista[0].type === 'application/pdf';
     if (esPdf && lista.length > 1) {
-      this.toast.error('Un solo PDF', 'Sube un PDF (con todas sus páginas) o hasta 20 fotos.');
+      this.toast.error(this.i18n.t('Un solo PDF'), 'Sube un PDF (con todas sus páginas) o hasta 20 fotos.');
       return;
     }
     if (!esPdf && lista.some((f) => !f.type.startsWith('image/'))) {
-      this.toast.error('Formato no soportado', 'Usa un PDF o fotos JPG/PNG/WEBP.');
+      this.toast.error(this.i18n.t('Formato no soportado'), 'Usa un PDF o fotos JPG/PNG/WEBP.');
       return;
     }
     if (!esPdf && lista.length > 20) {
-      this.toast.error('Demasiadas fotos', 'Máximo 20 fotos por lectura.');
+      this.toast.error(this.i18n.t('Demasiadas fotos'), 'Máximo 20 fotos por lectura.');
       return;
     }
     this.error.set('');
@@ -150,7 +152,7 @@ export class FlotaCargarDocumentos implements OnInit {
       }
       const { paginas, omitidas } = await this.lector.leer(archivosEdge);
       if (omitidas > 0) {
-        this.toast.error('Algunas páginas no se pudieron leer', `${omitidas} página(s) no se leyeron — el servicio tardó demasiado o falló. Revisa el resto y vuelve a intentar con esas páginas si hace falta.`);
+        this.toast.error(this.i18n.t('Algunas páginas no se pudieron leer'), `${omitidas} página(s) no se leyeron — el servicio tardó demasiado o falló. Revisa el resto y vuelve a intentar con esas páginas si hace falta.`);
       }
       const emparejadas = await this.lector.emparejar(paginas);
 
@@ -296,7 +298,7 @@ export class FlotaCargarDocumentos implements OnInit {
       this.filas.update((fs) => fs.map((f) => ({ ...f, resultado: porPagina.get(f.pagina) ?? f.resultado ?? null })));
       this.paso.set('resultado');
       const ok = resultados.filter((r) => r.ok).length;
-      this.toast.success('Documentos aplicados', `${ok} de ${resultados.length} fila(s) actualizada(s).`);
+      this.toast.success(this.i18n.t('Documentos aplicados'), `${ok} de ${resultados.length} fila(s) actualizada(s).`);
     } catch (e) {
       this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudo aplicar.');
       this.paso.set('revision');

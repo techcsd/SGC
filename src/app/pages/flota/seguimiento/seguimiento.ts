@@ -15,6 +15,7 @@ import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /** AS14 — ruta de hoy agrupada por su identidad visible (vehículo + origen→destino).
  *  Colapsa duplicados visuales; si un mismo trayecto tiene varias rutas (AV13
@@ -59,7 +60,7 @@ function hoyRD(): string {
  */
 @Component({
   selector: 'app-seguimiento',
-  imports: [FlotaSubnav, Skeleton, Icon],
+  imports: [FlotaSubnav, Skeleton, Icon, TranslatePipe],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

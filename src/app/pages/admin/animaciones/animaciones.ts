@@ -7,6 +7,8 @@ import { CountUpDirective } from '../../../../shared/motion/count-up.directive';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface CatRow {
   sistema: 'web' | 'app';
   id: string;
@@ -30,13 +32,14 @@ interface CatRow {
  */
 @Component({
   selector: 'app-admin-animaciones',
-  imports: [StaggerDirective, CountUpDirective, EstadoPulseDirective, Icon],
+  imports: [StaggerDirective, CountUpDirective, EstadoPulseDirective, Icon, TranslatePipe],
   templateUrl: './animaciones.html',
   styleUrl: './animaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminAnimaciones implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
+  protected i18n = inject(I18nService);
   motion = inject(MotionService);
   private logoReveal = inject(LogoRevealService);
   /** Estado real de reduce-motion del usuario (para restaurarlo al salir). */

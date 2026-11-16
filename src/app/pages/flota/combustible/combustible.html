@@ -2,44 +2,44 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Combustible</h1>
-    <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Combustible' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'registros' : 'registro') | t }}</span>
   </div>
   <div class="page-header__actions">
     @if (esFlotaElevado()) {
       <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleConfig()"
-              title="Umbrales de rendimiento de combustible">
+              title="{{ 'Umbrales de rendimiento de combustible' | t }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
-        Umbrales
+        {{ 'Umbrales' | t }}
       </button>
     }
     @if (esFlotaElevado()) {
       <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleSaneamiento()"
-              title="Revisar y sanear echadas sospechosas">
+              title="{{ 'Revisar y sanear echadas sospechosas' | t }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        Saneamiento
+        {{ 'Saneamiento' | t }}
       </button>
     }
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/combustible-dashboard">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/>
       </svg>
-      Dashboards
+      {{ 'Dashboards' | t }}
     </a>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo registro
+      {{ 'Nuevo registro' | t }}
     </button>
   </div>
 </div>
@@ -47,47 +47,46 @@
 <!-- ── AD7/CE13 · Umbrales de rendimiento (admin o flota elevado = Raykler) ── -->
 @if (esFlotaElevado() && configPanelOpen()) {
   <form class="combustible__config-panel sgc-card" [formGroup]="configForm" (ngSubmit)="saveConfig()">
-    <h3 class="combustible__config-title">Calibración del rendimiento de combustible</h3>
+    <h3 class="combustible__config-title">{{ 'Calibración del rendimiento de combustible' | t }}</h3>
     <p class="combustible__config-hint">
-      El rendimiento solo es confiable de tanque lleno a tanque lleno y con distancia suficiente.
-      Ajusta los umbrales; al guardar se recalcula el histórico.
+      {{ 'El rendimiento solo es confiable de tanque lleno a tanque lleno y con distancia suficiente.' | t }}
+      {{ 'Ajusta los umbrales; al guardar se recalcula el histórico.' | t }}
     </p>
     <div class="combustible__config-grid">
-      <label>Distancia mínima entre echadas (km)
+      <label>{{ 'Distancia mínima entre echadas (km)' | t }}
         <input type="number" formControlName="dist_min_km" min="1" /></label>
-      <label>Rendimiento mínimo coherente (km/gal)
+      <label>{{ 'Rendimiento mínimo coherente (km/gal)' | t }}
         <input type="number" step="0.1" formControlName="rendimiento_minimo_km_gal" min="0.01" /></label>
-      <label>Rendimiento máximo coherente (km/gal)
+      <label>{{ 'Rendimiento máximo coherente (km/gal)' | t }}
         <input type="number" step="0.1" formControlName="rendimiento_maximo_km_gal" min="1" /></label>
-      <label>Tolerancia "bajo" bajo el baseline (%)
+      <label>{{ 'Tolerancia "bajo" bajo el baseline (%)' | t }}
         <input type="number" formControlName="umbral_consumo_pct" min="1" max="99" /></label>
-      <label>Desviación "anormal" del baseline (%)
+      <label>{{ 'Desviación "anormal" del baseline (%)' | t }}
         <input type="number" formControlName="umbral_anormal_pct" min="1" max="99" /></label>
     </div>
 
     <!-- AW3 — topes de capacidad de tanque (galones) por clase de vehículo -->
-    <h4 class="combustible__config-subtitle">Topes de galones por clase (bloqueo duro al registrar)</h4>
+    <h4 class="combustible__config-subtitle">{{ 'Topes de galones por clase (bloqueo duro al registrar)' | t }}</h4>
     <p class="combustible__config-hint">
-      Aproximados con holgura para no frustrar registros reales. Si un vehículo tiene su
-      capacidad de tanque cargada, esa manda. El bloqueo aplica cuando los galones superan
-      el tope × {{ flotaConfig.margenBloqueo() }}.
+      {{ 'Aproximados con holgura para no frustrar registros reales. Si un vehículo tiene su capacidad de tanque cargada, esa manda. El bloqueo aplica cuando los galones superan el tope ×' | t }}
+      {{ flotaConfig.margenBloqueo() }}.
     </p>
     <div class="combustible__config-grid">
-      <label>Automóvil (gal)<input type="number" formControlName="tanque_cap_automovil" min="1" /></label>
-      <label>SUV (gal)<input type="number" formControlName="tanque_cap_suv" min="1" /></label>
-      <label>Camioneta/Pickup (gal)<input type="number" formControlName="tanque_cap_pickup" min="1" /></label>
-      <label>Camión (gal)<input type="number" formControlName="tanque_cap_camion" min="1" /></label>
-      <label>Equipo pesado (gal)<input type="number" formControlName="tanque_cap_pesado" min="1" /></label>
-      <label>Depósito/planta (no vehículo)<input type="number" formControlName="tanque_cap_no_vehiculo" min="1" /></label>
+      <label>{{ 'Automóvil (gal)' | t }}<input type="number" formControlName="tanque_cap_automovil" min="1" /></label>
+      <label>{{ 'SUV (gal)' | t }}<input type="number" formControlName="tanque_cap_suv" min="1" /></label>
+      <label>{{ 'Camioneta/Pickup (gal)' | t }}<input type="number" formControlName="tanque_cap_pickup" min="1" /></label>
+      <label>{{ 'Camión (gal)' | t }}<input type="number" formControlName="tanque_cap_camion" min="1" /></label>
+      <label>{{ 'Equipo pesado (gal)' | t }}<input type="number" formControlName="tanque_cap_pesado" min="1" /></label>
+      <label>{{ 'Depósito/planta (no vehículo)' | t }}<input type="number" formControlName="tanque_cap_no_vehiculo" min="1" /></label>
     </div>
-    <h4 class="combustible__config-subtitle">Banda de precio por galón (RD$)</h4>
+    <h4 class="combustible__config-subtitle">{{ 'Banda de precio por galón (RD$)' | t }}</h4>
     <div class="combustible__config-grid">
-      <label>Precio mínimo (RD$/gal)<input type="number" formControlName="precio_gal_min" min="1" /></label>
-      <label>Precio máximo (RD$/gal)<input type="number" formControlName="precio_gal_max" min="1" /></label>
+      <label>{{ 'Precio mínimo (RD$/gal)' | t }}<input type="number" formControlName="precio_gal_min" min="1" /></label>
+      <label>{{ 'Precio máximo (RD$/gal)' | t }}<input type="number" formControlName="precio_gal_max" min="1" /></label>
     </div>
 
     <div class="combustible__config-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleConfig()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleConfig()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="configForm.invalid || savingConfig()">
         {{ savingConfig() ? 'Guardando…' : 'Guardar y recalcular' }}
       </button>
@@ -95,8 +94,8 @@
 
     <!-- CE13 — Auditoría: historial de versiones con restaurar -->
     @if (umbralHistorial().length > 0) {
-      <h4 class="combustible__config-subtitle">Historial de cambios</h4>
-      <p class="combustible__config-hint">Cada guardado es una versión. Puedes restaurar la anterior.</p>
+      <h4 class="combustible__config-subtitle">{{ 'Historial de cambios' | t }}</h4>
+      <p class="combustible__config-hint">{{ 'Cada guardado es una versión. Puedes restaurar la anterior.' | t }}</p>
       <ul class="combustible__config-hist">
         @for (v of umbralHistorial(); track v.lote) {
           <li class="combustible__config-hist-row">
@@ -111,7 +110,7 @@
               }
             </div>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                    [disabled]="savingConfig()" (click)="restaurarUmbral(v.lote)">Restaurar</button>
+                    [disabled]="savingConfig()" (click)="restaurarUmbral(v.lote)">{{ 'Restaurar' | t }}</button>
           </li>
         }
       </ul>
@@ -122,32 +121,30 @@
 <!-- ── AW3/BQ5 · Saneamiento de echadas sospechosas (flota elevado) ── -->
 @if (esFlotaElevado() && saneamientoOpen()) {
   <div class="combustible__config-panel sgc-card">
-    <h3 class="combustible__config-title">Saneamiento de echadas</h3>
+    <h3 class="combustible__config-title">{{ 'Saneamiento de echadas' | t }}</h3>
     <p class="combustible__config-hint">
-      Echadas que superan la capacidad de tanque, tienen precio fuera de banda o un
-      rendimiento imposible. <strong>Corregir</strong> ajusta el valor (ej. decimal perdido);
-      <strong>excluir</strong> la deja fuera de promedios/KPIs/incentivo. En ambos casos se
-      conserva el valor original (traza, nunca se borra).
+      {{ 'Echadas que superan la capacidad de tanque, tienen precio fuera de banda o un rendimiento imposible.' | t }} <strong>{{ 'Corregir' | t }}</strong> {{ 'ajusta el valor (ej. decimal perdido);' | t }}
+      <strong>{{ 'excluir' | t }}</strong> {{ 'la deja fuera de promedios/KPIs/incentivo. En ambos casos se conserva el valor original (traza, nunca se borra).' | t }}
     </p>
     @if (loadingSospechosas()) {
       <app-skeleton variant="list" [rows]="3" />
     } @else if (sospechosasError()) {
       <!-- BQ3 — estado de error honesto (no "Todo limpio" cuando en realidad falló). -->
       <div class="combustible__config-hint">
-        <p><app-icon name="alert-triangle" [size]="14" /> No se pudieron cargar las echadas sospechosas.</p>
+        <p><app-icon name="alert-triangle" [size]="14" /> {{ 'No se pudieron cargar las echadas sospechosas.' | t }}</p>
         <p class="text-muted">{{ sospechosasError() }}</p>
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cargarSospechosas()">Reintentar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cargarSospechosas()">{{ 'Reintentar' | t }}</button>
       </div>
     } @else if ((sospechosas()?.length ?? 0) === 0) {
-      <p class="combustible__config-hint"><app-icon name="check" [size]="14" /> No hay echadas sospechosas. Todo limpio.</p>
+      <p class="combustible__config-hint"><app-icon name="check" [size]="14" /> {{ 'No hay echadas sospechosas. Todo limpio.' | t }}</p>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Echadas sospechosas">
+        <table class="data-table" aria-label="{{ 'Echadas sospechosas' | t }}">
           <thead>
             <tr>
-              <th>Fecha</th><th>Vehículo</th><th class="text-right">Galones</th>
-              <th class="text-right">Tanque</th><th class="text-right">RD$/gal</th>
-              <th class="text-right">km/gal</th><th>Motivos</th><th class="text-center">Acción</th>
+              <th>{{ 'Fecha' | t }}</th><th>{{ 'Vehículo' | t }}</th><th class="text-right">{{ 'Galones' | t }}</th>
+              <th class="text-right">{{ 'Tanque' | t }}</th><th class="text-right">{{ 'RD$/gal' | t }}</th>
+              <th class="text-right">{{ 'km/gal' | t }}</th><th>{{ 'Motivos' | t }}</th><th class="text-center">{{ 'Acción' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -156,7 +153,7 @@
                 <td>{{ formatFecha(e.fecha) }}</td>
                 <td>
                   <span class="combustible__placa">{{ e.placa ?? '—' }}</span>
-                  @if (e.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                  @if (e.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                   @if (e.tipo) { <span class="combustible__marca">{{ e.tipo }}</span> }
                 </td>
                 <td class="text-right">{{ e.galones | number:'1.1-2' }}</td>
@@ -169,8 +166,8 @@
                   }
                 </td>
                 <td class="text-center combustible__saneo-actions">
-                  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="corregirEchada(e)">Corregir</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost detail__prueba-del" (click)="invalidarEchada(e)">Excluir</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="corregirEchada(e)">{{ 'Corregir' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost detail__prueba-del" (click)="invalidarEchada(e)">{{ 'Excluir' | t }}</button>
                 </td>
               </tr>
             }
@@ -179,7 +176,7 @@
       </div>
     }
     <div class="combustible__config-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleSaneamiento()">Cerrar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleSaneamiento()">{{ 'Cerrar' | t }}</button>
     </div>
   </div>
 }
@@ -188,32 +185,32 @@
 @if (preciosVigentes().length > 0) {
   <div class="combustible__precios-widget">
     <span class="combustible__precios-titulo">
-      <app-icon name="fuel" [size]="16" /> Precios oficiales MICM (RD$/gal)
+      <app-icon name="fuel" [size]="16" /> {{ 'Precios oficiales MICM (RD$/gal)' | t }}
       @if (esAdmin()) {
         <button type="button" class="combustible__precios-edit-btn" (click)="togglePreciosEdit()"
-          title="El MICM a veces publica con rezago. Edita el precio vigente a mano."><app-icon name="pen" [size]="14" /> Editar</button>
+          title="{{ 'El MICM a veces publica con rezago. Edita el precio vigente a mano.' | t }}"><app-icon name="pen" [size]="14" /> {{ 'Editar' | t }}</button>
       }
     </span>
     <div class="combustible__precios-chips">
       @for (p of preciosVigentes(); track p.producto) {
         <span class="combustible__precio-chip">
-          {{ productoCanonicoLabel(p.producto) }}: <strong>{{ p.precio | number:'1.2-2' }}</strong>
+          {{ productoCanonicoLabel(p.producto) | t }}: <strong>{{ p.precio | number:'1.2-2' }}</strong>
         </span>
       }
     </div>
     @if (esAdmin() && preciosEditOpen()) {
       <div class="combustible__precios-form">
-        <p class="combustible__precios-hint">Precio vigente (RD$/galón). Se marca como fuente "Manual" con fecha de hoy.</p>
+        <p class="combustible__precios-hint">{{ 'Precio vigente (RD$/galón). Se marca como fuente "Manual" con fecha de hoy.' | t }}</p>
         <div class="combustible__precios-grid">
           @for (p of preciosVigentes(); track p.producto) {
-            <label>{{ productoCanonicoLabel(p.producto) }}
+            <label>{{ productoCanonicoLabel(p.producto) | t }}
               <input type="number" step="0.01" min="0" [value]="preciosEdit()[p.producto]"
                 (input)="setPrecioForm(p.producto, $any($event.target).value)" />
             </label>
           }
         </div>
         <div class="combustible__precios-actions">
-          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePreciosEdit()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePreciosEdit()">{{ 'Cancelar' | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarPrecios()" [disabled]="savingPrecios()">
             {{ savingPrecios() ? 'Guardando…' : 'Guardar precios' }}
           </button>
@@ -226,12 +223,12 @@
 <!-- ── Monthly totals bar ── -->
 <div class="combustible__totals-bar">
   <div class="combustible__total-item">
-    <span class="combustible__total-label">Galones este mes</span>
+    <span class="combustible__total-label">{{ 'Galones este mes' | t }}</span>
     <span class="combustible__total-value">{{ totalGalonesMes() | number:'1.1-1' }} gal</span>
   </div>
   <div class="combustible__totals-divider"></div>
   <div class="combustible__total-item">
-    <span class="combustible__total-label">Gasto este mes</span>
+    <span class="combustible__total-label">{{ 'Gasto este mes' | t }}</span>
     <span class="combustible__total-value combustible__total-value--primary">
       RD$ {{ totalGastoMes() | number:'1.2-2' }}
     </span>
@@ -241,30 +238,30 @@
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">
-    <input type="search" placeholder="Buscar por placa o estación…"
+    <input type="search" placeholder="{{ 'Buscar por placa o estación…' | t }}"
       [value]="searchQuery()" (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar registros de combustible" />
+      aria-label="{{ 'Buscar registros de combustible' | t }}" />
   </div>
   <div class="sgc-field filters-bar__select">
     <app-vehiculo-picker
       [vehiculos]="vehiculos()"
       [value]="selectedVehiculoId()"
       [allowClear]="true"
-      placeholder="Todos los vehículos"
+      placeholder="{{ 'Todos los vehículos' | t }}"
       (valueChange)="onVehiculoChange($event)"
     />
   </div>
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
   @if (hasFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
   @if (esAdmin()) {
     <label class="combustible__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -289,24 +286,24 @@
         <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/>
       </svg>
       <p>
-        @if (hasFilters()) { No se encontraron registros con los filtros aplicados. }
-        @else { No hay registros de combustible. Crea el primero. }
+        @if (hasFilters()) { {{ 'No se encontraron registros con los filtros aplicados.' | t }} }
+        @else { {{ 'No hay registros de combustible. Crea el primero.' | t }} }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Registros de combustible">
+      <table class="data-table" aria-label="{{ 'Registros de combustible' | t }}">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Vehículo</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Vehículo' | t }}</th>
             <th class="text-right">Km</th>
-            <th class="text-right">Galones</th>
-            <th class="text-right">Monto (RD$)</th>
-            <th class="text-right">RD$/gal</th>
-            <th class="text-right">km/gal</th>
-            <th class="text-right">RD$/km</th>
-            <th class="text-center">Consumo</th>
+            <th class="text-right">{{ 'Galones' | t }}</th>
+            <th class="text-right">{{ 'Monto (RD$)' | t }}</th>
+            <th class="text-right">{{ 'RD$/gal' | t }}</th>
+            <th class="text-right">{{ 'km/gal' | t }}</th>
+            <th class="text-right">{{ 'RD$/km' | t }}</th>
+            <th class="text-center">{{ 'Consumo' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -315,10 +312,10 @@
               <td class="combustible__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
-                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
-                @if (r.invalidada) { <span class="sgc-badge sgc-badge--danger" [title]="r.saneamiento_motivo || 'Excluida de promedios/KPIs'">Excluida</span> }
-                @else if (r.saneada) { <span class="sgc-badge sgc-badge--info" [title]="r.saneamiento_motivo || 'Corregida'">Corregida</span> }
-                @if (r.origen === 'deposito_obra') { <span class="sgc-badge sgc-badge--info" title="Depósito en obra (no concilia)">Depósito</span> }
+                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
+                @if (r.invalidada) { <span class="sgc-badge sgc-badge--danger" [title]="r.saneamiento_motivo || i18n.t('Excluida de promedios/KPIs')">{{ 'Excluida' | t }}</span> }
+                @else if (r.saneada) { <span class="sgc-badge sgc-badge--info" [title]="r.saneamiento_motivo || i18n.t('Corregida')">{{ 'Corregida' | t }}</span> }
+                @if (r.origen === 'deposito_obra') { <span class="sgc-badge sgc-badge--info" title="{{ 'Depósito en obra (no concilia)' | t }}">{{ 'Depósito' | t }}</span> }
                 @if (r.vehiculo?.marca) { <span class="combustible__marca">{{ r.vehiculo!.marca }}</span> }
                 @if (r.conductor?.nombre) { <span class="combustible__marca">{{ r.conductor!.nombre }}</span> }
               </td>
@@ -327,7 +324,7 @@
               </td>
               <td class="text-right">
                 @if (esV2(r)) { {{ r.galones | number:'1.1-2' }} }
-                @else { <span class="text-muted" title="Registro legacy en litros">{{ r.litros | number:'1.1-2' }} L</span> }
+                @else { <span class="text-muted" title="{{ 'Registro legacy en litros' | t }}">{{ r.litros | number:'1.1-2' }} L</span> }
               </td>
               <td class="text-right"><strong>{{ (r.monto ?? r.total) | number:'1.2-2' }}</strong></td>
               <td class="text-right text-muted">{{ r.precio_por_galon ? (r.precio_por_galon | number:'1.2-2') : '—' }}</td>
@@ -341,8 +338,8 @@
                 <!-- AD7 — estado calibrado (4 estados) con tooltip explicando POR QUÉ. -->
                 <span
                   class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"
-                  [title]="r.motivo_alerta || estadoMeta(r).label">
-                  <app-icon [name]="estadoIcon(r)" [size]="14" /> {{ estadoMeta(r).label }}
+                  [title]="r.motivo_alerta || i18n.t(estadoMeta(r).label)">
+                  <app-icon [name]="estadoIcon(r)" [size]="14" /> {{ estadoMeta(r).label | t }}
                 </span>
               </td>
             </tr>
@@ -355,16 +352,16 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
-          <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="Página anterior">
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           @for (p of pages; track p) {
             <button class="page-btn" type="button" (click)="goToPage(p)" [class.page-btn--active]="p === currentPage()">{{ p }}</button>
           }
-          <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="{{ 'Página siguiente' | t }}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
@@ -374,91 +371,91 @@
 </div>
 
 <!-- ── Create drawer ── -->
-<app-form-drawer title="Nuevo registro de combustible" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer title="{{ 'Nuevo registro de combustible' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <!-- BV5 — echada sin terminar recuperable (crash / cierre de pantalla) -->
     @if (borradorPendiente()) {
       <div class="cmb-borrador" role="status">
         <div class="cmb-borrador__txt">
-          <strong>Tienes una echada sin terminar.</strong>
-          Puedes retomar los datos que habías escrito. <em>Las fotos hay que volver a tomarlas.</em>
+          <strong>{{ 'Tienes una echada sin terminar.' | t }}</strong>
+          {{ 'Puedes retomar los datos que habías escrito.' | t }} <em>{{ 'Las fotos hay que volver a tomarlas.' | t }}</em>
         </div>
         <div class="cmb-borrador__acc">
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="retomarBorrador()">Retomar</button>
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarBorrador()">Descartar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="retomarBorrador()">{{ 'Retomar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarBorrador()">{{ 'Descartar' | t }}</button>
         </div>
       </div>
     }
 
     <!-- CV1 — Compa llenó estos datos con lo que le dijo la persona en el chat. -->
     @if (avisoCompa()) {
-      <div class="cmb-compa-banner" role="note">Compa llenó estos datos con lo que le dijiste. Revísalos antes de guardar.</div>
+      <div class="cmb-compa-banner" role="note">{{ 'Compa llenó estos datos con lo que le dijiste. Revísalos antes de guardar.' | t }}</div>
     }
 
     <div class="sgc-field">
-      <label for="vehiculo_id">Vehículo <span class="required">*</span>
+      <label for="vehiculo_id">{{ 'Vehículo' | t }} <span class="required">*</span>
         @if (prellenadoCompa().has('vehiculo_id')) { <span class="cmb-chip-compa">Compa</span> }
       </label>
       <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
       @if (odometroActual() !== null) {
-        <span class="field-hint">Odómetro actual: {{ odometroActual() | number:'1.0-0' }} km.</span>
+        <span class="field-hint">{{ i18n.t('Odómetro actual: {n} km.', { n: odometroActual()! }) }}</span>
       }
-      @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) { <span class="field-error">El vehículo es obligatorio.</span> }
+      @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) { <span class="field-error">{{ 'El vehículo es obligatorio.' | t }}</span> }
     </div>
 
     <div class="sgc-field">
-      <label for="conductor_id">Conductor</label>
+      <label for="conductor_id">{{ 'Conductor' | t }}</label>
       <select id="conductor_id" formControlName="conductor_id">
-        <option [ngValue]="null">Sin conductor asignado</option>
+        <option [ngValue]="null">{{ 'Sin conductor asignado' | t }}</option>
         @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>
 
     <div class="sgc-field">
-      <label for="fecha">Fecha <span class="required">*</span></label>
+      <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
       <input id="fecha" type="date" formControlName="fecha" [max]="today" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
     </div>
 
     <!-- AC11 — origen: estación (conciliable) o depósito/garrafón en obra -->
     <div class="sgc-field">
-      <label for="origen">Origen del combustible <span class="required">*</span></label>
+      <label for="origen">{{ 'Origen del combustible' | t }} <span class="required">*</span></label>
       <select id="origen" formControlName="origen">
-        <option value="estacion">Estación</option>
-        <option value="deposito_obra">Depósito en obra (garrafón)</option>
+        <option value="estacion">{{ 'Estación' | t }}</option>
+        <option value="deposito_obra">{{ 'Depósito en obra (garrafón)' | t }}</option>
       </select>
     </div>
 
     @if (esDepositoObra()) {
       <div class="sgc-field">
-        <label for="proyecto_id">Obra <span class="required">*</span></label>
+        <label for="proyecto_id">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-          <option [ngValue]="null">Selecciona la obra…</option>
+          <option [ngValue]="null">{{ 'Selecciona la obra…' | t }}</option>
           @for (p of proyectosVisibles(); track p.id) {
             <option [value]="p.id">{{ p.codigo ? p.codigo + ' · ' + p.nombre : p.nombre }}</option>
           }
         </select>
-        @if (f.proyecto_id.invalid && f.proyecto_id.touched) { <span class="field-error">Selecciona la obra.</span> }
-        <span class="field-hint">El combustible de depósito en obra <strong>no entra</strong> a la conciliación de estación.</span>
+        @if (f.proyecto_id.invalid && f.proyecto_id.touched) { <span class="field-error">{{ 'Selecciona la obra.' | t }}</span> }
+        <span class="field-hint">{{ 'El combustible de depósito en obra' | t }} <strong>{{ 'no entra' | t }}</strong> {{ 'a la conciliación de estación.' | t }}</span>
       </div>
     }
 
     <!-- Los 3 datos que digita el chofer -->
     <div class="sgc-field">
-      <label for="kilometraje">{{ labelLectura() }} <span class="required">*</span>
+      <label for="kilometraje">{{ labelLectura() | t }} <span class="required">*</span>
         @if (prellenadoCompa().has('kilometraje')) { <span class="cmb-chip-compa">Compa</span> }
       </label>
       <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1"
-        [placeholder]="medidaSel() === 'horas' ? 'horas en el horómetro' : 'km en el tablero'"
+        [placeholder]="i18n.t(medidaSel() === 'horas' ? 'horas en el horómetro' : 'km en el tablero')"
         [class.invalid]="(f.kilometraje.invalid && f.kilometraje.touched) || (avisoCompa() && !f.kilometraje.value)" />
       @if (avisoCompa() && !f.kilometraje.value) {
-        <span class="field-error">Falta: Compa no la inventa.</span>
+        <span class="field-error">{{ 'Falta: Compa no la inventa.' | t }}</span>
       } @else if (f.kilometraje.invalid && f.kilometraje.touched) {
-        <span class="field-error">La lectura es obligatoria.</span>
+        <span class="field-error">{{ 'La lectura es obligatoria.' | t }}</span>
       }
       <!-- CZ1 — pista de la última lectura con fecha (recibos retroactivos pueden ir por debajo del odómetro vivo). -->
       @if (kmValidacion()?.km_antes != null) {
-        <span class="field-hint">Última lectura: {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
+        <span class="field-hint">{{ 'Última lectura:' | t }} {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
       }
       <!-- CZ1 — error (bloquea Guardar): retroceso vs. lectura anterior o exceso retroactivo. -->
       @if (kmValidacion()?.nivel === 'error') {
@@ -466,12 +463,12 @@
         <!-- DH2 — un flota-elevado puede forzar el registro explicando por qué. -->
         @if (esFlotaElevado()) {
           @if (!kmForzarAbierto()) {
-            <button type="button" class="cmb-km-forzar-btn" (click)="kmForzarAbierto.set(true)">Forzar con motivo</button>
+            <button type="button" class="cmb-km-forzar-btn" (click)="kmForzarAbierto.set(true)">{{ 'Forzar con motivo' | t }}</button>
           } @else {
             <div class="cmb-km-aviso">
-              <label for="km-motivo">Motivo para forzar este kilometraje</label>
+              <label for="km-motivo">{{ 'Motivo para forzar este kilometraje' | t }}</label>
               <textarea id="km-motivo" rows="2" [value]="kmMotivo()" (input)="kmMotivo.set($any($event.target).value)"
-                placeholder="Ej.: el conductor confirmó la lectura por teléfono, la otra fuente está mal capturada…"></textarea>
+                placeholder="{{ 'Ej.: el conductor confirmó la lectura por teléfono, la otra fuente está mal capturada…' | t }}"></textarea>
             </div>
           }
         }
@@ -482,7 +479,7 @@
           <span class="cmb-km-aviso__msg">{{ kmValidacion()!.mensaje }}</span>
           <label class="cmb-km-check">
             <input type="checkbox" [checked]="kmConfirmado()" (change)="kmConfirmado.set($any($event.target).checked)" />
-            Sí, es correcto
+            {{ 'Sí, es correcto' | t }}
           </label>
         </div>
       }
@@ -490,30 +487,30 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="galones">Galones echados <span class="required">*</span>
+        <label for="galones">{{ 'Galones echados' | t }} <span class="required">*</span>
           @if (prellenadoCompa().has('galones')) { <span class="cmb-chip-compa">Compa</span> }
         </label>
         <input id="galones" type="number" formControlName="galones" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"
           [class.invalid]="f.galones.invalid && f.galones.touched" />
-        @if (f.galones.invalid && f.galones.touched) { <span class="field-error">Requerido.</span> }
+        @if (f.galones.invalid && f.galones.touched) { <span class="field-error">{{ 'Requerido.' | t }}</span> }
         <!-- AW3 — referencia de capacidad + aviso de valor sobre el tanque -->
         @if (!esDepositoObra() && f.vehiculo_id.value) {
           @if (f.galones.value && f.galones.value > capVehiculoSel() * flotaConfig.margenBloqueo()) {
-            <span class="field-error">Supera la capacidad estimada del tanque (~{{ capVehiculoSel() | number:'1.0-0' }} gal). Revisa el valor.</span>
+            <span class="field-error">{{ 'Supera la capacidad estimada del tanque (~' | t }}{{ capVehiculoSel() | number:'1.0-0' }} {{ 'gal). Revisa el valor.' | t }}</span>
           } @else {
-            <span class="field-hint">Tanque estimado: ~{{ capVehiculoSel() | number:'1.0-0' }} gal.</span>
+            <span class="field-hint">{{ 'Tanque estimado: ~' | t }}{{ capVehiculoSel() | number:'1.0-0' }} {{ 'gal.' | t }}</span>
           }
         }
       </div>
       <div class="sgc-field">
-        <label for="monto">Monto pagado (RD$)
+        <label for="monto">{{ 'Monto pagado (RD$)' | t }}
           @if (!esDepositoObra()) { <span class="required">*</span> }
-          @else { <span class="sgc-field__opt">(opcional)</span> }
+          @else { <span class="sgc-field__opt">{{ '(opcional)' | t }}</span> }
           @if (prellenadoCompa().has('monto')) { <span class="cmb-chip-compa">Compa</span> }
         </label>
         <input id="monto" type="number" formControlName="monto" min="0.01" step="0.01" placeholder="0.00"
           [class.invalid]="f.monto.invalid && f.monto.touched" />
-        @if (f.monto.invalid && f.monto.touched) { <span class="field-error">Requerido.</span> }
+        @if (f.monto.invalid && f.monto.touched) { <span class="field-error">{{ 'Requerido.' | t }}</span> }
       </div>
     </div>
 
@@ -522,34 +519,34 @@
       <div class="calc-card" [class.calc-card--alerta]="calc().alerta">
         <div class="calc-card__grid">
           <div class="calc-card__item">
-            <span class="calc-card__label">Precio / galón</span>
+            <span class="calc-card__label">{{ 'Precio / galón' | t }}</span>
             <span class="calc-card__value">RD$ {{ calc().precio | number:'1.2-2' }}</span>
           </div>
           <div class="calc-card__item">
-            <span class="calc-card__label">Km recorridos</span>
+            <span class="calc-card__label">{{ 'Km recorridos' | t }}</span>
             <span class="calc-card__value">{{ calc().kmRec !== null ? (calc().kmRec | number:'1.0-0') : '—' }}</span>
           </div>
           <div class="calc-card__item">
-            <span class="calc-card__label">Rendimiento</span>
+            <span class="calc-card__label">{{ 'Rendimiento' | t }}</span>
             <span class="calc-card__value">{{ calc().rend !== null ? (calc().rend | number:'1.1-2') + ' km/gal' : '—' }}</span>
           </div>
           <div class="calc-card__item">
-            <span class="calc-card__label">Costo / km</span>
+            <span class="calc-card__label">{{ 'Costo / km' | t }}</span>
             <span class="calc-card__value">{{ calc().costoKm !== null ? 'RD$ ' + (calc().costoKm | number:'1.2-2') : '—' }}</span>
           </div>
         </div>
         @if (calc().rend === null) {
-          <div class="calc-card__banda calc-card__banda--info">Primera echada del vehículo: aún sin rendimiento.</div>
+          <div class="calc-card__banda calc-card__banda--info">{{ 'Primera echada del vehículo: aún sin rendimiento.' | t }}</div>
         } @else if (calc().alerta) {
           <div class="calc-card__banda calc-card__banda--alerta">
             @switch (calc().refTipo) {
-              @case ('esperado') { <app-icon name="alert-triangle" [size]="14" /> Rinde por debajo del esperado ({{ calc().esperado | number:'1.1-2' }} km/gal). Se notificará a Flota. }
-              @case ('propio') { <app-icon name="alert-triangle" [size]="14" /> Consumo por debajo del promedio del vehículo ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota. }
-              @default { <app-icon name="alert-triangle" [size]="14" /> Rendimiento imposiblemente bajo ({{ calc().rend | number:'1.1-2' }} km/gal, mínimo {{ calc().piso | number:'1.0-0' }} km/gal). Se notificará a Flota. }
+              @case ('esperado') { <app-icon name="alert-triangle" [size]="14" /> {{ 'Rinde por debajo del esperado (' | t }}{{ calc().esperado | number:'1.1-2' }} {{ 'km/gal). Se notificará a Flota.' | t }} }
+              @case ('propio') { <app-icon name="alert-triangle" [size]="14" /> {{ 'Consumo por debajo del promedio del vehículo (' | t }}{{ calc().prom | number:'1.1-2' }} {{ 'km/gal). Se notificará a Flota.' | t }} }
+              @default { <app-icon name="alert-triangle" [size]="14" /> {{ 'Rendimiento imposiblemente bajo (' | t }}{{ calc().rend | number:'1.1-2' }} {{ 'km/gal, mínimo' | t }} {{ calc().piso | number:'1.0-0' }} {{ 'km/gal). Se notificará a Flota.' | t }} }
             }
           </div>
         } @else {
-          <div class="calc-card__banda calc-card__banda--ok"><app-icon name="check" [size]="14" /> Consumo dentro de lo normal.</div>
+          <div class="calc-card__banda calc-card__banda--ok"><app-icon name="check" [size]="14" /> {{ 'Consumo dentro de lo normal.' | t }}</div>
         }
       </div>
     }
@@ -557,38 +554,38 @@
     <!-- 2 fotos obligatorias -->
     <div class="form-row">
       <div class="sgc-field photo-field">
-        <label>{{ esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo' }} <span class="required">*</span></label>
+        <label>{{ (esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo') | t }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()" [class.photo-drop--required]="avisoCompa() && !reciboPreview()">
-          @if (reciboPreview()) { <img [src]="reciboPreview()" alt="Evidencia" /> }
-          @else { <span><app-icon name="camera" [size]="16" /> {{ esDepositoObra() ? 'Subir foto' : 'Subir recibo' }}</span> }
+          @if (reciboPreview()) { <img [src]="reciboPreview()" alt="{{ 'Evidencia' | t }}" /> }
+          @else { <span><app-icon name="camera" [size]="16" /> {{ (esDepositoObra() ? 'Subir foto' : 'Subir recibo') | t }}</span> }
           <input type="file" accept="image/*" capture (change)="onFileSelected('recibo', $event)" hidden />
         </label>
-        @if (avisoCompa() && !reciboPreview()) { <span class="cmb-photo-obligatoria">Obligatoria</span> }
+        @if (avisoCompa() && !reciboPreview()) { <span class="cmb-photo-obligatoria">{{ 'Obligatoria' | t }}</span> }
       </div>
       <div class="sgc-field photo-field">
-        <label>{{ esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)' }} <span class="required">*</span></label>
+        <label>{{ (esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)') | t }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()" [class.photo-drop--required]="avisoCompa() && !tableroPreview()">
-          @if (tableroPreview()) { <img [src]="tableroPreview()" alt="Tablero" /> }
-          @else { <span><app-icon name="camera" [size]="16" /> Subir tablero</span> }
+          @if (tableroPreview()) { <img [src]="tableroPreview()" alt="{{ 'Tablero' | t }}" /> }
+          @else { <span><app-icon name="camera" [size]="16" /> {{ 'Subir tablero' | t }}</span> }
           <input type="file" accept="image/*" (change)="onFileSelected('tablero', $event)" hidden />
         </label>
-        @if (avisoCompa() && !tableroPreview()) { <span class="cmb-photo-obligatoria">Obligatoria</span> }
+        @if (avisoCompa() && !tableroPreview()) { <span class="cmb-photo-obligatoria">{{ 'Obligatoria' | t }}</span> }
       </div>
     </div>
 
     <!-- CF4 — lectura automática del recibo -->
     @if (leyendoRecibo()) {
-      <div class="lectura-banner"><span class="spinner" aria-hidden="true"></span> Leyendo el recibo…</div>
+      <div class="lectura-banner"><span class="spinner" aria-hidden="true"></span> {{ 'Leyendo el recibo…' | t }}</div>
     } @else if (leidoCampos().length) {
       <div class="lectura-banner lectura-banner--ok">
-        <strong>Leído del recibo:</strong> {{ leidoCampos().join(' · ') }}. Revisa y confirma antes de guardar.
+        <strong>{{ 'Leído del recibo:' | t }}</strong> {{ leidoCampos().join(' · ') }}. {{ 'Revisa y confirma antes de guardar.' | t }}
       </div>
     } @else if (lecturaError()) {
-      <div class="lectura-banner lectura-banner--muted">{{ lecturaError() }} Escribe los datos a mano.</div>
+      <div class="lectura-banner lectura-banner--muted">{{ lecturaError() }} {{ 'Escribe los datos a mano.' | t }}</div>
     }
     @if (lecturaSugerencias().length) {
       <div class="lectura-sug">
-        <span class="text-muted">Sugerencias (confirma tú, confianza baja):</span>
+        <span class="text-muted">{{ 'Sugerencias (confirma tú, confianza baja):' | t }}</span>
         @for (s of lecturaSugerencias(); track s.campo) {
           <span class="lectura-sug__chip">{{ s.etiqueta }}: {{ s.valor }}</span>
         }
@@ -601,7 +598,7 @@
     <div class="form-row">
       @if (!esDepositoObra()) {
         <div class="sgc-field">
-          <label for="estacionSel">Estación
+          <label for="estacionSel">{{ 'Estación' | t }}
             @if (prellenadoCompa().has('estacionSel')) { <span class="cmb-chip-compa">Compa</span> }
           </label>
           <select id="estacionSel" formControlName="estacionSel">
@@ -610,13 +607,13 @@
             }
           </select>
           @if (estacionEsOtro()) {
-            <input class="estacion-otro" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
+            <input class="estacion-otro" type="text" formControlName="estacion" placeholder="{{ 'Nombre de la estación' | t }}" />
           }
         </div>
       }
       <div class="sgc-field">
-        <label for="notas">Notas (opcional)</label>
-        <input id="notas" type="text" formControlName="notas" placeholder="Notas adicionales" />
+        <label for="notas">{{ 'Notas (opcional)' | t }}</label>
+        <input id="notas" type="text" formControlName="notas" placeholder="{{ 'Notas adicionales' | t }}" />
       </div>
     </div>
 
@@ -624,20 +621,20 @@
     @if (!esDepositoObra()) {
       <div class="form-row">
         <div class="sgc-field">
-          <label for="producto">Producto</label>
+          <label for="producto">{{ 'Producto' | t }}</label>
           <select id="producto" formControlName="producto">
-            <option [ngValue]="null">Sin especificar</option>
-            <option value="diesel">Diésel</option>
-            <option value="gasolina">Gasolina</option>
+            <option [ngValue]="null">{{ 'Sin especificar' | t }}</option>
+            <option value="diesel">{{ 'Diésel' | t }}</option>
+            <option value="gasolina">{{ 'Gasolina' | t }}</option>
           </select>
         </div>
         <!-- AA20 — subtipo regular/premium (tras elegir gasolina/diésel) -->
         <div class="sgc-field">
-          <label for="subtipo">Tipo</label>
+          <label for="subtipo">{{ 'Tipo' | t }}</label>
           <select id="subtipo" formControlName="subtipo" [disabled]="!f.producto.value">
-            <option [ngValue]="null">Sin especificar</option>
-            <option value="regular">Regular</option>
-            <option value="premium">Premium / Óptimo</option>
+            <option [ngValue]="null">{{ 'Sin especificar' | t }}</option>
+            <option value="regular">{{ 'Regular' | t }}</option>
+            <option value="premium">{{ 'Premium / Óptimo' | t }}</option>
           </select>
         </div>
       </div>
@@ -646,12 +643,12 @@
       @if (precioReferencia(); as ref) {
         <div class="sgc-field combustible__ref-precio"
              [class.combustible__ref-precio--alerta]="desviacionPrecio() != null && (desviacionPrecio()! > 10 || desviacionPrecio()! < -10)">
-          Precio oficial MICM vigente: <strong>RD$ {{ ref | number:'1.2-2' }}/gal</strong>
+          {{ 'Precio oficial MICM vigente:' | t }} <strong>RD$ {{ ref | number:'1.2-2' }}{{ '/gal' | t }}</strong>
           @if (desviacionPrecio(); as d) {
             @if (d > 10 || d < -10) {
-              <span class="combustible__ref-desv"><app-icon name="alert-triangle" [size]="14" /> lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
+              <span class="combustible__ref-desv"><app-icon name="alert-triangle" [size]="14" /> {{ 'lo pagado se desvía' | t }} {{ d > 0 ? '+' : '' }}{{ d }}{{ '% del oficial' | t }}</span>
             } @else {
-              <span class="combustible__ref-ok"><app-icon name="check" [size]="14" /> dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
+              <span class="combustible__ref-ok"><app-icon name="check" [size]="14" /> {{ 'dentro de ±10% del oficial (' | t }}{{ d > 0 ? '+' : '' }}{{ d }}{{ '%)' | t }}</span>
             }
           }
         </div>
@@ -659,23 +656,23 @@
 
       <div class="form-row">
         <div class="sgc-field">
-          <label for="tarjeta">Tarjeta (opcional)</label>
-          <input id="tarjeta" type="text" formControlName="tarjeta" placeholder="Número o identificador de la tarjeta" />
+          <label for="tarjeta">{{ 'Tarjeta (opcional)' | t }}</label>
+          <input id="tarjeta" type="text" formControlName="tarjeta" placeholder="{{ 'Número o identificador de la tarjeta' | t }}" />
         </div>
         <!-- CW5 — número de recibo/ticket (la foto lo lee; antes se perdía). -->
         <div class="sgc-field">
-          <label for="numero_recibo">Número de recibo (opcional)</label>
-          <input id="numero_recibo" type="text" formControlName="numero_recibo" placeholder="Número de ticket/recibo" />
+          <label for="numero_recibo">{{ 'Número de recibo (opcional)' | t }}</label>
+          <input id="numero_recibo" type="text" formControlName="numero_recibo" placeholder="{{ 'Número de ticket/recibo' | t }}" />
         </div>
       </div>
 
       <div class="sgc-field">
         <label class="combustible__prueba-toggle">
           <input type="checkbox" formControlName="titular_es_persona" />
-          La tarjeta es de una persona (no del vehículo)
+          {{ 'La tarjeta es de una persona (no del vehículo)' | t }}
         </label>
         @if (tarjetaEsPersona()) {
-          <input class="estacion-otro" type="text" formControlName="titular" placeholder="Nombre del titular de la tarjeta" />
+          <input class="estacion-otro" type="text" formControlName="titular" placeholder="{{ 'Nombre del titular de la tarjeta' | t }}" />
         }
       </div>
     }
@@ -690,17 +687,17 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
-        @else { Registrar combustible }
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} }
+        @else { {{ 'Registrar combustible' | t }} }
       </button>
     </div>
   </form>
 </app-form-drawer>
 
 <!-- ── Detail drawer ── -->
-<app-form-drawer title="Detalle de echada" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle de echada' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (selected(); as r) {
     <div class="detail">
       <div class="detail__header">
@@ -708,52 +705,52 @@
           <span class="detail__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
           <span class="detail__sub">{{ r.vehiculo?.marca }} · {{ formatFecha(r.fecha) }}</span>
         </div>
-        @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger"><app-icon name="alert-triangle" [size]="14" /> Consumo anormal</span> }
-        @else if (esV2(r)) { <span class="sgc-badge sgc-badge--success">Consumo normal</span> }
+        @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger"><app-icon name="alert-triangle" [size]="14" /> {{ 'Consumo anormal' | t }}</span> }
+        @else if (esV2(r)) { <span class="sgc-badge sgc-badge--success">{{ 'Consumo normal' | t }}</span> }
       </div>
 
       <div class="detail__grid">
-        <div class="detail__item"><span class="detail__label">Kilometraje</span><span class="detail__value">{{ r.kilometraje | number:'1.0-0' }} km</span></div>
-        <div class="detail__item"><span class="detail__label">Galones</span><span class="detail__value">{{ (r.galones ?? r.litros) | number:'1.1-2' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Monto</span><span class="detail__value">RD$ {{ (r.monto ?? r.total) | number:'1.2-2' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Precio / galón</span><span class="detail__value">{{ r.precio_por_galon ? ('RD$ ' + (r.precio_por_galon | number:'1.2-2')) : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Km recorridos</span><span class="detail__value">{{ r.km_recorridos !== null ? (r.km_recorridos | number:'1.0-0') : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Rendimiento</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Costo / km</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Origen</span><span class="detail__value">{{ origenLabel(r) }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Kilometraje' | t }}</span><span class="detail__value">{{ r.kilometraje | number:'1.0-0' }} km</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Galones' | t }}</span><span class="detail__value">{{ (r.galones ?? r.litros) | number:'1.1-2' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Monto' | t }}</span><span class="detail__value">RD$ {{ (r.monto ?? r.total) | number:'1.2-2' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Precio / galón' | t }}</span><span class="detail__value">{{ r.precio_por_galon ? ('RD$ ' + (r.precio_por_galon | number:'1.2-2')) : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Km recorridos' | t }}</span><span class="detail__value">{{ r.km_recorridos !== null ? (r.km_recorridos | number:'1.0-0') : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Rendimiento' | t }}</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Costo / km' | t }}</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Origen' | t }}</span><span class="detail__value">{{ origenLabel(r) | t }}</span></div>
         @if (r.origen === 'deposito_obra') {
-          <div class="detail__item"><span class="detail__label">Obra</span><span class="detail__value">{{ proyectoNombre(r.proyecto_id) ?? '—' }}</span></div>
+          <div class="detail__item"><span class="detail__label">{{ 'Obra' | t }}</span><span class="detail__value">{{ proyectoNombre(r.proyecto_id) ?? '—' }}</span></div>
         } @else {
-          <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
+          <div class="detail__item"><span class="detail__label">{{ 'Estación' | t }}</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
         }
-        <div class="detail__item"><span class="detail__label">Producto</span><span class="detail__value">{{ r.producto ? (r.producto === 'gasolina' ? 'Gasolina' : 'Diésel') : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Tarjeta</span><span class="detail__value">{{ r.tarjeta ?? '—' }}{{ r.titular_es_persona && r.titular ? ' · ' + r.titular : '' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Conductor</span><span class="detail__value">{{ r.conductor?.nombre ?? '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Producto' | t }}</span><span class="detail__value">{{ r.producto ? (r.producto === 'gasolina' ? 'Gasolina' : 'Diésel') : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Tarjeta' | t }}</span><span class="detail__value">{{ r.tarjeta ?? '—' }}{{ r.titular_es_persona && r.titular ? ' · ' + r.titular : '' }}</span></div>
+        <div class="detail__item"><span class="detail__label">{{ 'Conductor' | t }}</span><span class="detail__value">{{ r.conductor?.nombre ?? '—' }}</span></div>
       </div>
 
       <!-- Análisis automático -->
       <div class="detail__analysis">
-        <h3 class="detail__analysis-title">Análisis automático</h3>
+        <h3 class="detail__analysis-title">{{ 'Análisis automático' | t }}</h3>
         <!-- AD7 — estado calibrado + explicación del POR QUÉ (motivo_alerta). -->
         <p class="detail__analysis-line"
            [class.detail__analysis-line--alerta]="estadoDe(r) === 'anormal'"
            [class.detail__analysis-line--ok]="estadoDe(r) === 'optimo'">
-          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"><app-icon [name]="estadoIcon(r)" [size]="13" /> {{ estadoMeta(r).label }}</span>
-          {{ r.motivo_alerta ?? estadoMeta(r).label }}
+          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"><app-icon [name]="estadoIcon(r)" [size]="13" /> {{ estadoMeta(r).label | t }}</span>
+          {{ r.motivo_alerta ?? (estadoMeta(r).label | t) }}
         </p>
         @if (r.rendimiento_km_gal !== null) {
           <p class="detail__analysis-line detail__analysis-refs">
-            Rendimiento: <strong>{{ r.rendimiento_km_gal | number:'1.1-2' }} km/gal</strong> ·
-            esperado: {{ esperadoDeVehiculo(r.vehiculo_id) !== null ? (esperadoDeVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '— (sin definir)' }} ·
-            promedio del vehículo: {{ promedioVehiculo(r.vehiculo_id) !== null ? (promedioVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '—' }} ·
-            promedio de la flota: {{ promedioFlota() !== null ? (promedioFlota() | number:'1.1-2') + ' km/gal' : '—' }}
+            {{ 'Rendimiento:' | t }} <strong>{{ r.rendimiento_km_gal | number:'1.1-2' }} {{ 'km/gal' | t }}</strong> ·
+            {{ 'esperado:' | t }} {{ esperadoDeVehiculo(r.vehiculo_id) !== null ? (esperadoDeVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '— (sin definir)' }} ·
+            {{ 'promedio del vehículo:' | t }} {{ promedioVehiculo(r.vehiculo_id) !== null ? (promedioVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '—' }} ·
+            {{ 'promedio de la flota:' | t }} {{ promedioFlota() !== null ? (promedioFlota() | number:'1.1-2') + ' km/gal' : '—' }}
           </p>
         }
         @if (precioPromedioFlotaMes(r); as prom) {
           <p class="detail__analysis-line">
-            Precio pagado: RD$ {{ r.precio_por_galon | number:'1.2-2' }}/gal ·
-            promedio de la flota este mes: RD$ {{ prom | number:'1.2-2' }}/gal
-            @if (r.precio_por_galon && r.precio_por_galon > prom * 1.05) { <span class="detail__analysis-warn">(por encima del promedio)</span> }
+            {{ 'Precio pagado: RD$' | t }} {{ r.precio_por_galon | number:'1.2-2' }}{{ '/gal' | t }} ·
+            {{ 'promedio de la flota este mes: RD$' | t }} {{ prom | number:'1.2-2' }}{{ '/gal' | t }}
+            @if (r.precio_por_galon && r.precio_por_galon > prom * 1.05) { <span class="detail__analysis-warn">{{ '(por encima del promedio)' | t }}</span> }
           </p>
         }
       </div>
@@ -761,31 +758,31 @@
       <!-- Notas -->
       @if (r.notas) {
         <div class="detail__notas">
-          <span class="detail__label">Notas</span>
+          <span class="detail__label">{{ 'Notas' | t }}</span>
           <span class="detail__value">{{ r.notas }}</span>
         </div>
       }
 
       <!-- Evidencia -->
-      <h3 class="detail__analysis-title">Evidencia</h3>
+      <h3 class="detail__analysis-title">{{ 'Evidencia' | t }}</h3>
       @if (loadingDetail()) {
         <app-skeleton variant="list" [rows]="3" />
       } @else {
         <div class="detail__photos">
           <div class="detail__photo">
-            <span class="detail__label">Recibo</span>
-            @if (detailReciboUrl()) { <a [href]="detailReciboUrl()" target="_blank" rel="noopener"><img [src]="detailReciboUrl()" alt="Recibo" /></a> }
-            @else { <div class="detail__photo-empty">Sin foto</div> }
+            <span class="detail__label">{{ 'Recibo' | t }}</span>
+            @if (detailReciboUrl()) { <a [href]="detailReciboUrl()" target="_blank" rel="noopener"><img [src]="detailReciboUrl()" alt="{{ 'Recibo' | t }}" /></a> }
+            @else { <div class="detail__photo-empty">{{ 'Sin foto' | t }}</div> }
           </div>
           <div class="detail__photo">
-            <span class="detail__label">Tablero</span>
-            @if (detailTableroUrl()) { <a [href]="detailTableroUrl()" target="_blank" rel="noopener"><img [src]="detailTableroUrl()" alt="Tablero" /></a> }
-            @else { <div class="detail__photo-empty">Sin foto</div> }
+            <span class="detail__label">{{ 'Tablero' | t }}</span>
+            @if (detailTableroUrl()) { <a [href]="detailTableroUrl()" target="_blank" rel="noopener"><img [src]="detailTableroUrl()" alt="{{ 'Tablero' | t }}" /></a> }
+            @else { <div class="detail__photo-empty">{{ 'Sin foto' | t }}</div> }
           </div>
           <div class="detail__photo">
-            <span class="detail__label">Bomba en 0</span>
-            @if (detailBombaUrl()) { <a [href]="detailBombaUrl()" target="_blank" rel="noopener"><img [src]="detailBombaUrl()" alt="Bomba en 0" /></a> }
-            @else { <div class="detail__photo-empty">Sin foto</div> }
+            <span class="detail__label">{{ 'Bomba en 0' | t }}</span>
+            @if (detailBombaUrl()) { <a [href]="detailBombaUrl()" target="_blank" rel="noopener"><img [src]="detailBombaUrl()" alt="{{ 'Bomba en 0' | t }}" /></a> }
+            @else { <div class="detail__photo-empty">{{ 'Sin foto' | t }}</div> }
           </div>
         </div>
       }
@@ -794,13 +791,13 @@
       @if (esAdmin()) {
         <div class="detail__prueba">
           @if (r.es_prueba) {
-            <span class="sgc-badge sgc-badge--neutral">Dato de prueba</span>
+            <span class="sgc-badge sgc-badge--neutral">{{ 'Dato de prueba' | t }}</span>
             <div class="detail__prueba-actions">
-              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, false)">Quitar prueba</button>
-              <button type="button" class="sgc-btn sgc-btn--ghost detail__prueba-del" (click)="eliminarPrueba(r)">Eliminar</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, false)">{{ 'Quitar prueba' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost detail__prueba-del" (click)="eliminarPrueba(r)">{{ 'Eliminar' | t }}</button>
             </div>
           } @else {
-            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, true)">Marcar como dato de prueba</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, true)">{{ 'Marcar como dato de prueba' | t }}</button>
           }
         </div>
       }

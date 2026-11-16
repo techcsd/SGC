@@ -1,17 +1,17 @@
 <div class="qa">
   <header class="qa__head">
     <div>
-      <h1 class="qa__title">QA — Gestión de pruebas</h1>
-      <p class="qa__sub">Casos de prueba reutilizables y corridas fechadas por versión. Trazabilidad de qué se probó en cada release.</p>
+      <h1 class="qa__title">{{ 'QA — Gestión de pruebas' | t }}</h1>
+      <p class="qa__sub">{{ 'Casos de prueba reutilizables y corridas fechadas por versión. Trazabilidad de qué se probó en cada release.' | t }}</p>
     </div>
   </header>
 
   <!-- Tabs principales -->
   <div class="qa__tabs">
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'casos'" (click)="cambiarTab('casos')"><app-icon name="clipboard" [size]="16" /> Casos</button>
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'nueva'" (click)="cambiarTab('nueva')"><app-icon name="plus" [size]="16" /> Nueva corrida</button>
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'ejecutar'" (click)="cambiarTab('ejecutar')" [disabled]="!activeRun()"><app-icon name="play" [size]="16" /> Ejecutar</button>
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'historial'" (click)="cambiarTab('historial')"><app-icon name="clock" [size]="16" /> Historial</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'casos'" (click)="cambiarTab('casos')"><app-icon name="clipboard" [size]="16" /> {{ 'Casos' | t }}</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'nueva'" (click)="cambiarTab('nueva')"><app-icon name="plus" [size]="16" /> {{ 'Nueva corrida' | t }}</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'ejecutar'" (click)="cambiarTab('ejecutar')" [disabled]="!activeRun()"><app-icon name="play" [size]="16" /> {{ 'Ejecutar' | t }}</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'historial'" (click)="cambiarTab('historial')"><app-icon name="clock" [size]="16" /> {{ 'Historial' | t }}</button>
   </div>
 
   @if (error()) {
@@ -22,26 +22,26 @@
   @if (tab() === 'casos') {
     <div class="qa__filters">
       <select class="qa__input" [value]="fModulo()" (change)="fModulo.set($any($event.target).value)">
-        <option value="">Todo módulo</option>
+        <option value="">{{ 'Todo módulo' | t }}</option>
         @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
       </select>
       <select class="qa__input" [value]="fPlataforma()" (change)="fPlataforma.set($any($event.target).value)">
-        <option value="">Toda plataforma</option>
-        @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        <option value="">{{ 'Toda plataforma' | t }}</option>
+        @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
       </select>
       <select class="qa__input" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)">
-        <option value="">Toda prioridad</option>
-        @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        <option value="">{{ 'Toda prioridad' | t }}</option>
+        @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
       </select>
       <select class="qa__input" [value]="fActivo()" (change)="fActivo.set($any($event.target).value)">
-        <option value="">Activos e inactivos</option>
-        <option value="si">Solo activos</option>
-        <option value="no">Solo inactivos</option>
+        <option value="">{{ 'Activos e inactivos' | t }}</option>
+        <option value="si">{{ 'Solo activos' | t }}</option>
+        <option value="no">{{ 'Solo inactivos' | t }}</option>
       </select>
       @if (hasCaseFilters()) {
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearCaseFilters()">Limpiar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearCaseFilters()">{{ 'Limpiar' | t }}</button>
       }
-      <button type="button" class="sgc-btn sgc-btn--primary qa__spacer" (click)="nuevoCaso()">+ Nuevo caso</button>
+      <button type="button" class="sgc-btn sgc-btn--primary qa__spacer" (click)="nuevoCaso()">{{ '+ Nuevo caso' | t }}</button>
     </div>
 
     @if (loading()) {
@@ -51,13 +51,13 @@
         <section class="qa__group">
           <h2 class="qa__group-title">{{ grupo.modulo }} <span class="qa__group-count">{{ grupo.items.length }}</span></h2>
           <div class="qa__table-wrap">
-            <table class="data-table" aria-label="Casos de prueba">
+            <table class="data-table" aria-label="{{ 'Casos de prueba' | t }}">
               <thead>
                 <tr>
-                  <th>Título</th>
-                  <th>Prioridad</th>
-                  <th>Plataforma</th>
-                  <th>Estado</th>
+                  <th>{{ 'Título' | t }}</th>
+                  <th>{{ 'Prioridad' | t }}</th>
+                  <th>{{ 'Plataforma' | t }}</th>
+                  <th>{{ 'Estado' | t }}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -66,18 +66,18 @@
                   <tr class="qa__row" [class.qa__row--inactive]="!c.activo">
                     <td class="qa__case-title">
                       <button type="button" class="qa__linkbtn" (click)="editarCaso(c)">{{ c.titulo }}</button>
-                      @if (c.pasos) { <span class="qa__hint" [title]="c.pasos">· pasos</span> }
+                      @if (c.pasos) { <span class="qa__hint" [title]="c.pasos">{{ '· pasos' | t }}</span> }
                     </td>
-                    <td><span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) }}</span></td>
-                    <td>{{ plataformaLabel(c.plataforma) }}</td>
+                    <td><span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) | t }}</span></td>
+                    <td>{{ plataformaLabel(c.plataforma) | t }}</td>
                     <td>
-                      @if (c.activo) { <span class="sgc-badge sgc-badge--success">Activo</span> }
-                      @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+                      @if (c.activo) { <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span> }
+                      @else { <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span> }
                     </td>
                     <td class="qa__actions">
-                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editarCaso(c)">Editar</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editarCaso(c)">{{ 'Editar' | t }}</button>
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleActivo(c)">
-                        {{ c.activo ? 'Desactivar' : 'Activar' }}
+                        {{ (c.activo ? 'Desactivar' : 'Activar') | t }}
                       </button>
                     </td>
                   </tr>
@@ -87,7 +87,7 @@
           </div>
         </section>
       } @empty {
-        <p class="qa__empty">No hay casos que coincidan con el filtro. <button type="button" class="qa__linkbtn" (click)="nuevoCaso()">Crear el primero</button>.</p>
+        <p class="qa__empty">{{ 'No hay casos que coincidan con el filtro.' | t }} <button type="button" class="qa__linkbtn" (click)="nuevoCaso()">{{ 'Crear el primero' | t }}</button>.</p>
       }
     }
   }
@@ -97,30 +97,30 @@
     <div class="qa__panel">
       <div class="qa__form-row">
         <label class="qa__field">
-          <span class="qa__label">Plataforma objetivo</span>
+          <span class="qa__label">{{ 'Plataforma objetivo' | t }}</span>
           <select class="qa__input" [value]="nuevaPlataforma()" (change)="onNuevaPlataforma($any($event.target).value)">
-            @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+            @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
           </select>
         </label>
         <label class="qa__field">
-          <span class="qa__label">Versión objetivo</span>
-          <input class="qa__input" type="text" placeholder="ej. web 1.55.0" [value]="nuevaVersion()" (input)="nuevaVersion.set($any($event.target).value)" />
+          <span class="qa__label">{{ 'Versión objetivo' | t }}</span>
+          <input class="qa__input" type="text" placeholder="{{ 'ej. web 1.55.0' | t }}" [value]="nuevaVersion()" (input)="nuevaVersion.set($any($event.target).value)" />
         </label>
         <label class="qa__field qa__field--grow">
-          <span class="qa__label">Título (opcional)</span>
-          <input class="qa__input" type="text" placeholder="ej. Smoke test release" [value]="nuevaTitulo()" (input)="nuevaTitulo.set($any($event.target).value)" />
+          <span class="qa__label">{{ 'Título (opcional)' | t }}</span>
+          <input class="qa__input" type="text" placeholder="{{ 'ej. Smoke test release' | t }}" [value]="nuevaTitulo()" (input)="nuevaTitulo.set($any($event.target).value)" />
         </label>
       </div>
 
       <div class="qa__sel-head">
         <select class="qa__input" [value]="selModulo()" (change)="selModulo.set($any($event.target).value)">
-          <option value="">Todos los módulos</option>
+          <option value="">{{ 'Todos los módulos' | t }}</option>
           @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
         </select>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTodos()" [disabled]="casosElegibles().length === 0">
-          {{ todosElegiblesSeleccionados() ? 'Quitar todos' : 'Seleccionar todos' }}
+          {{ (todosElegiblesSeleccionados() ? 'Quitar todos' : 'Seleccionar todos') | t }}
         </button>
-        <span class="qa__sel-count">{{ seleccionadosCount() }} seleccionado(s)</span>
+        <span class="qa__sel-count">{{ seleccionadosCount() }} {{ 'seleccionado(s)' | t }}</span>
       </div>
 
       <div class="qa__checklist">
@@ -131,19 +131,19 @@
               <span class="qa__check-title">{{ c.titulo }}</span>
               <span class="qa__check-meta">
                 <span class="qa__chip">{{ c.modulo }}</span>
-                <span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) }}</span>
-                <span class="qa__chip">{{ plataformaLabel(c.plataforma) }}</span>
+                <span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) | t }}</span>
+                <span class="qa__chip">{{ plataformaLabel(c.plataforma) | t }}</span>
               </span>
             </span>
           </label>
         } @empty {
-          <p class="qa__empty">No hay casos activos elegibles para esta plataforma/módulo.</p>
+          <p class="qa__empty">{{ 'No hay casos activos elegibles para esta plataforma/módulo.' | t }}</p>
         }
       </div>
 
       <div class="qa__panel-foot">
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearCorrida()" [disabled]="creando() || seleccionadosCount() === 0">
-          @if (creando()) { Creando… } @else { Crear corrida con {{ seleccionadosCount() }} caso(s) }
+          @if (creando()) { {{ 'Creando…' | t }} } @else { {{ 'Crear corrida con' | t }} {{ seleccionadosCount() }} {{ 'caso(s)' | t }} }
         </button>
       </div>
     </div>
@@ -156,47 +156,47 @@
     } @else if (activeRun(); as run) {
       <div class="qa__run-head">
         <div>
-          <h2 class="qa__run-title">{{ run.titulo || 'Corrida' }}</h2>
+          <h2 class="qa__run-title">{{ run.titulo || ('Corrida' | t) }}</h2>
           <p class="qa__run-sub">
-            {{ plataformaLabel(run.plataforma) }}
+            {{ plataformaLabel(run.plataforma) | t }}
             @if (run.version_objetivo) { · <strong>{{ run.version_objetivo }}</strong> }
             · {{ formatFecha(run.fecha) }}
-            · <span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) }}</span>
+            · <span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) | t }}</span>
           </p>
         </div>
         @if (!corridaCerrada()) {
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="completar()"><app-icon name="check" [size]="16" /> Marcar completada</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="completar()"><app-icon name="check" [size]="16" /> {{ 'Marcar completada' | t }}</button>
         }
       </div>
 
       <!-- Métricas -->
       <div class="kpi-grid">
         <div class="kpi-card kpi-card--primary">
-          <span class="kpi-label">% pass</span>
+          <span class="kpi-label">{{ '% pass' | t }}</span>
           <span class="kpi-value">{{ passPct() }}%</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label">Progreso</span>
+          <span class="kpi-label">{{ 'Progreso' | t }}</span>
           <span class="kpi-value">{{ progresoPct() }}%</span>
         </div>
         <div class="kpi-card qa__kpi--ok">
-          <span class="kpi-label">Pasó</span>
+          <span class="kpi-label">{{ 'Pasó' | t }}</span>
           <span class="kpi-value">{{ conteos().passed }}</span>
         </div>
         <div class="kpi-card qa__kpi--bad">
-          <span class="kpi-label">Falló</span>
+          <span class="kpi-label">{{ 'Falló' | t }}</span>
           <span class="kpi-value">{{ conteos().failed }}</span>
         </div>
         <div class="kpi-card qa__kpi--warn">
-          <span class="kpi-label">Bloqueado</span>
+          <span class="kpi-label">{{ 'Bloqueado' | t }}</span>
           <span class="kpi-value">{{ conteos().blocked }}</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label">Omitido</span>
+          <span class="kpi-label">{{ 'Omitido' | t }}</span>
           <span class="kpi-value">{{ conteos().skipped }}</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label">Pendiente</span>
+          <span class="kpi-label">{{ 'Pendiente' | t }}</span>
           <span class="kpi-value">{{ conteos().pendiente }}</span>
         </div>
       </div>
@@ -210,7 +210,7 @@
                 <span class="qa__chip">{{ r.modulo }}</span>
                 <span class="qa__exec-title">{{ r.caso_titulo }}</span>
               </div>
-              <span [class]="resultadoBadge(r.resultado)">{{ resultadoLabel(r.resultado) }}</span>
+              <span [class]="resultadoBadge(r.resultado)">{{ resultadoLabel(r.resultado) | t }}</span>
             </div>
 
             <div class="qa__exec-btns">
@@ -219,12 +219,12 @@
                         [class.qa__res-btn--active]="r.resultado === e"
                         [disabled]="corridaCerrada()"
                         (click)="setEstado(r, e)">
-                  {{ resultadoLabel(e) }}
+                  {{ resultadoLabel(e) | t }}
                 </button>
               }
             </div>
 
-            <textarea class="qa__notas" rows="2" placeholder="Notas / observaciones…"
+            <textarea class="qa__notas" rows="2" placeholder="{{ 'Notas / observaciones…' | t }}"
                       [value]="notasDraft()[r.id] || ''"
                       [disabled]="corridaCerrada()"
                       (input)="onNotasInput(r.id, $any($event.target).value)"
@@ -233,30 +233,30 @@
             <div class="qa__exec-foot">
               @if (evidenciaUrls()[r.id]) {
                 <a class="qa__evidencia" [href]="evidenciaUrls()[r.id]" target="_blank" rel="noopener">
-                  <img [src]="evidenciaUrls()[r.id]" alt="Evidencia" />
+                  <img [src]="evidenciaUrls()[r.id]" alt="{{ 'Evidencia' | t }}" />
                 </a>
               }
               @if (!corridaCerrada()) {
                 <label class="sgc-btn sgc-btn--ghost sgc-btn--sm qa__upload">
-                  @if (subiendo() === r.id) { Subiendo… } @else { <app-icon name="paperclip" [size]="14" /> {{ r.evidencia_path ? 'Cambiar' : 'Evidencia' }} }
+                  @if (subiendo() === r.id) { {{ 'Subiendo…' | t }} } @else { <app-icon name="paperclip" [size]="14" /> {{ (r.evidencia_path ? 'Cambiar' : 'Evidencia') | t }} }
                   <input type="file" accept="image/*" hidden (change)="onEvidencia(r, $event)" [disabled]="subiendo() === r.id" />
                 </label>
               }
 
               @if (r.error_report_id) {
-                <span class="sgc-badge sgc-badge--danger" title="Reporte de error enlazado"><app-icon name="bug" [size]="14" /> Defecto enlazado</span>
+                <span class="sgc-badge sgc-badge--danger" title="{{ 'Reporte de error enlazado' | t }}"><app-icon name="bug" [size]="14" /> {{ 'Defecto enlazado' | t }}</span>
               } @else if (r.resultado === 'failed' && !corridaCerrada()) {
-                <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="crearReporte(r)"><app-icon name="bug" [size]="14" /> Crear reporte de error</button>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="enlazarReporte(r)">Enlazar existente</button>
+                <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="crearReporte(r)"><app-icon name="bug" [size]="14" /> {{ 'Crear reporte de error' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="enlazarReporte(r)">{{ 'Enlazar existente' | t }}</button>
               }
             </div>
           </article>
         } @empty {
-          <p class="qa__empty">Esta corrida no tiene casos.</p>
+          <p class="qa__empty">{{ 'Esta corrida no tiene casos.' | t }}</p>
         }
       </div>
     } @else {
-      <p class="qa__empty">No hay ninguna corrida abierta. Crea una en <button type="button" class="qa__linkbtn" (click)="cambiarTab('nueva')">Nueva corrida</button> o abre una del <button type="button" class="qa__linkbtn" (click)="cambiarTab('historial')">Historial</button>.</p>
+      <p class="qa__empty">{{ 'No hay ninguna corrida abierta. Crea una en' | t }} <button type="button" class="qa__linkbtn" (click)="cambiarTab('nueva')">{{ 'Nueva corrida' | t }}</button> {{ 'o abre una del' | t }} <button type="button" class="qa__linkbtn" (click)="cambiarTab('historial')">{{ 'Historial' | t }}</button>.</p>
     }
   }
 
@@ -266,15 +266,15 @@
       <app-skeleton variant="table" [rows]="8" />
     } @else {
       <div class="qa__table-wrap">
-        <table class="data-table" aria-label="Historial de corridas">
+        <table class="data-table" aria-label="{{ 'Historial de corridas' | t }}">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Título</th>
-              <th>Plataforma</th>
-              <th>Versión</th>
-              <th class="qa__num">% pass</th>
-              <th>Estado</th>
+              <th>{{ 'Fecha' | t }}</th>
+              <th>{{ 'Título' | t }}</th>
+              <th>{{ 'Plataforma' | t }}</th>
+              <th>{{ 'Versión' | t }}</th>
+              <th class="qa__num">{{ '% pass' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
               <th></th>
             </tr>
           </thead>
@@ -283,14 +283,14 @@
               <tr class="qa__row">
                 <td class="qa__ts">{{ formatFecha(run.fecha) }}</td>
                 <td>{{ run.titulo || '—' }}</td>
-                <td>{{ plataformaLabel(run.plataforma) }}</td>
+                <td>{{ plataformaLabel(run.plataforma) | t }}</td>
                 <td>{{ run.version_objetivo || '—' }}</td>
                 <td class="qa__num">{{ pctDe(run.id) }}%</td>
-                <td><span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) }}</span></td>
-                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCorrida(run.id)">Abrir →</button></td>
+                <td><span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) | t }}</span></td>
+                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCorrida(run.id)">{{ 'Abrir →' | t }}</button></td>
               </tr>
             } @empty {
-              <tr><td colspan="7" class="qa__empty qa__empty--cell">Aún no hay corridas registradas.</td></tr>
+              <tr><td colspan="7" class="qa__empty qa__empty--cell">{{ 'Aún no hay corridas registradas.' | t }}</td></tr>
             }
           </tbody>
         </table>
@@ -300,65 +300,65 @@
 </div>
 
 <!-- Drawer: crear/editar caso -->
-<app-form-drawer [open]="drawerOpen()" [title]="editingId() ? 'Editar caso' : 'Nuevo caso'" (closed)="cerrarDrawer()">
+<app-form-drawer [open]="drawerOpen()" [title]="i18n.t(editingId() ? 'Editar caso' : 'Nuevo caso')" (closed)="cerrarDrawer()">
   <form class="qa__drawer-form" [formGroup]="form" (ngSubmit)="guardarCaso()">
     <div class="qa__form-row">
       <label class="qa__field qa__field--grow">
-        <span class="qa__label">Módulo *</span>
+        <span class="qa__label">{{ 'Módulo *' | t }}</span>
         <select class="qa__input" formControlName="modulo">
           @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
         </select>
       </label>
       <label class="qa__field">
-        <span class="qa__label">Orden</span>
+        <span class="qa__label">{{ 'Orden' | t }}</span>
         <input class="qa__input" type="number" formControlName="orden" placeholder="—" />
       </label>
     </div>
 
     <label class="qa__field">
-      <span class="qa__label">Título *</span>
-      <input class="qa__input" type="text" formControlName="titulo" placeholder="ej. Crear parte diario con lluvia" />
+      <span class="qa__label">{{ 'Título *' | t }}</span>
+      <input class="qa__input" type="text" formControlName="titulo" placeholder="{{ 'ej. Crear parte diario con lluvia' | t }}" />
     </label>
 
     <label class="qa__field">
-      <span class="qa__label">Precondiciones</span>
-      <textarea class="qa__input" rows="2" formControlName="precondiciones" placeholder="Estado previo requerido…"></textarea>
+      <span class="qa__label">{{ 'Precondiciones' | t }}</span>
+      <textarea class="qa__input" rows="2" formControlName="precondiciones" placeholder="{{ 'Estado previo requerido…' | t }}"></textarea>
     </label>
 
     <label class="qa__field">
-      <span class="qa__label">Pasos</span>
+      <span class="qa__label">{{ 'Pasos' | t }}</span>
       <textarea class="qa__input" rows="4" formControlName="pasos" placeholder="1. … &#10;2. …"></textarea>
     </label>
 
     <label class="qa__field">
-      <span class="qa__label">Resultado esperado</span>
-      <textarea class="qa__input" rows="2" formControlName="resultado_esperado" placeholder="Qué debe ocurrir…"></textarea>
+      <span class="qa__label">{{ 'Resultado esperado' | t }}</span>
+      <textarea class="qa__input" rows="2" formControlName="resultado_esperado" placeholder="{{ 'Qué debe ocurrir…' | t }}"></textarea>
     </label>
 
     <div class="qa__form-row">
       <label class="qa__field">
-        <span class="qa__label">Prioridad *</span>
+        <span class="qa__label">{{ 'Prioridad *' | t }}</span>
         <select class="qa__input" formControlName="prioridad">
-          @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+          @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
         </select>
       </label>
       <label class="qa__field">
-        <span class="qa__label">Plataforma *</span>
+        <span class="qa__label">{{ 'Plataforma *' | t }}</span>
         <select class="qa__input" formControlName="plataforma">
-          @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+          @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label | t }}</option> }
         </select>
       </label>
     </div>
 
     <label class="qa__check-inline">
       <input type="checkbox" formControlName="activo" />
-      <span>Caso activo (se incluye en las corridas)</span>
+      <span>{{ 'Caso activo (se incluye en las corridas)' | t }}</span>
     </label>
 
     <div class="qa__drawer-foot">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { Guardando… } @else { Guardar }
+        @if (saving()) { {{ 'Guardando…' | t }} } @else { {{ 'Guardar' | t }} }
       </button>
     </div>
   </form>

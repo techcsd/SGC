@@ -16,15 +16,18 @@ import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/com
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator, ExportExcel],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator, ExportExcel, TranslatePipe],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Gestion implements OnInit, OnDestroy {
   private tareasService = inject(TareasService);
+  protected i18n = inject(I18nService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);

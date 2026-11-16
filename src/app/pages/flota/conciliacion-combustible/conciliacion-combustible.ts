@@ -22,6 +22,8 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * T4 — Conciliación de combustible: importa el informe de la estación (Excel/CSV
@@ -31,7 +33,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-conciliacion-combustible',
-  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter, Icon],
+  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter, Icon, TranslatePipe],
   templateUrl: './conciliacion-combustible.html',
   styleUrl: './conciliacion-combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +45,7 @@ export class ConciliacionCombustible implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private toast = inject(ToastService);
   private flotaConfig = inject(FlotaConfigService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
 
@@ -282,10 +285,10 @@ export class ConciliacionCombustible implements OnInit {
     try {
       const m = this.meta();
       const n = await this.service.recordarChoferes(m?.fecha_desde ?? null, m?.fecha_hasta ?? null);
-      if (n > 0) this.toast.success('Recordatorio enviado', `Se notificó a ${n} chofer(es).`);
-      else this.toast.error('No se pudo identificar a los choferes', 'Revisa que las tarjetas estén asignadas a vehículos con conductor.');
+      if (n > 0) this.toast.success(this.i18n.t('Recordatorio enviado'), `Se notificó a ${n} chofer(es).`);
+      else this.toast.error(this.i18n.t('No se pudo identificar a los choferes'), 'Revisa que las tarjetas estén asignadas a vehículos con conductor.');
     } catch (e) {
-      this.toast.error('No se pudo enviar el recordatorio', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar el recordatorio'), e instanceof Error ? e.message : undefined);
     } finally {
       this.recordando.set(false);
     }
@@ -375,7 +378,7 @@ export class ConciliacionCombustible implements OnInit {
           facturaId = reg.id;
           this.facturaId.set(reg.id);
           if (reg.existente) {
-            this.toast.info('Esta factura ya estaba subida', 'Se reintenta la lectura con el parser actual.');
+            this.toast.info(this.i18n.t('Esta factura ya estaba subida'), 'Se reintenta la lectura con el parser actual.');
           }
         } catch { /* si el guardado falla, seguimos: al menos intentamos parsear */ }
 
@@ -509,7 +512,7 @@ export class ConciliacionCombustible implements OnInit {
     for (const e of this.cardsDetectadas().filter((c) => c.auto && c.vehiculo_id)) {
       await this.asignarVehiculoTarjeta(e.card.codigo, e.vehiculo_id!);
     }
-    this.toast.success('Sugerencias aceptadas', 'Se aprendieron los vínculos automáticos de tarjeta → vehículo.');
+    this.toast.success(this.i18n.t('Sugerencias aceptadas'), 'Se aprendieron los vínculos automáticos de tarjeta → vehículo.');
   }
 
   /** Aplica el mapeo actual: si la tarjeta tiene vehículo, el identificador de sus
@@ -556,12 +559,12 @@ export class ConciliacionCombustible implements OnInit {
       this.cardsDetectadas.set(
         this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, vehiculo_id: vid, guardando: false, auto: false, sugerido: null } : c)),
       );
-      this.toast.success('Tarjeta mapeada', placa ? `Ahora cruza con ${placa}.` : 'Sin vehículo (queda como consumo suelto).');
+      this.toast.success(this.i18n.t('Tarjeta mapeada'), placa ? `Ahora cruza con ${placa}.` : 'Sin vehículo (queda como consumo suelto).');
     } catch (e: unknown) {
       this.cardsDetectadas.set(
         this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, guardando: false } : c)),
       );
-      this.toast.error('No se pudo mapear la tarjeta', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo mapear la tarjeta'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -574,7 +577,7 @@ export class ConciliacionCombustible implements OnInit {
     const otras = (this.preview() ?? []).filter((f) => this.cuboDeFila(f) !== 'flota' && !f.invalida && !f.duplicada);
     const filas = flota;
     if (flota.length === 0 && otras.length === 0) {
-      this.toast.error('No hay transacciones nuevas que importar.');
+      this.toast.error(this.i18n.t('No hay transacciones nuevas que importar.'));
       return;
     }
     // BV13 — aprende las auto-sugerencias que quedaron preseleccionadas y sin aceptar
@@ -613,9 +616,9 @@ export class ConciliacionCombustible implements OnInit {
       const nuevas = await this.service.importarTransacciones(payload);
       await this.conciliar(filas, this.nombreArchivo() ?? 'informe');
       this.preview.set(null);
-      this.toast.success('Transacciones importadas', `${nuevas} nueva(s). Revisa la conciliación abajo.`);
+      this.toast.success(this.i18n.t('Transacciones importadas'), `${nuevas} nueva(s). Revisa la conciliación abajo.`);
     } catch (e: unknown) {
-      this.toast.error('No se pudo importar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo importar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.importando.set(false);
     }
@@ -928,7 +931,7 @@ export class ConciliacionCombustible implements OnInit {
     const meta = this.meta();
     if (!meta || this.saving()) return;
     const soloInf = this.detalles().filter((d) => d.tipo === 'solo_informe');
-    if (!soloInf.length) { this.toast.info('No hay filas del informe sin registrar.'); return; }
+    if (!soloInf.length) { this.toast.info(this.i18n.t('No hay filas del informe sin registrar.')); return; }
     this.saving.set(true);
     try {
       if (!this.facturaId() && this.archivoPdf && !meta.pdf_path) {
@@ -950,7 +953,7 @@ export class ConciliacionCombustible implements OnInit {
       }));
       const r = await this.service.importarEchadas(id, filas);
       this.toast.success(
-        `Registradas ${r.creadas} echada(s) de la factura`,
+        this.i18n.t('Registradas {n} echada(s) de la factura', { n: r.creadas }),
         r.con_km_pendiente ? `${r.con_km_pendiente} sin kilometraje — complétalo en el registro de combustible.` : undefined,
       );
       this.motion.momento('combustible', { sub: String(r.creadas) });
@@ -959,7 +962,7 @@ export class ConciliacionCombustible implements OnInit {
       this.nombreArchivo.set(null);
       await this.cargarHistorial();
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudieron registrar las echadas faltantes');
+      this.toast.errorFrom(e, this.i18n.t('No se pudieron registrar las echadas faltantes'));
     } finally {
       this.saving.set(false);
     }
@@ -981,7 +984,7 @@ export class ConciliacionCombustible implements OnInit {
       this.ultimaConciliacionId.set(id);
       this.causas.set(await this.service.causas(id).catch(() => []));
       this.toast.success(
-        'Conciliación guardada',
+        this.i18n.t('Conciliación guardada'),
         this.discrepancias() > 0
           ? `Se notificó a Flota ${this.discrepancias()} discrepancia(s).`
           : 'Sin discrepancias.',
@@ -993,7 +996,7 @@ export class ConciliacionCombustible implements OnInit {
       await this.cargarHistorial();
       await this.cargarFacturas();
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -1017,14 +1020,14 @@ export class ConciliacionCombustible implements OnInit {
   async verFactura(f: CombustibleFactura) {
     const url = await this.service.urlFirmada(f.archivo_path);
     if (url) window.open(url, '_blank');
-    else this.toast.error('No se pudo abrir el PDF', 'Vuelve a intentarlo.');
+    else this.toast.error(this.i18n.t('No se pudo abrir el PDF'), 'Vuelve a intentarlo.');
   }
 
   /** BX4 — vuelve a leer una factura guardada con el parser ACTUAL (así se arregla
    *  julio sin re-subir): descarga el PDF, lo re-parsea y actualiza estado/diagnóstico. */
   async reintentarLectura(f: CombustibleFactura) {
     const url = await this.service.urlFirmada(f.archivo_path);
-    if (!url) { this.toast.error('No se pudo descargar el PDF'); return; }
+    if (!url) { this.toast.error(this.i18n.t('No se pudo descargar el PDF')); return; }
     try {
       const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
       const parsed = await parseTotalEnergiesPdfFull(bytes);
@@ -1036,12 +1039,14 @@ export class ConciliacionCombustible implements OnInit {
         total_factura: parsed.header.total_factura,
       });
       this.toast.success(
-        parsed.rows.length ? `Leída: ${parsed.rows.length} transacción(es)` : 'Sigue sin poder leerse',
+        parsed.rows.length
+          ? this.i18n.t('Leída: {n} transacción(es)', { n: parsed.rows.length })
+          : this.i18n.t('Sigue sin poder leerse'),
         parsed.rows.length ? 'Ya puedes conciliarla desde el archivo.' : `Diagnóstico: ${parsed.diagnostico}.`,
       );
       await this.cargarFacturas();
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo releer la factura');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo releer la factura'));
     }
   }
 }

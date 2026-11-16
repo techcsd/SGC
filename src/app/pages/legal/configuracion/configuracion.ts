@@ -6,10 +6,12 @@ import { PlantillaDocumento, CATEGORIA_LABELS, PlantillaCategoria } from '../../
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** CF7 — Configuración legal: datos del empleador, testigos frecuentes y plantilla por defecto. */
 @Component({
   selector: 'app-legal-configuracion',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './configuracion.html',
   styleUrl: './configuracion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,6 +20,7 @@ export class LegalConfiguracion implements OnInit {
   private empresaSvc = inject(EmpresaService);
   private plantillasSvc = inject(PlantillasDocumentoService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
   loading = signal(true);
@@ -78,7 +81,7 @@ export class LegalConfiguracion implements OnInit {
         gerente_general: this.gerente_general().trim() || null,
         testigos: this.testigos().filter((t) => t.nombre.trim() || t.cedula.trim()),
       });
-      this.toast.success('Configuración guardada');
+      this.toast.success(this.i18n.t('Configuración guardada'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo guardar.');
     } finally {

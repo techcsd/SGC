@@ -14,12 +14,13 @@ import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 @Component({
   selector: 'app-panel-dia',
-  imports: [DecimalPipe, RouterLink, BarChart, Skeleton, Icon],
+  imports: [DecimalPipe, RouterLink, BarChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './panel-dia.html',
   styleUrl: './panel-dia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

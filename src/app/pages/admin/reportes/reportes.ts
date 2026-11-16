@@ -18,15 +18,18 @@ import { formatFechaMedia, formatFechaHumana } from '../../../../shared/utils/fe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-admin-reportes',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, TranslatePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminReportes implements OnInit {
   private reportesService = inject(ReportesUsuarioService);
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
   private lightbox = inject(LightboxService);
 
@@ -90,7 +93,7 @@ export class AdminReportes implements OnInit {
 
   drawerTitle = computed(() => {
     const r = this.selected();
-    return r ? r.asunto : 'Reporte';
+    return r ? r.asunto : this.i18n.t('Reporte');
   });
 
   async ngOnInit() {

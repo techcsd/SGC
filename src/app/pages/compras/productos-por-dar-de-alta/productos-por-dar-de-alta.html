@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Productos por dar de alta en Odoo' | t }}</h1>
-    <span class="page-count">{{ pendientes().length }} {{ 'pendiente' | t }}{{ pendientes().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ pendientes().length }} {{ (pendientes().length !== 1 ? 'pendientes' : 'pendiente') | t }}</span>
   </div>
   <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
     {{ 'Solicitar alta' | t }}
@@ -38,7 +38,7 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Productos por dar de alta en Odoo">
+      <table class="data-table" aria-label="{{ 'Productos por dar de alta en Odoo' | t }}">
         <thead>
           <tr>
             <th>{{ 'Material' | t }}</th>
@@ -92,11 +92,11 @@
     </p>
     <div class="sgc-field">
       <label for="crear-desc">{{ 'Descripción del material' | t }}</label>
-      <textarea id="crear-desc" rows="2" [value]="crearDescripcion()" (input)="crearDescripcion.set($any($event.target).value)" placeholder="Ej. Tornillo hexagonal M10 galvanizado"></textarea>
+      <textarea id="crear-desc" rows="2" [value]="crearDescripcion()" (input)="crearDescripcion.set($any($event.target).value)" placeholder="{{ 'Ej. Tornillo hexagonal M10 galvanizado' | t }}"></textarea>
     </div>
     <div class="sgc-field">
       <label for="crear-busq">{{ '¿Qué buscaste y no encontraste?' | t }}</label>
-      <input id="crear-busq" type="text" [value]="crearBusqueda()" (input)="crearBusqueda.set($any($event.target).value)" placeholder="Ej. busqué &quot;tornillo m10&quot; y &quot;m10 galvanizado&quot;" />
+      <input id="crear-busq" type="text" [value]="crearBusqueda()" (input)="crearBusqueda.set($any($event.target).value)" placeholder="{{ 'Ej. busqué &quot;tornillo m10&quot; y &quot;m10 galvanizado&quot;' | t }}" />
     </div>
     @if (crearError()) {
       <div class="save-error" role="alert">{{ crearError() }}</div>
@@ -175,7 +175,7 @@
               <label for="uni">{{ 'Unidad' | t }}</label>
               <select id="uni" [value]="nuevaUnidad()" (change)="nuevaUnidad.set($any($event.target).value)">
                 @for (u of unidades; track u.value) {
-                  <option [value]="u.value">{{ u.label }}</option>
+                  <option [value]="u.value">{{ u.label | t }}</option>
                 }
               </select>
             </div>
@@ -183,7 +183,7 @@
           } @else {
             <div class="sgc-field">
               <label for="rm">{{ 'Motivo del rechazo' | t }}</label>
-              <textarea id="rm" rows="2" [value]="rechazarMotivo()" (input)="rechazarMotivo.set($any($event.target).value)" placeholder="Ej. ya existe un artículo equivalente, o no aplica"></textarea>
+              <textarea id="rm" rows="2" [value]="rechazarMotivo()" (input)="rechazarMotivo.set($any($event.target).value)" placeholder="{{ 'Ej. ya existe un artículo equivalente, o no aplica' | t }}"></textarea>
             </div>
           }
 

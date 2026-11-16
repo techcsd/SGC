@@ -1,10 +1,10 @@
 <div class="page-header">
   <div>
-    <h1 class="page-title">Empresa</h1>
+    <h1 class="page-title">{{ 'Empresa' | t }}</h1>
     <p class="page-subtitle">
-      Datos de identidad de la constructora. Se usan como <strong>encabezado en los PDF</strong>
-      (documentos, informes de obra), en los <strong>conduces</strong> y en los <strong>carnets</strong>
-      del personal de obra. Manténlos completos y correctos: lo que pongas aquí sale impreso.
+      {{ 'Datos de identidad de la constructora. Se usan como' | t }} <strong>{{ 'encabezado en los PDF' | t }}</strong>
+      {{ '(documentos, informes de obra), en los' | t }} <strong>{{ 'conduces' | t }}</strong> {{ 'y en los' | t }} <strong>{{ 'carnets' | t }}</strong>
+      {{ 'del personal de obra. Manténlos completos y correctos: lo que pongas aquí sale impreso.' | t }}
     </p>
   </div>
 </div>
@@ -19,40 +19,40 @@
       <form [formGroup]="form" (ngSubmit)="guardar()" class="empresa-form">
         <!-- Identidad -->
         <section class="empresa-sec">
-          <h2 class="empresa-sec__h">Identidad</h2>
-          <p class="empresa-sec__desc">Nombre legal y comercial + RNC. Encabeza los PDF y conduces.</p>
+          <h2 class="empresa-sec__h">{{ 'Identidad' | t }}</h2>
+          <p class="empresa-sec__desc">{{ 'Nombre legal y comercial + RNC. Encabeza los PDF y conduces.' | t }}</p>
           <div class="empresa-form__row">
             <div class="sgc-field">
-              <label for="razon">Razón social</label>
-              <input id="razon" type="text" formControlName="razon_social" placeholder="Ej: Scheker &amp; Domínguez SRL" />
-              <span class="field-hint">Nombre legal completo (sale en documentos oficiales).</span>
+              <label for="razon">{{ 'Razón social' | t }}</label>
+              <input id="razon" type="text" formControlName="razon_social" placeholder="{{ 'Ej: Scheker & Domínguez SRL' | t }}" />
+              <span class="field-hint">{{ 'Nombre legal completo (sale en documentos oficiales).' | t }}</span>
             </div>
             <div class="sgc-field">
-              <label for="comercial">Nombre comercial</label>
-              <input id="comercial" type="text" formControlName="nombre_comercial" placeholder="Ej: Constructora SD" />
-              <span class="field-hint">Nombre de marca (encabezados y carnets).</span>
+              <label for="comercial">{{ 'Nombre comercial' | t }}</label>
+              <input id="comercial" type="text" formControlName="nombre_comercial" placeholder="{{ 'Ej: Constructora SD' | t }}" />
+              <span class="field-hint">{{ 'Nombre de marca (encabezados y carnets).' | t }}</span>
             </div>
           </div>
           <div class="sgc-field">
-            <label for="rnc">RNC</label>
-            <input id="rnc" type="text" formControlName="rnc" placeholder="Ej: 1-30-12345-6" [class.invalid]="f.rnc.invalid && f.rnc.touched" />
+            <label for="rnc">{{ 'RNC' | t }}</label>
+            <input id="rnc" type="text" formControlName="rnc" placeholder="{{ 'Ej: 1-30-12345-6' | t }}" [class.invalid]="f.rnc.invalid && f.rnc.touched" />
             @if (f.rnc.invalid && f.rnc.touched) {
-              <span class="field-error">RNC inválido — usa 9 u 11 dígitos (con o sin guiones).</span>
+              <span class="field-error">{{ 'RNC inválido — usa 9 u 11 dígitos (con o sin guiones).' | t }}</span>
             } @else {
-              <span class="field-hint">Registro Nacional del Contribuyente (aparece en facturas/conduces).</span>
+              <span class="field-hint">{{ 'Registro Nacional del Contribuyente (aparece en facturas/conduces).' | t }}</span>
             }
           </div>
           <div class="sgc-field">
-            <label for="representante">Representante legal</label>
-            <input id="representante" type="text" formControlName="representante" placeholder="Ej: Ing. Juan Domínguez" />
-            <span class="field-hint">Quien firma en nombre de la empresa (sale en los contratos como representante).</span>
+            <label for="representante">{{ 'Representante legal' | t }}</label>
+            <input id="representante" type="text" formControlName="representante" placeholder="{{ 'Ej: Ing. Juan Domínguez' | t }}" />
+            <span class="field-hint">{{ 'Quien firma en nombre de la empresa (sale en los contratos como representante).' | t }}</span>
           </div>
           <!-- DH10 — logo real: preview + subida, ya no un placeholder de texto. -->
           <div class="sgc-field">
-            <label>Logo</label>
+            <label>{{ 'Logo' | t }}</label>
             <div class="empresa-logo-row">
               @if (logoUrl(); as url) {
-                <img [src]="url" alt="Logo de la empresa" class="empresa-logo-actual" />
+                <img [src]="url" alt="{{ 'Logo de la empresa' | t }}" class="empresa-logo-actual" />
               } @else {
                 <div class="empresa-logo-actual empresa-logo-actual--vacio">{{ 'Sin logo' | t }}</div>
               }
@@ -64,48 +64,48 @@
 
         <!-- Contacto -->
         <section class="empresa-sec">
-          <h2 class="empresa-sec__h">Contacto</h2>
-          <p class="empresa-sec__desc">Teléfono, correo y web. Pie de página de documentos y comunicaciones.</p>
+          <h2 class="empresa-sec__h">{{ 'Contacto' | t }}</h2>
+          <p class="empresa-sec__desc">{{ 'Teléfono, correo y web. Pie de página de documentos y comunicaciones.' | t }}</p>
           <div class="empresa-form__row">
             <div class="sgc-field">
-              <label for="tel">Teléfono</label>
+              <label for="tel">{{ 'Teléfono' | t }}</label>
               <input id="tel" type="tel" formControlName="telefono" placeholder="(809) 000-0000" />
             </div>
             <div class="sgc-field">
-              <label for="email">Correo</label>
-              <input id="email" type="email" formControlName="email" placeholder="info@empresa.com" [class.invalid]="f.email.invalid && f.email.touched" />
-              @if (f.email.invalid && f.email.touched) { <span class="field-error">Correo inválido.</span> }
+              <label for="email">{{ 'Correo' | t }}</label>
+              <input id="email" type="email" formControlName="email" placeholder="{{ 'info@empresa.com' | t }}" [class.invalid]="f.email.invalid && f.email.touched" />
+              @if (f.email.invalid && f.email.touched) { <span class="field-error">{{ 'Correo inválido.' | t }}</span> }
             </div>
           </div>
           <div class="sgc-field">
-            <label for="web">Sitio web</label>
-            <input id="web" type="text" formControlName="sitio_web" placeholder="www.empresa.com" />
+            <label for="web">{{ 'Sitio web' | t }}</label>
+            <input id="web" type="text" formControlName="sitio_web" placeholder="{{ 'www.empresa.com' | t }}" />
           </div>
         </section>
 
         <!-- Dirección -->
         <section class="empresa-sec">
-          <h2 class="empresa-sec__h">Dirección</h2>
-          <p class="empresa-sec__desc">Ubicación física. Encabezado de documentos y datos de contacto.</p>
+          <h2 class="empresa-sec__h">{{ 'Dirección' | t }}</h2>
+          <p class="empresa-sec__desc">{{ 'Ubicación física. Encabezado de documentos y datos de contacto.' | t }}</p>
           <div class="sgc-field">
-            <label for="dir">Dirección</label>
-            <input id="dir" type="text" formControlName="direccion" placeholder="Calle, número, sector" />
+            <label for="dir">{{ 'Dirección' | t }}</label>
+            <input id="dir" type="text" formControlName="direccion" placeholder="{{ 'Calle, número, sector' | t }}" />
           </div>
           <div class="empresa-form__row">
             <div class="sgc-field">
-              <label for="ciudad">Ciudad</label>
-              <input id="ciudad" type="text" formControlName="ciudad" placeholder="Santo Domingo" />
+              <label for="ciudad">{{ 'Ciudad' | t }}</label>
+              <input id="ciudad" type="text" formControlName="ciudad" placeholder="{{ 'Santo Domingo' | t }}" />
             </div>
             <div class="sgc-field">
-              <label for="pais">País</label>
-              <input id="pais" type="text" formControlName="pais" placeholder="República Dominicana" />
+              <label for="pais">{{ 'País' | t }}</label>
+              <input id="pais" type="text" formControlName="pais" placeholder="{{ 'República Dominicana' | t }}" />
             </div>
           </div>
         </section>
 
         <div class="empresa-form__actions">
           <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-            @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar cambios }
+            @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Guardar cambios' | t }} }
           </button>
         </div>
       </form>
@@ -113,21 +113,21 @@
 
     <!-- AW8 — preview de cómo sale en el encabezado de un documento -->
     <aside class="empresa-preview">
-      <h2 class="empresa-preview__h">Vista previa (encabezado de documento)</h2>
+      <h2 class="empresa-preview__h">{{ 'Vista previa (encabezado de documento)' | t }}</h2>
       <div class="doc-head">
         @if (logoUrl(); as url) {
           <img [src]="url" alt="" class="doc-head__logo doc-head__logo--img" />
         } @else {
-          <div class="doc-head__logo">LOGO</div>
+          <div class="doc-head__logo">{{ 'LOGO' | t }}</div>
         }
         <div class="doc-head__data">
           <div class="doc-head__title">{{ preview().titulo }}</div>
-          @if (preview().rnc) { <div class="doc-head__line">RNC: {{ preview().rnc }}</div> }
+          @if (preview().rnc) { <div class="doc-head__line">{{ 'RNC:' | t }} {{ preview().rnc }}</div> }
           @if (preview().direccion) { <div class="doc-head__line">{{ preview().direccion }}</div> }
           @if (preview().contacto) { <div class="doc-head__line">{{ preview().contacto }}</div> }
         </div>
       </div>
-      <p class="empresa-preview__note">Así se verá el bloque de identidad en los PDF, conduces y carnets.</p>
+      <p class="empresa-preview__note">{{ 'Así se verá el bloque de identidad en los PDF, conduces y carnets.' | t }}</p>
     </aside>
   </div>
 }

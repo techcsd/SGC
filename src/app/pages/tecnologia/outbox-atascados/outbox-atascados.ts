@@ -3,6 +3,8 @@ import { DatePipe, JsonPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * BG2 — "Outbox atascado": registros que la app móvil no pudo enviar por errores
  * de SISTEMA (RLS/constraint/5xx) — data real de obra que se quedó en el teléfono.
@@ -80,7 +82,7 @@ interface OutboxDetalle {
 
 @Component({
   selector: 'app-tec-outbox-atascados',
-  imports: [DatePipe, JsonPipe],
+  imports: [DatePipe, JsonPipe, TranslatePipe],
   templateUrl: './outbox-atascados.html',
   styleUrl: './outbox-atascados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,6 +90,7 @@ interface OutboxDetalle {
 export class TecOutboxAtascados implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   filas = signal<OutboxItem[]>([]);
   conteos = signal<Conteos | null>(null);
@@ -109,13 +112,10 @@ export class TecOutboxAtascados implements OnInit {
     return TIPO_LABEL[t] ?? t.replace(/_/g, ' ');
   }
   categoriaLabel(c: string): string {
-    return c === 'sistema'
-      ? 'Error del sistema'
-      : c === 'dato'
-        ? 'Error de dato'
-        : c === 'transitorio'
-          ? 'Transitorio'
-          : c;
+    if (c === 'sistema') return this.i18n.t('Error del sistema');
+    if (c === 'dato') return this.i18n.t('Error de dato');
+    if (c === 'transitorio') return this.i18n.t('Transitorio');
+    return c;
   }
   resumenTexto(r: Record<string, unknown> | null): string {
     if (!r) return '';
@@ -226,7 +226,7 @@ export class TecOutboxAtascados implements OnInit {
       if (r?.usuario_id) {
         await this.supabase.client.functions.invoke('send-push', {
           body: {
-            user_ids: [r.usuario_id], titulo: 'Reintentar envío',
+            user_ids: [r.usuario_id], titulo: this.i18n.t('Reintentar envío'),
             cuerpo: 'Tecnología pidió reintentar un envío atascado.', tipo: 'outbox_reintentar',
             data: { type: 'outbox_reintentar', atascado_id: det.atascado.id, salida_id: r.salida_id },
           },
@@ -234,9 +234,9 @@ export class TecOutboxAtascados implements OnInit {
       }
       // Refleja el sello sin recargar todo.
       this.detalle.update((d) => d ? { ...d, atascado: { ...d.atascado, reintento_solicitado_en: new Date().toISOString() } } : d);
-      this.toast.success('Reintento solicitado al teléfono');
+      this.toast.success(this.i18n.t('Reintento solicitado al teléfono'));
     } catch (e) {
-      this.toast.error('No se pudo solicitar el reintento', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo solicitar el reintento'), e instanceof Error ? e.message : undefined);
     } finally {
       this.pidiendo.set(false);
     }
@@ -253,16 +253,16 @@ export class TecOutboxAtascados implements OnInit {
       if (r?.usuario_id) {
         await this.supabase.client.functions.invoke('send-push', {
           body: {
-            user_ids: [r.usuario_id], titulo: 'Sube la evidencia',
+            user_ids: [r.usuario_id], titulo: this.i18n.t('Sube la evidencia'),
             cuerpo: 'Tecnología necesita la foto/datos de un envío atascado.', tipo: 'outbox_subir_evidencia',
             data: { type: 'outbox_subir_evidencia', atascado_id: det.atascado.id, salida_id: r.salida_id },
           },
         }).catch(() => { /* best-effort */ });
       }
       this.detalle.update((d) => d ? { ...d, atascado: { ...d.atascado, evidencia_solicitada_en: new Date().toISOString() } } : d);
-      this.toast.success('Le pedimos que suba la evidencia');
+      this.toast.success(this.i18n.t('Le pedimos que suba la evidencia'));
     } catch (e) {
-      this.toast.error('No se pudo pedir la evidencia', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo pedir la evidencia'), e instanceof Error ? e.message : undefined);
     } finally {
       this.pidiendo.set(false);
     }
@@ -277,9 +277,9 @@ export class TecOutboxAtascados implements OnInit {
       });
       if (error) throw error;
       this.filas.update((fs) => fs.map((x) => (x.id === f.id ? { ...x, resuelto } : x)));
-      this.toast.success(resuelto ? 'Marcado como resuelto' : 'Reabierto');
+      this.toast.success(resuelto ? this.i18n.t('Marcado como resuelto') : this.i18n.t('Reabierto'));
     } catch (e) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     }
   }
 }

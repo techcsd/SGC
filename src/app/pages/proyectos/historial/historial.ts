@@ -8,16 +8,19 @@ import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-proyectos-historial',
-  imports: [DecimalPipe, RouterLink, DonutChart, BarChart, Skeleton, Paginator],
+  imports: [DecimalPipe, RouterLink, DonutChart, BarChart, Skeleton, Paginator, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProyectosHistorial implements OnInit {
   private proyectosService = inject(ProyectosService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
   proyectos = signal<Proyecto[]>([]);
@@ -48,7 +51,7 @@ export class ProyectosHistorial implements OnInit {
       planificacion: '#64748b', en_progreso: '#1F4E79', pausado: '#B45309', completado: '#2D7D46', cancelado: '#C0392B',
     };
     return PROYECTO_ESTADOS.map((e) => ({
-      label: e.label,
+      label: this.i18n.t(e.label),
       value: this.proyectos().filter((p) => p.estado === e.value).length,
       color: colors[e.value] ?? '#94a3b8',
     })).filter((d) => d.value > 0);
@@ -56,7 +59,7 @@ export class ProyectosHistorial implements OnInit {
 
   porTipo = computed<BarDatum[]>(() =>
     PROYECTO_TIPOS.map((t) => ({
-      label: t.label,
+      label: this.i18n.t(t.label),
       value: this.proyectos().filter((p) => p.tipo === t.value).length,
     })).filter((d) => d.value > 0),
   );

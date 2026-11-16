@@ -45,10 +45,12 @@ import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { formatearCedula } from '../../../../shared/utils/cedula.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 @Component({
   selector: 'app-conductores',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload, StaggerDirective],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload, StaggerDirective, TranslatePipe],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,6 +62,7 @@ export class Conductores implements OnInit {
   private documentosService = inject(DocumentosFlotaService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private datosPrueba = inject(DatosPruebaService);
 
   // T2 — solo admin ve/gestiona datos de prueba (enforcement server-side vía RLS).
@@ -492,7 +495,7 @@ export class Conductores implements OnInit {
 
     if (
       pisaria &&
-      !confirm('Ya escribiste datos en el formulario. ¿Reemplazarlos con los del perfil del usuario seleccionado?')
+      !confirm(this.i18n.t('Ya escribiste datos en el formulario. ¿Reemplazarlos con los del perfil del usuario seleccionado?'))
     ) {
       // El usuario prefiere conservar lo escrito: solo rellena los campos vacíos.
       const nuevos = new Set(del);
@@ -590,12 +593,12 @@ export class Conductores implements OnInit {
           try {
             const r = await this.conductoresService.syncAccesoCedula(id);
             if (r.synced) {
-              this.toast.success('Acceso actualizado', 'La cédula cambió y el acceso por PIN se resincronizó.');
+              this.toast.success(this.i18n.t('Acceso actualizado'), 'La cédula cambió y el acceso por PIN se resincronizó.');
             }
           } catch (syncErr: unknown) {
             // El conductor SÍ se guardó; solo avisamos que el acceso PIN quedó pendiente.
             this.toast.error(
-              'Acceso por PIN sin resincronizar',
+              this.i18n.t('Acceso por PIN sin resincronizar'),
               syncErr instanceof Error
                 ? `El conductor se guardó, pero su acceso por PIN quedó pendiente: ${syncErr.message}`
                 : 'El conductor se guardó, pero su acceso por PIN quedó pendiente.',
@@ -652,7 +655,7 @@ export class Conductores implements OnInit {
     const results = await Promise.allSettled(jobs);
     const fallidos = results.filter((r) => r.status === 'rejected').length;
     if (fallidos > 0) {
-      this.toast.warning('Documentos', `${fallidos} documento(s) no se pudieron subir. Puedes reintentarlo desde el perfil.`);
+      this.toast.warning(this.i18n.t('Documentos'), `${fallidos} documento(s) no se pudieron subir. Puedes reintentarlo desde el perfil.`);
     }
     this.docsAlta.set({ cedula: null, licencia: [] });
   }
@@ -679,8 +682,8 @@ export class Conductores implements OnInit {
     // X14 — avisar cuántos registros relacionados se marcarán/revertirán.
     const n = await this.datosPrueba.contarDerivados('conductores', c.id, valor);
     if (n > 0) {
-      const accion = valor ? 'marcará' : 'quitará de prueba';
-      if (!confirm(`Esto también ${accion} ${n} registro(s) relacionado(s) (multas, rutas, checklists, echadas). ¿Continuar?`)) {
+      const accion = this.i18n.t(valor ? 'marcará' : 'quitará de prueba');
+      if (!confirm(this.i18n.t('Esto también {accion} {n} registro(s) relacionado(s) (multas, rutas, checklists, echadas). ¿Continuar?', { accion, n }))) {
         return;
       }
     }
@@ -690,24 +693,24 @@ export class Conductores implements OnInit {
         list.map((x) => (x.id === c.id ? { ...x, es_prueba: valor } : x)),
       );
       this.toast.success(
-        valor ? 'Marcado como prueba' : 'Quitado de prueba',
+        this.i18n.t(valor ? 'Marcado como prueba' : 'Quitado de prueba'),
         `"${c.nombre}" ${valor ? 'ahora es un dato de prueba' : 'ya no es un dato de prueba'}.`,
       );
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 
   /** Elimina definitivamente un conductor de prueba (solo admin). */
   async eliminarPrueba(c: Conductor) {
     if (!this.esAdmin() || !c.es_prueba) return;
-    if (!confirm(`¿Eliminar el dato de prueba "${c.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el dato de prueba "{nombre}"? Esta acción no se puede deshacer.', { nombre: c.nombre }))) return;
     try {
       await this.datosPrueba.eliminar('conductores', c.id);
       this.conductores.update((list) => list.filter((x) => x.id !== c.id));
-      this.toast.success('Dato de prueba eliminado', `Se eliminó "${c.nombre}".`);
+      this.toast.success(this.i18n.t('Dato de prueba eliminado'), `Se eliminó "${c.nombre}".`);
     } catch (e: unknown) {
-      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+      this.toast.error(this.i18n.t('Error al eliminar'), e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

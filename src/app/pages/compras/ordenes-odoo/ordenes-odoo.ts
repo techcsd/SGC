@@ -33,6 +33,8 @@ import { OdooProductoCompra } from '../../../../shared/models/odoo.model';
 import { OdooProductoSolicitudesService } from '../../../../shared/services/odoo-producto-solicitudes.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
@@ -79,7 +81,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes-odoo',
-  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, OdooProductoPicker, Icon, RouterLink, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, OdooProductoPicker, Icon, RouterLink, StaggerDirective, TranslatePipe],
   templateUrl: './ordenes-odoo.html',
   styleUrl: './ordenes-odoo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -96,6 +98,7 @@ export class OrdenesOdoo implements OnInit {
   private odooSolicitudesService = inject(OdooProductoSolicitudesService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -292,9 +295,9 @@ export class OrdenesOdoo implements OnInit {
       await this.ordenesService.vincularArticulo(row.itemId, articuloId);
       await this.refrescarTrasVincular();
       const articulo = this.articulos().find((a) => a.id === articuloId);
-      this.toast.success('Artículo vinculado', articulo ? `${articulo.codigo} — ${articulo.nombre}` : undefined);
+      this.toast.success(this.i18n.t('Artículo vinculado'), articulo ? `${articulo.codigo} — ${articulo.nombre}` : undefined);
     } catch (e: unknown) {
-      this.toast.error('No se pudo vincular el artículo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo vincular el artículo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.vinculandoArticulo.set(false);
     }
@@ -319,9 +322,9 @@ export class OrdenesOdoo implements OnInit {
       await this.ordenesService.vincularArticulo(row.itemId, articulo.id);
       this.articulos.update((list) => [...list, articulo]);
       await this.refrescarTrasVincular();
-      this.toast.success('Artículo creado y vinculado', `${articulo.codigo} — ${articulo.nombre}`);
+      this.toast.success(this.i18n.t('Artículo creado y vinculado'), `${articulo.codigo} — ${articulo.nombre}`);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear/vincular el artículo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear/vincular el artículo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.vinculandoArticulo.set(false);
     }
@@ -468,9 +471,9 @@ export class OrdenesOdoo implements OnInit {
       this.proveedores.update((list) => [prov, ...list]);
       this.form.controls.proveedor_id.setValue(prov.id);
       this.showNuevoProveedor.set(false);
-      this.toast.success('Proveedor creado', prov.nombre);
+      this.toast.success(this.i18n.t('Proveedor creado'), prov.nombre);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear el proveedor', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear el proveedor'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoProveedor.set(false);
     }
@@ -504,13 +507,13 @@ export class OrdenesOdoo implements OnInit {
     // El servidor también lo exige; aquí evitamos la ida-y-vuelta.
     const motivo = (window.prompt('Motivo del rechazo (obligatorio):') ?? '').trim();
     if (!motivo) {
-      if (motivo === '') this.toast.info('Rechazo cancelado', 'Se necesita un motivo.');
+      if (motivo === '') this.toast.info(this.i18n.t('Rechazo cancelado'), 'Se necesita un motivo.');
       return;
     }
     try {
       await this.solicitudesCompraService.rechazar(s.id, motivo);
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
-      this.toast.info('Solicitud rechazada');
+      this.toast.info(this.i18n.t('Solicitud rechazada'));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
     }
@@ -573,9 +576,9 @@ export class OrdenesOdoo implements OnInit {
     const descripcion = item.descripcion.trim() || terminoBuscado;
     try {
       await this.odooSolicitudesService.crear(descripcion, terminoBuscado);
-      this.toast.success('Solicitud de alta enviada', 'Compras la resolverá en "Productos por dar de alta en Odoo". Mientras tanto, guarda esta línea como texto libre.');
+      this.toast.success(this.i18n.t('Solicitud de alta enviada'), 'Compras la resolverá en "Productos por dar de alta en Odoo". Mientras tanto, guarda esta línea como texto libre.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar la solicitud de alta', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar la solicitud de alta'), e instanceof Error ? e.message : undefined);
       return;
     }
     this.formItems.update((items) =>
@@ -624,7 +627,7 @@ export class OrdenesOdoo implements OnInit {
     const resultados = await Promise.allSettled(tareas);
     const fallos = resultados.filter((r) => r.status === 'rejected').length;
     if (fallos > 0) {
-      this.toast.error('Algunos renglones no quedaron vinculados a Odoo', 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
+      this.toast.error(this.i18n.t('Algunos renglones no quedaron vinculados a Odoo'), 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
     }
   }
 
@@ -636,7 +639,7 @@ export class OrdenesOdoo implements OnInit {
   private async publicarTrasCrear(created: OdooOrdenCompra, validItems: ItemRow[]): Promise<OdooOrdenCompra> {
     if (created.es_prueba) return created;
     if (validItems.some((i) => !i.odoo_product)) {
-      this.toast.info('Orden guardada sin publicar', 'Hay líneas sin producto de Odoo. Resuélvelas y publica la orden.');
+      this.toast.info(this.i18n.t('Orden guardada sin publicar'), 'Hay líneas sin producto de Odoo. Resuélvelas y publica la orden.');
       return this.ordenesService.getById(created.id);
     }
     return this.publicarEnOdoo(created, false);
@@ -648,12 +651,12 @@ export class OrdenesOdoo implements OnInit {
     try {
       const actualizada = await this.ordenesService.publicar(orden.id);
       this.errorPublicacion.update(({ [orden.id]: _, ...resto }) => resto);
-      if (avisar) this.toast.success('Orden publicada en Odoo');
+      if (avisar) this.toast.success(this.i18n.t('Orden publicada en Odoo'));
       return actualizada;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'No se pudo publicar en Odoo.';
       this.errorPublicacion.update((m) => ({ ...m, [orden.id]: msg }));
-      this.toast.error('No se pudo publicar en Odoo', msg);
+      this.toast.error(this.i18n.t('No se pudo publicar en Odoo'), msg);
       return this.ordenesService.getById(orden.id).catch(() => orden);
     } finally {
       this.publicando.set(null);
@@ -889,12 +892,12 @@ export class OrdenesOdoo implements OnInit {
       const r = await this.ordenesService.updateEstado(orden, estado, motivo);
       if (r === 'por_aprobar') {
         this.revertirEstado(orden.id, prev);
-        this.toast.success('Enviada a aprobación en Odoo', 'Cuando la aprueben en Odoo, pulsa «Actualizar desde Odoo».');
+        this.toast.success(this.i18n.t('Enviada a aprobación en Odoo'), 'Cuando la aprueben en Odoo, pulsa «Actualizar desde Odoo».');
       }
       await this.refrescarOrden(orden.id);
     } catch (e: unknown) {
       this.revertirEstado(orden.id, prev);
-      this.toast.error('No se pudo cambiar el estado', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado'), e instanceof Error ? e.message : undefined);
       await this.refrescarOrden(orden.id);
     }
   }

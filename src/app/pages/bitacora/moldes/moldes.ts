@@ -14,6 +14,7 @@ import { MoldeEsquema, MoldeTramo } from '../../../../shared/ui/molde-esquema/mo
 import { MoldeVisor, MoldeVisorItem } from '../../../../shared/ui/molde-visor/molde-visor';
 import { Paginador } from '../../../../shared/components/paginador/paginador';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** Clave de vista recordada por pantalla (localStorage, DI2). */
 type VistaMoldes = 'tarjetas' | 'tabla';
@@ -33,6 +34,7 @@ const CLAVE_VISTA = 'sgc.moldes.vista';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BitacoraMoldes implements OnInit {
+  protected i18n = inject(I18nService);
   private bitacoraService = inject(BitacoraService);
   private userService = inject(UserService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
@@ -201,7 +203,7 @@ export class BitacoraMoldes implements OnInit {
 
   moldeTitulo(m: BitacoraMoldeOffice): string {
     const partes = [m.estructura, m.identificador].map((x) => (x ?? '').trim()).filter(Boolean);
-    return partes.join(' · ') || 'Molde';
+    return partes.join(' · ') || this.i18n.t('Molde');
   }
 
   /** Tramos tipados para el esquema (medida real). */

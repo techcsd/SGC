@@ -111,7 +111,16 @@ for (const file of files) {
 
     // 1) Atributos visibles con literal plano (sin `{{` en el valor).
     for (const attr of ATTRS_VISIBLES) {
-      const re = new RegExp(`\\b(${attr})="([^"{}]*)"`, 'g');
+      // DP-21 — \b por sí solo matchea "placeholder" dentro de "data-placeholder"
+      // (el '-' no es de palabra, así que hay un límite de palabra justo antes
+      // de la "p"). Un atributo `data-*` custom (ej. placeholder de
+      // contenteditable vía CSS `content: attr(data-placeholder)`) terminaba
+      // envuelto como `data-placeholder="{{ '...' | t }}"`, y Angular reescribe
+      // CUALQUIER atributo interpolado cuyo nombre (tras quitar "data-") calce
+      // con una propiedad DOM conocida como binding de propiedad — rompiendo
+      // el build con NG8002 ("Can't bind to 'placeholder' … of 'div'").
+      // (?<!-) excluye el caso en que el atributo real tiene un '-' justo antes.
+      const re = new RegExp(`(?<!-)\\b(${attr})="([^"{}]*)"`, 'g');
       line = line.replace(re, (m, nombre, valor) => {
         if (esRuido(valor)) return m;
         envueltosArchivo++;
@@ -170,14 +179,19 @@ function asegurarTranslatePipe(htmlFile) {
   const importPath = rel.startsWith('.') ? rel : `./${rel}`;
 
   // 1) agrega el import (tras el último import existente).
-  const importLines = ts.split(/\r?\n/);
-  let lastImport = -1;
-  for (let i = 0; i < importLines.length; i++) {
-    if (/^import\s/.test(importLines[i])) lastImport = i;
+  // DP-20 — un import puede ser multilínea (`import {\n  A, B,\n} from '...'`);
+  // buscar la última línea que EMPIEZA con "import" (como antes) partía el
+  // bloque a la mitad si esa línea era solo la apertura `import {` de un
+  // import multilínea. Ahora se busca el cierre real de cada statement
+  // (`... from '...';`), multilínea incluido, y se inserta tras el último.
+  const importStmtRe = /^import\s[\s\S]*?from\s*['"][^'"]+['"]\s*;?\s*$/gm;
+  let lastEnd = -1;
+  let m;
+  while ((m = importStmtRe.exec(ts)) !== null) {
+    lastEnd = m.index + m[0].length;
   }
-  if (lastImport === -1) return; // archivo sin imports, no tocar (raro)
-  importLines.splice(lastImport + 1, 0, `import { TranslatePipe } from '${importPath}';`);
-  ts = importLines.join('\n');
+  if (lastEnd === -1) return; // archivo sin imports con "from", no tocar (raro)
+  ts = `${ts.slice(0, lastEnd)}\nimport { TranslatePipe } from '${importPath}';${ts.slice(lastEnd)}`;
 
   // 2) agrega TranslatePipe al array `imports: [...]` del @Component.
   const impMatch = ts.match(/imports:\s*\[([^\]]*)\]/);
@@ -188,7 +202,15 @@ function asegurarTranslatePipe(htmlFile) {
       : 'TranslatePipe';
     ts = ts.replace(/imports:\s*\[([^\]]*)\]/, `imports: [${nuevo}]`);
   } else {
-    console.warn(`  ⚠ ${relative(ROOT, tsFile)}: no se encontró "imports: [...]" — agregar TranslatePipe a mano.`);
+    // DP-20 — el @Component no tenía ningún array `imports: [...]` (standalone
+    // sin dependencias hasta ahora). Insertarlo justo tras `selector: '...'`.
+    const selMatch = ts.match(/selector:\s*'[^']*',?/);
+    if (selMatch) {
+      const pos = selMatch.index + selMatch[0].length;
+      ts = `${ts.slice(0, pos)}\n  imports: [TranslatePipe],${ts.slice(pos)}`;
+    } else {
+      console.warn(`  ⚠ ${relative(ROOT, tsFile)}: no se encontró "selector:" ni "imports: [...]" — agregar TranslatePipe a mano.`);
+    }
   }
   writeFileSync(tsFile, ts);
 }

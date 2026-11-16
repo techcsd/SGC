@@ -36,6 +36,8 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
   borrador: ['aprobada', 'cancelada'],
@@ -78,7 +80,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, OdooProductoPicker, Icon, RouterLink, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, OdooProductoPicker, Icon, RouterLink, StaggerDirective, TranslatePipe],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -97,6 +99,7 @@ export class Ordenes implements OnInit {
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -290,9 +293,9 @@ export class Ordenes implements OnInit {
       await this.ordenesService.vincularArticulo(row.itemId, articuloId);
       await this.refrescarTrasVincular();
       const articulo = this.articulos().find((a) => a.id === articuloId);
-      this.toast.success('Artículo vinculado', articulo ? `${articulo.codigo} — ${articulo.nombre}` : undefined);
+      this.toast.success(this.i18n.t('Artículo vinculado'), articulo ? `${articulo.codigo} — ${articulo.nombre}` : undefined);
     } catch (e: unknown) {
-      this.toast.error('No se pudo vincular el artículo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo vincular el artículo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.vinculandoArticulo.set(false);
     }
@@ -317,9 +320,9 @@ export class Ordenes implements OnInit {
       await this.ordenesService.vincularArticulo(row.itemId, articulo.id);
       this.articulos.update((list) => [...list, articulo]);
       await this.refrescarTrasVincular();
-      this.toast.success('Artículo creado y vinculado', `${articulo.codigo} — ${articulo.nombre}`);
+      this.toast.success(this.i18n.t('Artículo creado y vinculado'), `${articulo.codigo} — ${articulo.nombre}`);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear/vincular el artículo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear/vincular el artículo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.vinculandoArticulo.set(false);
     }
@@ -393,7 +396,7 @@ export class Ordenes implements OnInit {
       this.categorias.set(categorias);
       this.articuloNombres.set(activos.map((a) => a.nombre));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los datos.'));
     } finally {
       this.loading.set(false);
     }
@@ -468,9 +471,9 @@ export class Ordenes implements OnInit {
       this.proveedores.update((list) => [prov, ...list]);
       this.form.controls.proveedor_id.setValue(prov.id);
       this.showNuevoProveedor.set(false);
-      this.toast.success('Proveedor creado', prov.nombre);
+      this.toast.success(this.i18n.t('Proveedor creado'), prov.nombre);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear el proveedor', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear el proveedor'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoProveedor.set(false);
     }
@@ -482,7 +485,7 @@ export class Ordenes implements OnInit {
     this.solicitudEnAtencion.set(s);
     this.form.reset({
       proyecto_id: s.proyecto_id,
-      notas: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}${s.notas ? ' — ' + s.notas : ''}`,
+      notas: this.i18n.t('Solicitud de {nombre}', { nombre: s.solicitante?.nombre ?? this.i18n.t('ingeniero') }) + (s.notas ? ' — ' + s.notas : ''),
     });
     // BH7 — si el faltante conserva su articulo_id (requisición resuelta), la orden
     // nace ligada al catálogo en vez de como "Otro". Las filas viejas sin articulo_id
@@ -502,17 +505,17 @@ export class Ordenes implements OnInit {
   async rechazarSolicitud(s: SolicitudCompra) {
     // BH7 — motivo obligatorio al rechazar (misma regla que cancelar una requisición, BA6).
     // El servidor también lo exige; aquí evitamos la ida-y-vuelta.
-    const motivo = (window.prompt('Motivo del rechazo (obligatorio):') ?? '').trim();
+    const motivo = (window.prompt(this.i18n.t('Motivo del rechazo (obligatorio):')) ?? '').trim();
     if (!motivo) {
-      if (motivo === '') this.toast.info('Rechazo cancelado', 'Se necesita un motivo.');
+      if (motivo === '') this.toast.info(this.i18n.t('Rechazo cancelado'), 'Se necesita un motivo.');
       return;
     }
     try {
       await this.solicitudesCompraService.rechazar(s.id, motivo);
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
-      this.toast.info('Solicitud rechazada');
+      this.toast.info(this.i18n.t('Solicitud rechazada'));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al rechazar la solicitud.'));
     }
   }
 
@@ -573,9 +576,9 @@ export class Ordenes implements OnInit {
     const descripcion = item.descripcion.trim() || terminoBuscado;
     try {
       await this.odooSolicitudesService.crear(descripcion, terminoBuscado);
-      this.toast.success('Solicitud de alta enviada', 'Compras la resolverá en "Productos por dar de alta en Odoo". Mientras tanto, guarda esta línea como texto libre.');
+      this.toast.success(this.i18n.t('Solicitud de alta enviada'), 'Compras la resolverá en "Productos por dar de alta en Odoo". Mientras tanto, guarda esta línea como texto libre.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar la solicitud de alta', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar la solicitud de alta'), e instanceof Error ? e.message : undefined);
       return;
     }
     this.formItems.update((items) =>
@@ -624,7 +627,7 @@ export class Ordenes implements OnInit {
     const resultados = await Promise.allSettled(tareas);
     const fallos = resultados.filter((r) => r.status === 'rejected').length;
     if (fallos > 0) {
-      this.toast.error('Algunos renglones no quedaron vinculados a Odoo', 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
+      this.toast.error(this.i18n.t('Algunos renglones no quedaron vinculados a Odoo'), 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
     }
   }
 
@@ -642,20 +645,20 @@ export class Ordenes implements OnInit {
       (item) => item.descripcion.trim() && (!(item.cantidad > 0) || !(item.precio_unitario > 0)),
     );
     if (hasIncompleteLine) {
-      this.saveError.set('Cada línea necesita una cantidad y un precio unitario mayores que cero.');
+      this.saveError.set(this.i18n.t('Cada línea necesita una cantidad y un precio unitario mayores que cero.'));
       return;
     }
 
     // Z6 — destino proyecto exige proyecto; oficina no lleva proyecto.
     if (this.destino() === 'proyecto' && !this.form.value.proyecto_id) {
-      this.saveError.set('Selecciona el proyecto de destino (o cambia el destino a Oficina).');
+      this.saveError.set(this.i18n.t('Selecciona el proyecto de destino (o cambia el destino a Oficina).'));
       return;
     }
 
     // BH8 — una OC directa (sin solicitud de procedencia) salta el control de la
     // requisición; se permite (compras de oficina), pero deja traza: motivo obligatorio.
     if (!this.solicitudEnAtencion() && !(this.form.value.notas ?? '').trim()) {
-      this.saveError.set('Esta es una orden directa (sin solicitud previa): indica el motivo en «Notas» para dejar traza.');
+      this.saveError.set(this.i18n.t('Esta es una orden directa (sin solicitud previa): indica el motivo en «Notas» para dejar traza.'));
       return;
     }
 
@@ -718,7 +721,7 @@ export class Ordenes implements OnInit {
 
       this.createDrawerOpen.set(false);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar.'));
     } finally {
       this.saving.set(false);
     }
@@ -766,14 +769,14 @@ export class Ordenes implements OnInit {
     const resto = pendientes.filter((r) => r.estado !== 'sin_articulo');
     const partes: string[] = [];
     if (sinArticulo.length) {
-      const extra = sinArticulo.length > 1 ? ` (y ${sinArticulo.length - 1} más)` : '';
-      partes.push(`"${sinArticulo[0].descripcion}"${extra} no está vinculado a un artículo del catálogo — vincúlalo en la tabla de abajo ("Vincular artículo").`);
+      const extra = sinArticulo.length > 1 ? ' ' + this.i18n.t('(y {n} más)', { n: sinArticulo.length - 1 }) : '';
+      partes.push(this.i18n.t('"{descripcion}"{extra} no está vinculado a un artículo del catálogo — vincúlalo en la tabla de abajo ("Vincular artículo").', { descripcion: sinArticulo[0].descripcion, extra }));
     }
     if (resto.length) {
-      const extra = resto.length > 1 ? ` (y ${resto.length - 1} más)` : '';
-      partes.push(`"${resto[0].descripcion}"${extra} todavía no tiene entrada registrada — usa "Registrar entrada de esta orden".`);
+      const extra = resto.length > 1 ? ' ' + this.i18n.t('(y {n} más)', { n: resto.length - 1 }) : '';
+      partes.push(this.i18n.t('"{descripcion}"{extra} todavía no tiene entrada registrada — usa "Registrar entrada de esta orden".', { descripcion: resto[0].descripcion, extra }));
     }
-    return partes.join(' ') || 'Hay renglones sin recibir en el inventario.';
+    return partes.join(' ') || this.i18n.t('Hay renglones sin recibir en el inventario.');
   }
 
   /** CT3c/DH14 — panel inline para el motivo de forzado (admin), sin `prompt()` nativo. */
@@ -842,7 +845,7 @@ export class Ordenes implements OnInit {
       if (this.detailOrden()?.id === orden.id) {
         this.detailOrden.update((o) => (o ? { ...o, estado: prev } : null));
       }
-      this.toast.error('No se pudo cambiar el estado', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado'), e instanceof Error ? e.message : undefined);
     }
   }
 

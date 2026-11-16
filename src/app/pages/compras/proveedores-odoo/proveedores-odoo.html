@@ -1,19 +1,19 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Proveedores</h1>
-    <span class="page-count">{{ filtered().length }} proveedor{{ filtered().length !== 1 ? 'es' : '' }}</span>
+    <h1 class="page-title">{{ 'Proveedores' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'proveedores' : 'proveedor') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelProveedores()"
-            [disabled]="filtered().length === 0" title="Exportar los proveedores filtrados a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar los proveedores filtrados a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo proveedor
+      {{ 'Nuevo proveedor' | t }}
     </button>
   </div>
 </div>
@@ -23,10 +23,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre, RNC o email…"
+      placeholder="{{ 'Buscar por nombre, RNC o email…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar proveedores"
+      aria-label="{{ 'Buscar proveedores' | t }}"
     />
   </div>
 
@@ -34,24 +34,24 @@
     <select
       [value]="selectedActivo()"
       (change)="onActivoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="all">Todos los estados</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
+      <option value="all">{{ 'Todos los estados' | t }}</option>
+      <option value="active">{{ 'Activos' | t }}</option>
+      <option value="inactive">{{ 'Inactivos' | t }}</option>
     </select>
   </div>
 
   @if (searchQuery() || selectedActivo() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
   @if (esAdmin()) {
     <label class="proveedores__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -80,25 +80,25 @@
       </svg>
       <p>
         @if (searchQuery() || selectedActivo() !== 'all') {
-          No se encontraron proveedores con los filtros aplicados.
+          {{ 'No se encontraron proveedores con los filtros aplicados.' | t }}
         } @else {
-          No hay proveedores registrados. Crea el primero.
+          {{ 'No hay proveedores registrados. Crea el primero.' | t }}
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de proveedores">
+      <table class="data-table" aria-label="{{ 'Lista de proveedores' | t }}">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>RNC</th>
-            <th>Teléfono</th>
-            <th>Email</th>
-            <th>Contacto</th>
-            <th>Dirección</th>
-            <th>Estado</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Nombre' | t }}</th>
+            <th>{{ 'RNC' | t }}</th>
+            <th>{{ 'Teléfono' | t }}</th>
+            <th>{{ 'Email' | t }}</th>
+            <th>{{ 'Contacto' | t }}</th>
+            <th>{{ 'Dirección' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
@@ -108,13 +108,13 @@
                 <span class="prov-name">{{ p.nombre }}</span>
                 @if (p.tipos?.length) {
                   @for (t of p.tipos; track t) {
-                    <span class="sgc-badge sgc-badge--info">{{ tipoLabel(t) }}</span>
+                    <span class="sgc-badge sgc-badge--info">{{ tipoLabel(t) | t }}</span>
                   }
                 } @else if (p.is_hardware_store) {
-                  <span class="sgc-badge sgc-badge--info" title="Ferretería visible para choferes"><app-icon name="wrench" [size]="14" /> Ferretería</span>
+                  <span class="sgc-badge sgc-badge--info" title="{{ 'Ferretería visible para choferes' | t }}"><app-icon name="wrench" [size]="14" /> {{ 'Ferretería' | t }}</span>
                 }
                 @if (p.es_prueba) {
-                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span>
                 }
               </td>
               <td>
@@ -140,10 +140,10 @@
                   class="toggle-pill"
                   [class.toggle-pill--active]="p.activo"
                   (click)="toggleActivo(p)"
-                  [attr.aria-label]="(p.activo ? 'Desactivar' : 'Activar') + ' ' + p.nombre"
-                  [title]="p.activo ? 'Clic para desactivar' : 'Clic para activar'"
+                  [attr.aria-label]="(p.activo ? i18n.t('Desactivar') : i18n.t('Activar')) + ' ' + p.nombre"
+                  [title]="p.activo ? i18n.t('Clic para desactivar') : i18n.t('Clic para activar')"
                 >
-                  {{ p.activo ? 'Activo' : 'Inactivo' }}
+                  {{ (p.activo ? 'Activo' : 'Inactivo') | t }}
                 </button>
               </td>
               <td>
@@ -152,8 +152,8 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(p)"
-                    [attr.aria-label]="'Editar ' + p.nombre"
-                    title="Editar"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + p.nombre"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -165,8 +165,8 @@
                       class="proveedores__delete-prueba"
                       type="button"
                       (click)="eliminarPrueba(p)"
-                      title="Eliminar dato de prueba"
-                      [attr.aria-label]="'Eliminar dato de prueba ' + p.nombre"
+                      title="{{ 'Eliminar dato de prueba' | t }}"
+                      [attr.aria-label]="i18n.t('Eliminar dato de prueba') + ' ' + p.nombre"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <polyline points="3 6 5 6 21 6"/>
@@ -184,10 +184,10 @@
 
     <!-- ── Footer count ── -->
     <div class="table-footer">
-      {{ filtered().length }} proveedor{{ filtered().length !== 1 ? 'es' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+      {{ filtered().length }} {{ (filtered().length !== 1 ? 'proveedores' : 'proveedor') | t }} {{ (filtered().length !== 1 ? 'encontrados' : 'encontrado') | t }}
       @if (hayMas()) {
         <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" [disabled]="cargandoMas()" (click)="cargarMas()">
-          {{ cargandoMas() ? 'Cargando…' : 'Cargar más' }}
+          {{ (cargandoMas() ? 'Cargando…' : 'Cargar más') | t }}
         </button>
       }
     </div>
@@ -203,36 +203,36 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
-      <label for="nombre">Nombre <span class="required">*</span></label>
+      <label for="nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
       <input
         id="nombre"
         type="text"
         formControlName="nombre"
-        placeholder="Nombre del proveedor"
+        placeholder="{{ 'Nombre del proveedor' | t }}"
         [class.invalid]="f.nombre.invalid && f.nombre.touched"
       />
       @if (f.nombre.invalid && f.nombre.touched) {
-        <span class="field-error">El nombre es obligatorio.</span>
+        <span class="field-error">{{ 'El nombre es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="rnc">RNC</label>
+        <label for="rnc">{{ 'RNC' | t }}</label>
         <input
           id="rnc"
           type="text"
           formControlName="rnc"
-          placeholder="9 u 11 dígitos"
+          placeholder="{{ '9 u 11 dígitos' | t }}"
           [class.invalid]="f.rnc.invalid && f.rnc.touched"
         />
         @if (f.rnc.invalid && f.rnc.touched) {
-          <span class="field-error">RNC inválido (9 u 11 dígitos).</span>
+          <span class="field-error">{{ 'RNC inválido (9 u 11 dígitos).' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="telefono">Teléfono</label>
+        <label for="telefono">{{ 'Teléfono' | t }}</label>
         <input
           id="telefono"
           type="tel"
@@ -244,33 +244,33 @@
     </div>
 
     <div class="sgc-field">
-      <label for="email">Email</label>
+      <label for="email">{{ 'Email' | t }}</label>
       <input
         id="email"
         type="email"
         formControlName="email"
-        placeholder="correo@empresa.com"
+        placeholder="{{ 'correo@empresa.com' | t }}"
         [class.invalid]="f.email.invalid && f.email.touched"
       />
       @if (f.email.invalid && f.email.touched) {
-        <span class="field-error">Email inválido.</span>
+        <span class="field-error">{{ 'Email inválido.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="direccion">Dirección</label>
+      <label for="direccion">{{ 'Dirección' | t }}</label>
       <input
         id="direccion"
         type="text"
         formControlName="direccion"
-        placeholder="Dirección del proveedor"
+        placeholder="{{ 'Dirección del proveedor' | t }}"
       />
     </div>
 
     <!-- AS22 — ubicación estándar (link de Maps / coordenadas / pin / Places).
          La ubicación de ferreterías alimenta el select del chofer. -->
     <div class="sgc-field">
-      <label>Ubicación en el mapa (opcional)</label>
+      <label>{{ 'Ubicación en el mapa (opcional)' | t }}</label>
       <app-location-picker
         [latitud]="f.lat.value"
         [longitud]="f.lng.value"
@@ -279,39 +279,39 @@
     </div>
 
     <div class="sgc-field">
-      <label for="contacto">Nombre de contacto</label>
+      <label for="contacto">{{ 'Nombre de contacto' | t }}</label>
       <input
         id="contacto"
         type="text"
         formControlName="contacto"
-        placeholder="Persona de contacto"
+        placeholder="{{ 'Persona de contacto' | t }}"
       />
     </div>
 
     <!-- BF2 — tipos del proveedor (multiselección). 'Ferretería' lo hace visible a choferes; 'Transportista' lo habilita en conduces externos. -->
     <div class="sgc-field">
-      <label>Tipo de proveedor</label>
+      <label>{{ 'Tipo de proveedor' | t }}</label>
       <div class="prov-tipos">
         @for (t of PROVEEDOR_TIPOS; track t.key) {
           <button type="button" class="prov-tipo" [class.prov-tipo--on]="tieneTipo(t.key)"
                   (click)="toggleTipo(t.key)" [attr.aria-pressed]="tieneTipo(t.key)">
-            {{ t.label }}
+            {{ t.label | t }}
           </button>
         }
       </div>
       <small class="sgc-field__hint">
-        Ferretería = aparece como origen de compra al crear un conduce en la app · Transportista = elegible en conduces externos.
+        {{ 'Ferretería = aparece como origen de compra al crear un conduce en la app · Transportista = elegible en conduces externos.' | t }}
       </small>
     </div>
 
     @if (f.is_hardware_store.value) {
       <div class="sgc-field-row">
         <div class="sgc-field">
-          <label for="prov-lat">Latitud</label>
+          <label for="prov-lat">{{ 'Latitud' | t }}</label>
           <input id="prov-lat" type="number" step="any" formControlName="lat" placeholder="18.4861" />
         </div>
         <div class="sgc-field">
-          <label for="prov-lng">Longitud</label>
+          <label for="prov-lng">{{ 'Longitud' | t }}</label>
           <input id="prov-lng" type="number" step="any" formControlName="lng" placeholder="-69.9312" />
         </div>
       </div>
@@ -326,7 +326,7 @@
           class="toggle-input"
         />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Proveedor activo
+        {{ 'Proveedor activo' | t }}
       </label>
     </div>
 
@@ -335,9 +335,9 @@
         <label class="toggle-label" for="prov-es-prueba">
           <input id="prov-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Dato de prueba
+          {{ 'Dato de prueba' | t }}
         </label>
-        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+        <small class="sgc-field__hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
       </div>
     }
 
@@ -352,14 +352,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear proveedor' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear proveedor') | t }}
         }
       </button>
     </div>

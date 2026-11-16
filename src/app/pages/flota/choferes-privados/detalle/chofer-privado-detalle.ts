@@ -8,6 +8,8 @@ import { Lightbox } from '../../../../../shared/ui/lightbox/lightbox';
 import { formatearCedula } from '../../../../../shared/utils/cedula.util';
 import { formatearTelefono } from '../../../../../shared/utils/telefono.util';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../../shared/i18n/i18n.service';
 
 /**
  * CK1/CK2 — Flota › Choferes privados › ficha. Cadena de responsabilidad completa de un
@@ -17,7 +19,7 @@ import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../../share
  */
 @Component({
   selector: 'app-chofer-privado-detalle',
-  imports: [DecimalPipe, RouterLink, Skeleton, Icon, Lightbox],
+  imports: [DecimalPipe, RouterLink, Skeleton, Icon, Lightbox, TranslatePipe],
   templateUrl: './chofer-privado-detalle.html',
   styleUrl: './chofer-privado-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +27,7 @@ import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../../share
 export class ChoferPrivadoDetalle implements OnInit {
   private route = inject(ActivatedRoute);
   private service = inject(ChoferesPrivadosService);
+  protected i18n = inject(I18nService);
 
   readonly fmtCedula = formatearCedula;
   readonly fmtTelefono = formatearTelefono;

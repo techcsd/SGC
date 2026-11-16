@@ -12,6 +12,8 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface OrdenReport {
   id: string;
@@ -36,13 +38,14 @@ interface ProveedorStat {
 
 @Component({
   selector: 'app-compras-reportes',
-  imports: [DecimalPipe, Skeleton, Icon],
+  imports: [DecimalPipe, Skeleton, Icon, TranslatePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ComprasReportes implements OnInit {
   private supabase = inject(SupabaseService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
 
@@ -124,7 +127,7 @@ export class ComprasReportes implements OnInit {
       this.ordenes.set((oRes.data ?? []) as unknown as OrdenReport[]);
       this.proveedores.set((pRes.data ?? []) as unknown as ProveedorReport[]);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error al cargar datos.';
+      const msg = e instanceof Error ? e.message : this.i18n.t('Error al cargar datos.');
       if (!msg.includes('does not exist') && !msg.includes('relation')) {
         this.error.set(msg);
       }

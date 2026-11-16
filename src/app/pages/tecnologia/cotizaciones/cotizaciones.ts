@@ -12,6 +12,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type Filtro = 'all' | 'sin_vincular' | 'con_compra' | 'con_equipo';
 
@@ -26,6 +27,7 @@ export class TecCotizaciones implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
 
   formatTimestamp = formatTimestampDisplay;
 
@@ -185,7 +187,7 @@ export class TecCotizaciones implements OnInit {
   async guardar() {
     const v = this.form.getRawValue();
     if (!v.titulo.trim()) {
-      this.toast.error('El título es obligatorio');
+      this.toast.error(this.i18n.t('El título es obligatorio'));
       return;
     }
     this.guardando.set(true);
@@ -196,11 +198,11 @@ export class TecCotizaciones implements OnInit {
         { titulo: v.titulo, proveedor: v.proveedor, fecha: v.fecha, moneda: v.moneda, subtotal: v.subtotal, itbis: v.itbis, total: v.total, notas: v.notas },
         archivo ? { file: archivo, lectura: lectura?.lectura ?? null, lecturaCostoUsd: lectura?.costo_usd ?? null } : undefined,
       );
-      this.toast.success('Cotización guardada');
+      this.toast.success(this.i18n.t('Cotización guardada'));
       this.createOpen.set(false);
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo guardar la cotización');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar la cotización'));
     } finally {
       this.guardando.set(false);
     }
@@ -267,10 +269,10 @@ export class TecCotizaciones implements OnInit {
       await this.tecnologia.actualizarRenglonesCotizacion(c.id, limpios);
       this.renglones.set(limpios);
       this.editandoRenglones.set(false);
-      this.toast.success('Renglones guardados');
+      this.toast.success(this.i18n.t('Renglones guardados'));
       await this.refrescarDetalle(c.id);
     } catch (e: unknown) {
-      this.toast.error('No se pudieron guardar los renglones', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron guardar los renglones'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoRenglones.set(false);
     }
@@ -300,7 +302,7 @@ export class TecCotizaciones implements OnInit {
     if (!c) return;
     const v = this.editForm.getRawValue();
     if (!v.titulo.trim()) {
-      this.toast.error('El título es obligatorio');
+      this.toast.error(this.i18n.t('El título es obligatorio'));
       return;
     }
     this.guardandoDetalle.set(true);
@@ -311,9 +313,9 @@ export class TecCotizaciones implements OnInit {
       });
       this.editando.set(false);
       await this.refrescarDetalle(c.id);
-      this.toast.success('Cotización actualizada');
+      this.toast.success(this.i18n.t('Cotización actualizada'));
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo guardar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar'));
     } finally {
       this.guardandoDetalle.set(false);
     }
@@ -323,18 +325,18 @@ export class TecCotizaciones implements OnInit {
     try {
       await this.tecnologia.descartarCotizacion(c.id);
       await this.refrescarDetalle(c.id);
-      this.toast.success('Cotización descartada');
+      this.toast.success(this.i18n.t('Cotización descartada'));
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo descartar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo descartar'));
     }
   }
   async restaurar(c: TecCotizacion) {
     try {
       await this.tecnologia.restaurarCotizacion(c.id);
       await this.refrescarDetalle(c.id);
-      this.toast.success('Cotización restaurada');
+      this.toast.success(this.i18n.t('Cotización restaurada'));
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo restaurar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo restaurar'));
     }
   }
 
@@ -347,7 +349,7 @@ export class TecCotizaciones implements OnInit {
       this.compraSeleccionada.set('');
       await this.refrescarDetalle(c.id);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo vincular la compra');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo vincular la compra'));
     }
   }
   async desvincularCompra(solicitudId: string) {
@@ -357,7 +359,7 @@ export class TecCotizaciones implements OnInit {
       await this.tecnologia.desvincularCotizacionCompra(c.id, solicitudId);
       await this.refrescarDetalle(c.id);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo desvincular');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo desvincular'));
     }
   }
   async vincularEquipo() {
@@ -370,7 +372,7 @@ export class TecCotizaciones implements OnInit {
       this.equipoBusqueda.set('');
       await this.refrescarDetalle(c.id);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo vincular el equipo');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo vincular el equipo'));
     }
   }
   async desvincularEquipo(equipoId: string) {
@@ -380,17 +382,17 @@ export class TecCotizaciones implements OnInit {
       await this.tecnologia.desvincularCotizacionEquipo(c.id, equipoId);
       await this.refrescarDetalle(c.id);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo desvincular el equipo');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo desvincular el equipo'));
     }
   }
 
   // ── Helpers de presentación ────────────────────────────────────────────
   nombreCompra(solicitudId: string): string {
-    return this.comprasOpciones().find((c) => c.id === solicitudId)?.label ?? 'Compra tecnológica';
+    return this.comprasOpciones().find((c) => c.id === solicitudId)?.label ?? this.i18n.t('Compra tecnológica');
   }
   nombreEquipo(equipoId: string): string {
     const e = this.equiposCatalogo().find((x) => x.id === equipoId);
-    return e ? (e.codigo ? `${e.codigo} — ${e.nombre}` : e.nombre) : 'Equipo';
+    return e ? (e.codigo ? `${e.codigo} — ${e.nombre}` : e.nombre) : this.i18n.t('Equipo');
   }
   tonoEstado(estado: TecCotizacion['estado']): 'success' | 'info' | 'neutral' {
     if (estado === 'usada') return 'success';

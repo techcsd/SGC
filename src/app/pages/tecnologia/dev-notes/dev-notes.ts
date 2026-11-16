@@ -128,7 +128,7 @@ export class DevNotes implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private host = inject(ElementRef<HTMLElement>);
   protected fullscreen = inject(FullscreenModeService);
-  private i18n = inject(I18nService);
+  protected i18n = inject(I18nService);
 
   tab = signal<Tab>('mias');
   mias = signal<Nota[]>([]);
@@ -219,11 +219,11 @@ export class DevNotes implements OnInit, OnDestroy {
     const t = this.guardadoEn();
     if (t === null) return '';
     const segs = Math.max(0, Math.round((Date.now() - t) / 1000));
-    if (segs < 2) return 'Guardado';
-    if (segs < 60) return `Guardado hace ${segs} s`;
+    if (segs < 2) return this.i18n.t('Guardado');
+    if (segs < 60) return this.i18n.t('Guardado hace {s} s', { s: segs });
     const mins = Math.floor(segs / 60);
-    if (mins < 60) return `Guardado hace ${mins} min`;
-    return `Guardado hace ${Math.floor(mins / 60)} h`;
+    if (mins < 60) return this.i18n.t('Guardado hace {m} min', { m: mins });
+    return this.i18n.t('Guardado hace {h} h', { h: Math.floor(mins / 60) });
   });
 
   // ── Compartir (reutiliza el flujo de notas: mismo directorio + RPCs) ────────
@@ -242,7 +242,7 @@ export class DevNotes implements OnInit, OnDestroy {
       const res = await fetch(url);
       const blob = await res.blob();
       await copiarImagenAlPortapapeles(blob);
-      this.toast.success('Imagen copiada', 'Ya la puedes pegar (Ctrl+V) en Claude Desktop, un correo, etc.');
+      this.toast.success(this.i18n.t('Imagen copiada'), 'Ya la puedes pegar (Ctrl+V) en Claude Desktop, un correo, etc.');
     },
     descargar: (url, nombre) => descargarDesdeUrl(url, nombre),
     confirmarQuitar: (src) => this.confirmarQuitarImagen(src),
@@ -476,9 +476,9 @@ export class DevNotes implements OnInit, OnDestroy {
       else antes.push(n);
     }
     const out: BucketLista[] = [];
-    if (hoy.length) out.push({ label: 'Hoy', notas: hoy });
-    if (semana.length) out.push({ label: 'Esta semana', notas: semana });
-    if (antes.length) out.push({ label: 'Antes', notas: antes });
+    if (hoy.length) out.push({ label: this.i18n.t('Hoy'), notas: hoy });
+    if (semana.length) out.push({ label: this.i18n.t('Esta semana'), notas: semana });
+    if (antes.length) out.push({ label: this.i18n.t('Antes'), notas: antes });
     return out;
   }
 
@@ -502,7 +502,7 @@ export class DevNotes implements OnInit, OnDestroy {
 
   /** CS2 — opciones para el selector «Mover a…» de cada nota: árbol indentado + «Sin grupo». */
   opcionesMoverA = computed<{ id: string; label: string }[]>(() => {
-    const out: { id: string; label: string }[] = [{ id: '', label: 'Sin grupo' }];
+    const out: { id: string; label: string }[] = [{ id: '', label: this.i18n.t('Sin grupo') }];
     const recorrer = (padreId: string | null, prefijo: string) => {
       for (const g of this.gruposPorPadre().get(padreId) ?? []) {
         out.push({ id: g.id, label: `${prefijo}${g.nombre}` });
@@ -523,15 +523,15 @@ export class DevNotes implements OnInit, OnDestroy {
       const aplicar = (l: Nota[]) => l.map((x) => (x.id === nota.id ? { ...x, grupo_id: destino } : x));
       this.mias.update(aplicar);
       if (this.activa()?.id === nota.id) this.activa.update((a) => (a ? { ...a, grupo_id: destino } : a));
-      this.liveRegionMsg.set(`Nota movida a «${nombreDestino}»`);
-      this.toast.show(`Nota movida a «${nombreDestino}»`, {
+      this.liveRegionMsg.set(this.i18n.t('Nota movida a «{nombre}»', { nombre: nombreDestino }));
+      this.toast.show(this.i18n.t('Nota movida a «{nombre}»', { nombre: nombreDestino }), {
         tipo: 'success',
-        action: { label: 'Deshacer', handler: () => void this.deshacerMoverNota(nota.id, anterior) },
+        action: { label: this.i18n.t('Deshacer'), handler: () => void this.deshacerMoverNota(nota.id, anterior) },
       });
     } catch (e) {
       // CV3 — si falla, la tarjeta ya se había "soltado" visualmente (drop); al no
       // tocarse mias()/activa() aquí, la UI refleja el grupo_id real (sin mover).
-      this.toast.errorFrom(e, 'No se pudo mover la nota');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo mover la nota'));
     }
   }
 
@@ -549,7 +549,7 @@ export class DevNotes implements OnInit, OnDestroy {
       this.mias.update(aplicar);
       if (this.activa()?.id === notaId) this.activa.update((a) => (a ? { ...a, grupo_id: grupoAnterior } : a));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo deshacer');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo deshacer'));
     }
   }
 
@@ -604,7 +604,7 @@ export class DevNotes implements OnInit, OnDestroy {
         const g = await this.notasSvc.crearGrupo(nombre, e.parentId, miId);
         this.grupos.update((l) => [...l, g]);
         this.grupoEditando.set(null);
-        this.toast.success('Grupo creado');
+        this.toast.success(this.i18n.t('Grupo creado'));
         this.resaltarGrupo(g.id);
         if (e.notaPendienteId) {
           const nota = [...this.mias(), ...this.compartidas()].find((n) => n.id === e.notaPendienteId);
@@ -718,7 +718,7 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.eliminarGrupo(g.id);
       await this.recargar();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo eliminar el grupo');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo eliminar el grupo'));
     }
   }
 
@@ -734,7 +734,7 @@ export class DevNotes implements OnInit, OnDestroy {
     const destino = destinoId || null;
     if ((g.parent_id ?? null) === destino) return;
     if (!puedeMoverGrupo(g.id, destino, this.grupos())) {
-      this.toast.error('No se pudo mover el grupo', destino === g.id
+      this.toast.error(this.i18n.t('No se pudo mover el grupo'), destino === g.id
         ? 'Un grupo no se puede meter dentro de sí mismo.'
         : 'Mover este grupo dejaría a un subgrupo con más de 4 niveles.');
       return;
@@ -743,7 +743,7 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.moverGrupo(g.id, destino);
       this.grupos.update((l) => l.map((x) => (x.id === g.id ? { ...x, parent_id: destino } : x)));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo mover el grupo');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo mover el grupo'));
     }
   }
 
@@ -773,7 +773,7 @@ export class DevNotes implements OnInit, OnDestroy {
       const aplicar = (l: Nota[]) => l.map((x) => (x.id === n.id ? { ...x, pinned: !n.pinned } : x));
       this.mias.update(aplicar);
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo fijar la nota');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo fijar la nota'));
     }
   }
   pedirEliminarNotaDesdeMenu(n: Nota) {
@@ -788,9 +788,9 @@ export class DevNotes implements OnInit, OnDestroy {
     try {
       await this.notasSvc.eliminarNota(n.id);
       await this.recargar();
-      this.toast.success('Nota eliminada');
+      this.toast.success(this.i18n.t('Nota eliminada'));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo eliminar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo eliminar'));
     }
   }
 
@@ -903,7 +903,7 @@ export class DevNotes implements OnInit, OnDestroy {
 
     // Arrastrando un grupo (sobre otro grupo = subgrupo; sobre "Sin grupo" = raíz).
     if (!puedeMoverGrupo(d.id, destinoId, this.grupos())) {
-      this.toast.error('No se pudo mover el grupo', destinoId === d.id
+      this.toast.error(this.i18n.t('No se pudo mover el grupo'), destinoId === d.id
         ? 'Un grupo no se puede meter dentro de sí mismo.'
         : 'Mover este grupo dejaría a un subgrupo con más de 4 niveles.');
       return;
@@ -912,7 +912,7 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.moverGrupo(d.id, destinoId);
       this.grupos.update((l) => l.map((x) => (x.id === d.id ? { ...x, parent_id: destinoId } : x)));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo mover el grupo');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo mover el grupo'));
     }
   }
 
@@ -1012,7 +1012,7 @@ export class DevNotes implements OnInit, OnDestroy {
       this.compartidas.set(comp);
       this.grupos.set(grupos);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudieron cargar las notas');
+      this.toast.errorFrom(e, this.i18n.t('No se pudieron cargar las notas'));
     } finally {
       this.loading.set(false);
     }
@@ -1114,11 +1114,11 @@ export class DevNotes implements OnInit, OnDestroy {
       this.baseline = this.snapshot();
       this.guardadoEn.set(Date.now());
       this.errorGuardado.set(null);
-      if (res.conflict) this.toast.info('Guardado', 'Otro editó esta nota antes; se conservó tu versión.');
-      else this.toast.success('Guardado');
+      if (res.conflict) this.toast.info(this.i18n.t('Guardado'), 'Otro editó esta nota antes; se conservó tu versión.');
+      else this.toast.success(this.i18n.t('Guardado'));
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo guardar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar'));
     } finally {
       this.guardando.set(false);
     }
@@ -1148,7 +1148,7 @@ export class DevNotes implements OnInit, OnDestroy {
       this.actualizarEnListaLocal(res.nota);
     } catch (e: unknown) {
       this.errorGuardado.set('No se pudo guardar automáticamente. Revisa tu conexión.');
-      this.toast.errorFrom(e, 'Autoguardado falló');
+      this.toast.errorFrom(e, this.i18n.t('Autoguardado falló'));
     }
   }
 
@@ -1175,9 +1175,9 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.eliminarNota(n.id);
       this.activa.set(null);
       await this.recargar();
-      this.toast.success('Nota eliminada');
+      this.toast.success(this.i18n.t('Nota eliminada'));
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo eliminar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo eliminar'));
     }
   }
 
@@ -1227,10 +1227,10 @@ export class DevNotes implements OnInit, OnDestroy {
     try {
       await navigator.clipboard.writeText(cuerpo);
     } catch {
-      this.toast.error('No se pudo copiar', 'El navegador bloqueó el acceso al portapapeles.');
+      this.toast.error(this.i18n.t('No se pudo copiar'), 'El navegador bloqueó el acceso al portapapeles.');
       return;
     }
-    this.toast.success('Copiado', 'Pega el contenido en la conversación de la ronda.');
+    this.toast.success(this.i18n.t('Copiado'), 'Pega el contenido en la conversación de la ronda.');
     if (this.persistida()) {
       try {
         const enviadaEn = await this.notasSvc.marcarEnviadaARonda(n.id);
@@ -1297,9 +1297,9 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.compartir(n.id, usuarioId, this.compartirPermiso());
       this.compartirUsuario.set(null);
       await this.cargarCompartidos(n.id);
-      this.toast.success('Nota compartida');
+      this.toast.success(this.i18n.t('Nota compartida'));
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo compartir');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo compartir'));
     }
   }
 
@@ -1310,7 +1310,7 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.cambiarPermiso(n.id, c.usuario_id, permiso);
       await this.cargarCompartidos(n.id);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo cambiar el permiso');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo cambiar el permiso'));
     }
   }
 
@@ -1321,7 +1321,7 @@ export class DevNotes implements OnInit, OnDestroy {
       await this.notasSvc.quitarCompartido(n.id, c.usuario_id);
       await this.cargarCompartidos(n.id);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo quitar el acceso');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo quitar el acceso'));
     }
   }
 
@@ -1339,10 +1339,10 @@ export class DevNotes implements OnInit, OnDestroy {
         },
         this.lastUpdatedAt,
       );
-      this.toast.success('Movida a Notas');
+      this.toast.success(this.i18n.t('Movida a Notas'));
       this.router.navigate(['/notas']);
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo mover a Notas');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo mover a Notas'));
     } finally {
       this.guardando.set(false);
     }

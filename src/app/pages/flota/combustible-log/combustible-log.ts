@@ -20,6 +20,8 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** BQ5 — campos editables (whitelist alineada con el RPC editar_echada). */
 type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' | 'kilometraje' | 'producto';
@@ -31,7 +33,7 @@ type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' 
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon, StaggerDirective],
+  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +48,7 @@ export class CombustibleLog implements OnInit {
   private toast = inject(ToastService);
   private motion = inject(MotionService);
   private fb = inject(FormBuilder);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
   formatFechaHora = formatFechaHoraDisplay;
@@ -163,18 +166,18 @@ export class CombustibleLog implements OnInit {
   }
   async otorgarPermiso() {
     if (this.permisoSaving()) return;
-    if (!this.permisoUsuario()) { this.toast.warning('Elige el usuario'); return; }
-    if (!this.permisoVence()) { this.toast.warning('Indica el vencimiento del permiso'); return; }
+    if (!this.permisoUsuario()) { this.toast.warning(this.i18n.t('Elige el usuario')); return; }
+    if (!this.permisoVence()) { this.toast.warning(this.i18n.t('Indica el vencimiento del permiso')); return; }
     this.permisoSaving.set(true);
     try {
       await this.combustibleService.otorgarPermisoRetro(
         this.permisoUsuario(), this.permisoDias(), this.permisoVence(), this.permisoMotivo().trim() || null,
       );
-      this.toast.success('Permiso otorgado', 'El usuario ya puede registrar echadas con fecha pasada.');
+      this.toast.success(this.i18n.t('Permiso otorgado'), 'El usuario ya puede registrar echadas con fecha pasada.');
       this.permisoUsuario.set(''); this.permisoMotivo.set('');
       await this.cargarPermisos();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo otorgar el permiso');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo otorgar el permiso'));
     } finally {
       this.permisoSaving.set(false);
     }
@@ -182,10 +185,10 @@ export class CombustibleLog implements OnInit {
   async revocarPermiso(id: string) {
     try {
       await this.combustibleService.revocarPermisoRetro(id);
-      this.toast.success('Permiso revocado');
+      this.toast.success(this.i18n.t('Permiso revocado'));
       await this.cargarPermisos();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo revocar el permiso');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo revocar el permiso'));
     }
   }
 
@@ -240,9 +243,9 @@ export class CombustibleLog implements OnInit {
 
   revisionChip(rev: string | null | undefined): { label: string; badge: string } | null {
     switch (rev) {
-      case 'en_espera': return { label: 'EN ESPERA', badge: 'warning' };
-      case 'aprobada': return { label: 'APROBADA', badge: 'success' };
-      case 'rechazada': return { label: 'RECHAZADA', badge: 'danger' };
+      case 'en_espera': return { label: this.i18n.t('EN ESPERA'), badge: 'warning' };
+      case 'aprobada': return { label: this.i18n.t('APROBADA'), badge: 'success' };
+      case 'rechazada': return { label: this.i18n.t('RECHAZADA'), badge: 'danger' };
       default: return null;
     }
   }
@@ -253,10 +256,10 @@ export class CombustibleLog implements OnInit {
     try {
       await this.combustibleService.aprobarEchada(id);
       this.motion.momento('combustible'); // CL2 — gota que se llena
-      this.toast.success('Echada aprobada', 'Ya cuenta en los tableros y se avisó al chofer.');
+      this.toast.success(this.i18n.t('Echada aprobada'), 'Ya cuenta en los tableros y se avisó al chofer.');
       await Promise.all([this.cargarPorAprobar(), this.cargar()]);
       if (this.detail()?.id === id) this.cerrarDetalle();
-    } catch (e) { this.toast.errorFrom(e, 'No se pudo aprobar'); }
+    } catch (e) { this.toast.errorFrom(e, this.i18n.t('No se pudo aprobar')); }
     finally { this.aprobandoId.set(null); }
   }
 
@@ -272,15 +275,15 @@ export class CombustibleLog implements OnInit {
     const id = this.rechazoId();
     const motivo = this.rechazoMotivo().trim();
     if (!id) return;
-    if (motivo.length < 3) { this.toast.warning('Escribe el motivo del rechazo'); return; }
+    if (motivo.length < 3) { this.toast.warning(this.i18n.t('Escribe el motivo del rechazo')); return; }
     this.rechazoSaving.set(true);
     try {
       await this.combustibleService.rechazarEchada(id, motivo);
-      this.toast.success('Echada rechazada', 'Se avisó al chofer con el motivo.');
+      this.toast.success(this.i18n.t('Echada rechazada'), 'Se avisó al chofer con el motivo.');
       this.rechazoId.set(null);
       await Promise.all([this.cargarPorAprobar(), this.cargar()]);
       if (this.detail()?.id === id) this.cerrarDetalle();
-    } catch (e) { this.toast.errorFrom(e, 'No se pudo rechazar'); }
+    } catch (e) { this.toast.errorFrom(e, this.i18n.t('No se pudo rechazar')); }
     finally { this.rechazoSaving.set(false); }
   }
 
@@ -447,7 +450,7 @@ export class CombustibleLog implements OnInit {
     const soloRecibo = Object.keys(cambios).length === 0 && reciboChanged;
 
     if (Object.keys(cambios).length === 0 && !reciboChanged) {
-      this.toast.warning('Sin cambios', 'No modificaste ningún campo.');
+      this.toast.warning(this.i18n.t('Sin cambios'), 'No modificaste ningún campo.');
       return;
     }
     // El motivo solo es obligatorio si hay cambios que pasan por editar_echada.
@@ -460,17 +463,17 @@ export class CombustibleLog implements OnInit {
         if (this.modoAprobar()) {
           // BY1 — aprobar con corrección: aplica los cambios y da el visto bueno en un paso.
           await this.combustibleService.aprobarEchada(id, v.motivo!.trim(), cambios);
-          this.toast.success('Echada aprobada con corrección', 'Ya cuenta en los tableros y se avisó al chofer.');
+          this.toast.success(this.i18n.t('Echada aprobada con corrección'), 'Ya cuenta en los tableros y se avisó al chofer.');
           void this.cargarPorAprobar();
         } else {
           await this.combustibleService.editarEchada(id, cambios, v.motivo!.trim());
-          this.toast.success('Echada actualizada', 'Se recalcularon los derivados y se guardó la traza.');
+          this.toast.success(this.i18n.t('Echada actualizada'), 'Se recalcularon los derivados y se guardó la traza.');
         }
       }
       // CC6 — persiste el Nº de recibo si cambió.
       if (reciboChanged) {
         await this.combustibleService.setNumeroRecibo(id, reciboDespues || null);
-        if (soloRecibo) this.toast.success('Nº de recibo guardado');
+        if (soloRecibo) this.toast.success(this.i18n.t('Nº de recibo guardado'));
       }
       this.editForm.markAsPristine();
       this.editOpen.set(false);

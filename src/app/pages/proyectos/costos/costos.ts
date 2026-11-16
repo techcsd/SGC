@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProyectosService, CostoMaterialObra } from '../../../../shared/services/proyectos.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 /**
  * AA23 QW4 — Reporte de costo de material real por obra: total + desglose por
@@ -12,7 +13,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-proyecto-costos',
-  imports: [RouterLink, DecimalPipe, Icon],
+  imports: [RouterLink, DecimalPipe, Icon, TranslatePipe],
   templateUrl: './costos.html',
   styleUrl: './costos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

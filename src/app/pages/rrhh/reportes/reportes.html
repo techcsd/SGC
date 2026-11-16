@@ -1,7 +1,7 @@
 <!-- Header -->
 <div class="rrhh-reportes__header">
-  <h1>Reportes de RRHH</h1>
-  <p>Análisis de personal, asistencia y nómina — últimos 30 días</p>
+  <h1>{{ 'Reportes de RRHH' | t }}</h1>
+  <p>{{ 'Análisis de personal, asistencia y nómina — últimos 30 días' | t }}</p>
 </div>
 
 @if (loading()) {
@@ -17,63 +17,63 @@
   <div class="rrhh-reportes__summary">
     <div class="rrhh-reportes__card rrhh-reportes__card--primary">
       <div class="rrhh-reportes__card-value">{{ empleadosActivos() }}</div>
-      <div class="rrhh-reportes__card-label">Empleados activos</div>
+      <div class="rrhh-reportes__card-label">{{ 'Empleados activos' | t }}</div>
     </div>
     <div class="rrhh-reportes__card rrhh-reportes__card--info">
       <div class="rrhh-reportes__card-value">{{ totalEmpleados() }}</div>
-      <div class="rrhh-reportes__card-label">Total registrados</div>
+      <div class="rrhh-reportes__card-label">{{ 'Total registrados' | t }}</div>
     </div>
     <div class="rrhh-reportes__card rrhh-reportes__card--success">
       <div class="rrhh-reportes__card-value">RD$ {{ salarioMasaNominal() | number:'1.0-0' }}</div>
-      <div class="rrhh-reportes__card-label">Masa salarial nominal</div>
+      <div class="rrhh-reportes__card-label">{{ 'Masa salarial nominal' | t }}</div>
     </div>
     <div class="rrhh-reportes__card rrhh-reportes__card--warning">
       <div class="rrhh-reportes__card-value">{{ contratosTemporales() }}</div>
-      <div class="rrhh-reportes__card-label">Contratos no indefinidos</div>
+      <div class="rrhh-reportes__card-label">{{ 'Contratos no indefinidos' | t }}</div>
     </div>
   </div>
 
   <!-- Asistencia 30 días -->
   <section class="rrhh-reportes__section" aria-labelledby="asistencia-title">
-    <h2 id="asistencia-title" class="rrhh-reportes__section-title">Asistencia — Últimos 30 días</h2>
+    <h2 id="asistencia-title" class="rrhh-reportes__section-title">{{ 'Asistencia — Últimos 30 días' | t }}</h2>
     <div class="rrhh-reportes__asist-grid">
       <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--success">
         <div class="rrhh-reportes__asist-count">{{ asistenciaStats().presente }}</div>
-        <div class="rrhh-reportes__asist-label">Presente</div>
+        <div class="rrhh-reportes__asist-label">{{ 'Presente' | t }}</div>
       </div>
       <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--warning">
         <div class="rrhh-reportes__asist-count">{{ asistenciaStats().tardanza }}</div>
-        <div class="rrhh-reportes__asist-label">Tardanza</div>
+        <div class="rrhh-reportes__asist-label">{{ 'Tardanza' | t }}</div>
       </div>
       <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--danger">
         <div class="rrhh-reportes__asist-count">{{ asistenciaStats().ausente }}</div>
-        <div class="rrhh-reportes__asist-label">Ausente</div>
+        <div class="rrhh-reportes__asist-label">{{ 'Ausente' | t }}</div>
       </div>
       <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--info">
         <div class="rrhh-reportes__asist-count">{{ asistenciaStats().permiso }}</div>
-        <div class="rrhh-reportes__asist-label">Permiso</div>
+        <div class="rrhh-reportes__asist-label">{{ 'Permiso' | t }}</div>
       </div>
       <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--neutral">
         <div class="rrhh-reportes__asist-count">{{ asistenciaStats().feriado }}</div>
-        <div class="rrhh-reportes__asist-label">Feriado</div>
+        <div class="rrhh-reportes__asist-label">{{ 'Feriado' | t }}</div>
       </div>
     </div>
   </section>
 
   <!-- Departamentos -->
   <section class="rrhh-reportes__section" aria-labelledby="dept-title">
-    <h2 id="dept-title" class="rrhh-reportes__section-title">Empleados por Departamento</h2>
+    <h2 id="dept-title" class="rrhh-reportes__section-title">{{ 'Empleados por Departamento' | t }}</h2>
     @if (deptStats().length === 0) {
-      <p class="rrhh-reportes__empty">Sin datos de departamentos.</p>
+      <p class="rrhh-reportes__empty">{{ 'Sin datos de departamentos.' | t }}</p>
     } @else {
       <div class="rrhh-reportes__table-wrap">
-        <table class="rrhh-reportes__table" aria-label="Empleados por departamento">
+        <table class="rrhh-reportes__table" aria-label="{{ 'Empleados por departamento' | t }}">
           <thead>
             <tr>
-              <th scope="col">Departamento</th>
-              <th scope="col">Total</th>
-              <th scope="col">Activos</th>
-              <th scope="col">Salario promedio</th>
+              <th scope="col">{{ 'Departamento' | t }}</th>
+              <th scope="col">{{ 'Total' | t }}</th>
+              <th scope="col">{{ 'Activos' | t }}</th>
+              <th scope="col">{{ 'Salario promedio' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -93,7 +93,7 @@
 
   <!-- Tipo de contrato -->
   <section class="rrhh-reportes__section" aria-labelledby="contrato-title">
-    <h2 id="contrato-title" class="rrhh-reportes__section-title">Distribución por Contrato</h2>
+    <h2 id="contrato-title" class="rrhh-reportes__section-title">{{ 'Distribución por Contrato' | t }}</h2>
     <div class="rrhh-reportes__contrato-grid">
       @for (c of contratoStats(); track c.label) {
         <div class="rrhh-reportes__contrato-card">

@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Configuración legal</h1>
-    <span class="page-subtitle">Datos del empleador, testigos frecuentes y plantilla por defecto.</span>
+    <h1 class="page-title">{{ 'Configuración legal' | t }}</h1>
+    <span class="page-subtitle">{{ 'Datos del empleador, testigos frecuentes y plantilla por defecto.' | t }}</span>
   </div>
 </div>
 
@@ -10,46 +10,46 @@
 } @else {
   <!-- Datos del empleador -->
   <section class="sgc-card cfg-sec">
-    <h3 class="cfg-sec__title">Datos del empleador</h3>
+    <h3 class="cfg-sec__title">{{ 'Datos del empleador' | t }}</h3>
     <div class="cfg-grid">
-      <div class="sgc-field"><label>Razón social</label>
+      <div class="sgc-field"><label>{{ 'Razón social' | t }}</label>
         <input class="sgc-input" [value]="razon_social()" (input)="razon_social.set($any($event.target).value)" /></div>
       <div class="sgc-field"><label>RNC</label>
         <input class="sgc-input" [value]="rnc()" (input)="rnc.set($any($event.target).value)" /></div>
-      <div class="sgc-field"><label>Domicilio social</label>
+      <div class="sgc-field"><label>{{ 'Domicilio social' | t }}</label>
         <input class="sgc-input" [value]="direccion()" (input)="direccion.set($any($event.target).value)" /></div>
-      <div class="sgc-field"><label>Ciudad</label>
+      <div class="sgc-field"><label>{{ 'Ciudad' | t }}</label>
         <input class="sgc-input" [value]="ciudad()" (input)="ciudad.set($any($event.target).value)" /></div>
-      <div class="sgc-field"><label>Representante legal</label>
+      <div class="sgc-field"><label>{{ 'Representante legal' | t }}</label>
         <input class="sgc-input" [value]="representante()" (input)="representante.set($any($event.target).value)" /></div>
-      <div class="sgc-field"><label>Gerente general</label>
+      <div class="sgc-field"><label>{{ 'Gerente general' | t }}</label>
         <input class="sgc-input" [value]="gerente_general()" (input)="gerente_general.set($any($event.target).value)" /></div>
     </div>
   </section>
 
   <!-- Testigos frecuentes -->
   <section class="sgc-card cfg-sec">
-    <h3 class="cfg-sec__title">Testigos frecuentes</h3>
-    <p class="text-muted">Se ofrecen al registrar la firma de los testigos.</p>
+    <h3 class="cfg-sec__title">{{ 'Testigos frecuentes' | t }}</h3>
+    <p class="text-muted">{{ 'Se ofrecen al registrar la firma de los testigos.' | t }}</p>
     @for (t of testigos(); track $index) {
       <div class="cfg-testigo">
-        <input class="sgc-input" placeholder="Nombre" [value]="t.nombre" (input)="setTestigo($index, 'nombre', $any($event.target).value)" />
-        <input class="sgc-input" placeholder="Cédula" [value]="t.cedula" (input)="setTestigo($index, 'cedula', $any($event.target).value)" />
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarTestigo($index)" aria-label="Quitar testigo">
+        <input class="sgc-input" placeholder="{{ 'Nombre' | t }}" [value]="t.nombre" (input)="setTestigo($index, 'nombre', $any($event.target).value)" />
+        <input class="sgc-input" placeholder="{{ 'Cédula' | t }}" [value]="t.cedula" (input)="setTestigo($index, 'cedula', $any($event.target).value)" />
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarTestigo($index)" aria-label="{{ 'Quitar testigo' | t }}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
     }
-    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarTestigo()">+ Agregar testigo</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarTestigo()">{{ '+ Agregar testigo' | t }}</button>
   </section>
 
   <!-- Plantilla por defecto por tipo -->
   <section class="sgc-card cfg-sec">
-    <h3 class="cfg-sec__title">Plantilla por defecto</h3>
-    <p class="text-muted">La predeterminada se marca desde <a routerLink="/documentos/plantillas">Documentos › Plantillas</a>.</p>
+    <h3 class="cfg-sec__title">{{ 'Plantilla por defecto' | t }}</h3>
+    <p class="text-muted">{{ 'La predeterminada se marca desde' | t }} <a routerLink="/documentos/plantillas">{{ 'Documentos › Plantillas' | t }}</a>.</p>
     <ul class="cfg-def">
-      <li><span>Contrato</span> <strong>{{ defaultDe('contrato')?.nombre ?? '— sin predeterminada —' }}</strong></li>
-      <li><span>Carta de entrega</span> <strong>{{ defaultDe('carta_entrega')?.nombre ?? '— sin predeterminada —' }}</strong></li>
+      <li><span>{{ 'Contrato' | t }}</span> <strong>{{ defaultDe('contrato')?.nombre ?? '— sin predeterminada —' }}</strong></li>
+      <li><span>{{ 'Carta de entrega' | t }}</span> <strong>{{ defaultDe('carta_entrega')?.nombre ?? '— sin predeterminada —' }}</strong></li>
     </ul>
   </section>
 

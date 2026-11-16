@@ -8,6 +8,8 @@ import { ReporteSemanalFila } from '../../../../shared/models/vehiculo-asignacio
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** Grupo de filas de una semana ISO (para historial + semana actual). */
 interface SemanaGrupo {
@@ -35,7 +37,7 @@ const RESULTADO_LABEL: Record<string, string> = {
 /** R3 — Dashboard de cumplimiento del reporte semanal de vehículos. */
 @Component({
   selector: 'app-reporte-semanal',
-  imports: [DatePipe, DecimalPipe, Skeleton, RouterLink, Icon],
+  imports: [DatePipe, DecimalPipe, Skeleton, RouterLink, Icon, TranslatePipe],
   templateUrl: './reporte-semanal.html',
   styleUrl: './reporte-semanal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +46,7 @@ export class ReporteSemanal implements OnInit {
   private reporteService = inject(ReporteSemanalService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
+  protected i18n = inject(I18nService);
 
   /**
    * T7 — vista dual: los roles elevados ven el dashboard global de cumplimiento;
@@ -140,7 +143,7 @@ export class ReporteSemanal implements OnInit {
     try {
       const nuevos = await this.reporteService.generarAvisosFaltantes(faltantes);
       if (nuevos > 0) {
-        this.toast.info('Inspección vehículo', `Se generaron ${nuevos} avisos de reporte pendiente.`);
+        this.toast.info(this.i18n.t('Inspección vehículo'), `Se generaron ${nuevos} avisos de reporte pendiente.`);
       }
     } catch {
       /* nunca bloquea la página si falla la generación de avisos */

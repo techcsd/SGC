@@ -1,22 +1,22 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Contratos</h1>
-    <span class="page-count">{{ filtered().length }} contrato{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Contratos' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ 'contrato' | t }}{{ filtered().length !== 1 ? 's' : '' }}</span>
     @if (porVencerCount() > 0) {
-      <span class="sgc-badge sgc-badge--warning">{{ porVencerCount() }} por vencer (30 días)</span>
+      <span class="sgc-badge sgc-badge--warning">{{ porVencerCount() }} {{ 'por vencer (30 días)' | t }}</span>
     }
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filtered().length === 0" title="Exportar los contratos filtrados a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar los contratos filtrados a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo contrato
+      {{ 'Nuevo contrato' | t }}
     </button>
   </div>
 </div>
@@ -26,25 +26,25 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por título, código o contraparte…"
+      placeholder="{{ 'Buscar por título, código o contraparte…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar contratos"
+      aria-label="{{ 'Buscar contratos' | t }}"
     />
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="Filtrar por estado">
-      <option value="all">Todos los estados</option>
+    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
+      <option value="all">{{ 'Todos los estados' | t }}</option>
       @for (e of ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
 
   @if (searchQuery() || selectedEstado() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -61,34 +61,34 @@
     <div class="table-empty">
       <p>
         @if (searchQuery() || selectedEstado() !== 'all') {
-          No se encontraron contratos con los filtros aplicados.
+          {{ 'No se encontraron contratos con los filtros aplicados.' | t }}
         } @else {
-          No hay contratos registrados. Crea el primero.
+          {{ 'No hay contratos registrados. Crea el primero.' | t }}
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de contratos">
+      <table class="data-table" aria-label="{{ 'Lista de contratos' | t }}">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Título</th>
-            <th>Tipo</th>
-            <th>Contraparte</th>
-            <th>Proyecto</th>
-            <th>Vencimiento</th>
-            <th>Estado</th>
-            <th class="text-center">Ver</th>
+            <th>{{ 'Código' | t }}</th>
+            <th>{{ 'Título' | t }}</th>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Contraparte' | t }}</th>
+            <th>{{ 'Proyecto' | t }}</th>
+            <th>{{ 'Vencimiento' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Ver' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (c of filtered(); track c.id) {
             <tr class="row--link" (click)="openDetail(c)" role="button" tabindex="0"
-                (keydown.enter)="openDetail(c)" aria-label="Ver detalle del contrato">
+                (keydown.enter)="openDetail(c)" aria-label="{{ 'Ver detalle del contrato' | t }}">
               <td><code class="code-tag">{{ c.codigo }}</code></td>
               <td><span class="con-title">{{ c.titulo }}</span></td>
-              <td>{{ tipoLabel(c.tipo) }}</td>
+              <td>{{ tipoLabel(c.tipo) | t }}</td>
               <td>{{ c.contraparte_nombre }}</td>
               <td>{{ c.proyecto?.nombre ?? '—' }}</td>
               <td>
@@ -98,15 +98,15 @@
                   <span class="text-muted">—</span>
                 }
               </td>
-              <td><span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) }}</span></td>
+              <td><span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) | t }}</span></td>
               <td>
                 <div class="row-actions">
-                  <button type="button" class="action-btn action-btn--view" (click)="$event.stopPropagation(); openDetail(c)" [attr.aria-label]="'Ver ' + c.titulo" title="Ver detalle">
+                  <button type="button" class="action-btn action-btn--view" (click)="$event.stopPropagation(); openDetail(c)" [attr.aria-label]="i18n.t('Ver') + ' ' + c.titulo" title="{{ 'Ver detalle' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                   </button>
-                  <button type="button" class="action-btn action-btn--edit" (click)="$event.stopPropagation(); openEdit(c)" [attr.aria-label]="'Editar ' + c.titulo" title="Editar">
+                  <button type="button" class="action-btn action-btn--edit" (click)="$event.stopPropagation(); openEdit(c)" [attr.aria-label]="i18n.t('Editar') + ' ' + c.titulo" title="{{ 'Editar' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -120,7 +120,7 @@
       </table>
     </div>
     <div class="table-footer">
-      {{ filtered().length }} contrato{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+      {{ filtered().length }} {{ 'contrato' | t }}{{ filtered().length !== 1 ? 's' : '' }} {{ 'encontrado' | t }}{{ filtered().length !== 1 ? 's' : '' }}
     </div>
   }
 </div>
@@ -129,42 +129,42 @@
 <app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
     <div class="sgc-field">
-      <label for="titulo">Título <span class="required">*</span></label>
-      <input id="titulo" type="text" formControlName="titulo" placeholder="Ej: Subcontrato de acero - Bloque A" [class.invalid]="f.titulo.invalid && f.titulo.touched" />
+      <label for="titulo">{{ 'Título' | t }} <span class="required">*</span></label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="{{ 'Ej: Subcontrato de acero - Bloque A' | t }}" [class.invalid]="f.titulo.invalid && f.titulo.touched" />
       @if (f.titulo.invalid && f.titulo.touched) {
-        <span class="field-error">El título es obligatorio.</span>
+        <span class="field-error">{{ 'El título es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="tipo">Tipo <span class="required">*</span></label>
+        <label for="tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
         <select id="tipo" formControlName="tipo">
           @for (t of TIPOS; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+            <option [value]="t.value">{{ t.label | t }}</option>
           }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="contraparte_nombre">Contraparte <span class="required">*</span></label>
-        <input id="contraparte_nombre" type="text" formControlName="contraparte_nombre" placeholder="Nombre de la otra parte" [class.invalid]="f.contraparte_nombre.invalid && f.contraparte_nombre.touched" />
+        <label for="contraparte_nombre">{{ 'Contraparte' | t }} <span class="required">*</span></label>
+        <input id="contraparte_nombre" type="text" formControlName="contraparte_nombre" placeholder="{{ 'Nombre de la otra parte' | t }}" [class.invalid]="f.contraparte_nombre.invalid && f.contraparte_nombre.touched" />
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="proveedor_id">Proveedor vinculado</label>
+        <label for="proveedor_id">{{ 'Proveedor vinculado' | t }}</label>
         <select id="proveedor_id" formControlName="proveedor_id">
-          <option [ngValue]="null">Sin vincular</option>
+          <option [ngValue]="null">{{ 'Sin vincular' | t }}</option>
           @for (p of proveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="proyecto_id">Proyecto relacionado</label>
+        <label for="proyecto_id">{{ 'Proyecto relacionado' | t }}</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [ngValue]="null">Sin proyecto</option>
+          <option [ngValue]="null">{{ 'Sin proyecto' | t }}</option>
           @for (p of proyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
@@ -174,30 +174,30 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha_inicio">Fecha de inicio</label>
+        <label for="fecha_inicio">{{ 'Fecha de inicio' | t }}</label>
         <input id="fecha_inicio" type="date" formControlName="fecha_inicio" />
       </div>
       <div class="sgc-field">
-        <label for="fecha_vencimiento">Fecha de vencimiento</label>
+        <label for="fecha_vencimiento">{{ 'Fecha de vencimiento' | t }}</label>
         <input id="fecha_vencimiento" type="date" formControlName="fecha_vencimiento" />
       </div>
     </div>
 
     <div class="sgc-field">
-      <label for="monto">Monto (RD$)</label>
+      <label for="monto">{{ 'Monto (RD$)' | t }}</label>
       <input id="monto" type="number" step="0.01" min="0" formControlName="monto" placeholder="0.00" />
     </div>
 
     <!-- CO13 — ¿de dónde sale el documento? (opcional: usar uno ya generado en Documentos) -->
     <div class="sgc-field">
-      <label for="documento_generado_id">Documento ligado (opcional)</label>
+      <label for="documento_generado_id">{{ 'Documento ligado (opcional)' | t }}</label>
       <select id="documento_generado_id" formControlName="documento_generado_id">
-        <option [ngValue]="null">Sin documento — lo subo firmado después</option>
+        <option [ngValue]="null">{{ 'Sin documento — lo subo firmado después' | t }}</option>
         @for (d of documentosDisponibles(); track d.id) {
           <option [value]="d.id">{{ d.nombre }}</option>
         }
       </select>
-      <p class="text-muted">¿Necesitas generarlo ahora? Ve a <a routerLink="/documentos/generar">Generar Documento</a> — al terminar podrás "Crear contrato con este documento".</p>
+      <p class="text-muted">{{ '¿Necesitas generarlo ahora? Ve a' | t }} <a routerLink="/documentos/generar">{{ 'Generar Documento' | t }}</a> {{ '— al terminar podrás "Crear contrato con este documento".' | t }}</p>
     </div>
 
     @if (saveError()) {
@@ -205,13 +205,13 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear contrato' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear contrato') | t }}
         }
       </button>
     </div>
@@ -219,78 +219,78 @@
 </app-form-drawer>
 
 <!-- ── Detail Drawer ── -->
-<app-form-drawer [title]="detailContrato()?.codigo ?? 'Contrato'" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer [title]="detailContrato()?.codigo ?? i18n.t('Contrato')" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailContrato(); as c) {
     <div class="detail-body">
       <div class="detail-grid">
         <div class="detail-field detail-field--full">
-          <span class="detail-field__label">Título</span>
+          <span class="detail-field__label">{{ 'Título' | t }}</span>
           <span>{{ c.titulo }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Tipo</span>
-          <span>{{ tipoLabel(c.tipo) }}</span>
+          <span class="detail-field__label">{{ 'Tipo' | t }}</span>
+          <span>{{ tipoLabel(c.tipo) | t }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Contraparte</span>
+          <span class="detail-field__label">{{ 'Contraparte' | t }}</span>
           <span>{{ c.contraparte_nombre }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Proveedor vinculado</span>
+          <span class="detail-field__label">{{ 'Proveedor vinculado' | t }}</span>
           <span>{{ c.proveedor?.nombre ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Proyecto</span>
+          <span class="detail-field__label">{{ 'Proyecto' | t }}</span>
           <span>{{ c.proyecto?.nombre ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Monto</span>
+          <span class="detail-field__label">{{ 'Monto' | t }}</span>
           <span>{{ c.monto ? ('RD$ ' + (c.monto | number:'1.2-2')) : '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Fecha de inicio</span>
+          <span class="detail-field__label">{{ 'Fecha de inicio' | t }}</span>
           <span>{{ formatFecha(c.fecha_inicio) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Fecha de vencimiento</span>
+          <span class="detail-field__label">{{ 'Fecha de vencimiento' | t }}</span>
           <span [class.text-danger]="isPorVencer(c)">{{ formatFecha(c.fecha_vencimiento) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Fecha de firma</span>
+          <span class="detail-field__label">{{ 'Fecha de firma' | t }}</span>
           <span>{{ formatFecha(c.fecha_firma) }}</span>
         </div>
       </div>
 
       <!-- CO13 — documento ligado -->
       <div class="detail-section">
-        <span class="detail-section__title">Documento</span>
+        <span class="detail-section__title">{{ 'Documento' | t }}</span>
         @if (detalleLoading()) {
-          <p class="text-muted">Cargando…</p>
+          <p class="text-muted">{{ 'Cargando…' | t }}</p>
         } @else if (detalle()?.documento; as doc) {
           <div class="con-documento">
             <span class="con-documento__nombre">{{ doc.nombre }}</span>
             <span class="text-muted">{{ doc.created_at | date:'dd/MM/yyyy' }}</span>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/documentos/ver', doc.id]">Ver PDF</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/documentos/generar">Regenerar con cambios</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/documentos/ver', doc.id]">{{ 'Ver PDF' | t }}</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/documentos/generar">{{ 'Regenerar con cambios' | t }}</a>
           </div>
         } @else {
-          <p class="text-muted">Sin documento generado ligado.</p>
+          <p class="text-muted">{{ 'Sin documento generado ligado.' | t }}</p>
         }
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm file-upload-btn">
-          @if (subiendoFirmado()) { <span class="spinner" aria-hidden="true"></span> Subiendo… } @else { Subir firmado }
+          @if (subiendoFirmado()) { <span class="spinner" aria-hidden="true"></span> {{ 'Subiendo…' | t }} } @else { {{ 'Subir firmado' | t }} }
           <input type="file" class="sr-only" accept="application/pdf,image/*" (change)="onFirmadoSelected($event)" [disabled]="subiendoFirmado()" />
         </label>
       </div>
 
       <div class="detail-estado">
-        <span class="detail-estado__label">Cambiar estado:</span>
+        <span class="detail-estado__label">{{ 'Cambiar estado:' | t }}</span>
         @for (estado of nextEstados(c.estado); track estado) {
           <button type="button" class="sgc-btn sgc-btn--ghost detail-estado__btn" (click)="cambiarEstado(estado)">
-            {{ estadoLabel(estado) }}
+            {{ estadoLabel(estado) | t }}
           </button>
         }
         @if (nextEstados(c.estado).length === 0) {
-          <span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) }}</span>
+          <span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) | t }}</span>
         }
       </div>
     </div>

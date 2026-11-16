@@ -9,15 +9,15 @@
       <input
         type="search"
         class="perm-editor__search-input"
-        placeholder="Buscar módulo o permiso..."
+        placeholder="{{ 'Buscar módulo o permiso...' | t }}"
         [value]="search()"
         (input)="search.set($any($event.target).value)"
-        aria-label="Buscar módulo o permiso por nombre"
+        aria-label="{{ 'Buscar módulo o permiso por nombre' | t }}"
       />
     </div>
     <span class="perm-editor__legend"
-      title="Sin acceso = no ve ni opera · Ver = solo lectura · Operar = crear, editar y eliminar">
-      Sin acceso · Ver · Operar
+      title="{{ 'Sin acceso = no ve ni opera · Ver = solo lectura · Operar = crear, editar y eliminar' | t }}">
+      {{ 'Sin acceso · Ver · Operar' | t }}
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
@@ -35,7 +35,7 @@
             class="perm-editor__group-toggle"
             (click)="toggleGrupo(g.key)"
             [attr.aria-expanded]="isExpanded(g.key)"
-            [attr.aria-label]="(isExpanded(g.key) ? 'Contraer ' : 'Expandir ') + g.label"
+            [attr.aria-label]="(isExpanded(g.key) ? i18n.t('Contraer') : i18n.t('Expandir')) + ' ' + g.label"
           >
             <span class="perm-editor__group-caret" aria-hidden="true">@if (isExpanded(g.key)) { <app-icon name="chevron-down" [size]="16" /> } @else { <app-icon name="chevron-right" [size]="16" /> }</span>
           </button>
@@ -46,29 +46,29 @@
         <span class="perm-editor__group-info">
           <span class="perm-editor__group-title">
             {{ g.label }}
-            @if (g.sensible) { <span class="perm-editor__sensible">acceso amplio</span> }
+            @if (g.sensible) { <span class="perm-editor__sensible">{{ 'acceso amplio' | t }}</span> }
           </span>
           <span class="perm-editor__group-desc">{{ g.desc }}</span>
           @if (g.tieneSubs) {
             <span class="perm-editor__group-count">
               @if (moduloCompleto(g.key)) {
-                Módulo completo — {{ total(g.key) }} de {{ total(g.key) }} submódulos
+                {{ i18n.t('Módulo completo — {activos} de {total} submódulos', { activos: total(g.key), total: total(g.key) }) }}
               } @else {
-                {{ activos(g.key) }} de {{ total(g.key) }} submódulos
+                {{ i18n.t('{activos} de {total} submódulos', { activos: activos(g.key), total: total(g.key) }) }}
               }
             </span>
           }
         </span>
 
         <!-- Tri-estado del módulo -->
-        <div class="perm-editor__tri" role="radiogroup" [attr.aria-label]="'Acceso del módulo ' + g.label">
+        <div class="perm-editor__tri" role="radiogroup" [attr.aria-label]="i18n.t('Acceso del módulo') + ' ' + g.label">
           <button
             type="button" role="radio"
             class="perm-editor__tri-btn"
             [class.perm-editor__tri-btn--active]="triEstado(g.key) === 'nada'"
             [attr.aria-checked]="triEstado(g.key) === 'nada'"
             (click)="setTri(g.key, 'nada')"
-          >Nada</button>
+          >{{ 'Nada' | t }}</button>
           @if (g.tieneSubs) {
             <button
               type="button" role="radio"
@@ -76,8 +76,8 @@
               [class.perm-editor__tri-btn--active]="triEstado(g.key) === 'parcial'"
               [attr.aria-checked]="triEstado(g.key) === 'parcial'"
               (click)="setTri(g.key, 'parcial')"
-              title="Desglosa el módulo en permisos por submódulo (todos en Operar) para ajustarlos uno a uno."
-            >Parcial</button>
+              title="{{ 'Desglosa el módulo en permisos por submódulo (todos en Operar) para ajustarlos uno a uno.' | t }}"
+            >{{ 'Parcial' | t }}</button>
           }
           <button
             type="button" role="radio"
@@ -85,8 +85,8 @@
             [class.perm-editor__tri-btn--active]="triEstado(g.key) === 'todo'"
             [attr.aria-checked]="triEstado(g.key) === 'todo'"
             (click)="setTri(g.key, 'todo')"
-            title="Acceso completo al módulo (Operar en todo)."
-          >Todo</button>
+            title="{{ 'Acceso completo al módulo (Operar en todo).' | t }}"
+          >{{ 'Todo' | t }}</button>
         </div>
       </div>
 
@@ -99,7 +99,7 @@
                   <span class="perm-editor__row-name" [title]="sub.label">{{ sub.label }}</span>
                   @if (!sub.enforced) {
                     <span class="perm-editor__soon"
-                      title="Se guarda, pero el gateo por submódulo aún no está activo end-to-end.">Próximamente</span>
+                      title="{{ 'Se guarda, pero el gateo por submódulo aún no está activo end-to-end.' | t }}">{{ 'Próximamente' | t }}</span>
                   }
                 </span>
                 @if (sub.descripcion) {
@@ -110,7 +110,7 @@
               <div
                 class="perm-editor__seg"
                 role="radiogroup"
-                [attr.aria-label]="'Nivel de acceso para ' + sub.label"
+                [attr.aria-label]="i18n.t('Nivel de acceso para') + ' ' + sub.label"
               >
                 <button
                   type="button" role="radio"
@@ -118,34 +118,33 @@
                   [class.perm-editor__seg-btn--active]="heredado(sub.key) ? false : nivelDe(sub.key) === ''"
                   [attr.aria-checked]="heredado(sub.key) ? false : nivelDe(sub.key) === ''"
                   (click)="setNivel(g.key, sub.key, '')"
-                >Sin acceso</button>
+                >{{ 'Sin acceso' | t }}</button>
                 <button
                   type="button" role="radio"
                   class="perm-editor__seg-btn"
                   [class.perm-editor__seg-btn--active]="heredado(sub.key) ? false : nivelDe(sub.key) === 'ver'"
                   [attr.aria-checked]="heredado(sub.key) ? false : nivelDe(sub.key) === 'ver'"
                   (click)="setNivel(g.key, sub.key, 'ver')"
-                >Ver</button>
+                >{{ 'Ver' | t }}</button>
                 <button
                   type="button" role="radio"
                   class="perm-editor__seg-btn perm-editor__seg-btn--operar"
                   [class.perm-editor__seg-btn--active]="heredado(sub.key) || nivelDe(sub.key) === 'operar'"
                   [attr.aria-checked]="heredado(sub.key) || nivelDe(sub.key) === 'operar'"
                   (click)="setNivel(g.key, sub.key, 'operar')"
-                >Operar</button>
+                >{{ 'Operar' | t }}</button>
               </div>
             </div>
           }
           @if (moduloCompleto(g.key)) {
             <p class="perm-editor__inherited-note">
-              El módulo está completo: todos sus submódulos quedan en <strong>Operar</strong>.
-              Usa <strong>Parcial</strong> o cambia un submódulo para ajustarlos por separado.
+              {{ 'El módulo está completo: todos sus submódulos quedan en' | t }} <strong>{{ 'Operar' | t }}</strong>{{ '. Usa' | t }} <strong>{{ 'Parcial' | t }}</strong> {{ 'o cambia un submódulo para ajustarlos por separado.' | t }}
             </p>
           }
         </div>
       }
     </div>
   } @empty {
-    <p class="perm-editor__empty">No hay módulos que coincidan con la búsqueda.</p>
+    <p class="perm-editor__empty">{{ 'No hay módulos que coincidan con la búsqueda.' | t }}</p>
   }
 </div>

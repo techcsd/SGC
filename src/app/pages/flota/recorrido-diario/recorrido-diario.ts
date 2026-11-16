@@ -14,6 +14,8 @@ import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { MapLegend } from '../../../../shared/ui/map-legend/map-legend';
 import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * AT1 — Recorrido diario (tipo Google Maps Timeline): elegir chofer + fecha y ver
@@ -25,7 +27,7 @@ import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../
  */
 @Component({
   selector: 'app-recorrido-diario',
-  imports: [FlotaSubnav, FormsModule, DecimalPipe, RouterLink, Skeleton, MapLegend],
+  imports: [FlotaSubnav, FormsModule, DecimalPipe, RouterLink, Skeleton, MapLegend, TranslatePipe],
   templateUrl: './recorrido-diario.html',
   styleUrl: './recorrido-diario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +36,7 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
   private svc = inject(SeguimientoService);
   private loader = inject(GoogleMapsLoader);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
   readonly hora = formatHoraTimestamp;
   readonly fechaMedia = formatFechaMedia;
 

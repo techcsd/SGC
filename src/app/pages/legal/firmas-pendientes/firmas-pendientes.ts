@@ -6,10 +6,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** CF1 — Bandeja de documentos de personal con firmas (empleador/testigos) pendientes. */
 @Component({
   selector: 'app-firmas-pendientes',
-  imports: [RouterLink, Skeleton, StaggerDirective],
+  imports: [RouterLink, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './firmas-pendientes.html',
   styleUrl: './firmas-pendientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

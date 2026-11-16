@@ -10,6 +10,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { formatFechaDisplay, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 const CONFIANZA_LABEL: Record<string, string> = {
   sin_datos: 'Sin datos suficientes',
@@ -27,7 +28,7 @@ const CONFIANZA_LABEL: Record<string, string> = {
  */
 @Component({
   selector: 'app-rendimiento-vehiculos',
-  imports: [FormsModule, DecimalPipe, FlotaSubnav, Skeleton, Icon],
+  imports: [FormsModule, DecimalPipe, FlotaSubnav, Skeleton, Icon, TranslatePipe],
   templateUrl: './rendimiento-vehiculos.html',
   styleUrl: './rendimiento-vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

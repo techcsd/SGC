@@ -55,12 +55,14 @@ import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { formatFechaDisplay, formatFechaHumana, daysUntil, formatearDuracion } from '../../../../../shared/utils/fecha.util';
 import { duracionRealMin } from '../../../../../shared/models/ruta.model';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../../shared/i18n/i18n.service';
 
 const MAX_HIST = 15;
 
 @Component({
   selector: 'app-conductor-detalle',
-  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle, VerFotoDirective],
+  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle, VerFotoDirective, TranslatePipe],
   templateUrl: './conductor-detalle.html',
   styleUrl: './conductor-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,6 +74,7 @@ export class ConductorDetalle implements OnInit {
   private checklistsService = inject(ChecklistsVehiculoService);
   private combustibleService = inject(CombustibleService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private flotaConfig = inject(FlotaConfigService);
   private rutasService = inject(RutasService);
   private salidasService = inject(SalidasService);
@@ -275,7 +278,7 @@ export class ConductorDetalle implements OnInit {
       conductor = await this.conductoresService.getById(id);
     } catch (e: unknown) {
       this.toast.error(
-        'Error',
+        this.i18n.t('Error'),
         e instanceof Error ? e.message : 'No se pudo cargar el perfil del conductor.',
       );
     }
@@ -358,7 +361,7 @@ export class ConductorDetalle implements OnInit {
       await this.conductoresService.setFoto(c.id, path);
       this.conductor.set({ ...c, foto_path: path });
       this.fotoPropiaUrl.set(await this.conductoresService.getFotoUrl(path));
-      this.toast.success('Foto actualizada');
+      this.toast.success(this.i18n.t('Foto actualizada'));
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo subir la foto');
     } finally {
@@ -389,7 +392,7 @@ export class ConductorDetalle implements OnInit {
     try {
       await this.conductoresService.setParticipaIncentivo(c.id, participa);
       this.conductor.set({ ...c, participa_incentivo: participa });
-      this.toast.success(participa ? 'Chofer incluido en el incentivo' : 'Chofer excluido del incentivo');
+      this.toast.success(this.i18n.t(participa ? 'Chofer incluido en el incentivo' : 'Chofer excluido del incentivo'));
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo actualizar la participación');
     } finally {
@@ -435,9 +438,9 @@ export class ConductorDetalle implements OnInit {
       );
       this.multaDrawer.set(false);
       this.multas.set(await this.incidencias.multasPorConductor(this.conductorId));
-      this.toast.success('Multa registrada');
+      this.toast.success(this.i18n.t('Multa registrada'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar la multa.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo registrar la multa.');
     } finally {
       this.multaGuardando.set(false);
     }
@@ -447,7 +450,7 @@ export class ConductorDetalle implements OnInit {
       await this.incidencias.marcarMultaPagada(m.id, m.estado !== 'pagada');
       this.multas.set(await this.incidencias.multasPorConductor(this.conductorId));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo actualizar la multa.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo actualizar la multa.');
     }
   }
 }

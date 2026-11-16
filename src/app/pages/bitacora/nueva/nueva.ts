@@ -56,6 +56,7 @@ import { PrivacidadService } from '../../../../shared/services/privacidad.servic
 import { PropuestaBitacoraIA } from '../../../../shared/services/bitacora.service';
 import { GrabadoraAudio } from '../../../../shared/components/grabadora-audio/grabadora-audio';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import {
   clasificarConfianza,
   contarDudosos,
@@ -174,6 +175,7 @@ interface Draft {
 })
 export class Nueva implements OnInit {
   private bitacoraService = inject(BitacoraService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private cronogramaService = inject(CronogramaService);
   private estructurasService = inject(ProyectoEstructurasService);

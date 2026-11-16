@@ -1,25 +1,24 @@
 <!-- ── Header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Avisos de flota</h1>
-    <span class="page-count">{{ pendientes() }} pendiente{{ pendientes() !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Avisos de flota' | t }}</h1>
+    <span class="page-count">{{ pendientes() }} {{ (pendientes() !== 1 ? 'pendientes' : 'pendiente') | t }}</span>
   </div>
 </div>
 
 <p class="av-lead">
-  Bandeja de avisos operativos: bloqueos, hallazgos, pre-citas, mantenimiento vencido, consumo anormal
-  y vencimientos de licencia / matrícula / seguro. Los vencimientos se evalúan al abrir esta página.
+  {{ 'Bandeja de avisos operativos: bloqueos, hallazgos, pre-citas, mantenimiento vencido, consumo anormal y vencimientos de licencia / matrícula / seguro. Los vencimientos se evalúan al abrir esta página.' | t }}
 </p>
 
 @if (esElevado) {
   <div class="av-umbral">
-    <label for="umbral">Avisar cuando falten</label>
+    <label for="umbral">{{ 'Avisar cuando falten' | t }}</label>
     <input id="umbral" type="number" min="1" max="365" [value]="umbralInput()"
       (input)="umbralInput.set($any($event.target).valueAsNumber)" />
-    <span>días para vencer</span>
+    <span>{{ 'días para vencer' | t }}</span>
     <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
       [disabled]="guardandoUmbral()" (click)="guardarUmbral()">
-      @if (guardandoUmbral()) { Guardando… } @else { Guardar }
+      @if (guardandoUmbral()) { {{ 'Guardando…' | t }} } @else { {{ 'Guardar' | t }} }
     </button>
   </div>
 }
@@ -28,25 +27,25 @@
 <div class="av-tabs" role="tablist">
   <button type="button" role="tab" class="av-tab" [class.av-tab--active]="vista() === 'activos'"
     [attr.aria-selected]="vista() === 'activos'" (click)="setVista('activos')">
-    Avisos activos ({{ pendientes() }})
+    {{ 'Avisos activos' | t }} ({{ pendientes() }})
   </button>
   <button type="button" role="tab" class="av-tab" [class.av-tab--active]="vista() === 'historial'"
     [attr.aria-selected]="vista() === 'historial'" (click)="setVista('historial')">
-    Historial de avisos ({{ historialCount() }})
+    {{ 'Historial de avisos' | t }} ({{ historialCount() }})
   </button>
 </div>
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">
-    <select [value]="filtroTipo()" (change)="onTipo($any($event.target).value)" aria-label="Tipo">
-      <option value="">Todos los tipos</option>
+    <select [value]="filtroTipo()" (change)="onTipo($any($event.target).value)" aria-label="{{ 'Tipo' | t }}">
+      <option value="">{{ 'Todos los tipos' | t }}</option>
       @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
     </select>
   </div>
   <div class="sgc-field filters-bar__select">
-    <select [value]="filtroVehiculo()" (change)="onVehiculo($any($event.target).value)" aria-label="Vehículo">
-      <option value="">Todos los vehículos</option>
+    <select [value]="filtroVehiculo()" (change)="onVehiculo($any($event.target).value)" aria-label="{{ 'Vehículo' | t }}">
+      <option value="">{{ 'Todos los vehículos' | t }}</option>
       @for (v of vehiculosConAviso(); track v.id) { <option [value]="v.id">{{ v.placa }}</option> }
     </select>
   </div>
@@ -54,7 +53,7 @@
   @if (vista() === 'activos' && filtered().length > 0) {
     <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
       [disabled]="atendiendoTodos()" (click)="atenderTodos()">
-      @if (atendiendoTodos()) { Atendiendo… } @else { Marcar todos como atendidos ({{ filtered().length }}) }
+      @if (atendiendoTodos()) { {{ 'Atendiendo…' | t }} } @else { {{ 'Marcar todos como atendidos' | t }} ({{ filtered().length }}) }
     </button>
   }
 </div>
@@ -66,11 +65,11 @@
   @if (loading()) {
     <app-skeleton variant="table" [rows]="8" />
   } @else if (filtered().length === 0) {
-    <div class="table-empty"><p>No hay avisos con los filtros aplicados.</p></div>
+    <div class="table-empty"><p>{{ 'No hay avisos con los filtros aplicados.' | t }}</p></div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Avisos de flota">
-        <thead><tr><th>Fecha</th><th>Tipo</th><th>Sev.</th><th>Vehículo / Conductor</th><th>Mensaje</th><th>Estado</th><th></th></tr></thead>
+      <table class="data-table" aria-label="{{ 'Avisos de flota' | t }}">
+        <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Tipo' | t }}</th><th>{{ 'Sev.' | t }}</th><th>{{ 'Vehículo / Conductor' | t }}</th><th>{{ 'Mensaje' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr></thead>
         <tbody>
           @for (a of paginated(); track a.id) {
             <tr [appHighlightItem]="a.id">
@@ -89,9 +88,9 @@
               </td>
               <td>
                 @switch (a.estado) {
-                  @case ('pendiente') { <span class="sgc-badge sgc-badge--warning">Pendiente</span> }
-                  @case ('resuelto_auto') { <span class="sgc-badge sgc-badge--info">Resuelto automáticamente</span> }
-                  @default { <span class="sgc-badge sgc-badge--success">Atendido</span> }
+                  @case ('pendiente') { <span class="sgc-badge sgc-badge--warning">{{ 'Pendiente' | t }}</span> }
+                  @case ('resuelto_auto') { <span class="sgc-badge sgc-badge--info">{{ 'Resuelto automáticamente' | t }}</span> }
+                  @default { <span class="sgc-badge sgc-badge--success">{{ 'Atendido' | t }}</span> }
                 }
               </td>
               <td class="text-right">
@@ -99,32 +98,32 @@
                   @if (a.estado === 'pendiente' && a.tipo === 'bloqueo_critico' && a.vehiculo_id) {
                     <button class="sgc-btn sgc-btn--secondary" type="button"
                       [disabled]="reactivando() === a.id" (click)="reactivarVehiculo(a)">
-                      @if (reactivando() === a.id) { Reactivando… } @else { Reactivar vehículo }
+                      @if (reactivando() === a.id) { {{ 'Reactivando…' | t }} } @else { {{ 'Reactivar vehículo' | t }} }
                     </button>
                   }
                   @if (a.estado === 'pendiente' && (a.tipo === 'pre_cita' || a.tipo === 'mantenimiento_vencido') && a.vehiculo_id) {
                     <button class="sgc-btn sgc-btn--secondary" type="button" (click)="crearCita(a)">
-                      Crear cita
+                      {{ 'Crear cita' | t }}
                     </button>
                   }
                   @if (tieneDocumento(a)) {
                     <button class="sgc-btn sgc-btn--secondary" type="button" (click)="verDocumento(a)">
-                      Ver documento
+                      {{ 'Ver documento' | t }}
                     </button>
                   }
                   @if (esPP(a) && a.vehiculo_id) {
                     <button class="sgc-btn sgc-btn--primary" type="button" (click)="gestionarPP(a)"
-                      title="Entregar placa definitiva o ampliar el plazo">
-                      Gestionar placa
+                      title="{{ 'Entregar placa definitiva o ampliar el plazo' | t }}">
+                      {{ 'Gestionar placa' | t }}
                     </button>
                   }
                   @if (a.estado === 'pendiente') {
                     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)"
-                      [title]="esPP(a) ? 'Marcar como aún pendiente / dejar nota' : 'Atender'">
-                      {{ esPP(a) ? 'Aún pendiente' : 'Atender' }}
+                      [title]="esPP(a) ? i18n.t('Marcar como aún pendiente / dejar nota') : i18n.t('Atender')">
+                      {{ (esPP(a) ? 'Aún pendiente' : 'Atender') | t }}
                     </button>
                   } @else {
-                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Ver</button>
+                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">{{ 'Ver' | t }}</button>
                   }
                 </div>
               </td>
@@ -138,32 +137,32 @@
 </div>
 
 <!-- ── Atender drawer ── -->
-<app-form-drawer title="Atender aviso" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer title="{{ 'Atender aviso' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   @if (selected(); as a) {
     <div class="av-detail">
       <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span>
       <p class="av-detail__msg">{{ a.mensaje }}</p>
       <dl class="av-meta">
-        <div><dt>Vehículo</dt><dd>{{ a.vehiculo?.placa ?? '—' }}</dd></div>
-        <div><dt>Conductor</dt><dd>{{ a.conductor?.nombre ?? '—' }}</dd></div>
-        <div><dt>Creado</dt><dd>{{ formatFecha(a.created_at) }}</dd></div>
-        <div><dt>Estado</dt><dd>{{ a.estado | humanizarEnum }}</dd></div>
+        <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ a.vehiculo?.placa ?? '—' }}</dd></div>
+        <div><dt>{{ 'Conductor' | t }}</dt><dd>{{ a.conductor?.nombre ?? '—' }}</dd></div>
+        <div><dt>{{ 'Creado' | t }}</dt><dd>{{ formatFecha(a.created_at) }}</dd></div>
+        <div><dt>{{ 'Estado' | t }}</dt><dd>{{ a.estado | humanizarEnum }}</dd></div>
       </dl>
 
       @if (tieneDocumento(a)) {
         <button type="button" class="sgc-btn sgc-btn--secondary av-detail__doc" (click)="verDocumento(a)">
-          Ver documento del vencimiento
+          {{ 'Ver documento del vencimiento' | t }}
         </button>
       }
 
       <!-- AI13 · Evidencia de la novedad reportada por el chofer -->
       @if (fotoUrls().length) {
         <div class="av-fotos">
-          <span class="av-fotos__label">Evidencia</span>
+          <span class="av-fotos__label">{{ 'Evidencia' | t }}</span>
           <div class="av-fotos__grid">
             @for (u of fotoUrls(); track u) {
-              <button type="button" class="av-fotos__thumb" (click)="lightboxUrl.set(u)" title="Ver en grande">
-                <img [src]="u" alt="Evidencia de la novedad" loading="lazy" />
+              <button type="button" class="av-fotos__thumb" (click)="lightboxUrl.set(u)" title="{{ 'Ver en grande' | t }}">
+                <img [src]="u" alt="{{ 'Evidencia de la novedad' | t }}" loading="lazy" />
               </button>
             }
           </div>
@@ -173,7 +172,7 @@
       <!-- AK16 · Videos de la novedad -->
       @if (videoUrls().length) {
         <div class="av-fotos">
-          <span class="av-fotos__label">Videos</span>
+          <span class="av-fotos__label">{{ 'Videos' | t }}</span>
           <div class="av-fotos__grid">
             @for (u of videoUrls(); track u) {
               <video class="av-fotos__video" [src]="u" controls preload="metadata"></video>
@@ -185,32 +184,32 @@
       <!-- AK16 · Notas de voz de la novedad -->
       @if (a.tipo === 'novedad') {
         <div class="av-fotos">
-          <span class="av-fotos__label">Notas de voz</span>
+          <span class="av-fotos__label">{{ 'Notas de voz' | t }}</span>
           <app-audio-notas entidadTipo="aviso_flota" [entidadId]="a.id" bucket="vehiculos" [readOnly]="true" />
         </div>
       }
 
       @if (a.estado === 'pendiente') {
         <div class="sgc-field">
-          <label for="nota">Nota de atención</label>
-          <textarea id="nota" rows="3" placeholder="Qué se hizo / disposición…"
+          <label for="nota">{{ 'Nota de atención' | t }}</label>
+          <textarea id="nota" rows="3" placeholder="{{ 'Qué se hizo / disposición…' | t }}"
             [value]="nota()" (input)="onNota($any($event.target).value)"></textarea>
         </div>
         <div class="drawer-actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="atendiendo()" (click)="atender()">
-            @if (atendiendo()) { Guardando… } @else { Marcar como atendido }
+            @if (atendiendo()) { {{ 'Guardando…' | t }} } @else { {{ 'Marcar como atendido' | t }} }
           </button>
         </div>
       } @else if (a.estado === 'resuelto_auto') {
         <div class="av-atendido">
-          <span class="sgc-badge sgc-badge--info">Resuelto automáticamente</span>
+          <span class="sgc-badge sgc-badge--info">{{ 'Resuelto automáticamente' | t }}</span>
           @if (a.resuelto_nota) { <p class="av-detail__msg">“{{ a.resuelto_nota }}”</p> }
           @if (a.resuelto_at) { <p class="av-meta__sub">{{ formatFecha(a.resuelto_at) }}</p> }
         </div>
       } @else {
         <div class="av-atendido">
-          <span class="sgc-badge sgc-badge--success">Atendido</span>
+          <span class="sgc-badge sgc-badge--success">{{ 'Atendido' | t }}</span>
           @if (a.nota_atencion) { <p class="av-detail__msg">“{{ a.nota_atencion }}”</p> }
         </div>
       }
@@ -220,5 +219,5 @@
 
 <!-- AI13 · Lightbox de la evidencia de novedades -->
 @if (lightboxUrl(); as url) {
-  <app-lightbox [src]="url" alt="Evidencia de la novedad" (closed)="lightboxUrl.set(null)" />
+  <app-lightbox [src]="url" alt="{{ 'Evidencia de la novedad' | t }}" (closed)="lightboxUrl.set(null)" />
 }

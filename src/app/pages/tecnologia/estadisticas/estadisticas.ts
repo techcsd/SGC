@@ -9,6 +9,7 @@ import { formatFechaHumana, formatFechaRelativa } from '../../../../shared/utils
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type OrdenCol = 'nombre' | 'plataforma' | 'version' | 'ultimo';
 type OrdenDir = 'asc' | 'desc';
 
@@ -19,7 +20,7 @@ type OrdenDir = 'asc' | 'desc';
  */
 @Component({
   selector: 'app-tec-estadisticas',
-  imports: [DecimalPipe, FormsModule, Skeleton, BarChart, ExportExcel, Icon],
+  imports: [DecimalPipe, FormsModule, Skeleton, BarChart, ExportExcel, Icon, TranslatePipe],
   templateUrl: './estadisticas.html',
   styleUrl: './estadisticas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

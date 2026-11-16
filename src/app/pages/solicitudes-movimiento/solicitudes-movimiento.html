@@ -1,37 +1,37 @@
 <!-- AY11 — Solicitud de movimiento -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Solicitud de movimiento</h1>
+    <h1 class="page-title">{{ 'Solicitud de movimiento' | t }}</h1>
     <span class="page-count">
-      @if (esReferente()) { Logística de transporte · todas las solicitudes } @else { Tus solicitudes de movimiento }
+      @if (esReferente()) { {{ 'Logística de transporte · todas las solicitudes' | t }} } @else { {{ 'Tus solicitudes de movimiento' | t }} }
     </span>
   </div>
   <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Nueva solicitud
+    {{ 'Nueva solicitud' | t }}
   </button>
 </div>
 
 <!-- Filtros -->
 <div class="filters-bar">
-  <select class="sgc-select" [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="Filtrar por estado">
-    <option value="">Todos los estados</option>
-    <option value="pendiente">Pendiente</option>
-    <option value="planificada">Planificada</option>
-    <option value="en_curso">En curso</option>
-    <option value="completada">Completada</option>
-    <option value="cancelada">Cancelada</option>
+  <select class="sgc-select" [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
+    <option value="">{{ 'Todos los estados' | t }}</option>
+    <option value="pendiente">{{ 'Pendiente' | t }}</option>
+    <option value="planificada">{{ 'Planificada' | t }}</option>
+    <option value="en_curso">{{ 'En curso' | t }}</option>
+    <option value="completada">{{ 'Completada' | t }}</option>
+    <option value="cancelada">{{ 'Cancelada' | t }}</option>
   </select>
-  <select class="sgc-select" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)" aria-label="Filtrar por prioridad">
-    <option value="">Todas las prioridades</option>
-    <option value="urgente">Urgente</option>
-    <option value="alta">Alta</option>
-    <option value="media">Media</option>
-    <option value="baja">Baja</option>
+  <select class="sgc-select" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)" aria-label="{{ 'Filtrar por prioridad' | t }}">
+    <option value="">{{ 'Todas las prioridades' | t }}</option>
+    <option value="urgente">{{ 'Urgente' | t }}</option>
+    <option value="alta">{{ 'Alta' | t }}</option>
+    <option value="media">{{ 'Media' | t }}</option>
+    <option value="baja">{{ 'Baja' | t }}</option>
   </select>
   @if (esReferente()) {
-    <select class="sgc-select" [value]="fProyecto()" (change)="fProyecto.set($any($event.target).value)" aria-label="Filtrar por obra">
-      <option value="">Todas las obras</option>
+    <select class="sgc-select" [value]="fProyecto()" (change)="fProyecto.set($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
+      <option value="">{{ 'Todas las obras' | t }}</option>
       @for (p of proyectosVisibles(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
     </select>
   }
@@ -41,22 +41,22 @@
   <app-skeleton [rows]="5" />
 } @else if (filtradas().length === 0) {
   <div class="page__empty">
-    <p>No hay solicitudes de movimiento.</p>
-    <p class="page__empty-hint">Crea la primera con “Nueva solicitud”.</p>
+    <p>{{ 'No hay solicitudes de movimiento.' | t }}</p>
+    <p class="page__empty-hint">{{ 'Crea la primera con “Nueva solicitud”.' | t }}</p>
   </div>
 } @else {
   <div class="table-scroll">
-    <table class="data-table" aria-label="Solicitudes de movimiento">
+    <table class="data-table" aria-label="{{ 'Solicitudes de movimiento' | t }}">
       <thead>
         <tr>
-          <th>Qué se mueve</th>
-          @if (esReferente()) { <th>Solicitante</th> }
-          <th>Obra</th>
-          <th>Origen → Destino</th>
-          <th>Prioridad</th>
-          <th>Estado</th>
-          <th>Requerido</th>
-          <th>Chofer</th>
+          <th>{{ 'Qué se mueve' | t }}</th>
+          @if (esReferente()) { <th>{{ 'Solicitante' | t }}</th> }
+          <th>{{ 'Obra' | t }}</th>
+          <th>{{ 'Origen → Destino' | t }}</th>
+          <th>{{ 'Prioridad' | t }}</th>
+          <th>{{ 'Estado' | t }}</th>
+          <th>{{ 'Requerido' | t }}</th>
+          <th>{{ 'Chofer' | t }}</th>
           <th></th>
         </tr>
       </thead>
@@ -65,7 +65,7 @@
           <tr>
             <td>
               <span class="sm-que">{{ s.que_se_mueve }}</span>
-              @if (s.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
+              @if (s.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }
               @if (s.notas) { <span class="sm-notas" [title]="s.notas">— {{ s.notas }}</span> }
             </td>
             @if (esReferente()) { <td class="text-muted">{{ s.solicitante || '—' }}</td> }
@@ -86,10 +86,10 @@
                 </button>
               }
               @if (esReferente() && (s.estado === 'planificada' || s.estado === 'en_curso')) {
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="completar(s)">Completar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="completar(s)">{{ 'Completar' | t }}</button>
               }
               @if (puedeCancelar(s)) {
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelar(s)">Cancelar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelar(s)">{{ 'Cancelar' | t }}</button>
               }
             </td>
           </tr>
@@ -100,11 +100,11 @@
 }
 
 <!-- Nueva solicitud -->
-<app-form-drawer title="Nueva solicitud de movimiento" [open]="crearOpen()" (closed)="crearOpen.set(false)">
+<app-form-drawer title="{{ 'Nueva solicitud de movimiento' | t }}" [open]="crearOpen()" (closed)="crearOpen.set(false)">
   <form [formGroup]="form" class="sm-form" (ngSubmit)="guardarCrear()">
     <!-- CF5 — renglones del catálogo (o "no catalogado") -->
     <div class="sgc-field">
-      <label>¿Qué se va a mover? *</label>
+      <label>{{ '¿Qué se va a mover? *' | t }}</label>
       <div class="sm-items">
         @for (r of renglones(); track $index) {
           <div class="sm-item">
@@ -115,77 +115,77 @@
               [esOtro]="!r.articulo_id && !!r.descripcion"
               (selectionChange)="setRenglonArticulo($index, $event)" />
             @if (!r.articulo_id) {
-              <input type="text" class="sgc-input sm-item__desc" placeholder="Describe el artículo (no catalogado)"
+              <input type="text" class="sgc-input sm-item__desc" placeholder="{{ 'Describe el artículo (no catalogado)' | t }}"
                      [value]="r.descripcion" (input)="setRenglonCampo($index, 'descripcion', $any($event.target).value)" />
             }
-            <input type="number" class="sgc-input sm-item__cant" placeholder="Cant." min="0" step="any"
+            <input type="number" class="sgc-input sm-item__cant" placeholder="{{ 'Cant.' | t }}" min="0" step="any"
                    [value]="r.cantidad" (input)="setRenglonCantidad($index, $any($event.target).value)" />
-            <input type="text" class="sgc-input sm-item__und" placeholder="Unidad"
+            <input type="text" class="sgc-input sm-item__und" placeholder="{{ 'Unidad' | t }}"
                    [value]="r.unidad" (input)="setRenglonCampo($index, 'unidad', $any($event.target).value)" />
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm sm-item__del" (click)="quitarRenglon($index)" aria-label="Quitar renglón">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm sm-item__del" (click)="quitarRenglon($index)" aria-label="{{ 'Quitar renglón' | t }}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
         }
       </div>
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarRenglon()">+ Agregar renglón</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarRenglon()">{{ '+ Agregar renglón' | t }}</button>
     </div>
     <div class="sm-form__row">
       <div class="sgc-field">
-        <label for="tipo">Tipo de carga</label>
+        <label for="tipo">{{ 'Tipo de carga' | t }}</label>
         <select id="tipo" formControlName="tipo_carga">
-          <option value="materiales">Materiales</option>
-          <option value="equipo">Equipo</option>
-          <option value="otros">Otros</option>
+          <option value="materiales">{{ 'Materiales' | t }}</option>
+          <option value="equipo">{{ 'Equipo' | t }}</option>
+          <option value="otros">{{ 'Otros' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
-        <label for="prio">Prioridad</label>
+        <label for="prio">{{ 'Prioridad' | t }}</label>
         <select id="prio" formControlName="prioridad">
-          <option value="baja">Baja</option>
-          <option value="media">Media</option>
-          <option value="alta">Alta</option>
-          <option value="urgente">Urgente</option>
+          <option value="baja">{{ 'Baja' | t }}</option>
+          <option value="media">{{ 'Media' | t }}</option>
+          <option value="alta">{{ 'Alta' | t }}</option>
+          <option value="urgente">{{ 'Urgente' | t }}</option>
         </select>
       </div>
     </div>
     <div class="sgc-field">
-      <label for="obra">Obra (destino)</label>
+      <label for="obra">{{ 'Obra (destino)' | t }}</label>
       <select id="obra" formControlName="proyecto_id">
-        <option [ngValue]="null">— Selecciona la obra —</option>
+        <option [ngValue]="null">{{ '— Selecciona la obra —' | t }}</option>
         @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
       </select>
     </div>
     <!-- CF5 — origen: almacén (Central primero) / obra / proveedor-otro (texto) -->
     <div class="sm-form__row">
       <div class="sgc-field">
-        <label for="ori-tipo">Origen</label>
+        <label for="ori-tipo">{{ 'Origen' | t }}</label>
         <select id="ori-tipo" formControlName="origen_tipo" (change)="origenTipo.set($any($event.target).value)">
-          <option value="almacen">Almacén</option>
-          <option value="obra">Obra</option>
-          <option value="proveedor">Proveedor</option>
-          <option value="otro">Otro</option>
+          <option value="almacen">{{ 'Almacén' | t }}</option>
+          <option value="obra">{{ 'Obra' | t }}</option>
+          <option value="proveedor">{{ 'Proveedor' | t }}</option>
+          <option value="otro">{{ 'Otro' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
         @switch (origenTipo()) {
           @case ('almacen') {
-            <label for="ori-bod">Almacén de origen</label>
+            <label for="ori-bod">{{ 'Almacén de origen' | t }}</label>
             <select id="ori-bod" formControlName="origen_bodega_id">
-              <option [ngValue]="null">— Selecciona almacén —</option>
-              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? 'Central — ' : '' }}{{ b.nombre }}</option> }
+              <option [ngValue]="null">{{ '— Selecciona almacén —' | t }}</option>
+              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? (i18n.t('Central —') + ' ') : '' }}{{ b.nombre }}</option> }
             </select>
           }
           @case ('obra') {
-            <label for="ori-proy">Obra de origen</label>
+            <label for="ori-proy">{{ 'Obra de origen' | t }}</label>
             <select id="ori-proy" formControlName="origen_proyecto_id">
-              <option [ngValue]="null">— Selecciona obra —</option>
+              <option [ngValue]="null">{{ '— Selecciona obra —' | t }}</option>
               @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
             </select>
           }
           @default {
-            <label for="ori-txt">Detalle del origen</label>
-            <input id="ori-txt" type="text" formControlName="origen_texto" placeholder="Ej: Proveedor X" />
+            <label for="ori-txt">{{ 'Detalle del origen' | t }}</label>
+            <input id="ori-txt" type="text" formControlName="origen_texto" placeholder="{{ 'Ej: Proveedor X' | t }}" />
           }
         }
       </div>
@@ -193,71 +193,71 @@
     <!-- CF5 — destino: obra (la de arriba) / almacén (Central primero) / proveedor-otro (texto) -->
     <div class="sm-form__row">
       <div class="sgc-field">
-        <label for="des-tipo">Destino</label>
+        <label for="des-tipo">{{ 'Destino' | t }}</label>
         <select id="des-tipo" formControlName="destino_tipo" (change)="destinoTipo.set($any($event.target).value)">
-          <option value="obra">Obra</option>
-          <option value="almacen">Almacén</option>
-          <option value="proveedor">Proveedor</option>
-          <option value="otro">Otro</option>
+          <option value="obra">{{ 'Obra' | t }}</option>
+          <option value="almacen">{{ 'Almacén' | t }}</option>
+          <option value="proveedor">{{ 'Proveedor' | t }}</option>
+          <option value="otro">{{ 'Otro' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
         @switch (destinoTipo()) {
           @case ('almacen') {
-            <label for="des-bod">Almacén de destino</label>
+            <label for="des-bod">{{ 'Almacén de destino' | t }}</label>
             <select id="des-bod" formControlName="destino_bodega_id">
-              <option [ngValue]="null">— Selecciona almacén —</option>
-              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? 'Central — ' : '' }}{{ b.nombre }}</option> }
+              <option [ngValue]="null">{{ '— Selecciona almacén —' | t }}</option>
+              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? (i18n.t('Central —') + ' ') : '' }}{{ b.nombre }}</option> }
             </select>
           }
           @case ('obra') {
-            <label>Obra de destino</label>
-            <p class="sm-hint">Se usa la obra seleccionada arriba.</p>
+            <label>{{ 'Obra de destino' | t }}</label>
+            <p class="sm-hint">{{ 'Se usa la obra seleccionada arriba.' | t }}</p>
           }
           @default {
-            <label for="des-txt">Detalle del destino</label>
-            <input id="des-txt" type="text" formControlName="destino_texto" placeholder="Ej: Torre 2, nivel 3" />
+            <label for="des-txt">{{ 'Detalle del destino' | t }}</label>
+            <input id="des-txt" type="text" formControlName="destino_texto" placeholder="{{ 'Ej: Torre 2, nivel 3' | t }}" />
           }
         }
       </div>
     </div>
     <div class="sgc-field">
-      <label for="req">Fecha en que se necesita en obra</label>
+      <label for="req">{{ 'Fecha en que se necesita en obra' | t }}</label>
       <input id="req" type="date" formControlName="fecha_requerimiento" />
     </div>
     <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" formControlName="notas" rows="2" placeholder="Detalles adicionales para transporte…"></textarea>
+      <label for="notas">{{ 'Notas' | t }}</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="{{ 'Detalles adicionales para transporte…' | t }}"></textarea>
     </div>
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="crearOpen.set(false)" [disabled]="saving()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="crearOpen.set(false)" [disabled]="saving()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Crear solicitud' }}</button>
     </div>
   </form>
 </app-form-drawer>
 
 <!-- Planificar con ruta (referente) -->
-<app-form-drawer title="Planificar y asignar ruta" [open]="planOpen()" (closed)="planOpen.set(false)">
+<app-form-drawer title="{{ 'Planificar y asignar ruta' | t }}" [open]="planOpen()" (closed)="planOpen.set(false)">
   @if (planActiva(); as s) {
     <div class="sm-plan">
       <p class="sm-plan__src"><strong>{{ s.que_se_mueve }}</strong><br>{{ s.origen }} → {{ s.destino }}@if (s.proyecto) { · {{ s.proyecto }} }</p>
 
       <div class="sgc-field">
-        <label for="pl-veh">Vehículo</label>
+        <label for="pl-veh">{{ 'Vehículo' | t }}</label>
         <select id="pl-veh" [value]="planVehiculo()" (change)="planVehiculo.set($any($event.target).value || null)">
-          <option value="">— Selecciona vehículo —</option>
+          <option value="">{{ '— Selecciona vehículo —' | t }}</option>
           @for (v of vehiculosVisibles(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="pl-cond">Chofer</label>
+        <label for="pl-cond">{{ 'Chofer' | t }}</label>
         <select id="pl-cond" [value]="planConductor()" (change)="planConductor.set($any($event.target).value || null)">
-          <option value="">— Selecciona chofer —</option>
+          <option value="">{{ '— Selecciona chofer —' | t }}</option>
           @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="pl-fecha">Fecha de la ruta</label>
+        <label for="pl-fecha">{{ 'Fecha de la ruta' | t }}</label>
         <input id="pl-fecha" type="date" [value]="planFecha()" (change)="planFecha.set($any($event.target).value)" />
       </div>
 
@@ -265,12 +265,12 @@
       <div class="sm-cerca">
         <h3 class="sm-cerca__title">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Choferes cerca de la obra
+          {{ 'Choferes cerca de la obra' | t }}
         </h3>
         @if (buscandoChoferes()) {
-          <p class="sm-cerca__hint">Buscando…</p>
+          <p class="sm-cerca__hint">{{ 'Buscando…' | t }}</p>
         } @else if (choferesCerca().length === 0) {
-          <p class="sm-cerca__hint">Sin choferes cercanos con posición reciente (o la obra no tiene ubicación).</p>
+          <p class="sm-cerca__hint">{{ 'Sin choferes cercanos con posición reciente (o la obra no tiene ubicación).' | t }}</p>
         } @else {
           <ul class="sm-cerca__list">
             @for (c of choferesCerca(); track c.usuario_id) {
@@ -278,7 +278,7 @@
                 <span class="sm-cerca__nombre">{{ c.nombre }}</span>
                 <span class="sm-cerca__veh">{{ c.vehiculo || '—' }}</span>
                 <span class="sm-cerca__dist">{{ c.distancia_km }} km</span>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarChoferSugerido(c)">Usar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarChoferSugerido(c)">{{ 'Usar' | t }}</button>
               </li>
             }
           </ul>
@@ -286,7 +286,7 @@
       </div>
 
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="planOpen.set(false)" [disabled]="planSaving()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="planOpen.set(false)" [disabled]="planSaving()">{{ 'Cancelar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarPlanificar()" [disabled]="planSaving()">
           {{ planSaving() ? 'Creando ruta…' : 'Crear ruta y asignar' }}
         </button>

@@ -13,6 +13,8 @@ import { ButtonDirective } from '../../../../../shared/ui/button/button.directiv
 import { FileUpload } from '../../../../../shared/ui/file-upload/file-upload';
 import { humanizeError } from '../../../../../shared/utils/friendly-error.util';
 
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../../shared/i18n/i18n.service';
 const UNIDADES_FALLBACK: { codigo: string; nombre: string }[] = [
   { codigo: 'unidad', nombre: 'Unidad' },
   { codigo: 'licencia', nombre: 'Licencia' },
@@ -51,7 +53,7 @@ type CotizacionVista =
 
 @Component({
   selector: 'app-tec-compras-nueva',
-  imports: [ReactiveFormsModule, RouterLink, Icon, ButtonDirective, FileUpload, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, Icon, ButtonDirective, FileUpload, DecimalPipe, TranslatePipe],
   templateUrl: './compras-nueva.html',
   styleUrl: './compras-nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +66,7 @@ export class ComprasNueva implements OnInit {
   private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   // ── Modo edición: viene un :id en la ruta y YA existe en 'borrador' ─────────
   compraId = signal<string | null>(null);
@@ -76,7 +79,9 @@ export class ComprasNueva implements OnInit {
   aprobadorNombre = signal<string | null>(null);
   envioLabel = computed(() => {
     const n = this.aprobadorNombre();
-    return n ? `Enviar a ${n.split(' ')[0]} para aprobar` : 'Enviar para aprobar';
+    return n
+      ? this.i18n.t('Enviar a {nombre} para aprobar', { nombre: n.split(' ')[0] })
+      : this.i18n.t('Enviar para aprobar');
   });
   proyectos = signal<{ id: string; nombre: string }[]>([]);
   unidadesCatalogo = signal<{ codigo: string; nombre: string }[]>(UNIDADES_FALLBACK);
@@ -133,10 +138,21 @@ export class ComprasNueva implements OnInit {
     const diff = Math.abs(this.total() - ref) / ref;
     return diff > 0.01 ? { ref, diff } : null;
   });
+  /** Texto completo del aviso de descuadre, ya localizado (evita anidar pipes dentro de i18n.t()). */
+  descuadreMensaje = computed(() => {
+    const d = this.descuadre();
+    if (!d) return '';
+    const fmt2 = (n: number) => n.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmt1 = (n: number) => n.toLocaleString('es-DO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return this.i18n.t('El total de los artículos ({total}) difiere de la cotización elegida ({ref}) en {diff}%. Revisa antes de enviar.', {
+      total: fmt2(this.total()),
+      ref: fmt2(d.ref),
+      diff: fmt1(d.diff * 100),
+    });
+  });
 
-  puedeEnviar = computed(
-    () => this.items().some((i) => i.descripcion.trim() && (i.precio_unitario ?? 0) > 0) && this.hayCotizaciones(),
-  );
+  tieneItemConPrecio = computed(() => this.items().some((i) => i.descripcion.trim() && (i.precio_unitario ?? 0) > 0));
+  puedeEnviar = computed(() => this.tieneItemConPrecio() && this.hayCotizaciones());
 
   miUsuarioId = computed(() => this.userService.profile()?.id ?? null);
 
@@ -160,18 +176,18 @@ export class ComprasNueva implements OnInit {
     try {
       const c = await this.tecnologia.getCompraTecById(id);
       if (!c) {
-        this.toast.error('No se encontró esa compra tecnológica.');
+        this.toast.error(this.i18n.t('No se encontró esa compra tecnológica.'));
         this.router.navigate(['/tecnologia/compras']);
         return;
       }
       if (c.estado !== 'borrador') {
-        this.toast.error('Esta compra ya no es un borrador', 'Solo se puede editar mientras está en borrador. Ábrela para ver su estado.');
+        this.toast.error(this.i18n.t('Esta compra ya no es un borrador'), 'Solo se puede editar mientras está en borrador. Ábrela para ver su estado.');
         this.router.navigate(['/tecnologia/compras'], { queryParams: { id: c.id } });
         return;
       }
       const esDueno = c.solicitante_id === this.miUsuarioId();
       if (!esDueno && !this.userService.hasRole('admin')) {
-        this.toast.error('No autorizado', 'Solo quien la creó (o un admin) puede editarla.');
+        this.toast.error(this.i18n.t('No autorizado'), 'Solo quien la creó (o un admin) puede editarla.');
         this.router.navigate(['/tecnologia/compras']);
         return;
       }
@@ -281,7 +297,7 @@ export class ComprasNueva implements OnInit {
             ? {
                 ...p,
                 leyendo: false,
-                error: res.ok ? null : res.error || 'No se pudo leer la cotización.',
+                error: res.ok ? null : res.error || this.i18n.t('No se pudo leer la cotización.'),
                 lectura: res.ok ? res.lectura ?? null : null,
                 lecturaCostoUsd: res.ok ? res.costo_usd ?? null : null,
                 proveedor: res.ok ? res.lectura?.proveedor ?? null : null,
@@ -317,7 +333,7 @@ export class ComprasNueva implements OnInit {
         await this.tecnologia.elegirCotizacion(vista.adjunto.id);
         this.cotizacionesExistentes.update((list) => list.map((a) => ({ ...a, elegida: a.id === vista.adjunto.id })));
       } catch (e: unknown) {
-        this.toast.error('No se pudo marcar como elegida', humanizeError(e).mensaje);
+        this.toast.error(this.i18n.t('No se pudo marcar como elegida'), humanizeError(e).mensaje);
       }
     }
   }
@@ -345,7 +361,7 @@ export class ComprasNueva implements OnInit {
   private async persistir(): Promise<string | null> {
     const payload = this.construirPayload();
     if (payload.items.length === 0) {
-      this.error.set('Agrega al menos un artículo con descripción y cantidad mayor a 0.');
+      this.error.set(this.i18n.t('Agrega al menos un artículo con descripción y cantidad mayor a 0.'));
       return null;
     }
     this.error.set('');
@@ -399,7 +415,7 @@ export class ComprasNueva implements OnInit {
     this.guardando.set(true);
     try {
       const id = await this.persistir();
-      if (id) this.toast.success('Borrador guardado', 'Puedes seguir editándolo o enviarlo a aprobación.');
+      if (id) this.toast.success(this.i18n.t('Borrador guardado'), 'Puedes seguir editándolo o enviarlo a aprobación.');
     } finally {
       this.guardando.set(false);
     }
@@ -408,7 +424,7 @@ export class ComprasNueva implements OnInit {
   async enviarAprobacion() {
     if (this.guardando() || this.enviando()) return;
     if (!this.puedeEnviar()) {
-      this.error.set('Falta al menos un artículo con precio y una cotización adjunta.');
+      this.error.set(this.i18n.t('Falta al menos un artículo con precio y una cotización adjunta.'));
       return;
     }
     this.enviando.set(true);
@@ -416,7 +432,7 @@ export class ComprasNueva implements OnInit {
       const id = await this.persistir();
       if (!id) return;
       await this.tecnologia.enviarAprobacionCompraTec(id);
-      this.toast.success('Enviada a aprobación', this.aprobadorNombre() ? `${this.aprobadorNombre()} ya puede revisarla.` : undefined);
+      this.toast.success(this.i18n.t('Enviada a aprobación'), this.aprobadorNombre() ? `${this.aprobadorNombre()} ya puede revisarla.` : undefined);
       this.router.navigate(['/tecnologia/compras'], { queryParams: { id } });
     } catch (e: unknown) {
       this.error.set(humanizeError(e).mensaje);

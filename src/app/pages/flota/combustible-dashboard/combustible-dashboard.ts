@@ -15,6 +15,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type Vista = 'vehiculo' | 'flotilla';
 type EstadoVeh = 'NORMAL' | 'REVISAR' | 'ALERTA';
@@ -34,7 +36,7 @@ const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'o
 
 @Component({
   selector: 'app-combustible-dashboard',
-  imports: [HumanizarEnumPipe, FlotaSubnav, DecimalPipe, RouterLink, BarChart, Skeleton, Icon],
+  imports: [HumanizarEnumPipe, FlotaSubnav, DecimalPipe, RouterLink, BarChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './combustible-dashboard.html',
   styleUrl: './combustible-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +48,7 @@ export class CombustibleDashboard implements OnInit {
   protected flotaConfig = inject(FlotaConfigService);
   private router = inject(Router);
   private datosPruebaView = inject(DatosPruebaViewService);
+  protected i18n = inject(I18nService);
 
   // Regla del jefe: toda tarjeta/fila abre su origen.
   irAVehiculo(vehiculoId: string | null | undefined) {

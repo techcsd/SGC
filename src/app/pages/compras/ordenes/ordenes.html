@@ -1,19 +1,19 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Órdenes de Compra</h1>
-    <span class="page-count">{{ filtered().length }} orden{{ filtered().length !== 1 ? 'es' : '' }}</span>
+    <h1 class="page-title">{{ 'Órdenes de Compra' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'órdenes' : 'orden') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelOrdenes()"
-            [disabled]="filtered().length === 0" title="Exportar las órdenes filtradas a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar las órdenes filtradas a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva OC
+      {{ 'Nueva OC' | t }}
     </button>
   </div>
 </div>
@@ -22,22 +22,22 @@
 @if (solicitudesPendientes().length > 0) {
   <div class="solicitudes-panel sgc-card">
     <h2 class="solicitudes-panel__title">
-      Solicitudes de compra pendientes ({{ solicitudesPendientes().length }})
+      {{ 'Solicitudes de compra pendientes' | t }} ({{ solicitudesPendientes().length }})
     </h2>
     @for (s of solicitudesPendientes(); track s.id) {
       <div class="solicitudes-panel__item">
         <div class="solicitudes-panel__info">
-          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? 'Sin proyecto' }}</span>
+          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? ('Sin proyecto' | t) }}</span>
           <span class="solicitudes-panel__solicitante">{{ s.solicitante?.nombre }}</span>
           @if (s.origen_requisicion_id) {
             <!-- BH7 — la procedencia es navegable: abre la requisición (con su despacho y conduces) sin construir nada nuevo -->
             <a class="sgc-badge sgc-badge--info solicitudes-panel__origen"
                [routerLink]="['/inventario/requisiciones']" [queryParams]="{ req: s.origen_requisicion_id }"
-               title="Ver la requisición de procedencia: su despacho y sus conduces">
-              {{ reqCodigo(s) ?? 'Desde requisición' }} ↗
+               title="{{ 'Ver la requisición de procedencia: su despacho y sus conduces' | t }}">
+              {{ reqCodigo(s) ?? ('Desde requisición' | t) }} ↗
             </a>
           } @else if (s.categoria === 'tecnologia') {
-            <span class="sgc-badge sgc-badge--neutral">Tecnología</span>
+            <span class="sgc-badge sgc-badge--neutral">{{ 'Tecnología' | t }}</span>
           }
         </div>
         <p class="solicitudes-panel__items">
@@ -46,8 +46,8 @@
           }
         </p>
         <div class="solicitudes-panel__actions">
-          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">Crear orden</button>
-          <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="rechazarSolicitud(s)">Rechazar</button>
+          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">{{ 'Crear orden' | t }}</button>
+          <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="rechazarSolicitud(s)">{{ 'Rechazar' | t }}</button>
         </div>
       </div>
     }
@@ -59,10 +59,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por proveedor…"
+      placeholder="{{ 'Buscar por proveedor…' | t }}"
       [value]="searchProveedor()"
       (input)="onSearchProveedor($any($event.target).value)"
-      aria-label="Buscar por proveedor"
+      aria-label="{{ 'Buscar por proveedor' | t }}"
     />
   </div>
 
@@ -70,11 +70,11 @@
     <select
       [value]="selectedEstado()"
       (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="">Todos los estados</option>
+      <option value="">{{ 'Todos los estados' | t }}</option>
       @for (e of ESTADOS; track e) {
-        <option [value]="e">{{ estadoLabel(e) }}</option>
+        <option [value]="e">{{ estadoLabel(e) | t }}</option>
       }
     </select>
   </div>
@@ -83,7 +83,7 @@
 
   @if (searchProveedor() || selectedEstado() || fechaDesde() || fechaHasta()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -109,41 +109,41 @@
       </svg>
       <p>
         @if (searchProveedor() || selectedEstado() || fechaDesde() || fechaHasta()) {
-          No se encontraron órdenes con los filtros aplicados.
+          {{ 'No se encontraron órdenes con los filtros aplicados.' | t }}
         } @else {
-          No hay órdenes de compra registradas. Crea la primera.
+          {{ 'No hay órdenes de compra registradas. Crea la primera.' | t }}
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de órdenes de compra">
+      <table class="data-table" aria-label="{{ 'Lista de órdenes de compra' | t }}">
         <thead>
           <tr>
-            <th>Número</th>
-            <th>Proveedor</th>
-            <th>Proyecto</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Entrega esperada</th>
-            <th class="text-right">Total</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Número' | t }}</th>
+            <th>{{ 'Proveedor' | t }}</th>
+            <th>{{ 'Proyecto' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Entrega esperada' | t }}</th>
+            <th class="text-right">{{ 'Total' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (orden of filtered(); track orden.id) {
             <tr class="row--link" (click)="openDetail(orden)" role="button" tabindex="0"
-                (keydown.enter)="openDetail(orden)" aria-label="Ver detalle de la orden">
+                (keydown.enter)="openDetail(orden)" aria-label="{{ 'Ver detalle de la orden' | t }}">
               <td>
-                <button type="button" class="oc-numero-link" (click)="$event.stopPropagation(); openDetail(orden)" title="Ver detalle">
+                <button type="button" class="oc-numero-link" (click)="$event.stopPropagation(); openDetail(orden)" title="{{ 'Ver detalle' | t }}">
                   <code class="code-tag">{{ orden.numero }}</code>
                 </button>
-                @if (orden.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                @if (orden.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
               </td>
               <td>{{ orden.proveedor?.nombre ?? '—' }}</td>
-              <td class="text-muted">{{ orden.destino === 'oficina' ? 'Oficina' : (orden.proyecto?.nombre ?? '—') }}</td>
+              <td class="text-muted">{{ orden.destino === 'oficina' ? ('Oficina' | t) : (orden.proyecto?.nombre ?? '—') }}</td>
               <td>
-                <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
+                <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) | t }}</span>
               </td>
               <td>{{ formatFecha(orden.fecha) }}</td>
               <td>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</td>
@@ -157,8 +157,8 @@
                     type="button"
                     class="action-btn action-btn--view"
                     (click)="$event.stopPropagation(); openDetail(orden)"
-                    [attr.aria-label]="'Ver orden ' + orden.numero"
-                    title="Ver detalle y cambiar estado"
+                    [attr.aria-label]="i18n.t('Ver orden') + ' ' + orden.numero"
+                    title="{{ 'Ver detalle y cambiar estado' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -175,14 +175,14 @@
 
     <!-- ── Footer count ── -->
     <div class="table-footer">
-      {{ filtered().length }} orden{{ filtered().length !== 1 ? 'es' : '' }} encontrada{{ filtered().length !== 1 ? 's' : '' }}
+      {{ filtered().length }} {{ (filtered().length !== 1 ? 'órdenes' : 'orden') | t }} {{ (filtered().length !== 1 ? 'encontradas' : 'encontrada') | t }}
     </div>
   }
 </div>
 
 <!-- ── Create Drawer ── -->
 <app-form-drawer
-  title="Nueva orden de compra"
+  title="{{ 'Nueva orden de compra' | t }}"
   [open]="createDrawerOpen()"
   [wide]="true"
   (closed)="closeCreate()"
@@ -191,9 +191,9 @@
 
     <div class="sgc-field">
       <label for="proveedor_id">
-        Proveedor <span class="required">*</span>
+        {{ 'Proveedor' | t }} <span class="required">*</span>
         <button type="button" class="oc-inline-link" (click)="toggleNuevoProveedor()">
-          {{ showNuevoProveedor() ? 'Cancelar' : '+ Nuevo proveedor' }}
+          {{ (showNuevoProveedor() ? 'Cancelar' : '+ Nuevo proveedor') | t }}
         </button>
       </label>
       @if (!showNuevoProveedor()) {
@@ -202,29 +202,29 @@
           formControlName="proveedor_id"
           [class.invalid]="f.proveedor_id.invalid && f.proveedor_id.touched"
         >
-          <option [ngValue]="null">Seleccionar proveedor…</option>
+          <option [ngValue]="null">{{ 'Seleccionar proveedor…' | t }}</option>
           @for (p of activeProveedores(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
         </select>
         @if (f.proveedor_id.invalid && f.proveedor_id.touched) {
-          <span class="field-error">El proveedor es obligatorio.</span>
+          <span class="field-error">{{ 'El proveedor es obligatorio.' | t }}</span>
         }
       } @else {
         <!-- Z6 — alta inline de proveedor -->
         <div class="oc-nuevo-prov" [formGroup]="nuevoProveedorForm">
-          <input type="text" formControlName="nombre" placeholder="Nombre del proveedor *" />
+          <input type="text" formControlName="nombre" placeholder="{{ 'Nombre del proveedor *' | t }}" />
           <div class="form-row">
-            <input type="text" formControlName="rnc" placeholder="RNC / Cédula" />
-            <input type="text" formControlName="telefono" placeholder="Teléfono" />
+            <input type="text" formControlName="rnc" placeholder="{{ 'RNC / Cédula' | t }}" />
+            <input type="text" formControlName="telefono" placeholder="{{ 'Teléfono' | t }}" />
           </div>
           <div class="form-row">
-            <input type="text" formControlName="contacto" placeholder="Contacto" />
-            <input type="email" formControlName="email" placeholder="Correo" />
+            <input type="text" formControlName="contacto" placeholder="{{ 'Contacto' | t }}" />
+            <input type="email" formControlName="email" placeholder="{{ 'Correo' | t }}" />
           </div>
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                   [disabled]="guardandoProveedor()" (click)="crearProveedorInline()">
-            Guardar proveedor
+            {{ 'Guardar proveedor' | t }}
           </button>
         </div>
       }
@@ -232,33 +232,33 @@
 
     <!-- Z6 — destino: proyecto | oficina -->
     <div class="sgc-field">
-      <label>Destino</label>
+      <label>{{ 'Destino' | t }}</label>
       <div class="oc-destino">
         <button type="button" class="oc-destino__opt" [class.active]="destino() === 'proyecto'"
-                (click)="destino.set('proyecto')">Proyecto / Obra</button>
+                (click)="destino.set('proyecto')">{{ 'Proyecto / Obra' | t }}</button>
         <button type="button" class="oc-destino__opt" [class.active]="destino() === 'oficina'"
-                (click)="destino.set('oficina')">Oficina</button>
+                (click)="destino.set('oficina')">{{ 'Oficina' | t }}</button>
       </div>
     </div>
 
     @if (destino() === 'proyecto') {
       <div class="sgc-field">
-        <label for="proyecto_id">Proyecto <span class="required">*</span></label>
+        <label for="proyecto_id">{{ 'Proyecto' | t }} <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [ngValue]="null">Seleccionar proyecto…</option>
+          <option [ngValue]="null">{{ 'Seleccionar proyecto…' | t }}</option>
           @for (proy of proyectos(); track proy.id) {
             <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
           }
         </select>
         @if (!proyectos().length) {
-          <p class="sgc-field__hint text-muted">No hay obras activas disponibles. Si esperabas ver alguna, pide que te asignen a la obra.</p>
+          <p class="sgc-field__hint text-muted">{{ 'No hay obras activas disponibles. Si esperabas ver alguna, pide que te asignen a la obra.' | t }}</p>
         }
       </div>
     }
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha">Fecha <span class="required">*</span></label>
+        <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
         <input
           id="fecha"
           type="date"
@@ -266,12 +266,12 @@
           [class.invalid]="f.fecha.invalid && f.fecha.touched"
         />
         @if (f.fecha.invalid && f.fecha.touched) {
-          <span class="field-error">La fecha es obligatoria.</span>
+          <span class="field-error">{{ 'La fecha es obligatoria.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="fecha_entrega_esperada">Fecha de entrega</label>
+        <label for="fecha_entrega_esperada">{{ 'Fecha de entrega' | t }}</label>
         <input
           id="fecha_entrega_esperada"
           type="date"
@@ -282,26 +282,26 @@
 
     <div class="sgc-field">
       <label for="notas">
-        Notas
+        {{ 'Notas' | t }}
         @if (!solicitudEnAtencion()) { <span class="required" aria-hidden="true">*</span> }
       </label>
       <textarea
         id="notas"
         formControlName="notas"
         rows="2"
-        [placeholder]="solicitudEnAtencion() ? 'Notas adicionales…' : 'Orden directa (sin solicitud): indica el motivo…'"
+        [placeholder]="solicitudEnAtencion() ? i18n.t('Notas adicionales…') : i18n.t('Orden directa (sin solicitud): indica el motivo…')"
       ></textarea>
     </div>
 
     <!-- Items section -->
     <div class="items-section">
       <div class="items-section__header">
-        <span class="items-section__title">Ítems</span>
+        <span class="items-section__title">{{ 'Ítems' | t }}</span>
         <button type="button" class="sgc-btn sgc-btn--ghost items-section__add" (click)="addItem()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Agregar ítem
+          {{ 'Agregar ítem' | t }}
         </button>
       </div>
 
@@ -315,7 +315,7 @@
         @for (item of formItems(); track $index) {
           <div class="item-row">
             <div class="item-row__desc sgc-field">
-              <label [for]="'desc-' + $index" class="sr-only">Artículo</label>
+              <label [for]="'desc-' + $index" class="sr-only">{{ 'Artículo' | t }}</label>
               @if (odooPilotoHabilitado()) {
                 <!-- CY24 (#24, D1) — piloto encendido: el selector busca en Odoo, no en sgc.articulos. -->
                 <app-odoo-producto-picker
@@ -340,12 +340,12 @@
                   list="articulos-catalogo"
                   [value]="item.descripcion"
                   (input)="updateItem($index, 'descripcion', $any($event.target).value)"
-                  placeholder="Describe el ítem (Otro)…"
+                  placeholder="{{ 'Describe el ítem (Otro)…' | t }}"
                 />
               }
             </div>
             <div class="item-row__qty sgc-field">
-              <label [for]="'qty-' + $index" class="sr-only">Cantidad</label>
+              <label [for]="'qty-' + $index" class="sr-only">{{ 'Cantidad' | t }}</label>
               <input
                 [id]="'qty-' + $index"
                 type="number"
@@ -353,11 +353,11 @@
                 (input)="updateItem($index, 'cantidad', $any($event.target).value)"
                 min="1"
                 step="1"
-                placeholder="Cant."
+                placeholder="{{ 'Cant.' | t }}"
               />
             </div>
             <div class="item-row__price sgc-field">
-              <label [for]="'price-' + $index" class="sr-only">Precio unitario</label>
+              <label [for]="'price-' + $index" class="sr-only">{{ 'Precio unitario' | t }}</label>
               <input
                 [id]="'price-' + $index"
                 type="number"
@@ -365,7 +365,7 @@
                 (input)="updateItem($index, 'precio_unitario', $any($event.target).value)"
                 min="0"
                 step="0.01"
-                placeholder="Precio"
+                placeholder="{{ 'Precio' | t }}"
               />
             </div>
             <div class="item-row__total">
@@ -376,7 +376,7 @@
                 type="button"
                 class="item-row__remove"
                 (click)="removeItem($index)"
-                [attr.aria-label]="'Eliminar ítem ' + ($index + 1)"
+                [attr.aria-label]="i18n.t('Eliminar ítem') + ' ' + ($index + 1)"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -391,23 +391,23 @@
       <label class="oc-itbis">
         <input type="checkbox" [checked]="aplicaImpuesto()"
                (change)="aplicaImpuesto.set($any($event.target).checked)" />
-        <span>Aplicar ITBIS (18%)</span>
+        <span>{{ 'Aplicar ITBIS (18%)' | t }}</span>
       </label>
 
       <!-- Totals -->
       <div class="items-totals">
         <div class="items-totals__row">
-          <span>Subtotal</span>
+          <span>{{ 'Subtotal' | t }}</span>
           <span>RD$ {{ subtotal() | number:'1.2-2' }}</span>
         </div>
         @if (aplicaImpuesto()) {
           <div class="items-totals__row">
-            <span>Impuesto (18%)</span>
+            <span>{{ 'Impuesto (18%)' | t }}</span>
             <span>RD$ {{ impuesto() | number:'1.2-2' }}</span>
           </div>
         }
         <div class="items-totals__row items-totals__row--total">
-          <span>Total</span>
+          <span>{{ 'Total' | t }}</span>
           <span>RD$ {{ total() | number:'1.2-2' }}</span>
         </div>
       </div>
@@ -416,7 +416,7 @@
         <label class="oc-itbis">
           <input type="checkbox" [checked]="esPruebaOrden()"
                  (change)="esPruebaOrden.set($any($event.target).checked)" />
-          <span>Marcar como dato de prueba</span>
+          <span>{{ 'Marcar como dato de prueba' | t }}</span>
         </label>
       }
     </div>
@@ -432,14 +432,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeCreate()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          Crear orden
+          {{ 'Crear orden' | t }}
         }
       </button>
     </div>
@@ -449,7 +449,7 @@
 
 <!-- ── Detail Drawer ── -->
 <app-form-drawer
-  [title]="detailOrden() ? 'Orden ' + detailOrden()!.numero : 'Detalle'"
+  [title]="detailOrden() ? i18n.t('Orden') + ' ' + detailOrden()!.numero : i18n.t('Detalle')"
   [open]="detailDrawerOpen()"
   (closed)="closeDetail()"
 >
@@ -463,32 +463,32 @@
       <!-- Info grid -->
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">Número</span>
+          <span class="detail-field__label">{{ 'Número' | t }}</span>
           <code class="code-tag">{{ orden.numero }}</code>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Estado</span>
-          <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
+          <span class="detail-field__label">{{ 'Estado' | t }}</span>
+          <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) | t }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Proveedor</span>
+          <span class="detail-field__label">{{ 'Proveedor' | t }}</span>
           <span>{{ orden.proveedor?.nombre ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Proyecto</span>
+          <span class="detail-field__label">{{ 'Proyecto' | t }}</span>
           <span>{{ orden.proyecto?.nombre ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Fecha</span>
+          <span class="detail-field__label">{{ 'Fecha' | t }}</span>
           <span>{{ formatFecha(orden.fecha) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Entrega esperada</span>
+          <span class="detail-field__label">{{ 'Entrega esperada' | t }}</span>
           <span>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</span>
         </div>
         @if (orden.notas) {
           <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Notas</span>
+            <span class="detail-field__label">{{ 'Notas' | t }}</span>
             <span>{{ orden.notas }}</span>
           </div>
         }
@@ -496,33 +496,33 @@
 
       <!-- Estado actions -->
       <div class="detail-estado">
-        <span class="detail-estado__label">Cambiar estado:</span>
+        <span class="detail-estado__label">{{ 'Cambiar estado:' | t }}</span>
         @for (e of nextEstados(orden.estado); track e) {
           <button
             type="button"
             class="sgc-btn sgc-btn--ghost detail-estado__btn"
             (click)="cambiarEstado(orden, e)"
           >
-            {{ estadoLabel(e) }}
+            {{ estadoLabel(e) | t }}
           </button>
         }
         @if (orden.estado === 'recibida' && reconciliacionIncompleta()) {
           <button
             type="button"
             class="sgc-btn sgc-btn--ghost detail-estado__btn"
-            title="Esta orden se marcó recibida pero algunos renglones todavía no tienen una entrada real registrada — reabrirla la devuelve a Entradas."
+            title="{{ 'Esta orden se marcó recibida pero algunos renglones todavía no tienen una entrada real registrada — reabrirla la devuelve a Entradas.' | t }}"
             (click)="reabrirRecepcion(orden)"
           >
-            Reabrir recepción
+            {{ 'Reabrir recepción' | t }}
           </button>
         }
       </div>
 
       @if (orden.estado === 'recibida' && reconciliacionIncompleta()) {
         <div class="detail-estado__aviso">
-          <span>Figura recibida pero el inventario no recibió estos artículos.</span>
+          <span>{{ 'Figura recibida pero el inventario no recibió estos artículos.' | t }}</span>
           <button type="button" class="sgc-btn sgc-btn--secondary" (click)="irARegistrarEntrada(orden)">
-            Registrar entrada de esta orden
+            {{ 'Registrar entrada de esta orden' | t }}
           </button>
         </div>
       }
@@ -530,11 +530,11 @@
       <!-- DM-20 — bloqueo de "recibida" (no-admin): diálogo guiado con acción, no un toast sin salida. -->
       @if (bloqueoRecibida(); as br) {
         <div class="oc-nuevo-prov">
-          <p class="text-muted" style="margin:0 0 .5rem">No se puede marcar "recibida": {{ br.detalle }}</p>
+          <p class="text-muted" style="margin:0 0 .5rem">{{ 'No se puede marcar "recibida":' | t }} {{ br.detalle }}</p>
           <div class="form-row" style="margin-top:.5rem">
-            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarBloqueoRecibida()">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarBloqueoRecibida()">{{ 'Cancelar' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--primary" (click)="irARegistrarEntradaDesdeBloqueo(orden)">
-              Registrar entrada ahora
+              {{ 'Registrar entrada ahora' | t }}
             </button>
           </div>
         </div>
@@ -544,18 +544,18 @@
       @if (forzarRecibida(); as fr) {
         <div class="oc-nuevo-prov">
           <p class="text-muted" style="margin:0 0 .5rem">{{ fr.detalle }}</p>
-          <p class="text-muted" style="margin:0 0 .5rem">Para forzar "recibida" de todas formas, escribe el motivo:</p>
+          <p class="text-muted" style="margin:0 0 .5rem">{{ 'Para forzar "recibida" de todas formas, escribe el motivo:' | t }}</p>
           <textarea
             class="sgc-input"
             rows="2"
             [value]="forzarMotivo()"
             (input)="forzarMotivo.set($any($event.target).value)"
-            placeholder="Motivo del forzado…"
+            placeholder="{{ 'Motivo del forzado…' | t }}"
           ></textarea>
           <div class="form-row" style="margin-top:.5rem">
-            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarForzarRecibida()">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarForzarRecibida()">{{ 'Cancelar' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="!forzarMotivo().trim()" (click)="confirmarForzarRecibida()">
-              Forzar "recibida"
+              {{ 'Forzar "recibida"' | t }}
             </button>
           </div>
         </div>
@@ -564,15 +564,15 @@
       <!-- Items table -->
       @if (orden.items && orden.items.length > 0) {
         <div class="detail-items">
-          <h3 class="detail-items__title">Ítems</h3>
+          <h3 class="detail-items__title">{{ 'Ítems' | t }}</h3>
           <div class="detail-items__scroll">
-            <table class="data-table" aria-label="Ítems de la orden">
+            <table class="data-table" aria-label="{{ 'Ítems de la orden' | t }}">
               <thead>
                 <tr>
-                  <th>Descripción</th>
-                  <th class="text-right">Cantidad</th>
-                  <th class="text-right">Precio unit.</th>
-                  <th class="text-right">Total</th>
+                  <th>{{ 'Descripción' | t }}</th>
+                  <th class="text-right">{{ 'Cantidad' | t }}</th>
+                  <th class="text-right">{{ 'Precio unit.' | t }}</th>
+                  <th class="text-right">{{ 'Total' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -593,15 +593,15 @@
       <!-- Totals -->
       <div class="items-totals items-totals--detail">
         <div class="items-totals__row">
-          <span>Subtotal</span>
+          <span>{{ 'Subtotal' | t }}</span>
           <span>RD$ {{ orden.subtotal | number:'1.2-2' }}</span>
         </div>
         <div class="items-totals__row">
-          <span>Impuesto (18%)</span>
+          <span>{{ 'Impuesto (18%)' | t }}</span>
           <span>RD$ {{ orden.impuesto | number:'1.2-2' }}</span>
         </div>
         <div class="items-totals__row items-totals__row--total">
-          <span>Total</span>
+          <span>{{ 'Total' | t }}</span>
           <span>RD$ {{ orden.total | number:'1.2-2' }}</span>
         </div>
       </div>
@@ -609,16 +609,16 @@
       <!-- QA-076 — Reconciliación recibido vs ordenado por renglón -->
       @if (reconciliacion().length > 0) {
         <div class="detail-items">
-          <h3 class="detail-items__title">Reconciliación de recepción</h3>
+          <h3 class="detail-items__title">{{ 'Reconciliación de recepción' | t }}</h3>
           <div class="detail-items__scroll">
-            <table class="data-table" aria-label="Reconciliación de recepción por renglón">
+            <table class="data-table" aria-label="{{ 'Reconciliación de recepción por renglón' | t }}">
               <thead>
                 <tr>
-                  <th>Descripción</th>
-                  <th class="text-right">Ordenado</th>
-                  <th class="text-right">Recibido</th>
-                  <th class="text-center">Estado</th>
-                  <th class="text-center">Acción</th>
+                  <th>{{ 'Descripción' | t }}</th>
+                  <th class="text-right">{{ 'Ordenado' | t }}</th>
+                  <th class="text-right">{{ 'Recibido' | t }}</th>
+                  <th class="text-center">{{ 'Estado' | t }}</th>
+                  <th class="text-center">{{ 'Acción' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -628,14 +628,14 @@
                     <td class="text-right">{{ r.ordenada | number:'1.0-2' }}</td>
                     <td class="text-right">{{ r.recibida === null ? '—' : (r.recibida | number:'1.0-2') }}</td>
                     <td class="text-center">
-                      <span [class]="reconEstadoClass(r.estado)">{{ reconEstadoLabel(r.estado) }}</span>
+                      <span [class]="reconEstadoClass(r.estado)">{{ reconEstadoLabel(r.estado) | t }}</span>
                     </td>
                     <td class="text-center">
                       @if (r.estado === 'sin_articulo') {
                         @if (vincularItemId() !== r.itemId) {
-                          <button type="button" class="oc-inline-link" (click)="abrirVincularArticulo(r)">Vincular artículo</button>
+                          <button type="button" class="oc-inline-link" (click)="abrirVincularArticulo(r)">{{ 'Vincular artículo' | t }}</button>
                         } @else {
-                          <span class="text-muted">↓ abajo</span>
+                          <span class="text-muted">{{ '↓ abajo' | t }}</span>
                         }
                       } @else {
                         <span class="text-muted">—</span>
@@ -647,53 +647,53 @@
                       <td colspan="5">
                         <div class="oc-nuevo-prov">
                           <p class="text-muted" style="margin:0 0 .5rem">
-                            Vincular <b>{{ r.descripcion }}</b> a un artículo del catálogo (habilita recibirlo en Inventario › Entradas).
+                            {{ 'Vincular' | t }} <b>{{ r.descripcion }}</b> {{ 'a un artículo del catálogo (habilita recibirlo en Inventario › Entradas).' | t }}
                           </p>
                           <div class="form-row">
                             <button type="button" class="oc-destino__opt" [class.active]="vincularModo() === 'existente'"
-                                    (click)="vincularModo.set('existente')">Buscar existente</button>
+                                    (click)="vincularModo.set('existente')">{{ 'Buscar existente' | t }}</button>
                             <button type="button" class="oc-destino__opt" [class.active]="vincularModo() === 'nuevo'"
-                                    (click)="vincularModo.set('nuevo')">Crear nuevo</button>
+                                    (click)="vincularModo.set('nuevo')">{{ 'Crear nuevo' | t }}</button>
                           </div>
 
                           @if (vincularModo() === 'existente') {
-                            <p class="text-muted" style="margin:.5rem 0">Búscalo por nombre o código — evita crear un artículo duplicado si ya existe con otro nombre.</p>
+                            <p class="text-muted" style="margin:.5rem 0">{{ 'Búscalo por nombre o código — evita crear un artículo duplicado si ya existe con otro nombre.' | t }}</p>
                             <app-articulo-picker
                               [articulos]="articulos()"
                               [categorias]="categorias()"
                               [value]="vincularArticuloExistenteId()"
                               [allowOtro]="false"
-                              placeholder="Buscar artículo del catálogo…"
+                              placeholder="{{ 'Buscar artículo del catálogo…' | t }}"
                               (selectionChange)="onVincularExistenteSelect($event)"
                             />
                             <div class="form-row">
-                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">Cancelar</button>
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">{{ 'Cancelar' | t }}</button>
                               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                                       [disabled]="vinculandoArticulo() || !vincularArticuloExistenteId()"
                                       (click)="confirmarVincularExistente(r)">
-                                {{ vinculandoArticulo() ? 'Vinculando…' : 'Vincular' }}
+                                {{ (vinculandoArticulo() ? 'Vinculando…' : 'Vincular') | t }}
                               </button>
                             </div>
                           } @else {
                             <div class="form-row">
                               <select [ngModel]="vincularCategoriaId()" (ngModelChange)="vincularCategoriaId.set($event)">
-                                <option [ngValue]="null">Categoría…</option>
+                                <option [ngValue]="null">{{ 'Categoría…' | t }}</option>
                                 @for (c of categorias(); track c.id) {
                                   <option [ngValue]="c.id">{{ c.nombre }}</option>
                                 }
                               </select>
                               <select [ngModel]="vincularUnidad()" (ngModelChange)="vincularUnidad.set($event)">
                                 @for (u of unidadesArticulo; track u.value) {
-                                  <option [value]="u.value">{{ u.label }}</option>
+                                  <option [value]="u.value">{{ u.label | t }}</option>
                                 }
                               </select>
                             </div>
                             <div class="form-row">
-                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">Cancelar</button>
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">{{ 'Cancelar' | t }}</button>
                               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                                       [disabled]="vinculandoArticulo() || !vincularCategoriaId()"
                                       (click)="confirmarVincularArticulo(r)">
-                                {{ vinculandoArticulo() ? 'Creando…' : 'Crear y vincular' }}
+                                {{ (vinculandoArticulo() ? 'Creando…' : 'Crear y vincular') | t }}
                               </button>
                             </div>
                           }
@@ -705,25 +705,25 @@
               </tbody>
             </table>
           </div>
-          <p class="text-muted recon-note">Los renglones sin artículo del catálogo se pueden recibir en Inventario › Entradas eligiendo el artículo equivalente, pero no se reconcilian automáticamente aquí hasta vincularlos a uno.</p>
+          <p class="text-muted recon-note">{{ 'Los renglones sin artículo del catálogo se pueden recibir en Inventario › Entradas eligiendo el artículo equivalente, pero no se reconcilian automáticamente aquí hasta vincularlos a uno.' | t }}</p>
         </div>
       }
 
       <!-- Receiving history -->
       <div class="detail-items">
-        <h3 class="detail-items__title">Entradas recibidas ({{ detailEntradas().length }})</h3>
+        <h3 class="detail-items__title">{{ 'Entradas recibidas' | t }} ({{ detailEntradas().length }})</h3>
         @if (detailEntradas().length === 0) {
-          <p class="text-muted">Aún no se ha registrado ninguna entrada de inventario contra esta orden.</p>
+          <p class="text-muted">{{ 'Aún no se ha registrado ninguna entrada de inventario contra esta orden.' | t }}</p>
         } @else {
           <div class="detail-items__scroll">
-            <table class="data-table" aria-label="Entradas recibidas de la orden">
+            <table class="data-table" aria-label="{{ 'Entradas recibidas de la orden' | t }}">
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Almacén</th>
-                  <th>Referencia</th>
-                  <th class="text-right">Artículos</th>
-                  <th class="text-right">Total</th>
+                  <th>{{ 'Fecha' | t }}</th>
+                  <th>{{ 'Almacén' | t }}</th>
+                  <th>{{ 'Referencia' | t }}</th>
+                  <th class="text-right">{{ 'Artículos' | t }}</th>
+                  <th class="text-right">{{ 'Total' | t }}</th>
                 </tr>
               </thead>
               <tbody>

@@ -6,6 +6,8 @@ import { Cargo } from '../../../../shared/models/personal-obra.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** Fila previsualizada del import (antes de confirmar). */
 interface FilaPrev {
@@ -64,7 +66,7 @@ function parsePermiso(obs: string | null): string | null {
 
 @Component({
   selector: 'app-personal-import',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TranslatePipe],
   templateUrl: './personal-import.html',
   styleUrl: './personal-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,6 +75,7 @@ export class PersonalImport implements OnInit {
   private svc = inject(PersonalObraService);
   private proyectosSvc = inject(ProyectosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   paso = signal<'subir' | 'previsualizar' | 'diff' | 'resultado'>('subir');
   cargos = signal<Cargo[]>([]);
@@ -302,7 +305,7 @@ export class PersonalImport implements OnInit {
     const n = this.igualesCount(index);
     this.filas.update((fs) => fs.map((f) => (f.cargo_origen === origen ? this.aplicarCargo(f, id) : f)));
     this.aprenderAlias(origen, id);
-    this.toast.success('Aplicado', `${n} filas con «${origen}» quedaron como ${this.cargoNombre(id)}.`);
+    this.toast.success(this.i18n.t('Aplicado'), `${n} filas con «${origen}» quedaron como ${this.cargoNombre(id)}.`);
   }
 
   /** Nº de otras filas con el mismo texto de origen que la fila dada (para el botón). */
@@ -393,16 +396,16 @@ export class PersonalImport implements OnInit {
 
       XLSX.writeFile(wb, 'plantilla-personal-obra.xlsx');
     } catch (e) {
-      this.toast.error('No se pudo generar la plantilla', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo generar la plantilla'), e instanceof Error ? e.message : undefined);
     }
   }
 
   /** AV4 — paso 1: calcula el diff contra el estado actual y muestra altas/actualizaciones/bajas. */
   async verDiff() {
     const obraId = this.obraSeleccionada();
-    if (!obraId) { this.toast.warning('Elige la obra', 'Confirma a qué obra se importa el personal.'); return; }
+    if (!obraId) { this.toast.warning(this.i18n.t('Elige la obra'), 'Confirma a qué obra se importa el personal.'); return; }
     const importables = this.filas().filter((f) => f.estado !== 'error');
-    if (!importables.length) { this.toast.warning('Nada que importar', 'Todas las filas tienen error.'); return; }
+    if (!importables.length) { this.toast.warning(this.i18n.t('Nada que importar'), 'Todas las filas tienen error.'); return; }
     this.procesando.set(true);
     this.error.set('');
     try {
@@ -449,7 +452,7 @@ export class PersonalImport implements OnInit {
       this.resultado.set(res);
       this.ultimoLote.set(lote);
       this.paso.set('resultado');
-      this.toast.success('Import completado', `${res.creados} altas, ${res.actualizados} actualizados, ${res.bajas ?? 0} bajas.`);
+      this.toast.success(this.i18n.t('Import completado'), `${res.creados} altas, ${res.actualizados} actualizados, ${res.bajas ?? 0} bajas.`);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo importar.');
     } finally {
@@ -460,14 +463,14 @@ export class PersonalImport implements OnInit {
   async deshacer() {
     const lote = this.ultimoLote();
     if (!lote || this.procesando()) return;
-    if (!confirm('¿Deshacer este lote? Se eliminarán las personas creadas en esta importación (las actualizaciones no se revierten).')) return;
+    if (!confirm(this.i18n.t('¿Deshacer este lote? Se eliminarán las personas creadas en esta importación (las actualizaciones no se revierten).'))) return;
     this.procesando.set(true);
     try {
       const n = await this.svc.deshacerLote(lote);
-      this.toast.success('Lote deshecho', `Se eliminaron ${n} registros.`);
+      this.toast.success(this.i18n.t('Lote deshecho'), `Se eliminaron ${n} registros.`);
       this.ultimoLote.set(null);
     } catch (e) {
-      this.toast.error('No se pudo deshacer', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo deshacer'), e instanceof Error ? e.message : undefined);
     } finally {
       this.procesando.set(false);
     }

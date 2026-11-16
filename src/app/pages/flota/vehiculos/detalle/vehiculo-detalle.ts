@@ -54,6 +54,7 @@ import { Icon } from '../../../../../shared/ui/icon/icon';
 import { UserPicker, UserPickerSelection } from '../../../../../shared/ui/user-picker/user-picker';
 import { PdfViewer } from '../../../../../shared/ui/pdf-viewer/pdf-viewer';
 import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../../shared/i18n/i18n.service';
 import { formatFechaDisplay, formatTimestampDisplay, formatFechaHoraDisplay } from '../../../../../shared/utils/fecha.util';
 
 const LLAVE_UBICACION_LABEL: Record<LlaveUbicacion, string> = {
@@ -80,6 +81,7 @@ export class VehiculoDetalle implements OnInit {
   private mantenimientosService = inject(MantenimientosService);
   private combustibleService = inject(CombustibleService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private notificaciones = inject(NotificacionesService);
   private userService = inject(UserService);
   private incidencias = inject(FlotaIncidenciasService);
@@ -336,9 +338,9 @@ export class VehiculoDetalle implements OnInit {
       this.vehiculo.set(v);
       await this.cargarSpec();
       this.specOpen.set(false);
-      this.toast.success('Especificación guardada', `Se recalcularon ${n} echadas de este vehículo.`);
+      this.toast.success(this.i18n.t('Especificación guardada'), `Se recalcularon ${n} echadas de este vehículo.`);
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.savingSpec.set(false);
     }
@@ -444,9 +446,9 @@ export class VehiculoDetalle implements OnInit {
       await this.vehiculosService.reactivar(v.id);
       this.vehiculo.update((x) => (x ? { ...x, estado: 'activo' } : x));
       this.notificaciones.refresh();
-      this.toast.success('Vehículo reactivado', 'El vehículo volvió a estado activo.');
+      this.toast.success(this.i18n.t('Vehículo reactivado'), 'El vehículo volvió a estado activo.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo reactivar el vehículo.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo reactivar el vehículo.');
     } finally {
       this.reactivando.set(false);
     }
@@ -463,13 +465,13 @@ export class VehiculoDetalle implements OnInit {
       await this.vehiculosService.toggleVisibleChoferes(v.id, nuevo);
       this.vehiculo.update((x) => (x ? { ...x, visible_choferes: nuevo } : x));
       this.toast.success(
-        nuevo ? 'Visible para choferes' : 'Oculto para choferes',
+        this.i18n.t(nuevo ? 'Visible para choferes' : 'Oculto para choferes'),
         nuevo
           ? 'El vehículo aparecerá en los selects de los choferes.'
           : 'El vehículo no aparecerá en los selects de los choferes.',
       );
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo cambiar la visibilidad.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo cambiar la visibilidad.');
     } finally {
       this.guardandoVisible.set(false);
     }
@@ -521,22 +523,22 @@ export class VehiculoDetalle implements OnInit {
       }
       this.asignaciones.set(await this.vehiculosService.getAsignaciones(this.vehiculoId));
       this.drawerOpen.set(false);
-      this.toast.success('Persona asignada', 'La asignación se registró correctamente.');
+      this.toast.success(this.i18n.t('Persona asignada'), 'La asignación se registró correctamente.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo crear la asignación.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo crear la asignación.');
     } finally {
       this.guardando.set(false);
     }
   }
 
   async retirar(a: VehiculoAsignacion) {
-    if (!confirm(`¿Retirar la asignación de ${this.asigNombre(a)}?`)) return;
+    if (!confirm(this.i18n.t('¿Retirar la asignación de {nombre}?', { nombre: this.asigNombre(a) }))) return;
     try {
       await this.vehiculosService.retirarAsignacion(a.id);
       this.asignaciones.set(await this.vehiculosService.getAsignaciones(this.vehiculoId));
-      this.toast.success('Asignación retirada', 'Se marcó como inactiva.');
+      this.toast.success(this.i18n.t('Asignación retirada'), 'Se marcó como inactiva.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo retirar la asignación.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo retirar la asignación.');
     }
   }
 
@@ -585,22 +587,22 @@ export class VehiculoDetalle implements OnInit {
       });
       await this.cargarAutorizaciones();
       this.autDrawer.set(false);
-      this.toast.success('Chofer autorizado', 'La autorización se registró correctamente.');
+      this.toast.success(this.i18n.t('Chofer autorizado'), 'La autorización se registró correctamente.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo autorizar al chofer.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo autorizar al chofer.');
     } finally {
       this.autGuardando.set(false);
     }
   }
 
   async retirarAutorizacion(a: VehiculoAutorizacion) {
-    if (!confirm(`¿Retirar la autorización de ${a.usuario_nombre}?`)) return;
+    if (!confirm(this.i18n.t('¿Retirar la autorización de {nombre}?', { nombre: a.usuario_nombre }))) return;
     try {
       await this.vehiculosService.retirarVehiculoPrivado(a.id);
       await this.cargarAutorizaciones();
-      this.toast.success('Autorización retirada', 'El chofer ya no está autorizado para este vehículo.');
+      this.toast.success(this.i18n.t('Autorización retirada'), 'El chofer ya no está autorizado para este vehículo.');
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo retirar la autorización.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo retirar la autorización.');
     }
   }
 
@@ -608,7 +610,7 @@ export class VehiculoDetalle implements OnInit {
   async abrirAdjunto(adj: MantenimientoAdjunto) {
     const url = await this.mantenimientosService.getAdjuntoUrl(adj.path);
     if (!url) {
-      this.toast.error('No se pudo abrir el adjunto', 'Vuelve a intentarlo.');
+      this.toast.error(this.i18n.t('No se pudo abrir el adjunto'), 'Vuelve a intentarlo.');
       return;
     }
     const esPdf = adj.mime === 'application/pdf' || adj.nombre.toLowerCase().endsWith('.pdf');
@@ -646,9 +648,9 @@ export class VehiculoDetalle implements OnInit {
       await this.vehiculosService.setFotos(v.id, v.fotos ?? [], path);
       this.vehiculo.update((x) => (x ? { ...x, foto_portada: path } : x));
       this.fotoUrl.set(await this.vehiculosService.getFotoUrl(path));
-      this.toast.success('Portada actualizada');
+      this.toast.success(this.i18n.t('Portada actualizada'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo actualizar la portada.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo actualizar la portada.');
     } finally {
       this.guardandoPortada.set(false);
     }
@@ -711,9 +713,9 @@ export class VehiculoDetalle implements OnInit {
     const pp = this.placaPP();
     const d = this.ppDiasRestantes();
     if (!pp) return { label: '', clase: 'neutral' };
-    if (pp.estado === 'vencida' || (d != null && d < 0)) return { label: 'Vencida', clase: 'danger' };
-    if (d != null && d <= 15) return { label: `Vence en ${d} día(s)`, clase: 'warning' };
-    return { label: `Faltan ${d} día(s)`, clase: 'info' };
+    if (pp.estado === 'vencida' || (d != null && d < 0)) return { label: this.i18n.t('Vencida'), clase: 'danger' };
+    if (d != null && d <= 15) return { label: this.i18n.t('Vence en {d} día(s)', { d: d ?? 0 }), clase: 'warning' };
+    return { label: this.i18n.t('Faltan {d} día(s)', { d: d ?? 0 }), clase: 'info' };
   });
 
   private async cargarPlacaPP() {
@@ -759,7 +761,7 @@ export class VehiculoDetalle implements OnInit {
         notas: v.notas?.trim() || null,
       });
       await this.cargarPlacaPP();
-      this.toast.success('Placa provisional registrada', 'Se inició el conteo del plazo.');
+      this.toast.success(this.i18n.t('Placa provisional registrada'), 'Se inició el conteo del plazo.');
       this.ppDrawer.set(null);
     } catch (e: unknown) {
       this.ppError.set(e instanceof Error ? e.message : 'No se pudo registrar.');
@@ -775,7 +777,7 @@ export class VehiculoDetalle implements OnInit {
       const v = this.ampliarPPForm.value;
       await this.vehiculosService.ampliarPlacaPP(pp.id, Number(v.dias), v.motivo?.trim() || null);
       await this.cargarPlacaPP();
-      this.toast.success('Plazo ampliado', 'Se re-agendó el vencimiento.');
+      this.toast.success(this.i18n.t('Plazo ampliado'), 'Se re-agendó el vencimiento.');
       this.ppDrawer.set(null);
     } catch (e: unknown) {
       this.ppError.set(e instanceof Error ? e.message : 'No se pudo ampliar.');
@@ -796,7 +798,7 @@ export class VehiculoDetalle implements OnInit {
         marbete_numero: v.marbete_numero?.trim() || null,
         fecha_entrega: v.fecha_entrega || null,
       });
-      this.toast.success('Placa definitiva registrada', 'Se registró la placa y el marbete DGII.');
+      this.toast.success(this.i18n.t('Placa definitiva registrada'), 'Se registró la placa y el marbete DGII.');
       this.ppDrawer.set(null);
       // Recargar el vehículo (la placa cambió) + PP.
       try {
@@ -832,11 +834,11 @@ export class VehiculoDetalle implements OnInit {
     const v = this.llaveForm.getRawValue();
     const tipo = v.ubicacion_tipo as LlaveUbicacion;
     if (tipo === 'chofer_asignado' && !v.portador_usuario_id) {
-      this.toast.error('Falta el portador', 'Elige quién lleva la llave.');
+      this.toast.error(this.i18n.t('Falta el portador'), 'Elige quién lleva la llave.');
       return;
     }
     if (tipo === 'otro' && !v.ubicacion_detalle?.trim()) {
-      this.toast.error('Falta el detalle', 'Describe dónde está la llave.');
+      this.toast.error(this.i18n.t('Falta el detalle'), 'Describe dónde está la llave.');
       return;
     }
     this.llaveGuardando.set(true);
@@ -851,9 +853,9 @@ export class VehiculoDetalle implements OnInit {
       });
       await this.cargarLlaves();
       this.llaveDrawer.set(false);
-      this.toast.success('Llave actualizada', `Se registró el traspaso de la llave #${this.llaveEditando()}.`);
+      this.toast.success(this.i18n.t('Llave actualizada'), `Se registró el traspaso de la llave #${this.llaveEditando()}.`);
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar la llave.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo registrar la llave.');
     } finally {
       this.llaveGuardando.set(false);
     }
@@ -933,9 +935,9 @@ export class VehiculoDetalle implements OnInit {
       );
       this.accDrawer.set(false);
       await this.cargarIncidencias();
-      this.toast.success('Accidente registrado');
+      this.toast.success(this.i18n.t('Accidente registrado'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar el accidente.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo registrar el accidente.');
     } finally {
       this.incGuardando.set(false);
     }
@@ -970,9 +972,9 @@ export class VehiculoDetalle implements OnInit {
       );
       this.danoDrawer.set(false);
       await this.cargarIncidencias();
-      this.toast.success('Daño registrado');
+      this.toast.success(this.i18n.t('Daño registrado'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar el daño.');
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : 'No se pudo registrar el daño.');
     } finally {
       this.incGuardando.set(false);
     }

@@ -8,9 +8,10 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-mis-tareas',
-  imports: [TareaDetalle, Skeleton],
+  imports: [TareaDetalle, Skeleton, TranslatePipe],
   templateUrl: './mis-tareas.html',
   styleUrl: './mis-tareas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

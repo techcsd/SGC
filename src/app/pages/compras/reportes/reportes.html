@@ -1,11 +1,11 @@
 <!-- Header -->
 <div class="compras-reportes__header">
   <div>
-    <h1>Reportes de Compras</h1>
-    <p>Análisis de órdenes de compra y proveedores</p>
+    <h1>{{ 'Reportes de Compras' | t }}</h1>
+    <p>{{ 'Análisis de órdenes de compra y proveedores' | t }}</p>
   </div>
   <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelResumen()"
-          [disabled]="loading()" title="Exportar el resumen a Excel">
+          [disabled]="loading()" title="{{ 'Exportar el resumen a Excel' | t }}">
     <app-icon name="download" [size]="16" /> Excel
   </button>
 </div>
@@ -23,30 +23,30 @@
   <div class="compras-reportes__summary">
     <div class="compras-reportes__card compras-reportes__card--primary">
       <div class="compras-reportes__card-value">{{ totalOrdenes() }}</div>
-      <div class="compras-reportes__card-label">Total órdenes</div>
+      <div class="compras-reportes__card-label">{{ 'Total órdenes' | t }}</div>
     </div>
     <div class="compras-reportes__card compras-reportes__card--info">
       <div class="compras-reportes__card-value">{{ ordenesMes() }}</div>
-      <div class="compras-reportes__card-label">Órdenes este mes</div>
+      <div class="compras-reportes__card-label">{{ 'Órdenes este mes' | t }}</div>
     </div>
     <div class="compras-reportes__card compras-reportes__card--success">
       <div class="compras-reportes__card-value">{{ proveedoresActivos() }}</div>
-      <div class="compras-reportes__card-label">Proveedores activos</div>
+      <div class="compras-reportes__card-label">{{ 'Proveedores activos' | t }}</div>
     </div>
     <div class="compras-reportes__card compras-reportes__card--warning">
       <div class="compras-reportes__card-value">RD$ {{ totalGasto() | number:'1.0-0' }}</div>
-      <div class="compras-reportes__card-label">Total gasto aprobado</div>
+      <div class="compras-reportes__card-label">{{ 'Total gasto aprobado' | t }}</div>
     </div>
   </div>
 
   <!-- Section 1: Órdenes por estado -->
   <section class="compras-reportes__section" aria-labelledby="estado-title">
-    <h2 id="estado-title" class="compras-reportes__section-title">Órdenes por Estado</h2>
+    <h2 id="estado-title" class="compras-reportes__section-title">{{ 'Órdenes por Estado' | t }}</h2>
     <div class="compras-reportes__estado-grid">
       @for (item of ordenesByEstado(); track item.estado) {
         <div class="compras-reportes__estado-card">
           <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(item.estado)">
-            {{ getEstadoLabel(item.estado) }}
+            {{ getEstadoLabel(item.estado) | t }}
           </span>
           <span class="compras-reportes__estado-count">{{ item.count }}</span>
         </div>
@@ -56,18 +56,18 @@
 
   <!-- Section 2: Top proveedores -->
   <section class="compras-reportes__section" aria-labelledby="proveedores-title">
-    <h2 id="proveedores-title" class="compras-reportes__section-title">Top 10 Proveedores por Compra</h2>
+    <h2 id="proveedores-title" class="compras-reportes__section-title">{{ 'Top 10 Proveedores por Compra' | t }}</h2>
     @if (topProveedores().length === 0) {
-      <p class="compras-reportes__empty">Sin órdenes registradas.</p>
+      <p class="compras-reportes__empty">{{ 'Sin órdenes registradas.' | t }}</p>
     } @else {
       <div class="compras-reportes__table-wrap">
-        <table class="compras-reportes__table" aria-label="Top proveedores">
+        <table class="compras-reportes__table" aria-label="{{ 'Top proveedores' | t }}">
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col">Proveedor</th>
-              <th scope="col">Órdenes</th>
-              <th scope="col">Total comprado</th>
+              <th scope="col">{{ 'Proveedor' | t }}</th>
+              <th scope="col">{{ 'Órdenes' | t }}</th>
+              <th scope="col">{{ 'Total comprado' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -87,19 +87,19 @@
 
   <!-- Section 3: Órdenes recientes -->
   <section class="compras-reportes__section" aria-labelledby="recientes-title">
-    <h2 id="recientes-title" class="compras-reportes__section-title">Órdenes Recientes</h2>
+    <h2 id="recientes-title" class="compras-reportes__section-title">{{ 'Órdenes Recientes' | t }}</h2>
     @if (ordenesRecientes().length === 0) {
-      <p class="compras-reportes__empty">No hay órdenes registradas.</p>
+      <p class="compras-reportes__empty">{{ 'No hay órdenes registradas.' | t }}</p>
     } @else {
       <div class="compras-reportes__table-wrap">
-        <table class="compras-reportes__table" aria-label="Órdenes recientes">
+        <table class="compras-reportes__table" aria-label="{{ 'Órdenes recientes' | t }}">
           <thead>
             <tr>
-              <th scope="col">Número</th>
-              <th scope="col">Proveedor</th>
-              <th scope="col">Fecha</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Total</th>
+              <th scope="col">{{ 'Número' | t }}</th>
+              <th scope="col">{{ 'Proveedor' | t }}</th>
+              <th scope="col">{{ 'Fecha' | t }}</th>
+              <th scope="col">{{ 'Estado' | t }}</th>
+              <th scope="col">{{ 'Total' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -110,7 +110,7 @@
                 <td>{{ formatFecha(o.fecha) }}</td>
                 <td>
                   <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(o.estado)">
-                    {{ getEstadoLabel(o.estado) }}
+                    {{ getEstadoLabel(o.estado) | t }}
                   </span>
                 </td>
                 <td>RD$ {{ o.total | number:'1.0-0' }}</td>

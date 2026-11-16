@@ -1,63 +1,63 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <h1 class="page__title">Activos y oficina</h1>
-      <p class="page__sub">Mobiliario, suministros y mantenimiento del local — distinto del inventario tecnológico (equipos de cómputo).</p>
+      <h1 class="page__title">{{ 'Activos y oficina' | t }}</h1>
+      <p class="page__sub">{{ 'Mobiliario, suministros y mantenimiento del local — distinto del inventario tecnológico (equipos de cómputo).' | t }}</p>
     </div>
-    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirForm()">Agregar activo</button>
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirForm()">{{ 'Agregar activo' | t }}</button>
   </header>
 
   @if (cargando()) {
-    <p class="text-muted">Cargando…</p>
+    <p class="text-muted">{{ 'Cargando…' | t }}</p>
   } @else {
     @if (mostrarForm()) {
       <form class="av-add" (submit)="$event.preventDefault(); guardar()">
-        <label class="av-field"><span>Nombre</span>
-          <input type="text" [value]="fNombre()" (input)="fNombre.set($any($event.target).value)" placeholder="Ej: Escritorio recepción" />
+        <label class="av-field"><span>{{ 'Nombre' | t }}</span>
+          <input type="text" [value]="fNombre()" (input)="fNombre.set($any($event.target).value)" placeholder="{{ 'Ej: Escritorio recepción' | t }}" />
         </label>
-        <label class="av-field"><span>Categoría</span>
+        <label class="av-field"><span>{{ 'Categoría' | t }}</span>
           <select [value]="fCategoria()" (change)="fCategoria.set($any($event.target).value)">
-            <option value="mobiliario">Mobiliario</option>
-            <option value="suministro">Suministro</option>
-            <option value="equipo_oficina">Equipo de oficina</option>
-            <option value="otro">Otro</option>
+            <option value="mobiliario">{{ 'Mobiliario' | t }}</option>
+            <option value="suministro">{{ 'Suministro' | t }}</option>
+            <option value="equipo_oficina">{{ 'Equipo de oficina' | t }}</option>
+            <option value="otro">{{ 'Otro' | t }}</option>
           </select>
         </label>
-        <label class="av-field"><span>Ubicación</span>
-          <input type="text" [value]="fUbicacion()" (input)="fUbicacion.set($any($event.target).value)" placeholder="Ej: Oficina principal, 2do piso" />
+        <label class="av-field"><span>{{ 'Ubicación' | t }}</span>
+          <input type="text" [value]="fUbicacion()" (input)="fUbicacion.set($any($event.target).value)" placeholder="{{ 'Ej: Oficina principal, 2do piso' | t }}" />
         </label>
-        <label class="av-field"><span>Fecha de adquisición</span>
+        <label class="av-field"><span>{{ 'Fecha de adquisición' | t }}</span>
           <input type="date" [value]="fFechaAdquisicion()" (input)="fFechaAdquisicion.set($any($event.target).value)" />
         </label>
-        <label class="av-field"><span>Valor (RD$)</span>
+        <label class="av-field"><span>{{ 'Valor (RD$)' | t }}</span>
           <input type="number" step="0.01" [value]="fValor()" (input)="fValor.set($any($event.target).value)" />
         </label>
-        <label class="av-field"><span>Próximo mantenimiento</span>
+        <label class="av-field"><span>{{ 'Próximo mantenimiento' | t }}</span>
           <input type="date" [value]="fProximoMantenimiento()" (input)="fProximoMantenimiento.set($any($event.target).value)" />
         </label>
-        <label class="av-field av-field--wide"><span>Notas</span>
+        <label class="av-field av-field--wide"><span>{{ 'Notas' | t }}</span>
           <textarea rows="2" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
         </label>
         <div class="av-add__acciones">
-          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">Cancelar</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">{{ 'Cancelar' | t }}</button>
         </div>
       </form>
     }
 
     @if (requierenAtencion().length) {
-      <h2 class="av-h">Requieren atención</h2>
+      <h2 class="av-h">{{ 'Requieren atención' | t }}</h2>
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th>Nombre</th><th>Categoría</th><th>Ubicación</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>{{ 'Nombre' | t }}</th><th>{{ 'Categoría' | t }}</th><th>{{ 'Ubicación' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr></thead>
           <tbody>
             @for (a of requierenAtencion(); track a.id) {
               <tr class="av-atencion">
                 <td>{{ a.nombre }}</td><td class="text-muted">{{ a.categoria }}</td><td class="text-muted">{{ a.ubicacion || '—' }}</td>
                 <td><span class="sgc-badge" [class.sgc-badge--warning]="a.estado === 'mantenimiento'" [class.sgc-badge--danger]="a.estado === 'baja'">{{ a.estado }}</span></td>
                 <td>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarEstado(a, 'bueno')">Marcar reparado</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(a)">Eliminar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarEstado(a, 'bueno')">{{ 'Marcar reparado' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(a)">{{ 'Eliminar' | t }}</button>
                 </td>
               </tr>
             }
@@ -66,15 +66,15 @@
       </div>
     }
 
-    <h2 class="av-h">Todos los activos</h2>
+    <h2 class="av-h">{{ 'Todos los activos' | t }}</h2>
     @if (!activos().length) {
-      <p class="text-muted">Aún no hay activos registrados.</p>
+      <p class="text-muted">{{ 'Aún no hay activos registrados.' | t }}</p>
     } @else if (!resto().length) {
-      <p class="text-muted">El resto ya aparece arriba (requieren atención).</p>
+      <p class="text-muted">{{ 'El resto ya aparece arriba (requieren atención).' | t }}</p>
     } @else {
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th>Nombre</th><th>Categoría</th><th>Ubicación</th><th>Valor</th><th>Próx. mantenimiento</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>{{ 'Nombre' | t }}</th><th>{{ 'Categoría' | t }}</th><th>{{ 'Ubicación' | t }}</th><th>{{ 'Valor' | t }}</th><th>{{ 'Próx. mantenimiento' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr></thead>
           <tbody>
             @for (a of resto(); track a.id) {
               <tr>
@@ -83,8 +83,8 @@
                 <td>{{ a.proximo_mantenimiento ? formatFecha(a.proximo_mantenimiento) : '—' }}</td>
                 <td><span class="sgc-badge sgc-badge--success">{{ a.estado }}</span></td>
                 <td>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarEstado(a, 'mantenimiento')">Enviar a mantenimiento</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(a)">Eliminar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarEstado(a, 'mantenimiento')">{{ 'Enviar a mantenimiento' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="pedirEliminar(a)">{{ 'Eliminar' | t }}</button>
                 </td>
               </tr>
             }
@@ -95,7 +95,7 @@
   }
 </section>
 
-<app-confirm-dialog [open]="!!aEliminar()" title="¿Eliminar este activo?"
+<app-confirm-dialog [open]="!!aEliminar()" title="{{ '¿Eliminar este activo?' | t }}"
   [message]="aEliminar() ? ('«' + aEliminar()!.nombre + '»') : ''"
-  confirmLabel="Eliminar" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Eliminar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminar()" (cancelled)="aEliminar.set(null)" />

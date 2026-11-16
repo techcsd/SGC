@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { BitacoraService, CoberturaObra } from '../../../../shared/services/bitacora.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * BJ1 — Cobertura de bitácoras por obra y fecha. Pedido de Eduardo NG: ver qué
@@ -10,13 +12,14 @@ import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util
  */
 @Component({
   selector: 'app-bitacora-cobertura',
-  imports: [Skeleton],
+  imports: [Skeleton, TranslatePipe],
   templateUrl: './cobertura.html',
   styleUrl: './cobertura.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BitacoraCobertura implements OnInit {
   private service = inject(BitacoraService);
+  protected i18n = inject(I18nService);
 
   filas = signal<CoberturaObra[]>([]);
   loading = signal(true);
@@ -75,10 +78,10 @@ export class BitacoraCobertura implements OnInit {
   }
 
   estado(f: CoberturaObra): { label: string; tone: string } {
-    if (f.total === 0) return { label: 'Sin bitácoras', tone: 'danger' };
+    if (f.total === 0) return { label: this.i18n.t('Sin bitácoras'), tone: 'danger' };
     const d = f.dias_sin_reportar ?? 0;
-    if (d >= 3) return { label: `Atrasada (${d} días)`, tone: 'warning' };
-    return { label: 'Al día', tone: 'success' };
+    if (d >= 3) return { label: this.i18n.t('Atrasada ({d} días)', { d }), tone: 'warning' };
+    return { label: this.i18n.t('Al día'), tone: 'success' };
   }
 
   async exportar() {

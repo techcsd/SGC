@@ -1,8 +1,8 @@
 <app-flota-subnav grupo="monitoreo" />
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Seguimiento</h1>
-    <span class="page-count">{{ choferes().length }} chofer{{ choferes().length !== 1 ? 'es' : '' }} · {{ enRutaCount() }} en ruta · {{ rutasActivas().length }} ruta{{ rutasActivas().length !== 1 ? 's' : '' }} activa{{ rutasActivas().length !== 1 ? 's' : '' }} · {{ conUbicacion() }} con ubicación</span>
+    <h1 class="page-title">{{ 'Seguimiento' | t }}</h1>
+    <span class="page-count">{{ choferes().length }} {{ (choferes().length !== 1 ? 'choferes' : 'chofer') | t }} · {{ enRutaCount() }} {{ 'en ruta' | t }} · {{ rutasActivas().length }} {{ (rutasActivas().length !== 1 ? 'rutas activas' : 'ruta activa') | t }} · {{ conUbicacion() }} {{ 'con ubicación' | t }}</span>
   </div>
 </div>
 
@@ -14,22 +14,22 @@
     <div #map class="seg__map-el"></div>
     @if (mapError()) { <div class="seg__map-error" role="alert">{{ mapError() }}</div> }
     <!-- BL6 — reencuadrar en los marcadores vivos (tras seleccionar/alejarse) -->
-    <button type="button" class="seg__vertodos" (click)="verTodos()" title="Ver todos los choferes">
-      <app-icon name="target" [size]="14" /> Ver todos
+    <button type="button" class="seg__vertodos" (click)="verTodos()" title="{{ 'Ver todos los choferes' | t }}">
+      <app-icon name="target" [size]="14" /> {{ 'Ver todos' | t }}
     </button>
     <!-- AS14 — UNA sola leyenda colapsable (antes eran dos overlays superpuestos):
          estados del chofer (AG11) + símbolos del mapa (AW11). Iconos por SVG (AW12). -->
     <div class="seg-leyenda" [class.seg-leyenda--collapsed]="!mostrarLeyenda()">
       <button type="button" class="seg-leyenda__toggle" (click)="toggleLeyenda()"
         [attr.aria-expanded]="mostrarLeyenda()">
-        <span>Leyenda</span><span aria-hidden="true">@if (mostrarLeyenda()) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> }</span>
+        <span>{{ 'Leyenda' | t }}</span><span aria-hidden="true">@if (mostrarLeyenda()) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> }</span>
       </button>
       @if (mostrarLeyenda()) {
         <ul class="seg-leyenda__list">
           @for (l of leyenda(); track l.estado) {
             <li class="seg-leyenda__item">
               <span class="seg-leyenda__dot" [style.background]="l.color"></span>
-              <span class="seg-leyenda__label">{{ l.label }}</span>
+              <span class="seg-leyenda__label">{{ l.label | t }}</span>
               <span class="seg-leyenda__count">{{ l.count }}</span>
             </li>
           }
@@ -40,34 +40,34 @@
             <span class="seg-leyenda__pin" style="color:#16a34a">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
             </span>
-            <span class="seg-leyenda__label">Inicio de ruta</span>
+            <span class="seg-leyenda__label">{{ 'Inicio de ruta' | t }}</span>
           </li>
           <li class="seg-leyenda__item">
             <span class="seg-leyenda__pin" style="color:#dc2626">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
             </span>
-            <span class="seg-leyenda__label">Último punto / fin</span>
+            <span class="seg-leyenda__label">{{ 'Último punto / fin' | t }}</span>
           </li>
           <li class="seg-leyenda__item">
             <span class="seg-leyenda__pin" style="color:#9ca3af">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
             </span>
-            <span class="seg-leyenda__label">Sin señal (posición vieja)</span>
+            <span class="seg-leyenda__label">{{ 'Sin señal (posición vieja)' | t }}</span>
           </li>
           <li class="seg-leyenda__item">
             <span class="seg-leyenda__line"></span>
-            <span class="seg-leyenda__label">Trayecto recorrido</span>
+            <span class="seg-leyenda__label">{{ 'Trayecto recorrido' | t }}</span>
           </li>
           <li class="seg-leyenda__item">
             <span class="seg-leyenda__dash"></span>
-            <span class="seg-leyenda__label">Sin señal (hueco en el GPS)</span>
+            <span class="seg-leyenda__label">{{ 'Sin señal (hueco en el GPS)' | t }}</span>
           </li>
           <li class="seg-leyenda__item">
-            <span class="seg-leyenda__vivo">en vivo</span>
-            <span class="seg-leyenda__label">Posición &lt; 2 min</span>
+            <span class="seg-leyenda__vivo">{{ 'en vivo' | t }}</span>
+            <span class="seg-leyenda__label">{{ 'Posición hace menos de 2 min' | t }}</span>
           </li>
         </ul>
-        <div class="seg-leyenda__nota">El punto marca la última posición reportada. “Sin ubicación” = el chofer aún no ha reportado GPS.</div>
+        <div class="seg-leyenda__nota">{{ 'El punto marca la última posición reportada. “Sin ubicación” = el chofer aún no ha reportado GPS.' | t }}</div>
       }
     </div>
   </div>
@@ -80,8 +80,8 @@
       <!-- AJ14 — indicador del trayecto dibujado -->
       @if (trazaInfo(); as t) {
         <div class="sgc-card seg__traza">
-          <span><app-icon name="route" [size]="14" /> {{ t.vivo ? 'Trayecto en vivo' : 'Recorrido' }} · {{ t.puntos }} punto{{ t.puntos !== 1 ? 's' : '' }}@if (t.km != null) { · {{ t.km }} km }</span>
-          <button type="button" class="seg-traza__clear" (click)="trazarRuta(rutaTrazada()!, t.vivo)">Ocultar</button>
+          <span><app-icon name="route" [size]="14" /> {{ (t.vivo ? 'Trayecto en vivo' : 'Recorrido') | t }} · {{ t.puntos }} {{ (t.puntos !== 1 ? 'puntos' : 'punto') | t }}@if (t.km != null) { · {{ t.km }} {{ 'km' | t }} }</span>
+          <button type="button" class="seg-traza__clear" (click)="trazarRuta(rutaTrazada()!, t.vivo)">{{ 'Ocultar' | t }}</button>
         </div>
       }
 
@@ -89,7 +89,7 @@
       @if (rutasActivas().length) {
         <div class="sgc-card seg__block seg__block--rutas">
           <div class="seg__block-head">
-            <h2 class="seg__block-title">Rutas activas</h2>
+            <h2 class="seg__block-title">{{ 'Rutas activas' | t }}</h2>
             <span class="seg__block-count">{{ rutasActivas().length }}</span>
           </div>
           <div class="seg__block-body">
@@ -100,9 +100,9 @@
                   <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
                 </div>
                 <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
-                <div class="seg-ruta__prog">Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</div>
+                <div class="seg-ruta__prog">{{ 'Paradas:' | t }} {{ r.paradas_entregadas }}/{{ r.paradas_total }}</div>
                 <button type="button" class="seg-ruta__traza" (click)="trazarRuta(r.id, true)" [disabled]="trazaCargando()">
-                  {{ rutaTrazada() === r.id ? 'Ocultar trayecto' : 'Ver trayecto en vivo' }}
+                  {{ (rutaTrazada() === r.id ? 'Ocultar trayecto' : 'Ver trayecto en vivo') | t }}
                 </button>
               </div>
             }
@@ -114,7 +114,7 @@
       @if (rutasHoyAgrupadas().length) {
         <div class="sgc-card seg__block seg__block--rutas">
           <div class="seg__block-head">
-            <h2 class="seg__block-title">Rutas de hoy</h2>
+            <h2 class="seg__block-title">{{ 'Rutas de hoy' | t }}</h2>
             <span class="seg__block-count">{{ rutasHoyAgrupadas().length }}</span>
           </div>
           <div class="seg__block-body">
@@ -126,11 +126,11 @@
                 </div>
                 <div class="seg-ruta__dest">{{ g.rep.origen }} → {{ g.rep.destino }}</div>
                 <div class="seg-ruta__meta">
-                  @if (g.inicio) { <span>Inicio {{ hora(g.inicio) }}</span> }
-                  @if (g.count > 1) { <span class="seg-ruta__tramos">{{ g.count }} tramos</span> }
+                  @if (g.inicio) { <span>{{ 'Inicio' | t }} {{ hora(g.inicio) }}</span> }
+                  @if (g.count > 1) { <span class="seg-ruta__tramos">{{ g.count }} {{ 'tramos' | t }}</span> }
                 </div>
                 <button type="button" class="seg-ruta__traza" (click)="trazarRuta(g.rep.id, g.rep.estado === 'en_curso')" [disabled]="trazaCargando()">
-                  {{ rutaTrazada() === g.rep.id ? 'Ocultar recorrido' : 'Ver recorrido' }}
+                  {{ (rutaTrazada() === g.rep.id ? 'Ocultar recorrido' : 'Ver recorrido') | t }}
                 </button>
               </div>
             }
@@ -141,12 +141,12 @@
       <!-- Choferes con estado — AU3: sticky + scroll interno, ocupa el alto restante -->
       <div class="sgc-card seg__block seg__block--choferes">
         <div class="seg__block-head">
-          <h2 class="seg__block-title">Choferes</h2>
+          <h2 class="seg__block-title">{{ 'Choferes' | t }}</h2>
           <span class="seg__block-count">{{ choferes().length }}</span>
         </div>
         <div class="seg__block-body">
           @if (!choferes().length) {
-            <p class="text-muted">Sin choferes registrados.</p>
+            <p class="text-muted">{{ 'Sin choferes registrados.' | t }}</p>
           }
           @for (c of choferes(); track c.usuario_id) {
             <button type="button" class="seg-chofer" [class.seg-chofer--sel]="seleccionado() === c.usuario_id"
@@ -155,14 +155,14 @@
               <span class="seg-chofer__body">
                 <span class="seg-chofer__nombre">{{ c.nombre }}</span>
                 <span class="seg-chofer__estado">
-                  {{ estadoMeta(c.estado).label }}@if (c.estado === 'otros' && c.otros_texto) { — {{ c.otros_texto }} }
+                  {{ estadoMeta(c.estado).label | t }}@if (c.estado === 'otros' && c.otros_texto) { — {{ c.otros_texto }} }
                   @if (c.pos?.capturado_en) {
                     · @if (posVivo(c)) {
-                        <span class="seg-chofer__vivo" [title]="fechaHora(c.pos!.capturado_en)">en vivo</span>
+                        <span class="seg-chofer__vivo" [title]="fechaHora(c.pos!.capturado_en)">{{ 'en vivo' | t }}</span>
                       } @else {
                         <span [class.seg-chofer__stale]="posVieja(c)" [title]="fechaHora(c.pos!.capturado_en)">{{ haceCuanto(c.pos!.capturado_en) }}</span>
                       }
-                  } @else { · sin ubicación }
+                  } @else { · {{ 'sin ubicación' | t }} }
                 </span>
               </span>
               @if (c.pos?.bateria != null) { <span class="seg-chofer__bat"><app-icon name="battery" [size]="13" /> {{ c.pos!.bateria }}%</span> }

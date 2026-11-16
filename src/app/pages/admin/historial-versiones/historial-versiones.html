@@ -1,20 +1,20 @@
 <!-- ── Header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Historial de versiones</h1>
-    <span class="page-count">Línea de tiempo de la plataforma</span>
+    <h1 class="page-title">{{ 'Historial de versiones' | t }}</h1>
+    <span class="page-count">{{ 'Línea de tiempo de la plataforma' | t }}</span>
   </div>
 </div>
 
 <!-- ── Selector de plataforma ── -->
-<div class="hv-tabs" role="tablist" aria-label="Plataforma">
+<div class="hv-tabs" role="tablist" aria-label="{{ 'Plataforma' | t }}">
   <button type="button" role="tab" class="hv-tab" [class.hv-tab--active]="plataforma() === 'web'"
     [attr.aria-selected]="plataforma() === 'web'" (click)="setPlataforma('web')">
-    <app-icon name="monitor" [size]="15" /> Página web <span class="hv-tab__count">{{ totalWeb() }}</span>
+    <app-icon name="monitor" [size]="15" /> {{ 'Página web' | t }} <span class="hv-tab__count">{{ totalWeb() }}</span>
   </button>
   <button type="button" role="tab" class="hv-tab" [class.hv-tab--active]="plataforma() === 'movil'"
     [attr.aria-selected]="plataforma() === 'movil'" (click)="setPlataforma('movil')">
-    <app-icon name="smartphone" [size]="15" /> App móvil <span class="hv-tab__count">{{ totalMovil() }}</span>
+    <app-icon name="smartphone" [size]="15" /> {{ 'App móvil' | t }} <span class="hv-tab__count">{{ totalMovil() }}</span>
   </button>
 </div>
 
@@ -26,38 +26,38 @@
   <!-- ── Z27 — KPIs de la plataforma activa ── -->
   <div class="hv-kpis">
     <div class="hv-kpi sgc-card">
-      <span class="hv-kpi__label">Versiones publicadas</span>
+      <span class="hv-kpi__label">{{ 'Versiones publicadas' | t }}</span>
       <span class="hv-kpi__value">{{ kpis().total }}</span>
     </div>
     <!-- Z27 — versión actual de AMBAS plataformas a la vez -->
     <div class="hv-kpi hv-kpi--both sgc-card">
-      <span class="hv-kpi__label">Versión actual</span>
+      <span class="hv-kpi__label">{{ 'Versión actual' | t }}</span>
       <div class="hv-kpi__both">
-        <span class="hv-kpi__both-row"><app-icon name="monitor" [size]="14" /> Web <strong>{{ ultimaWeb() ? 'v' + ultimaWeb() : '—' }}</strong></span>
-        <span class="hv-kpi__both-row"><app-icon name="smartphone" [size]="14" /> App <strong>{{ ultimaMovil() ? 'v' + ultimaMovil() : '—' }}</strong></span>
+        <span class="hv-kpi__both-row"><app-icon name="monitor" [size]="14" /> {{ 'Web' | t }} <strong>{{ ultimaWeb() ? 'v' + ultimaWeb() : '—' }}</strong></span>
+        <span class="hv-kpi__both-row"><app-icon name="smartphone" [size]="14" /> {{ 'App' | t }} <strong>{{ ultimaMovil() ? 'v' + ultimaMovil() : '—' }}</strong></span>
       </div>
     </div>
     <div class="hv-kpi sgc-card">
-      <span class="hv-kpi__label">Últimos 30 días</span>
+      <span class="hv-kpi__label">{{ 'Últimos 30 días' | t }}</span>
       <span class="hv-kpi__value">{{ kpis().releases30 }}</span>
-      <span class="hv-kpi__sub">releases</span>
+      <span class="hv-kpi__sub">{{ 'releases' | t }}</span>
     </div>
     <div class="hv-kpi sgc-card">
-      <span class="hv-kpi__label">Últimos 90 días</span>
+      <span class="hv-kpi__label">{{ 'Últimos 90 días' | t }}</span>
       <span class="hv-kpi__value">{{ kpis().releases90 }}</span>
-      <span class="hv-kpi__sub">releases</span>
+      <span class="hv-kpi__sub">{{ 'releases' | t }}</span>
     </div>
     <div class="hv-kpi sgc-card">
-      <span class="hv-kpi__label">Último release</span>
+      <span class="hv-kpi__label">{{ 'Último release' | t }}</span>
       <span class="hv-kpi__value">{{ kpis().ultimaVersion ? 'v' + kpis().ultimaVersion : '—' }}</span>
       @if (kpis().ultimaFecha) { <span class="hv-kpi__sub">{{ formatFecha(kpis().ultimaFecha!) }}</span> }
     </div>
     <div class="hv-kpi sgc-card">
-      <span class="hv-kpi__label">Cambios registrados</span>
+      <span class="hv-kpi__label">{{ 'Cambios registrados' | t }}</span>
       <span class="hv-kpi__value">{{ kpis().totalCambios }}</span>
     </div>
     <div class="hv-kpi hv-kpi--tags sgc-card">
-      <span class="hv-kpi__label">Por tipo</span>
+      <span class="hv-kpi__label">{{ 'Por tipo' | t }}</span>
       <div class="hv-kpi__tags">
         @for (t of TAGS; track t) {
           <span class="hv-tag hv-tag--{{ t }}">{{ tagLabel(t) }} {{ kpis().porTipo[t] }}</span>
@@ -69,29 +69,29 @@
   <!-- ── Z27 — Mini-gráficos analíticos (plataforma activa) ── -->
   <div class="hv-charts">
     <div class="hv-chart-card sgc-card">
-      <app-bar-chart titulo="Releases por mes" [data]="chartPorMes()" />
+      <app-bar-chart [titulo]="'Releases por mes' | t" [data]="chartPorMes()" />
     </div>
     <div class="hv-chart-card sgc-card">
       @if (chartPorTipo().length > 0) {
-        <app-donut-chart titulo="Distribución por tipo" [data]="chartPorTipo()" />
+        <app-donut-chart [titulo]="'Distribución por tipo' | t" [data]="chartPorTipo()" />
       } @else {
-        <p class="hv-chart-empty">Distribución por tipo — sin cambios etiquetados aún.</p>
+        <p class="hv-chart-empty">{{ 'Distribución por tipo — sin cambios etiquetados aún.' | t }}</p>
       }
     </div>
   </div>
 
   <!-- ── Filtro por tipo de cambio ── -->
   <div class="hv-filtros">
-    <span class="hv-filtros__label">Filtrar:</span>
+    <span class="hv-filtros__label">{{ 'Filtrar:' | t }}</span>
     @for (t of TAGS; track t) {
       <button type="button" class="hv-chip hv-chip--{{ t }}" [class.hv-chip--on]="filtro() === t"
         (click)="toggleFiltro(t)">{{ tagLabel(t) }}</button>
     }
-    @if (filtro()) { <button type="button" class="hv-chip hv-chip--clear" (click)="toggleFiltro(filtro()!)"><app-icon name="x" [size]="14" /> Quitar</button> }
+    @if (filtro()) { <button type="button" class="hv-chip hv-chip--clear" (click)="toggleFiltro(filtro()!)"><app-icon name="x" [size]="14" /> {{ 'Quitar' | t }}</button> }
   </div>
 
   @if (versiones().length === 0) {
-    <div class="table-empty sgc-card"><p>No hay versiones que coincidan con el filtro.</p></div>
+    <div class="table-empty sgc-card"><p>{{ 'No hay versiones que coincidan con el filtro.' | t }}</p></div>
   } @else {
     <!-- ── Timeline ── -->
     <ol class="hv-timeline">
@@ -103,7 +103,7 @@
           <div class="hv-item__card sgc-card" [class.hv-item__card--latest]="first && !filtro()">
             <div class="hv-item__head">
               <span class="hv-ver">v{{ v.version }}</span>
-              @if (first && !filtro()) { <span class="hv-latest">● Actual</span> }
+              @if (first && !filtro()) { <span class="hv-latest">{{ '● Actual' | t }}</span> }
               @if (v.titulo) { <span class="hv-item__title">{{ v.titulo }}</span> }
               @if (v.created_at) {
                 <span class="hv-item__fecha">{{ formatFechaHora(v.created_at) }}</span>
@@ -133,18 +133,18 @@
                  Tecnología). Antes "Abrir esta versión" mandaba al commit de GitHub. -->
             @if (v.plataforma === 'web' && v.deploy_url && esTecnologia()) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.deploy_url" target="_blank" rel="noopener"
-                 title="Versión antigua · datos de dev — no operar sobre prod">
-                <app-icon name="link" [size]="16" /> Abrir esta versión
+                 title="{{ 'Versión antigua · datos de dev — no operar sobre prod' | t }}">
+                <app-icon name="link" [size]="16" /> {{ 'Abrir esta versión' | t }}
               </a>
             }
             @if (v.plataforma === 'web' && v.url && esTecnologia()) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.url" target="_blank" rel="noopener">
-                <app-icon name="link" [size]="16" /> Ver cambios en el código
+                <app-icon name="link" [size]="16" /> {{ 'Ver cambios en el código' | t }}
               </a>
             }
             @if (v.plataforma === 'movil' && v.apk_url) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.apk_url" target="_blank" rel="noopener">
-                <app-icon name="download" [size]="16" /> Descargar APK v{{ v.version }}
+                <app-icon name="download" [size]="16" /> {{ 'Descargar APK v' | t }}{{ v.version }}
               </a>
             }
           </div>

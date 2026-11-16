@@ -17,6 +17,8 @@ import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 type NotasTab = 'mias' | 'compartidas';
 
 /** Línea del cuerpo interpretada para el preview: texto plano o ítem de checklist. */
@@ -31,7 +33,7 @@ const CHECK_RE = /^(\s*-\s*\[)( |x|X)(\]\s?)(.*)$/;
 
 @Component({
   selector: 'app-notas',
-  imports: [DatePipe, FormDrawer, Skeleton, ConfirmDialog],
+  imports: [DatePipe, FormDrawer, Skeleton, ConfirmDialog, TranslatePipe],
   templateUrl: './notas.html',
   styleUrl: './notas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +42,7 @@ export class Notas implements OnInit {
   private notasSvc = inject(NotasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private router = inject(Router);
 
@@ -271,7 +274,7 @@ export class Notas implements OnInit {
     const titulo = this.tituloText().trim();
     const contenido = this.contenidoText();
     if (!titulo && !contenido.trim()) {
-      this.toast.warning('Nota vacía', 'Escribe un título o algún contenido.');
+      this.toast.warning(this.i18n.t('Nota vacía'), 'Escribe un título o algún contenido.');
       return;
     }
 
@@ -291,11 +294,11 @@ export class Notas implements OnInit {
 
       if (res.conflict) {
         this.toast.warning(
-          'Conflicto de edición',
+          this.i18n.t('Conflicto de edición'),
           'Otra persona editó esta nota después; se guardó tu versión (gana la última edición).',
         );
       } else {
-        this.toast.success('Nota guardada');
+        this.toast.success(this.i18n.t('Nota guardada'));
       }
 
       this.editorUpdatedAt = res.nota.updated_at;
@@ -303,7 +306,7 @@ export class Notas implements OnInit {
       this.openedNota.set(res.nota);
       await this.refrescar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar la nota', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar la nota'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -324,11 +327,11 @@ export class Notas implements OnInit {
     const id = this.currentId();
     try {
       await this.notasSvc.eliminarNota(id);
-      this.toast.success('Nota eliminada');
+      this.toast.success(this.i18n.t('Nota eliminada'));
       this.editorOpen.set(false);
       await this.refrescar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo eliminar la nota', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar la nota'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -351,7 +354,7 @@ export class Notas implements OnInit {
       // Reflejar en la lista sin recargar todo.
       this.misNotas.update((list) => list.map((x) => (x.id === n.id ? res.nota : x)));
     } catch (e: unknown) {
-      this.toast.error('No se pudo fijar la nota', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo fijar la nota'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -376,9 +379,9 @@ export class Notas implements OnInit {
       this.shareBuscar.set('');
       await this.cargarCompartidos(this.currentId());
       this.motion.momento('mensaje'); // CL2 — avión de papel
-      this.toast.success('Nota compartida', `Con ${usuario.nombre} (${permiso})`);
+      this.toast.success(this.i18n.t('Nota compartida'), `Con ${usuario.nombre} (${permiso})`);
     } catch (e: unknown) {
-      this.toast.error('No se pudo compartir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo compartir'), e instanceof Error ? e.message : undefined);
     } finally {
       this.sharing.set(false);
     }
@@ -390,7 +393,7 @@ export class Notas implements OnInit {
       await this.notasSvc.cambiarPermiso(this.currentId(), c.usuario_id, permiso);
       await this.cargarCompartidos(this.currentId());
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar el permiso', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar el permiso'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -400,7 +403,7 @@ export class Notas implements OnInit {
       await this.notasSvc.quitarCompartido(this.currentId(), c.usuario_id);
       await this.cargarCompartidos(this.currentId());
     } catch (e: unknown) {
-      this.toast.error('No se pudo quitar el acceso', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo quitar el acceso'), e instanceof Error ? e.message : undefined);
     }
   }
 
