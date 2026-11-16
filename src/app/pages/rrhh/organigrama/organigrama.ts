@@ -5,6 +5,7 @@ import { RrhhOrganigramaNodo } from '../../../../shared/models/empleado.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface NodoConNivel extends RrhhOrganigramaNodo {
   nivel: number;
 }
@@ -27,6 +28,7 @@ interface NodoArbol extends NodoConNivel {
 export class RrhhOrganigrama implements OnInit {
   private svc = inject(EmpleadosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   nodos = signal<RrhhOrganigramaNodo[]>([]);
   cargando = signal(true);
@@ -86,7 +88,7 @@ export class RrhhOrganigrama implements OnInit {
     try {
       this.nodos.set(await this.svc.organigrama());
     } catch (e) {
-      this.toast.error('No se pudo cargar el organigrama', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el organigrama'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }

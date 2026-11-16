@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 65%** (6784/10457 literales de 192 pantallas en alcance). **`ht`: 85%**.
+**Alcance `en`: 65%** (6785/10457 literales de 192 pantallas en alcance). **`ht`: 85%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -97,7 +97,6 @@
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
-| rrhh/organigrama | scope | 7 | 6 | 1 | 86% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -196,13 +195,14 @@
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
+| rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**439 literal(es) sin t()** en 63 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**438 literal(es) sin t()** en 62 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -268,4 +268,3 @@
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
 | src/app/pages/legal/configuracion/configuracion.ts | 1 | Configuración guardada |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |
-| src/app/pages/rrhh/organigrama/organigrama.ts | 1 | No se pudo cargar el organigrama |

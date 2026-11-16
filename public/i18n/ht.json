@@ -4591,5 +4591,10 @@
   "Total registrados": "Total anrejistre",
   "Indefinido": "Pèmanan",
   "Temporal": "Tanporè",
-  "Por obra": "Pa chantye"
+  "Por obra": "Pa chantye",
+  "No se pudo cargar el organigrama": "Pa t kapab chaje òganigram nan",
+  "Estructura de la empresa: quién reporta a quién, según el cargo y el jefe de cada empleado.": "Estrikti konpayi a: ki moun k ap rapòte ak ki moun, selon pozisyon ak chèf chak anplwaye.",
+  "Aún no hay empleados cargados.": "Poko gen anplwaye chaje.",
+  "Algunos empleados no tienen jefe asignado (o su jefe no está activo) — aparecen como raíz.": "Gen kèk anplwaye ki pa gen chèf asiyen (oswa chèf yo pa aktif) — yo parèt kòm rasin.",
+  "inactivo": "inaktif"
 }

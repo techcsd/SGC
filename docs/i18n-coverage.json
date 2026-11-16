@@ -4643,18 +4643,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/organigrama",
-      "total": 7,
-      "cubiertos": 6,
-      "sin": 1,
-      "pct": 86,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "No se pudo cargar el organigrama"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 73,
       "cubiertos": 65,
@@ -5657,6 +5645,16 @@
       "pantalla": "proyectos/personal",
       "total": 252,
       "cubiertos": 252,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/organigrama",
+      "total": 7,
+      "cubiertos": 7,
       "sin": 0,
       "pct": 100,
       "enScope": true,

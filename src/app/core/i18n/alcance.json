@@ -271,9 +271,6 @@
     "tecnologia/cotizaciones": {
       "enforce": false
     },
-    "rrhh/organigrama": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "proyectos/personal": {
+      "enforce": true
+    },
+    "rrhh/organigrama": {
       "enforce": true
     },
     "rrhh/reportes": {
