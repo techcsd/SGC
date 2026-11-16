@@ -4,9 +4,6 @@
     "incentivos": {
       "enforce": false
     },
-    "obra/no-conformidades": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -398,6 +395,9 @@
       "enforce": true
     },
     "obra/informes": {
+      "enforce": true
+    },
+    "obra/no-conformidades": {
       "enforce": true
     },
     "obra/plan-dia": {

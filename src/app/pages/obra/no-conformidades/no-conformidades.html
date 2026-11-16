@@ -8,12 +8,12 @@
     @if (tab() === 'nc') {
       <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreateNC()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Levantar NC
+        {{ 'Levantar NC' | t }}
       </button>
     } @else {
       <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreateInc()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Registrar incidente
+        {{ 'Registrar incidente' | t }}
       </button>
     }
   </div>
@@ -41,23 +41,23 @@
   </div>
   <div class="sgc-field filters-bar__select">
     <select [value]="filtroProyecto()" (change)="filtroProyecto.set($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
-      <option value="all">Todas las obras</option>
+      <option value="all">{{ 'Todas las obras' | t }}</option>
       @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
     </select>
   </div>
   @if (tab() === 'nc') {
     <div class="sgc-field filters-bar__select">
       <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)" aria-label="{{ 'Filtrar por estado' | t }}">
-        <option value="abiertas">Abiertas</option>
-        <option value="vencidas">Vencidas</option>
-        <option value="cerradas">Cerradas</option>
-        <option value="all">Todas</option>
+        <option value="abiertas">{{ 'Abiertas' | t }}</option>
+        <option value="vencidas">{{ 'Vencidas' | t }}</option>
+        <option value="cerradas">{{ 'Cerradas' | t }}</option>
+        <option value="all">{{ 'Todas' | t }}</option>
       </select>
     </div>
     <div class="sgc-field filters-bar__select">
       <select [value]="filtroTipo()" (change)="filtroTipo.set($any($event.target).value)" aria-label="{{ 'Filtrar por tipo' | t }}">
-        <option value="all">Todos los tipos</option>
-        @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+        <option value="all">{{ 'Todos los tipos' | t }}</option>
+        @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label | t }}</option> }
       </select>
     </div>
   }
@@ -79,14 +79,14 @@
           <tbody>
             @for (nc of ncsFiltradas(); track nc.id) {
               <tr [class.row-vencida]="ncVencida(nc)">
-                <td><span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(nc.tipo) }}</span></td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(nc.tipo) | t }}</span></td>
                 <td><span class="nc-title">{{ nc.titulo || nc.descripcion }}</span></td>
                 <td>{{ nc.proyecto?.nombre ?? '—' }}</td>
                 <td>{{ nc.ubicacion || '—' }}</td>
                 <td><span [class]="sevBadge(nc.severidad)">{{ nc.severidad }}</span></td>
                 <td>{{ nc.responsable?.nombre ?? '—' }}</td>
                 <td>
-                  <span [class]="estadoBadge(nc.estado)">{{ estadoLabel(nc.estado) }}</span>
+                  <span [class]="estadoBadge(nc.estado)">{{ estadoLabel(nc.estado) | t }}</span>
                   @if (ncVencida(nc)) { <span class="sgc-badge sgc-badge--danger">{{ 'Vencida' | t }}</span> }
                 </td>
                 <td class="text-center">
@@ -99,7 +99,7 @@
           </tbody>
         </table>
       </div>
-      <div class="table-footer">{{ ncsFiltradas().length }} no conformidad{{ ncsFiltradas().length !== 1 ? 'es' : '' }}</div>
+      <div class="table-footer">{{ ncsFiltradas().length }} {{ 'no conformidad' | t }}{{ ncsFiltradas().length !== 1 ? 'es' : '' }}</div>
     }
   </div>
 }
@@ -118,13 +118,13 @@
           <tbody>
             @for (it of incidentesFiltrados(); track it.id) {
               <tr>
-                <td><span class="sgc-badge sgc-badge--neutral">{{ incTipoLabel(it.tipo) }}</span></td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ incTipoLabel(it.tipo) | t }}</span></td>
                 <td><span class="nc-title">{{ it.descripcion }}</span></td>
                 <td>{{ it.proyecto?.nombre ?? '—' }}</td>
                 <td><span [class]="sevBadge(it.gravedad)">{{ it.gravedad }}</span></td>
                 <td class="text-center">{{ it.lesionados }}</td>
                 <td>{{ formatFecha(it.fecha) }}</td>
-                <td><span [class]="incEstadoBadge(it.estado)">{{ incEstadoLabel(it.estado) }}</span></td>
+                <td><span [class]="incEstadoBadge(it.estado)">{{ incEstadoLabel(it.estado) | t }}</span></td>
                 <td class="text-center">
                   @if (it.estado !== 'cerrado') {
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarIncidente(it)">{{ 'Cerrar' | t }}</button>
@@ -135,7 +135,7 @@
           </tbody>
         </table>
       </div>
-      <div class="table-footer">{{ incidentesFiltrados().length }} incidente{{ incidentesFiltrados().length !== 1 ? 's' : '' }}</div>
+      <div class="table-footer">{{ incidentesFiltrados().length }} {{ 'incidente' | t }}{{ incidentesFiltrados().length !== 1 ? 's' : '' }}</div>
     }
   </div>
 }
@@ -147,14 +147,14 @@
       <div class="sgc-field">
         <label for="nc-proy">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="nc-proy" formControlName="proyecto_id" [class.invalid]="fNC.proyecto_id.invalid && fNC.proyecto_id.touched">
-          <option [ngValue]="null">Selecciona…</option>
+          <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
           @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
         </select>
       </div>
       <div class="sgc-field">
         <label for="nc-tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
         <select id="nc-tipo" formControlName="tipo">
-          @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label | t }}</option> }
         </select>
       </div>
     </div>
@@ -170,7 +170,7 @@
       <div class="sgc-field">
         <label for="nc-sev">{{ 'Severidad' | t }} <span class="required">*</span></label>
         <select id="nc-sev" formControlName="severidad">
-          @for (s of SEVERIDADES; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+          @for (s of SEVERIDADES; track s.value) { <option [value]="s.value">{{ s.label | t }}</option> }
         </select>
       </div>
       <div class="sgc-field">
@@ -181,13 +181,13 @@
     <div class="sgc-field">
       <label for="nc-resp">{{ 'Responsable (opcional)' | t }}</label>
       <select id="nc-resp" formControlName="responsable_id">
-        <option [ngValue]="null">Sin asignar</option>
+        <option [ngValue]="null">{{ 'Sin asignar' | t }}</option>
         @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
       </select>
     </div>
     <label class="check-inline">
       <input type="checkbox" formControlName="bloquea_vaciado" />
-      Bloquea el vaciado del elemento hasta cerrarse
+      {{ 'Bloquea el vaciado del elemento hasta cerrarse' | t }}
     </label>
     <div class="sgc-field">
       <label>{{ 'Fotos' | t }}</label>
@@ -196,7 +196,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="createNCOpen.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Levantar NC }
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Levantar NC' | t }} }
       </button>
     </div>
   </form>
@@ -209,14 +209,14 @@
       <div class="sgc-field">
         <label for="inc-proy">{{ 'Obra' | t }} <span class="required">*</span></label>
         <select id="inc-proy" formControlName="proyecto_id" [class.invalid]="fInc.proyecto_id.invalid && fInc.proyecto_id.touched">
-          <option [ngValue]="null">Selecciona…</option>
+          <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
           @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
         </select>
       </div>
       <div class="sgc-field">
         <label for="inc-tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
         <select id="inc-tipo" formControlName="tipo">
-          @for (t of INC_TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          @for (t of INC_TIPOS; track t.value) { <option [value]="t.value">{{ t.label | t }}</option> }
         </select>
       </div>
     </div>
@@ -228,7 +228,7 @@
       <div class="sgc-field">
         <label for="inc-grav">{{ 'Gravedad' | t }} <span class="required">*</span></label>
         <select id="inc-grav" formControlName="gravedad">
-          @for (s of SEVERIDADES; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+          @for (s of SEVERIDADES; track s.value) { <option [value]="s.value">{{ s.label | t }}</option> }
         </select>
       </div>
       <div class="sgc-field">
@@ -255,7 +255,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="createIncOpen.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Registrar }
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Registrar' | t }} }
       </button>
     </div>
   </form>
@@ -266,8 +266,8 @@
   @if (detailNC(); as nc) {
     <div class="nc-detail">
       <div class="nc-detail__head">
-        <span [class]="estadoBadge(nc.estado)">{{ estadoLabel(nc.estado) }}</span>
-        <span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(nc.tipo) }}</span>
+        <span [class]="estadoBadge(nc.estado)">{{ estadoLabel(nc.estado) | t }}</span>
+        <span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(nc.tipo) | t }}</span>
         <span [class]="sevBadge(nc.severidad)">{{ nc.severidad }}</span>
         @if (nc.bloquea_vaciado) { <span class="sgc-badge sgc-badge--warning">{{ 'Bloquea vaciado' | t }}</span> }
       </div>
@@ -308,8 +308,8 @@
               <div class="timeline__body">
                 <p class="timeline__desc">{{ a.descripcion }}</p>
                 <div class="timeline__meta">
-                  <span>Resp.: {{ a.responsable?.nombre ?? '—' }}</span>
-                  @if (a.fecha_compromiso) { <span>Vence: {{ formatFecha(a.fecha_compromiso) }}</span> }
+                  <span>{{ 'Resp.:' | t }} {{ a.responsable?.nombre ?? '—' }}</span>
+                  @if (a.fecha_compromiso) { <span>{{ 'Vence:' | t }} {{ formatFecha(a.fecha_compromiso) }}</span> }
                   <span class="sgc-badge sgc-badge--{{ a.estado === 'abierta' ? 'warning' : (a.estado === 'verificada' ? 'success' : 'info') }}">{{ a.estado | humanizarEnum }}</span>
                 </div>
                 @if (a.estado === 'abierta') {
@@ -324,11 +324,11 @@
       @if (nc.estado !== 'cerrada') {
         <div class="drawer-actions">
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="verificarCerrar()">
-            Verificar y cerrar NC
+            {{ 'Verificar y cerrar NC' | t }}
           </button>
         </div>
       } @else {
-        <p class="nc-closed"><app-icon name="check" [size]="15" /> Cerrada el {{ nc.cerrada_en ? formatFecha(nc.cerrada_en) : '' }}</p>
+        <p class="nc-closed"><app-icon name="check" [size]="15" /> {{ 'Cerrada el' | t }} {{ nc.cerrada_en ? formatFecha(nc.cerrada_en) : '' }}</p>
       }
     </div>
   }
@@ -345,7 +345,7 @@
       <div class="sgc-field">
         <label for="ac-resp">{{ 'Responsable' | t }}</label>
         <select id="ac-resp" formControlName="responsable_id">
-          <option [ngValue]="null">Sin asignar</option>
+          <option [ngValue]="null">{{ 'Sin asignar' | t }}</option>
           @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
         </select>
       </div>
@@ -357,7 +357,7 @@
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="assignOpen.set(false)">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Asignar }
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Asignar' | t }} }
       </button>
     </div>
   </form>

@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ObraProduccionService, DirectorioUsuario } from '../../../../shared/services/obra-produccion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import {
   ObraNC, AccionCorrectiva, ObraIncidente,
@@ -31,6 +32,7 @@ export class ObraNoConformidades implements OnInit {
   private service = inject(ObraProduccionService);
   private proyectosService = inject(ProyectosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly TIPOS = NC_TIPOS;
   readonly SEVERIDADES = NC_SEVERIDADES;
@@ -182,7 +184,7 @@ export class ObraNoConformidades implements OnInit {
       this.usuarios.set(usuarios);
       this.acciones.set(acciones);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar.'));
     } finally {
       this.loading.set(false);
     }
@@ -226,11 +228,11 @@ export class ObraNoConformidades implements OnInit {
         },
         paths,
       );
-      this.toast.success('No conformidad registrada');
+      this.toast.success(this.i18n.t('No conformidad registrada'));
       this.createNCOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('No se pudo registrar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo registrar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -267,12 +269,12 @@ export class ObraNoConformidades implements OnInit {
         responsableId: v.responsable_id || null,
         fechaCompromiso: v.fecha_compromiso || null,
       });
-      this.toast.success('Acción correctiva asignada');
+      this.toast.success(this.i18n.t('Acción correctiva asignada'));
       this.assignOpen.set(false);
       this.detailAcciones.set(await this.service.getAcciones('nc', nc.id));
       await this.refreshLists();
     } catch (e: unknown) {
-      this.toast.error('No se pudo asignar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo asignar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -284,9 +286,9 @@ export class ObraNoConformidades implements OnInit {
       const nc = this.detailNC();
       if (nc) this.detailAcciones.set(await this.service.getAcciones('nc', nc.id));
       await this.refreshLists();
-      this.toast.success('Acción marcada como hecha');
+      this.toast.success(this.i18n.t('Acción marcada como hecha'));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -296,11 +298,11 @@ export class ObraNoConformidades implements OnInit {
     this.saving.set(true);
     try {
       await this.service.verificarCerrarNC(nc.id);
-      this.toast.success('No conformidad verificada y cerrada');
+      this.toast.success(this.i18n.t('No conformidad verificada y cerrada'));
       this.detailOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('No se pudo cerrar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cerrar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -335,11 +337,11 @@ export class ObraNoConformidades implements OnInit {
         },
         paths,
       );
-      this.toast.success('Incidente registrado');
+      this.toast.success(this.i18n.t('Incidente registrado'));
       this.createIncOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('No se pudo registrar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo registrar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -348,10 +350,10 @@ export class ObraNoConformidades implements OnInit {
   async cerrarIncidente(it: ObraIncidente) {
     try {
       await this.service.cerrarIncidente(it.id);
-      this.toast.success('Incidente cerrado');
+      this.toast.success(this.i18n.t('Incidente cerrado'));
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
