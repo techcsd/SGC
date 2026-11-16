@@ -7714,5 +7714,9 @@
   "Marcar en revisión": "Mark as under review",
   "Tareas por estado": "Tasks by status",
   "Desempeño por proyecto (0-100)": "Performance by project (0-100)",
-  "Uso de presupuesto por proyecto (% gastado)": "Budget usage by project (% spent)"
+  "Uso de presupuesto por proyecto (% gastado)": "Budget usage by project (% spent)",
+  "— Elige —": "— Choose —",
+  "— Elige un material —": "— Choose a material —",
+  "stock": "stock",
+  "estrellas": "stars"
 }

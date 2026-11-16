@@ -316,21 +316,6 @@
       ]
     },
     {
-      "pantalla": "practica",
-      "total": 33,
-      "cubiertos": 29,
-      "sin": 4,
-      "pct": 88,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "— Elige un material —",
-        "(stock )",
-        "Mejor",
-        "Última"
-      ]
-    },
-    {
       "pantalla": "app-movil",
       "total": 35,
       "cubiertos": 31,
@@ -1625,6 +1610,16 @@
       "pantalla": "politicas",
       "total": 15,
       "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "practica",
+      "total": 33,
+      "cubiertos": 33,
       "sin": 0,
       "pct": 100,
       "enScope": true,

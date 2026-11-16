@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9805/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9809/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -17,7 +17,6 @@
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | soporte | scope | 35 | 29 | 6 | 83% |
-| practica | scope | 33 | 29 | 4 | 88% |
 | app-movil | scope | 35 | 31 | 4 | 89% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | asistente | scope | 35 | 33 | 2 | 94% |
@@ -147,6 +146,7 @@
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | politicas/eliminar-cuenta | enforce | 9 | 9 | 0 | 100% |
 | politicas | enforce | 15 | 15 | 0 | 100% |
+| practica | enforce | 33 | 33 | 0 | 100% |
 | proyectos/cargos | enforce | 37 | 37 | 0 | 100% |
 | proyectos/clima | enforce | 40 | 40 | 0 | 100% |
 | proyectos/compras | enforce | 28 | 28 | 0 | 100% |

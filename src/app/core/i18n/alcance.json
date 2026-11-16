@@ -31,9 +31,6 @@
     "soporte": {
       "enforce": false
     },
-    "practica": {
-      "enforce": false
-    },
     "app-movil": {
       "enforce": false
     },
@@ -419,6 +416,9 @@
       "enforce": true
     },
     "politicas": {
+      "enforce": true
+    },
+    "practica": {
       "enforce": true
     },
     "proyectos/cargos": {
