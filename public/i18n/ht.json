@@ -6495,5 +6495,13 @@
   "Buscar un valor en todos los catálogos…": "Chèche yon valè nan tout katalòg yo…",
   "Buscar valor": "Chèche valè",
   "Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)": "Pèmèt anrejistre \"travay te fèt\" san kantite egzak, ak yon kantite apwoksimatif opsyonèl (~)",
-  "~ aprox.": "~ apwoks."
+  "~ aprox.": "~ apwoks.",
+  "Procesar anonimiza el perfil (nombre, correo, teléfono, cédula, foto), borra los tokens de notificación y cierra el acceso. Los registros operativos/contables se conservan con la identidad anonimizada.": "Trete a anonimize pwofil la (non, imèl, telefòn, sedil, foto), efase jeton notifikasyon yo epi fèmen aksè a. Dosye operasyonèl/kontab yo rete ak idantite anonim lan.",
+  "Usuario desconocido": "Itilizatè enkoni",
+  "procesada": "trete",
+  "rechazada": "rejte",
+  "Procesar": "Trete",
+  "¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible.": "Trete efasman an? Pwofil la ap anonimize epi aksè itilizatè a ap fèmen. Sa a pa ka defèt.",
+  "Solicitudes de eliminación de cuenta": "Demann efasman kont",
+  "No hay solicitudes.": "Pa gen demann."
 }

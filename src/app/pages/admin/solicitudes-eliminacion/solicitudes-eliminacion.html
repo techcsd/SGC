@@ -2,8 +2,7 @@
   <header class="se__head">
     <h1>{{ 'Solicitudes de eliminación de cuenta' | t }}</h1>
     <p class="se__muted">
-      Procesar anonimiza el perfil (nombre, correo, teléfono, cédula, foto), borra los tokens de notificación
-      y cierra el acceso. Los registros operativos/contables se conservan con la identidad anonimizada.
+      {{ 'Procesar anonimiza el perfil (nombre, correo, teléfono, cédula, foto), borra los tokens de notificación y cierra el acceso. Los registros operativos/contables se conservan con la identidad anonimizada.' | t }}
     </p>
   </header>
 
@@ -17,8 +16,8 @@
         <div class="se__card" [class.se__card--done]="s.estado !== 'pendiente'">
           <div class="se__info">
             <div class="se__nombre">
-              {{ s.usuario?.nombre || s.identificador || 'Usuario desconocido' }}
-              <span class="se__pill se__pill--{{ s.estado }}">{{ s.estado }}</span>
+              {{ s.usuario?.nombre || s.identificador || ('Usuario desconocido' | t) }}
+              <span class="se__pill se__pill--{{ s.estado }}">{{ s.estado | t }}</span>
               <span class="se__origen">{{ s.origen }}</span>
             </div>
             <div class="se__meta">
@@ -27,7 +26,7 @@
               <span>{{ s.creada_at | date:'short' }}</span>
             </div>
             @if (s.motivo) { <p class="se__motivo">"{{ s.motivo }}"</p> }
-            @if (s.nota_admin) { <p class="se__nota">Nota: {{ s.nota_admin }}</p> }
+            @if (s.nota_admin) { <p class="se__nota">{{ 'Nota:' | t }} {{ s.nota_admin }}</p> }
           </div>
           @if (s.estado === 'pendiente') {
             <div class="se__actions">
@@ -35,7 +34,7 @@
                       (click)="procesar(s, 'rechazar')">{{ 'Rechazar' | t }}</button>
               <button type="button" class="se__btn se__btn--danger" [disabled]="procesandoId() === s.id"
                       (click)="procesar(s, 'procesar')">
-                {{ procesandoId() === s.id ? 'Procesando…' : 'Procesar' }}
+                {{ (procesandoId() === s.id ? 'Procesando…' : 'Procesar') | t }}
               </button>
             </div>
           }

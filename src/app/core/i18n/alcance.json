@@ -64,9 +64,6 @@
     "admin/conduces-huerfanos": {
       "enforce": false
     },
-    "admin/solicitudes-eliminacion": {
-      "enforce": false
-    },
     "admin/usuarios": {
       "enforce": false
     },
@@ -144,6 +141,9 @@
     },
     "admin/pulso-sistema": {
       "enforce": false
+    },
+    "admin/solicitudes-eliminacion": {
+      "enforce": true
     },
     "ajustes-notificaciones": {
       "enforce": true

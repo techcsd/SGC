@@ -6888,5 +6888,13 @@
   "Buscar un valor en todos los catálogos…": "Search for a value across all catalogs…",
   "Buscar valor": "Search value",
   "Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)": "Allows logging \"work was done\" without an exact quantity, with an optional approximate quantity (~)",
-  "~ aprox.": "~ approx."
+  "~ aprox.": "~ approx.",
+  "Procesar anonimiza el perfil (nombre, correo, teléfono, cédula, foto), borra los tokens de notificación y cierra el acceso. Los registros operativos/contables se conservan con la identidad anonimizada.": "Processing anonymizes the profile (name, email, phone, ID, photo), deletes notification tokens, and closes access. Operational/accounting records are kept with the anonymized identity.",
+  "Usuario desconocido": "Unknown user",
+  "procesada": "processed",
+  "rechazada": "rejected",
+  "Procesar": "Process",
+  "¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible.": "Process the deletion? The profile will be anonymized and the user's access closed. This is irreversible.",
+  "Solicitudes de eliminación de cuenta": "Account deletion requests",
+  "No hay solicitudes.": "There are no requests."
 }

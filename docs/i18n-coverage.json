@@ -1103,21 +1103,6 @@
       ]
     },
     {
-      "pantalla": "admin/solicitudes-eliminacion",
-      "total": 8,
-      "cubiertos": 4,
-      "sin": 4,
-      "pct": 50,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Procesar anonimiza el perfil (nombre, correo, teléfono, cédula, foto), borra los tokens de notificación y cierra el acceso. Los registros operativos/contables se conservan con la identidad anonimizada.",
-        "Nota:",
-        "Listo",
-        "¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible."
-      ]
-    },
-    {
       "pantalla": "admin/usuarios",
       "total": 141,
       "cubiertos": 74,
@@ -1671,6 +1656,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/solicitudes-eliminacion",
+      "total": 7,
+      "cubiertos": 7,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
       "faltantes": []
     },
     {

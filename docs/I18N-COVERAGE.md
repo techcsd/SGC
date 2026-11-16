@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8948/10096 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8951/10095 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -28,7 +28,6 @@
 | auth | scope | 42 | 15 | 27 | 36% |
 | admin/jira | scope | 56 | 24 | 32 | 43% |
 | admin/conduces-huerfanos | scope | 15 | 7 | 8 | 47% |
-| admin/solicitudes-eliminacion | scope | 8 | 4 | 4 | 50% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
 | admin/parametros | scope | 11 | 6 | 5 | 55% |
 | admin/animaciones | scope | 34 | 19 | 15 | 56% |
@@ -55,6 +54,7 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/importar | scope | 2 | 2 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
+| admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**170 literal(es) sin t()** en 24 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**168 literal(es) sin t()** en 23 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -221,7 +221,6 @@
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
-| src/app/pages/admin/solicitudes-eliminacion/solicitudes-eliminacion.ts | 2 | Listo · ¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible. |
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |

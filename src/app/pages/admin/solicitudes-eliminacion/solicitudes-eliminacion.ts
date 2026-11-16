@@ -5,6 +5,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { edgeErrorMessage } from '../../../../shared/utils/edge.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface SolicitudEliminacion {
   id: string;
   usuario_id: string | null;
@@ -32,6 +33,7 @@ interface SolicitudEliminacion {
 export class AdminSolicitudesEliminacion implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   solicitudes = signal<SolicitudEliminacion[]>([]);
@@ -67,7 +69,7 @@ export class AdminSolicitudesEliminacion implements OnInit {
       ? (window.prompt('Motivo del rechazo (opcional):') ?? '')
       : '';
     if (accion === 'procesar' &&
-        !window.confirm('¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible.')) {
+        !window.confirm(this.i18n.t('¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible.'))) {
       return;
     }
     this.procesandoId.set(s.id);
@@ -76,7 +78,7 @@ export class AdminSolicitudesEliminacion implements OnInit {
         body: { solicitudId: s.id, accion, nota },
       });
       if (error) throw new Error(await edgeErrorMessage(error));
-      this.toast.success('Listo', accion === 'procesar' ? 'Cuenta eliminada y anonimizada.' : 'Solicitud rechazada.');
+      this.toast.success(this.i18n.t('Listo'), accion === 'procesar' ? 'Cuenta eliminada y anonimizada.' : 'Solicitud rechazada.');
       await this.cargar();
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo procesar la solicitud');
