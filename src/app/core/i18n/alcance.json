@@ -13,9 +13,6 @@
     "obra/checklists": {
       "enforce": false
     },
-    "auth": {
-      "enforce": false
-    },
     "obra/subcontratistas": {
       "enforce": false
     },
@@ -113,6 +110,9 @@
       "enforce": true
     },
     "asistente": {
+      "enforce": true
+    },
+    "auth": {
       "enforce": true
     },
     "auth/set-password": {

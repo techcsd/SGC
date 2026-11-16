@@ -82,7 +82,7 @@
               type="button"
               class="password-toggle"
               (click)="togglePin()"
-              [attr.aria-label]="showPin() ? 'Ocultar PIN' : 'Mostrar PIN'"
+              [attr.aria-label]="showPin() ? i18n.t('Ocultar PIN') : i18n.t('Mostrar PIN')"
             >
               @if (showPin()) {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,8 +100,8 @@
           </div>
           @if (pin.invalid && pin.touched) {
             <span class="field-error">
-              @if (pin.hasError('required')) { El PIN es obligatorio. }
-              @else { El PIN debe tener 6 dígitos. }
+              @if (pin.hasError('required')) { {{ 'El PIN es obligatorio.' | t }} }
+              @else { {{ 'El PIN debe tener 6 dígitos.' | t }} }
             </span>
           }
         </div>
@@ -125,7 +125,7 @@
         </button>
 
         <p class="auth-intro auth-intro--sm">
-          ¿No tienes PIN? Pídele a tu supervisor que te genere el acceso.
+          {{ '¿No tienes PIN? Pídele a tu supervisor que te genere el acceso.' | t }}
         </p>
       </form>
     } @else if (!forgotMode()) {
@@ -144,8 +144,8 @@
           />
           @if (email.invalid && email.touched) {
             <span class="field-error">
-              @if (email.hasError('required')) { El correo es obligatorio. }
-              @else if (email.hasError('email')) { Ingresa un correo válido. }
+              @if (email.hasError('required')) { {{ 'El correo es obligatorio.' | t }} }
+              @else if (email.hasError('email')) { {{ 'Ingresa un correo válido.' | t }} }
             </span>
           }
         </div>
@@ -165,7 +165,7 @@
               type="button"
               class="password-toggle"
               (click)="togglePassword()"
-              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-label]="showPassword() ? i18n.t('Ocultar contraseña') : i18n.t('Mostrar contraseña')"
             >
               @if (showPassword()) {
                 <!-- Eye off icon -->
@@ -221,7 +221,7 @@
       <!-- Forgot password -->
       @if (forgotSent()) {
         <div class="auth-intro">
-          Si <strong>{{ email.value }}</strong> corresponde a una cuenta activa, recibirás un correo con instrucciones para restablecer tu contraseña.
+          {{ 'Si' | t }} <strong>{{ email.value }}</strong> {{ 'corresponde a una cuenta activa, recibirás un correo con instrucciones para restablecer tu contraseña.' | t }}
         </div>
         <button type="button" class="auth-submit" (click)="closeForgot()">{{ 'Volver a iniciar sesión' | t }}</button>
       } @else {
@@ -263,26 +263,26 @@
       <div class="auth-dev">
         <p class="auth-dev__hint">
           <span class="auth-dev__tag">{{ 'DEV' | t }}</span>
-          Entorno de desarrollo. El acceso está restringido a Tecnología.
+          {{ 'Entorno de desarrollo. El acceso está restringido a Tecnología.' | t }}
         </p>
         @if (magicSent()) {
           <p class="auth-dev__hint auth-dev__hint--sm">
-            Si <strong>{{ email.value }}</strong> está autorizado, te llegó un enlace para entrar. Revisa tu correo.
+            {{ 'Si' | t }} <strong>{{ email.value }}</strong> {{ 'está autorizado, te llegó un enlace para entrar. Revisa tu correo.' | t }}
           </p>
         } @else {
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm auth-dev__magic"
                   [disabled]="magicLoading()" (click)="enviarEnlaceMagico()">
-            @if (magicLoading()) { Enviando… } @else { Enviarme un enlace mágico }
+            @if (magicLoading()) { {{ 'Enviando…' | t }} } @else { {{ 'Enviarme un enlace mágico' | t }} }
           </button>
           <p class="auth-dev__hint auth-dev__hint--sm">
-            Escribe tu correo arriba. Choferes de prueba: entran por <strong>{{ 'Con cédula' | t }}</strong> (cédula + PIN).
+            {{ 'Escribe tu correo arriba. Choferes de prueba: entran por' | t }} <strong>{{ 'Con cédula' | t }}</strong> {{ '(cédula + PIN).' | t }}
           </p>
         }
       </div>
     }
 
     <p class="auth-footer">
-      ¿Problemas para acceder? Contacta a
+      {{ '¿Problemas para acceder? Contacta a' | t }}
       <a href="mailto:tecnologia@constructorasd.com">{{ 'Tecnología CSD' | t }}</a>
     </p>
 

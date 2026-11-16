@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 98,
-  "pctHt": 96,
+  "pctHt": 97,
   "filas": [
     {
       "pantalla": "obra/plan-dia",
@@ -182,28 +182,6 @@
         "Ítem agregado",
         "Error",
         "Error"
-      ]
-    },
-    {
-      "pantalla": "auth",
-      "total": 37,
-      "cubiertos": 26,
-      "sin": 11,
-      "pct": 70,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "¿No tienes PIN? Pídele a tu supervisor que te genere el acceso.",
-        "Si",
-        "corresponde a una cuenta activa, recibirás un correo con instrucciones para restablecer tu contraseña.",
-        "Entorno de desarrollo. El acceso está restringido a Tecnología.",
-        "Si",
-        "está autorizado, te llegó un enlace para entrar. Revisa tu correo.",
-        "Escribe tu correo arriba. Choferes de prueba: entran por",
-        "(cédula + PIN).",
-        "¿Problemas para acceder? Contacta a",
-        "Ocultar PIN",
-        "Ocultar contraseña"
       ]
     },
     {
@@ -583,6 +561,16 @@
       "pantalla": "asistente",
       "total": 35,
       "cubiertos": 35,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "auth",
+      "total": 43,
+      "cubiertos": 43,
       "sin": 0,
       "pct": 100,
       "enScope": true,
