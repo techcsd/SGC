@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8976/10098 literales de 192 pantallas en alcance). **`ht`: 95%**.
+**Alcance `en`: 89%** (8990/10097 literales de 192 pantallas en alcance). **`ht`: 95%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -28,7 +28,6 @@
 | auth | scope | 42 | 15 | 27 | 36% |
 | admin/jira | scope | 56 | 24 | 32 | 43% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
-| admin/animaciones | scope | 34 | 19 | 15 | 56% |
 | admin/reportes | scope | 37 | 21 | 16 | 57% |
 | admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
@@ -44,6 +43,7 @@
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
+| admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/auditoria | enforce | 62 | 62 | 0 | 100% |
 | admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |

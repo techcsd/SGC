@@ -8,6 +8,7 @@ import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.dir
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface CatRow {
   sistema: 'web' | 'app';
   id: string;
@@ -38,6 +39,7 @@ interface CatRow {
 })
 export class AdminAnimaciones implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
+  protected i18n = inject(I18nService);
   motion = inject(MotionService);
   private logoReveal = inject(LogoRevealService);
   /** Estado real de reduce-motion del usuario (para restaurarlo al salir). */

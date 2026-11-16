@@ -1162,32 +1162,6 @@
       ]
     },
     {
-      "pantalla": "admin/animaciones",
-      "total": 34,
-      "cubiertos": 19,
-      "sin": 15,
-      "pct": 56,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Todos los niveles",
-        "Grande",
-        "Mediano",
-        "Base",
-        "Web y app",
-        "Web",
-        "App",
-        "ms",
-        "Desde",
-        "Fila de ejemplo",
-        "Toca «Reproducir» para ver la animación real.",
-        "ms",
-        "Curva",
-        "Detalle y mapa completo en",
-        "docs/MOVIMIENTO.md"
-      ]
-    },
-    {
       "pantalla": "admin/reportes",
       "total": 37,
       "cubiertos": 21,
@@ -1524,6 +1498,16 @@
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/animaciones",
+      "total": 33,
+      "cubiertos": 33,
       "sin": 0,
       "pct": 100,
       "enScope": true,

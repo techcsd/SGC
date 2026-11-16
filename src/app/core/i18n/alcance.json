@@ -64,9 +64,6 @@
     "admin/usuarios": {
       "enforce": false
     },
-    "admin/animaciones": {
-      "enforce": false
-    },
     "admin/reportes": {
       "enforce": false
     },
@@ -110,6 +107,9 @@
       "enforce": false
     },
     "admin/almacenes-duplicados": {
+      "enforce": true
+    },
+    "admin/animaciones": {
       "enforce": true
     },
     "admin/auditoria": {
