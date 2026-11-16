@@ -7,12 +7,13 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-27 P1 — Reclutamiento (onboarding): vacantes + pipeline de candidatos
  *  (aplicado → entrevista → oferta → contratado/rechazado). Permiso estándar
  *  (no está en la lista de sensibles de Xaviel). */
 @Component({
   selector: 'app-rrhh-onboarding',
-  imports: [ConfirmDialog],
+  imports: [ConfirmDialog, TranslatePipe],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,12 +1,12 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Asistencia</h1>
+    <h1 class="page-title">{{ 'Asistencia' | t }}</h1>
     <span class="page-count">{{ registros().length }} registro{{ registros().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="filteredRegistros().length === 0" title="Exportar los registros del período a Excel">
+            [disabled]="filteredRegistros().length === 0" title="{{ 'Exportar los registros del período a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -33,7 +33,7 @@
       type="date"
       [value]="selectedDate()"
       (change)="onDateChange($any($event.target).value)"
-      aria-label="Seleccionar fecha"
+      aria-label="{{ 'Seleccionar fecha' | t }}"
     />
   </div>
 </div>
@@ -43,17 +43,17 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre o cargo…"
+      placeholder="{{ 'Buscar por nombre o cargo…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar empleado"
+      aria-label="{{ 'Buscar empleado' | t }}"
     />
   </div>
   <div class="sgc-field filters-bar__select">
     <select
       [value]="selectedEstado()"
       (change)="onEstadoFilter($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
       <option value="">Todos los estados</option>
       @for (est of ESTADOS_ASISTENCIA; track est.value) {
@@ -72,23 +72,23 @@
 <div class="asistencia__summary">
   <div class="asistencia__summary-item asistencia__summary-item--presente">
     <span class="asistencia__summary-count">{{ summary().presentes }}</span>
-    <span class="asistencia__summary-label">Presentes</span>
+    <span class="asistencia__summary-label">{{ 'Presentes' | t }}</span>
   </div>
   <div class="asistencia__summary-item asistencia__summary-item--ausente">
     <span class="asistencia__summary-count">{{ summary().ausentes }}</span>
-    <span class="asistencia__summary-label">Ausentes</span>
+    <span class="asistencia__summary-label">{{ 'Ausentes' | t }}</span>
   </div>
   <div class="asistencia__summary-item asistencia__summary-item--tardanza">
     <span class="asistencia__summary-count">{{ summary().tardanzas }}</span>
-    <span class="asistencia__summary-label">Tardanzas</span>
+    <span class="asistencia__summary-label">{{ 'Tardanzas' | t }}</span>
   </div>
   <div class="asistencia__summary-item asistencia__summary-item--permiso">
     <span class="asistencia__summary-count">{{ summary().permisos }}</span>
-    <span class="asistencia__summary-label">Permisos</span>
+    <span class="asistencia__summary-label">{{ 'Permisos' | t }}</span>
   </div>
   <div class="asistencia__summary-item asistencia__summary-item--feriado">
     <span class="asistencia__summary-count">{{ summary().feriados }}</span>
-    <span class="asistencia__summary-label">Feriados</span>
+    <span class="asistencia__summary-label">{{ 'Feriados' | t }}</span>
   </div>
 </div>
 
@@ -122,16 +122,16 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Registros de asistencia">
+      <table class="data-table" aria-label="{{ 'Registros de asistencia' | t }}">
         <thead>
           <tr>
-            <th>Empleado</th>
-            <th>Hora entrada</th>
-            <th>Hora salida</th>
-            <th>Horas trabajadas</th>
-            <th>Estado</th>
-            <th>Notas</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Empleado' | t }}</th>
+            <th>{{ 'Hora entrada' | t }}</th>
+            <th>{{ 'Hora salida' | t }}</th>
+            <th>{{ 'Horas trabajadas' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th>{{ 'Notas' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
@@ -163,7 +163,7 @@
                     class="action-btn action-btn--edit"
                     (click)="openEdit(reg)"
                     [attr.aria-label]="'Editar registro de ' + (reg.empleado?.nombre ?? '')"
-                    title="Editar"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -189,7 +189,7 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
-      <label for="empleado_id">Empleado <span class="required">*</span></label>
+      <label for="empleado_id">{{ 'Empleado' | t }} <span class="required">*</span></label>
       <select
         id="empleado_id"
         formControlName="empleado_id"
@@ -201,12 +201,12 @@
         }
       </select>
       @if (f.empleado_id.invalid && f.empleado_id.touched) {
-        <span class="field-error">El empleado es obligatorio.</span>
+        <span class="field-error">{{ 'El empleado es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="fecha">Fecha <span class="required">*</span></label>
+      <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
       <input
         id="fecha"
         type="date"
@@ -215,13 +215,13 @@
         [class.invalid]="f.fecha.invalid && f.fecha.touched"
       />
       @if (f.fecha.invalid && f.fecha.touched) {
-        <span class="field-error">La fecha es obligatoria.</span>
+        <span class="field-error">{{ 'La fecha es obligatoria.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="hora_entrada">Hora de entrada</label>
+        <label for="hora_entrada">{{ 'Hora de entrada' | t }}</label>
         <input
           id="hora_entrada"
           type="time"
@@ -230,7 +230,7 @@
       </div>
 
       <div class="sgc-field">
-        <label for="hora_salida">Hora de salida</label>
+        <label for="hora_salida">{{ 'Hora de salida' | t }}</label>
         <input
           id="hora_salida"
           type="time"
@@ -238,13 +238,13 @@
           [class.invalid]="form.errors?.['endBeforeStart'] && f.hora_salida.touched"
         />
         @if (form.errors?.['endBeforeStart'] && f.hora_salida.touched) {
-          <span class="field-error">La hora de salida debe ser posterior a la de entrada.</span>
+          <span class="field-error">{{ 'La hora de salida debe ser posterior a la de entrada.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="sgc-field">
-      <label for="estado">Estado <span class="required">*</span></label>
+      <label for="estado">{{ 'Estado' | t }} <span class="required">*</span></label>
       <select
         id="estado"
         formControlName="estado"
@@ -255,17 +255,17 @@
         }
       </select>
       @if (f.estado.invalid && f.estado.touched) {
-        <span class="field-error">El estado es obligatorio.</span>
+        <span class="field-error">{{ 'El estado es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
+      <label for="notas">{{ 'Notas' | t }}</label>
       <textarea
         id="notas"
         formControlName="notas"
         rows="3"
-        placeholder="Observaciones opcionales…"
+        placeholder="{{ 'Observaciones opcionales…' | t }}"
       ></textarea>
     </div>
 

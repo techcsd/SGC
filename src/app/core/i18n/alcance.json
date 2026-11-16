@@ -139,48 +139,6 @@
     "politicas": {
       "enforce": false
     },
-    "rrhh/activos": {
-      "enforce": false
-    },
-    "rrhh/asistencia": {
-      "enforce": false
-    },
-    "rrhh/ausencias": {
-      "enforce": false
-    },
-    "rrhh/candidatos": {
-      "enforce": false
-    },
-    "rrhh/capacitacion": {
-      "enforce": false
-    },
-    "rrhh/contratos": {
-      "enforce": false
-    },
-    "rrhh/empleados": {
-      "enforce": false
-    },
-    "rrhh/evaluaciones": {
-      "enforce": false
-    },
-    "rrhh/nomina": {
-      "enforce": false
-    },
-    "rrhh/onboarding": {
-      "enforce": false
-    },
-    "rrhh/organigrama": {
-      "enforce": false
-    },
-    "rrhh/proveedores": {
-      "enforce": false
-    },
-    "rrhh/reportes": {
-      "enforce": false
-    },
-    "rrhh/tramites": {
-      "enforce": false
-    },
     "tareas/gestion": {
       "enforce": false
     },
@@ -256,16 +214,52 @@
     "auth": {
       "enforce": false
     },
+    "rrhh/candidatos": {
+      "enforce": false
+    },
+    "rrhh/ausencias": {
+      "enforce": false
+    },
+    "rrhh/onboarding": {
+      "enforce": false
+    },
+    "rrhh/tramites": {
+      "enforce": false
+    },
     "practica": {
+      "enforce": false
+    },
+    "rrhh/evaluaciones": {
+      "enforce": false
+    },
+    "rrhh/nomina": {
       "enforce": false
     },
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
+    "rrhh/asistencia": {
+      "enforce": false
+    },
+    "rrhh/activos": {
+      "enforce": false
+    },
+    "rrhh/capacitacion": {
+      "enforce": false
+    },
+    "rrhh/empleados": {
+      "enforce": false
+    },
     "tecnologia/envios-automaticos": {
       "enforce": false
     },
+    "rrhh/contratos": {
+      "enforce": false
+    },
     "admin/compa-conversaciones": {
+      "enforce": false
+    },
+    "rrhh/proveedores": {
       "enforce": false
     },
     "ingenieria/pagos": {
@@ -275,6 +269,9 @@
       "enforce": false
     },
     "tecnologia/cotizaciones": {
+      "enforce": false
+    },
+    "rrhh/organigrama": {
       "enforce": false
     },
     "admin/vault": {
@@ -570,6 +567,9 @@
     },
     "proyectos/personal": {
       "enforce": true
+    },
+    "rrhh/reportes": {
+      "enforce": false
     },
     "solicitudes-movimiento": {
       "enforce": true

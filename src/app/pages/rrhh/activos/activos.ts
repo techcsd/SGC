@@ -6,12 +6,13 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-29 (Administración, prioridad 4) — Activos y oficina: mobiliario,
  *  suministros y mantenimiento del local — DISTINTO del inventario
  *  tecnológico (equipos de cómputo, ver Tecnología › Inventario). */
 @Component({
   selector: 'app-rrhh-activos',
-  imports: [ConfirmDialog, DecimalPipe],
+  imports: [ConfirmDialog, DecimalPipe, TranslatePipe],
   templateUrl: './activos.html',
   styleUrl: './activos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

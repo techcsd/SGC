@@ -12,6 +12,7 @@ import { daysAgoIso, yearsSince } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface EmpleadoReport {
   id: string;
   nombre: string;
@@ -50,7 +51,7 @@ interface DeptStat {
 
 @Component({
   selector: 'app-rrhh-reportes',
-  imports: [DecimalPipe, Skeleton],
+  imports: [DecimalPipe, Skeleton, TranslatePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

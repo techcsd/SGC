@@ -4,12 +4,14 @@ import { Empleado, EmpleadoDocumento, RrhhDocumentoPorVencer } from '../../../..
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-27 (P1) — Contratos y documentos: submódulo SENSIBLE (rrhh.contratos),
  *  gateado server-side por sgc.puede_rrhh_sensible (sin bypass de admin) +
  *  cada lectura queda en sgc.rrhh_accesos_log. Vencimientos con alerta
  *  30/15/7 días sobre sgc.empleado_documentos.vigencia_hasta. */
 @Component({
   selector: 'app-rrhh-contratos',
+  imports: [TranslatePipe],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

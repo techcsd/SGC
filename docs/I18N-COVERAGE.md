@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 61%** (6379/10521 literales de 192 pantallas en alcance). **`ht`: 85%**.
+**Alcance `en`: 65%** (6784/10457 literales de 192 pantallas en alcance). **`ht`: 85%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -53,20 +53,6 @@
 | obra/subcontratistas | scope | 85 | 0 | 85 | 0% |
 | politicas/eliminar-cuenta | scope | 11 | 0 | 11 | 0% |
 | politicas | scope | 15 | 0 | 15 | 0% |
-| rrhh/activos | scope | 44 | 0 | 44 | 0% |
-| rrhh/asistencia | scope | 40 | 0 | 40 | 0% |
-| rrhh/ausencias | scope | 48 | 0 | 48 | 0% |
-| rrhh/candidatos | scope | 60 | 0 | 60 | 0% |
-| rrhh/capacitacion | scope | 33 | 0 | 33 | 0% |
-| rrhh/contratos | scope | 32 | 0 | 32 | 0% |
-| rrhh/empleados | scope | 162 | 0 | 162 | 0% |
-| rrhh/evaluaciones | scope | 22 | 0 | 22 | 0% |
-| rrhh/nomina | scope | 35 | 0 | 35 | 0% |
-| rrhh/onboarding | scope | 42 | 0 | 42 | 0% |
-| rrhh/organigrama | scope | 7 | 0 | 7 | 0% |
-| rrhh/proveedores | scope | 35 | 0 | 35 | 0% |
-| rrhh/reportes | scope | 20 | 0 | 20 | 0% |
-| rrhh/tramites | scope | 47 | 0 | 47 | 0% |
 | tareas/gestion | scope | 38 | 0 | 38 | 0% |
 | tareas/historial | scope | 22 | 0 | 22 | 0% |
 | tareas/mis-tareas | scope | 7 | 0 | 7 | 0% |
@@ -92,13 +78,26 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| rrhh/candidatos | scope | 56 | 33 | 23 | 59% |
+| rrhh/ausencias | scope | 40 | 26 | 14 | 65% |
+| rrhh/onboarding | scope | 40 | 27 | 13 | 68% |
+| rrhh/tramites | scope | 44 | 31 | 13 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
+| rrhh/evaluaciones | scope | 21 | 15 | 6 | 71% |
+| rrhh/nomina | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
+| rrhh/asistencia | scope | 32 | 23 | 9 | 72% |
+| rrhh/activos | scope | 41 | 30 | 11 | 73% |
+| rrhh/capacitacion | scope | 31 | 23 | 8 | 74% |
+| rrhh/empleados | scope | 134 | 99 | 35 | 74% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
+| rrhh/contratos | scope | 32 | 24 | 8 | 75% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
+| rrhh/proveedores | scope | 32 | 25 | 7 | 78% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
+| rrhh/organigrama | scope | 7 | 6 | 1 | 86% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -197,6 +196,7 @@
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
+| rrhh/reportes | scope | 19 | 19 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 

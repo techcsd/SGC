@@ -4,6 +4,7 @@ import { EmpleadosService } from '../../../../shared/services/empleados.service'
 import { RrhhOrganigramaNodo } from '../../../../shared/models/empleado.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 interface NodoConNivel extends RrhhOrganigramaNodo {
   nivel: number;
 }
@@ -18,7 +19,7 @@ interface NodoArbol extends NodoConNivel {
  *  (sgc.rrhh_organigrama(), no sensible — mismo permiso que Empleados/Asistencia). */
 @Component({
   selector: 'app-rrhh-organigrama',
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, TranslatePipe],
   templateUrl: './organigrama.html',
   styleUrl: './organigrama.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

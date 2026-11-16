@@ -1,16 +1,16 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <h1 class="page__title">Evaluaciones</h1>
-      <p class="page__sub">Evaluaciones de desempeño del personal. Dato sensible: solo RRHH/Gerencia pueden verlas, y cada lectura queda auditada.</p>
+      <h1 class="page__title">{{ 'Evaluaciones' | t }}</h1>
+      <p class="page__sub">{{ 'Evaluaciones de desempeño del personal. Dato sensible: solo RRHH/Gerencia pueden verlas, y cada lectura queda auditada.' | t }}</p>
     </div>
   </header>
 
   @if (cargando()) {
-    <p class="text-muted">Cargando…</p>
+    <p class="text-muted">{{ 'Cargando…' | t }}</p>
   } @else {
     <label class="ev-field">
-      <span>Empleado</span>
+      <span>{{ 'Empleado' | t }}</span>
       <select [value]="empleadoSeleccionadoId()" (change)="seleccionarEmpleado($any($event.target).value)">
         <option value="">Elige un empleado…</option>
         @for (e of empleados(); track e.id) { <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option> }
@@ -18,34 +18,34 @@
     </label>
 
     @if (empleadoSeleccionadoId()) {
-      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirForm()">Agregar evaluación</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirForm()">{{ 'Agregar evaluación' | t }}</button>
 
       @if (mostrarForm()) {
         <form class="ev-add" (submit)="$event.preventDefault(); guardar()">
-          <label class="ev-field"><span>Período</span>
-            <input type="text" [value]="fPeriodo()" (input)="fPeriodo.set($any($event.target).value)" placeholder="Ej: 2026-H2" />
+          <label class="ev-field"><span>{{ 'Período' | t }}</span>
+            <input type="text" [value]="fPeriodo()" (input)="fPeriodo.set($any($event.target).value)" placeholder="{{ 'Ej: 2026-H2' | t }}" />
           </label>
-          <label class="ev-field"><span>Puntaje (1-100)</span>
+          <label class="ev-field"><span>{{ 'Puntaje (1-100)' | t }}</span>
             <input type="number" min="1" max="100" [value]="fPuntaje()" (input)="fPuntaje.set($any($event.target).value)" />
           </label>
-          <label class="ev-field ev-field--wide"><span>Comentarios</span>
+          <label class="ev-field ev-field--wide"><span>{{ 'Comentarios' | t }}</span>
             <textarea rows="3" [value]="fComentarios()" (input)="fComentarios.set($any($event.target).value)"></textarea>
           </label>
           <div class="ev-add__acciones">
             <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarForm.set(false)">{{ 'Cancelar' | t }}</button>
           </div>
         </form>
       }
 
       @if (cargandoEvaluaciones()) {
-        <p class="text-muted">Cargando…</p>
+        <p class="text-muted">{{ 'Cargando…' | t }}</p>
       } @else if (!evaluaciones().length) {
-        <p class="text-muted">Este empleado no tiene evaluaciones registradas.</p>
+        <p class="text-muted">{{ 'Este empleado no tiene evaluaciones registradas.' | t }}</p>
       } @else {
         <div class="table-scroll">
           <table class="data-table">
-            <thead><tr><th>Período</th><th>Puntaje</th><th>Comentarios</th><th>Fecha</th></tr></thead>
+            <thead><tr><th>{{ 'Período' | t }}</th><th>{{ 'Puntaje' | t }}</th><th>{{ 'Comentarios' | t }}</th><th>{{ 'Fecha' | t }}</th></tr></thead>
             <tbody>
               @for (e of evaluaciones(); track e.id) {
                 <tr>

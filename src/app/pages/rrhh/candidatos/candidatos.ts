@@ -10,6 +10,7 @@ import { PdfViewer } from '../../../../shared/ui/pdf-viewer/pdf-viewer';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tab = 'activos' | 'archivados';
 
 /**
@@ -20,7 +21,7 @@ type Tab = 'activos' | 'archivados';
  */
 @Component({
   selector: 'app-rrhh-candidatos',
-  imports: [FormDrawer, ConfirmDialog, PdfViewer, Icon],
+  imports: [FormDrawer, ConfirmDialog, PdfViewer, Icon, TranslatePipe],
   templateUrl: './candidatos.html',
   styleUrl: './candidatos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

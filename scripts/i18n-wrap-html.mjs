@@ -193,7 +193,15 @@ function asegurarTranslatePipe(htmlFile) {
       : 'TranslatePipe';
     ts = ts.replace(/imports:\s*\[([^\]]*)\]/, `imports: [${nuevo}]`);
   } else {
-    console.warn(`  ⚠ ${relative(ROOT, tsFile)}: no se encontró "imports: [...]" — agregar TranslatePipe a mano.`);
+    // DP-20 — el @Component no tenía ningún array `imports: [...]` (standalone
+    // sin dependencias hasta ahora). Insertarlo justo tras `selector: '...'`.
+    const selMatch = ts.match(/selector:\s*'[^']*',?/);
+    if (selMatch) {
+      const pos = selMatch.index + selMatch[0].length;
+      ts = `${ts.slice(0, pos)}\n  imports: [TranslatePipe],${ts.slice(pos)}`;
+    } else {
+      console.warn(`  ⚠ ${relative(ROOT, tsFile)}: no se encontró "selector:" ni "imports: [...]" — agregar TranslatePipe a mano.`);
+    }
   }
   writeFileSync(tsFile, ts);
 }

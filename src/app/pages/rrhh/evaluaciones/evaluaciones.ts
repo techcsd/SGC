@@ -6,11 +6,13 @@ import { RrhhEvaluacion } from '../../../../shared/models/rrhh-evaluacion.model'
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-27 P2 — Evaluaciones de desempeño. SENSIBLE: cada lectura queda en
  *  sgc.rrhh_accesos_log (vía la RPC del servicio), gateada por
  *  sgc.puede_rrhh_sensible (sin bypass de admin). */
 @Component({
   selector: 'app-rrhh-evaluaciones',
+  imports: [TranslatePipe],
   templateUrl: './evaluaciones.html',
   styleUrl: './evaluaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

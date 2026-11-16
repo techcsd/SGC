@@ -6,11 +6,12 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-27 P2 — Capacitación: cursos/certificaciones (ej. seguridad en obra),
  *  con vencimiento. No sensible (permiso estándar, igual que Organigrama). */
 @Component({
   selector: 'app-rrhh-capacitacion',
-  imports: [ConfirmDialog],
+  imports: [ConfirmDialog, TranslatePipe],
   templateUrl: './capacitacion.html',
   styleUrl: './capacitacion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

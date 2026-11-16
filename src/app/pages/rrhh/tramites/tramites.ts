@@ -5,12 +5,13 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-29 (P2 de Administración) — Trámites y cumplimiento: permisos, licencias,
  *  seguros e impuestos de la empresa, con vencimientos. No sensible (igual que
  *  Proveedores/Activos: logística de oficina, no dato personal del empleado). */
 @Component({
   selector: 'app-rrhh-tramites',
-  imports: [ConfirmDialog],
+  imports: [ConfirmDialog, TranslatePipe],
   templateUrl: './tramites.html',
   styleUrl: './tramites.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

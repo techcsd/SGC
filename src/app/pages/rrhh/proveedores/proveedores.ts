@@ -6,12 +6,13 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-29 (Administración, prioridad 3) — Proveedores administrativos:
  *  internet, limpieza, seguros de oficina — DISTINTO de compras.proveedores
  *  (material/transporte). */
 @Component({
   selector: 'app-rrhh-proveedores',
-  imports: [ConfirmDialog, DecimalPipe],
+  imports: [ConfirmDialog, DecimalPipe, TranslatePipe],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

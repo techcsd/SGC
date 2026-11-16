@@ -20,9 +20,10 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-asistencia',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

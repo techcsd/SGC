@@ -17,9 +17,10 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-ausencias',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, Icon, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './ausencias.html',
   styleUrl: './ausencias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

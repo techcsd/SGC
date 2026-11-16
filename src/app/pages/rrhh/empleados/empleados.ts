@@ -41,9 +41,10 @@ import { DatosPruebaService } from '../../../../shared/services/datos-prueba.ser
 import { ToastService } from '../../../../shared/services/toast.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-empleados',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, CedulaMask, ExportExcel, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, CedulaMask, ExportExcel, StaggerDirective, TranslatePipe],
   templateUrl: './empleados.html',
   styleUrl: './empleados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

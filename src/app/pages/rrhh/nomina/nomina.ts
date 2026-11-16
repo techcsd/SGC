@@ -4,12 +4,14 @@ import { RrhhNominaParametro, RrhhNominaPeriodo } from '../../../../shared/model
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** DN-27 P2 — Nómina y pagos. SENSIBLE. Esta pantalla SOLO administra
  *  parámetros (TSS/AFP/ISR) y períodos en borrador — NO calcula ni mueve
  *  dinero. El cálculo real espera la validación del contador (ver
  *  docs/RRHH-ADMIN.md §4). */
 @Component({
   selector: 'app-rrhh-nomina',
+  imports: [TranslatePipe],
   templateUrl: './nomina.html',
   styleUrl: './nomina.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,12 +1,12 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Ausencias y vacaciones</h1>
+    <h1 class="page-title">{{ 'Ausencias y vacaciones' | t }}</h1>
     <span class="page-count">{{ pendientes().length }} pendiente{{ pendientes().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-            [disabled]="visible().length === 0" title="Exportar las solicitudes visibles a Excel">
+            [disabled]="visible().length === 0" title="{{ 'Exportar las solicitudes visibles a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -27,7 +27,7 @@
     Todas
   </button>
   <div class="sgc-field tabs-bar__filter">
-    <select [value]="selectedTipo()" (change)="onTipoChange($any($event.target).value)" aria-label="Filtrar por tipo">
+    <select [value]="selectedTipo()" (change)="onTipoChange($any($event.target).value)" aria-label="{{ 'Filtrar por tipo' | t }}">
       <option value="all">Todos los tipos</option>
       @for (t of TIPOS; track t.value) {
         <option [value]="t.value">{{ t.label }}</option>
@@ -55,22 +55,22 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Solicitudes de ausencia">
+      <table class="data-table" aria-label="{{ 'Solicitudes de ausencia' | t }}">
         <thead>
           <tr>
-            <th>Empleado</th>
-            <th>Tipo</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-            <th class="text-center">Días</th>
-            <th>Estado</th>
-            <th class="text-center">Acción</th>
+            <th>{{ 'Empleado' | t }}</th>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Desde' | t }}</th>
+            <th>{{ 'Hasta' | t }}</th>
+            <th class="text-center">{{ 'Días' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Acción' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (s of paginated(); track s.id) {
             <tr class="row--link" (click)="openResolve(s)" role="button" tabindex="0"
-                (keydown.enter)="openResolve(s)" aria-label="Ver detalle de la solicitud">
+                (keydown.enter)="openResolve(s)" aria-label="{{ 'Ver detalle de la solicitud' | t }}">
               <td>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</td>
               <td>{{ tipoLabel(s.tipo) }}</td>
               <td>{{ formatFecha(s.fecha_inicio) }}</td>
@@ -79,7 +79,7 @@
               <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
               <td class="text-center">
                 @if (s.estado === 'pendiente') {
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); openResolve(s)">Revisar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); openResolve(s)">{{ 'Revisar' | t }}</button>
                 } @else {
                   <span class="text-muted">{{ s.aprobador?.nombre ?? '—' }}</span>
                   @if (s.comentario_aprobador) {
@@ -97,10 +97,10 @@
 <app-paginator [total]="visible().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 
 <!-- ── Create Drawer ── -->
-<app-form-drawer title="Nueva solicitud de ausencia" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer title="{{ 'Nueva solicitud de ausencia' | t }}" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
     <div class="sgc-field">
-      <label for="empleado_id">Empleado <span class="required">*</span></label>
+      <label for="empleado_id">{{ 'Empleado' | t }} <span class="required">*</span></label>
       <select id="empleado_id" formControlName="empleado_id" (change)="onEmpleadoChange($any($event.target).value)" [class.invalid]="f.empleado_id.invalid && f.empleado_id.touched">
         <option [ngValue]="null">Selecciona…</option>
         @for (e of empleados(); track e.id) {
@@ -108,12 +108,12 @@
         }
       </select>
       @if (f.empleado_id.invalid && f.empleado_id.touched) {
-        <span class="field-error">Selecciona un empleado.</span>
+        <span class="field-error">{{ 'Selecciona un empleado.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="tipo">Tipo <span class="required">*</span></label>
+      <label for="tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
       <select id="tipo" formControlName="tipo">
         @for (t of TIPOS; track t.value) {
           <option [value]="t.value">{{ t.label }}</option>
@@ -123,18 +123,18 @@
 
     @if (f.tipo.value === 'vacaciones' && balanceEmpleado(); as bal) {
       <div class="balance-hint">
-        Vacaciones {{ anioActual }}: <strong>{{ bal.tomadas }}</strong> de <strong>{{ bal.anuales }}</strong> días usados
+        Vacaciones {{ anioActual }}: <strong>{{ bal.tomadas }}</strong> {{ 'de' | t }} <strong>{{ bal.anuales }}</strong> días usados
         · <strong>{{ bal.anuales - bal.tomadas }}</strong> disponibles
       </div>
     }
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha_inicio">Desde <span class="required">*</span></label>
+        <label for="fecha_inicio">{{ 'Desde' | t }} <span class="required">*</span></label>
         <input id="fecha_inicio" type="date" formControlName="fecha_inicio" />
       </div>
       <div class="sgc-field">
-        <label for="fecha_fin">Hasta <span class="required">*</span></label>
+        <label for="fecha_fin">{{ 'Hasta' | t }} <span class="required">*</span></label>
         <input id="fecha_fin" type="date" formControlName="fecha_fin" />
       </div>
     </div>
@@ -144,8 +144,8 @@
     }
 
     <div class="sgc-field">
-      <label for="motivo">Motivo / notas</label>
-      <textarea id="motivo" formControlName="motivo" rows="3" placeholder="Detalle de la solicitud…"></textarea>
+      <label for="motivo">{{ 'Motivo / notas' | t }}</label>
+      <textarea id="motivo" formControlName="motivo" rows="3" placeholder="{{ 'Detalle de la solicitud…' | t }}"></textarea>
     </div>
 
     @if (saveError()) {
@@ -153,7 +153,7 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
@@ -167,49 +167,49 @@
 </app-form-drawer>
 
 <!-- ── Resolve Drawer ── -->
-<app-form-drawer title="Revisar solicitud" [open]="resolveOpen()" (closed)="closeResolve()">
+<app-form-drawer title="{{ 'Revisar solicitud' | t }}" [open]="resolveOpen()" (closed)="closeResolve()">
   @if (resolveSolicitud(); as s) {
     <div class="detail-body">
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">Empleado</span>
+          <span class="detail-field__label">{{ 'Empleado' | t }}</span>
           <span>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Tipo</span>
+          <span class="detail-field__label">{{ 'Tipo' | t }}</span>
           <span>{{ tipoLabel(s.tipo) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Desde</span>
+          <span class="detail-field__label">{{ 'Desde' | t }}</span>
           <span>{{ formatFecha(s.fecha_inicio) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Hasta</span>
+          <span class="detail-field__label">{{ 'Hasta' | t }}</span>
           <span>{{ formatFecha(s.fecha_fin) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Días</span>
+          <span class="detail-field__label">{{ 'Días' | t }}</span>
           <span>{{ s.dias }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Solicitado por</span>
+          <span class="detail-field__label">{{ 'Solicitado por' | t }}</span>
           <span>{{ s.solicitante?.nombre ?? '—' }}</span>
         </div>
         @if (s.motivo) {
           <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Motivo</span>
+            <span class="detail-field__label">{{ 'Motivo' | t }}</span>
             <span>{{ s.motivo }}</span>
           </div>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="comentario">Comentario (opcional)</label>
-        <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="Motivo de la decisión…"></textarea>
+        <label for="comentario">{{ 'Comentario (opcional)' | t }}</label>
+        <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="{{ 'Motivo de la decisión…' | t }}"></textarea>
       </div>
 
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazada')">Rechazar</button>
+        <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazada')">{{ 'Rechazar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolving()" (click)="resolver('aprobada')">
           @if (resolving()) {
             <span class="spinner" aria-hidden="true"></span>
