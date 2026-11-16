@@ -5,6 +5,7 @@ import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** DB10/DB11 — config del bloque «Quién recibe» por familia de correo. El
  *  parámetro de ROLES ya existía (param_csv con default); el de PERSONAS EXTRA
@@ -43,6 +44,7 @@ const DESTINATARIOS_CFG: Record<string, DestinatariosCfg> = {
 export class TecEnviosAutomaticos implements OnInit {
   private service = inject(EnviosAutomaticosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly esProd = environment.entorno === 'prod';
   readonly formatTs = formatTimestampDisplay;
@@ -72,7 +74,7 @@ export class TecEnviosAutomaticos implements OnInit {
     try {
       this.envios.set(await this.service.listar());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar los envíos automáticos.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudieron cargar los envíos automáticos.'));
     } finally {
       this.loading.set(false);
     }
@@ -93,7 +95,7 @@ export class TecEnviosAutomaticos implements OnInit {
     const e = this.motivoFamilia();
     if (!e) return;
     if (!this.motivoTexto().trim()) {
-      this.toast.error('Falta el motivo', 'Apagar un envío automático en producción exige un motivo.');
+      this.toast.error(this.i18n.t('Falta el motivo'), this.i18n.t('Apagar un envío automático en producción exige un motivo.'));
       return;
     }
     await this.aplicar(e.familia, false, this.motivoTexto().trim());
@@ -104,10 +106,14 @@ export class TecEnviosAutomaticos implements OnInit {
     this.busyFamilia.set(familia);
     try {
       await this.service.set(familia, activo, motivo);
-      this.toast.success(activo ? 'Encendido' : 'Apagado', `«${this.nombreDe(familia)}» queda ${activo ? 'activo' : 'apagado'}.`);
+      const estado = activo ? this.i18n.t('activo') : this.i18n.t('apagado');
+      this.toast.success(
+        activo ? this.i18n.t('Encendido') : this.i18n.t('Apagado'),
+        this.i18n.t('«{nombre}» queda {estado}.', { nombre: this.nombreDe(familia), estado }),
+      );
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo cambiar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cambiar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.busyFamilia.set(null);
     }
@@ -121,9 +127,12 @@ export class TecEnviosAutomaticos implements OnInit {
     this.probandoFamilia.set(e.familia);
     try {
       const correo = await this.service.probar(e.familia);
-      this.toast.success('Prueba enviada', `Revisa ${correo} — llegará aunque «${e.nombre}» esté apagado.`);
+      this.toast.success(
+        this.i18n.t('Prueba enviada'),
+        this.i18n.t('Revisa {correo} — llegará aunque «{nombre}» esté apagado.', { correo, nombre: e.nombre }),
+      );
     } catch (err: unknown) {
-      this.toast.error('No se pudo mandar la prueba', err instanceof Error ? err.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo mandar la prueba'), err instanceof Error ? err.message : undefined);
     } finally {
       this.probandoFamilia.set(null);
     }
@@ -167,7 +176,7 @@ export class TecEnviosAutomaticos implements OnInit {
       this.roles.set(roles);
       await this.cargarPreview(e.familia);
     } catch (err: unknown) {
-      this.toast.error('No se pudo cargar «Quién recibe»', err instanceof Error ? err.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar «Quién recibe»'), err instanceof Error ? err.message : undefined);
     }
   }
 
@@ -192,7 +201,7 @@ export class TecEnviosAutomaticos implements OnInit {
   async agregarCorreo(familia: string) {
     const correo = this.nuevoCorreo().trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      this.toast.error('Correo no válido', 'Escribe un correo completo, p. ej. yonairis@constructorasd.com');
+      this.toast.error(this.i18n.t('Correo no válido'), this.i18n.t('Escribe un correo completo, p. ej. yonairis@constructorasd.com'));
       return;
     }
     const lista = this.correosExtra(familia);
@@ -217,7 +226,7 @@ export class TecEnviosAutomaticos implements OnInit {
       this.params.set({ ...this.params(), [clave]: valor });
       await this.cargarPreview(familia);
     } catch (err: unknown) {
-      this.toast.error('No se pudo guardar', err instanceof Error ? err.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), err instanceof Error ? err.message : undefined);
     } finally {
       this.guardandoDest.set(false);
     }

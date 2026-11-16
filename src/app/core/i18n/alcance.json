@@ -151,9 +151,6 @@
     "tecnologia/outbox-atascados": {
       "enforce": false
     },
-    "tecnologia/envios-automaticos": {
-      "enforce": false
-    },
     "admin/compa-conversaciones": {
       "enforce": false
     },
@@ -563,6 +560,9 @@
       "enforce": true
     },
     "tecnologia/consultas-compa": {
+      "enforce": true
+    },
+    "tecnologia/envios-automaticos": {
       "enforce": true
     },
     "tecnologia/estadisticas": {

@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 80,
-  "pctHt": 92,
+  "pctHt": 93,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -2549,24 +2549,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/envios-automaticos",
-      "total": 27,
-      "cubiertos": 20,
-      "sin": 7,
-      "pct": 74,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Falta el motivo",
-        "No se pudo cambiar",
-        "Prueba enviada",
-        "No se pudo mandar la prueba",
-        "No se pudo cargar «Quién recibe»",
-        "Correo no válido",
-        "No se pudo guardar"
-      ]
-    },
-    {
       "pantalla": "admin/compa-conversaciones",
       "total": 26,
       "cubiertos": 20,
@@ -4025,6 +4007,16 @@
       "pantalla": "tecnologia/consultas-compa",
       "total": 23,
       "cubiertos": 23,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/envios-automaticos",
+      "total": 27,
+      "cubiertos": 27,
       "sin": 0,
       "pct": 100,
       "enScope": true,
