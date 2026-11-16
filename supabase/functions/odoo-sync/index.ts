@@ -11,6 +11,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { publicarMock } from "../_shared/odoo-inventario.ts";
+import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
+import { publicarSalida } from "../_shared/odoo-salidas.ts";
+import { depsReales } from "./salidas.ts";
 
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = envRequerido("SUPABASE_SERVICE_ROLE_KEY");
@@ -46,10 +49,22 @@ Deno.serve(async (req: Request) => {
     return json({ error: "No se pudo reclamar eventos." }, 500);
   }
 
+  // DS-10: las salidas (conduces) se publican de verdad como traslados A/B, solo si la instancia permite salida.
+  const { data: inst } = await admin.from("odoo_instancias").select("permitir_salida").eq("id", instanciaId).maybeSingle();
+  let odooCliente: OdooClient | null = null;
   const resultados: Array<{ id: string; estado: string }> = [];
   for (const evento of eventos ?? []) {
     try {
-      const r = await publicarMock(evento);
+      let r;
+      if (evento.agregado_tipo === "salida_inventario") {
+        if (!inst?.permitir_salida) r = { estado: "reintento" as const, error: "La instancia no permite salidas todavía.", reintentarEnMs: 3_600_000 };
+        else {
+          try { odooCliente ??= new OdooClient(configDesdeEntorno()); } catch (e) { r = { estado: "error" as const, error: e instanceof Error ? e.message : "Configuración de Odoo inválida." }; }
+          if (!r) r = await publicarSalida(depsReales(admin, odooCliente!, instanciaId), evento.agregado_id, evento.intentos ?? 1);
+        }
+      } else {
+        r = await publicarMock(evento);
+      }
       const { data: ok, error: errFinalizar } = await admin.rpc("odoo_v1_finalizar_evento", {
         p_evento: evento.id,
         p_lease: evento.lease_token,
@@ -66,5 +81,5 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return json({ procesados: resultados.length, resultados, modo: "mock" });
+  return json({ procesados: resultados.length, resultados, modo: inst?.permitir_salida ? "salidas_real" : "mock" });
 });

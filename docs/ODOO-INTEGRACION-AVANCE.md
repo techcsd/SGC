@@ -42,6 +42,21 @@ Regla de seguridad (repo público): sin hosts, usuarios, claves, ids de proyecto
 - **DS-08:** búsqueda en disco (Desktop, Downloads, Documents, `C:\developer`), stash y todo el historial/ramas remotas: **no existe código** `odoo-traslados*` ni `resolverAutorOdoo`; solo los docs de Miranda lo mencionan. Hay que reconstruirlo desde el plan (pendiente).
 - El worktree `SGC-ds` tiene una copia local de `.env.local` (gitignored) para que los scripts lean los tokens.
 
-## Pendiente inmediato
+## Segunda actualización (staging conectado)
 
-DS-03 (verificación de contrato contra staging), cambio de secrets de dev a staging (reportando antes el host actual), y F2 en adelante. Esta ronda no cabe en una sola sesión: ver número exacto de ítems pendientes en el reporte final.
+- **Staging conectado:** base y usuario resueltos; autenticación OK (uid de la cuenta técnica, sin imprimir valores). Secrets de **dev** apuntan ahora a staging (`ODOO_URL/DB/USER/API_KEY` + `ODOO_HOSTS_ESCRITURA`). Prod no se tocó. Las pantallas de lectura de dev (Stock en Odoo, OC, Proveedores) ahora muestran datos de staging (copia de prod).
+- **Instancia nueva en dev:** la identidad de una instancia es inmutable (trigger), así que se registró «Odoo staging (dev)», se copió su compañía, se re-apuntaron los vínculos de 14 tablas y la instancia anterior quedó deshabilitada. `permitir_salida/entrada` siguen en false.
+- **DS-05 ✅ (dev):** data-fix `scripts/data-fixes/2026-11-16-ds-homologacion-dev.mjs` (idempotente; dry-run por defecto): 15 bodegas con `codigo_odoo` + warehouse/location verificados contra `stock.warehouse` de staging. `TRB` (Torre Bolívar) no tiene bodega SGC. 8 almacenes de Odoo quedan «no gestionados».
+- **DS-06 parcial (dev):** 10 cuentas «seguras» confirmadas (id **y** nombre coinciden); dudosas por evidencia de uso en líneas de compra de staging: CSD-102 → cuenta 21 (10 líneas; la 28 no existe), CSD-103 → 17 (111 líneas; la 26 no existe), PROY-0002 → 29 principal (93) + 37 adicional (1), todas `confirmado=false`; PROY-0005 no existe en dev (la 44 tiene 2 líneas): sin enlace. **Falta:** `analytic_distribution` en `compras.crear`, selector de cuenta en «crear OC», pantalla «Homologación».
+- **DS-07 ❌ pendiente:** catálogo (solo 1 de 940 productos tiene `default_code`).
+- **DS-08 ✅:** `_shared/odoo-traslados.ts` reconstruido (crear/validar/cancelar/devolver/listar/obtener, `resolverAutorOdoo`, chatter en texto plano, disponibilidad) + 15 tests. **Contrato real contra staging verde** (`scripts/odoo-contrato-traslados-staging.ts`).
+- **Hallazgo crítico:** el Odoo de CSD **permite stock negativo** (staging validó un traslado de 9.999.999). Por eso `validarTraslado` consulta lo disponible (cantidad − reservado) antes de validar cuando el origen es una ubicación interna. El movimiento de prueba se revirtió.
+- **Política del cliente Odoo ampliada** (revisión de código): lectura de `stock.move`, `stock.picking.type`, `stock.warehouse`, `res.users`, `hr.employee`; escritura de `stock.picking` (create/write/action_confirm/action_assign/button_validate/action_cancel/message_post) y `stock.move.write`. Sin unlink.
+- **DS-09 ✅ (dev):** migración `2026-11-16-ds9-…`: NULL = lo enviado en `conduce_confirmar_receptor`, `entregar_conduce` y `recibir_conduce_app`; data-fix de incompletos falsos (dev: 7/7 corregidos, 0 faltantes reales). Falta la prueba SQL transaccional con ROLLBACK. **Prod: migración + data-fix listos, NO aplicados.**
+- **DS-10/DS-11 ✅ (dev):** `_shared/odoo-salidas.ts` (+12 tests) y el worker `odoo-sync` publican eventos `salida_inventario` como traslado A/B; migración `2026-11-16-ds11-…` (marcar sync sin bucle, evento B al entregar la parada, «Reintentar»). Desplegado en dev. Contrato real del ciclo despachado → entregado incompleto → anulado verde contra staging (`scripts/odoo-contrato-salida-staging.ts`). **Apagado:** no hay fila en `odoo_publicacion_politica` ni `permitir_salida`.
+  - **Diferencia con el plan:** se publica por **outbox asíncrono** (con reintento y estados incierto/error), no con write-through síncrono Odoo-primero en el RPC de despacho. El bloqueo por falta de stock ocurre al publicar, no antes de guardar el conduce.
+- Suite Deno: 348 tests verdes.
+
+## Pendiente (número exacto en el reporte final)
+
+Todo F4, F5, F6, F7, F8; de F2: DS-06 (consumo en compras + pantalla), DS-07; de F3: acciones `traslados.*` del gateway, pantalla de estado + Reintentar (DS-12), prueba SQL de DS-09, write-through, solicitud de ajuste por faltante (ADR 5), notas de versión (Y1), `docs/DATOS-Y-TERCEROS.md` (CI13).
