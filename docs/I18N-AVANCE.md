@@ -685,6 +685,70 @@ las últimas 5 pantallas (commits `8e14c319`..`318739d5`):
 **Módulo 15 (Tecnología) CERRADO: 20/20 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Admin (#16).
 
+## Admin — 100% COMPLETO (25/25 pantallas, 16-nov-2026)
+
+25 pantallas (herramientas solo-admin: usuarios, roles, parámetros,
+catálogos, versiones, jira interno). 143 → **167** pantallas enforce en
+total. Lote 62 (codemod, `9deccdab`) + 3 lotes de cierre por pantalla
+(`e8fe9b40`..`d3b254bf`):
+
+- **Lote 62** (`9deccdab`): codemod masivo: 607 envueltos, 35 saltados a
+  mano.
+- **Batch 1** (11 pantallas pequeñas, `e8fe9b40`..`a6515821`):
+  `almacenes-duplicados`, `bitacora-catalogos`, `solicitudes-eliminacion`,
+  `conduces-huerfanos`, `parametros`, `orden-modulos`, `otros-valores`,
+  `unidades`, `importar`, `pulso-sistema`, `auditoria`. `auditoria` tenía
+  1 solo fragmento marcado por el escáner pero **6 llamadas más** a
+  `tablaLabel()`/`accionLabel()`/`adminAccionLabel()` sin `| t` encontradas
+  en revisión manual de plantilla — mismo patrón "etiqueta de método" de
+  siempre, bug real (siempre en español) invisible al escáner. Se encontró
+  también una clave de `confirm()` guardada con SALTOS DE LÍNEA LITERALES
+  en vez del escape `\n` — nunca hubiera calzado en runtime
+  (`verify-i18n.mjs` lo atrapó antes de commitear).
+- **Batch 2** (8 pantallas medianas, `6cc8edfe`..`e0c3aa4b`):
+  `animaciones`, `reportes`, `usuarios-test`, `empresa`,
+  `usuarios-duplicados`, `compa-conversaciones`, `historial-versiones`,
+  `vault`. **Gotcha nuevo**: un `confirm()` con `\n\n` real (newline
+  evaluado por JS) dentro de UN SOLO string traducido nunca calza —
+  el escáner extrae el escape literal de 2 caracteres del código fuente,
+  pero el string evaluado en runtime tiene un salto de línea real. Fix:
+  partir el mensaje en 2 llamadas `i18n.t()` SIN newline, unidas por
+  `'\n\n'` fuera de las partes traducidas.
+- **Batch 3** (las 5 más grandes/complejas, `6590354b`..`d3b254bf`):
+  `jira` (board Kanban interno), `matriz-notificaciones`,
+  `app-versiones` (chips de tipo nuevo/mejora/arreglo/seguridad del
+  historial de versiones — SÍ son copy de UI, se envolvieron; el
+  changelog libre de cada versión queda sin traducir, es contenido
+  autorado por el admin, no copy de UI), `roles` (incluye
+  `role-permisos-editor.html`/`.ts`, que comparte el cupo de cobertura
+  de `admin/roles` por no ser una ruta propia — sus catálogos
+  `PRESETS_CARGO` se tradujeron; el catálogo grande de
+  `MODULOS_DISPONIBLES`/`SUBMODULOS` queda sin traducir a propósito, cae
+  a español por diseño sin afectar el % medido), `usuarios` (cierra el
+  módulo, 67 literales). Mismos gotchas recurrentes de siempre: ternarias
+  sin `| t` (`'Operar'/'Ver'`, `'Encendido'/'Apagado'`,
+  `'Guardando…'/'Guardar'`), etiquetas de método sin `| t` (`tipoLabel`,
+  `getModuloLabel`, `labelSubmodulo`, `tipoConductorLabel`), `confirm()`
+  reescritos con placeholder nombrado, concatenación con espacio final
+  en `[attr.aria-label]`, una entidad `&amp;quot;` en un `title` reescrita
+  con comillas angulares para evitar el gotcha de tag-boundary ya
+  conocido.
+- Los 3 lotes se dispacharon como agentes `general-purpose` SIN contexto
+  heredado (no `subagent_type: "fork"`) — ver la sección de Tecnología
+  arriba para el porqué (forks devolviendo 0 usos de herramienta por
+  contexto de orquestación heredado). Los 3 terminaron de verdad, sin
+  dejar trabajo a medias, cada uno reverificado independientemente
+  (`verify-i18n.mjs` + build + 368 tests) antes de aceptarlo.
+- `public/i18n/en.json`: → **7.321** claves. `public/i18n/ht.json`: →
+  **7.162** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+- `verify-i18n.mjs`: **167 pantallas enforce, 0 fallos.** Build + 368/368
+  tests verdes en todo momento (verificado independientemente, no solo
+  reportado por los agentes).
+
+**Módulo 16 (Admin) CERRADO: 25/25 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Resto (#17).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -729,7 +793,7 @@ Admin, resto.
 | 13 | Ingeniería | 1/1 pantalla 100% (ver detalle arriba) | ~14 a mano (ya 79% por trabajo previo) | toasts | ✅ **100% — hecho** | bed92636 | **true** |
 | 14 | Reuniones/Tareas/Notas/Mensajes | 9/9 pantallas 100% (ver detalle arriba) | 176 (codemod) + ~120 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | b2e99b45..f04be843 | **true** |
 | 15 | Tecnología | 20/20 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 180dfc09..318739d5 | **true** |
-| 16 | Admin | — | — | — | ⏳ pendiente | — | false |
+| 16 | Admin | 25/25 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 9deccdab..d3b254bf | **true** |
 | 17 | Resto | — | — | — | ⏳ pendiente | — | false |
 
 ## F7 — selector honesto + guardias estrictas (13-nov-2026)
