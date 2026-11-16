@@ -3815,51 +3815,6 @@
       ]
     },
     {
-      "pantalla": "documentos/plantillas",
-      "total": 46,
-      "cubiertos": 26,
-      "sin": 20,
-      "pct": 57,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "plantilla",
-        "+ Subir plantilla personalizada",
-        "Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en",
-        ". Para agregar la tuya: sube tu Word (.docx) tal cual — el sistema detecta solo los espacios a rellenar, sea que los hayas escrito como",
-        "o simplemente dejado en blanco con guiones bajos («____»), y te deja elegir qué dato va en cada uno.",
-        "Todas ( )",
-        "+ Subir plantilla personalizada",
-        "· dato",
-        "Súbelo tal cual. Detecta",
-        "y «____» por igual.",
-        "Espacios detectados ( )",
-        "A mano al generar",
-        "} @placeholder {",
-        "Versión",
-        "Ver ·",
-        "Versiones ·",
-        "Plantilla duplicada",
-        "No se pudo duplicar",
-        "¿Restaurar la versión ${v.version} de \"${p.nombre}\"? La versión actual se guarda antes de restaurar.",
-        "¿Eliminar la plantilla \"${p.nombre}\"? Esta acción no se puede deshacer."
-      ]
-    },
-    {
-      "pantalla": "documentos/generar",
-      "total": 9,
-      "cubiertos": 6,
-      "sin": 3,
-      "pct": 67,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Seleccionar plantilla…",
-        "Sin proyecto asociado",
-        "Generar vista previa"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -3933,19 +3888,6 @@
         "No se pudo guardar",
         "Enviado",
         "No se pudo enviar"
-      ]
-    },
-    {
-      "pantalla": "documentos/ver",
-      "total": 9,
-      "cubiertos": 7,
-      "sin": 2,
-      "pct": 78,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Usado en contrato",
-        "Crear contrato en Legal con este documento"
       ]
     },
     {
@@ -4038,18 +3980,6 @@
         "Copiado — se borra del portapapeles en 30 s",
         "No se pudo copiar",
         "Eliminado"
-      ]
-    },
-    {
-      "pantalla": "documentos/historial",
-      "total": 9,
-      "cubiertos": 8,
-      "sin": 1,
-      "pct": 89,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "documento"
       ]
     },
     {
@@ -4420,6 +4350,46 @@
       "pct": 100,
       "enScope": true,
       "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "documentos/generar",
+      "total": 9,
+      "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "documentos/historial",
+      "total": 9,
+      "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "documentos/plantillas",
+      "total": 43,
+      "cubiertos": 43,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "documentos/ver",
+      "total": 9,
+      "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
       "faltantes": []
     },
     {

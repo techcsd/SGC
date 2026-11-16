@@ -1,18 +1,17 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Plantillas de Documentos' | t }}</h1>
-    <span class="page-count">{{ plantillas().length }} plantilla{{ plantillas().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ plantillas().length }} {{ 'plantilla' | t }}{{ plantillas().length !== 1 ? 's' : '' }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openUpload()">
-    + Subir plantilla personalizada
+    {{ '+ Subir plantilla personalizada' | t }}
   </button>
 </div>
 
 <p class="page-hint">
-  Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en
-  <a routerLink="/documentos/generar">{{ 'Generar Documento' | t }}</a>. Para agregar la tuya: sube tu Word (.docx) tal cual —
-  el sistema detecta solo los espacios a rellenar, sea que los hayas escrito como <code>{{ '{' + '{campo}' + '}' }}</code>
-  o simplemente dejado en blanco con guiones bajos («____»), y te deja elegir qué dato va en cada uno.
+  {{ 'Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en' | t }}
+  <a routerLink="/documentos/generar">{{ 'Generar Documento' | t }}</a>. {{ 'Para agregar la tuya: sube tu Word (.docx) tal cual — el sistema detecta solo los espacios a rellenar, sea que los hayas escrito como' | t }} <code>{{ '{' + '{campo}' + '}' }}</code>
+  {{ 'o simplemente dejado en blanco con guiones bajos («____»), y te deja elegir qué dato va en cada uno.' | t }}
 </p>
 
 @if (error()) {
@@ -22,12 +21,12 @@
 <!-- CO12 — filtro por tipo con conteo -->
 <div class="pl-filtros">
   <button type="button" class="pl-filtro" [class.pl-filtro--on]="filtroTipo() === 'all'" (click)="filtroTipo.set('all')">
-    Todas ({{ plantillas().length }})
+    {{ 'Todas' | t }} ({{ plantillas().length }})
   </button>
   @for (cat of CATEGORIAS; track cat) {
     @if (conteoPorTipo(cat) > 0) {
       <button type="button" class="pl-filtro" [class.pl-filtro--on]="filtroTipo() === cat" (click)="filtroTipo.set(cat)">
-        {{ CATEGORIA_LABELS[cat] }} ({{ conteoPorTipo(cat) }})
+        {{ CATEGORIA_LABELS[cat] | t }} ({{ conteoPorTipo(cat) }})
       </button>
     }
   }
@@ -39,7 +38,7 @@
   <div class="table-empty sgc-card">
     <p>{{ 'Aún no hay plantillas disponibles.' | t }}</p>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openUpload()">
-      + Subir plantilla personalizada
+      {{ '+ Subir plantilla personalizada' | t }}
     </button>
   </div>
 } @else {
@@ -53,7 +52,7 @@
             @if (p.es_default) { <span class="sgc-badge sgc-badge--success">{{ '★ La que se usa' | t }}</span> }
           </div>
           <p class="plantilla-card__nombre">{{ p.nombre }}</p>
-          <p class="plantilla-card__desc">{{ CATEGORIA_LABELS[p.categoria] }} · {{ p.campos.length }} dato{{ p.campos.length !== 1 ? 's' : '' }}</p>
+          <p class="plantilla-card__desc">{{ CATEGORIA_LABELS[p.categoria] | t }} · {{ p.campos.length }} {{ 'dato' | t }}{{ p.campos.length !== 1 ? 's' : '' }}</p>
           <div class="plantilla-card__acc">
             <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [routerLink]="['/documentos/generar']" [queryParams]="{ plantilla: p.id }">{{ 'Usar' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVer(p)">{{ 'Ver' | t }}</button>
@@ -105,7 +104,7 @@
     <div class="sgc-field">
       <label for="archivo">{{ 'Archivo Word (.docx)' | t }} <span class="required">*</span></label>
       <input id="archivo" type="file" accept=".docx" (change)="onFileSelected($event)" />
-      <p class="text-muted">Súbelo tal cual. Detecta <code>{{ '{' + '{campo}' + '}' }}</code> y «____» por igual.</p>
+      <p class="text-muted">{{ 'Súbelo tal cual. Detecta' | t }} <code>{{ '{' + '{campo}' + '}' }}</code> {{ 'y «____» por igual.' | t }}</p>
     </div>
 
     @if (analizando()) {
@@ -115,13 +114,13 @@
     <!-- CF7 — asistente de espacios: cada «____» del Word → una variable o "a mano" -->
     @if (huecos().length) {
       <div class="pl-huecos">
-        <h4 class="pl-huecos__title">Espacios detectados ({{ huecos().length }})</h4>
+        <h4 class="pl-huecos__title">{{ 'Espacios detectados' | t }} ({{ huecos().length }})</h4>
         <p class="text-muted">{{ 'Elige qué dato va en cada espacio. «A mano al generar» = lo escribes cada vez.' | t }}</p>
         @for (h of huecos(); track h.n) {
           <div class="pl-hueco">
             <span class="pl-hueco__ctx">{{ h.contexto }}</span>
             <select class="sgc-input" [value]="mapeo()[h.n] ?? ''" (change)="setMapeo(h.n, $any($event.target).value)">
-              <option value="">A mano al generar</option>
+              <option value="">{{ 'A mano al generar' | t }}</option>
               @for (v of VARIABLES; track v.key) { <option [value]="v.key">{{ v.label }}</option> }
             </select>
           </div>
@@ -153,7 +152,7 @@
       <div class="sgc-field">
         <label>{{ 'Categoría' | t }}</label>
         <select class="sgc-select" [value]="editCategoria()" (change)="editCategoria.set($any($event.target).value)">
-          @for (c of CATEGORIAS; track c) { <option [value]="c">{{ CATEGORIA_LABELS[c] }}</option> }
+          @for (c of CATEGORIAS; track c) { <option [value]="c">{{ CATEGORIA_LABELS[c] | t }}</option> }
         </select>
       </div>
     </div>
@@ -183,7 +182,7 @@
 </app-form-drawer>
 
 <!-- CO12 — "Ver" grande con datos de ejemplo -->
-<app-form-drawer [title]="'Ver · ' + (verPlantilla()?.nombre ?? '')" [open]="verOpen()" [wide]="true" (closed)="cerrarVer()">
+<app-form-drawer [title]="i18n.t('Ver') + ' · ' + (verPlantilla()?.nombre ?? '')" [open]="verOpen()" [wide]="true" (closed)="cerrarVer()">
   @if (verPlantilla(); as p) {
     <div class="pl-ver__contenido" [innerHTML]="previewDe(p)"></div>
     <p class="text-muted pl-ver__nota">{{ 'Vista previa con datos de ejemplo (naranja = lo que se llena solo).' | t }}</p>
@@ -191,7 +190,7 @@
 </app-form-drawer>
 
 <!-- CF7/CE7 — Versiones de una plantilla -->
-<app-form-drawer [title]="'Versiones · ' + (versPlantilla()?.nombre ?? '')" [open]="versOpen()" (closed)="cerrarVersiones()">
+<app-form-drawer [title]="i18n.t('Versiones') + ' · ' + (versPlantilla()?.nombre ?? '')" [open]="versOpen()" (closed)="cerrarVersiones()">
   <div class="pl-vers">
     @if (versBusy()) { <p class="text-muted">{{ 'Cargando…' | t }}</p> }
     @else if (!versiones().length) { <p class="text-muted">{{ 'Aún no hay versiones guardadas. Se crean al editar la plantilla.' | t }}</p> }
@@ -199,7 +198,7 @@
       @for (v of versiones(); track v.id) {
         <div class="pl-vers__row">
           <div>
-            <strong>Versión {{ v.version }}</strong>
+            <strong>{{ 'Versión' | t }} {{ v.version }}</strong>
             <span class="text-muted"> · {{ v.created_at | date:'dd/MM/yyyy HH:mm' }} · {{ v.creado_por_nombre ?? '—' }}</span>
             @if (v.motivo) { <div class="text-muted">{{ v.motivo }}</div> }
           </div>

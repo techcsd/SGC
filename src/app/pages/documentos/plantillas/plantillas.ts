@@ -12,6 +12,7 @@ import { EditorPlantilla } from '../../../../shared/ui/editor-plantilla/editor-p
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-documentos-plantillas',
   imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, DatePipe, StaggerDirective, EditorPlantilla, TranslatePipe],
@@ -23,6 +24,7 @@ export class Plantillas implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
   readonly CATEGORIAS = Object.keys(CATEGORIA_LABELS) as PlantillaCategoria[];
@@ -228,10 +230,10 @@ export class Plantillas implements OnInit {
       const creadoPor = this.userService.profile()?.id ?? null;
       const copia = await this.plantillasService.duplicarPlantilla(p, creadoPor);
       this.plantillas.update((list) => [copia, ...list]);
-      this.toast.success('Plantilla duplicada', `"${copia.nombre}" — ya la puedes editar.`);
+      this.toast.success(this.i18n.t('Plantilla duplicada'), `"${copia.nombre}" — ya la puedes editar.`);
       this.abrirEditor(copia);
     } catch (e: unknown) {
-      this.toast.error('No se pudo duplicar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo duplicar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -249,7 +251,7 @@ export class Plantillas implements OnInit {
   async restaurar(v: PlantillaVersion) {
     const p = this.versPlantilla();
     if (!p || this.versBusy()) return;
-    if (!confirm(`¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar.`)) return;
+    if (!confirm(this.i18n.t('¿Restaurar la versión {version} de "{nombre}"? La versión actual se guarda antes de restaurar.', { version: v.version, nombre: p.nombre }))) return;
     this.versBusy.set(true);
     try {
       await this.plantillasService.restaurarVersion(p.id, v.version);
@@ -274,7 +276,7 @@ export class Plantillas implements OnInit {
   async eliminar(p: PlantillaDocumento) {
     // Las plantillas del sistema no se pueden eliminar (protección adicional al ocultar el botón).
     if (p.origen === 'sistema') return;
-    if (!confirm(`¿Eliminar la plantilla "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar la plantilla "{nombre}"? Esta acción no se puede deshacer.', { nombre: p.nombre }))) return;
     try {
       await this.plantillasService.eliminarPlantilla(p.id);
       this.plantillas.update((list) => list.filter((x) => x.id !== p.id));

@@ -11,6 +11,7 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-documentos-generar',
   imports: [Skeleton, TranslatePipe],
@@ -20,6 +21,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 })
 export class Generar implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);

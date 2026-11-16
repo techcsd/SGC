@@ -14,7 +14,7 @@
       <div class="sgc-field">
         <label for="plantilla">{{ 'Plantilla' | t }}</label>
         <select id="plantilla" (change)="onPlantillaChange($any($event.target).value)">
-          <option value="">Seleccionar plantilla…</option>
+          <option value="">{{ 'Seleccionar plantilla…' | t }}</option>
           @for (p of plantillas(); track p.id) {
             <option [value]="p.id">{{ CATEGORIA_LABELS[p.categoria] }} — {{ p.nombre }}</option>
           }
@@ -25,7 +25,7 @@
         <div class="sgc-field">
           <label for="proyecto">{{ 'Proyecto (opcional)' | t }}</label>
           <select id="proyecto" (change)="onProyectoChange($any($event.target).value)">
-            <option value="">Sin proyecto asociado</option>
+            <option value="">{{ 'Sin proyecto asociado' | t }}</option>
             @for (proy of proyectos(); track proy.id) {
               <option [value]="proy.id">{{ proy.nombre }}</option>
             }
@@ -54,7 +54,7 @@
           <p class="generar-faltantes">{{ 'Completa todos los campos para generar el documento.' | t }}</p>
         }
         <button type="button" class="sgc-btn sgc-btn--primary generar-btn" [disabled]="!puedeGenerar()" (click)="generarVistaPrevia()">
-          Generar vista previa
+          {{ 'Generar vista previa' | t }}
         </button>
       }
     </div>

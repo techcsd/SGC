@@ -187,12 +187,6 @@
     "auth": {
       "enforce": false
     },
-    "documentos/plantillas": {
-      "enforce": false
-    },
-    "documentos/generar": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -205,9 +199,6 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
-    "documentos/ver": {
-      "enforce": false
-    },
     "ingenieria/pagos": {
       "enforce": false
     },
@@ -218,9 +209,6 @@
       "enforce": false
     },
     "admin/vault": {
-      "enforce": false
-    },
-    "documentos/historial": {
       "enforce": false
     },
     "reuniones/reunion-ficha": {
@@ -327,6 +315,18 @@
     },
     "demo/progreso": {
       "enforce": false
+    },
+    "documentos/generar": {
+      "enforce": true
+    },
+    "documentos/historial": {
+      "enforce": true
+    },
+    "documentos/plantillas": {
+      "enforce": true
+    },
+    "documentos/ver": {
+      "enforce": true
     },
     "flota/accidentes": {
       "enforce": true

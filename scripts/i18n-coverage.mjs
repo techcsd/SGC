@@ -74,7 +74,7 @@ function esRuido(s) {
   // pegado justo antes del @if/@let cuando ambos quedan en el mismo nodo de
   // texto (sin tag de por medio) — se usa "no es letra" en vez de una lista
   // fija de símbolos, para no perseguir cada emoji nuevo uno por uno.
-  if (/^[^\p{L}]*@(if|else if|else|for|switch|case|default|empty|let)\b/u.test(t)) return true;
+  if (/^[^\p{L}]*@(if|else if|else|for|switch|case|default|empty|let|defer|placeholder|loading|error)\b/u.test(t)) return true;
   // Residuo de control flow MEZCLADO con un resultado de interpolación en el
   // mismo nodo de texto (ej. "0 } @else { }" — el "0" es un número real
   // emitido por la plantilla, pero el resto son llaves/palabra "else" que
@@ -83,7 +83,7 @@ function esRuido(s) {
   // clave de control flow y la puntuación/dígitos, es ruido de sintaxis.
   if (/[{}()]/.test(t)) {
     const sinControlFlow = t
-      .replace(/@(if|else if|else|for|switch|case|default|empty|let)\b/g, '')
+      .replace(/@(if|else if|else|for|switch|case|default|empty|let|defer|placeholder|loading|error)\b/g, '')
       .replace(/[{}()\d\s.,;:|·—–-]/g, '');
     if (!HAS_LETTER.test(sinControlFlow)) return true;
   }

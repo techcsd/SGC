@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 69%** (7184/10434 literales de 192 pantallas en alcance). **`ht`: 87%**.
+**Alcance `en`: 69%** (7207/10431 literales de 192 pantallas en alcance). **`ht`: 87%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -69,18 +69,14 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| documentos/plantillas | scope | 46 | 26 | 20 | 57% |
-| documentos/generar | scope | 9 | 6 | 3 | 67% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
-| documentos/ver | scope | 9 | 7 | 2 | 78% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
-| documentos/historial | scope | 9 | 8 | 1 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -116,6 +112,10 @@
 | dashboard | enforce | 70 | 70 | 0 | 100% |
 | demo/escenarios | scope | 14 | 14 | 0 | 100% |
 | demo/progreso | scope | 9 | 9 | 0 | 100% |
+| documentos/generar | enforce | 9 | 9 | 0 | 100% |
+| documentos/historial | enforce | 9 | 9 | 0 | 100% |
+| documentos/plantillas | enforce | 43 | 43 | 0 | 100% |
+| documentos/ver | enforce | 9 | 9 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
 | flota/checklists | enforce | 104 | 104 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**346 literal(es) sin t()** en 48 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**342 literal(es) sin t()** en 47 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -233,7 +233,6 @@
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
 | src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
-| src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |

@@ -10,6 +10,7 @@ import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-documentos-ver',
   imports: [RouterLink, Skeleton, TranslatePipe],
@@ -21,6 +22,7 @@ export class Ver implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private plantillasService = inject(PlantillasDocumentoService);
+  protected i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
   private legalService = inject(LegalService);
   private userService = inject(UserService);

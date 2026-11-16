@@ -6,16 +6,16 @@
     <!-- CO13 — vínculo con Legal -->
     @if (usadoEnContrato(); as ctr) {
       <a [routerLink]="['/legal/contratos']" [queryParams]="{ ver_contrato: ctr.id }" class="sgc-badge sgc-badge--info">
-        Usado en contrato {{ ctr.codigo }}
+        {{ 'Usado en contrato' | t }} {{ ctr.codigo }}
       </a>
     } @else if (documento()?.plantilla?.categoria === 'contrato') {
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="crearContratoConEsteDocumento()">
-        Crear contrato en Legal con este documento
+        {{ 'Crear contrato en Legal con este documento' | t }}
       </button>
     }
     @if (revisionLegal(); as rev) {
       <span class="sgc-badge" [class.sgc-badge--warning]="rev.estado === 'pendiente'" [class.sgc-badge--success]="rev.estado === 'aprobado'" [class.sgc-badge--danger]="rev.estado === 'rechazado'">
-        {{ estadoRevisionLabel(rev.estado) }}
+        {{ estadoRevisionLabel(rev.estado) | t }}
       </span>
     } @else {
       <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="solicitandoRevision()" (click)="solicitarRevisionLegal()">
