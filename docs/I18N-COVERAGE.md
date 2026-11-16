@@ -142,7 +142,7 @@
 | mis-choferes | enforce | 9 | 9 | 0 | 100% |
 | notas/editor | enforce | 32 | 32 | 0 | 100% |
 | notas | enforce | 37 | 37 | 0 | 100% |
-| oauth-consent | scope | 19 | 19 | 0 | 100% |
+| oauth-consent | enforce | 19 | 19 | 0 | 100% |
 | perfil | enforce | 24 | 24 | 0 | 100% |
 | politicas/eliminar-cuenta | enforce | 9 | 9 | 0 | 100% |
 | politicas | enforce | 15 | 15 | 0 | 100% |
