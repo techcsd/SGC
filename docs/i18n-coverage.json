@@ -1326,26 +1326,6 @@
       ]
     },
     {
-      "pantalla": "admin/empresa",
-      "total": 41,
-      "cubiertos": 32,
-      "sin": 9,
-      "pct": 78,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Datos de identidad de la constructora. Se usan como",
-        "(documentos, informes de obra), en los",
-        "del personal de obra. Manténlos completos y correctos: lo que pongas aquí sale impreso.",
-        "Guardando… } @else { Guardar cambios }",
-        "RNC:",
-        "Ej: Scheker &amp; Domínguez SRL",
-        "Guardado",
-        "Logo actualizado",
-        "No se pudo subir el logo"
-      ]
-    },
-    {
       "pantalla": "admin/usuarios-duplicados",
       "total": 18,
       "cubiertos": 14,
@@ -1501,6 +1481,16 @@
       "pantalla": "admin/conduces-huerfanos",
       "total": 15,
       "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/empresa",
+      "total": 41,
+      "cubiertos": 41,
       "sin": 0,
       "pct": 100,
       "enScope": true,

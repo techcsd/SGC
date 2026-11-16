@@ -76,9 +76,6 @@
     "admin/roles": {
       "enforce": false
     },
-    "admin/empresa": {
-      "enforce": false
-    },
     "admin/usuarios-duplicados": {
       "enforce": false
     },
@@ -116,6 +113,9 @@
       "enforce": true
     },
     "admin/conduces-huerfanos": {
+      "enforce": true
+    },
+    "admin/empresa": {
       "enforce": true
     },
     "admin/importar": {

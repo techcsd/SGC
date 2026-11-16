@@ -2,9 +2,9 @@
   <div>
     <h1 class="page-title">{{ 'Empresa' | t }}</h1>
     <p class="page-subtitle">
-      Datos de identidad de la constructora. Se usan como <strong>{{ 'encabezado en los PDF' | t }}</strong>
-      (documentos, informes de obra), en los <strong>{{ 'conduces' | t }}</strong> {{ 'y en los' | t }} <strong>{{ 'carnets' | t }}</strong>
-      del personal de obra. Manténlos completos y correctos: lo que pongas aquí sale impreso.
+      {{ 'Datos de identidad de la constructora. Se usan como' | t }} <strong>{{ 'encabezado en los PDF' | t }}</strong>
+      {{ '(documentos, informes de obra), en los' | t }} <strong>{{ 'conduces' | t }}</strong> {{ 'y en los' | t }} <strong>{{ 'carnets' | t }}</strong>
+      {{ 'del personal de obra. Manténlos completos y correctos: lo que pongas aquí sale impreso.' | t }}
     </p>
   </div>
 </div>
@@ -24,7 +24,7 @@
           <div class="empresa-form__row">
             <div class="sgc-field">
               <label for="razon">{{ 'Razón social' | t }}</label>
-              <input id="razon" type="text" formControlName="razon_social" placeholder="Ej: Scheker &amp; Domínguez SRL" />
+              <input id="razon" type="text" formControlName="razon_social" placeholder="{{ 'Ej: Scheker & Domínguez SRL' | t }}" />
               <span class="field-hint">{{ 'Nombre legal completo (sale en documentos oficiales).' | t }}</span>
             </div>
             <div class="sgc-field">
@@ -34,7 +34,7 @@
             </div>
           </div>
           <div class="sgc-field">
-            <label for="rnc">RNC</label>
+            <label for="rnc">{{ 'RNC' | t }}</label>
             <input id="rnc" type="text" formControlName="rnc" placeholder="{{ 'Ej: 1-30-12345-6' | t }}" [class.invalid]="f.rnc.invalid && f.rnc.touched" />
             @if (f.rnc.invalid && f.rnc.touched) {
               <span class="field-error">{{ 'RNC inválido — usa 9 u 11 dígitos (con o sin guiones).' | t }}</span>
@@ -105,7 +105,7 @@
 
         <div class="empresa-form__actions">
           <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-            @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar cambios }
+            @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Guardar cambios' | t }} }
           </button>
         </div>
       </form>
@@ -122,7 +122,7 @@
         }
         <div class="doc-head__data">
           <div class="doc-head__title">{{ preview().titulo }}</div>
-          @if (preview().rnc) { <div class="doc-head__line">RNC: {{ preview().rnc }}</div> }
+          @if (preview().rnc) { <div class="doc-head__line">{{ 'RNC:' | t }} {{ preview().rnc }}</div> }
           @if (preview().direccion) { <div class="doc-head__line">{{ preview().direccion }}</div> }
           @if (preview().contacto) { <div class="doc-head__line">{{ preview().contacto }}</div> }
         </div>
