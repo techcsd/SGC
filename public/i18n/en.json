@@ -6360,5 +6360,21 @@
   "Versión de la app (ej. 1.25.0)": "App version (e.g. 1.25.0)",
   "Voz": "Voice",
   "ocurrencia(s) de clientes en versiones anteriores al fix (no reabren el grupo).": "occurrence(s) from clients on versions prior to the fix (they don't reopen the group).",
-  "Última vez": "Last seen"
+  "Última vez": "Last seen",
+  "Buscar herramienta, uso o quién la usa…": "Search tool, use, or who uses it…",
+  "Ej: Almacenar y compartir documentos de obra…": "E.g: Store and share project documents…",
+  "Ej: Google Drive": "E.g: Google Drive",
+  "Ej: Todo el personal administrativo…": "E.g: All administrative staff…",
+  "Enlace": "Link",
+  "Herramienta activa": "Active tool",
+  "Herramienta actualizada": "Tool updated",
+  "Herramienta creada": "Tool created",
+  "Herramienta eliminada": "Tool deleted",
+  "Herramientas homologadas": "Approved tools",
+  "Lista de herramientas homologadas": "List of approved tools",
+  "No se pudo cambiar el estado de la herramienta.": "Couldn't change the tool's status.",
+  "Nueva herramienta": "New tool",
+  "Quién usa": "Who uses it",
+  "¿Eliminar herramienta?": "Delete tool?",
+  "¿Eliminar «{nombre}»? Esta acción no se puede deshacer.": "Delete \"{nombre}\"? This action cannot be undone."
 }

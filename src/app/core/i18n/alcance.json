@@ -121,9 +121,6 @@
     "tecnologia/compras": {
       "enforce": false
     },
-    "tecnologia/homologacion": {
-      "enforce": false
-    },
     "tecnologia/dev-notes": {
       "enforce": false
     },
@@ -551,6 +548,9 @@
       "enforce": true
     },
     "tecnologia/guia": {
+      "enforce": true
+    },
+    "tecnologia/homologacion": {
       "enforce": true
     },
     "tecnologia/matriz": {

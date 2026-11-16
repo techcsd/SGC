@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 80,
+  "pctScopeEn": 81,
   "pctHt": 93,
   "filas": [
     {
@@ -2225,30 +2225,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/homologacion",
-      "total": 28,
-      "cubiertos": 15,
-      "sin": 13,
-      "pct": 54,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "herramienta",
-        "Nueva herramienta",
-        "Todas las categorías",
-        "Seleccionar categoría…",
-        "Herramienta activa",
-        "Guardando… } @else { }",
-        "Desactivar",
-        "Editar",
-        "Eliminar",
-        "Herramienta actualizada",
-        "Herramienta creada",
-        "No se pudo cambiar el estado de la herramienta.",
-        "Herramienta eliminada"
-      ]
-    },
-    {
       "pantalla": "tecnologia/dev-notes",
       "total": 72,
       "cubiertos": 41,
@@ -3894,6 +3870,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "tecnologia/homologacion",
+      "total": 28,
+      "cubiertos": 28,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "tecnologia/matriz",
       "total": 23,
       "cubiertos": 23,
@@ -3940,7 +3926,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {

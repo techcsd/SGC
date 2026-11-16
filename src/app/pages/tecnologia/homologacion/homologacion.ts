@@ -14,6 +14,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { Paginador } from '../../../../shared/components/paginador/paginador';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-tec-homologacion',
   imports: [ReactiveFormsModule, FormDrawer, Skeleton, ConfirmDialog, Paginador, TranslatePipe],
@@ -24,6 +25,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class TecHomologacion implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   // AD5 — categorías desde el catálogo administrable (fallback al const local).
   categorias = signal<{ value: string; label: string }[]>(TEC_CATEGORIAS);
@@ -141,11 +143,11 @@ export class TecHomologacion implements OnInit {
         this.herramientas.update((list) =>
           list.map((h) => (h.id === id ? { ...h, ...payload } : h)),
         );
-        this.toast.success('Herramienta actualizada');
+        this.toast.success(this.i18n.t('Herramienta actualizada'));
       } else {
         const created = await this.tecnologia.createHerramienta(payload);
         this.herramientas.update((list) => [...list, created]);
-        this.toast.success('Herramienta creada');
+        this.toast.success(this.i18n.t('Herramienta creada'));
       }
       this.drawerOpen.set(false);
     } catch (e: unknown) {
@@ -166,7 +168,7 @@ export class TecHomologacion implements OnInit {
       this.herramientas.update((list) =>
         list.map((x) => (x.id === h.id ? { ...x, activo: !next } : x)),
       );
-      this.toast.error('No se pudo cambiar el estado de la herramienta.');
+      this.toast.error(this.i18n.t('No se pudo cambiar el estado de la herramienta.'));
     }
   }
 
@@ -185,7 +187,7 @@ export class TecHomologacion implements OnInit {
     try {
       await this.tecnologia.removeHerramienta(h.id);
       this.herramientas.update((list) => list.filter((x) => x.id !== h.id));
-      this.toast.success('Herramienta eliminada');
+      this.toast.success(this.i18n.t('Herramienta eliminada'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'Error al eliminar.');
     }

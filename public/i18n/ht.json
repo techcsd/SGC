@@ -5946,5 +5946,21 @@
   "Voz": "Vwa",
   "ocurrencia(s) de clientes en versiones anteriores al fix (no reabren el grupo).": "okirans soti nan kliyan sou vèsyon anvan fiks la (yo pa re-louvri gwoup la).",
   "Última vez": "Dènye fwa",
-  "Exportando…": "Ap ekspòte…"
+  "Exportando…": "Ap ekspòte…",
+  "Buscar herramienta, uso o quién la usa…": "Chèche zouti, itilizasyon oswa ki moun ki itilize l…",
+  "Ej: Almacenar y compartir documentos de obra…": "Pa egz: Estoke ak pataje dokiman pwojè…",
+  "Ej: Google Drive": "Pa egz: Google Drive",
+  "Ej: Todo el personal administrativo…": "Pa egz: Tout anplwaye administratif…",
+  "Enlace": "Lyen",
+  "Herramienta activa": "Zouti aktif",
+  "Herramienta actualizada": "Zouti mete ajou",
+  "Herramienta creada": "Zouti kreye",
+  "Herramienta eliminada": "Zouti efase",
+  "Herramientas homologadas": "Zouti apwouve",
+  "Lista de herramientas homologadas": "Lis zouti apwouve",
+  "No se pudo cambiar el estado de la herramienta.": "Pa t kapab chanje estati zouti a.",
+  "Nueva herramienta": "Nouvo zouti",
+  "Quién usa": "Ki moun ki itilize l",
+  "¿Eliminar herramienta?": "Efase zouti?",
+  "¿Eliminar «{nombre}»? Esta acción no se puede deshacer.": "Efase \"{nombre}\"? Aksyon sa a pa ka defèt."
 }

@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 80%** (8183/10181 literales de 192 pantallas en alcance). **`ht`: 93%**.
+**Alcance `en`: 81%** (8196/10181 literales de 192 pantallas en alcance). **`ht`: 93%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -47,7 +47,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | tecnologia/compras | scope | 81 | 37 | 44 | 46% |
-| tecnologia/homologacion | scope | 28 | 15 | 13 | 54% |
 | tecnologia/dev-notes | scope | 72 | 41 | 31 | 57% |
 | tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
 | tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
@@ -191,18 +190,19 @@
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
+| tecnologia/homologacion | scope | 28 | 28 | 0 | 100% |
 | tecnologia/matriz | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
-| tecnologia/reportes-errores | scope | 59 | 59 | 0 | 100% |
+| tecnologia/reportes-errores | enforce | 59 | 59 | 0 | 100% |
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**240 literal(es) sin t()** en 32 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**236 literal(es) sin t()** en 31 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -225,7 +225,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
 | src/app/pages/admin/almacenes-duplicados/almacenes-duplicados.ts | 2 | Almacenes fusionados · Vas a FUSIONAR "${duplicadoNombre}" dentro de "${canonicoNombre}".\n\n |
