@@ -31,9 +31,6 @@
     "soporte": {
       "enforce": false
     },
-    "asistente": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -116,6 +113,9 @@
       "enforce": true
     },
     "app-movil": {
+      "enforce": true
+    },
+    "asistente": {
       "enforce": true
     },
     "auth/set-password": {

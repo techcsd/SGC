@@ -316,19 +316,6 @@
       ]
     },
     {
-      "pantalla": "asistente",
-      "total": 35,
-      "cubiertos": 33,
-      "sin": 2,
-      "pct": 94,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Conversación compartida",
-        "No se pudo compartir"
-      ]
-    },
-    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
@@ -602,6 +589,16 @@
       "pantalla": "app-movil",
       "total": 36,
       "cubiertos": 36,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "asistente",
+      "total": 35,
+      "cubiertos": 35,
       "sin": 0,
       "pct": 100,
       "enScope": true,

@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9816/10021 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9818/10021 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -17,7 +17,6 @@
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | soporte | scope | 35 | 29 | 6 | 83% |
-| asistente | scope | 35 | 33 | 2 | 94% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
@@ -46,6 +45,7 @@
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
 | app-movil | enforce | 36 | 36 | 0 | 100% |
+| asistente | enforce | 35 | 35 | 0 | 100% |
 | auth/set-password | enforce | 15 | 15 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
 | bitacora/cobertura | enforce | 20 | 20 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**101 literal(es) sin t()** en 8 archivo(s) (de 133 archivo(s) .ts con algo detectado).
+**99 literal(es) sin t()** en 7 archivo(s) (de 133 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -213,4 +213,3 @@
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
