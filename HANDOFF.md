@@ -1,6 +1,13 @@
 # HANDOFF — SGC
 
-## ✅ Ronda DP/DQ/DR (13–16-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN `main` v1.217.0 (barrido 192/192); cierre DR en `feature/dr-idioma-cierre` → dev
+## ✅ Ronda DP/DQ/DR (13–16-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN PROD v1.217.1
+
+**ESTADO FINAL 16-nov (1.217.1 EN PROD, `main`):**
+- **Hotfix Raykler** (ticket `addfd93e`, «al ajustar el conteo no se actualiza»): `sgc.kardex_articulo` contaba doble el conteo físico (BL4 rebasa apertura, no mueve kardex). Fix `sql/2026-11-16-hf-kardex-excluye-conteo-fisico.sql` (dev+prod, ledger). **Pendiente:** Raykler re-prueba un conteo físico y confirma el kardex; si la lista principal sigue sin cambiar, pedir pantalla+almacén (no está probado que sea exactamente su síntoma).
+- **Cierre i18n** (PR #156): Kreyòl 100 % (en=100 ht=100, 192/192), `verify-i18n` estricto (falla si falta clave en en/ht), `| fecha` en 55 usos, `localeActual()` en fechas `toLocale*`. **Kreyòl revisado por una persona haitiana de la empresa — OK** (PR #159).
+- Release: #157 bump, #158 dev→main. `release-check` 7/7. Test i18n del aviso dev ahora `skipIf(environment.production)`.
+- **Pendiente físico:** `node qa/visual/login.mjs` + `npm run i18n:smoke` (necesita login manual). Meses en Kreyòl dentro de `toLocale*String` salen en español (el pipe `fecha` sí usa su tabla).
+- Limpieza: worktrees SGC-dm/dn/do/hf eliminados. Se dejaron (con cambios sin commitear que NO son de esta sesión): SGC-cz, SGC-da, SGC-dj, SGC-dl, SGC-dl-merge; SGC-dp (commit de PR #154 sin mergear); SGC-graph. Stash `wip-not-mine-temp` en feature/cp-ronda sin tocar.
 
 **Estado al 16-nov:** DP/DQ ya están en `main` (1.217.0). La ronda DR cerró lo que faltaba: `ht` 97→100 % (+670 claves), guardia estricta en `verify-i18n`, `| date`→`| fecha` (55) y `toLocale*` de fecha con `localeActual`. Detalle en `docs/I18N-AVANCE.md` § Cierre. Pendiente físico: `qa/visual/login.mjs` + `npm run i18n:smoke`; revisión humana del Kreyòl. Lo de abajo es el histórico de mitad de ronda (14-nov), ya superado.
 
