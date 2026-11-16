@@ -562,6 +562,22 @@ terminado a mano completo, sin fork — módulo muy pequeño).
 **Módulo 12 (Documentos) CERRADO: 4/4 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Ingeniería (#13).
 
+## Ingeniería — 100% COMPLETO (1/1 pantalla, 15-nov-2026)
+
+Módulo de una sola pantalla: `ingenieria/pagos` (68 literales, ya al
+79% por trabajo previo a este barrido). Lote 56 (`bed92636`): solo
+faltaba inyectar `I18nService` y envolver 11 toasts (título
+solamente, dejando el detalle en español como de costumbre).
+
+- `public/i18n/en.json`/`ht.json`: +9/+50 claves (ht estaba más
+  atrasado en este módulo específicamente).
+- `alcance.json`: 1 pantalla nueva `enforce:true` (total **114**).
+  `verify-i18n.mjs`: 114 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes.
+
+**Módulo 13 (Ingeniería) CERRADO: 1/1 pantalla con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Reuniones/Tareas/Notas/Mensajes (#14).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -603,7 +619,7 @@ Admin, resto.
 | 10 | RRHH | 14/14 pantallas 100% (ver detalle arriba) | 469 (codemod) + ~160 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 96846157..657519bf | **true** |
 | 11 | Legal | 5/5 pantallas 100% (ver detalle arriba) | 168 (codemod) + ~50 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | c02a8f21..7e606f94 | **true** |
 | 12 | Documentos | 4/4 pantallas 100% (ver detalle arriba) | 51 (codemod) + ~26 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 3086c82f..4de5fba8 | **true** |
-| 13 | Ingeniería | — | — | — | ⏳ pendiente | — | false |
+| 13 | Ingeniería | 1/1 pantalla 100% (ver detalle arriba) | ~14 a mano (ya 79% por trabajo previo) | toasts | ✅ **100% — hecho** | bed92636 | **true** |
 | 14 | Reuniones/Tareas/Notas/Mensajes | — | — | — | ⏳ pendiente | — | false |
 | 15 | Tecnología | — | — | — | ⏳ pendiente | — | false |
 | 16 | Admin | — | — | — | ⏳ pendiente | — | false |
