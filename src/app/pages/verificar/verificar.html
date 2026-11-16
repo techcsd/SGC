@@ -13,11 +13,11 @@
           @if (d.estado === 'activo') {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M20 6 9 17l-5-5"/></svg>
-            Carnet activo
+            {{ 'Carnet activo' | t }}
           } @else {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-            Carnet inactivo
+            {{ 'Carnet inactivo' | t }}
           }
         </div>
         <h1 class="verificar__nombre">{{ d.nombre }}</h1>
@@ -30,7 +30,7 @@
         <div class="verificar__estado verificar__estado--off">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          Carnet no encontrado
+          {{ 'Carnet no encontrado' | t }}
         </div>
         <p class="verificar__msg">{{ 'Este código no corresponde a ningún carnet vigente de Constructora SD.' | t }}</p>
       }

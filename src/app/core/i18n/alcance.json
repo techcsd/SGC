@@ -10,9 +10,6 @@
     "obra/no-conformidades": {
       "enforce": false
     },
-    "verificar": {
-      "enforce": false
-    },
     "obra/checklists": {
       "enforce": false
     },
@@ -575,6 +572,9 @@
       "enforce": true
     },
     "trabajos-transporte": {
+      "enforce": true
+    },
+    "verificar": {
       "enforce": true
     }
   }

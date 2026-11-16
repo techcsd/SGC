@@ -159,20 +159,6 @@
       ]
     },
     {
-      "pantalla": "verificar",
-      "total": 9,
-      "cubiertos": 6,
-      "sin": 3,
-      "pct": 67,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Carnet activo } @else {",
-        "Carnet inactivo }",
-        "Carnet no encontrado"
-      ]
-    },
-    {
       "pantalla": "obra/checklists",
       "total": 48,
       "cubiertos": 33,
@@ -1639,7 +1625,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {
@@ -2160,6 +2146,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "verificar",
+      "total": 9,
+      "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     }
   ]

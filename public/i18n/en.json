@@ -7671,5 +7671,10 @@
   "Solicita la eliminación de tu cuenta de la CSD App de Constructora SD.": "Request the deletion of your CSD App account from Constructora SD.",
   "Correo o cédula asociada a tu cuenta": "Email or ID associated with your account",
   "correo@ejemplo.com o 000-0000000-0": "email@example.com or 000-0000000-0",
-  "Cuéntanos por qué deseas eliminar tu cuenta": "Tell us why you want to delete your account"
+  "Cuéntanos por qué deseas eliminar tu cuenta": "Tell us why you want to delete your account",
+  "Carnet activo": "Active ID card",
+  "Carnet inactivo": "Inactive ID card",
+  "Carnet no encontrado": "ID card not found",
+  "Este código no corresponde a ningún carnet vigente de Constructora SD.": "This code does not correspond to any active Constructora SD ID card.",
+  "Constructora SD · verificación de personal de obra": "Constructora SD · site personnel verification"
 }

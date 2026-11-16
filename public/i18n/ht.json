@@ -7361,5 +7361,10 @@
   "Solicita la eliminación de tu cuenta de la CSD App de Constructora SD.": "Mande pou efase kont ou nan CSD App Constructora SD la.",
   "Correo o cédula asociada a tu cuenta": "Imèl oswa sedil ki asosye ak kont ou",
   "correo@ejemplo.com o 000-0000000-0": "imèl@egzanp.com oswa 000-0000000-0",
-  "Cuéntanos por qué deseas eliminar tu cuenta": "Di nou poukisa w vle efase kont ou"
+  "Cuéntanos por qué deseas eliminar tu cuenta": "Di nou poukisa w vle efase kont ou",
+  "Carnet activo": "Kat idantite aktif",
+  "Carnet inactivo": "Kat idantite inaktif",
+  "Carnet no encontrado": "Kat idantite pa jwenn",
+  "Este código no corresponde a ningún carnet vigente de Constructora SD.": "Kòd sa a pa koresponn ak okenn kat idantite Constructora SD aktif.",
+  "Constructora SD · verificación de personal de obra": "Constructora SD · verifikasyon pèsonèl chantye"
 }
