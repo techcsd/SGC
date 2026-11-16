@@ -76,9 +76,6 @@
     "admin/roles": {
       "enforce": false
     },
-    "admin/usuarios-test": {
-      "enforce": false
-    },
     "admin/empresa": {
       "enforce": false
     },
@@ -143,6 +140,9 @@
       "enforce": true
     },
     "admin/unidades": {
+      "enforce": true
+    },
+    "admin/usuarios-test": {
       "enforce": true
     },
     "ajustes-notificaciones": {

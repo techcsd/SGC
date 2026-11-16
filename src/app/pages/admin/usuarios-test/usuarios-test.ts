@@ -6,6 +6,7 @@ import { Rol } from '../../../../shared/models/usuario.model';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * AY7 — Usuarios de prueba (solo admin). Crear usuarios test con rol(es) y sin
  * correo real (email sintético `t-<n>@test.constructorasd.local`, es_prueba=true).
@@ -21,6 +22,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class AdminUsuariosTest implements OnInit {
   private admin = inject(AdminService);
   private auth = inject(AuthService);
+  protected i18n = inject(I18nService);
 
   formatTimestamp = formatTimestampDisplay;
 
@@ -149,7 +151,7 @@ export class AdminUsuariosTest implements OnInit {
 
   async eliminar(u: UsuarioTest) {
     if (this.eliminando()) return;
-    if (!confirm(`¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el usuario de prueba "{nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer.', { nombre: u.nombre }))) return;
     this.eliminando.set(u.id);
     this.error.set('');
     try {

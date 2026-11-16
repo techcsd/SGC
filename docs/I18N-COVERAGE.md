@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (9007/10098 literales de 192 pantallas en alcance). **`ht`: 95%**.
+**Alcance `en`: 89%** (9015/10097 literales de 192 pantallas en alcance). **`ht`: 95%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -32,7 +32,6 @@
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/roles | scope | 153 | 112 | 41 | 73% |
-| admin/usuarios-test | scope | 33 | 24 | 9 | 73% |
 | admin/empresa | scope | 41 | 32 | 9 | 78% |
 | admin/usuarios-duplicados | scope | 18 | 14 | 4 | 78% |
 | admin/compa-conversaciones | scope | 25 | 20 | 5 | 80% |
@@ -55,6 +54,7 @@
 | admin/reportes | enforce | 38 | 38 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
 | admin/unidades | enforce | 10 | 10 | 0 | 100% |
+| admin/usuarios-test | enforce | 32 | 32 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
 | apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
 | bitacora/cartillas | enforce | 76 | 76 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**163 literal(es) sin t()** en 20 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**162 literal(es) sin t()** en 19 archivo(s) (de 135 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -224,5 +224,4 @@
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
-| src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |

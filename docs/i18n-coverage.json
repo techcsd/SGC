@@ -1326,26 +1326,6 @@
       ]
     },
     {
-      "pantalla": "admin/usuarios-test",
-      "total": 33,
-      "cubiertos": 24,
-      "sin": 9,
-      "pct": 73,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Correos reales autorizados a entrar a dev. Los",
-        "qa_*",
-        "y los choferes de prueba entran siempre.",
-        "— guárdalas o usa \"Entrar como\".",
-        "Email",
-        "Copiar",
-        "Password",
-        "Copiar",
-        "¿Eliminar el usuario de prueba \"${u.nombre}\" y toda su actividad de prueba? Esta acción no se puede deshacer."
-      ]
-    },
-    {
       "pantalla": "admin/empresa",
       "total": 41,
       "cubiertos": 32,
@@ -1601,6 +1581,16 @@
       "pantalla": "admin/unidades",
       "total": 10,
       "cubiertos": 10,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/usuarios-test",
+      "total": 32,
+      "cubiertos": 32,
       "sin": 0,
       "pct": 100,
       "enScope": true,
