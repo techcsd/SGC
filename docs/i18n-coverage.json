@@ -4205,31 +4205,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/ausencias",
-      "total": 40,
-      "cubiertos": 26,
-      "sin": 14,
-      "pct": 65,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "pendiente",
-        "Nueva solicitud",
-        "Pendientes ( )",
-        "Todas",
-        "Todos los tipos",
-        "Selecciona…",
-        "Vacaciones :",
-        "días usados ·",
-        "disponibles",
-        "día(s) laborable(s)",
-        "Guardando… } @else { Crear solicitud }",
-        "Asistencia actualizada",
-        "No se pudo actualizar la asistencia",
-        "No se pudo resolver la solicitud"
-      ]
-    },
-    {
       "pantalla": "rrhh/onboarding",
       "total": 40,
       "cubiertos": 27,
@@ -5507,6 +5482,16 @@
       "pantalla": "rrhh/asistencia",
       "total": 31,
       "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/ausencias",
+      "total": 43,
+      "cubiertos": 43,
       "sin": 0,
       "pct": 100,
       "enScope": true,

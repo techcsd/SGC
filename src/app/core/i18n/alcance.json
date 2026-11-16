@@ -214,9 +214,6 @@
     "auth": {
       "enforce": false
     },
-    "rrhh/ausencias": {
-      "enforce": false
-    },
     "rrhh/onboarding": {
       "enforce": false
     },
@@ -545,6 +542,9 @@
       "enforce": true
     },
     "rrhh/asistencia": {
+      "enforce": true
+    },
+    "rrhh/ausencias": {
       "enforce": true
     },
     "rrhh/candidatos": {

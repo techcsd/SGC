@@ -2,7 +2,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Ausencias y vacaciones' | t }}</h1>
-    <span class="page-count">{{ pendientes().length }} pendiente{{ pendientes().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ pendientes().length }} {{ (pendientes().length !== 1 ? 'pendientes' : 'pendiente') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
@@ -13,7 +13,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva solicitud
+      {{ 'Nueva solicitud' | t }}
     </button>
   </div>
 </div>
@@ -21,16 +21,16 @@
 <!-- ── Tabs + filter ── -->
 <div class="tabs-bar">
   <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'pendientes'" (click)="setTab('pendientes')">
-    Pendientes ({{ pendientes().length }})
+    {{ 'Pendientes' | t }} ({{ pendientes().length }})
   </button>
   <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todas'" (click)="setTab('todas')">
-    Todas
+    {{ 'Todas' | t }}
   </button>
   <div class="sgc-field tabs-bar__filter">
     <select [value]="selectedTipo()" (change)="onTipoChange($any($event.target).value)" aria-label="{{ 'Filtrar por tipo' | t }}">
-      <option value="all">Todos los tipos</option>
+      <option value="all">{{ 'Todos los tipos' | t }}</option>
       @for (t of TIPOS; track t.value) {
-        <option [value]="t.value">{{ t.label }}</option>
+        <option [value]="t.value">{{ t.label | t }}</option>
       }
     </select>
   </div>
@@ -47,9 +47,9 @@
     <div class="table-empty">
       <p>
         @if (tab() === 'pendientes') {
-          No hay solicitudes pendientes.
+          {{ 'No hay solicitudes pendientes.' | t }}
         } @else {
-          No hay solicitudes registradas.
+          {{ 'No hay solicitudes registradas.' | t }}
         }
       </p>
     </div>
@@ -72,11 +72,11 @@
             <tr class="row--link" (click)="openResolve(s)" role="button" tabindex="0"
                 (keydown.enter)="openResolve(s)" aria-label="{{ 'Ver detalle de la solicitud' | t }}">
               <td>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</td>
-              <td>{{ tipoLabel(s.tipo) }}</td>
+              <td>{{ tipoLabel(s.tipo) | t }}</td>
               <td>{{ formatFecha(s.fecha_inicio) }}</td>
               <td>{{ formatFecha(s.fecha_fin) }}</td>
               <td class="text-center">{{ s.dias }}</td>
-              <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
+              <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) | t }}</span></td>
               <td class="text-center">
                 @if (s.estado === 'pendiente') {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); openResolve(s)">{{ 'Revisar' | t }}</button>
@@ -102,7 +102,7 @@
     <div class="sgc-field">
       <label for="empleado_id">{{ 'Empleado' | t }} <span class="required">*</span></label>
       <select id="empleado_id" formControlName="empleado_id" (change)="onEmpleadoChange($any($event.target).value)" [class.invalid]="f.empleado_id.invalid && f.empleado_id.touched">
-        <option [ngValue]="null">Selecciona…</option>
+        <option [ngValue]="null">{{ 'Selecciona…' | t }}</option>
         @for (e of empleados(); track e.id) {
           <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option>
         }
@@ -116,15 +116,15 @@
       <label for="tipo">{{ 'Tipo' | t }} <span class="required">*</span></label>
       <select id="tipo" formControlName="tipo">
         @for (t of TIPOS; track t.value) {
-          <option [value]="t.value">{{ t.label }}</option>
+          <option [value]="t.value">{{ t.label | t }}</option>
         }
       </select>
     </div>
 
     @if (f.tipo.value === 'vacaciones' && balanceEmpleado(); as bal) {
       <div class="balance-hint">
-        Vacaciones {{ anioActual }}: <strong>{{ bal.tomadas }}</strong> {{ 'de' | t }} <strong>{{ bal.anuales }}</strong> días usados
-        · <strong>{{ bal.anuales - bal.tomadas }}</strong> disponibles
+        {{ 'Vacaciones' | t }} {{ anioActual }}: <strong>{{ bal.tomadas }}</strong> {{ 'de' | t }} <strong>{{ bal.anuales }}</strong> {{ 'días usados' | t }}
+        · <strong>{{ bal.anuales - bal.tomadas }}</strong> {{ 'disponibles' | t }}
       </div>
     }
 
@@ -140,7 +140,7 @@
     </div>
 
     @if (diasCalculados() > 0) {
-      <div class="dias-hint">{{ diasCalculados() }} día(s) laborable(s)</div>
+      <div class="dias-hint">{{ diasCalculados() }} {{ 'día(s) laborable(s)' | t }}</div>
     }
 
     <div class="sgc-field">
@@ -157,9 +157,9 @@
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          Crear solicitud
+          {{ 'Crear solicitud' | t }}
         }
       </button>
     </div>
@@ -177,7 +177,7 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Tipo' | t }}</span>
-          <span>{{ tipoLabel(s.tipo) }}</span>
+          <span>{{ tipoLabel(s.tipo) | t }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Desde' | t }}</span>
@@ -214,7 +214,7 @@
           @if (resolving()) {
             <span class="spinner" aria-hidden="true"></span>
           } @else {
-            Aprobar
+            {{ 'Aprobar' | t }}
           }
         </button>
       </div>

@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 66%** (6858/10459 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 66%** (6875/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -78,7 +78,6 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| rrhh/ausencias | scope | 40 | 26 | 14 | 65% |
 | rrhh/onboarding | scope | 40 | 27 | 13 | 68% |
 | rrhh/tramites | scope | 44 | 31 | 13 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
@@ -189,6 +188,7 @@
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
 | rrhh/asistencia | enforce | 31 | 31 | 0 | 100% |
+| rrhh/ausencias | enforce | 43 | 43 | 0 | 100% |
 | rrhh/candidatos | enforce | 58 | 58 | 0 | 100% |
 | rrhh/capacitacion | enforce | 31 | 31 | 0 | 100% |
 | rrhh/contratos | enforce | 32 | 32 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**392 literal(es) sin t()** en 56 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**389 literal(es) sin t()** en 55 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -244,7 +244,6 @@
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
-| src/app/pages/rrhh/ausencias/ausencias.ts | 3 | Asistencia actualizada · No se pudo actualizar la asistencia · No se pudo resolver la solicitud |
 | src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
 | src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |
 | src/app/pages/tecnologia/resumen-operaciones/resumen-operaciones.ts | 3 | Envío disparado · No se pudo reenviar · ¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora? |
