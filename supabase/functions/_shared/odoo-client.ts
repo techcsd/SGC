@@ -204,7 +204,7 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
   lectura: {
     "product.product": ["search_read"],
     "stock.location": ["search_read"],
-    "stock.quant": ["read_group"],
+    "stock.quant": ["read_group", "search_read"], // DS-22: saldo por articulo/ubicacion para ajustes
     "res.partner": ["search_read"],
     "purchase.order": ["search_read"],
     "stock.picking": ["search_read", "read"],
@@ -214,12 +214,17 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
     "stock.warehouse": ["search_read"],
     "res.users": ["search_read"],
     "hr.employee": ["search_read"],
+    "ir.attachment": ["search_read"], // DS-28: detectar adjunto duplicado (solo metadatos, sin `datas`)
   },
   escritura: {
     // DS-08: traslados. Sin unlink: un movimiento nunca se borra, se cancela o se devuelve.
     "stock.picking": ["create", "write", "action_confirm", "action_assign", "button_validate", "action_cancel", "message_post"],
     "stock.move": ["write"],
+    // DS-28: PDF firmado del conduce como adjunto del picking (ADR 19). Solo alta; sin write/unlink.
+    "ir.attachment": ["create"],
     "purchase.order": ["create", "button_confirm", "button_cancel"],
+    // DS-22: ajustes de inventario por la accion de negocio de Odoo (inventory_quantity + action_apply_inventory). Nunca `quantity` directo.
+    "stock.quant": ["create", "write", "action_apply_inventory"],
     // Proveedores directos en Odoo: alta y edición/archivado. Sin unlink: nunca se borra un partner.
     "res.partner": ["create", "write"],
   },

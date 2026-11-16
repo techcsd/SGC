@@ -129,6 +129,8 @@ export class OrdenesOdoo implements OnInit {
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OdooOrdenCompra[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  // DS-25: ids que ofrecen los selectores (null = sin restricción). Ratificados o con movimiento real.
+  proveedoresSelectorIds = signal<Set<string> | null>(null);
   articuloNombres = signal<string[]>([]);
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
@@ -195,7 +197,10 @@ export class OrdenesOdoo implements OnInit {
 
   total = computed(() => this.subtotal() + this.impuesto());
 
-  activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
+  activeProveedores = computed(() => {
+    const permitidos = this.proveedoresSelectorIds();
+    return this.proveedores().filter((p) => p.activo && (!permitidos || permitidos.has(p.id)));
+  });
 
   // ── Z6.4b — el picker de ítems filtra por el destino de la OC ──────────────
   // `articulos.ambito` (obra | oficina | ambos, default 'ambos') distingue material
@@ -389,6 +394,7 @@ export class OrdenesOdoo implements OnInit {
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
+      void this.proveedoresService.idsSelector().then((ids) => this.proveedoresSelectorIds.set(ids)).catch(() => undefined);
       this.proyectos.set(proyectos);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
       const activos = articulos.filter((a) => a.activo);
@@ -469,6 +475,7 @@ export class OrdenesOdoo implements OnInit {
         activo: true,
       });
       this.proveedores.update((list) => [prov, ...list]);
+      this.proveedoresSelectorIds.update((s) => (s ? new Set(s).add(prov.id) : s)); // el recién creado siempre se ofrece
       this.form.controls.proveedor_id.setValue(prov.id);
       this.showNuevoProveedor.set(false);
       this.toast.success(this.i18n.t('Proveedor creado'), prov.nombre);

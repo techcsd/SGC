@@ -1,0 +1,76 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Solicitudes vencidas' | t }}</h1>
+    <span class="page-count">{{ i18n.t('{n} solicitud(es) sin respuesta', { n: filas().length }) }}</span>
+  </div>
+</div>
+
+<p class="sv-lead">
+  {{ 'Solicitudes pendientes que llevan más tiempo del permitido sin respuesta. Puedes cerrarlas en bloque indicando el motivo; el solicitante recibe un aviso.' | t }}
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- Métrica de adopción -->
+<div class="sgc-card sv-kpi">
+  <span class="sv-kpi__n">{{ entradas().pct | number: '1.0-1' }}%</span>
+  <span class="sv-kpi__l">{{ i18n.t('Entradas con orden de compra (últimos 30 días): {a} de {b}', { a: entradas().con_oc, b: entradas().total }) }}</span>
+</div>
+
+<!-- Solicitudes -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="5" />
+  } @else if (filas().length === 0) {
+    <div class="table-empty"><p>{{ 'No hay solicitudes vencidas.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Solicitudes vencidas' | t }}">
+        <thead>
+          <tr>
+            <th>
+              <input type="checkbox" [checked]="todasMarcadas()" (change)="alternarTodas()" [attr.aria-label]="'Seleccionar todas' | t" />
+            </th>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Folio' | t }}</th>
+            <th>{{ 'Descripción' | t }}</th>
+            <th>{{ 'Obra' | t }}</th>
+            <th>{{ 'Solicitante' | t }}</th>
+            <th>{{ 'Creada' | t }}</th>
+            <th class="text-right">{{ 'Días' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track clave(f)) {
+            <tr>
+              <td>
+                <input type="checkbox" [checked]="seleccion().has(clave(f))" (change)="alternar(f)" [attr.aria-label]="f.folio" />
+              </td>
+              <td>{{ (f.tipo === 'compra' ? 'Compra' : 'Material') | t }}</td>
+              <td>{{ f.folio }}</td>
+              <td>{{ f.descripcion }}</td>
+              <td>{{ f.proyecto ?? '—' }}</td>
+              <td>{{ f.solicitante ?? '—' }}</td>
+              <td>{{ f.creada_en | fecha: 'dd/MM/yyyy' }}</td>
+              <td class="text-right">{{ f.dias }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cierre masivo -->
+    <div class="sv-cierre">
+      <div class="sgc-field">
+        <label class="filters-bar__label" for="sv-motivo">{{ 'Motivo del cierre (obligatorio, mínimo 10 caracteres)' | t }}</label>
+        <textarea id="sv-motivo" rows="3" [value]="motivo()" (input)="motivo.set($any($event.target).value)"
+                  placeholder="{{ 'Explica por qué se cierran…' | t }}"></textarea>
+      </div>
+      <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="!puedeCerrar()" (click)="cerrar()">
+        {{ cerrando() ? i18n.t('Cerrando…') : i18n.t('Cerrar seleccionadas ({n})', { n: seleccion().size }) }}
+      </button>
+    </div>
+  }
+</div>

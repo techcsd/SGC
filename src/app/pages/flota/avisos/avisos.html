@@ -35,6 +35,16 @@
   </button>
 </div>
 
+<!-- DS-36/#61 — resumen de avisos informativos (no accionables) -->
+@if (vista() === 'activos' && informativosPendientes() > 0) {
+  <p class="av-informativos">
+    {{ informativosPendientes() }} {{ 'recordatorios informativos (reporte semanal) pendientes; se cierran solos al enviar el reporte.' | t }}
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleInformativos()">
+      {{ (verInformativos() ? 'Ocultarlos' : 'Verlos') | t }}
+    </button>
+  </p>
+}
+
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__select">

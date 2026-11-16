@@ -1,0 +1,18 @@
+.pc-lead {
+  font-size: 13px;
+  color: var(--sgc-text-muted, #666);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.pc-h2 {
+  font-size: 16px;
+  margin: 22px 0 10px;
+}
+
+.pc-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}

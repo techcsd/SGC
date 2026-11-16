@@ -42,6 +42,7 @@ import { NavItem, NavSubItem, construirIndiceMenu, moduloActualDesdeRuta } from 
 import { esAtajoCtrlK, esAtajoBarra, esCampoDeTexto } from './atajo-buscador.util';
 import { CompaFlotante } from '../compa-flotante/compa-flotante';
 import { PreferenciasService } from '../../services/preferencias.service';
+import { UiFlagsService } from '../../services/ui-flags.service';
 import { compaFlotanteVisible } from '../compa-flotante/compa-flotante-visibilidad.util';
 
 export type { NavItem, NavSubItem };
@@ -62,6 +63,7 @@ export type { NavItem, NavSubItem };
 export class Shell implements OnInit {
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private uiFlags = inject(UiFlagsService);
   private router = inject(Router);
   lightbox = inject(LightboxService); // CM5 — visor global de fotos
   private notificaciones = inject(NotificacionesService);
@@ -187,6 +189,7 @@ export class Shell implements OnInit {
         { label: 'Proveedores de transporte', route: '/inventario/proveedores-transporte', modulo: 'inventario', badgeKey: 'inventario.prov_transporte_por_ratificar' },
         { label: 'Lugares por registrar', route: '/inventario/lugares-por-registrar', modulo: 'inventario', badgeKey: 'inventario.lugares_por_registrar' },
         { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones', submodulo: 'inventario.salidas' },
+        { label: 'Pendientes de cierre', route: '/inventario/pendientes-cierre', submodulo: 'inventario.salidas' },
         { label: 'Material no catalogado', route: '/inventario/material-no-catalogado', modulo: 'inventario', badgeKey: 'inventario.material_no_catalogado' },
         { label: 'Conduces por implementar', route: '/inventario/conduces-por-implementar', modulo: 'inventario', badgeKey: 'inventario.conduces_por_implementar' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
@@ -210,6 +213,10 @@ export class Shell implements OnInit {
         { label: 'Solicitar Compra', route: '/compras/solicitar', submodulo: 'compras.solicitudes' },
         // CY24 Fase B (#24) — productos de una OC sin equivalente en Odoo.
         { label: 'Productos por dar de alta', route: '/compras/productos-por-dar-de-alta', modulo: 'compras', badgeKey: 'compras.productos_pendientes' },
+        // DS-25 — duplicados, movimiento real y ratificación en lote de proveedores.
+        { label: 'Curación de proveedores', route: '/compras/proveedores-curacion', modulo: 'compras' },
+        // DS-24 — solicitudes pendientes vencidas (cierre masivo con motivo).
+        { label: 'Solicitudes vencidas', route: '/compras/solicitudes-vencidas', modulo: 'compras' },
         // DF-gastos — gastos directos del proyecto (sin requisición).
         { label: 'Gastos', route: '/compras/gastos', modulo: 'compras' },
         { label: 'Reportes', route: '/compras/reportes', modulo: 'compras' },
@@ -462,9 +469,12 @@ export class Shell implements OnInit {
         // del grupo Administración. Se preserva como `soloAdmin` (mismo efecto práctico,
         // el idioma ya usado en este grupo para hojas admin-only como "Vault").
         { label: 'Pulso del sistema', route: '/admin/pulso-sistema', soloAdmin: true },
+        { label: 'Adopción por rol', route: '/admin/adopcion', soloAdmin: true }, // DS-38
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
         // CY16 (#16) — sincronización con Odoo (outbox distinto del de arriba).
         { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
+        { label: 'Conciliación con Odoo', route: '/tecnologia/odoo-conciliacion', soloTecnologia: true }, // DS-13
+        { label: 'Homologación con Odoo', route: '/tecnologia/odoo-homologacion', soloTecnologia: true }, // DS-05/06
         { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         // Diseño
@@ -617,6 +627,8 @@ export class Shell implements OnInit {
   }
 
   canAccessChild(child: NavSubItem): boolean {
+    // DS-35/#59 — módulo de solicitudes de movimiento oculto por flag (reversible).
+    if (child.route === '/transporte/apoyo' && this.uiFlags.movimientoOculto()) return false;
     // R14 — submódulos de flota solo para roles elevados (oculto al chofer).
     if (child.flotaElevado && !this.userService.esFlotaElevado()) return false;
     // Y11 — submódulos de plataforma solo para admin | rol tecnologia.
@@ -653,6 +665,7 @@ export class Shell implements OnInit {
   }
 
   ngOnInit() {
+    void this.uiFlags.cargar();
     // AZ10 — límite duro de 1 h de la sesión impersonada: si ya venció, salir; si no, vigilar.
     if (this.authService.hayImpersonacion()) {
       if (this.authService.impersonacionExpirada()) {

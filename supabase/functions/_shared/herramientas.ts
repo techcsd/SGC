@@ -222,6 +222,28 @@ export const TOOLS: ToolDef[] = [
     map: (i) => ({ p_estado: i.estado ?? "pendiente", p_proyecto_id: null, p_urgencia: i.urgencia ?? null, p_busqueda: i.busqueda ?? null, p_limite: 30 }),
   },
   {
+    // DS-33/#56 (ronda DS) - lectura de la cola de solicitudes de material sin aprobar (mas antiguas primero).
+    name: "solicitudes_material_atascadas",
+    description: "Solicitudes de material PENDIENTES DE APROBACION, de la más antigua a la más reciente, con su antigüedad y si ya se escalaron (para '¿qué solicitudes llevan más tiempo sin aprobarse?'). Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {} },
+    rpc: "solicitudes_material_pendientes_reporte", map: () => ({}),
+  },
+  {
+    // DS-34/#58 (ronda DS) - conduces despachados que nadie ha cerrado.
+    name: "conduces_por_cerrar",
+    description: "Conduces despachados SIN recepción (sin cerrar), más antiguos primero, con días abierto y despachante. 'dias_min' filtra por antigüedad mínima (para '¿qué conduces llevan más de una semana sin cerrarse?'). Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["compa", "mcp"],
+    input_schema: { type: "object", properties: { dias_min: { type: "integer" } }, additionalProperties: false },
+    rpc: "conduces_por_cerrar", map: (i) => ({ p_dias_min: Number.isFinite(Number(i.dias_min)) ? Number(i.dias_min) : 0 }),
+  },
+  {
+    // DS-38/#62 (ronda DS) - adopcion por rol (solo conteos; el detalle nominal es solo del admin en la pantalla).
+    name: "adopcion_por_rol",
+    description: "Adopción del sistema por rol: usuarios, cuántos nunca entraron y cuántos estuvieron activos recientemente (para '¿qué roles no usan el sistema?'). Requiere administración o dirección.",
+    modulos: ["admin", "direccion"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {} },
+    rpc: "adopcion_por_rol", map: () => ({}),
+  },
+  {
     name: "resumen_proyectos",
     description: "KPIs/resumen de los proyectos. Requiere proyectos o dirección.",
     modulos: ["proyectos", "direccion"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {} },

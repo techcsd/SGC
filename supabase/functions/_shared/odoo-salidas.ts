@@ -13,6 +13,8 @@ import { type ItemTraslado, type PasoTraslado, TrasladoError } from "./odoo-tras
 export interface LineaSalida { nombre: string; cantidad: number; cantidadRecibida: number | null; odooProductId: number | null; odooUomId?: number | null }
 export interface DatosSalida {
   id: string; folio?: string; estado: string; esPrueba: boolean; paradaEntregada: boolean;
+  /** DS-17/DS-19: hay una ENTRADA confirmada ligada a esta salida (recepcion en obra / devolucion de obra con descuento): completa el paso B. */
+  entradaConfirmada?: boolean;
   lineas: LineaSalida[];
   origenLocationId: number | null; origenWarehouseId: number | null;
   destinoLocationId: number | null;
@@ -20,12 +22,16 @@ export interface DatosSalida {
 }
 export interface Biblioteca {
   buscar(origin: string): Promise<{ id: number; state: string } | null>;
-  crear(e: { salidaId: string; paso: PasoTraslado; origenLocationId: number; destinoLocationId: number; pickingTypeId: number; companyId: number; items: ItemTraslado[]; folio?: string }): Promise<{ pickingId: number }>;
+  crear(e: { salidaId: string; paso: PasoTraslado; origin?: string; origenLocationId: number; destinoLocationId: number; pickingTypeId: number; companyId: number; items: ItemTraslado[]; folio?: string }): Promise<{ pickingId: number }>;
   validar(pickingId: number): Promise<{ estado: string }>;
   cancelar(pickingId: number): Promise<unknown>;
-  devolver(pickingId: number, paso: PasoTraslado, salidaId: string, companyId: number): Promise<unknown>;
+  devolver(pickingId: number, paso: PasoTraslado, salidaId: string, companyId: number, secuencia?: number): Promise<unknown>;
   transitoLocationId(): Promise<number>;
   tipoInterno(warehouseId: number): Promise<number>;
+  /** DS-20: cantidad ya publicada por producto en los pickings cuyo origin empieza por `prefijo` (sin cancelados ni devoluciones). */
+  publicado?(prefijo: string): Promise<Map<number, number>>;
+  /** DS-20: pickings complemento (origin `<prefijo>-C…`) para poder revertirlos junto con el original. */
+  complementos?(prefijo: string): Promise<Array<{ id: number; state: string }>>;
 }
 export interface DepsSalida {
   lib: Biblioteca;
@@ -37,6 +43,28 @@ export interface ResultadoEvento { estado: "completado" | "reintento" | "error" 
 export const MAX_INTENTOS = 8;
 const espera = (intentos: number) => Math.min(10 * 60_000, 30_000 * 2 ** Math.max(0, intentos - 1));
 const origen = (id: string, p: PasoTraslado) => `SGC-TRAS-${id}-${p}`;
+const EPS = 1e-9;
+
+/** DS-20: lo que SGC tiene de MAS que lo ya publicado en Odoo (lineas anadidas despues de publicar: material libre regularizado, etc.). */
+export function calcularComplemento(items: ItemTraslado[], publicado: Map<number, number>): ItemTraslado[] {
+  const pedido = new Map<number, ItemTraslado>();
+  for (const i of items) {
+    const p = pedido.get(i.productId);
+    pedido.set(i.productId, p ? { ...p, cantidad: p.cantidad + i.cantidad } : { ...i });
+  }
+  const extras: ItemTraslado[] = [];
+  for (const [pid, it] of pedido) {
+    const resta = it.cantidad - (publicado.get(pid) ?? 0);
+    if (resta > EPS) extras.push({ ...it, cantidad: resta });
+  }
+  return extras.sort((a, b) => a.productId - b.productId);
+}
+/** Sufijo determinista del complemento: el mismo conjunto de extras siempre produce el mismo origin (idempotente). */
+export function huellaComplemento(extras: ItemTraslado[]): string {
+  let h = 5381;
+  for (const c of extras.map((e) => `${e.productId}:${e.cantidad}`).join("|")) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+  return h.toString(36);
+}
 
 function itemsDe(s: DatosSalida, paso: PasoTraslado): ItemTraslado[] {
   return s.lineas
@@ -47,19 +75,27 @@ function itemsDe(s: DatosSalida, paso: PasoTraslado): ItemTraslado[] {
 export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: number): Promise<ResultadoEvento> {
   const s = await d.cargar(salidaId);
   if (!s) return { estado: "error", error: "La salida ya no existe en SGC." };
-  if (s.esPrueba) return { estado: "completado", resultado: { omitido: "es_prueba" } };
   let a: number | undefined; let b: number | undefined;
   try {
     const A = await d.lib.buscar(origen(s.id, "A")); const B = await d.lib.buscar(origen(s.id, "B"));
+    // DS-19: real -> prueba DESPUES de publicar: el efecto en Odoo no puede quedar activo mientras SGC lo revierte -> se compensa.
+    // Prueba que nunca se publico: no hay nada que hacer (nunca stock en la compania real).
+    const hayEfecto = [A, B].some((p) => p && p.state !== "cancel") || ((await d.lib.complementos?.(`${origen(s.id, "A")}-C`)) ?? []).length > 0;
+    if (s.esPrueba && !hayEfecto) return { estado: "completado", resultado: { omitido: "es_prueba" } };
 
-    if (s.estado === "anulado" || s.estado === "rechazada") {
+    if (s.estado === "anulado" || s.estado === "rechazada" || s.esPrueba) {
       // B primero (deshacer en orden inverso), luego A
-      for (const [p, pk] of [["B", B], ["A", A]] as const) {
+      const compA = (await d.lib.complementos?.(`${origen(s.id, "A")}-C`)) ?? []; const compB = (await d.lib.complementos?.(`${origen(s.id, "B")}-C`)) ?? [];
+      const orden: Array<[PasoTraslado, { id: number; state: string } | null | undefined, boolean]> = [
+        ...compB.map((k) => ["B", k, true] as [PasoTraslado, { id: number; state: string }, boolean]), ["B", B, false],
+        ...compA.map((k) => ["A", k, true] as [PasoTraslado, { id: number; state: string }, boolean]), ["A", A, false],
+      ];
+      for (const [p, pk, esComp] of orden) {
         if (!pk || pk.state === "cancel") continue;
-        if (pk.state === "done") await d.lib.devolver(pk.id, p, s.id, s.companyId); else await d.lib.cancelar(pk.id);
+        if (pk.state === "done") await d.lib.devolver(pk.id, p, s.id, s.companyId, esComp ? pk.id : undefined); else await d.lib.cancelar(pk.id);
       }
       await d.marcar(s.id, { a: A?.id, b: B?.id, estado: "sincronizado" });
-      return { estado: "completado", resultado: { revertido: true, picking_a: A?.id ?? null, picking_b: B?.id ?? null } };
+      return { estado: "completado", resultado: { revertido: true, por: s.esPrueba ? "es_prueba" : s.estado, picking_a: A?.id ?? null, picking_b: B?.id ?? null } };
     }
 
     if (s.origenLocationId == null || s.origenWarehouseId == null) throw new TrasladoError("datos", "El almacén de origen no está vinculado con Odoo.");
@@ -85,8 +121,21 @@ export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: 
       }
     }
 
+    // DS-20: lineas anadidas DESPUES de publicar A (p. ej. material libre regularizado con movimiento) -> complemento idempotente.
+    const comp: Record<string, number> = {};
+    if (A && d.lib.publicado) {
+      const extrasA = calcularComplemento(itemsA, await d.lib.publicado(origen(s.id, "A")));
+      if (extrasA.length) {
+        const oc = `${origen(s.id, "A")}-C${huellaComplemento(extrasA)}`;
+        const previoC = await d.lib.buscar(oc);
+        const pc = previoC ? { pickingId: previoC.id } : await d.lib.crear({ salidaId: s.id, paso: "A", origin: oc, origenLocationId: s.origenLocationId, destinoLocationId: transito, pickingTypeId: tipo, companyId: s.companyId, items: extrasA, folio: s.folio });
+        if (!previoC || previoC.state !== "done") await d.lib.validar(pc.pickingId);
+        comp.picking_a_complemento = pc.pickingId;
+      }
+    }
+
     // Paso B: parada entregada (ADR 4) o recepcion confirmada
-    const quiereB = s.paradaEntregada || s.estado === "entregado" || s.estado === "entregado_incompleto";
+    const quiereB = s.paradaEntregada || !!s.entradaConfirmada || s.estado === "entregado" || s.estado === "entregado_incompleto";
     let faltante = false;
     if (quiereB) {
       if (s.destinoLocationId == null) throw new TrasladoError("datos", "El destino del conduce no está vinculado con Odoo; el material queda en tránsito.");
@@ -96,11 +145,21 @@ export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: 
         const pb = B ? { pickingId: B.id } : await d.lib.crear({ salidaId: s.id, paso: "B", origenLocationId: transito, destinoLocationId: s.destinoLocationId, pickingTypeId: tipo, companyId: s.companyId, items: itemsB, folio: s.folio });
         b = pb.pickingId;
         if (!B || B.state !== "done") await d.lib.validar(b);
+        if (B && d.lib.publicado) {
+          const extrasB = calcularComplemento(itemsB, await d.lib.publicado(origen(s.id, "B")));
+          if (extrasB.length) {
+            const oc = `${origen(s.id, "B")}-C${huellaComplemento(extrasB)}`;
+            const previoC = await d.lib.buscar(oc);
+            const pc = previoC ? { pickingId: previoC.id } : await d.lib.crear({ salidaId: s.id, paso: "B", origin: oc, origenLocationId: transito, destinoLocationId: s.destinoLocationId, pickingTypeId: tipo, companyId: s.companyId, items: extrasB, folio: s.folio });
+            if (!previoC || previoC.state !== "done") await d.lib.validar(pc.pickingId);
+            comp.picking_b_complemento = pc.pickingId;
+          }
+        }
       }
     }
     // Un faltante real se queda en transito: queda visible (AT11) y espera la solicitud de ajuste aprobada (ADR 5).
     await d.marcar(s.id, { a, b, estado: "sincronizado", error: faltante ? "Faltante en tránsito: pendiente de ajuste aprobado." : undefined });
-    return { estado: "completado", resultado: { picking_a: a, picking_b: b ?? null, faltante_en_transito: faltante } };
+    return { estado: "completado", resultado: { picking_a: a, picking_b: b ?? null, faltante_en_transito: faltante, ...comp } };
   } catch (e) {
     if (e instanceof OdooError) {
       // Falla de transporte: no se sabe si aplico. Es seguro reintentar (todo es idempotente por origin).

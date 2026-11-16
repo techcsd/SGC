@@ -101,6 +101,8 @@ export class Entradas implements OnInit {
   // AT14/AT26 — datos de prueba fuera de los selectores de almacén para no-admin.
   bodegasVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.bodegas()));
   proveedores = signal<Proveedor[]>([]);
+  // DS-25: ids que ofrecen los selectores (null = sin restricción). Ratificados o con movimiento real.
+  proveedoresSelectorIds = signal<Set<string> | null>(null);
   ordenesCompra = signal<OrdenCompra[]>([]);
   proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
@@ -486,7 +488,10 @@ export class Entradas implements OnInit {
   }
 
   // ── Computed ─────────────────────────────────────────────
-  activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
+  activeProveedores = computed(() => {
+    const permitidos = this.proveedoresSelectorIds();
+    return this.proveedores().filter((p) => p.activo && (!permitidos || permitidos.has(p.id)));
+  });
 
   // Only orders still awaiting (full or partial) delivery are valid link targets —
   // matches sgc.registrar_entrada_inventario()'s own check server-side.
@@ -614,6 +619,7 @@ export class Entradas implements OnInit {
       this.categorias.set(cats);
       this.bodegas.set(bods.filter((b) => b.activo !== false)); // AR3 — sin almacenes inactivos
       this.proveedores.set(provs);
+      void this.proveedoresService.idsSelector().then((ids) => this.proveedoresSelectorIds.set(ids)).catch(() => undefined);
       this.ordenesCompra.set(ordenes);
       this.proyectos.set(proys);
     } catch (e: unknown) {

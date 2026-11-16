@@ -63,6 +63,13 @@ export const inventarioRoutes: Routes = [
     title: 'Conduces — Inventario',
   },
   {
+    // DS-33/DS-34 - solicitudes de material y conduces que llevan demasiado tiempo abiertos (solo lectura).
+    path: 'pendientes-cierre',
+    canActivate: [submoduloGuard('inventario.salidas')],
+    loadComponent: () => import('./pendientes-cierre/pendientes-cierre').then((m) => m.PendientesCierre),
+    title: 'Pendientes de cierre — Inventario',
+  },
+  {
     path: 'confirmaciones',
     canActivate: [submoduloGuard('inventario.salidas')],
     loadComponent: () => import('./confirmaciones/confirmaciones').then((m) => m.Confirmaciones),

@@ -70,3 +70,27 @@ Regla de seguridad (repo público): sin hosts, usuarios, claves, ids de proyecto
 - **DS-15:** OC real en staging: crear/idempotencia/cancelar OK; `button_cancel` devuelve None (fault «cannot marshal None») y se trata releyendo el estado; `ODOO_ESCRITURA_HABILITADA=true` solo en **dev** (apunta a staging).
 - **Deploy en dev:** `odoo-api`, `odoo-sync`. Migraciones en dev: ds5, ds6, ds6b, ds7, ds9, ds10, ds11 (ledger dev). **Ninguna en prod.**
 - Pendiente de F3 no cubierto: acciones `traslados.*` del gateway, write-through síncrono, solicitud de ajuste por faltante (ADR 5), prueba SQL transaccional de DS-09, notas de versión (Y1), `docs/DATOS-Y-TERCEROS.md` (CI13: nombre/correo en el chatter y ahora cuentas/productos de Odoo).
+
+---
+## Estado final de la ronda DS (16-nov-2026): 36 hechos · 11 parciales · 0 sin empezar (de 47)
+
+Detalle por lote con archivo:línea en `docs/avance-lotes/` (F5, F6F7, F8abc, F8de). Mapeo del circuito 2 en `docs/ODOO-CIRCUITO2.md`. Todo en dev; nada en prod; toda publicación a Odoo apagada por política.
+
+**Hechos (36):** DS-01…06, 08…15, 18, 19, 21, 22, 23, 24, 25, 26, 27, 30, 31, 32, 33, 34, 35, 36, 38, 39, 40, 43, 44 (DS-16 y DS-18/19/21/22 en backend; su UI de estado por pantalla falta, ver parciales).
+
+**Parciales (11) y qué falta exacto:**
+- DS-07: aprobación humana de 33 propuestas de catálogo; categorías y unidades.
+- DS-17: solicitud de ajuste por faltante con aprobación (ADR 5) en el flujo de requisición; devolución tránsito→origen al rechazar.
+- DS-20: explicación visible de coincidencia ambigua/unidades incompatibles.
+- DS-28: el worker no ejecuta aún en Odoo el ajuste/devolución desde tránsito; adjuntar PDF firmado al picking; pantalla de ajustes; contrato del adjunto contra staging.
+- DS-29: aplicar apertura en Odoo; bloquear escrituras directas a `stock_por_bodega` con fuente Odoo; pantalla de corte.
+- DS-37: pintar salud de combustible en pantalla; confirmar con SELECT en prod si la importación de estación sigue viva.
+- DS-41: #76 parte diario por voz (depende de entrevista); 4 vistas de detalle sin filtro `es_prueba` (decisión de producto); depurar datos de prueba en prod (script + OK).
+- DS-42: instrumentar `/auth/pin` y `/home` (trabajo de la app, PROMPT-149).
+- DS-45: la app debe leer `sgc.zonas_horarias`; unificar RPC de arranque.
+- DS-46: #71 lote 1 hecho (10 tablas, 42 políticas); quedan 184 políticas en 125 tablas.
+- DS-47: #77 es de la app y depende de entrevista (el #72 está hecho).
+
+**Pendientes transversales:** UI de estado/«Reintentar» en entradas, retiros, conteos y externos; KPI de solicitudes atascadas en el Dashboard; botones Aprobar/Rechazar en push; probar QR en vivo con sesión real; selector de cuenta analítica al crear OC con varias; acciones `traslados.*` del gateway.
+
+**NO verificado:** dos semanas reales de sombra; usuario dedicado de integración (Chai); confirmación de Contabilidad; confirmación de Operaciones de las 4 obras; qué tablas de Realtime usa csd-app; cualquier cifra de prod (salvo las del análisis del 01-nov).

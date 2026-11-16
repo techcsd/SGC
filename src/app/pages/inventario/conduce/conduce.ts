@@ -28,6 +28,7 @@ import { esUuid } from '../../../../shared/utils/uuid.util';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
 
 interface ItemCierre {
   detalle_id: string;
@@ -56,6 +57,9 @@ export class Conduce implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   private salidasService = inject(SalidasService);
+  private conduceQr = inject(ConduceQrService);
+  /** DS-34/#74 — QR para recibir/firmar/cerrar (solo si el flag conduce_qr_activo está encendido). */
+  qrDataUrl = signal<string | null>(null);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
@@ -341,6 +345,7 @@ export class Conduce implements OnInit {
       const s = await this.salidasService.getById(id);
       this.salida.set(s);
       this.salidasService.getOdooSync(id).then((o) => this.odooSync.set(o)).catch(() => {});
+      if (s.estado !== 'anulado') this.conduceQr.qrDataUrl(id).then((q) => this.qrDataUrl.set(q)).catch(() => {});
       void this.cargarTransferChk(id); // CM4 — estado real del botón transferir
       await this.loadEvidencia(s);
       // AU4 — items libres (no bloqueante).

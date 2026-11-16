@@ -156,7 +156,7 @@
         <label for="proveedor_id">{{ 'Proveedor vinculado' | t }}</label>
         <select id="proveedor_id" formControlName="proveedor_id">
           <option [ngValue]="null">{{ 'Sin vincular' | t }}</option>
-          @for (p of proveedores(); track p.id) {
+          @for (p of proveedoresOpciones(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }
         </select>

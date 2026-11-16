@@ -1,5 +1,16 @@
 # HANDOFF — SGC
 
+## 🧪 Ronda DS (16-nov-2026) — PROMPT 148: integración Odoo hasta staging — EN `feature/ds-odoo-ronda-16nov`, NO dev/main, nada en prod
+
+**Estado:** 36 hechos · 11 parciales · 0 sin empezar (47 DS). Detalle: `docs/ODOO-INTEGRACION-AVANCE.md`, lotes en `docs/avance-lotes/`, circuito 2 en `docs/ODOO-CIRCUITO2.md`, medidas de staging en `docs/ODOO-STAGING-VERIFICACION.md`, reversa en `docs/ODOO-RUNBOOK-REVERSA.md`. Versión 1.218.0 (notas Y1 hechas).
+- **Hecho y verificado contra staging (con datos reales, limpiado):** host guard DS-02; traslados A/B con tránsito, publicación por outbox, soak de 12 conduces (0 deriva, 0 inciertos); OC real con analytic_distribution; circuito 2 (contrato 27/28, la restante era aserción corregida); conciliador (143 pickings, 0 discrepancias).
+- **Reconstruido de Miranda (no estaba en el repo):** `_shared/odoo-traslados.ts` y piezas del circuito.
+- **Hallazgos Odoo CSD:** permite stock negativo (SGC verifica antes); `button_cancel` de OC y `action_apply_inventory` devuelven None (fault falso; se relee estado); confirmar OC la deja bloqueada.
+- **Desviación:** publicación asíncrona por outbox, no write-through síncrono; sin stock se bloquea al publicar.
+- **En prod NO hay nada:** migraciones ds5…ds46 solo en dev + ledger dev; secrets de dev apuntan a staging. Para prod: OK explícito, ledger (CD10), usuario dedicado «SGC Integración» (Chai), `INFRA_SYNC_SECRET` para crons.
+- **Pasos físicos de Xaviel:** aprobar propuestas de catálogo; confirmar cuentas CSD-102/CSD-103/PROY-0002; crear cuarentena por almacén en Odoo y enlazarla; entrevistas (Compras, Logística, Flota) para flags apagados; correr dry-run de Realtime en prod; 2 semanas de sombra real; publicar textos de cierre en GitHub; PRs a `dev` y luego release-check.
+- **Residuo en staging:** una OC de prueba confirmada (no cancelable), pickings `SGC-TRAS-TEST-*` en historial, una ubicación de prueba archivada.
+
 ## ✅ Ronda DP/DQ/DR (13–16-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN PROD v1.217.1
 
 **ESTADO FINAL 16-nov (1.217.1 EN PROD, `main`):**

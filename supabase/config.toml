@@ -203,3 +203,10 @@ verify_jwt = false
 # DO-06 — server-to-server (pg_net + x-sync-secret, mismo patrón que leer-documento-flota).
 [functions.rrhh-leer-cv]
 verify_jwt = false
+
+# DS-13 — conciliador Odoo: cron (x-sync-secret) o Tecnologia (JWT validado dentro con es_tecnologia). Solo lectura sobre Odoo.
+[functions.odoo-conciliar]
+verify_jwt = false
+# DS-34 — QR del conduce (token HMAC). Sesion validada dentro.
+[functions.conduce-qr]
+verify_jwt = true

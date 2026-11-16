@@ -362,6 +362,13 @@
       <div class="conduce__meta">
         <p><strong>{{ 'No. Conduce:' | t }}</strong> {{ numeroConduce }}</p>
         <p><strong>{{ 'Fecha de emisión:' | t }}</strong> {{ formatFecha(hoy) }}</p>
+        <!-- DS-34 — QR para recibir, firmar y cerrar la entrega -->
+        @if (qrDataUrl(); as qr) {
+          <figure class="conduce__qr">
+            <img [src]="qr" width="96" height="96" alt="{{ 'QR del conduce' | t }}" />
+            <figcaption>{{ 'Escanea para recibir y firmar' | t }}</figcaption>
+          </figure>
+        }
       </div>
     </header>
 

@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { conciliarSalidas, fueraDeCanal, type PickingOdoo, type SalidaConciliable } from "./odoo-conciliacion.ts";
+import { avanzarMarca, claveDiscrepancia, conciliarSaldos, conciliarSalidas, contarPorTipo, fueraDeCanal, type PickingOdoo, type SalidaConciliable } from "./odoo-conciliacion.ts";
 
 const salida = (o: Partial<SalidaConciliable> = {}): SalidaConciliable => ({
   id: "s1", estado: "despachado", esPrueba: false, despachadaEn: "2026-11-10T00:00:00Z",
@@ -42,4 +42,28 @@ Deno.test("fuera de canal: picking SGC tocado por otro usuario y movimiento vali
 });
 Deno.test("un picking cancelado sin salida no cuenta como huerfano", () => {
   assertEquals(conciliarSalidas([], [pick("SGC-TRAS-x-A", { state: "cancel" })], ahora), []);
+});
+
+Deno.test("el umbral de transito es parametrizable", () => {
+  const A = pick("SGC-TRAS-s1-A");
+  const s = salida({ despachadaEn: "2026-11-09T12:00:00Z" }); // 36 h
+  assertEquals(conciliarSalidas([s], [A], ahora, 24).map((d) => d.tipo), ["transito_vencido"]);
+  assertEquals(conciliarSalidas([s], [A], ahora, 72), []);
+});
+Deno.test("saldo SGC vs quant por ubicacion y producto", () => {
+  const sgc = [{ bodegaId: "b1", bodega: "Central", locationId: 8, articuloId: "a1", productId: 7, cantidad: 10 }, { bodegaId: "b1", bodega: "Central", locationId: 8, articuloId: "a2", productId: 9, cantidad: 0 }];
+  assertEquals(conciliarSaldos(sgc, [{ locationId: 8, productId: 7, cantidad: 10 }]), []); // a2: 0 vs ausente = 0
+  const d = conciliarSaldos(sgc, [{ locationId: 8, productId: 7, cantidad: 9 }]);
+  assertEquals(d.map((x) => x.tipo), ["saldo_distinto"]);
+  assertEquals(d[0].clave, "b1:a1");
+});
+Deno.test("claves estables, conteo y marca de agua", () => {
+  assertEquals(claveDiscrepancia({ tipo: "sin_picking_b", salidaId: "s1", detalle: "x" }), "sin_picking_b|s1|");
+  assertEquals(claveDiscrepancia({ tipo: "saldo_distinto", clave: "b1:a1", detalle: "x" }), "saldo_distinto||" + "|b1:a1");
+  assertEquals(contarPorTipo([{ tipo: "sin_picking_a", detalle: "" }, { tipo: "sin_picking_a", detalle: "" }, { tipo: "fuera_de_canal", detalle: "" }]), { sin_picking_a: 2, fuera_de_canal: 1 });
+  assertEquals(avanzarMarca([pick("SGC-TRAS-a-A", { writeDate: "2026-11-10 10:00:00" }), pick("SGC-TRAS-b-A", { writeDate: "2026-11-11 09:00:00" })], null), "2026-11-11 09:00:00");
+  assertEquals(avanzarMarca([], "2026-11-01 00:00:00"), "2026-11-01 00:00:00");
+});
+Deno.test("pickings de prueba de contrato (SGC-TRAS-TEST-*) no cuentan como huerfanos", () => {
+  assertEquals(conciliarSalidas([], [pick("SGC-TRAS-TEST-abc-A")], ahora), []);
 });

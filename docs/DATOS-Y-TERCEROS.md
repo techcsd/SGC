@@ -180,3 +180,10 @@ momento, no antes.
   guarda archivos que la persona sube voluntariamente como "skill". Bajo
   riesgo (dato que la propia persona decide subir, con escaneo de secretos),
   pero debe anotarse en la próxima revisión de esos documentos.
+
+## Ronda DS (16-nov-2026) — integración con Odoo (CI13)
+
+- **Odoo (tercero ya declarado, ahora con escritura).** SGC publica a Odoo traslados (origen, folio, almacenes, artículos y cantidades), órdenes de compra (proveedor, líneas, cuenta analítica) y ajustes de inventario. En el chatter del picking se escribe el nombre de la persona que despachó o recibió (texto plano, sin correo). Se leen de Odoo almacenes, cuentas analíticas, productos y proveedores. Todo apagado por política hasta que Tecnología lo encienda y solo contra hosts permitidos.
+- **Cuenta de integración.** Hoy una cuenta de Tecnología con permisos amplios; para producción se pide un usuario dedicado con permisos mínimos (paso físico con el proveedor de Odoo).
+- **QR en el conduce.** Token firmado con vencimiento que abre la pantalla de recibir/firmar; no contiene datos personales.
+- 🔴 Revisar: Política de Privacidad y formularios de tienda deben mencionar que nombres de empleados pueden aparecer en el chatter de Odoo.

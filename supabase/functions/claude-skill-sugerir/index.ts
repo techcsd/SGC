@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
 import { llamarClaude, ErrorClaude } from "../_shared/claude.ts";
@@ -30,7 +31,7 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 
-Deno.serve(async (req) => {
+async function manejar(req: Request): Promise<Response> {
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 
   const authHeader = req.headers.get("Authorization");
@@ -84,4 +85,13 @@ Deno.serve(async (req) => {
   if (!sugerencia) return json({ ok: false, error: "No se pudo generar una sugerencia interpretable." });
 
   return json({ ok: true, pasos: sugerencia.pasos, ejemplo: sugerencia.ejemplo });
+}
+
+// CY21/DS-26 — CORS común (_shared/cors.ts): estas edges las llama el navegador con fetch + Authorization (preflight).
+Deno.serve(async (req) => {
+  const cors = construirCors(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  const res = await manejar(req);
+  for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
+  return res;
 });

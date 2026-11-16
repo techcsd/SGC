@@ -19,7 +19,9 @@ export type OdooAgregadoTipo =
   | 'entrada_inventario'
   | 'salida_inventario'
   | 'retiro_material'
-  | 'solicitud_compra';
+  | 'solicitud_compra'
+  | 'conduce_externo'
+  | 'conteo_inventario';
 
 export interface OdooEventoFila {
   id: string;
@@ -64,6 +66,8 @@ export const ODOO_AGREGADO_LABEL: Record<OdooAgregadoTipo, string> = {
   salida_inventario: 'Salida de inventario',
   retiro_material: 'Retiro de material',
   solicitud_compra: 'Solicitud de compra',
+  conduce_externo: 'Conduce externo',
+  conteo_inventario: 'Conteo de inventario',
 };
 
 export const ODOO_ESTADO_LABEL: Record<OdooEventoEstado, string> = {

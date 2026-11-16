@@ -85,3 +85,11 @@ No cerrar todavía, y qué falta:
 - **#51**: todo (mapeo proyecto ↔ cuenta analítica).
 - **Pendientes humanos** (del HANDOFF): aceptar la matriz de CY18/CY7; pedir un usuario técnico de Odoo de solo lectura propio de SGC (el usado hoy tiene permisos de escritura); decidir el alcance por proyecto del piloto de OC; archivar en Odoo los registros de prueba de las pruebas del PoC y de la escritura puntual del 27-oct (producto, proveedor y OC en borrador); OK explícito antes de promover cualquier pieza nueva a prod.
 - **Higiene del repo (hallazgo):** `HANDOFF.md` (sección PROMPT-118) todavía habla de columnas espejo `odoo_sync_estado`/`odoo_state` en `ordenes_compra`; la migración `cy24k` las elimina. Conviene corregir esa sección para no inducir a error.
+
+---
+## Cierre de ronda DS (16-nov-2026) — texto por épica (NO se publicó nada en GitHub)
+- **#114 Canary (DS-27):** construido y apagado (`odoo_fases`, exige 5 ratificaciones). Falta cargar par WH→TA y 5 artículos piloto (depende de aprobar catálogo) y las 2 semanas reales.
+- **#115 Expansión (DS-28):** parcial: solicitud de ajuste, SLO y helper de PDF listos; falta ejecutar ajuste/devolución en Odoo y adjuntar PDF.
+- **#116 Corte (DS-29):** parcial: flag `fuente_odoo`, proyección, contingencia y plan de apertura; falta aplicar apertura y bloquear escrituras directas.
+- **#117 Contracción (DS-30):** migración condicional en `scripts/data-fixes/condicionales/`; aborta si el corte no está encendido; no se promueve a prod.
+- **#85/#87 checklists:** ver `docs/avance-lotes/F8de.md` (texto de checklist actualizado por issue).

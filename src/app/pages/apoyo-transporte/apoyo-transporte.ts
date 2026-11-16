@@ -13,6 +13,8 @@ import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../shared/ui/file-upload/file-upload';
 import { Lightbox } from '../../../shared/ui/lightbox/lightbox';
+import { UiFlagsService } from '../../../shared/services/ui-flags.service';
+import { RouterLink } from '@angular/router';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { FilterSelect, FilterOption } from '../../../shared/ui/filter-select/filter-select';
 import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../shared/utils/fecha.util';
@@ -34,7 +36,7 @@ const ESTADO_LABEL: Record<EstadoApoyo, string> = {
 
 @Component({
   selector: 'app-apoyo-transporte',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, FileUpload, Lightbox, Icon, FilterSelect, TranslatePipe],
+  imports: [RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, FileUpload, Lightbox, Icon, FilterSelect, TranslatePipe],
   templateUrl: './apoyo-transporte.html',
   styleUrl: './apoyo-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +48,7 @@ export class ApoyoTransporte implements OnInit {
   private vehiculosSvc = inject(VehiculosService);
   private conductoresSvc = inject(ConductoresService);
   private userService = inject(UserService);
+  protected uiFlags = inject(UiFlagsService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
 

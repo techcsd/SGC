@@ -1,11 +1,12 @@
 // odoo-sync/salidas.ts -- dependencias reales (BD de SGC + Odoo) para publicar salidas como traslados A/B (DS-10/DS-11).
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { OdooClient } from "../_shared/odoo-client.ts";
 import { cancelarTraslado, crearTraslado, devolverTraslado, validarTraslado, buscarPickingPorOrigin, type LlamadorOdoo } from "../_shared/odoo-traslados.ts";
 import type { Biblioteca, DatosSalida, DepsSalida } from "../_shared/odoo-salidas.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
+// El cliente se crea con db.schema="sgc"; su tipo generico no encaja con SupabaseClient<public>.
+type SupabaseClient = Any;
 
 export function bibliotecaReal(c: LlamadorOdoo): Biblioteca {
   let transito: number | null = null;
@@ -15,7 +16,18 @@ export function bibliotecaReal(c: LlamadorOdoo): Biblioteca {
     crear: (e) => crearTraslado(c, e),
     validar: (id) => validarTraslado(c, id),
     cancelar: (id) => cancelarTraslado(c, id),
-    devolver: (id, paso, salidaId, companyId) => devolverTraslado(c, id, { salidaId, paso, companyId }),
+    devolver: (id, paso, salidaId, companyId, secuencia) => devolverTraslado(c, id, { salidaId, paso, companyId, secuencia }),
+    complementos: async (prefijo) => (await c.call("stock.picking", "search_read", [[["origin", "=like", `${prefijo}%`]]], { fields: ["state"], limit: 20, order: "id asc" }) ?? []).map((x: Any) => ({ id: x.id, state: x.state })),
+    // DS-20: cantidades ya publicadas (pickings con ese prefijo de origin; sin cancelados ni devoluciones -D<n>)
+    async publicado(prefijo) {
+      const pk = await c.call("stock.picking", "search_read", [[["origin", "=like", `${prefijo}%`], ["state", "!=", "cancel"]]], { fields: ["origin", "move_ids"], limit: 50 });
+      const m = new Map<number, number>();
+      for (const p of (pk ?? []).filter((x: Any) => !/-D\d+$/.test(x.origin ?? ""))) {
+        const mv = await c.call("stock.move", "read", [p.move_ids], { fields: ["product_id", "product_uom_qty", "state"] });
+        for (const x of mv ?? []) if (x.state !== "cancel") m.set(x.product_id[0], (m.get(x.product_id[0]) ?? 0) + Number(x.product_uom_qty));
+      }
+      return m;
+    },
     async transitoLocationId() {
       if (transito != null) return transito;
       const r = await c.call("stock.location", "search_read", [[["usage", "=", "transit"], ["active", "=", true]]], { fields: ["id"], limit: 2 });
@@ -52,7 +64,15 @@ export function depsReales(admin: SupabaseClient, odoo: OdooClient, instanciaId:
         const { data } = await admin.from("ruta_paradas").select("estado").eq("id", s.ruta_parada_id).maybeSingle();
         paradaEntregada = data?.estado === "entregada";
       }
+      // DS-17/DS-19: una ENTRADA confirmada ligada a la salida (recepcion en obra / devolucion de obra con descuento) completa el paso B.
+      const { data: ent } = await admin.from("entradas_inventario").select("bodega_id, pendiente_confirmacion, rechazada").eq("salida_id", id).limit(5);
+      const entradaOk = (ent ?? []).find((e: Any) => !e.pendiente_confirmacion && !e.rechazada);
+      if (entradaOk && destinoId == null) {
+        const { data } = await admin.from("bodegas").select("odoo_location_id").eq("id", entradaOk.bodega_id).maybeSingle();
+        destinoId = data?.odoo_location_id ?? null;
+      }
       return {
+        entradaConfirmada: !!entradaOk,
         id, folio: s.folio ?? s.codigo ?? undefined, estado: s.estado, esPrueba: !!s.es_prueba, paradaEntregada,
         lineas: (det ?? []).map((d: Any) => ({ nombre: d.articulos?.nombre ?? "artículo", cantidad: Number(d.cantidad), cantidadRecibida: d.cantidad_recibida == null ? null : Number(d.cantidad_recibida), odooProductId: d.articulos?.odoo_product_id ?? null })),
         origenLocationId: bo?.odoo_location_id ?? null, origenWarehouseId: bo?.odoo_warehouse_id ?? null, destinoLocationId: destinoId,

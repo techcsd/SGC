@@ -3,6 +3,28 @@
   "pctHt": 100,
   "filas": [
     {
+      "pantalla": "tecnologia/odoo-conciliacion",
+      "total": 30,
+      "cubiertos": 29,
+      "sin": 1,
+      "pct": 97,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "min"
+      ]
+    },
+    {
+      "pantalla": "admin/adopcion",
+      "total": 11,
+      "cubiertos": 11,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
@@ -264,8 +286,8 @@
     },
     {
       "pantalla": "apoyo-transporte",
-      "total": 51,
-      "cubiertos": 51,
+      "total": 53,
+      "cubiertos": 53,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -493,6 +515,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "compras/proveedores-curacion",
+      "total": 18,
+      "cubiertos": 18,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "compras/proveedores-odoo",
       "total": 44,
       "cubiertos": 44,
@@ -520,6 +552,26 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "compras/solicitudes-vencidas",
+      "total": 14,
+      "cubiertos": 14,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "conduce-qr",
+      "total": 3,
+      "cubiertos": 3,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {
@@ -644,8 +696,8 @@
     },
     {
       "pantalla": "flota/avisos",
-      "total": 52,
-      "cubiertos": 52,
+      "total": 53,
+      "cubiertos": 53,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -964,8 +1016,8 @@
     },
     {
       "pantalla": "inventario/conduce",
-      "total": 158,
-      "cubiertos": 158,
+      "total": 159,
+      "cubiertos": 159,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1090,6 +1142,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/pendientes-cierre",
+      "total": 19,
+      "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

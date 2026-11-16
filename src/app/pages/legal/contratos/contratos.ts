@@ -54,6 +54,12 @@ export class Contratos implements OnInit {
   contratos = signal<Contrato[]>([]);
   proyectos = signal<Proyecto[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  // DS-25: el selector ofrece solo ratificados o con movimiento real cuando el parámetro está activo.
+  proveedoresSelectorIds = signal<Set<string> | null>(null);
+  proveedoresOpciones = computed(() => {
+    const permitidos = this.proveedoresSelectorIds();
+    return permitidos ? this.proveedores().filter((p) => permitidos.has(p.id)) : this.proveedores();
+  });
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -152,6 +158,7 @@ export class Contratos implements OnInit {
       this.contratos.set(contratos);
       this.proyectos.set(proyectos);
       this.proveedores.set(proveedores);
+      void this.proveedoresService.idsSelector().then((ids) => this.proveedoresSelectorIds.set(ids)).catch(() => undefined);
       this.documentosDisponibles.set(documentos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los contratos.'));

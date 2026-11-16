@@ -8,6 +8,14 @@
   </div>
 </div>
 
+<!-- DS-35 — aviso de legado (flag solicitud_movimiento_aviso_legado) -->
+@if (uiFlags.movimientoAvisoLegado()) {
+  <p class="apoyo-legado" role="note">
+    {{ 'Esta vía se usa poco: las rutas nacen de los conduces. Para mover material, crea un conduce.' | t }}
+    <a routerLink="/inventario/conduces">{{ 'Ir a conduces' | t }}</a>
+  </p>
+}
+
 <!-- Filtros -->
 <div class="apoyo-filtros">
   <app-filter-select label="Tipo" [options]="tipoOptions" [value]="filtroTipo()" (valueChange)="filtroTipo.set($event)" />

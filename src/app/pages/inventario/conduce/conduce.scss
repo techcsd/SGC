@@ -454,3 +454,11 @@
 }
 .conduce__odoo-msg { margin-left: 8px; font-size: 13px; }
 .conduce__odoo-ids { font-size: 12px; color: var(--sgc-text-muted, #666); margin: 6px 0; }
+
+// DS-34 — QR del conduce (se imprime con el conduce)
+.conduce__qr {
+  margin: 8px 0 0;
+  text-align: center;
+  img { display: block; margin: 0 auto; border-radius: 6px; }
+  figcaption { font-size: 11px; color: var(--main-ultra-light); margin-top: 2px; }
+}
