@@ -22,9 +22,6 @@
     "obra/subcontratistas": {
       "enforce": false
     },
-    "dudas": {
-      "enforce": false
-    },
     "obra/informes": {
       "enforce": false
     },
@@ -218,6 +215,9 @@
       "enforce": true
     },
     "documentos/ver": {
+      "enforce": true
+    },
+    "dudas": {
       "enforce": true
     },
     "flota/accidentes": {

@@ -253,20 +253,6 @@
       ]
     },
     {
-      "pantalla": "dudas",
-      "total": 13,
-      "cubiertos": 10,
-      "sin": 3,
-      "pct": 77,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Ver video@if (v.duracion) { · }",
-        "¿No encontraste lo que buscabas? Escríbenos en",
-        "o contacta directamente a"
-      ]
-    },
-    {
       "pantalla": "obra/informes",
       "total": 47,
       "cubiertos": 37,
@@ -962,6 +948,16 @@
       "pantalla": "documentos/ver",
       "total": 9,
       "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "dudas",
+      "total": 13,
+      "cubiertos": 13,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -2155,7 +2151,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     }
   ]

@@ -78,7 +78,7 @@
                 <span class="dudas__guia-play-ic" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </span>
-                <span class="dudas__guia-play-tx">Ver video@if (v.duracion) { · {{ formatDuracion(v.duracion) }} }</span>
+                <span class="dudas__guia-play-tx">{{ 'Ver video' | t }}@if (v.duracion) { · {{ formatDuracion(v.duracion) }} }</span>
               </button>
             }
             <ol class="dudas__guia-pasos">
@@ -143,9 +143,9 @@
   <!-- Contact fallback -->
   <div class="dudas__footer">
     <p>
-      ¿No encontraste lo que buscabas? Escríbenos en
+      {{ '¿No encontraste lo que buscabas? Escríbenos en' | t }}
       <a routerLink="/soporte">{{ 'Soporte' | t }}</a>
-      o contacta directamente a
+      {{ 'o contacta directamente a' | t }}
       <a href="mailto:tecnologia@constructorasd.com">{{ 'Tecnología CSD' | t }}</a>.
     </p>
   </div>

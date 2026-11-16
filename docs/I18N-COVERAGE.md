@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9800/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9803/10020 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -14,7 +14,6 @@
 | auth | scope | 37 | 26 | 11 | 70% |
 | mi-rendimiento | scope | 17 | 12 | 5 | 71% |
 | obra/subcontratistas | scope | 75 | 56 | 19 | 75% |
-| dudas | scope | 13 | 10 | 3 | 77% |
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | soporte | scope | 35 | 29 | 6 | 83% |
@@ -80,6 +79,7 @@
 | documentos/historial | enforce | 9 | 9 | 0 | 100% |
 | documentos/plantillas | enforce | 43 | 43 | 0 | 100% |
 | documentos/ver | enforce | 9 | 9 | 0 | 100% |
+| dudas | enforce | 13 | 13 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
 | flota/avisos | enforce | 52 | 52 | 0 | 100% |
 | flota/checklists | enforce | 104 | 104 | 0 | 100% |
@@ -198,7 +198,7 @@
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
-| verificar | scope | 9 | 9 | 0 | 100% |
+| verificar | enforce | 9 | 9 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
