@@ -16,6 +16,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 type Tab = 'avance' | 'costos' | 'logistica';
 
 @Component({
@@ -30,6 +31,7 @@ export class ObraAvance implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
 
@@ -111,7 +113,7 @@ export class ObraAvance implements OnInit {
         await this.loadAll();
       }
     } catch (e: unknown) {
-      this.toast.error('Error al cargar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingInit.set(false);
     }
@@ -146,9 +148,9 @@ export class ObraAvance implements OnInit {
       this.perdidas.set(perdidas);
       // Costo aparte: puede fallar por permiso (capataz).
       try { this.costo.set(await this.service.getCostoMaterial(pid)); }
-      catch (e: unknown) { this.costo.set(null); this.costoError.set(e instanceof Error ? e.message : 'Sin permiso'); }
+      catch (e: unknown) { this.costo.set(null); this.costoError.set(e instanceof Error ? e.message : this.i18n.t('Sin permiso')); }
     } catch (e: unknown) {
-      this.toast.error('Error al cargar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error al cargar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.loading.set(false);
     }
@@ -160,10 +162,10 @@ export class ObraAvance implements OnInit {
     if (!this.puedeOperar()) return;
     try {
       const n = await this.service.capturarBaseline(this.proyectoId());
-      this.toast.success('Línea base congelada', `${n} tarea(s)`);
+      this.toast.success(this.i18n.t('Línea base congelada'), `${n} tarea(s)`);
       await this.loadAll();
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -174,7 +176,7 @@ export class ObraAvance implements OnInit {
       this.tareas.update((l) => l.map((x) => (x.id === t.id ? { ...x, avance_pct: n } : x)));
       this.avance.set(await this.service.getAvanceActual(this.proyectoId()));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -194,11 +196,11 @@ export class ObraAvance implements OnInit {
         horas: v.horas ?? 0,
         notas: v.notas || null,
       });
-      this.toast.success('Parte de mano de obra registrado');
+      this.toast.success(this.i18n.t('Parte de mano de obra registrado'));
       this.manoObraOpen.set(false);
       this.manoObra.set(await this.service.getManoObra(this.proyectoId()));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -220,11 +222,11 @@ export class ObraAvance implements OnInit {
         notas: v.notas || null,
         fotos: [],
       });
-      this.toast.success('Prueba de campo registrada');
+      this.toast.success(this.i18n.t('Prueba de campo registrada'));
       this.pruebaOpen.set(false);
       this.pruebas.set(await this.service.getPruebasCampo(this.proyectoId()));
     } catch (e: unknown) {
-      this.toast.error('Error', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('Error'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }

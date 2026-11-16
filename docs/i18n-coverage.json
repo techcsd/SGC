@@ -215,31 +215,6 @@
       ]
     },
     {
-      "pantalla": "obra/avance",
-      "total": 77,
-      "cubiertos": 63,
-      "sin": 14,
-      "pct": 82,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Slump (asentamiento)",
-        "Probeta (resistencia)",
-        "Compactación",
-        "Densidad",
-        "Otro",
-        "Error al cargar",
-        "Error al cargar",
-        "Línea base congelada",
-        "Error",
-        "Error",
-        "Parte de mano de obra registrado",
-        "Error",
-        "Prueba de campo registrada",
-        "Error"
-      ]
-    },
-    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
@@ -1513,6 +1488,16 @@
       "pantalla": "oauth-consent",
       "total": 19,
       "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "obra/avance",
+      "total": 77,
+      "cubiertos": 77,
       "sin": 0,
       "pct": 100,
       "enScope": true,

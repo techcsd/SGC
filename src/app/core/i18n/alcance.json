@@ -16,9 +16,6 @@
     "obra/subcontratistas": {
       "enforce": false
     },
-    "obra/avance": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -401,6 +398,9 @@
       "enforce": true
     },
     "oauth-consent": {
+      "enforce": true
+    },
+    "obra/avance": {
       "enforce": true
     },
     "obra/informes": {
