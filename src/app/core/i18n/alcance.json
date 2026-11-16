@@ -148,9 +148,6 @@
     "tecnologia/reportes-errores": {
       "enforce": false
     },
-    "tecnologia/cotizaciones": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -545,6 +542,9 @@
       "enforce": true
     },
     "tecnologia/consultas-compa": {
+      "enforce": true
+    },
+    "tecnologia/cotizaciones": {
       "enforce": true
     },
     "tecnologia/envios-automaticos": {

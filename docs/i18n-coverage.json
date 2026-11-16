@@ -2538,29 +2538,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/cotizaciones",
-      "total": 79,
-      "cubiertos": 67,
-      "sin": 12,
-      "pct": 85,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "RD$ (DOP)",
-        "US$ (USD)",
-        "RD$ (DOP)",
-        "US$ (USD)",
-        "El título es obligatorio",
-        "Cotización guardada",
-        "Renglones guardados",
-        "No se pudieron guardar los renglones",
-        "El título es obligatorio",
-        "Cotización actualizada",
-        "Cotización descartada",
-        "Cotización restaurada"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 73,
       "cubiertos": 65,
@@ -3901,6 +3878,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "tecnologia/cotizaciones",
+      "total": 79,
+      "cubiertos": 79,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "tecnologia/envios-automaticos",
       "total": 27,
       "cubiertos": 27,
@@ -3977,7 +3964,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {
