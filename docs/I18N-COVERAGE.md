@@ -62,8 +62,8 @@
 | configuracion/claude | enforce | 32 | 32 | 0 | 100% |
 | configuracion | enforce | 58 | 58 | 0 | 100% |
 | dashboard | enforce | 70 | 70 | 0 | 100% |
-| demo/escenarios | scope | 14 | 14 | 0 | 100% |
-| demo/progreso | scope | 9 | 9 | 0 | 100% |
+| demo/escenarios | enforce | 14 | 14 | 0 | 100% |
+| demo/progreso | enforce | 9 | 9 | 0 | 100% |
 | direccion | enforce | 16 | 16 | 0 | 100% |
 | documentos/generar | enforce | 9 | 9 | 0 | 100% |
 | documentos/historial | enforce | 9 | 9 | 0 | 100% |

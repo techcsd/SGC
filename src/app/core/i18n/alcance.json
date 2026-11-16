@@ -167,10 +167,10 @@
       "enforce": true
     },
     "demo/escenarios": {
-      "enforce": false
+      "enforce": true
     },
     "demo/progreso": {
-      "enforce": false
+      "enforce": true
     },
     "direccion": {
       "enforce": true
