@@ -8,6 +8,7 @@ import { UserPicker, UserPickerSelection } from '../../../shared/ui/user-picker/
 import { ToastService } from '../../../shared/services/toast.service';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../shared/i18n/i18n.service';
+import { localeActual } from '../../../shared/i18n/locale.util';
 
 /**
  * AW4 — "Compa", el asistente conversacional de SGC (v1 solo-lectura). La UI es
@@ -330,14 +331,12 @@ export class Asistente implements OnInit {
   }
 
   // ── AY11a — fecha/hora en los mensajes y en la lista ──────────────────────
-  private static readonly HORA = new Intl.DateTimeFormat('es-DO', { hour: '2-digit', minute: '2-digit' });
-  private static readonly FECHA = new Intl.DateTimeFormat('es-DO', { day: '2-digit', month: 'short', year: 'numeric' });
 
   /** Hora corta (HH:mm) de un mensaje; vacío si no hay timestamp. */
   hora(iso?: string): string {
     if (!iso) return '';
     const d = new Date(iso);
-    return isNaN(d.getTime()) ? '' : Asistente.HORA.format(d);
+    return isNaN(d.getTime()) ? '' : new Intl.DateTimeFormat(localeActual(this.i18n.idioma()), { hour: '2-digit', minute: '2-digit' }).format(d);
   }
 
   /** Etiqueta de fecha ("Hoy" / "Ayer" / dd mmm yyyy) para separadores y lista. */
@@ -350,7 +349,7 @@ export class Asistente implements OnInit {
     const dias = Math.round((dd(hoy) - dd(d)) / 86_400_000);
     if (dias === 0) return 'Hoy';
     if (dias === 1) return 'Ayer';
-    return Asistente.FECHA.format(d);
+    return new Intl.DateTimeFormat(localeActual(this.i18n.idioma()), { day: '2-digit', month: 'short', year: 'numeric' }).format(d);
   }
 
   /** Separador de día: devuelve la etiqueta si el mensaje i abre un día nuevo. */

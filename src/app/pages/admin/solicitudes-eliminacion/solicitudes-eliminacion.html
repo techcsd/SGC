@@ -23,7 +23,7 @@
             <div class="se__meta">
               @if (s.usuario?.email) { <span>{{ s.usuario?.email }}</span> }
               @if (s.identificador && s.identificador !== s.usuario?.email) { <span>{{ s.identificador }}</span> }
-              <span>{{ s.creada_at | date:'short' }}</span>
+              <span>{{ s.creada_at | fecha:'short' }}</span>
             </div>
             @if (s.motivo) { <p class="se__motivo">"{{ s.motivo }}"</p> }
             @if (s.nota_admin) { <p class="se__nota">{{ 'Nota:' | t }} {{ s.nota_admin }}</p> }

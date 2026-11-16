@@ -64,7 +64,7 @@
           <div class="cnc-item-top">
             <span class="cnc-badge cnc-badge--{{ f.motivo }}">{{ motivoLabel(f.motivo) }}</span>
             @if (f.tool) { <span class="cnc-tool">{{ f.tool }}</span> }
-            <span class="cnc-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+            <span class="cnc-fecha">{{ f.created_at | fecha: 'dd/MM/yy HH:mm' }}</span>
           </div>
           <p class="cnc-pregunta">"{{ f.pregunta }}"</p>
           <div class="cnc-meta">

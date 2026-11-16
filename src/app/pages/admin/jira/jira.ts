@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   JiraService, JiraIssue, JiraEpica, JiraDetalle, JiraEstado, JiraTipo, JiraPrioridad,
@@ -10,6 +10,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 const COLUMNAS: { estado: JiraEstado; label: string }[] = [
   { estado: 'backlog', label: 'Backlog' },
   { estado: 'por_hacer', label: 'Por hacer' },
@@ -25,7 +26,7 @@ const COLUMNAS: { estado: JiraEstado; label: string }[] = [
  */
 @Component({
   selector: 'app-admin-jira',
-  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, TranslatePipe],
+  imports: [ReactiveFormsModule, FechaPipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './jira.html',
   styleUrl: './jira.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, input, output, signal, effect } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { TareasService, DirectorioUsuario } from '../../services/tareas.service';
@@ -9,6 +9,7 @@ import { Tarea, TareaComentario, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES }
 import { todayIso, formatFechaDisplay } from '../../utils/fecha.util';
 import { FormDrawer } from '../form-drawer/form-drawer';
 import { WeatherCard } from '../../context/weather-card/weather-card';
+import { FechaPipe } from '../../i18n/fecha.pipe';
 
 // Allowed forward transitions. Assignees drive pendiente→en_progreso→completada;
 // cancelada is a manager-only escape hatch handled separately in the template.
@@ -21,7 +22,7 @@ const ESTADO_TRANSICIONES: Record<TareaEstado, TareaEstado[]> = {
 
 @Component({
   selector: 'app-tarea-detalle',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, WeatherCard],
+  imports: [ReactiveFormsModule, FormDrawer, FechaPipe, WeatherCard],
   templateUrl: './tarea-detalle.html',
   styleUrl: './tarea-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

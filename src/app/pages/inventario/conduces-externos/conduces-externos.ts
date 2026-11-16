@@ -1,16 +1,17 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import { TransporteV3Service, ConduceExternoRow } from '../../../../shared/services/transporte-v3.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserService } from '../../../core/services/user.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /** BA / Transporte v3 — historial de conduces externos (tipo visible, AU15). */
 @Component({
   selector: 'app-conduces-externos',
-  imports: [RouterLink, Skeleton, DatePipe, TranslatePipe, StaggerDirective],
+  imports: [RouterLink, Skeleton, FechaPipe, TranslatePipe, StaggerDirective],
   templateUrl: './conduces-externos.html',
   styleUrl: './conduces-externos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

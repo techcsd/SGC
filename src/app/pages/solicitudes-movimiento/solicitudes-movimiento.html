@@ -75,7 +75,7 @@
             <td><span [class]="estadoClase(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
             <td>
               @if (s.fecha_requerimiento) {
-                <span [class]="semaforoClase(s)">{{ s.fecha_requerimiento | date:'dd/MM/yyyy' }}</span>
+                <span [class]="semaforoClase(s)">{{ s.fecha_requerimiento | fecha:'dd/MM/yyyy' }}</span>
               } @else { <span class="text-muted">—</span> }
             </td>
             <td class="text-muted">{{ s.conductor || '—' }}</td>

@@ -8,7 +8,7 @@ import {
   viewChild,
   OnInit,
 } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   VehiculosService,
@@ -25,6 +25,7 @@ import { comprimirImagen } from '../../../../../shared/utils/comprimir-imagen.ut
 import { Icon } from '../../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../../shared/i18n/fecha.pipe';
 
 interface DanoEdit {
   zona: string;
@@ -50,7 +51,7 @@ const ENTREGA_SLOTS: { slot: string; label: string }[] = [
  */
 @Component({
   selector: 'app-registrar-entrega',
-  imports: [DecimalPipe, DatePipe, ReactiveFormsModule, VehiculoPicker, SignaturePad, Icon, TranslatePipe],
+  imports: [DecimalPipe, FechaPipe, ReactiveFormsModule, VehiculoPicker, SignaturePad, Icon, TranslatePipe],
   templateUrl: './registrar-entrega.html',
   styleUrl: './registrar-entrega.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

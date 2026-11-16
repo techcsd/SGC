@@ -21,7 +21,7 @@
     @if (entregaAbierta(); as ea) {
       <div class="re-precheck" role="status">
         <app-icon name="alert-triangle" [size]="15" /> {{ 'Este vehículo figura entregado a' | t }} <strong>{{ ea.conductor }}</strong>
-        {{ 'desde el' | t }} {{ ea.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ ea.km | number: '1.0-0' }} {{ 'km).' | t }}
+        {{ 'desde el' | t }} {{ ea.desde | fecha: 'dd/MM/yyyy HH:mm' }} ({{ ea.km | number: '1.0-0' }} {{ 'km).' | t }}
         @if (esFlotaElevado) {
           {{ 'Puedes recibirlo igual: al guardar se cerrará la entrega anterior.' | t }}
         } @else {
@@ -138,7 +138,7 @@
     <div class="re-handover" role="alertdialog">
       <p>
         <app-icon name="refresh" [size]="16" /> <strong>{{ h.conductor }}</strong> {{ 'tiene este vehículo desde el' | t }}
-        {{ h.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} {{ 'km).' | t }}
+        {{ h.desde | fecha: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} {{ 'km).' | t }}
       </p>
       <!-- Z14 — el handover deja de ser un muro: quien recibe puede tomarlo, cerrando
            la entrega anterior y dejando la cadena registrada (quién lo tenía → quién recibe). -->

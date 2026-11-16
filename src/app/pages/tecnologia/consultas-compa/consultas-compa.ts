@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 /**
  * BE2 — "Consultas no atendidas de Compa": el backlog automático de lo que la
  * gente le pide a Compa y no puede responder (sin herramienta / error / sin
@@ -34,7 +35,7 @@ interface Conteos {
 
 @Component({
   selector: 'app-tec-consultas-compa',
-  imports: [DatePipe, TranslatePipe],
+  imports: [FechaPipe, TranslatePipe],
   templateUrl: './consultas-compa.html',
   styleUrl: './consultas-compa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

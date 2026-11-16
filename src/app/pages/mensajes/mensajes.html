@@ -38,7 +38,7 @@
                 <span class="conv-item__top">
                   <span class="conv-item__title">{{ c.tituloMostrado }}</span>
                   @if (c.ultimoMensaje) {
-                    <span class="conv-item__time">{{ c.ultimoMensaje.created_at | date:'dd/MM HH:mm' }}</span>
+                    <span class="conv-item__time">{{ c.ultimoMensaje.created_at | fecha:'dd/MM HH:mm' }}</span>
                   }
                 </span>
                 <span class="conv-item__preview">
@@ -122,7 +122,7 @@
                   }
                 </div>
                 <span class="msg__meta msg__meta--sticker">
-                  <span class="msg__time">{{ m.created_at | date:'HH:mm' }}</span>
+                  <span class="msg__time">{{ m.created_at | fecha:'HH:mm' }}</span>
                   <ng-container [ngTemplateOutlet]="ticks" [ngTemplateOutletContext]="{ $implicit: m }" />
                 </span>
               </div>
@@ -135,7 +135,7 @@
                 <div class="msg__bubble msg__bubble--audio">
                   <app-voice-player [src]="audioUrlOf(m)" [duracion]="m.duracion_seg ?? null" [mine]="esMio(m)" />
                   <span class="msg__meta">
-                    <span class="msg__time">{{ m.created_at | date:'HH:mm' }}</span>
+                    <span class="msg__time">{{ m.created_at | fecha:'HH:mm' }}</span>
                     <ng-container [ngTemplateOutlet]="ticks" [ngTemplateOutletContext]="{ $implicit: m }" />
                   </span>
                 </div>
@@ -191,7 +191,7 @@
                   }
                 }
                 <span class="msg__meta">
-                  <span class="msg__time">{{ m.created_at | date:'HH:mm' }}</span>
+                  <span class="msg__time">{{ m.created_at | fecha:'HH:mm' }}</span>
                   <ng-container [ngTemplateOutlet]="ticks" [ngTemplateOutletContext]="{ $implicit: m }" />
                 </span>
               </div>

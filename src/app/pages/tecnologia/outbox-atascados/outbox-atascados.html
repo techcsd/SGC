@@ -73,7 +73,7 @@
                 </svg>{{ f.fotos_count }}
               </span>
             }
-            <span class="oba-fecha">{{ f.primera_vez | date: 'dd/MM/yy HH:mm' }}</span>
+            <span class="oba-fecha">{{ f.primera_vez | fecha: 'dd/MM/yy HH:mm' }}</span>
           </div>
           <div class="oba-meta">
             @if (f.usuario_nombre) { <span>{{ f.usuario_nombre }}</span> }
@@ -134,7 +134,7 @@
             @if (c.anulado) { <span class="oba-chip-anulado">{{ 'Anulado' | t }}</span> }
           </div>
           <dl class="oba-kv">
-            @if (c.fecha) { <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ c.fecha | date: 'dd/MM/yyyy' }}</dd></div> }
+            @if (c.fecha) { <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ c.fecha | fecha: 'dd/MM/yyyy' }}</dd></div> }
             <div><dt>{{ 'Origen → Destino' | t }}</dt><dd>{{ c.origen || '—' }} → {{ c.destino || '—' }}</dd></div>
             @if (c.chofer) { <div><dt>{{ 'Chofer' | t }}</dt><dd>{{ c.chofer }}</dd></div> }
             @if (c.vehiculo) { <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ c.vehiculo }}</dd></div> }

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 /**
  * BE1 — Resumen semanal de operaciones (Tecnología): preview de la semana cerrada,
  * "Reenviar ahora" para probar sin esperar al lunes (patrón del incentivo), e
@@ -22,7 +23,7 @@ interface Envio {
 
 @Component({
   selector: 'app-tec-resumen-operaciones',
-  imports: [DatePipe, TranslatePipe],
+  imports: [FechaPipe, TranslatePipe],
   templateUrl: './resumen-operaciones.html',
   styleUrl: './resumen-operaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -269,7 +269,7 @@
         } @else if (detalle()?.documento; as doc) {
           <div class="con-documento">
             <span class="con-documento__nombre">{{ doc.nombre }}</span>
-            <span class="text-muted">{{ doc.created_at | date:'dd/MM/yyyy' }}</span>
+            <span class="text-muted">{{ doc.created_at | fecha:'dd/MM/yyyy' }}</span>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/documentos/ver', doc.id]">{{ 'Ver PDF' | t }}</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/documentos/generar">{{ 'Regenerar con cambios' | t }}</a>
           </div>

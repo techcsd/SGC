@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { ImportadorService, ENTIDADES, EntidadImportable, ResultadoImport, CambiosFila } from '../../services/importador.service';
@@ -8,6 +8,7 @@ import { exportarExcel } from '../../utils/exportar-excel.util';
 import { humanizeError } from '../../utils/friendly-error.util';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 import { FormDrawer } from '../form-drawer/form-drawer';
+import { FechaPipe } from '../../i18n/fecha.pipe';
 
 /** Resumen de fotos subidas tras un import (.zip opcional). `sinUsar` son archivos
  *  del .zip que no coincidieron con ninguna fila — señal real de un nombre mal
@@ -42,7 +43,7 @@ const MARCA_SGC_VERSION = 1;
  */
 @Component({
   selector: 'app-importar-odoo',
-  imports: [DatePipe, TranslatePipe, RouterLink, FormDrawer],
+  imports: [FechaPipe, TranslatePipe, RouterLink, FormDrawer],
   templateUrl: './importar-odoo.html',
   styleUrl: './importar-odoo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

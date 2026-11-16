@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
@@ -9,6 +9,7 @@ import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /**
  * BW1 — Lista propia de órdenes de trabajo: buscador (nº/obra/responsable),
@@ -17,7 +18,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
  */
 @Component({
   selector: 'app-orden-trabajo-lista',
-  imports: [DatePipe, FormsModule, RouterLink, FilterSelect, Skeleton, TranslatePipe, StaggerDirective],
+  imports: [FechaPipe, FormsModule, RouterLink, FilterSelect, Skeleton, TranslatePipe, StaggerDirective],
   templateUrl: './orden-trabajo-lista.html',
   styleUrl: './orden-trabajo-lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
