@@ -7634,7 +7634,6 @@
   "Vigencia:": "Effective:",
   "BORRADOR — pendiente de revisión legal": "DRAFT — pending legal review",
   "Este documento no existe. Visita": "This document does not exist. Visit",
-  "© Constructora SD ·": "© Constructora SD ·",
   "sgcconstructorasd.com": "sgcconstructorasd.com",
   "Documento no encontrado": "Document not found",
   "privacidad": "privacy",
@@ -7774,5 +7773,6 @@
   "Se crea con la misma validación de siempre. Si algo no cumple, te lo dice aquí.": "It is created with the same validation as always. If something does not comply, it will be shown here.",
   "Confirmar y crear": "Confirm and create",
   "Editar antes de crear": "Edit before creating",
-  "Ir al módulo": "Go to module"
+  "Ir al módulo": "Go to module",
+  "Constructora SD ·": "Constructora SD ·"
 }
