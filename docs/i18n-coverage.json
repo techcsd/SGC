@@ -2780,20 +2780,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/estadisticas",
-      "total": 37,
-      "cubiertos": 34,
-      "sin": 3,
-      "pct": 92,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Todas las plataformas",
-        "Todos los roles",
-        "Generado ."
-      ]
-    },
-    {
       "pantalla": "oauth-consent",
       "total": 19,
       "cubiertos": 18,
@@ -4061,6 +4047,16 @@
       "pantalla": "tareas/mis-tareas",
       "total": 6,
       "cubiertos": 6,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/estadisticas",
+      "total": 37,
+      "cubiertos": 37,
       "sin": 0,
       "pct": 100,
       "enScope": true,

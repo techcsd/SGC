@@ -87,13 +87,13 @@
       </div>
       <div class="filters-bar__select">
         <select class="sgc-input" [ngModel]="filtroPlataforma()" (ngModelChange)="filtroPlataforma.set($event)" aria-label="{{ 'Filtrar por plataforma' | t }}">
-          <option value="">Todas las plataformas</option>
+          <option value="">{{ 'Todas las plataformas' | t }}</option>
           @for (p of plataformas(); track p) { <option [value]="p">{{ plataformaLabel(p) }}</option> }
         </select>
       </div>
       <div class="filters-bar__select">
         <select class="sgc-input" [ngModel]="filtroRol()" (ngModelChange)="filtroRol.set($event)" aria-label="{{ 'Filtrar por rol' | t }}">
-          <option value="">Todos los roles</option>
+          <option value="">{{ 'Todos los roles' | t }}</option>
           @for (r of roles(); track r) { <option [value]="r">{{ r }}</option> }
         </select>
       </div>
@@ -188,7 +188,7 @@
     </div>
   </section>
 
-  <p class="est-footer text-muted">Generado {{ formatFechaHora(d.generado_at) }}.</p>
+  <p class="est-footer text-muted">{{ 'Generado' | t }} {{ formatFechaHora(d.generado_at) }}.</p>
 } @else {
   <div class="sgc-card est-empty"><p>{{ 'No hay estadísticas disponibles.' | t }}</p></div>
 }

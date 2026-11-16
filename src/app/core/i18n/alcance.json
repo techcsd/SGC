@@ -187,9 +187,6 @@
     "borrador-claude": {
       "enforce": false
     },
-    "tecnologia/estadisticas": {
-      "enforce": false
-    },
     "oauth-consent": {
       "enforce": false
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "tareas/mis-tareas": {
+      "enforce": true
+    },
+    "tecnologia/estadisticas": {
       "enforce": true
     },
     "tecnologia/whatsapp": {

@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 79%** (8083/10183 literales de 192 pantallas en alcance). **`ht`: 92%**.
+**Alcance `en`: 79%** (8086/10183 literales de 192 pantallas en alcance). **`ht`: 92%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -69,7 +69,6 @@
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
-| tecnologia/estadisticas | scope | 37 | 34 | 3 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
@@ -197,6 +196,7 @@
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
+| tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
