@@ -22,7 +22,7 @@
           <textarea rows="2" [value]="fDescripcion()" (input)="fDescripcion.set($any($event.target).value)"></textarea>
         </label>
         <div class="ob-add__acciones">
-          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoVacante()">{{ guardandoVacante() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoVacante()">{{ (guardandoVacante() ? 'Guardando…' : 'Guardar') | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarFormVacante.set(false)">{{ 'Cancelar' | t }}</button>
         </div>
       </form>
@@ -57,7 +57,7 @@
     }
 
     @if (seleccionada(); as v) {
-      <h2 class="ob-h">Candidatos — {{ v.titulo }}</h2>
+      <h2 class="ob-h">{{ 'Candidatos —' | t }} {{ v.titulo }}</h2>
       <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirFormCandidato()">{{ 'Agregar candidato' | t }}</button>
 
       @if (mostrarFormCandidato()) {
@@ -75,7 +75,7 @@
             <textarea rows="2" [value]="fcNotas()" (input)="fcNotas.set($any($event.target).value)"></textarea>
           </label>
           <div class="ob-add__acciones">
-            <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoCandidato()">{{ guardandoCandidato() ? 'Guardando…' : 'Guardar' }}</button>
+            <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoCandidato()">{{ (guardandoCandidato() ? 'Guardando…' : 'Guardar') | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarFormCandidato.set(false)">{{ 'Cancelar' | t }}</button>
           </div>
         </form>
@@ -96,7 +96,7 @@
                   <td class="text-muted">{{ c.telefono || c.email || '—' }}</td>
                   <td>
                     <span class="sgc-badge" [class.sgc-badge--success]="c.etapa === 'contratado'" [class.sgc-badge--danger]="c.etapa === 'rechazado'" [class.sgc-badge--info]="c.etapa !== 'contratado' && c.etapa !== 'rechazado'">
-                      {{ etapaLabel[c.etapa] }}
+                      {{ etapaLabel[c.etapa] | t }}
                     </span>
                   </td>
                   <td>
@@ -119,6 +119,6 @@
 </section>
 
 <app-confirm-dialog [open]="!!candidatoAEliminar()" title="{{ '¿Archivar este candidato?' | t }}"
-  [message]="candidatoAEliminar() ? ('«' + candidatoAEliminar()!.nombre + '» se saca de este pipeline, pero su información se conserva — puedes restaurarlo desde RRHH › Candidatos.') : ''"
-  confirmLabel="Archivar" cancelLabel="Cancelar" tone="danger"
+  [message]="candidatoAEliminar() ? ('«' + candidatoAEliminar()!.nombre + '» ' + i18n.t('se saca de este pipeline, pero su información se conserva — puedes restaurarlo desde RRHH › Candidatos.')) : ''"
+  [confirmLabel]="'Archivar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminarCandidato()" (cancelled)="candidatoAEliminar.set(null)" />

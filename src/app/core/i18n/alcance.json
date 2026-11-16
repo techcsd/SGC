@@ -214,9 +214,6 @@
     "auth": {
       "enforce": false
     },
-    "rrhh/onboarding": {
-      "enforce": false
-    },
     "rrhh/tramites": {
       "enforce": false
     },
@@ -560,6 +557,9 @@
       "enforce": true
     },
     "rrhh/nomina": {
+      "enforce": true
+    },
+    "rrhh/onboarding": {
       "enforce": true
     },
     "rrhh/organigrama": {

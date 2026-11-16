@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 66%** (6875/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 66%** (6888/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -78,7 +78,6 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| rrhh/onboarding | scope | 40 | 27 | 13 | 68% |
 | rrhh/tramites | scope | 44 | 31 | 13 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
@@ -194,6 +193,7 @@
 | rrhh/contratos | enforce | 32 | 32 | 0 | 100% |
 | rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
 | rrhh/nomina | enforce | 34 | 34 | 0 | 100% |
+| rrhh/onboarding | enforce | 40 | 40 | 0 | 100% |
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
 | rrhh/proveedores | enforce | 33 | 33 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**389 literal(es) sin t()** en 55 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**377 literal(es) sin t()** en 54 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -217,7 +217,6 @@
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
-| src/app/pages/rrhh/onboarding/onboarding.ts | 12 | No se pudieron cargar las vacantes · Falta el título · Vacante creada … |
 | src/app/pages/notas/notas.ts | 11 | Nota vacía · Conflicto de edición · Nota guardada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
 | src/app/pages/rrhh/empleados/empleados.ts | 9 | Item asignado · Error · Actualizado … |

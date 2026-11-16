@@ -4205,30 +4205,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/onboarding",
-      "total": 40,
-      "cubiertos": 27,
-      "sin": 13,
-      "pct": 68,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Candidatos —",
-        "No se pudieron cargar las vacantes",
-        "Falta el título",
-        "Vacante creada",
-        "No se pudo guardar",
-        "No se pudo actualizar",
-        "No se pudieron cargar los candidatos",
-        "Falta el nombre",
-        "Candidato agregado",
-        "No se pudo guardar",
-        "No se pudo actualizar",
-        "Candidato archivado",
-        "No se pudo archivar"
-      ]
-    },
-    {
       "pantalla": "rrhh/tramites",
       "total": 44,
       "cubiertos": 31,
@@ -5542,6 +5518,16 @@
       "pantalla": "rrhh/nomina",
       "total": 34,
       "cubiertos": 34,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/onboarding",
+      "total": 40,
+      "cubiertos": 40,
       "sin": 0,
       "pct": 100,
       "enScope": true,
