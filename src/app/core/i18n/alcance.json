@@ -109,10 +109,10 @@
     "oauth-consent": {
       "enforce": false
     },
-    "admin/auditoria": {
-      "enforce": false
-    },
     "admin/almacenes-duplicados": {
+      "enforce": true
+    },
+    "admin/auditoria": {
       "enforce": true
     },
     "admin/bitacora-catalogos": {

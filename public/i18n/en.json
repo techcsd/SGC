@@ -6945,5 +6945,12 @@
   "Funciones programadas": "Scheduled functions",
   "Cola de envíos": "Delivery queue",
   "Voz a texto": "Speech to text",
-  "Lectores de IA": "AI readers"
+  "Lectores de IA": "AI readers",
+  "Modificó": "Modified",
+  "Eliminó": "Deleted",
+  "Qué pasó hoy": "What happened today",
+  "Cambios sensibles": "Sensitive changes",
+  "Actividad por persona": "Activity by person",
+  "Sin actividad de personas en este período.": "No activity by people in this period.",
+  "Cosas raras": "Unusual things"
 }

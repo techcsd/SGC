@@ -49,7 +49,7 @@
       }
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarActividad()" [disabled]="exportando()"
               [title]="'Exportar a Excel todo lo que coincide con el filtro actual' | t">
-        @if (exportando()) { {{ 'Exportando…' | t }} } @else { <app-icon name="download" [size]="16" /> Excel }
+        @if (exportando()) { {{ 'Exportando…' | t }} } @else { <app-icon name="download" [size]="16" /> {{ 'Excel' | t }} }
       </button>
     </div>
 
@@ -87,7 +87,7 @@
                 </span>
                 <span class="aud__chips-der">
                   <span class="aud__origen" [class.aud__origen--na]="!f.origen">{{ f.origen ?? ('No disponible' | t) }}</span>
-                  <span class="aud__badge" [attr.data-accion]="f.accion">{{ accionLabel(f.accion) | uppercase }}</span>
+                  <span class="aud__badge" [attr.data-accion]="f.accion">{{ accionLabel(f.accion) | t | uppercase }}</span>
                 </span>
               </div>
             }
@@ -112,7 +112,7 @@
           </div>
           <div class="aud__detalle-campo"><b>{{ 'Desde' | t }}:</b> {{ sel.origen ?? ('No disponible (antes del 16 oct 2026)' | t) }}</div>
           <div class="aud__detalle-campo">
-            <b>{{ 'Registro' | t }}:</b> {{ tablaLabel(sel.tabla) }}{{ sel.codigo ? ' · ' + sel.codigo : '' }}
+            <b>{{ 'Registro' | t }}:</b> {{ tablaLabel(sel.tabla) | t }}{{ sel.codigo ? ' · ' + sel.codigo : '' }}
             @if (rutaRegistro(sel); as ruta) { · <a [routerLink]="ruta">{{ 'abrir' | t }}</a> }
           </div>
 
@@ -132,11 +132,11 @@
               <p class="aud__muted">{{ 'Sin cambios de campo (alta o baja de registro).' | t }}</p>
             }
             <button type="button" class="aud__link-btn" (click)="verHistoriaCompleta(sel)">
-              {{ 'Ver toda la historia de' | t }} {{ sel.codigo ?? tablaLabel(sel.tabla) }} →
+              {{ 'Ver toda la historia de' | t }} {{ sel.codigo ?? (tablaLabel(sel.tabla) | t) }} →
             </button>
           } @else {
             <div class="aud__historia">
-              <p class="aud__historia-title">{{ 'Historia completa de' | t }} {{ sel.codigo ?? tablaLabel(sel.tabla) }}</p>
+              <p class="aud__historia-title">{{ 'Historia completa de' | t }} {{ sel.codigo ?? (tablaLabel(sel.tabla) | t) }}</p>
               @if (historiaLoading()) {
                 <div class="aud__skeleton">
                   @for (i of [1,2,3]; track i) { <div class="aud__skel-row"></div> }
@@ -190,7 +190,7 @@
           <h3 class="aud__drill-title">{{ 'Cambios sensibles' | t }}</h3>
           <ul class="aud__drill-list">
             @for (c of cambiosSensibles().slice(0, 10); track c.id) {
-              <li>{{ adminAccionLabel(c.action) }} — {{ c.actor_nombre ?? 'Sistema' }}@if (c.target_nombre) { → {{ c.target_nombre }} } · {{ formatTs(c.created_at) }}</li>
+              <li>{{ adminAccionLabel(c.action) | t }} — {{ c.actor_nombre ?? ('Sistema' | t) }}@if (c.target_nombre) { → {{ c.target_nombre }} } · {{ formatTs(c.created_at) }}</li>
             }
           </ul>
         </div>
@@ -276,7 +276,7 @@
           <ul class="aud__drill-list">
             @for (a of accionesDrill(); track a.tabla + a.accion) {
               <li>
-                <span>{{ accionLabel(a.accion) }} · {{ tablaLabel(a.tabla) }}</span>
+                <span>{{ accionLabel(a.accion) | t }} · {{ tablaLabel(a.tabla) | t }}</span>
                 <span class="aud__drill-n">{{ a.n | number }}</span>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verAccionComun(a.tabla, a.accion)">{{ 'Ver' | t }} →</button>
               </li>
@@ -294,7 +294,7 @@
           <ul class="aud__drill-list">
             @for (m of modulosDrill(); track m.tabla) {
               <li>
-                <span>{{ tablaLabel(m.tabla) }}</span>
+                <span>{{ tablaLabel(m.tabla) | t }}</span>
                 <span class="aud__drill-n">{{ m.n | number }}</span>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verModulo(m.tabla)">{{ 'Ver' | t }} →</button>
               </li>
@@ -340,7 +340,7 @@
               <tr>
                 <td>{{ formatTs(r.created_at) }}</td>
                 <td>{{ r.actor_nombre ?? ('Sistema' | t) }}</td>
-                <td>{{ adminAccionLabel(r.action) }}</td>
+                <td>{{ adminAccionLabel(r.action) | t }}</td>
                 <td class="aud__muted">{{ adminDetalle(r) || '—' }}</td>
               </tr>
             } @empty {

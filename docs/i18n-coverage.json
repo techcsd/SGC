@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 89,
-  "pctHt": 94,
+  "pctHt": 95,
   "filas": [
     {
       "pantalla": "auth/set-password",
@@ -1521,21 +1521,19 @@
       ]
     },
     {
-      "pantalla": "admin/auditoria",
-      "total": 63,
-      "cubiertos": 62,
-      "sin": 1,
-      "pct": 98,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Excel }"
-      ]
-    },
-    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/auditoria",
+      "total": 62,
+      "cubiertos": 62,
       "sin": 0,
       "pct": 100,
       "enScope": true,

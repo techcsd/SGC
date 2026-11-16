@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8976/10099 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8976/10098 literales de 192 pantallas en alcance). **`ht`: 95%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -43,8 +43,8 @@
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
-| admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
+| admin/auditoria | enforce | 62 | 62 | 0 | 100% |
 | admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
