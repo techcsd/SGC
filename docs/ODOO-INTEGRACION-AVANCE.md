@@ -57,6 +57,16 @@ Regla de seguridad (repo público): sin hosts, usuarios, claves, ids de proyecto
   - **Diferencia con el plan:** se publica por **outbox asíncrono** (con reintento y estados incierto/error), no con write-through síncrono Odoo-primero en el RPC de despacho. El bloqueo por falta de stock ocurre al publicar, no antes de guardar el conduce.
 - Suite Deno: 348 tests verdes.
 
-## Pendiente (número exacto en el reporte final)
+## Tercera actualización — estado por ítem (47 ítems DS-01…DS-47)
 
-Todo F4, F5, F6, F7, F8; de F2: DS-06 (consumo en compras + pantalla), DS-07; de F3: acciones `traslados.*` del gateway, pantalla de estado + Reintentar (DS-12), prueba SQL de DS-09, write-through, solicitud de ajuste por faltante (ADR 5), notas de versión (Y1), `docs/DATOS-Y-TERCEROS.md` (CI13).
+**Hechos (15):** DS-01, 02, 03, 04 (doc), 05, 06, 08, 09, 10, 11, 12, 14 (sintético), 15, 23, 31 (doc de estado; publicar el cierre en GitHub es de Xaviel).
+**Parciales (2):** DS-07 (33 propuestas generadas en dev; falta la aprobación humana y cubrir categorías/unidades), DS-13 (módulo conciliador + 8 tests + runbook; faltan edge/cron diario, sondeo de 5 min, alerta cron de tránsito >72 h y pantalla).
+**Sin empezar (30):** DS-16…22 (circuito 2), DS-24, 25, 26, DS-27…30 (fases 3–6), DS-32…47 (issues no-Odoo).
+
+- **DS-06 completo en dev:** la OC imputa cada línea a `analytic_distribution={cuenta:100}` (contrato verde en staging); con >1 cuenta manda `ordenes_compra.odoo_analytic_elegida` (falta el selector en la pantalla «crear OC»); en prod solo cuentas confirmadas; pantalla **Tecnología › Homologación con Odoo** (cuentas, almacenes y propuestas de catálogo).
+- **DS-07:** `scripts/odoo-homologar-catalogo.mjs` (0 por código, 0 por nombre exacto, 33 por similitud ≥ 0,6, 150 sin contraparte de 183 artículos); aprobación por pantalla vía `odoo_propuesta_decidir`. Hay propuestas incorrectas a propósito visibles (p. ej. 1½"×4' ↔ 1½"×8'): por eso nada vincula sin aprobar.
+- **DS-12:** detalle del conduce muestra el estado de sync y «Reintentar» (Tecnología/admin); `/tecnologia/odoo-sync` ya existía.
+- **DS-14:** `scripts/odoo-soak-staging.ts` (12 conduces, parciales, anulaciones, timeouts, sin stock, reprocesos): 0 deriva, 0 inciertos, todo revertido. Encontró un bug real (borrador huérfano al fallar por stock) ya corregido.
+- **DS-15:** OC real en staging: crear/idempotencia/cancelar OK; `button_cancel` devuelve None (fault «cannot marshal None») y se trata releyendo el estado; `ODOO_ESCRITURA_HABILITADA=true` solo en **dev** (apunta a staging).
+- **Deploy en dev:** `odoo-api`, `odoo-sync`. Migraciones en dev: ds5, ds6, ds6b, ds7, ds9, ds10, ds11 (ledger dev). **Ninguna en prod.**
+- Pendiente de F3 no cubierto: acciones `traslados.*` del gateway, write-through síncrono, solicitud de ajuste por faltante (ADR 5), prueba SQL transaccional de DS-09, notas de versión (Y1), `docs/DATOS-Y-TERCEROS.md` (CI13: nombre/correo en el chatter y ahora cuentas/productos de Odoo).
