@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 80%** (8102/10182 literales de 192 pantallas en alcance). **`ht`: 93%**.
+**Alcance `en`: 80%** (8106/10181 literales de 192 pantallas en alcance). **`ht`: 93%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -47,7 +47,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | tecnologia/compras | scope | 81 | 37 | 44 | 46% |
-| tecnologia/guia | scope | 10 | 5 | 5 | 50% |
 | tecnologia/matriz | scope | 23 | 12 | 11 | 52% |
 | tecnologia/homologacion | scope | 28 | 15 | 13 | 54% |
 | tecnologia/dev-notes | scope | 72 | 41 | 31 | 57% |
@@ -196,6 +195,7 @@
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
+| tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |

@@ -2,11 +2,11 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Herramientas oficiales de la empresa' | t }}</h1>
-    <span class="page-count">{{ herramientas().length }} herramienta{{ herramientas().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ i18n.t('{n} herramienta{plural}', { n: herramientas().length, plural: herramientas().length !== 1 ? 's' : '' }) }}</span>
   </div>
   @if (puedeGestionar()) {
     <a class="sgc-btn sgc-btn--secondary" routerLink="/tecnologia/homologacion">
-      Gestionar herramientas
+      {{ 'Gestionar herramientas' | t }}
     </a>
   }
 </div>
@@ -14,10 +14,7 @@
 <!-- ── Intro ── -->
 <div class="guia-intro sgc-card">
   <p>
-    Estas son las herramientas <strong>{{ 'oficiales homologadas' | t }}</strong> por Constructora SD.
-    Úsalas para tu trabajo diario según tu puesto: garantizan que la información quede
-    resguardada, sea compartible con el equipo y cumpla con los estándares de la empresa.
-    Si necesitas una herramienta que no aparezca aquí, coordínala con Tecnología antes de usarla.
+    {{ 'Estas son las herramientas' | t }} <strong>{{ 'oficiales homologadas' | t }}</strong> {{ 'por Constructora SD. Úsalas para tu trabajo diario según tu puesto: garantizan que la información quede resguardada, sea compartible con el equipo y cumpla con los estándares de la empresa. Si necesitas una herramienta que no aparezca aquí, coordínala con Tecnología antes de usarla.' | t }}
   </p>
 </div>
 
@@ -41,7 +38,7 @@
 } @else {
   @for (grupo of grupos(); track grupo.value) {
     <section class="guia-group">
-      <h2 class="guia-group__title">{{ grupo.label }}</h2>
+      <h2 class="guia-group__title">{{ grupo.label | t }}</h2>
       <div class="guia-cards">
         @for (h of grupo.herramientas; track h.id) {
           <article class="guia-card sgc-card">
@@ -60,7 +57,7 @@
             }
             @if (h.url) {
               <a class="guia-card__link" [href]="h.url" target="_blank" rel="noopener">
-                Abrir herramienta
+                {{ 'Abrir herramienta' | t }}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                   <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>

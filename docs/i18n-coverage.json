@@ -2225,22 +2225,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/guia",
-      "total": 10,
-      "cubiertos": 5,
-      "sin": 5,
-      "pct": 50,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "herramienta",
-        "Gestionar herramientas",
-        "Estas son las herramientas",
-        "por Constructora SD. Úsalas para tu trabajo diario según tu puesto: garantizan que la información quede resguardada, sea compartible con el equipo y cumpla con los estándares de la empresa. Si necesitas una herramienta que no aparezca aquí, coordínala con Tecnología antes de usarla.",
-        "Abrir herramienta"
-      ]
-    },
-    {
       "pantalla": "tecnologia/matriz",
       "total": 23,
       "cubiertos": 12,
@@ -4027,6 +4011,16 @@
       "pantalla": "tecnologia/estadisticas",
       "total": 37,
       "cubiertos": 37,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/guia",
+      "total": 9,
+      "cubiertos": 9,
       "sin": 0,
       "pct": 100,
       "enScope": true,

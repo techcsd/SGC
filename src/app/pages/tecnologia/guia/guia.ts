@@ -6,6 +6,7 @@ import { TecHerramienta, TEC_CATEGORIAS } from '../../../../shared/models/tecnol
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface CategoriaGroup {
   value: string;
   label: string;
@@ -22,6 +23,7 @@ interface CategoriaGroup {
 export class TecGuia implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private userService = inject(UserService);
+  protected i18n = inject(I18nService);
 
   herramientas = signal<TecHerramienta[]>([]);
   loading = signal(true);
@@ -46,7 +48,7 @@ export class TecGuia implements OnInit {
       const herramientas = await this.tecnologia.getHerramientas(true);
       this.herramientas.set(herramientas);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las herramientas.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar las herramientas.'));
     } finally {
       this.loading.set(false);
     }

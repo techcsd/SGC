@@ -121,9 +121,6 @@
     "tecnologia/compras": {
       "enforce": false
     },
-    "tecnologia/guia": {
-      "enforce": false
-    },
     "tecnologia/matriz": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "tecnologia/estadisticas": {
+      "enforce": true
+    },
+    "tecnologia/guia": {
       "enforce": true
     },
     "tecnologia/odoo-sync": {
