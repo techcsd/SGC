@@ -4333,27 +4333,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/nomina",
-      "total": 34,
-      "cubiertos": 24,
-      "sin": 10,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Cálculo asistido y exportación —",
-        ". Las fórmulas (TSS/AFP/ISR) son parámetros editables; valídalos con el contador antes de usarlos en un período real.",
-        "El cálculo asistido (aplicar los parámetros a cada empleado y generar los recibos) todavía no está construido — espera que el contador valide las fórmulas de arriba.",
-        "No se pudo cargar Nómina",
-        "Valor inválido",
-        "Parámetro actualizado",
-        "No se pudo guardar",
-        "Faltan datos",
-        "Período creado (borrador)",
-        "No se pudo crear"
-      ]
-    },
-    {
       "pantalla": "tecnologia/oficina-agentes",
       "total": 31,
       "cubiertos": 22,
@@ -5592,6 +5571,16 @@
       "pantalla": "rrhh/evaluaciones",
       "total": 21,
       "cubiertos": 21,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/nomina",
+      "total": 34,
+      "cubiertos": 34,
       "sin": 0,
       "pct": 100,
       "enScope": true,

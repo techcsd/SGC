@@ -5,6 +5,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** DN-27 P2 — Nómina y pagos. SENSIBLE. Esta pantalla SOLO administra
  *  parámetros (TSS/AFP/ISR) y períodos en borrador — NO calcula ni mueve
  *  dinero. El cálculo real espera la validación del contador (ver
@@ -19,6 +20,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class RrhhNomina implements OnInit {
   private svc = inject(RrhhNominaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   parametros = signal<RrhhNominaParametro[]>([]);
@@ -48,7 +50,7 @@ export class RrhhNomina implements OnInit {
       this.parametros.set(parametros);
       this.periodos.set(periodos);
     } catch (e) {
-      this.toast.error('No se pudo cargar Nómina', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar Nómina'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -68,15 +70,15 @@ export class RrhhNomina implements OnInit {
     const clave = this.editandoClave();
     if (!clave) return;
     const valor = Number(this.editValor());
-    if (Number.isNaN(valor)) { this.toast.warning('Valor inválido', 'Escribe un número.'); return; }
+    if (Number.isNaN(valor)) { this.toast.warning(this.i18n.t('Valor inválido'), 'Escribe un número.'); return; }
     this.guardandoParametro.set(true);
     try {
       await this.svc.actualizarParametro(clave, valor, this.editValidado());
-      this.toast.success('Parámetro actualizado');
+      this.toast.success(this.i18n.t('Parámetro actualizado'));
       this.editandoClave.set(null);
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoParametro.set(false);
     }
@@ -90,17 +92,17 @@ export class RrhhNomina implements OnInit {
   async guardarPeriodo() {
     const nombre = this.fNombre().trim();
     if (!nombre || !this.fDesde() || !this.fHasta()) {
-      this.toast.warning('Faltan datos', 'Escribe nombre y las dos fechas del período.');
+      this.toast.warning(this.i18n.t('Faltan datos'), 'Escribe nombre y las dos fechas del período.');
       return;
     }
     this.guardandoPeriodo.set(true);
     try {
       await this.svc.crearPeriodo(nombre, this.fDesde(), this.fHasta());
-      this.toast.success('Período creado (borrador)');
+      this.toast.success(this.i18n.t('Período creado (borrador)'));
       this.mostrarFormPeriodo.set(false);
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo crear', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoPeriodo.set(false);
     }

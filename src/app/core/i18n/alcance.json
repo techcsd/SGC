@@ -229,9 +229,6 @@
     "practica": {
       "enforce": false
     },
-    "rrhh/nomina": {
-      "enforce": false
-    },
     "tecnologia/oficina-agentes": {
       "enforce": false
     },
@@ -560,6 +557,9 @@
       "enforce": true
     },
     "rrhh/evaluaciones": {
+      "enforce": true
+    },
+    "rrhh/nomina": {
       "enforce": true
     },
     "rrhh/organigrama": {

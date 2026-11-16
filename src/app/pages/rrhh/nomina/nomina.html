@@ -3,8 +3,8 @@
     <div>
       <h1 class="page__title">{{ 'Nómina y pagos' | t }}</h1>
       <p class="page__sub">
-        Cálculo asistido y exportación — <strong>{{ 'esta pantalla nunca mueve dinero' | t }}</strong>.
-        Las fórmulas (TSS/AFP/ISR) son parámetros editables; valídalos con el contador antes de usarlos en un período real.
+        {{ 'Cálculo asistido y exportación —' | t }} <strong>{{ 'esta pantalla nunca mueve dinero' | t }}</strong>.
+        {{ 'Las fórmulas (TSS/AFP/ISR) son parámetros editables; valídalos con el contador antes de usarlos en un período real.' | t }}
       </p>
     </div>
   </header>
@@ -41,7 +41,7 @@
                       <input type="checkbox" [checked]="editValidado()" (change)="editValidado.set($any($event.target).checked)" />
                       <span>{{ 'El contador validó este valor' | t }}</span>
                     </label>
-                    <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoParametro()">{{ guardandoParametro() ? 'Guardando…' : 'Guardar' }}</button>
+                    <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoParametro()">{{ (guardandoParametro() ? 'Guardando…' : 'Guardar') | t }}</button>
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarEdicionParametro()">{{ 'Cancelar' | t }}</button>
                   </form>
                 </td>
@@ -67,7 +67,7 @@
           <input type="date" [value]="fHasta()" (input)="fHasta.set($any($event.target).value)" />
         </label>
         <div class="nm-add__acciones">
-          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoPeriodo()">{{ guardandoPeriodo() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoPeriodo()">{{ (guardandoPeriodo() ? 'Guardando…' : 'Guardar') | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarFormPeriodo.set(false)">{{ 'Cancelar' | t }}</button>
         </div>
       </form>
@@ -92,8 +92,7 @@
     }
 
     <p class="nm-aviso text-muted">
-      El cálculo asistido (aplicar los parámetros a cada empleado y generar los recibos) todavía no está construido —
-      espera que el contador valide las fórmulas de arriba.
+      {{ 'El cálculo asistido (aplicar los parámetros a cada empleado y generar los recibos) todavía no está construido — espera que el contador valide las fórmulas de arriba.' | t }}
     </p>
   }
 </section>
