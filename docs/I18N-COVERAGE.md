@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8966/10097 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8969/10098 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -31,7 +31,6 @@
 | admin/animaciones | scope | 34 | 19 | 15 | 56% |
 | admin/reportes | scope | 37 | 21 | 16 | 57% |
 | admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
-| admin/orden-modulos | scope | 5 | 3 | 2 | 60% |
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
 | admin/otros-valores | scope | 10 | 7 | 3 | 70% |
 | admin/unidades | scope | 10 | 7 | 3 | 70% |
@@ -52,6 +51,7 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
 | admin/importar | scope | 2 | 2 | 0 | 100% |
+| admin/orden-modulos | enforce | 6 | 6 | 0 | 100% |
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**164 literal(es) sin t()** en 21 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**163 literal(es) sin t()** en 20 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -223,7 +223,6 @@
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |
 | src/app/pages/politicas/politicas.ts | 1 | Documento |

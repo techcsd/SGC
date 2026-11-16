@@ -6527,5 +6527,9 @@
   "No hay parámetros configurados.": "Pa gen paramèt konfigire.",
   "Clave": "Kle",
   "Se guarda en flota_config vía RPC": "Anrejistre nan flota_config via RPC",
-  "flota": "flòt"
+  "flota": "flòt",
+  "Guardar orden": "Anrejistre lòd",
+  "Orden guardado": "Lòd anrejistre",
+  "Reordena las secciones del menú lateral. \"Administración\" queda siempre al final.": "Reòdone seksyon meni sou kote a. \"Administrasyon\" toujou rete an dènye pozisyon.",
+  "Restablecer": "Reinisyalize"
 }

@@ -6920,5 +6920,9 @@
   "No hay parámetros configurados.": "There are no parameters configured.",
   "Clave": "Key",
   "Se guarda en flota_config vía RPC": "Saved in flota_config via RPC",
-  "flota": "fleet"
+  "flota": "fleet",
+  "Guardar orden": "Save order",
+  "Orden guardado": "Order saved",
+  "Reordena las secciones del menú lateral. \"Administración\" queda siempre al final.": "Reorder the sidebar sections. \"Administration\" always stays last.",
+  "Restablecer": "Reset"
 }

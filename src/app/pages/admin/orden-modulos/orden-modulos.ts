@@ -5,6 +5,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * AF38 — Orden de los módulos/secciones del menú lateral. El admin reordena con
  * las flechas y guarda; el shell aplica el orden (las secciones sin configurar
@@ -20,6 +21,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class AdminOrdenModulos implements OnInit {
   private svc = inject(ModuloOrdenService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   secciones = signal<string[]>([]);
   loading = signal(true);
@@ -68,7 +70,7 @@ export class AdminOrdenModulos implements OnInit {
     this.error.set('');
     try {
       await this.svc.guardar(this.secciones().map((clave, orden) => ({ clave, etiqueta: clave, orden })));
-      this.toast.success('Orden guardado', 'El menú se reordenará al recargar la página.');
+      this.toast.success(this.i18n.t('Orden guardado'), 'El menú se reordenará al recargar la página.');
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo guardar el orden.');
     } finally {

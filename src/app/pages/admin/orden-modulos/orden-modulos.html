@@ -6,7 +6,7 @@
   <div class="page-header__actions">
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="restablecer()">{{ 'Restablecer' | t }}</button>
     <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
-      @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar orden }
+      @if (saving()) { <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }} } @else { {{ 'Guardar orden' | t }} }
     </button>
   </div>
 </div>
@@ -21,7 +21,7 @@
       @for (s of secciones(); track s; let i = $index) {
         <li class="orden-modulos__item">
           <span class="orden-modulos__pos">{{ i + 1 }}</span>
-          <span class="orden-modulos__label">{{ s }}</span>
+          <span class="orden-modulos__label">{{ s | t }}</span>
           <span class="orden-modulos__actions">
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="i === 0" (click)="subir(i)" aria-label="{{ 'Subir' | t }}"><app-icon name="arrow-up" [size]="16" /></button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="i === secciones().length - 1" (click)="bajar(i)" aria-label="{{ 'Bajar' | t }}"><app-icon name="arrow-down" [size]="16" /></button>

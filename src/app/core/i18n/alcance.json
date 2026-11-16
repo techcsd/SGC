@@ -73,9 +73,6 @@
     "admin/matriz-notificaciones": {
       "enforce": false
     },
-    "admin/orden-modulos": {
-      "enforce": false
-    },
     "admin/app-versiones": {
       "enforce": false
     },
@@ -135,6 +132,9 @@
     },
     "admin/importar": {
       "enforce": false
+    },
+    "admin/orden-modulos": {
+      "enforce": true
     },
     "admin/parametros": {
       "enforce": true
