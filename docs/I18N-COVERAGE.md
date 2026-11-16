@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 79%** (8086/10183 literales de 192 pantallas en alcance). **`ht`: 92%**.
+**Alcance `en`: 79%** (8090/10183 literales de 192 pantallas en alcance). **`ht`: 92%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -62,7 +62,6 @@
 | tecnologia/qa | scope | 73 | 56 | 17 | 77% |
 | tecnologia/reportes-errores | scope | 59 | 46 | 13 | 78% |
 | tecnologia/odoo-sync | scope | 31 | 25 | 6 | 81% |
-| tecnologia/consultas-compa | scope | 23 | 19 | 4 | 83% |
 | tecnologia/resumen-operaciones | scope | 70 | 58 | 12 | 83% |
 | tecnologia/cotizaciones | scope | 79 | 67 | 12 | 85% |
 | tecnologia/monitoreo | scope | 68 | 59 | 9 | 87% |
@@ -196,13 +195,14 @@
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
+| tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**285 literal(es) sin t()** en 42 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**282 literal(es) sin t()** en 41 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -233,7 +233,6 @@
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |
-| src/app/pages/tecnologia/consultas-compa/consultas-compa.ts | 3 | No se pudo actualizar · Resuelto y avisado · No se pudo resolver y avisar |
 | src/app/pages/tecnologia/reportes-errores/reportes-errores.ts | 3 | Issue creado · No se pudo crear el issue · Sin ocurrencia de ejemplo |
 | src/app/pages/tecnologia/resumen-operaciones/resumen-operaciones.ts | 3 | Envío disparado · No se pudo reenviar · ¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora? |
 | src/app/pages/admin/almacenes-duplicados/almacenes-duplicados.ts | 2 | Almacenes fusionados · Vas a FUSIONAR "${duplicadoNombre}" dentro de "${canonicoNombre}".\n\n |

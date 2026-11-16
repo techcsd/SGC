@@ -4,6 +4,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * BE2 — "Consultas no atendidas de Compa": el backlog automático de lo que la
  * gente le pide a Compa y no puede responder (sin herramienta / error / sin
@@ -41,6 +42,7 @@ interface Conteos {
 export class TecConsultasCompa implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   filas = signal<ConsultaNoAtendida[]>([]);
   conteos = signal<Conteos | null>(null);
@@ -61,11 +63,11 @@ export class TecConsultasCompa implements OnInit {
 
   motivoLabel(m: string): string {
     return m === 'sin_tool'
-      ? 'Sin herramienta'
+      ? this.i18n.t('Sin herramienta')
       : m === 'error_de_tool'
-        ? 'Error de herramienta'
+        ? this.i18n.t('Error de herramienta')
         : m === 'sin_permiso'
-          ? 'Sin permiso'
+          ? this.i18n.t('Sin permiso')
           : m;
   }
 
@@ -89,7 +91,7 @@ export class TecConsultasCompa implements OnInit {
       this.conteos.set((conteos as Conteos) ?? null);
       this.filas.set((filas as ConsultaNoAtendida[]) ?? []);
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el backlog.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar el backlog.'));
     } finally {
       this.loading.set(false);
     }
@@ -113,9 +115,9 @@ export class TecConsultasCompa implements OnInit {
       this.filas.update((fs) =>
         fs.map((x) => (x.id === f.id ? { ...x, resuelto } : x)),
       );
-      this.toast.success(resuelto ? 'Marcada como resuelta' : 'Reabierta');
+      this.toast.success(resuelto ? this.i18n.t('Marcada como resuelta') : this.i18n.t('Reabierta'));
     } catch (e) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -125,8 +127,8 @@ export class TecConsultasCompa implements OnInit {
    * cada usuario que preguntó ("Compa ya puede ayudarte con esto").
    */
   async resolverYAvisar(f: ConsultaNoAtendida) {
-    const tool = prompt('Herramienta que ahora lo resuelve (opcional):', f.tool ?? '') ?? '';
-    const version = prompt('Versión donde se resolvió (ej. 1.130.0):', '') ?? '';
+    const tool = prompt(this.i18n.t('Herramienta que ahora lo resuelve (opcional):'), f.tool ?? '') ?? '';
+    const version = prompt(this.i18n.t('Versión donde se resolvió (ej. 1.130.0):'), '') ?? '';
     if (version === null) return;
     try {
       const { data, error } = await this.supabase.client.rpc('resolver_consulta_compa', {
@@ -137,10 +139,16 @@ export class TecConsultasCompa implements OnInit {
       });
       if (error) throw error;
       const n = typeof data === 'number' ? data : 1;
-      this.toast.success('Resuelto y avisado', `Se marcaron ${n} consulta${n === 1 ? '' : 's'} y se notificó a quienes preguntaron.`);
+      this.toast.success(
+        this.i18n.t('Resuelto y avisado'),
+        this.i18n.t('Se marcaron {n} consulta{plural} y se notificó a quienes preguntaron.', {
+          n,
+          plural: n === 1 ? '' : 's',
+        }),
+      );
       await this.load();
     } catch (e) {
-      this.toast.error('No se pudo resolver y avisar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo resolver y avisar'), e instanceof Error ? e.message : undefined);
     }
   }
 }

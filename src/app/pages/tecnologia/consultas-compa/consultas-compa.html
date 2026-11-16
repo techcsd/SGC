@@ -3,8 +3,7 @@
     <div>
       <h1>{{ 'Consultas no atendidas de Compa' | t }}</h1>
       <p class="cnc-sub">
-        El backlog automático: lo que la gente le pide a Compa y no puede responder.
-        Esta lista es la fuente de la próxima tanda de capacidades — no las capturas a mano.
+        {{ 'El backlog automático: lo que la gente le pide a Compa y no puede responder. Esta lista es la fuente de la próxima tanda de capacidades — no las capturas a mano.' | t }}
       </p>
     </div>
     <button class="cnc-btn" (click)="load()" [disabled]="loading()">{{ 'Actualizar' | t }}</button>

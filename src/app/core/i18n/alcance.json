@@ -166,9 +166,6 @@
     "tecnologia/odoo-sync": {
       "enforce": false
     },
-    "tecnologia/consultas-compa": {
-      "enforce": false
-    },
     "tecnologia/resumen-operaciones": {
       "enforce": false
     },
@@ -566,6 +563,9 @@
       "enforce": true
     },
     "tareas/mis-tareas": {
+      "enforce": true
+    },
+    "tecnologia/consultas-compa": {
       "enforce": true
     },
     "tecnologia/estadisticas": {

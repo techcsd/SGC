@@ -2653,21 +2653,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/consultas-compa",
-      "total": 23,
-      "cubiertos": 19,
-      "sin": 4,
-      "pct": 83,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "El backlog automático: lo que la gente le pide a Compa y no puede responder. Esta lista es la fuente de la próxima tanda de capacidades — no las capturas a mano.",
-        "No se pudo actualizar",
-        "Resuelto y avisado",
-        "No se pudo resolver y avisar"
-      ]
-    },
-    {
       "pantalla": "tecnologia/resumen-operaciones",
       "total": 70,
       "cubiertos": 58,
@@ -4047,6 +4032,16 @@
       "pantalla": "tareas/mis-tareas",
       "total": 6,
       "cubiertos": 6,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/consultas-compa",
+      "total": 23,
+      "cubiertos": 23,
       "sin": 0,
       "pct": 100,
       "enScope": true,
