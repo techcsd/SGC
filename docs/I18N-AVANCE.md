@@ -538,6 +538,30 @@ fork — módulo pequeño, mismo criterio que Transporte/apoyo).
 **Módulo 11 (Legal) CERRADO: 5/5 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Documentos (#12).
 
+## Documentos — 100% COMPLETO (4/4 pantallas, 15-nov-2026)
+
+4 pantallas (generar, historial, plantillas, ver), 77 literales
+totales. Lote 54 (codemod, `3086c82f`) + lote 55 (`4de5fba8`,
+terminado a mano completo, sin fork — módulo muy pequeño).
+
+- Mismos gotchas de siempre: `estadoRevisionLabel()`/
+  `CATEGORIA_LABELS[c]` (2 sitios) sin `| t`; bindings `[title]` con
+  concatenación ("Ver · ", "Versiones · ") reescritos con `i18n.t()`.
+- **Gotcha nuevo en el ESCÁNER** (no en el código de la app):
+  `@defer`/`@placeholder`/`@loading`/`@error` (bloques de carga
+  diferida de Angular) no estaban en la lista de palabras clave de
+  control-flow que `i18n-coverage.mjs` reconoce como ruido — un
+  `} @placeholder {` aparecía como falso positivo de copy sin
+  traducir. Agregado a la lista junto a
+  `@if`/`@for`/`@else`/`@switch`/`@case`/`@default`/`@empty`/`@let`.
+- `public/i18n/en.json`/`ht.json`: +46/+46 claves nuevas.
+- `alcance.json`: 4 pantallas nuevas `enforce:true` (total **113**).
+  `verify-i18n.mjs`: 113 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 12 (Documentos) CERRADO: 4/4 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Ingeniería (#13).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -578,7 +602,7 @@ Admin, resto.
 | 9 | Proyectos | 10/10 pantallas 100% (ver detalle arriba) | 499 (codemod) + ~190 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 84212977..7873a48a | **true** |
 | 10 | RRHH | 14/14 pantallas 100% (ver detalle arriba) | 469 (codemod) + ~160 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 96846157..657519bf | **true** |
 | 11 | Legal | 5/5 pantallas 100% (ver detalle arriba) | 168 (codemod) + ~50 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | c02a8f21..7e606f94 | **true** |
-| 12 | Documentos | — | — | — | ⏳ pendiente | — | false |
+| 12 | Documentos | 4/4 pantallas 100% (ver detalle arriba) | 51 (codemod) + ~26 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 3086c82f..4de5fba8 | **true** |
 | 13 | Ingeniería | — | — | — | ⏳ pendiente | — | false |
 | 14 | Reuniones/Tareas/Notas/Mensajes | — | — | — | ⏳ pendiente | — | false |
 | 15 | Tecnología | — | — | — | ⏳ pendiente | — | false |
