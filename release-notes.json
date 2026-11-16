@@ -1,5 +1,11 @@
 {
   "web": {
+    "1.217.0": {
+      "titulo": "Toda la app disponible en Inglés y Kreyòl ayisyen",
+      "cambios": [
+        { "t": "mejora", "m": "Idioma", "d": "Las 192 pantallas de la app (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones, Tareas, Notas, Mensajería, Tecnología, Administración, Dirección, Incentivos, Soporte, bitácora de obra y el resto) ya se traducen por completo al cambiar el idioma a Inglés o Kreyòl ayisyen en Configuración › Idioma — antes quedaba texto a medias en español en la mayoría de ellas." }
+      ]
+    },
     "1.216.0": {
       "titulo": "Inventario 100% disponible en Inglés y Kreyòl ayisyen",
       "cambios": [
