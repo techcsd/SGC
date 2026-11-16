@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 80%** (8112/10178 literales de 192 pantallas en alcance). **`ht`: 93%**.
+**Alcance `en`: 80%** (8131/10177 literales de 192 pantallas en alcance). **`ht`: 93%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -52,9 +52,7 @@
 | tecnologia/dev-notes | scope | 72 | 41 | 31 | 57% |
 | tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
 | tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
-| tecnologia/apis-consumo | scope | 36 | 25 | 11 | 69% |
 | practica | scope | 34 | 24 | 10 | 71% |
-| tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/outbox-atascados | scope | 53 | 38 | 15 | 72% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | tecnologia/qa | scope | 73 | 56 | 17 | 77% |
@@ -191,18 +189,20 @@
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
+| tecnologia/apis-consumo | enforce | 35 | 35 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
+| tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**269 literal(es) sin t()** en 38 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**256 literal(es) sin t()** en 36 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -218,7 +218,6 @@
 | src/app/pages/tecnologia/compras/compras.ts | 9 | Cotización agregada · No se pudo subir la cotización · No se pudo elegir la cotización … |
 | src/app/pages/tecnologia/qa/qa.ts | 9 | Caso actualizado. · Caso creado. · Selecciona al menos un caso. … |
 | src/app/pages/tecnologia/cotizaciones/cotizaciones.ts | 8 | El título es obligatorio · Cotización guardada · Renglones guardados … |
-| src/app/pages/tecnologia/oficina-agentes/oficina-agentes.ts | 8 | Ejecutado · No se pudo ejecutar · Deshecho … |
 | src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
@@ -227,7 +226,6 @@
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |
-| src/app/pages/tecnologia/apis-consumo/apis-consumo.ts | 5 | Falta el nombre · Guardado · No se pudo guardar … |
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |
 | src/app/pages/admin/parametros/parametros.ts | 3 | Valor inválido · Parámetro actualizado · No se pudo guardar |

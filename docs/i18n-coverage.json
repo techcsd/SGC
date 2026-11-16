@@ -2444,28 +2444,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/apis-consumo",
-      "total": 36,
-      "cubiertos": 25,
-      "sin": 11,
-      "pct": 69,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "servicios",
-        "Inventario de las APIs y servicios externos que usa el sistema (Google Maps/Places/Roads, Supabase, push, Vercel, Resend…), su propósito, dónde se usan y un",
-        ". Las llaves viven solo en el servidor (edge functions) — aquí nunca se guardan.",
-        "para traer el consumo y costo real por API desde Google Cloud hace falta habilitar la",
-        "y crear una cuenta de servicio de solo-lectura en la consola. Mientras tanto, registra aquí el monto estimado/mes de forma manual.",
-        "Estimado/mes ( )",
-        "Falta el nombre",
-        "Guardado",
-        "No se pudo guardar",
-        "No se pudo eliminar",
-        "¿Eliminar \"${s.nombre}\" del inventario de APIs?"
-      ]
-    },
-    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -2484,26 +2462,6 @@
         "Mejor",
         "Última",
         "estrellas"
-      ]
-    },
-    {
-      "pantalla": "tecnologia/oficina-agentes",
-      "total": 31,
-      "cubiertos": 22,
-      "sin": 9,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Oficina con",
-        "Ejecutado",
-        "No se pudo ejecutar",
-        "Deshecho",
-        "No se pudo deshacer",
-        "Aprobada para dev",
-        "No se pudo decidir",
-        "Informe enviado",
-        "No se pudo enviar"
       ]
     },
     {
@@ -3968,6 +3926,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "tecnologia/apis-consumo",
+      "total": 35,
+      "cubiertos": 35,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
       "pantalla": "tecnologia/consultas-compa",
       "total": 23,
       "cubiertos": 23,
@@ -4021,6 +3989,16 @@
       "pantalla": "tecnologia/odoo-sync",
       "total": 30,
       "cubiertos": 30,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/oficina-agentes",
+      "total": 31,
+      "cubiertos": 31,
       "sin": 0,
       "pct": 100,
       "enScope": true,

@@ -13,6 +13,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { presentarError } from '../../../../shared/utils/friendly-error.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
 import { ErrorState } from '../../../../shared/ui/error-state/error-state';
@@ -71,6 +72,7 @@ const ICONO_AGENTE: Record<AgenteClave, IconName> = {
 export class OficinaAgentes implements OnInit, OnDestroy {
   private service = inject(AgentesService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
 
   /** DH17 — render real del informe (antes `<pre>` con el markdown crudo). */
@@ -175,10 +177,10 @@ export class OficinaAgentes implements OnInit, OnDestroy {
     this.ejecutando.set(agente.clave);
     try {
       await this.service.ejecutarAhora(agente.clave);
-      this.toast.success('Ejecutado', `${agente.nombre} corrió y registró lo que encontró.`);
+      this.toast.success(this.i18n.t('Ejecutado'), `${agente.nombre} corrió y registró lo que encontró.`);
       await this.service.cargar();
     } catch (e) {
-      this.toast.error('No se pudo ejecutar', presentarError(e, { pantalla: 'Agentes', accion: 'ejecutar el agente' }).mensajeUsuario);
+      this.toast.error(this.i18n.t('No se pudo ejecutar'), presentarError(e, { pantalla: 'Agentes', accion: 'ejecutar el agente' }).mensajeUsuario);
     } finally {
       this.ejecutando.set(null);
     }
@@ -187,10 +189,10 @@ export class OficinaAgentes implements OnInit, OnDestroy {
   async deshacer(accionId: string): Promise<void> {
     try {
       await this.service.deshacerAccion(accionId);
-      this.toast.success('Deshecho', 'La acción quedó marcada como deshecha.');
+      this.toast.success(this.i18n.t('Deshecho'), 'La acción quedó marcada como deshecha.');
       await this.service.cargar();
     } catch (e) {
-      this.toast.error('No se pudo deshacer', presentarError(e, { pantalla: 'la acción', accion: 'deshacer la acción' }).mensajeUsuario);
+      this.toast.error(this.i18n.t('No se pudo deshacer'), presentarError(e, { pantalla: 'la acción', accion: 'deshacer la acción' }).mensajeUsuario);
     }
   }
 
@@ -201,7 +203,7 @@ export class OficinaAgentes implements OnInit, OnDestroy {
       await this.service.decidirAprobacion(aprobacionId, decision, nota);
       if (decision === 'aprobada') {
         this.toast.success(
-          'Aprobada para dev',
+          this.i18n.t('Aprobada para dev'),
           'Esto NO mezcla a dev automáticamente — todavía te falta hacer el merge del PR en GitHub.',
         );
       } else {
@@ -209,7 +211,7 @@ export class OficinaAgentes implements OnInit, OnDestroy {
       }
       await this.service.cargar();
     } catch (e) {
-      this.toast.error('No se pudo decidir', presentarError(e, { pantalla: 'la aprobación', accion: 'decidir la aprobación' }).mensajeUsuario);
+      this.toast.error(this.i18n.t('No se pudo decidir'), presentarError(e, { pantalla: 'la aprobación', accion: 'decidir la aprobación' }).mensajeUsuario);
     } finally {
       this.decidiendo.set(null);
     }
@@ -225,10 +227,10 @@ export class OficinaAgentes implements OnInit, OnDestroy {
     this.enviandoInforme.set(true);
     try {
       await this.service.enviarInformeDiario(informe.id);
-      this.toast.success('Informe enviado', 'Dirección recibió el resumen del día.');
+      this.toast.success(this.i18n.t('Informe enviado'), 'Dirección recibió el resumen del día.');
       await this.service.cargar();
     } catch (e) {
-      this.toast.error('No se pudo enviar', presentarError(e, { pantalla: 'el informe', accion: 'enviar el informe' }).mensajeUsuario);
+      this.toast.error(this.i18n.t('No se pudo enviar'), presentarError(e, { pantalla: 'el informe', accion: 'enviar el informe' }).mensajeUsuario);
     } finally {
       this.enviandoInforme.set(false);
     }

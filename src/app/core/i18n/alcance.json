@@ -136,13 +136,7 @@
     "tecnologia/inventario": {
       "enforce": false
     },
-    "tecnologia/apis-consumo": {
-      "enforce": false
-    },
     "practica": {
-      "enforce": false
-    },
-    "tecnologia/oficina-agentes": {
       "enforce": false
     },
     "tecnologia/outbox-atascados": {
@@ -553,6 +547,9 @@
     "tareas/mis-tareas": {
       "enforce": true
     },
+    "tecnologia/apis-consumo": {
+      "enforce": true
+    },
     "tecnologia/consultas-compa": {
       "enforce": true
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "tecnologia/odoo-sync": {
+      "enforce": true
+    },
+    "tecnologia/oficina-agentes": {
       "enforce": true
     },
     "tecnologia/whatsapp": {

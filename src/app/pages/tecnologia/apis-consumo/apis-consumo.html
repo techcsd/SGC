@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'APIs y consumo' | t }}</h1>
-    <span class="page-count">{{ servicios().length }} servicios</span>
+    <span class="page-count">{{ servicios().length }} {{ 'servicios' | t }}</span>
   </div>
   <div class="page-header__actions">
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevo()">{{ '+ Nuevo servicio' | t }}</button>
@@ -9,17 +9,13 @@
 </div>
 
 <p class="ac-lead">
-  Inventario de las APIs y servicios externos que usa el sistema (Google Maps/Places/Roads, Supabase,
-  push, Vercel, Resend…), su propósito, dónde se usan y un <strong>{{ 'costo estimado por mes' | t }}</strong>. Las
-  llaves viven solo en el servidor (edge functions) — aquí nunca se guardan.
+  {{ 'Inventario de las APIs y servicios externos que usa el sistema (Google Maps/Places/Roads, Supabase, push, Vercel, Resend…), su propósito, dónde se usan y un' | t }} <strong>{{ 'costo estimado por mes' | t }}</strong>. {{ 'Las llaves viven solo en el servidor (edge functions) — aquí nunca se guardan.' | t }}
 </p>
 
 <!-- AW9 — la extracción automática de usage/facturación (Google Cloud Billing API) queda
      pendiente de un paso manual en la consola de Google. Mientras tanto, el costo es manual. -->
 <div class="ac-note">
-  <strong>{{ 'Facturación automática (pendiente):' | t }}</strong> para traer el consumo y costo real por API desde
-  Google Cloud hace falta habilitar la <em>{{ 'Billing API' | t }}</em> y crear una cuenta de servicio de solo-lectura
-  en la consola. Mientras tanto, registra aquí el monto estimado/mes de forma manual.
+  <strong>{{ 'Facturación automática (pendiente):' | t }}</strong> {{ 'para traer el consumo y costo real por API desde Google Cloud hace falta habilitar la' | t }} <em>{{ 'Billing API' | t }}</em> {{ 'y crear una cuenta de servicio de solo-lectura en la consola. Mientras tanto, registra aquí el monto estimado/mes de forma manual.' | t }}
 </div>
 
 @if (error()) { <p class="ac-error">{{ error() }}</p> }
@@ -30,7 +26,7 @@
   <div class="kpi-grid">
     @for (t of totales(); track t.moneda) {
       <div class="kpi-card kpi-card--primary">
-        <span class="kpi-label">Estimado/mes ({{ t.moneda }})</span>
+        <span class="kpi-label">{{ 'Estimado/mes' | t }} ({{ t.moneda }})</span>
         <span class="kpi-value">{{ t.total | number:'1.0-2' }}</span>
       </div>
     }
