@@ -21,6 +21,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-asistencia',
   imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, StaggerDirective, TranslatePipe],
@@ -32,6 +33,7 @@ export class Asistencia implements OnInit {
   private asistenciaService = inject(AsistenciaService);
   private empleadosService = inject(EmpleadosService);
   private datosPruebaSvc = inject(DatosPruebaViewService);
+  protected i18n = inject(I18nService);
 
   // ── Data state ──────────────────────────────────────────
   registros = signal<AsistenciaModel[]>([]);

@@ -4374,26 +4374,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/asistencia",
-      "total": 32,
-      "cubiertos": 23,
-      "sin": 9,
-      "pct": 72,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "registro",
-        "Registrar asistencia",
-        "Fecha",
-        "Todos los estados",
-        "Limpiar filtros",
-        "Seleccionar empleado…",
-        "Cancelar",
-        "Guardando… } @else { }",
-        "Editar registro de"
-      ]
-    },
-    {
       "pantalla": "rrhh/activos",
       "total": 41,
       "cubiertos": 30,
@@ -5628,6 +5608,16 @@
       "pantalla": "proyectos/personal",
       "total": 252,
       "cubiertos": 252,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/asistencia",
+      "total": 31,
+      "cubiertos": 31,
       "sin": 0,
       "pct": 100,
       "enScope": true,
