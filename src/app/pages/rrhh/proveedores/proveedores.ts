@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** DN-29 (Administración, prioridad 3) — Proveedores administrativos:
  *  internet, limpieza, seguros de oficina — DISTINTO de compras.proveedores
  *  (material/transporte). */
@@ -20,6 +21,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 export class RrhhProveedores implements OnInit {
   private svc = inject(RrhhAdministracionService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   proveedores = signal<RrhhProveedorAdmin[]>([]);
@@ -52,7 +54,7 @@ export class RrhhProveedores implements OnInit {
     try {
       this.proveedores.set(await this.svc.listarProveedoresAdmin());
     } catch (e) {
-      this.toast.error('No se pudieron cargar los proveedores', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los proveedores'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -67,7 +69,7 @@ export class RrhhProveedores implements OnInit {
 
   async guardar() {
     const nombre = this.fNombre().trim();
-    if (!nombre) { this.toast.warning('Falta el nombre', 'Escribe el nombre del proveedor.'); return; }
+    if (!nombre) { this.toast.warning(this.i18n.t('Falta el nombre'), 'Escribe el nombre del proveedor.'); return; }
     this.guardando.set(true);
     try {
       await this.svc.crearProveedorAdmin({
@@ -80,11 +82,11 @@ export class RrhhProveedores implements OnInit {
         monto_mensual: this.fMontoMensual() ? Number(this.fMontoMensual()) : null,
         notas: this.fNotas().trim() || null,
       });
-      this.toast.success('Proveedor guardado');
+      this.toast.success(this.i18n.t('Proveedor guardado'));
       this.mostrarForm.set(false);
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }
@@ -95,7 +97,7 @@ export class RrhhProveedores implements OnInit {
       await this.svc.toggleActivoProveedor(p.id, !p.activo);
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -108,10 +110,10 @@ export class RrhhProveedores implements OnInit {
     if (!p) return;
     try {
       await this.svc.eliminarProveedorAdmin(p.id);
-      this.toast.success('Proveedor eliminado');
+      this.toast.success(this.i18n.t('Proveedor eliminado'));
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.aEliminar.set(null);
     }

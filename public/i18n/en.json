@@ -5450,5 +5450,22 @@
   "Vencimientos de contratos y documentos del personal. Para subir un documento nuevo, hazlo desde la ficha del empleado en Empleados — aquí se administra la vigencia y se ven los vencimientos.": "Staff contract and document expirations. To upload a new document, do it from the employee's profile in Employees — here you manage validity and see expirations.",
   "Vigencia": "Validity",
   "contrato": "contract",
-  "sin vigencia": "no validity period"
+  "sin vigencia": "no validity period",
+  "Agregar proveedor": "Add supplier",
+  "Contrato desde": "Contract from",
+  "Contrato hasta": "Contract until",
+  "Ej: Claro (internet)": "E.g: Claro (internet)",
+  "Ej: Internet oficina": "E.g: Office internet",
+  "Falta el nombre": "Missing name",
+  "Internet, limpieza, seguros de oficina y otros servicios de la empresa — distinto de Compras › Proveedores (material y transporte).": "Internet, cleaning, office insurance and other company services — different from Purchases › Suppliers (material and transport).",
+  "Monto mensual (RD$)": "Monthly amount (RD$)",
+  "Monto/mes": "Amount/month",
+  "Mostrar inactivos": "Show inactive",
+  "No hay proveedores administrativos registrados.": "No administrative suppliers registered.",
+  "No se pudieron cargar los proveedores": "Couldn't load the suppliers",
+  "Proveedor eliminado": "Supplier deleted",
+  "Proveedor guardado": "Supplier saved",
+  "Servicio": "Service",
+  "hasta": "until",
+  "¿Eliminar este proveedor?": "Delete this supplier?"
 }

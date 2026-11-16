@@ -4662,5 +4662,22 @@
   "Vigencia desde": "Valid depi",
   "Vigencia hasta": "Valid jiska",
   "contrato": "kontra",
-  "sin vigencia": "san validite"
+  "sin vigencia": "san validite",
+  "Agregar proveedor": "Ajoute founisè",
+  "Contrato desde": "Kontra depi",
+  "Contrato hasta": "Kontra jiska",
+  "Ej: Claro (internet)": "Pa egz: Claro (entènèt)",
+  "Ej: Internet oficina": "Pa egz: Entènèt biwo",
+  "Falta el nombre": "Manke non an",
+  "Internet, limpieza, seguros de oficina y otros servicios de la empresa — distinto de Compras › Proveedores (material y transporte).": "Entènèt, netwayaj, asirans biwo ak lòt sèvis konpayi — diferan de Acha › Founisè (materyèl ak transpò).",
+  "Monto mensual (RD$)": "Montan mansyèl (RD$)",
+  "Monto/mes": "Montan/mwa",
+  "Mostrar inactivos": "Montre inaktif",
+  "No hay proveedores administrativos registrados.": "Pa gen founisè administratif anrejistre.",
+  "No se pudieron cargar los proveedores": "Pa t kapab chaje founisè yo",
+  "Proveedor eliminado": "Founisè efase",
+  "Proveedor guardado": "Founisè sove",
+  "Servicio": "Sèvis",
+  "hasta": "jiska",
+  "¿Eliminar este proveedor?": "Efase founisè sa a?"
 }

@@ -195,7 +195,7 @@
 | rrhh/contratos | enforce | 32 | 32 | 0 | 100% |
 | rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
-| rrhh/proveedores | scope | 33 | 33 | 0 | 100% |
+| rrhh/proveedores | enforce | 33 | 33 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |

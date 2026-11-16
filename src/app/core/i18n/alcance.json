@@ -566,7 +566,7 @@
       "enforce": true
     },
     "rrhh/proveedores": {
-      "enforce": false
+      "enforce": true
     },
     "rrhh/reportes": {
       "enforce": true
