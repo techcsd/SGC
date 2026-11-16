@@ -11,6 +11,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 interface PuestoGroup {
   puesto: string;
   entries: TecMatrizEntry[];
@@ -26,6 +27,7 @@ interface PuestoGroup {
 export class TecMatriz implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   matriz = signal<TecMatrizEntry[]>([]);
   herramientas = signal<TecHerramienta[]>([]);
@@ -105,7 +107,7 @@ export class TecMatriz implements OnInit {
         notas: v.notas ?? null,
       });
       this.matriz.update((list) => [...list, created]);
-      this.toast.success('Herramienta asignada al puesto');
+      this.toast.success(this.i18n.t('Herramienta asignada al puesto'));
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
@@ -115,8 +117,8 @@ export class TecMatriz implements OnInit {
   }
 
   async remove(entry: TecMatrizEntry) {
-    const nombre = entry.herramienta?.nombre ?? 'esta herramienta';
-    if (!confirm(`¿Quitar "${nombre}" del puesto "${entry.puesto}"?`)) return;
+    const nombre = entry.herramienta?.nombre ?? this.i18n.t('esta herramienta');
+    if (!confirm(this.i18n.t('¿Quitar "{nombre}" del puesto "{puesto}"?', { nombre, puesto: entry.puesto }))) return;
     try {
       await this.tecnologia.removeMatriz(entry.id);
       this.matriz.update((list) => list.filter((x) => x.id !== entry.id));

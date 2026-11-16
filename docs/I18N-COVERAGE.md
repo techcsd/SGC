@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 80%** (8131/10177 literales de 192 pantallas en alcance). **`ht`: 93%**.
+**Alcance `en`: 80%** (8142/10177 literales de 192 pantallas en alcance). **`ht`: 93%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -47,7 +47,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | tecnologia/compras | scope | 81 | 37 | 44 | 46% |
-| tecnologia/matriz | scope | 23 | 12 | 11 | 52% |
 | tecnologia/homologacion | scope | 28 | 15 | 13 | 54% |
 | tecnologia/dev-notes | scope | 72 | 41 | 31 | 57% |
 | tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
@@ -194,6 +193,7 @@
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
+| tecnologia/matriz | scope | 23 | 23 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**256 literal(es) sin t()** en 36 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**254 literal(es) sin t()** en 35 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -236,7 +236,6 @@
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
 | src/app/pages/admin/conduces-huerfanos/conduces-huerfanos.ts | 1 | Conduce anulado |
 | src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |

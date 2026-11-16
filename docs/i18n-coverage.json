@@ -2225,28 +2225,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/matriz",
-      "total": 23,
-      "cubiertos": 12,
-      "sin": 11,
-      "pct": 52,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "puesto",
-        "Agregar",
-        "Define qué herramientas debe usar cada puesto de la empresa. Marca como",
-        "las imprescindibles para el rol y como",
-        "las recomendadas.",
-        "Seleccionar herramienta…",
-        "Obligatoria para este puesto",
-        "Guardando… } @else { Agregar }",
-        "Quitar",
-        "Herramienta asignada al puesto",
-        "¿Quitar \"${nombre}\" del puesto \"${entry.puesto}\"?"
-      ]
-    },
-    {
       "pantalla": "tecnologia/homologacion",
       "total": 28,
       "cubiertos": 15,
@@ -3973,6 +3951,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/matriz",
+      "total": 23,
+      "cubiertos": 23,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {
