@@ -11,9 +11,10 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { EditorPlantilla } from '../../../../shared/ui/editor-plantilla/editor-plantilla';
 import { ToastService } from '../../../../shared/services/toast.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, DatePipe, StaggerDirective, EditorPlantilla],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, DatePipe, StaggerDirective, EditorPlantilla, TranslatePipe],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

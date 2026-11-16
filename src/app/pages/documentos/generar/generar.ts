@@ -10,9 +10,10 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-documentos-generar',
-  imports: [Skeleton],
+  imports: [Skeleton, TranslatePipe],
   templateUrl: './generar.html',
   styleUrl: './generar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

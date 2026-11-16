@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 68,
+  "pctScopeEn": 69,
   "pctHt": 87,
   "filas": [
     {
@@ -1121,127 +1121,6 @@
         "En revisión",
         "Marcar en revisión",
         "Resolver"
-      ]
-    },
-    {
-      "pantalla": "documentos/generar",
-      "total": 9,
-      "cubiertos": 0,
-      "sin": 9,
-      "pct": 0,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Generar Documento",
-        "Plantilla",
-        "Seleccionar plantilla…",
-        "Proyecto (opcional)",
-        "Sin proyecto asociado",
-        "Completa todos los campos para generar el documento.",
-        "Generar vista previa",
-        "Vista previa — puedes editar el texto antes de guardar",
-        "Selecciona una plantilla, completa los campos y presiona \"Generar vista previa\"."
-      ]
-    },
-    {
-      "pantalla": "documentos/historial",
-      "total": 10,
-      "cubiertos": 0,
-      "sin": 10,
-      "pct": 0,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Historial de Documentos Generados",
-        "documento",
-        "+ Generar documento",
-        "Aún no se ha generado ningún documento.",
-        "+ Generar el primero",
-        "Fecha",
-        "Categoría",
-        "Documento",
-        "Proyecto",
-        "Historial de documentos"
-      ]
-    },
-    {
-      "pantalla": "documentos/plantillas",
-      "total": 49,
-      "cubiertos": 0,
-      "sin": 49,
-      "pct": 0,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Plantillas de Documentos",
-        "plantilla",
-        "+ Subir plantilla personalizada",
-        "Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en",
-        "Generar Documento",
-        ". Para agregar la tuya: sube tu Word (.docx) tal cual — el sistema detecta solo los espacios a rellenar, sea que los hayas escrito como",
-        "o simplemente dejado en blanco con guiones bajos («____»), y te deja elegir qué dato va en cada uno.",
-        "Todas ( )",
-        "Aún no hay plantillas disponibles.",
-        "+ Subir plantilla personalizada",
-        "★ La que se usa",
-        "· dato",
-        "Usar",
-        "Ver",
-        "Versiones",
-        "Marcar como la que se usa",
-        "Duplicar",
-        "Eliminar",
-        "1. Elige · 2. Llena los datos · 3. Descarga PDF o Word",
-        "Nombre de la plantilla",
-        "El nombre es obligatorio.",
-        "Categoría",
-        "Archivo Word (.docx)",
-        "Súbelo tal cual. Detecta",
-        "y «____» por igual.",
-        "Leyendo el documento…",
-        "Espacios detectados ( )",
-        "Elige qué dato va en cada espacio. «A mano al generar» = lo escribes cada vez.",
-        "A mano al generar",
-        "Cancelar",
-        "Nombre",
-        "Categoría",
-        "} @placeholder {",
-        "Cargando editor…",
-        "Cancelar",
-        "Vista previa con datos de ejemplo (naranja = lo que se llena solo).",
-        "Cargando…",
-        "Aún no hay versiones guardadas. Se crean al editar la plantilla.",
-        "Versión",
-        "Restaurar",
-        "Más acciones",
-        "Subir plantilla personalizada",
-        "Editar plantilla",
-        "Ver ·",
-        "Versiones ·",
-        "Plantilla duplicada",
-        "No se pudo duplicar",
-        "¿Restaurar la versión ${v.version} de \"${p.nombre}\"? La versión actual se guarda antes de restaurar.",
-        "¿Eliminar la plantilla \"${p.nombre}\"? Esta acción no se puede deshacer."
-      ]
-    },
-    {
-      "pantalla": "documentos/ver",
-      "total": 9,
-      "cubiertos": 0,
-      "sin": 9,
-      "pct": 0,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "← Volver al historial",
-        "Imprimir / Guardar PDF",
-        "Descargar Word (.doc)",
-        "Usado en contrato",
-        "Crear contrato en Legal con este documento",
-        "Documento",
-        "Categoría",
-        "Proyecto",
-        "Generado"
       ]
     },
     {
@@ -3936,6 +3815,51 @@
       ]
     },
     {
+      "pantalla": "documentos/plantillas",
+      "total": 46,
+      "cubiertos": 26,
+      "sin": 20,
+      "pct": 57,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "plantilla",
+        "+ Subir plantilla personalizada",
+        "Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en",
+        ". Para agregar la tuya: sube tu Word (.docx) tal cual — el sistema detecta solo los espacios a rellenar, sea que los hayas escrito como",
+        "o simplemente dejado en blanco con guiones bajos («____»), y te deja elegir qué dato va en cada uno.",
+        "Todas ( )",
+        "+ Subir plantilla personalizada",
+        "· dato",
+        "Súbelo tal cual. Detecta",
+        "y «____» por igual.",
+        "Espacios detectados ( )",
+        "A mano al generar",
+        "} @placeholder {",
+        "Versión",
+        "Ver ·",
+        "Versiones ·",
+        "Plantilla duplicada",
+        "No se pudo duplicar",
+        "¿Restaurar la versión ${v.version} de \"${p.nombre}\"? La versión actual se guarda antes de restaurar.",
+        "¿Eliminar la plantilla \"${p.nombre}\"? Esta acción no se puede deshacer."
+      ]
+    },
+    {
+      "pantalla": "documentos/generar",
+      "total": 9,
+      "cubiertos": 6,
+      "sin": 3,
+      "pct": 67,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "Seleccionar plantilla…",
+        "Sin proyecto asociado",
+        "Generar vista previa"
+      ]
+    },
+    {
       "pantalla": "practica",
       "total": 34,
       "cubiertos": 24,
@@ -4009,6 +3933,19 @@
         "No se pudo guardar",
         "Enviado",
         "No se pudo enviar"
+      ]
+    },
+    {
+      "pantalla": "documentos/ver",
+      "total": 9,
+      "cubiertos": 7,
+      "sin": 2,
+      "pct": 78,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "Usado en contrato",
+        "Crear contrato en Legal con este documento"
       ]
     },
     {
@@ -4101,6 +4038,18 @@
         "Copiado — se borra del portapapeles en 30 s",
         "No se pudo copiar",
         "Eliminado"
+      ]
+    },
+    {
+      "pantalla": "documentos/historial",
+      "total": 9,
+      "cubiertos": 8,
+      "sin": 1,
+      "pct": 89,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "documento"
       ]
     },
     {

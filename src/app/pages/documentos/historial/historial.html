@@ -1,9 +1,9 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Historial de Documentos Generados</h1>
+    <h1 class="page-title">{{ 'Historial de Documentos Generados' | t }}</h1>
     <span class="page-count">{{ documentos().length }} documento{{ documentos().length !== 1 ? 's' : '' }}</span>
   </div>
-  <a class="sgc-btn sgc-btn--primary" routerLink="/documentos/generar">+ Generar documento</a>
+  <a class="sgc-btn sgc-btn--primary" routerLink="/documentos/generar">{{ '+ Generar documento' | t }}</a>
 </div>
 
 @if (error()) {
@@ -15,18 +15,18 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (documentos().length === 0) {
     <div class="table-empty">
-      <p>Aún no se ha generado ningún documento.</p>
-      <a class="sgc-btn sgc-btn--primary" routerLink="/documentos/generar">+ Generar el primero</a>
+      <p>{{ 'Aún no se ha generado ningún documento.' | t }}</p>
+      <a class="sgc-btn sgc-btn--primary" routerLink="/documentos/generar">{{ '+ Generar el primero' | t }}</a>
     </div>
   } @else {
     <div class="table-scroll">
-    <table class="data-table" aria-label="Historial de documentos">
+    <table class="data-table" aria-label="{{ 'Historial de documentos' | t }}">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Categoría</th>
-          <th>Documento</th>
-          <th>Proyecto</th>
+          <th>{{ 'Fecha' | t }}</th>
+          <th>{{ 'Categoría' | t }}</th>
+          <th>{{ 'Documento' | t }}</th>
+          <th>{{ 'Proyecto' | t }}</th>
         </tr>
       </thead>
       <tbody appStagger>

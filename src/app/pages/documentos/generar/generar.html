@@ -1,5 +1,5 @@
 <div class="page-header">
-  <h1 class="page-title">Generar Documento</h1>
+  <h1 class="page-title">{{ 'Generar Documento' | t }}</h1>
 </div>
 
 @if (error()) {
@@ -12,7 +12,7 @@
   <div class="generar-layout">
     <div class="generar-form sgc-card">
       <div class="sgc-field">
-        <label for="plantilla">Plantilla</label>
+        <label for="plantilla">{{ 'Plantilla' | t }}</label>
         <select id="plantilla" (change)="onPlantillaChange($any($event.target).value)">
           <option value="">Seleccionar plantilla…</option>
           @for (p of plantillas(); track p.id) {
@@ -23,7 +23,7 @@
 
       @if (plantillaSeleccionada(); as plantilla) {
         <div class="sgc-field">
-          <label for="proyecto">Proyecto (opcional)</label>
+          <label for="proyecto">{{ 'Proyecto (opcional)' | t }}</label>
           <select id="proyecto" (change)="onProyectoChange($any($event.target).value)">
             <option value="">Sin proyecto asociado</option>
             @for (proy of proyectos(); track proy.id) {
@@ -51,7 +51,7 @@
         }
 
         @if (camposIncompletos().length > 0) {
-          <p class="generar-faltantes">Completa todos los campos para generar el documento.</p>
+          <p class="generar-faltantes">{{ 'Completa todos los campos para generar el documento.' | t }}</p>
         }
         <button type="button" class="sgc-btn sgc-btn--primary generar-btn" [disabled]="!puedeGenerar()" (click)="generarVistaPrevia()">
           Generar vista previa
@@ -62,7 +62,7 @@
     <div class="generar-preview">
       @if (previewHtml(); as html) {
         <div class="generar-preview__toolbar">
-          <span>Vista previa — puedes editar el texto antes de guardar</span>
+          <span>{{ 'Vista previa — puedes editar el texto antes de guardar' | t }}</span>
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
             @if (saving()) { Guardando… } @else { Guardar y ver documento }
           </button>
@@ -75,7 +75,7 @@
         ></div>
       } @else {
         <div class="generar-preview__empty">
-          <p>Selecciona una plantilla, completa los campos y presiona "Generar vista previa".</p>
+          <p>{{ 'Selecciona una plantilla, completa los campos y presiona "Generar vista previa".' | t }}</p>
         </div>
       }
     </div>

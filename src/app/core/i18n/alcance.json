@@ -64,18 +64,6 @@
     "direccion": {
       "enforce": false
     },
-    "documentos/generar": {
-      "enforce": false
-    },
-    "documentos/historial": {
-      "enforce": false
-    },
-    "documentos/plantillas": {
-      "enforce": false
-    },
-    "documentos/ver": {
-      "enforce": false
-    },
     "dudas": {
       "enforce": false
     },
@@ -199,6 +187,12 @@
     "auth": {
       "enforce": false
     },
+    "documentos/plantillas": {
+      "enforce": false
+    },
+    "documentos/generar": {
+      "enforce": false
+    },
     "practica": {
       "enforce": false
     },
@@ -211,6 +205,9 @@
     "admin/compa-conversaciones": {
       "enforce": false
     },
+    "documentos/ver": {
+      "enforce": false
+    },
     "ingenieria/pagos": {
       "enforce": false
     },
@@ -221,6 +218,9 @@
       "enforce": false
     },
     "admin/vault": {
+      "enforce": false
+    },
+    "documentos/historial": {
       "enforce": false
     },
     "reuniones/reunion-ficha": {

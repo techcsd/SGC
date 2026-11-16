@@ -1,8 +1,8 @@
 <div class="ver-toolbar no-print">
-  <a routerLink="/documentos/historial" class="sgc-btn sgc-btn--ghost">← Volver al historial</a>
+  <a routerLink="/documentos/historial" class="sgc-btn sgc-btn--ghost">{{ '← Volver al historial' | t }}</a>
   @if (documento()) {
-    <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
-    <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descargarWord()">Descargar Word (.doc)</button>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">{{ 'Imprimir / Guardar PDF' | t }}</button>
+    <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descargarWord()">{{ 'Descargar Word (.doc)' | t }}</button>
     <!-- CO13 — vínculo con Legal -->
     @if (usadoEnContrato(); as ctr) {
       <a [routerLink]="['/legal/contratos']" [queryParams]="{ ver_contrato: ctr.id }" class="sgc-badge sgc-badge--info">
@@ -39,19 +39,19 @@
 } @else if (documento(); as doc) {
   <div class="ver-meta no-print">
     <div class="ver-meta__item">
-      <span class="ver-meta__label">Documento</span>
+      <span class="ver-meta__label">{{ 'Documento' | t }}</span>
       <span>{{ doc.nombre }}</span>
     </div>
     <div class="ver-meta__item">
-      <span class="ver-meta__label">Categoría</span>
+      <span class="ver-meta__label">{{ 'Categoría' | t }}</span>
       <span>{{ doc.plantilla ? CATEGORIA_LABELS[doc.plantilla.categoria] : '—' }}</span>
     </div>
     <div class="ver-meta__item">
-      <span class="ver-meta__label">Proyecto</span>
+      <span class="ver-meta__label">{{ 'Proyecto' | t }}</span>
       <span>{{ doc.proyecto?.nombre ?? '—' }}</span>
     </div>
     <div class="ver-meta__item">
-      <span class="ver-meta__label">Generado</span>
+      <span class="ver-meta__label">{{ 'Generado' | t }}</span>
       <span>{{ formatTimestamp(doc.created_at) }}</span>
     </div>
   </div>

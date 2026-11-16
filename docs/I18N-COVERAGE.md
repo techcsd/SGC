@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 68%** (7137/10438 literales de 192 pantallas en alcance). **`ht`: 87%**.
+**Alcance `en`: 69%** (7184/10434 literales de 192 pantallas en alcance). **`ht`: 87%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -28,10 +28,6 @@
 | admin/usuarios-test | scope | 37 | 0 | 37 | 0% |
 | auth/set-password | scope | 13 | 0 | 13 | 0% |
 | direccion | scope | 16 | 0 | 16 | 0% |
-| documentos/generar | scope | 9 | 0 | 9 | 0% |
-| documentos/historial | scope | 10 | 0 | 10 | 0% |
-| documentos/plantillas | scope | 49 | 0 | 49 | 0% |
-| documentos/ver | scope | 9 | 0 | 9 | 0% |
 | dudas | scope | 15 | 0 | 15 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
 | incentivos | scope | 184 | 0 | 184 | 0% |
@@ -73,14 +69,18 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| documentos/plantillas | scope | 46 | 26 | 20 | 57% |
+| documentos/generar | scope | 9 | 6 | 3 | 67% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
+| documentos/ver | scope | 9 | 7 | 2 | 78% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
+| documentos/historial | scope | 9 | 8 | 1 | 89% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |

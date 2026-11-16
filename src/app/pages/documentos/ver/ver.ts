@@ -9,9 +9,10 @@ import { AprobacionLegal } from '../../../../shared/models/legal.model';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-documentos-ver',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './ver.html',
   styleUrl: './ver.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

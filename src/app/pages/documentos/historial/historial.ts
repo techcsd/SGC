@@ -6,9 +6,10 @@ import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/u
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-documentos-historial',
-  imports: [RouterLink, Skeleton, StaggerDirective],
+  imports: [RouterLink, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
