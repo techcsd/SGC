@@ -12,9 +12,10 @@ import { HighlightItemDirective } from '../../../../shared/directives/highlight-
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-aprobaciones',
-  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator, StaggerDirective],
+  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator, StaggerDirective, TranslatePipe],
   templateUrl: './aprobaciones.html',
   styleUrl: './aprobaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

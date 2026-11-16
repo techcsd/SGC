@@ -19,6 +19,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
   en_revision: ['firmado', 'borrador', 'cancelado'],
@@ -29,7 +30,7 @@ const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
 
 @Component({
   selector: 'app-contratos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DatePipe, RouterLink, Skeleton, Icon, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DatePipe, RouterLink, Skeleton, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -6,10 +6,11 @@ import { PlantillaDocumento, CATEGORIA_LABELS, PlantillaCategoria } from '../../
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 /** CF7 — Configuración legal: datos del empleador, testigos frecuentes y plantilla por defecto. */
 @Component({
   selector: 'app-legal-configuracion',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, TranslatePipe],
   templateUrl: './configuracion.html',
   styleUrl: './configuracion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -85,18 +85,6 @@
     "incentivos": {
       "enforce": false
     },
-    "legal/aprobaciones": {
-      "enforce": false
-    },
-    "legal/configuracion": {
-      "enforce": false
-    },
-    "legal/contratos": {
-      "enforce": false
-    },
-    "legal/firmas-pendientes": {
-      "enforce": false
-    },
     "mensajes/grupo-info": {
       "enforce": false
     },
@@ -202,9 +190,6 @@
     "admin/empresa": {
       "enforce": false
     },
-    "legal/expedientes": {
-      "enforce": false
-    },
     "tecnologia/dev-notes": {
       "enforce": false
     },
@@ -214,6 +199,9 @@
     "auth": {
       "enforce": false
     },
+    "legal/contratos": {
+      "enforce": false
+    },
     "practica": {
       "enforce": false
     },
@@ -221,6 +209,12 @@
       "enforce": false
     },
     "tecnologia/envios-automaticos": {
+      "enforce": false
+    },
+    "legal/aprobaciones": {
+      "enforce": false
+    },
+    "legal/expedientes": {
       "enforce": false
     },
     "admin/compa-conversaciones": {
@@ -238,6 +232,9 @@
     "admin/vault": {
       "enforce": false
     },
+    "legal/firmas-pendientes": {
+      "enforce": false
+    },
     "reuniones/reunion-ficha": {
       "enforce": false
     },
@@ -245,6 +242,9 @@
       "enforce": false
     },
     "borrador-claude": {
+      "enforce": false
+    },
+    "legal/configuracion": {
       "enforce": false
     },
     "oauth-consent": {

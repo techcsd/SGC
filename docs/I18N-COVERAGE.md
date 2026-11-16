@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 66%** (6947/10462 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 68%** (7085/10432 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -35,10 +35,6 @@
 | dudas | scope | 15 | 0 | 15 | 0% |
 | forbidden | scope | 4 | 0 | 4 | 0% |
 | incentivos | scope | 184 | 0 | 184 | 0% |
-| legal/aprobaciones | scope | 34 | 0 | 34 | 0% |
-| legal/configuracion | scope | 20 | 0 | 20 | 0% |
-| legal/contratos | scope | 66 | 0 | 66 | 0% |
-| legal/firmas-pendientes | scope | 12 | 0 | 12 | 0% |
 | mensajes/grupo-info | scope | 44 | 0 | 44 | 0% |
 | mensajes | scope | 68 | 0 | 68 | 0% |
 | mi-rendimiento | scope | 17 | 0 | 17 | 0% |
@@ -74,21 +70,25 @@
 | verificar | scope | 9 | 0 | 9 | 0% |
 | soporte | scope | 39 | 1 | 38 | 3% |
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
-| legal/expedientes | scope | 89 | 7 | 82 | 8% |
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
+| legal/contratos | scope | 56 | 38 | 18 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | tecnologia/oficina-agentes | scope | 31 | 22 | 9 | 71% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
+| legal/aprobaciones | scope | 32 | 24 | 8 | 75% |
+| legal/expedientes | scope | 75 | 57 | 18 | 76% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
 | reuniones/reuniones-lista | scope | 68 | 56 | 12 | 82% |
 | tecnologia/cotizaciones | scope | 79 | 65 | 14 | 82% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
+| legal/firmas-pendientes | scope | 11 | 10 | 1 | 91% |
 | reuniones/reunion-ficha | scope | 54 | 49 | 5 | 91% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
+| legal/configuracion | scope | 17 | 16 | 1 | 94% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
 | tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |

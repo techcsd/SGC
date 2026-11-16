@@ -1,7 +1,7 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Firmas pendientes</h1>
+    <h1 class="page-title">{{ 'Firmas pendientes' | t }}</h1>
     <span class="page-count">{{ filas().length }} documento{{ filas().length !== 1 ? 's' : '' }}</span>
   </div>
 </div>
@@ -15,20 +15,20 @@
     <app-skeleton variant="table" [rows]="6" />
   } @else if (filas().length === 0) {
     <div class="table-empty">
-      <p>No hay documentos esperando la firma del empleador o de testigos.</p>
+      <p>{{ 'No hay documentos esperando la firma del empleador o de testigos.' | t }}</p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Firmas pendientes">
+      <table class="data-table" aria-label="{{ 'Firmas pendientes' | t }}">
         <thead>
           <tr>
-            <th>Trabajador</th>
-            <th>Documento</th>
-            <th>Obra</th>
-            <th>Firma del trabajador</th>
-            <th>Pendiente de</th>
-            <th class="text-center">Días</th>
-            <th class="text-center">Acción</th>
+            <th>{{ 'Trabajador' | t }}</th>
+            <th>{{ 'Documento' | t }}</th>
+            <th>{{ 'Obra' | t }}</th>
+            <th>{{ 'Firma del trabajador' | t }}</th>
+            <th>{{ 'Pendiente de' | t }}</th>
+            <th class="text-center">{{ 'Días' | t }}</th>
+            <th class="text-center">{{ 'Acción' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
@@ -43,7 +43,7 @@
                 <span class="sgc-badge" [class.sgc-badge--warning]="f.dias >= 3" [class.sgc-badge--neutral]="f.dias < 3">{{ f.dias }}</span>
               </td>
               <td class="text-center">
-                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos/personal', f.personal_id]">Abrir expediente</a>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos/personal', f.personal_id]">{{ 'Abrir expediente' | t }}</a>
               </td>
             </tr>
           }
