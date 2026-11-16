@@ -2538,29 +2538,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/resumen-operaciones",
-      "total": 70,
-      "cubiertos": 58,
-      "sin": 12,
-      "pct": 83,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "El correo automático de los lunes 7:00 AM. Cada número aquí es el mismo del módulo y el mismo que puedes preguntarle a Compa en el chat.",
-        "destinatario(s):",
-        "día(s)",
-        "completadas { ·",
-        "en revisión",
-        "Total",
-        "· normales · externos",
-        "Entradas · Salidas · Ajustes",
-        "Galones · Km · Costo @if (flotaDepuracion()) {",
-        "Envío disparado",
-        "No se pudo reenviar",
-        "¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora?"
-      ]
-    },
-    {
       "pantalla": "tecnologia/cotizaciones",
       "total": 79,
       "cubiertos": 67,
@@ -3960,7 +3937,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {
@@ -3991,6 +3968,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/resumen-operaciones",
+      "total": 74,
+      "cubiertos": 74,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

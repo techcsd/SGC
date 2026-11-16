@@ -148,9 +148,6 @@
     "tecnologia/reportes-errores": {
       "enforce": false
     },
-    "tecnologia/resumen-operaciones": {
-      "enforce": false
-    },
     "tecnologia/cotizaciones": {
       "enforce": false
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "tecnologia/oficina-agentes": {
+      "enforce": true
+    },
+    "tecnologia/resumen-operaciones": {
       "enforce": true
     },
     "tecnologia/whatsapp": {

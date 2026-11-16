@@ -4,6 +4,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * BE1 — Resumen semanal de operaciones (Tecnología): preview de la semana cerrada,
  * "Reenviar ahora" para probar sin esperar al lunes (patrón del incentivo), e
@@ -29,6 +30,7 @@ interface Envio {
 export class TecResumenOperaciones implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   error = signal('');
@@ -91,7 +93,8 @@ export class TecResumenOperaciones implements OnInit {
   fmtSemana = computed(() => {
     const a = this.anio(), s = this.semana(), r = this.rango();
     if (!a || !s) return '';
-    return r ? `Semana ${s}/${a} · ${r.inicio} – ${r.fin}` : `Semana ${s}/${a}`;
+    const base = this.i18n.t('Semana {s}/{a}', { s, a });
+    return r ? `${base} · ${r.inicio} – ${r.fin}` : base;
   });
 
   async ngOnInit() {
@@ -148,18 +151,18 @@ export class TecResumenOperaciones implements OnInit {
   async reenviar() {
     const a = this.anio(), s = this.semana();
     if (!a || !s || this.reenviando()) return;
-    if (!confirm(`¿Reenviar el resumen de la semana ${s}/${a} a ${this.destinatarios().length} destinatario(s) ahora?`)) return;
+    if (!confirm(this.i18n.t('¿Reenviar el resumen de la semana {s}/{a} a {n} destinatario(s) ahora?', { s, a, n: this.destinatarios().length }))) return;
     this.reenviando.set(true);
     try {
       const { data, error } = await this.supabase.client.rpc('resumen_operaciones_enviar_semana', {
         p_anio: a, p_semana: s, p_forzar: true,
       });
       if (error) throw error;
-      this.toast.success('Envío disparado', data === 'enviando' ? 'El correo saldrá en unos segundos.' : String(data));
+      this.toast.success(this.i18n.t('Envío disparado'), data === 'enviando' ? 'El correo saldrá en unos segundos.' : String(data));
       // Refresca el historial tras un momento.
       setTimeout(() => void this.load(), 4000);
     } catch (e) {
-      this.toast.error('No se pudo reenviar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo reenviar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.reenviando.set(false);
     }
