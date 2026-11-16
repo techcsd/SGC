@@ -20,19 +20,19 @@
             @for (d of porVencerUrgentes(); track d.documento_id) {
               <tr class="ct-urgente">
                 <td>{{ d.empleado_nombre }}</td><td>{{ d.tipo }}</td><td>{{ formatFecha(d.vigencia_hasta) }}</td>
-                <td><span class="sgc-badge sgc-badge--danger">{{ d.dias_restantes }} día(s)</span></td>
+                <td><span class="sgc-badge sgc-badge--danger">{{ d.dias_restantes }} {{ 'día(s)' | t }}</span></td>
               </tr>
             }
             @for (d of porVencerPronto(); track d.documento_id) {
               <tr>
                 <td>{{ d.empleado_nombre }}</td><td>{{ d.tipo }}</td><td>{{ formatFecha(d.vigencia_hasta) }}</td>
-                <td><span class="sgc-badge sgc-badge--warning">{{ d.dias_restantes }} día(s)</span></td>
+                <td><span class="sgc-badge sgc-badge--warning">{{ d.dias_restantes }} {{ 'día(s)' | t }}</span></td>
               </tr>
             }
             @for (d of porVencerEnCurso(); track d.documento_id) {
               <tr>
                 <td>{{ d.empleado_nombre }}</td><td>{{ d.tipo }}</td><td>{{ formatFecha(d.vigencia_hasta) }}</td>
-                <td><span class="sgc-badge sgc-badge--neutral">{{ d.dias_restantes }} día(s)</span></td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ d.dias_restantes }} {{ 'día(s)' | t }}</span></td>
               </tr>
             }
           </tbody>
@@ -44,7 +44,7 @@
     <label class="ct-field">
       <span>{{ 'Empleado' | t }}</span>
       <select [value]="empleadoSeleccionadoId()" (change)="seleccionarEmpleado($any($event.target).value)">
-        <option value="">Elige un empleado…</option>
+        <option value="">{{ 'Elige un empleado…' | t }}</option>
         @for (e of empleados(); track e.id) { <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option> }
       </select>
     </label>
@@ -89,7 +89,7 @@
                           <input type="checkbox" [checked]="editEsContrato()" (change)="editEsContrato.set($any($event.target).checked)" />
                           <span>{{ 'Es el contrato de trabajo' | t }}</span>
                         </label>
-                        <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+                        <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
                         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarEdicion()">{{ 'Cancelar' | t }}</button>
                       </form>
                     </td>

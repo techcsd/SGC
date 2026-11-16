@@ -4647,5 +4647,20 @@
   "No se pudo cargar Capacitación": "Pa t kapab chaje Fòmasyon",
   "Obtenido": "Jwenn",
   "Por vencer (próximos 30 días)": "Pral ekspire (pwochen 30 jou)",
-  "¿Eliminar esta capacitación?": "Efase fòmasyon sa a?"
+  "¿Eliminar esta capacitación?": "Efase fòmasyon sa a?",
+  "Cargando documentos…": "Ap chaje dokiman…",
+  "Contrato": "Kontra",
+  "Documentos por empleado": "Dokiman pa anplwaye",
+  "Editar vigencia": "Modifye validite",
+  "Es el contrato de trabajo": "Se kontra travay la",
+  "Este empleado no tiene documentos subidos todavía.": "Anplwaye sa a poko gen dokiman telechaje.",
+  "Ningún documento con vigencia vence en los próximos 30 días.": "Pa gen dokiman ak validite ki ekspire nan pwochen 30 jou yo.",
+  "No se pudieron cargar los documentos": "Pa t kapab chaje dokiman yo",
+  "No se pudo cargar Contratos y documentos": "Pa t kapab chaje Kontra ak dokiman",
+  "Vencimientos de contratos y documentos del personal. Para subir un documento nuevo, hazlo desde la ficha del empleado en Empleados — aquí se administra la vigencia y se ven los vencimientos.": "Dat ekspirasyon kontra ak dokiman pèsonèl. Pou telechaje yon nouvo dokiman, fè l nan fich anplwaye a nan Anplwaye — isit la ou jere validite epi wè dat ekspirasyon yo.",
+  "Vigencia": "Validite",
+  "Vigencia desde": "Valid depi",
+  "Vigencia hasta": "Valid jiska",
+  "contrato": "kontra",
+  "sin vigencia": "san validite"
 }

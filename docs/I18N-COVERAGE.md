@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 65%** (6807/10456 literales de 192 pantallas en alcance). **`ht`: 85%**.
+**Alcance `en`: 65%** (6815/10456 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -88,7 +88,6 @@
 | rrhh/activos | scope | 41 | 30 | 11 | 73% |
 | rrhh/empleados | scope | 134 | 99 | 35 | 74% |
 | tecnologia/envios-automaticos | scope | 27 | 20 | 7 | 74% |
-| rrhh/contratos | scope | 32 | 24 | 8 | 75% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | rrhh/proveedores | scope | 32 | 25 | 7 | 78% |
 | ingenieria/pagos | scope | 68 | 54 | 14 | 79% |
@@ -194,6 +193,7 @@
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
 | rrhh/asistencia | enforce | 31 | 31 | 0 | 100% |
 | rrhh/capacitacion | enforce | 31 | 31 | 0 | 100% |
+| rrhh/contratos | enforce | 32 | 32 | 0 | 100% |
 | rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
 | rrhh/organigrama | enforce | 7 | 7 | 0 | 100% |
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**426 literal(es) sin t()** en 60 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**422 literal(es) sin t()** en 59 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -243,7 +243,6 @@
 | src/app/pages/documentos/plantillas/plantillas.ts | 4 | Plantilla duplicada · No se pudo duplicar · ¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar. … |
 | src/app/pages/legal/contratos/contratos.ts | 4 | No se pudo cargar el detalle · Firmado subido · No se pudo subir el archivo … |
 | src/app/pages/notas/editor/nota-editor.ts | 4 | Nota no encontrada · Vinculado a la tarea · Nota compartida … |
-| src/app/pages/rrhh/contratos/contratos.ts | 4 | No se pudo cargar Contratos y documentos · No se pudieron cargar los documentos · Guardado … |
 | src/app/pages/tecnologia/homologacion/homologacion.ts | 4 | Herramienta actualizada · Herramienta creada · No se pudo cambiar el estado de la herramienta. … |
 | src/app/pages/tecnologia/monitoreo/monitoreo.ts | 4 | Alerta reconocida. · Suscripción guardada. · Suscripción eliminada. … |
 | src/app/pages/admin/empresa/empresa.ts | 3 | Guardado · Logo actualizado · No se pudo subir el logo |

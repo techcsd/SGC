@@ -5438,5 +5438,17 @@
   "No se pudo cargar Capacitación": "Couldn't load Training",
   "Obtenido": "Obtained",
   "Por vencer (próximos 30 días)": "Expiring soon (next 30 days)",
-  "¿Eliminar esta capacitación?": "Delete this training?"
+  "¿Eliminar esta capacitación?": "Delete this training?",
+  "Cargando documentos…": "Loading documents…",
+  "Documentos por empleado": "Documents by employee",
+  "Editar vigencia": "Edit validity",
+  "Es el contrato de trabajo": "It's the employment contract",
+  "Este empleado no tiene documentos subidos todavía.": "This employee has no documents uploaded yet.",
+  "Ningún documento con vigencia vence en los próximos 30 días.": "No document with a validity period expires in the next 30 days.",
+  "No se pudieron cargar los documentos": "Couldn't load the documents",
+  "No se pudo cargar Contratos y documentos": "Couldn't load Contracts and documents",
+  "Vencimientos de contratos y documentos del personal. Para subir un documento nuevo, hazlo desde la ficha del empleado en Empleados — aquí se administra la vigencia y se ven los vencimientos.": "Staff contract and document expirations. To upload a new document, do it from the employee's profile in Employees — here you manage validity and see expirations.",
+  "Vigencia": "Validity",
+  "contrato": "contract",
+  "sin vigencia": "no validity period"
 }
