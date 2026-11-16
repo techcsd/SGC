@@ -712,7 +712,7 @@
             <article class="wa__msg" [class.wa__msg--open]="expandidoArchivo() === r.id">
               <button type="button" class="wa__msg-row" (click)="toggleDetalleArchivo(r)">
                 @if (r.tipo !== 'texto') {
-                  <span class="wa__media-chip" [attr.title]="'Adjunto: ' + r.tipo">
+                  <span class="wa__media-chip" [attr.title]="i18n.t('Adjunto:') + ' ' + r.tipo">
                     <app-icon [name]="mediaIcon(r.tipo)" [size]="14" />
                   </span>
                 }
@@ -733,7 +733,7 @@
                     </div>
                     @if (d.tipo !== 'texto') {
                       <div class="wa__conv-item">
-                        <span class="wa__media-chip" [attr.title]="'Tipo: ' + d.tipo + (d.media_mime ? ' (' + d.media_mime + ')' : '')">
+                        <span class="wa__media-chip" [attr.title]="i18n.t('Tipo:') + ' ' + d.tipo + (d.media_mime ? ' (' + d.media_mime + ')' : '')">
                           <app-icon [name]="mediaIcon(d.tipo)" [size]="14" />
                           {{ 'Adjunto: {tipo}' | t:{ tipo: d.tipo } }}
                         </span>
@@ -832,7 +832,7 @@
         </button>
         <a class="sgc-btn sgc-btn--ghost" [routerLink]="convertirDestinoRuta[convertirTipo()]" target="_blank" rel="noopener">
           <app-icon name="external-link" [size]="14" />
-          {{ 'Abrir ' | t }}{{ convertirDestinoLabel[convertirTipo()] | t }}
+          {{ 'Abrir' | t }} {{ convertirDestinoLabel[convertirTipo()] | t }}
         </a>
       }
 

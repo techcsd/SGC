@@ -1,6 +1,6 @@
 {
   "pctScopeEn": 79,
-  "pctHt": 89,
+  "pctHt": 92,
   "filas": [
     {
       "pantalla": "admin/almacenes-duplicados",
@@ -2818,19 +2818,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/whatsapp",
-      "total": 185,
-      "cubiertos": 183,
-      "sin": 2,
-      "pct": 99,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Adjunto:",
-        "Tipo:"
-      ]
-    },
-    {
       "pantalla": "admin/claude",
       "total": 27,
       "cubiertos": 27,
@@ -4074,6 +4061,16 @@
       "pantalla": "tareas/mis-tareas",
       "total": 6,
       "cubiertos": 6,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/whatsapp",
+      "total": 185,
+      "cubiertos": 185,
       "sin": 0,
       "pct": 100,
       "enScope": true,

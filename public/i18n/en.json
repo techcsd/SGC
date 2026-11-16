@@ -6008,5 +6008,9 @@
   "¿Quitar a {nombre} del grupo?": "Remove {nombre} from the group?",
   "¿Salir de este grupo? Dejarás de recibir sus mensajes.": "Leave this group? You'll stop receiving its messages.",
   "• Lista": "• List",
-  "＋ Subir sticker": "＋ Upload sticker"
+  "＋ Subir sticker": "＋ Upload sticker",
+  "Adjunto:": "Attachment:",
+  "Tipo:": "Type:",
+  "message-circle": "message-circle",
+  "Abrir": "Open"
 }

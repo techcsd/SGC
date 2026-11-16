@@ -196,9 +196,6 @@
     "admin/auditoria": {
       "enforce": false
     },
-    "tecnologia/whatsapp": {
-      "enforce": false
-    },
     "admin/claude": {
       "enforce": true
     },
@@ -572,6 +569,9 @@
       "enforce": true
     },
     "tareas/mis-tareas": {
+      "enforce": true
+    },
+    "tecnologia/whatsapp": {
       "enforce": true
     },
     "trabajos-transporte": {

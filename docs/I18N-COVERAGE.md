@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 79%** (8081/10183 literales de 192 pantallas en alcance). **`ht`: 89%**.
+**Alcance `en`: 79%** (8083/10183 literales de 192 pantallas en alcance). **`ht`: 92%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -72,7 +72,6 @@
 | tecnologia/estadisticas | scope | 37 | 34 | 3 | 92% |
 | oauth-consent | scope | 19 | 18 | 1 | 95% |
 | admin/auditoria | scope | 63 | 62 | 1 | 98% |
-| tecnologia/whatsapp | scope | 185 | 183 | 2 | 99% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
@@ -198,6 +197,7 @@
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
+| tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
