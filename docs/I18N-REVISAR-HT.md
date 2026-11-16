@@ -1,5 +1,7 @@
 # Kreyòl por revisar (DP-10/DP-14, CONTEXTO-72)
 
+> **✅ Revisión humana hecha (2026-11-16):** una persona haitiana de Constructora SD revisó la traducción al Kreyòl (`public/i18n/ht.json`, versión 1.217.1) y la dio por buena (reportado por Xaviel en el chat). Los avisos «sin revisión humana» de las secciones históricas de este documento y de `I18N-AVANCE.md` quedan superados por esta nota. Pendiente solo: si quien revisó dejó correcciones puntuales, aplicarlas a `ht.json`.
+
 **Todo el `ht.json` es traducción generada por Claude, no validada por una
 persona que hable Kreyòl ayisyen.** Antes de ofrecerlo a las cuadrillas,
 alguien que hable Kreyòl debe revisar — en orden de prioridad — las pantallas
