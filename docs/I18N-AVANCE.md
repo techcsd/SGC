@@ -509,6 +509,35 @@ Siguiente módulo en la tabla de lotes: RRHH (#10).
 **Módulo 10 (RRHH) CERRADO: 14/14 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Legal (#11).
 
+## Legal — 100% COMPLETO (5/5 pantallas, 15-nov-2026)
+
+5 pantallas (aprobaciones, configuracion, contratos, expedientes,
+firmas-pendientes), 221 literales totales. Lote 52 (codemod,
+`c02a8f21`) + lote 53 (`7e606f94`, terminado a mano completo, sin
+fork — módulo pequeño, mismo criterio que Transporte/apoyo).
+
+- Mismos gotchas de siempre: `estadoLabel()`/`tipoLabel()`/
+  `prioridadLabel()` sin `| t` en `expedientes`/`contratos`;
+  catálogos (`ESTADOS`/`TIPOS`) con `e.label`/`t.label` mostrados sin
+  `| t`; un `computed()` (`drawerTitle`) usado en un binding `[title]`
+  necesitaba `i18n.t()` en construcción, no `| t` (el pipe no aplica
+  dentro de un binding de propiedad).
+- Gotcha evitado proactivamente: `[attr.aria-label]="'Ver ' +
+  c.titulo"` (y `Editar`/`Eliminar`) con espacio final concatenado —
+  reescrito como `i18n.t('Ver') + ' ' + c.titulo` antes de que
+  `verify-i18n.mjs` lo marcara, aplicando el mismo patrón ya conocido
+  de `compras/ordenes`/Transporte-apoyo.
+- `public/i18n/en.json`/`ht.json`: +100/+108 claves nuevas (el lote
+  más grande de traducción nueva desde Flota, por tratarse de
+  vocabulario legal específico sin solapamiento con módulos
+  anteriores).
+- `alcance.json`: 5 pantallas nuevas `enforce:true` (total **109**).
+  `verify-i18n.mjs`: 109 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 11 (Legal) CERRADO: 5/5 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Documentos (#12).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -548,7 +577,7 @@ Admin, resto.
 | 8 | Transporte/apoyo | 3/3 pantallas 100% (ver detalle arriba) | 103 (codemod) + ~72 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 405507d3..3b044583 | **true** |
 | 9 | Proyectos | 10/10 pantallas 100% (ver detalle arriba) | 499 (codemod) + ~190 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 84212977..7873a48a | **true** |
 | 10 | RRHH | 14/14 pantallas 100% (ver detalle arriba) | 469 (codemod) + ~160 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 96846157..657519bf | **true** |
-| 11 | Legal | — | — | — | ⏳ pendiente | — | false |
+| 11 | Legal | 5/5 pantallas 100% (ver detalle arriba) | 168 (codemod) + ~50 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | c02a8f21..7e606f94 | **true** |
 | 12 | Documentos | — | — | — | ⏳ pendiente | — | false |
 | 13 | Ingeniería | — | — | — | ⏳ pendiente | — | false |
 | 14 | Reuniones/Tareas/Notas/Mensajes | — | — | — | ⏳ pendiente | — | false |
