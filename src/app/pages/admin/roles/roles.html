@@ -10,7 +10,7 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Crear Rol
+      {{ 'Crear Rol' | t }}
     </button>
   </div>
 
@@ -22,10 +22,7 @@
     </svg>
     <div class="admin-roles__note-text">
       <strong>{{ '¿Cómo funcionan los roles?' | t }}</strong>
-      Un rol es un conjunto de <em>{{ 'módulos' | t }}</em> (áreas del sistema). Un usuario puede tener varios roles y verá
-      la <em>{{ 'suma' | t }}</em> de sus accesos. Asigna solo los módulos que la persona necesita para su trabajo.
-      Los módulos marcados como <span class="admin-roles__sensible-tag">{{ 'acceso amplio' | t }}</span>
-      (Administración, Dirección) dan mucho control — dálos con cuidado.
+      {{ 'Un rol es un conjunto de' | t }} <em>{{ 'módulos' | t }}</em> {{ '(áreas del sistema). Un usuario puede tener varios roles y verá la' | t }} <em>{{ 'suma' | t }}</em> {{ 'de sus accesos. Asigna solo los módulos que la persona necesita para su trabajo. Los módulos marcados como' | t }} <span class="admin-roles__sensible-tag">{{ 'acceso amplio' | t }}</span> {{ '(Administración, Dirección) dan mucho control — dálos con cuidado.' | t }}
     </div>
   </aside>
 
@@ -78,14 +75,14 @@
               class="admin-roles__edit-btn"
               type="button"
               (click)="openEdit(rol)"
-              [attr.aria-label]="'Editar permisos del rol ' + rol.nombre"
+              [attr.aria-label]="i18n.t('Editar permisos del rol') + ' ' + rol.nombre"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              Editar permisos
+              {{ 'Editar permisos' | t }}
             </button>
             @if (rol.codigo !== 'admin') {
               <button
@@ -93,9 +90,9 @@
                 type="button"
                 (click)="deleteRol(rol)"
                 [disabled]="deletingId() === rol.id"
-                [attr.aria-label]="'Eliminar rol ' + rol.nombre"
+                [attr.aria-label]="i18n.t('Eliminar rol') + ' ' + rol.nombre"
               >
-                @if (deletingId() === rol.id) { Eliminando... } @else { Eliminar }
+                @if (deletingId() === rol.id) { {{ 'Eliminando...' | t }} } @else { {{ 'Eliminar' | t }} }
               </button>
             }
           </div>
@@ -140,9 +137,8 @@
         <div class="roles-audit__panel">
           <!-- AT13 — explica la herramienta para que se entienda sola. -->
           <p class="roles-audit__explain">
-            Muestra la <strong>{{ 'suma real' | t }}</strong> de accesos (módulos, submódulos y nivel Ver/Operar)
-            que tiene un usuario o rol. Si un usuario tiene varios roles, aquí ves el acceso
-            <em>{{ 'combinado' | t }}</em> de todos ellos — útil para auditar antes de quitar o cambiar roles.
+            {{ 'Muestra la' | t }} <strong>{{ 'suma real' | t }}</strong> {{ 'de accesos (módulos, submódulos y nivel Ver/Operar) que tiene un usuario o rol. Si un usuario tiene varios roles, aquí ves el acceso' | t }}
+            <em>{{ 'combinado' | t }}</em> {{ 'de todos ellos — útil para auditar antes de quitar o cambiar roles.' | t }}
           </p>
           <div class="roles-audit__controls">
             <div class="roles-audit__seg" role="radiogroup" aria-label="{{ 'Fuente de accesos' | t }}">
@@ -155,7 +151,7 @@
             @if (auditFuente() === 'rol') {
               <label class="sr-only" for="audit-rol">{{ 'Elegir rol' | t }}</label>
               <select id="audit-rol" class="roles-audit__select" [value]="auditRolId() ?? ''" (change)="onSelectAuditRol($any($event.target).value)">
-                <option value="">Elegir rol…</option>
+                <option value="">{{ 'Elegir rol…' | t }}</option>
                 @for (r of roles(); track r.id) {
                   <option [value]="r.id">{{ r.nombre }}</option>
                 }
@@ -163,7 +159,7 @@
             } @else {
               <label class="sr-only" for="audit-usuario">{{ 'Elegir usuario' | t }}</label>
               <select id="audit-usuario" class="roles-audit__select" [value]="auditUsuarioId() ?? ''" (change)="onSelectAuditUsuario($any($event.target).value)">
-                <option value="">Elegir usuario…</option>
+                <option value="">{{ 'Elegir usuario…' | t }}</option>
                 @for (u of usuarios(); track u.id) {
                   <option [value]="u.id">{{ u.nombre }}</option>
                 }
@@ -185,7 +181,7 @@
                       @for (s of m.submodulos; track s.label) {
                         <li>
                           {{ s.label }}
-                          <span class="roles-audit__nivel" [class.roles-audit__nivel--operar]="s.nivel === 'operar'">{{ s.nivel === 'operar' ? 'Operar' : 'Ver' }}</span>
+                          <span class="roles-audit__nivel" [class.roles-audit__nivel--operar]="s.nivel === 'operar'">{{ (s.nivel === 'operar' ? 'Operar' : 'Ver') | t }}</span>
                         </li>
                       }
                     </ul>
@@ -196,7 +192,7 @@
               }
             </div>
           } @else {
-            <p class="roles-audit__muted">Elige {{ auditFuente() === 'rol' ? 'un rol' : 'un usuario' }} para ver sus accesos efectivos.</p>
+            <p class="roles-audit__muted">{{ 'Elige' | t }} {{ (auditFuente() === 'rol' ? 'un rol' : 'un usuario') | t }} {{ 'para ver sus accesos efectivos.' | t }}</p>
           }
         </div>
       }
@@ -255,7 +251,7 @@
         <div class="roles-audit__panel">
           <label class="sr-only" for="diff-usuario">{{ 'Elegir usuario' | t }}</label>
           <select id="diff-usuario" class="roles-audit__select" [value]="diffUsuarioId() ?? ''" (change)="onSelectDiffUsuario($any($event.target).value)">
-            <option value="">Elegir usuario…</option>
+            <option value="">{{ 'Elegir usuario…' | t }}</option>
             @for (u of usuarios(); track u.id) {
               <option [value]="u.id">{{ u.nombre }}</option>
             }
@@ -275,7 +271,7 @@
             </div>
 
             <button type="button" class="roles-audit__calc" [disabled]="diffSinCambios || diffLoading()" (click)="calcularDiff()">
-              @if (diffLoading()) { Calculando… } @else { Calcular impacto }
+              @if (diffLoading()) { {{ 'Calculando…' | t }} } @else { {{ 'Calcular impacto' | t }} }
             </button>
 
             @if (diffResultado(); as d) {
@@ -290,7 +286,7 @@
                     } @else {
                       <ul>
                         @for (m of d.modulosPierde; track m) { <li><strong>{{ m }}</strong> {{ '(módulo completo)' | t }}</li> }
-                        @for (s of d.subsPierde; track s.label) { <li>{{ s.label }} <span class="roles-audit__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                        @for (s of d.subsPierde; track s.label) { <li>{{ s.label }} <span class="roles-audit__nivel">{{ (s.antes === 'operar' ? 'Operar' : 'Ver') | t }}</span></li> }
                       </ul>
                     }
                   </div>
@@ -301,7 +297,7 @@
                     } @else {
                       <ul>
                         @for (m of d.modulosGana; track m) { <li><strong>{{ m }}</strong> {{ '(módulo completo)' | t }}</li> }
-                        @for (s of d.subsGana; track s.label) { <li>{{ s.label }} <span class="roles-audit__nivel">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                        @for (s of d.subsGana; track s.label) { <li>{{ s.label }} <span class="roles-audit__nivel">{{ (s.despues === 'operar' ? 'Operar' : 'Ver') | t }}</span></li> }
                       </ul>
                     }
                   </div>
@@ -311,7 +307,7 @@
                     <h4>{{ 'Cambia de nivel' | t }}</h4>
                     <ul>
                       @for (s of d.subsCambia; track s.label) {
-                        <li>{{ s.label }}: <span class="roles-audit__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span> → <span class="roles-audit__nivel roles-audit__nivel--operar">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li>
+                        <li>{{ s.label }}: <span class="roles-audit__nivel">{{ (s.antes === 'operar' ? 'Operar' : 'Ver') | t }}</span> → <span class="roles-audit__nivel roles-audit__nivel--operar">{{ (s.despues === 'operar' ? 'Operar' : 'Ver') | t }}</span></li>
                       }
                     </ul>
                   </div>
@@ -328,7 +324,7 @@
       @if (auditTab() === 'historial') {
         <div class="roles-audit__panel">
           <p class="roles-audit__explain">
-            Bitácora de <strong>{{ 'quién' | t }}</strong> {{ 'cambió los permisos de un rol,' | t }} <strong>{{ 'qué' | t }}</strong> {{ 'ganó/perdió y' | t }} <strong>{{ 'cuándo' | t }}</strong>. Se registra automáticamente al guardar.
+            {{ 'Bitácora de' | t }} <strong>{{ 'quién' | t }}</strong> {{ 'cambió los permisos de un rol,' | t }} <strong>{{ 'qué' | t }}</strong> {{ 'ganó/perdió y' | t }} <strong>{{ 'cuándo' | t }}</strong>{{ '. Se registra automáticamente al guardar.' | t }}
           </p>
           @if (historialLoading()) {
             <p class="roles-audit__muted">{{ 'Cargando historial…' | t }}</p>
@@ -380,7 +376,7 @@
     @if (editDirty()) {
       <div class="roles-form__dirty" role="status">
         <span class="roles-form__dirty-dot" aria-hidden="true"></span>
-        Cambios sin guardar
+        {{ 'Cambios sin guardar' | t }}
       </div>
     }
 
@@ -397,8 +393,8 @@
       />
       @if (f['nombre'].invalid && f['nombre'].touched) {
         <span class="roles-form__error" role="alert">
-          @if (f['nombre'].errors?.['required']) { El nombre es obligatorio. }
-          @if (f['nombre'].errors?.['maxlength']) { Máximo 100 caracteres. }
+          @if (f['nombre'].errors?.['required']) { {{ 'El nombre es obligatorio.' | t }} }
+          @if (f['nombre'].errors?.['maxlength']) { {{ 'Máximo 100 caracteres.' | t }} }
         </span>
       }
     </div>
@@ -431,9 +427,9 @@
           <label class="roles-preset__label" for="edit-preset">{{ 'Aplicar preset por cargo' | t }}</label>
           <select id="edit-preset" #editPresetSel class="roles-preset__select"
             (change)="onAplicarPreset(editPresetSel.value); editPresetSel.value=''">
-            <option value="" disabled selected>Elegir preset…</option>
+            <option value="" disabled selected>{{ 'Elegir preset…' | t }}</option>
             @for (p of presets; track p.key) {
-              <option [value]="p.key" [title]="p.descripcion">{{ p.label }}</option>
+              <option [value]="p.key" [title]="i18n.t(p.descripcion)">{{ p.label | t }}</option>
             }
           </select>
         </div>
@@ -441,7 +437,7 @@
           <label class="roles-preset__label" for="edit-copiar">{{ 'Copiar permisos de otro rol' | t }}</label>
           <select id="edit-copiar" #editCopiarSel class="roles-preset__select"
             (change)="onCopiarRol(editCopiarSel.value); editCopiarSel.value=''">
-            <option value="" disabled selected>Elegir rol…</option>
+            <option value="" disabled selected>{{ 'Elegir rol…' | t }}</option>
             @for (r of rolesParaCopiar(); track r.id) {
               <option [value]="r.id">{{ r.nombre }}</option>
             }
@@ -482,7 +478,7 @@
         (click)="closeDrawer()"
         [disabled]="saving()"
       >
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button
         class="roles-form__submit"
@@ -490,7 +486,7 @@
         [disabled]="saving()"
         [attr.aria-busy]="saving()"
       >
-        @if (saving()) { Guardando... } @else { Guardar cambios }
+        @if (saving()) { {{ 'Guardando...' | t }} } @else { {{ 'Guardar cambios' | t }} }
       </button>
     </div>
 
@@ -509,7 +505,7 @@
     @if (createDirty()) {
       <div class="roles-form__dirty" role="status">
         <span class="roles-form__dirty-dot" aria-hidden="true"></span>
-        Cambios sin guardar
+        {{ 'Cambios sin guardar' | t }}
       </div>
     }
 
@@ -525,8 +521,8 @@
       />
       @if (cf['nombre'].invalid && cf['nombre'].touched) {
         <span class="roles-form__error" role="alert">
-          @if (cf['nombre'].errors?.['required']) { El nombre es obligatorio. }
-          @if (cf['nombre'].errors?.['maxlength']) { Máximo 100 caracteres. }
+          @if (cf['nombre'].errors?.['required']) { {{ 'El nombre es obligatorio.' | t }} }
+          @if (cf['nombre'].errors?.['maxlength']) { {{ 'Máximo 100 caracteres.' | t }} }
         </span>
       }
     </div>
@@ -558,9 +554,9 @@
           <label class="roles-preset__label" for="create-preset">{{ 'Aplicar preset por cargo' | t }}</label>
           <select id="create-preset" #createPresetSel class="roles-preset__select"
             (change)="onAplicarPresetCreate(createPresetSel.value); createPresetSel.value=''">
-            <option value="" disabled selected>Elegir preset…</option>
+            <option value="" disabled selected>{{ 'Elegir preset…' | t }}</option>
             @for (p of presets; track p.key) {
-              <option [value]="p.key" [title]="p.descripcion">{{ p.label }}</option>
+              <option [value]="p.key" [title]="i18n.t(p.descripcion)">{{ p.label | t }}</option>
             }
           </select>
         </div>
@@ -568,7 +564,7 @@
           <label class="roles-preset__label" for="create-copiar">{{ 'Copiar permisos de otro rol' | t }}</label>
           <select id="create-copiar" #createCopiarSel class="roles-preset__select"
             (change)="onCopiarRolCreate(createCopiarSel.value); createCopiarSel.value=''">
-            <option value="" disabled selected>Elegir rol…</option>
+            <option value="" disabled selected>{{ 'Elegir rol…' | t }}</option>
             @for (r of roles(); track r.id) {
               <option [value]="r.id">{{ r.nombre }}</option>
             }
@@ -601,10 +597,10 @@
 
     <div class="roles-form__actions">
       <button class="roles-form__cancel" type="button" (click)="closeCreateDrawer()" [disabled]="creating()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button class="roles-form__submit" type="submit" [disabled]="creating()" [attr.aria-busy]="creating()">
-        @if (creating()) { Creando... } @else { Crear rol }
+        @if (creating()) { {{ 'Creando...' | t }} } @else { {{ 'Crear rol' | t }} }
       </button>
     </div>
 
@@ -631,7 +627,7 @@
               } @else {
                 <ul>
                   @for (m of d.modulosGana; track m) { <li><strong>{{ m }}</strong> {{ '(módulo completo)' | t }}</li> }
-                  @for (s of d.subsGana; track s.label) { <li>{{ s.label }} <span class="perm-confirm__nivel perm-confirm__nivel--op">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                  @for (s of d.subsGana; track s.label) { <li>{{ s.label }} <span class="perm-confirm__nivel perm-confirm__nivel--op">{{ (s.despues === 'operar' ? 'Operar' : 'Ver') | t }}</span></li> }
                 </ul>
               }
             </div>
@@ -642,7 +638,7 @@
               } @else {
                 <ul>
                   @for (m of d.modulosPierde; track m) { <li><strong>{{ m }}</strong> {{ '(módulo completo)' | t }}</li> }
-                  @for (s of d.subsPierde; track s.label) { <li>{{ s.label }} <span class="perm-confirm__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                  @for (s of d.subsPierde; track s.label) { <li>{{ s.label }} <span class="perm-confirm__nivel">{{ (s.antes === 'operar' ? 'Operar' : 'Ver') | t }}</span></li> }
                 </ul>
               }
             </div>
@@ -652,7 +648,7 @@
               <h3>{{ 'Cambia de nivel' | t }}</h3>
               <ul>
                 @for (s of d.subsCambia; track s.label) {
-                  <li>{{ s.label }}: <span class="perm-confirm__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span> → <span class="perm-confirm__nivel perm-confirm__nivel--op">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li>
+                  <li>{{ s.label }}: <span class="perm-confirm__nivel">{{ (s.antes === 'operar' ? 'Operar' : 'Ver') | t }}</span> → <span class="perm-confirm__nivel perm-confirm__nivel--op">{{ (s.despues === 'operar' ? 'Operar' : 'Ver') | t }}</span></li>
                 }
               </ul>
             </div>
@@ -666,14 +662,14 @@
 
       <div class="perm-confirm__actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="verAccesosActuales()">
-          Ver accesos actuales de este rol
+          {{ 'Ver accesos actuales de este rol' | t }}
         </button>
         <div class="perm-confirm__actions-right">
           <button type="button" class="roles-form__cancel" (click)="cancelarGuardar()" [disabled]="saving()">
-            Cancelar
+            {{ 'Cancelar' | t }}
           </button>
           <button type="button" class="roles-form__submit" (click)="confirmarGuardar()" [disabled]="saving()" [attr.aria-busy]="saving()">
-            @if (saving()) { Guardando… } @else { Confirmar y guardar }
+            @if (saving()) { {{ 'Guardando…' | t }} } @else { {{ 'Confirmar y guardar' | t }} }
           </button>
         </div>
       </div>

@@ -64,9 +64,6 @@
     "practica": {
       "enforce": false
     },
-    "admin/roles": {
-      "enforce": false
-    },
     "asistente": {
       "enforce": false
     },
@@ -128,6 +125,9 @@
       "enforce": true
     },
     "admin/reportes": {
+      "enforce": true
+    },
+    "admin/roles": {
       "enforce": true
     },
     "admin/solicitudes-eliminacion": {

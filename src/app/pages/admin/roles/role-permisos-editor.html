@@ -17,7 +17,7 @@
     </div>
     <span class="perm-editor__legend"
       title="{{ 'Sin acceso = no ve ni opera · Ver = solo lectura · Operar = crear, editar y eliminar' | t }}">
-      Sin acceso · Ver · Operar
+      {{ 'Sin acceso · Ver · Operar' | t }}
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
@@ -35,7 +35,7 @@
             class="perm-editor__group-toggle"
             (click)="toggleGrupo(g.key)"
             [attr.aria-expanded]="isExpanded(g.key)"
-            [attr.aria-label]="(isExpanded(g.key) ? 'Contraer ' : 'Expandir ') + g.label"
+            [attr.aria-label]="(isExpanded(g.key) ? i18n.t('Contraer') : i18n.t('Expandir')) + ' ' + g.label"
           >
             <span class="perm-editor__group-caret" aria-hidden="true">@if (isExpanded(g.key)) { <app-icon name="chevron-down" [size]="16" /> } @else { <app-icon name="chevron-right" [size]="16" /> }</span>
           </button>
@@ -52,16 +52,16 @@
           @if (g.tieneSubs) {
             <span class="perm-editor__group-count">
               @if (moduloCompleto(g.key)) {
-                Módulo completo — {{ total(g.key) }} de {{ total(g.key) }} submódulos
+                {{ i18n.t('Módulo completo — {activos} de {total} submódulos', { activos: total(g.key), total: total(g.key) }) }}
               } @else {
-                {{ activos(g.key) }} de {{ total(g.key) }} submódulos
+                {{ i18n.t('{activos} de {total} submódulos', { activos: activos(g.key), total: total(g.key) }) }}
               }
             </span>
           }
         </span>
 
         <!-- Tri-estado del módulo -->
-        <div class="perm-editor__tri" role="radiogroup" [attr.aria-label]="'Acceso del módulo ' + g.label">
+        <div class="perm-editor__tri" role="radiogroup" [attr.aria-label]="i18n.t('Acceso del módulo') + ' ' + g.label">
           <button
             type="button" role="radio"
             class="perm-editor__tri-btn"
@@ -110,7 +110,7 @@
               <div
                 class="perm-editor__seg"
                 role="radiogroup"
-                [attr.aria-label]="'Nivel de acceso para ' + sub.label"
+                [attr.aria-label]="i18n.t('Nivel de acceso para') + ' ' + sub.label"
               >
                 <button
                   type="button" role="radio"
@@ -138,8 +138,7 @@
           }
           @if (moduloCompleto(g.key)) {
             <p class="perm-editor__inherited-note">
-              El módulo está completo: todos sus submódulos quedan en <strong>{{ 'Operar' | t }}</strong>.
-              Usa <strong>{{ 'Parcial' | t }}</strong> o cambia un submódulo para ajustarlos por separado.
+              {{ 'El módulo está completo: todos sus submódulos quedan en' | t }} <strong>{{ 'Operar' | t }}</strong>{{ '. Usa' | t }} <strong>{{ 'Parcial' | t }}</strong> {{ 'o cambia un submódulo para ajustarlos por separado.' | t }}
             </p>
           }
         </div>
