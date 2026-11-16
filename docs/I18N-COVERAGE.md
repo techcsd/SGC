@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10023/10023 literales de 192 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10051/10051 literales de 193 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -103,7 +103,7 @@
 | inventario/articulos | enforce | 93 | 93 | 0 | 100% |
 | inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
-| inventario/conduce | enforce | 151 | 151 | 0 | 100% |
+| inventario/conduce | enforce | 158 | 158 | 0 | 100% |
 | inventario/conduce-externo-ficha | enforce | 36 | 36 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces | enforce | 34 | 34 | 0 | 100% |
@@ -190,6 +190,7 @@
 | tecnologia/inventario | enforce | 195 | 195 | 0 | 100% |
 | tecnologia/matriz | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
+| tecnologia/odoo-homologacion | scope | 21 | 21 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
 | tecnologia/outbox-atascados | enforce | 55 | 55 | 0 | 100% |
@@ -199,4 +200,3 @@
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 | verificar | enforce | 9 | 9 | 0 | 100% |
-| tecnologia/odoo-homologacion | - | 21 | 21 | 0 | 100% |

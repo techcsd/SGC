@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, inject, signal, viewChild
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { SalidasService, ConduceRutaInfo, ConduceItemLibre } from '../../../../shared/services/salidas.service';
+import { SalidasService, ConduceRutaInfo, ConduceItemLibre, OdooSyncSalida } from '../../../../shared/services/salidas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -65,6 +65,11 @@ export class Conduce implements OnInit {
   // AT10 — solo admin puede marcar/desmarcar un conduce como dato de prueba.
   esAdmin = computed(() => this.userService.roles().includes('admin'));
   marcandoPrueba = signal(false);
+  // DS-12 — estado de sincronización con Odoo (traslado A/B) + «Reintentar» (Tecnología/admin).
+  odooSync = signal<OdooSyncSalida | null>(null);
+  reintentandoOdoo = signal(false);
+  puedeReintentarOdoo = computed(() => this.esAdmin() || this.userService.esTecnologia());
+  odooSyncEtiqueta: Record<string, string> = { pendiente: 'Pendiente', sincronizado: 'Sincronizado', incierto: 'Por verificar', error: 'Con error' };
 
   formatFecha = formatFechaDisplay;
   // AT22 — los hitos del conduce (recepción/entrega/firmas) son timestamptz: se
@@ -335,6 +340,7 @@ export class Conduce implements OnInit {
     try {
       const s = await this.salidasService.getById(id);
       this.salida.set(s);
+      this.salidasService.getOdooSync(id).then((o) => this.odooSync.set(o)).catch(() => {});
       void this.cargarTransferChk(id); // CM4 — estado real del botón transferir
       await this.loadEvidencia(s);
       // AU4 — items libres (no bloqueante).
@@ -411,6 +417,21 @@ export class Conduce implements OnInit {
     }
   }
 
+  async reintentarOdoo() {
+    const s = this.salida();
+    if (!s || this.reintentandoOdoo()) return;
+    this.reintentandoOdoo.set(true);
+    try {
+      await this.salidasService.reintentarOdooSync(s.id);
+      this.toast.success(this.i18n.t('Reintento programado'));
+      this.odooSync.set(await this.salidasService.getOdooSync(s.id));
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo reintentar'), humanizeError(e).mensaje);
+    } finally {
+      this.reintentandoOdoo.set(false);
+    }
+  }
+
   // ── AY12 — Iniciar ruta / Transferir conduce (paridad web) ────────────────
   private async recargarSalida() {
     const s = this.salida();
@@ -418,6 +439,7 @@ export class Conduce implements OnInit {
     const fresca = await this.salidasService.getById(s.id);
     this.salida.set(fresca);
     await this.loadEvidencia(fresca);
+    this.salidasService.getOdooSync(s.id).then((o) => this.odooSync.set(o)).catch(() => {});
     this.salidasService.getFase(s.id).then((f) => this.fase.set(f)).catch(() => {});
     this.salidasService.getRutaInfo(s.id).then((r) => this.rutaInfo.set(r)).catch(() => {});
   }

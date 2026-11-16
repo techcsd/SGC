@@ -550,6 +550,9 @@
     "tecnologia/monitoreo": {
       "enforce": true
     },
+    "tecnologia/odoo-homologacion": {
+      "enforce": false
+    },
     "tecnologia/odoo-sync": {
       "enforce": true
     },
@@ -576,9 +579,6 @@
     },
     "verificar": {
       "enforce": true
-    },
-    "tecnologia/odoo-homologacion": {
-      "enforce": false
     }
   }
 }

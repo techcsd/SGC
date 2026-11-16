@@ -964,8 +964,8 @@
     },
     {
       "pantalla": "inventario/conduce",
-      "total": 151,
-      "cubiertos": 151,
+      "total": 158,
+      "cubiertos": 158,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1833,6 +1833,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "tecnologia/odoo-homologacion",
+      "total": 21,
+      "cubiertos": 21,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "tecnologia/odoo-sync",
       "total": 30,
       "cubiertos": 30,
@@ -1920,16 +1930,6 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
-      "faltantes": []
-    },
-    {
-      "pantalla": "tecnologia/odoo-homologacion",
-      "total": 21,
-      "cubiertos": 21,
-      "sin": 0,
-      "pct": 100,
-      "enScope": false,
-      "enforce": false,
       "faltantes": []
     }
   ]

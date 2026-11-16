@@ -8677,5 +8677,15 @@
   "{n} almacén(es) activo(s) sin código de Odoo": "{n} depo aktif san kòd Odoo",
   "Código en Odoo": "Kòd nan Odoo",
   "Cuenta analítica confirmada": "Kont analitik konfime",
-  "Confirmación retirada": "Konfimasyon retire"
+  "Confirmación retirada": "Konfimasyon retire",
+  "Por verificar": "Pou verifye",
+  "Reintento programado": "Nouvo eseye pwograme",
+  "No se pudo reintentar": "Pa t kapab eseye ankò",
+  "Salida (A)": "Soti (A)",
+  "Entrada (B)": "Antre (B)",
+  "Reintentando conexión con Odoo.": "Ap eseye konekte ak Odoo ankò.",
+  "Faltante en tránsito: pendiente de ajuste aprobado.": "Mank nan transpò: ap tann yon ajisteman apwouve.",
+  "Odoo no respondió tras varios intentos.": "Odoo pa t reponn apre plizyè eseye.",
+  "No hay existencias suficientes en el almacén de origen para este despacho.": "Pa gen ase stòk nan depo orijin lan pou voye sa a.",
+  "No se pudo sincronizar el conduce con Odoo.": "Pa t kapab senkwonize bòdwo livrezon an ak Odoo."
 }
