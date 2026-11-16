@@ -621,6 +621,70 @@ anterior (CP8); el resto arrancaba en 0%.
 **Módulo 14 (Reuniones/Tareas/Notas/Mensajes) CERRADO: 9/9 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Tecnología (#15).
 
+## Tecnología — 100% COMPLETO (20/20 pantallas, 15/16-nov-2026)
+
+20 pantallas (área de herramientas internas de desarrollo), 123 → **143**
+pantallas enforce en total. Lotes 59-61 (commits `180dfc09`..`51da7fdf`) +
+las últimas 5 pantallas (commits `8e14c319`..`318739d5`):
+
+- **Lote 59** (`180dfc09`): codemod masivo sobre las 20 pantallas.
+- **Lote 60** (`af243d76`): 9 pantallas (`whatsapp`, `estadisticas`,
+  `consultas-compa`, `odoo-sync`, `envios-automaticos`, `guia`,
+  `monitoreo` cerradas por un fork + `oficina-agentes`/`apis-consumo`
+  terminadas a mano tras quedarse el fork sin presupuesto).
+- **Lote 61** (`51da7fdf`): 6 pantallas (`matriz`, `resumen-operaciones`,
+  `cotizaciones`, `reportes-errores`, `homologacion` commiteadas por un
+  fork + `qa` terminada a mano).
+- **Últimas 5 pantallas** (`8e14c319`, `aa136d97`, `13fa7e1b`, `816e1e61`,
+  `318739d5` — cierra el módulo): `outbox-atascados`, `dev-notes`,
+  `compras` (comparte clave de cobertura con su subruta
+  `compras/compras-nueva` — ambos archivos se cerraron juntos),
+  `design-system`, `inventario`.
+  - **Gotcha de proceso, no de código:** dos dispatches consecutivos de
+    `subagent_type: "fork"` para este último lote volvieron con **0 usos
+    de herramientas** y una respuesta sin sentido (el fork describía
+    estar "esperando a que termine" otro fork, como si fuera el
+    orquestador y no el trabajador) — consistente con que un fork hereda
+    TODO el contexto de la conversación padre, y esa conversación ya
+    estaba saturada de lenguaje de "despaché un fork, reviso su
+    progreso" de rondas anteriores, haciendo que la instancia recién
+    bifurcada se confundiera de rol. Se resolvió cambiando a un agente
+    SIN herencia de contexto (`subagent_type` omitido / `general-purpose`)
+    con un prompt completamente autocontenido — terminó las 5 pantallas
+    de verdad, cada una verificada+build+tests+commiteada por separado.
+  - Mismos gotchas recurrentes de siempre: etiquetas de método sin
+    `| t` (`estadoLabel`, `getEstadoLabel`, `getCondicionLabel`,
+    `histTipoLabel`, `envioLabel`, `guardadoTexto`, `design-system`'s
+    `group.title`); concatenación con espacio final en
+    `[attr.aria-label]` (`'Editar ' + e.nombre`); `confirm()` con
+    template-literal `${}` reescrito a placeholder nombrado;
+    `@Component` con atributo estático de un `@Input()` compartido
+    (`confirmLabel="Eliminar"`, `heading="..."`) convertido a binding
+    (`[confirmLabel]="'Eliminar' | t"`).
+  - **Gotcha nuevo**: texto con entidades HTML de código de ejemplo
+    (`&amp;lt;app-card&amp;gt;`, `&amp;#64;supports`) en `design-system`
+    rompía el parseo del escáner — reformulado sin el símbolo, mismo
+    principio que el gotcha de `&lt;`/`&gt;` ya documentado.
+  - **Decisión de criterio en `inventario`**: `tipos()`/
+    `comprasOpciones()`/`getTipoLabel()`/`getUbicacionLabel()`/
+    `compraLabel()` quedaron sin traducir a propósito — son catálogos
+    libres administrados desde la BD (datos del negocio, no copy de
+    UI), a diferencia de `estados()`/`condiciones()` que sí mapean a
+    los catálogos fijos `TEC_EQUIPO_ESTADOS`/`TEC_EQUIPO_CONDICIONES`
+    y sí se envolvieron + tradujeron.
+  - Se agregaron ayudantes de pluralización (`{n} solicitud/
+    solicitudes`, `{n} renglón/renglones`, `{n} equipo/equipos`) en vez
+    de la concatenación rota `'s' : ''`.
+- `public/i18n/en.json`: → **6.596** claves. `public/i18n/ht.json`: →
+  **6.361** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+- `verify-i18n.mjs`: **143 pantallas enforce, 0 fallos.** Build + 368/368
+  tests verdes en todo momento (verificado independientemente, no solo
+  reportado por el agente).
+
+**Módulo 15 (Tecnología) CERRADO: 20/20 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Admin (#16).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -664,7 +728,7 @@ Admin, resto.
 | 12 | Documentos | 4/4 pantallas 100% (ver detalle arriba) | 51 (codemod) + ~26 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 3086c82f..4de5fba8 | **true** |
 | 13 | Ingeniería | 1/1 pantalla 100% (ver detalle arriba) | ~14 a mano (ya 79% por trabajo previo) | toasts | ✅ **100% — hecho** | bed92636 | **true** |
 | 14 | Reuniones/Tareas/Notas/Mensajes | 9/9 pantallas 100% (ver detalle arriba) | 176 (codemod) + ~120 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | b2e99b45..f04be843 | **true** |
-| 15 | Tecnología | — | — | — | ⏳ pendiente | — | false |
+| 15 | Tecnología | 20/20 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 180dfc09..318739d5 | **true** |
 | 16 | Admin | — | — | — | ⏳ pendiente | — | false |
 | 17 | Resto | — | — | — | ⏳ pendiente | — | false |
 
