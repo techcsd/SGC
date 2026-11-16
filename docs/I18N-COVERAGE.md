@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 82%** (8358/10191 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 83%** (8419/10188 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -46,7 +46,6 @@
 | admin/empresa | scope | 50 | 2 | 48 | 4% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
@@ -189,6 +188,7 @@
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
 | tecnologia/guia | enforce | 9 | 9 | 0 | 100% |
 | tecnologia/homologacion | enforce | 28 | 28 | 0 | 100% |
+| tecnologia/inventario | enforce | 195 | 195 | 0 | 100% |
 | tecnologia/matriz | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
@@ -202,12 +202,11 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**192 literal(es) sin t()** en 26 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**172 literal(es) sin t()** en 25 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
-| src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
 | src/app/pages/obra/subcontratistas/subcontratistas.ts | 14 | Error al cargar · Subcontratista registrado · Error … |
 | src/app/pages/admin/app-versiones/app-versiones.ts | 12 | Copiado · No se pudo copiar · Guardado … |

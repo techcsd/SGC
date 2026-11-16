@@ -2,10 +2,10 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Inventario tecnológico' | t }}</h1>
-    <span class="page-count">{{ filtered().length }} equipo{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ equiposLabel() }}</span>
     @if (garantiasPorVencerCount() > 0) {
       <span class="status-pill status-pill--warning" title="{{ 'Garantía por vencer o vencida' | t }}">
-        {{ garantiasPorVencerCount() }} con garantía por vencer
+        {{ i18n.t('{n} con garantía por vencer', { n: garantiasPorVencerCount() }) }}
       </span>
     }
   </div>
@@ -23,7 +23,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo equipo
+      {{ 'Nuevo equipo' | t }}
     </button>
   </div>
 </div>
@@ -46,9 +46,9 @@
       (change)="onEstadoChange($any($event.target).value)"
       aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="">Todas las situaciones</option>
+      <option value="">{{ 'Todas las situaciones' | t }}</option>
       @for (e of estados(); track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
@@ -56,20 +56,20 @@
   <!-- DA-11/DA-12/DA-14 (nota 7) — filtros de datos de dueño/costo/garantía -->
   <label class="filters-bar__toggle">
     <input type="checkbox" [checked]="soloResponsableExterno()" (change)="toggleResponsableExterno()" />
-    Responsable externo
+    {{ 'Responsable externo' | t }}
   </label>
   <label class="filters-bar__toggle">
     <input type="checkbox" [checked]="soloSinCompra()" (change)="toggleSinCompra()" />
-    Sin datos de compra
+    {{ 'Sin datos de compra' | t }}
   </label>
   <label class="filters-bar__toggle">
     <input type="checkbox" [checked]="soloSinGarantia()" (change)="toggleSinGarantia()" />
-    Sin garantía
+    {{ 'Sin garantía' | t }}
   </label>
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -139,7 +139,7 @@
               </td>
               <td>
                 <span class="status-pill" [class]="'status-pill--' + getCondicionTono(e.condicion ?? 'funciona')">
-                  {{ getCondicionLabel(e.condicion ?? 'funciona') }}
+                  {{ getCondicionLabel(e.condicion ?? 'funciona') | t }}
                 </span>
               </td>
               <td class="text-muted">{{ getQuienLoTiene(e) }}</td>
@@ -155,7 +155,7 @@
                     type="button"
                     class="action-btn"
                     (click)="openDetail(e)"
-                    [attr.aria-label]="'Ver historial de ' + e.nombre"
+                    [attr.aria-label]="i18n.t('Ver historial de') + ' ' + e.nombre"
                     title="{{ 'Ver detalle e historial' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -167,7 +167,7 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(e)"
-                    [attr.aria-label]="'Editar ' + e.nombre"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + e.nombre"
                     title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -179,7 +179,7 @@
                     type="button"
                     class="action-btn action-btn--delete"
                     (click)="remove(e)"
-                    [attr.aria-label]="'Eliminar ' + e.nombre"
+                    [attr.aria-label]="i18n.t('Eliminar') + ' ' + e.nombre"
                     title="{{ 'Eliminar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -229,7 +229,7 @@
             [class.invalid]="f.tipo_id.invalid && f.tipo_id.touched"
             (change)="onTipoIdChange($any($event.target).value)"
           >
-            <option [ngValue]="null">Seleccionar tipo…</option>
+            <option [ngValue]="null">{{ 'Seleccionar tipo…' | t }}</option>
             @for (t of tipos(); track t.value) {
               <option [value]="t.value">{{ t.label }}</option>
             }
@@ -375,12 +375,12 @@
       @if (currentGruposCampos().includes('computadora')) {
         <div class="sgc-field">
           <label class="sgc-btn sgc-btn--secondary sgc-btn--sm" [class.is-disabled]="leyendoCaptura()">
-            @if (leyendoCaptura()) { Leyendo… } @else { Leer captura de Windows }
+            @if (leyendoCaptura()) { {{ 'Leyendo…' | t }} } @else { {{ 'Leer captura de Windows' | t }} }
             <input type="file" accept="image/*" multiple hidden [disabled]="leyendoCaptura()" (change)="onCapturaWindowsPicked($event)" />
           </label>
           <span class="field-hint">
-            Sube hasta 3 fotos de "Información del sistema"/"Acerca de" (Windows). Precarga los campos para que los revises — nunca guarda sola.
-            En Dell/Lenovo el Service Tag/serie también se ve con <code>wmic bios get serialnumber</code>.
+            {{ 'Sube hasta 3 fotos de "Información del sistema"/"Acerca de" (Windows). Precarga los campos para que los revises — nunca guarda sola. En Dell/Lenovo el Service Tag/serie también se ve con' | t }}
+            <code>{{ 'wmic bios get serialnumber' | t }}</code>.
           </span>
         </div>
         <div class="form-row">
@@ -410,9 +410,9 @@
             <label for="almacenamiento_tipo">{{ 'Almacenamiento' | t }}</label>
             <select id="almacenamiento_tipo" formControlName="almacenamiento_tipo">
               <option [ngValue]="null">—</option>
-              <option value="SSD">SSD</option>
-              <option value="HDD">HDD</option>
-              <option value="NVMe">NVMe</option>
+              <option value="SSD">{{ 'SSD' | t }}</option>
+              <option value="HDD">{{ 'HDD' | t }}</option>
+              <option value="NVMe">{{ 'NVMe' | t }}</option>
             </select>
           </div>
           <div class="sgc-field">
@@ -446,7 +446,7 @@
           <div class="sgc-field sgc-field--check">
             <label>
               <input type="checkbox" formControlName="tactil" />
-              Pantalla táctil
+              {{ 'Pantalla táctil' | t }}
             </label>
           </div>
         </div>
@@ -486,8 +486,8 @@
             <label for="tipo_radio">{{ 'Tipo de radio' | t }}</label>
             <select id="tipo_radio" formControlName="tipo_radio">
               <option [ngValue]="null">—</option>
-              <option value="frecuencia">Radio de frecuencia</option>
-              <option value="celular_ptt">Radio por red celular (PTT)</option>
+              <option value="frecuencia">{{ 'Radio de frecuencia' | t }}</option>
+              <option value="celular_ptt">{{ 'Radio por red celular (PTT)' | t }}</option>
             </select>
           </div>
         </div>
@@ -524,8 +524,8 @@
             <label for="bateria_unidad">{{ 'Unidad' | t }}</label>
             <select id="bateria_unidad" formControlName="bateria_unidad">
               <option [ngValue]="null">—</option>
-              <option value="mAh">mAh</option>
-              <option value="Wh">Wh</option>
+              <option value="mAh">{{ 'mAh' | t }}</option>
+              <option value="Wh">{{ 'Wh' | t }}</option>
             </select>
           </div>
           <div class="sgc-field">
@@ -551,7 +551,7 @@
       <div class="sgc-field">
         <label for="empleado_id">{{ 'Empleado asignado' | t }}</label>
         <select id="empleado_id" formControlName="empleado_id">
-          <option [ngValue]="null">Sin asignar</option>
+          <option [ngValue]="null">{{ 'Sin asignar' | t }}</option>
           @for (emp of empleados(); track emp.id) {
             <option [value]="emp.id">{{ emp.nombre }} {{ emp.apellido }}</option>
           }
@@ -572,7 +572,7 @@
       <div class="sgc-field">
         <label for="bodega_id">{{ 'Ubicación (almacén)' | t }}</label>
         <select id="bodega_id" formControlName="bodega_id">
-          <option [ngValue]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">{{ 'Seleccionar almacén…' | t }}</option>
           @for (b of bodegas(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
@@ -594,16 +594,16 @@
       <div class="sgc-field">
         <label for="moneda">{{ 'Moneda' | t }}</label>
         <select id="moneda" formControlName="moneda">
-          <option value="DOP">RD$ (DOP)</option>
-          <option value="USD">US$ (USD)</option>
+          <option value="DOP">{{ 'RD$ (DOP)' | t }}</option>
+          <option value="USD">{{ 'US$ (USD)' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
         <label for="costo_origen">{{ 'El costo es' | t }}</label>
         <select id="costo_origen" formControlName="costo_origen">
-          <option value="compra">Precio real de compra</option>
-          <option value="estimado">Estimado (precio referencial)</option>
-          <option value="donado">Donado</option>
+          <option value="compra">{{ 'Precio real de compra' | t }}</option>
+          <option value="estimado">{{ 'Estimado (precio referencial)' | t }}</option>
+          <option value="donado">{{ 'Donado' | t }}</option>
         </select>
       </div>
     </div>
@@ -614,7 +614,7 @@
         <input id="fecha_compra" type="date" formControlName="fecha_compra" [attr.disabled]="f.fecha_compra_desconocida.value ? true : null" />
         <label class="field-hint-check">
           <input type="checkbox" formControlName="fecha_compra_desconocida" />
-          Desconocida
+          {{ 'Desconocida' | t }}
         </label>
       </div>
       <div class="sgc-field">
@@ -622,7 +622,7 @@
         <input id="garantia_hasta" type="date" formControlName="garantia_hasta" [attr.disabled]="f.garantia_desconocida.value ? true : null" />
         <label class="field-hint-check">
           <input type="checkbox" formControlName="garantia_desconocida" />
-          Desconocida
+          {{ 'Desconocida' | t }}
         </label>
       </div>
     </div>
@@ -631,7 +631,7 @@
     <div class="sgc-field">
       <label for="origen_solicitud_compra_id">{{ 'Origen: compra tecnológica' | t }}</label>
       <select id="origen_solicitud_compra_id" formControlName="origen_solicitud_compra_id">
-        <option [ngValue]="null">Sin origen de compra</option>
+        <option [ngValue]="null">{{ 'Sin origen de compra' | t }}</option>
         @for (c of comprasOpciones(); track c.id) {
           <option [value]="c.id">{{ c.label }}</option>
         }
@@ -665,7 +665,7 @@
         </div>
       }
       <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
-        + Agregar fotos
+        {{ '+ Agregar fotos' | t }}
         <input type="file" accept="image/*" multiple hidden (change)="onFotosPicked($event)" />
       </label>
       <span class="field-hint">{{ 'La primera es la portada; toca ★ para cambiarla. Toca una foto para verla en grande.' | t }}</span>
@@ -685,9 +685,9 @@
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Registrar equipo' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Registrar equipo') | t }}
         }
       </button>
     </div>
@@ -708,7 +708,7 @@
       }
       <div class="detail__qr-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimirEtiqueta(eq)">
-          <app-icon name="printer" [size]="15" /> Imprimir etiqueta
+          <app-icon name="printer" [size]="15" /> {{ 'Imprimir etiqueta' | t }}
         </button>
       </div>
       <dl class="detail__grid">
@@ -719,7 +719,7 @@
           <dt>{{ 'Situación' | t }}</dt>
           <dd>
             <span class="status-pill" [class]="'status-pill--' + getEstadoTono(eq.estado)">
-              {{ getEstadoLabel(eq.estado) }}
+              {{ getEstadoLabel(eq.estado) | t }}
             </span>
           </dd>
         </div>
@@ -727,7 +727,7 @@
           <dt>{{ 'Condición' | t }}</dt>
           <dd>
             <span class="status-pill" [class]="'status-pill--' + getCondicionTono(eq.condicion ?? 'funciona')">
-              {{ getCondicionLabel(eq.condicion ?? 'funciona') }}
+              {{ getCondicionLabel(eq.condicion ?? 'funciona') | t }}
             </span>
           </dd>
         </div>
@@ -746,7 +746,7 @@
           <div><dt>{{ 'Equipo' | t }}</dt><dd>{{ eq.specs?.procesador || '—' }}@if (eq.specs?.ram_gb) { · {{ eq.specs?.ram_gb }} GB RAM }@if (eq.specs?.so) { · {{ eq.specs?.so }} }</dd></div>
         }
         @if (eq.specs?.nombre_windows || eq.specs?.usuario_windows) {
-          <div><dt>{{ 'Windows' | t }}</dt><dd>{{ eq.specs?.nombre_windows || '—' }}@if (eq.specs?.usuario_windows) { · sesión: {{ eq.specs?.usuario_windows }} }</dd></div>
+          <div><dt>{{ 'Windows' | t }}</dt><dd>{{ eq.specs?.nombre_windows || '—' }}@if (eq.specs?.usuario_windows) { · {{ 'sesión:' | t }} {{ eq.specs?.usuario_windows }} }</dd></div>
         }
         @if (eq.specs?.frecuencia) { <div><dt>{{ 'Frecuencia' | t }}</dt><dd>{{ eq.specs?.frecuencia }}@if (eq.specs?.potencia_w) { · {{ eq.specs?.potencia_w }} W }</dd></div> }
         @if (eq.specs?.bateria_modelo || eq.specs?.bateria_capacidad) {
@@ -754,12 +754,12 @@
         }
         @if (eq.specs?.accesorios?.length) { <div><dt>{{ 'Accesorios' | t }}</dt><dd>{{ eq.specs?.accesorios?.join(', ') }}</dd></div> }
         <!-- QA-071 / AL1 / DA-12 -->
-        <div><dt>{{ 'Costo' | t }}</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}@if (eq.costo_origen && eq.costo_origen !== 'compra') { · {{ eq.costo_origen === 'estimado' ? 'estimado' : 'donado' }} }</dd></div>
-        <div><dt>{{ 'Fecha de compra' | t }}</dt><dd>{{ eq.fecha_compra_desconocida ? 'Desconocida' : formatFecha(eq.fecha_compra) }}</dd></div>
+        <div><dt>{{ 'Costo' | t }}</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}@if (eq.costo_origen && eq.costo_origen !== 'compra') { · {{ (eq.costo_origen === 'estimado' ? 'estimado' : 'donado') | t }} }</dd></div>
+        <div><dt>{{ 'Fecha de compra' | t }}</dt><dd>{{ (eq.fecha_compra_desconocida ? 'Desconocida' : formatFecha(eq.fecha_compra)) | t }}</dd></div>
         <div>
           <dt>{{ 'Garantía hasta' | t }}</dt>
           <dd>
-            {{ eq.garantia_desconocida ? 'Desconocida' : formatFecha(eq.garantia_hasta) }}
+            {{ (eq.garantia_desconocida ? 'Desconocida' : formatFecha(eq.garantia_hasta)) | t }}
             @if (garantiaPorVencer(eq)) {
               <span class="status-pill status-pill--warning">{{ 'Por vencer / vencida' | t }}</span>
             }
@@ -771,7 +771,7 @@
             <dt>{{ 'Origen' | t }}</dt>
             <dd>
               <span class="sgc-badge sgc-badge--info" title="{{ compraLabel(eq.origen_solicitud_compra_id) }}">
-                Registrado desde compra
+                {{ 'Registrado desde compra' | t }}
               </span>
             </dd>
           </div>
@@ -782,7 +782,7 @@
             <dt>{{ 'Cotización de origen' | t }}</dt>
             <dd>
               <a class="sgc-badge sgc-badge--neutral" [routerLink]="['/tecnologia/cotizaciones']" [queryParams]="{ id: cot.cotizacion_id }" [title]="cot.titulo">
-                {{ cot.directa ? 'Ver cotización' : 'Ver cotización (de la compra)' }}
+                {{ (cot.directa ? 'Ver cotización' : 'Ver cotización (de la compra)') | t }}
               </a>
             </dd>
           </div>
@@ -801,7 +801,7 @@
               @if (k.completo) {
                 <span class="status-pill status-pill--success">{{ 'Completo' | t }}</span>
               } @else {
-                <span class="status-pill status-pill--warning">Kit incompleto: falta {{ k.faltantes }}</span>
+                <span class="status-pill status-pill--warning">{{ 'Kit incompleto: falta' | t }} {{ k.faltantes }}</span>
               }
             }
           </div>
@@ -816,11 +816,11 @@
                     <td class="equipo-codigo">{{ c.codigo ?? '—' }}</td>
                     <td>{{ c.nombre }}</td>
                     <td>
-                      <span class="status-pill" [class]="'status-pill--' + getEstadoTono(c.estado)">{{ getEstadoLabel(c.estado) }}</span>
+                      <span class="status-pill" [class]="'status-pill--' + getEstadoTono(c.estado)">{{ getEstadoLabel(c.estado) | t }}</span>
                     </td>
                     <td>
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleComponentePresente(c)">
-                        {{ c.presente ? 'Presente' : 'Falta' }}
+                        {{ (c.presente ? 'Presente' : 'Falta') | t }}
                       </button>
                     </td>
                     <td class="text-center">
@@ -835,13 +835,13 @@
           <div class="kit-section__actions">
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirAgregarComponente(eq)">{{ '+ Agregar componente' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="aplicarAlKitCompleto(eq)">
-              Aplicar ubicación/responsable a todo el kit
+              {{ 'Aplicar ubicación/responsable a todo el kit' | t }}
             </button>
           </div>
         </div>
       } @else if (!eq.kit_padre_id) {
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm kit-section__start" (click)="abrirAgregarComponente(eq)">
-          + Agregar componente (convertir en kit)
+          {{ '+ Agregar componente (convertir en kit)' | t }}
         </button>
       }
 
@@ -854,14 +854,14 @@
               @if (claveValor()) {
                 <div class="clave-section__valor">
                   <code>{{ claveValor() }}</code>
-                  <span class="clave-section__cuenta">se oculta en {{ claveSegundosRestantes() }} s</span>
+                  <span class="clave-section__cuenta">{{ 'se oculta en' | t }} {{ claveSegundosRestantes() }} {{ 's' | t }}</span>
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ocultarClave()">{{ 'Ocultar' | t }}</button>
                 </div>
               } @else {
                 <div class="clave-section__actions">
-                  <span class="field-hint">{{ claveTipo() === 'personal' ? 'Personal' : 'Compartida' }} — guardada cifrada.</span>
+                  <span class="field-hint">{{ (claveTipo() === 'personal' ? 'Personal' : 'Compartida') | t }} {{ '— guardada cifrada.' | t }}</span>
                   <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="claveCargando()" (click)="mostrarClave(eq.id)">
-                    Mostrar 30 s
+                    {{ 'Mostrar 30 s' | t }}
                   </button>
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarClave()">{{ 'Cambiar' | t }}</button>
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarClave(eq.id)">{{ 'Quitar' | t }}</button>
@@ -877,11 +877,11 @@
             <div class="clave-section__form">
               <label class="field-hint-check">
                 <input type="radio" name="clave_tipo" [checked]="claveNuevoTipo() === 'compartida'" (change)="claveNuevoTipo.set('compartida')" />
-                Compartida
+                {{ 'Compartida' | t }}
               </label>
               <label class="field-hint-check">
                 <input type="radio" name="clave_tipo" [checked]="claveNuevoTipo() === 'personal'" (change)="claveNuevoTipo.set('personal')" />
-                Personal
+                {{ 'Personal' | t }}
               </label>
               <input
                 type="text"
@@ -909,7 +909,7 @@
           @for (h of historial(); track h.id) {
             <li class="hist-item">
               <div class="hist-item__head">
-                <span class="hist-item__tipo">{{ histTipoLabel(h.tipo_cambio) }}</span>
+                <span class="hist-item__tipo">{{ histTipoLabel(h.tipo_cambio) | t }}</span>
                 <span class="hist-item__fecha">{{ formatTimestamp(h.created_at) }}</span>
               </div>
               @if (h.descripcion) {

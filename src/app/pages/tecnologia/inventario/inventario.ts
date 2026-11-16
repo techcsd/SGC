@@ -26,6 +26,7 @@ import { tonoDeEstado } from '../../../../shared/utils/estado-tono';
 import QRCode from 'qrcode';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** AL1 — foto de la galería (existente o pendiente de subir). `key` identifica la
  *  portada (path si es existente, o el preview blob si es nueva). */
 interface FotoItem {
@@ -49,6 +50,7 @@ export class TecInventario implements OnInit {
   private toast = inject(ToastService);
   private userService = inject(UserService);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
 
   // DA-06 — gate propio (NO el genérico de módulo tecnología, ver user.service.ts).
   puedeVerClaves = this.userService.puedeVerClavesEquipos;
@@ -212,7 +214,7 @@ export class TecInventario implements OnInit {
     try {
       const r = await this.tecnologia.leerEspecificacionesEquipo(files);
       if (!r.ok || !r.specs) {
-        this.toast.warning('No se pudo leer la captura', r.error ?? 'Llena los campos a mano.');
+        this.toast.warning(this.i18n.t('No se pudo leer la captura'), r.error ?? 'Llena los campos a mano.');
         return;
       }
       // Precarga para REVISAR — nunca se guarda sola (DA-13).
@@ -230,9 +232,9 @@ export class TecInventario implements OnInit {
       if (s['service_tag'] && !this.form.controls.service_tag.value) {
         this.form.controls.service_tag.setValue(s['service_tag'] as string);
       }
-      this.toast.success('Captura leída', 'Revisa los campos antes de guardar — no se guardaron solos.');
+      this.toast.success(this.i18n.t('Captura leída'), 'Revisa los campos antes de guardar — no se guardaron solos.');
     } catch (e: unknown) {
-      this.toast.warning('No se pudo leer la captura', e instanceof Error ? e.message : 'Llena los campos a mano.');
+      this.toast.warning(this.i18n.t('No se pudo leer la captura'), e instanceof Error ? e.message : 'Llena los campos a mano.');
     } finally {
       this.leyendoCaptura.set(false);
     }
@@ -270,6 +272,11 @@ export class TecInventario implements OnInit {
       this.soloSinCompra() ||
       this.soloSinGarantia(),
   );
+
+  equiposLabel(): string {
+    const n = this.filtered().length;
+    return n === 1 ? this.i18n.t('{n} equipo', { n }) : this.i18n.t('{n} equipos', { n });
+  }
 
   toggleResponsableExterno() {
     this.soloResponsableExterno.update((v) => !v);
@@ -371,7 +378,7 @@ export class TecInventario implements OnInit {
   // Cristofer, Contabilidad): no se inventa un empleado falso, se muestra tal cual.
   getQuienLoTiene(e: TecEquipo): string {
     if (e.empleado_id || e.empleado) return this.getEmpleadoNombre(e);
-    if (e.responsable_externo) return `${e.responsable_externo} · sin usuario`;
+    if (e.responsable_externo) return this.i18n.t('{nombre} · sin usuario', { nombre: e.responsable_externo });
     return '—';
   }
 
@@ -507,7 +514,7 @@ export class TecInventario implements OnInit {
       this.tipoIdActual.set(nuevo.value);
       this.newTipoLabel.set('');
       this.addingTipo.set(false);
-      this.toast.success('Tipo agregado');
+      this.toast.success(this.i18n.t('Tipo agregado'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo agregar el tipo.');
     }
@@ -523,7 +530,7 @@ export class TecInventario implements OnInit {
       this.form.controls.estado.setValue(nuevo.value);
       this.newEstadoLabel.set('');
       this.addingEstado.set(false);
-      this.toast.success('Situación agregada');
+      this.toast.success(this.i18n.t('Situación agregada'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo agregar la situación.');
     }
@@ -538,7 +545,7 @@ export class TecInventario implements OnInit {
       this.form.controls.condicion.setValue(nuevo.value);
       this.newCondicionLabel.set('');
       this.addingCondicion.set(false);
-      this.toast.success('Condición agregada');
+      this.toast.success(this.i18n.t('Condición agregada'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo agregar la condición.');
     }
@@ -737,7 +744,7 @@ export class TecInventario implements OnInit {
           foto_path: portada, // back-compat
         });
       } catch {
-        this.toast.warning('Fotos no subidas', 'El equipo se guardó, pero las fotos no.');
+        this.toast.warning(this.i18n.t('Fotos no subidas'), 'El equipo se guardó, pero las fotos no.');
       }
 
       // DA2 — specs 1:1 (no-op si el bloque quedó vacío, guardarSpecs lo decide).
@@ -752,7 +759,7 @@ export class TecInventario implements OnInit {
             .filter(Boolean),
         });
       } catch (e: unknown) {
-        this.toast.warning('Specs no guardadas', e instanceof Error ? e.message : 'El equipo se guardó, pero las especificaciones no.');
+        this.toast.warning(this.i18n.t('Specs no guardadas'), e instanceof Error ? e.message : 'El equipo se guardó, pero las especificaciones no.');
       }
 
       // DA-14 — capturas de Windows leídas en esta sesión, guardadas como
@@ -766,7 +773,7 @@ export class TecInventario implements OnInit {
           await this.tecnologia.updateEquipo(equipoId, { fotos_specs: [...previos, ...nuevos] });
           this.capturasWindowsPendientes.set([]);
         } catch {
-          this.toast.warning('Capturas no guardadas', 'El equipo se guardó, pero las capturas de Windows no.');
+          this.toast.warning(this.i18n.t('Capturas no guardadas'), 'El equipo se guardó, pero las capturas de Windows no.');
         }
       }
 
@@ -781,11 +788,11 @@ export class TecInventario implements OnInit {
   }
 
   async remove(e: TecEquipo) {
-    if (!confirm(`¿Eliminar el equipo "${e.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el equipo "{nombre}"? Esta acción no se puede deshacer.', { nombre: e.nombre }))) return;
     try {
       await this.tecnologia.removeEquipo(e.id);
       this.equipos.update((list) => list.filter((x) => x.id !== e.id));
-      this.toast.success('Equipo eliminado');
+      this.toast.success(this.i18n.t('Equipo eliminado'));
     } catch (err: unknown) {
       this.toast.error(err instanceof Error ? err.message : 'Error al eliminar.');
     }
@@ -812,7 +819,7 @@ export class TecInventario implements OnInit {
       const historial = await this.tecnologia.getHistorial(e.id);
       this.historial.set(historial);
     } catch {
-      this.toast.error('No se pudo cargar el historial.');
+      this.toast.error(this.i18n.t('No se pudo cargar el historial.'));
     } finally {
       this.historialLoading.set(false);
     }
@@ -856,24 +863,24 @@ export class TecInventario implements OnInit {
   }
 
   async quitarComponenteDelKit(c: TecEquipo) {
-    if (!confirm(`¿Sacar "${c.nombre}" del kit? Queda como equipo suelto.`)) return;
+    if (!confirm(this.i18n.t('¿Sacar "{nombre}" del kit? Queda como equipo suelto.', { nombre: c.nombre }))) return;
     try {
       await this.tecnologia.moverPiezaDeKit(c.id, true);
       const kit = this.detailEquipo();
       if (kit) await this.recargarKit(kit.id);
-      this.toast.success('Componente separado del kit');
+      this.toast.success(this.i18n.t('Componente separado del kit'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo separar.');
     }
   }
 
   async aplicarAlKitCompleto(kit: TecEquipo) {
-    if (!confirm('¿Aplicar la ubicación y el responsable actuales del kit a todos sus componentes presentes?')) return;
+    if (!confirm(this.i18n.t('¿Aplicar la ubicación y el responsable actuales del kit a todos sus componentes presentes?'))) return;
     try {
       await this.tecnologia.moverKit(kit.id, kit.empleado_id, kit.bodega_id, kit.ubicacion, 'Aplicado desde la ficha del kit');
       await this.recargarKit(kit.id);
       await this.loadAll();
-      this.toast.success('Kit movido completo');
+      this.toast.success(this.i18n.t('Kit movido completo'));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo mover el kit.');
     }
@@ -948,7 +955,7 @@ export class TecInventario implements OnInit {
       }
       this.claveEditando.set(false);
       this.claveNuevoValor.set('');
-      this.toast.success('Clave guardada', 'Se guardó cifrada.');
+      this.toast.success(this.i18n.t('Clave guardada'), 'Se guardó cifrada.');
       const eq = this.detailEquipo();
       if (eq) this.detailEquipo.set({ ...eq, tiene_clave: true });
       await this.loadAll();
@@ -960,7 +967,7 @@ export class TecInventario implements OnInit {
   }
 
   async quitarClave(equipoId: string) {
-    if (!confirm('¿Quitar la clave guardada de este equipo?')) return;
+    if (!confirm(this.i18n.t('¿Quitar la clave guardada de este equipo?'))) return;
     this.claveCargando.set(true);
     try {
       const r = await this.tecnologia.quitarClaveEquipo(equipoId);
@@ -971,7 +978,7 @@ export class TecInventario implements OnInit {
       this.ocultarClave();
       const eq = this.detailEquipo();
       if (eq) this.detailEquipo.set({ ...eq, tiene_clave: false });
-      this.toast.success('Clave eliminada');
+      this.toast.success(this.i18n.t('Clave eliminada'));
       await this.loadAll();
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo quitar la clave.');
@@ -986,7 +993,7 @@ export class TecInventario implements OnInit {
     const dataUrl = await QRCode.toDataURL(url, { width: 300, margin: 1 });
     const ventana = window.open('', '_blank', 'width=420,height=520');
     if (!ventana) {
-      this.toast.error('El navegador bloqueó la ventana de impresión.');
+      this.toast.error(this.i18n.t('El navegador bloqueó la ventana de impresión.'));
       return;
     }
     ventana.document.write(`

@@ -118,9 +118,6 @@
     "auth": {
       "enforce": false
     },
-    "tecnologia/inventario": {
-      "enforce": false
-    },
     "practica": {
       "enforce": false
     },
@@ -545,6 +542,9 @@
       "enforce": true
     },
     "tecnologia/homologacion": {
+      "enforce": true
+    },
+    "tecnologia/inventario": {
       "enforce": true
     },
     "tecnologia/matriz": {
