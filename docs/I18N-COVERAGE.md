@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 90%** (9042/10096 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 90%** (9072/10094 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -26,7 +26,6 @@
 | soporte | scope | 39 | 1 | 38 | 3% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| admin/jira | scope | 56 | 24 | 32 | 43% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
 | admin/matriz-notificaciones | scope | 72 | 42 | 30 | 58% |
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
@@ -45,6 +44,7 @@
 | admin/empresa | enforce | 41 | 41 | 0 | 100% |
 | admin/historial-versiones | enforce | 23 | 23 | 0 | 100% |
 | admin/importar | enforce | 2 | 2 | 0 | 100% |
+| admin/jira | enforce | 54 | 54 | 0 | 100% |
 | admin/orden-modulos | enforce | 6 | 6 | 0 | 100% |
 | admin/otros-valores | enforce | 11 | 11 | 0 | 100% |
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**148 literal(es) sin t()** en 15 archivo(s) (de 134 archivo(s) .ts con algo detectado).
+**141 literal(es) sin t()** en 14 archivo(s) (de 134 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -213,7 +213,6 @@
 | src/app/pages/obra/checklists/checklists.ts | 12 | Error al cargar · Error · Selecciona obra y checklist … |
 | src/app/pages/obra/no-conformidades/no-conformidades.ts | 12 | No conformidad registrada · No se pudo registrar · Acción correctiva asignada … |
 | src/app/pages/obra/avance/avance.ts | 9 | Error al cargar · Error al cargar · Línea base congelada … |
-| src/app/pages/admin/jira/jira.ts | 7 | No se pudo mover el issue · Issue actualizado · Issue creado … |
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |

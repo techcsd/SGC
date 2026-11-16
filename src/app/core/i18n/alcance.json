@@ -58,9 +58,6 @@
     "auth": {
       "enforce": false
     },
-    "admin/jira": {
-      "enforce": false
-    },
     "admin/usuarios": {
       "enforce": false
     },
@@ -113,6 +110,9 @@
       "enforce": true
     },
     "admin/importar": {
+      "enforce": true
+    },
+    "admin/jira": {
       "enforce": true
     },
     "admin/orden-modulos": {
