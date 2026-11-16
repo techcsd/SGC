@@ -8687,5 +8687,14 @@
   "Faltante en tránsito: pendiente de ajuste aprobado.": "Mank nan transpò: ap tann yon ajisteman apwouve.",
   "Odoo no respondió tras varios intentos.": "Odoo pa t reponn apre plizyè eseye.",
   "No hay existencias suficientes en el almacén de origen para este despacho.": "Pa gen ase stòk nan depo orijin lan pou voye sa a.",
-  "No se pudo sincronizar el conduce con Odoo.": "Pa t kapab senkwonize bòdwo livrezon an ak Odoo."
+  "No se pudo sincronizar el conduce con Odoo.": "Pa t kapab senkwonize bòdwo livrezon an ak Odoo.",
+  "Productos: propuestas por aprobar": "Pwodwi: pwopozisyon pou apwouve",
+  "Nada se vincula sin aprobación. Revisa que el producto de Odoo sea realmente el mismo artículo (medida, presentación).": "Anyen pa lye san apwobasyon. Verifye si pwodwi Odoo a se vrèman menm atik la (mezi, prezantasyon).",
+  "No hay propuestas pendientes.": "Pa gen pwopozisyon an tann.",
+  "Artículo SGC": "Atik SGC",
+  "Producto en Odoo": "Pwodwi nan Odoo",
+  "Método": "Metòd",
+  "Similitud": "Resanblans",
+  "Producto vinculado": "Pwodwi lye",
+  "Propuesta rechazada": "Pwopozisyon rejte"
 }

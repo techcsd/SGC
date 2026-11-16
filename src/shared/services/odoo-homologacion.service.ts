@@ -22,6 +22,19 @@ export interface BodegaOdooFila {
   odoo_warehouse_id: number | null;
 }
 
+/** DS-07 — propuesta de vínculo artículo SGC ↔ producto Odoo, pendiente de aprobación. */
+export interface PropuestaCatalogoFila {
+  id: string;
+  odoo_product_id: number;
+  nombre_odoo: string;
+  categoria_odoo: string | null;
+  uom_odoo: string | null;
+  metodo: 'codigo' | 'nombre' | 'similitud';
+  score: number;
+  estado: 'propuesta' | 'aprobada' | 'rechazada';
+  articulos: { codigo: string | null; nombre: string } | null;
+}
+
 /**
  * Homologación SGC ↔ Odoo (almacenes y cuentas analíticas). La confirmación pasa por el RPC
  * `odoo_analitica_confirmar` (solo admin; deja quién y cuándo). TODO: catálogo de productos (DS-07).
@@ -48,6 +61,22 @@ export class OdooHomologacionService {
       .order('nombre');
     if (error) throw new Error(error.message);
     return (data ?? []) as BodegaOdooFila[];
+  }
+
+  async propuestasCatalogo(): Promise<PropuestaCatalogoFila[]> {
+    const { data, error } = await this.supabase.client
+      .from('odoo_homologacion_propuestas')
+      .select('id, odoo_product_id, nombre_odoo, categoria_odoo, uom_odoo, metodo, score, estado, articulos(codigo, nombre)')
+      .eq('estado', 'propuesta')
+      .order('score', { ascending: false })
+      .limit(300);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as PropuestaCatalogoFila[];
+  }
+
+  async decidirPropuesta(id: string, aprobar: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('odoo_propuesta_decidir', { p_id: id, p_aprobar: aprobar });
+    if (error) throw new Error(error.message);
   }
 
   async confirmarCuenta(id: string, confirmar: boolean): Promise<void> {

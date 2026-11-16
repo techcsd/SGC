@@ -8687,5 +8687,14 @@
   "Faltante en tránsito: pendiente de ajuste aprobado.": "Shortfall in transit: pending approved adjustment.",
   "Odoo no respondió tras varios intentos.": "Odoo did not respond after several attempts.",
   "No hay existencias suficientes en el almacén de origen para este despacho.": "Not enough stock in the origin warehouse for this dispatch.",
-  "No se pudo sincronizar el conduce con Odoo.": "The delivery note could not be synced with Odoo."
+  "No se pudo sincronizar el conduce con Odoo.": "The delivery note could not be synced with Odoo.",
+  "Productos: propuestas por aprobar": "Products: proposals to approve",
+  "Nada se vincula sin aprobación. Revisa que el producto de Odoo sea realmente el mismo artículo (medida, presentación).": "Nothing is linked without approval. Check that the Odoo product is really the same item (size, presentation).",
+  "No hay propuestas pendientes.": "No pending proposals.",
+  "Artículo SGC": "SGC item",
+  "Producto en Odoo": "Odoo product",
+  "Método": "Method",
+  "Similitud": "Similarity",
+  "Producto vinculado": "Product linked",
+  "Propuesta rechazada": "Proposal rejected"
 }

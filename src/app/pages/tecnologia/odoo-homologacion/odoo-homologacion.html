@@ -99,3 +99,42 @@
     </div>
   }
 </div>
+
+<!-- Catálogo de productos -->
+<h2 class="oh-h2">{{ 'Productos: propuestas por aprobar' | t }}</h2>
+<p class="oh-lead">{{ 'Nada se vincula sin aprobación. Revisa que el producto de Odoo sea realmente el mismo artículo (medida, presentación).' | t }}</p>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="6" />
+  } @else if (propuestas().length === 0) {
+    <div class="table-empty"><p>{{ 'No hay propuestas pendientes.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Productos: propuestas por aprobar' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Artículo SGC' | t }}</th>
+            <th>{{ 'Producto en Odoo' | t }}</th>
+            <th>{{ 'Método' | t }}</th>
+            <th class="text-right">{{ 'Similitud' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of propuestas(); track p.id) {
+            <tr>
+              <td>{{ p.articulos?.nombre }}</td>
+              <td>{{ p.nombre_odoo }}<br /><small>{{ p.categoria_odoo }} · {{ p.uom_odoo }}</small></td>
+              <td>{{ (p.metodo === 'codigo' ? 'Código' : p.metodo === 'nombre' ? 'Nombre' : 'Similitud') | t }}</td>
+              <td class="text-right">{{ (p.score * 100) | number: '1.0-0' }}%</td>
+              <td class="text-right">
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="trabajando() === p.id" (click)="decidirProducto(p, true)">{{ 'Aprobar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="trabajando() === p.id" (click)="decidirProducto(p, false)">{{ 'Rechazar' | t }}</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
