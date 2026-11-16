@@ -578,6 +578,49 @@ solamente, dejando el detalle en español como de costumbre).
 **Módulo 13 (Ingeniería) CERRADO: 1/1 pantalla con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Reuniones/Tareas/Notas/Mensajes (#14).
 
+## Reuniones/Tareas/Notas/Mensajes — 100% COMPLETO (9/9 pantallas, 15-nov-2026)
+
+9 pantallas (mensajes, mensajes/grupo-info, notas, notas/editor,
+reuniones/reunion-ficha, reuniones/reuniones-lista, tareas/gestion,
+tareas/historial, tareas/mis-tareas), 402 literales totales. Lote 57
+(codemod, `b2e99b45`) + lote 58 (`f04be843`, terminado a mano
+completo, sin fork). `reuniones/*` ya traía 82-91% de una ronda
+anterior (CP8); el resto arrancaba en 0%.
+
+- **Cuarto bug del codemod encontrado y corregido** (primero: `@if`
+  numérico de Flota; segundo: import multilínea de Proyectos;
+  tercero: `imports: []` faltante de RRHH): el regex de
+  atributos-visibles usaba `\b(placeholder)="..."` sin excluir el
+  caso en que el atributo real es un `data-*` personalizado — `\b`
+  matchea igual dentro de "data-placeholder" porque el `-` no es
+  carácter de palabra. Envolvió
+  `data-placeholder="Escribe aquí…"` (placeholder de contenteditable
+  vía CSS `content: attr(data-placeholder)`) como `data-placeholder=
+  "{{ '...' | t }}"`, y Angular reescribe CUALQUIER atributo
+  interpolado cuyo nombre (tras quitar "data-") calce con una
+  propiedad DOM conocida como binding de propiedad — NG8002 "Can't
+  bind to 'placeholder' … of 'div'". Corregido en el script con
+  `(?<!-)` antes del `\b`; el sitio real se reescribió con
+  `[attr.data-placeholder]="i18n.t('Escribe aquí…')"` (un binding
+  `[attr.X]` nunca sufre esta reescritura).
+- Mismos gotchas recurrentes: ternarias sin `| t` en templates
+  (`pinned() ? 'Fijada' : 'Fijar'`), catálogos (`CATEGORIA_LABELS`/
+  `e.label`/`t.label`/`p.label`) sin `| t` en varios selects de
+  filtro, bindings `[title]`/`[attr.aria-label]` con concatenación
+  "Ver "/"Editar "/"Quitar admin a " (espacio final) reescritos con
+  `i18n.t()` + concatenación separada.
+- `scripts/i18n-whitelist.json`: `"- [x]"` agregado (ejemplo de
+  sintaxis markdown dentro de un `<code>`, no es prosa).
+- `public/i18n/en.json`/`ht.json`: +168/+264 claves nuevas (el lote
+  de traducción más grande desde Legal — vocabulario de mensajería/
+  notas/reuniones sin solapamiento previo).
+- `alcance.json`: 9 pantallas nuevas `enforce:true` (total **123**).
+  `verify-i18n.mjs`: 123 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 14 (Reuniones/Tareas/Notas/Mensajes) CERRADO: 9/9 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Tecnología (#15).
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -620,7 +663,7 @@ Admin, resto.
 | 11 | Legal | 5/5 pantallas 100% (ver detalle arriba) | 168 (codemod) + ~50 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | c02a8f21..7e606f94 | **true** |
 | 12 | Documentos | 4/4 pantallas 100% (ver detalle arriba) | 51 (codemod) + ~26 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 3086c82f..4de5fba8 | **true** |
 | 13 | Ingeniería | 1/1 pantalla 100% (ver detalle arriba) | ~14 a mano (ya 79% por trabajo previo) | toasts | ✅ **100% — hecho** | bed92636 | **true** |
-| 14 | Reuniones/Tareas/Notas/Mensajes | — | — | — | ⏳ pendiente | — | false |
+| 14 | Reuniones/Tareas/Notas/Mensajes | 9/9 pantallas 100% (ver detalle arriba) | 176 (codemod) + ~120 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | b2e99b45..f04be843 | **true** |
 | 15 | Tecnología | — | — | — | ⏳ pendiente | — | false |
 | 16 | Admin | — | — | — | ⏳ pendiente | — | false |
 | 17 | Resto | — | — | — | ⏳ pendiente | — | false |
