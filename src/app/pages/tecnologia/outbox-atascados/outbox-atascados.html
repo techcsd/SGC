@@ -3,9 +3,7 @@
     <div>
       <h1>{{ 'Outbox atascado' | t }}</h1>
       <p class="oba-sub">
-        Registros que la app no pudo enviar por errores del sistema (permiso, constraint, servidor).
-        Es data real de obra atascada en el teléfono — no debe perderse. Al publicar el fix,
-        el usuario reintenta y aquí lo marcas resuelto.
+        {{ 'Registros que la app no pudo enviar por errores del sistema (permiso, constraint, servidor). Es data real de obra atascada en el teléfono — no debe perderse. Al publicar el fix, el usuario reintenta y aquí lo marcas resuelto.' | t }}
       </p>
     </div>
     <button class="oba-btn" (click)="load()" [disabled]="loading()">{{ 'Actualizar' | t }}</button>
@@ -65,7 +63,7 @@
         <article class="oba-item" [class.resuelto]="f.resuelto">
           <div class="oba-item-top">
             <span class="oba-badge oba-badge--{{ f.categoria }}">{{ categoriaLabel(f.categoria) }}</span>
-            <span class="oba-tipo">{{ tipoLabel(f.tipo_op) }}</span>
+            <span class="oba-tipo">{{ tipoLabel(f.tipo_op) | t }}</span>
             @if (f.error_code) { <span class="oba-code">{{ f.error_code }}</span> }
             @if (f.fotos_count) {
               <span class="oba-fotos" title="{{ 'Fotos atascadas con este registro' | t }}">
@@ -80,8 +78,8 @@
           <div class="oba-meta">
             @if (f.usuario_nombre) { <span>{{ f.usuario_nombre }}</span> }
             @if (f.roles_snapshot) { <span class="oba-roles">{{ f.roles_snapshot }}</span> }
-            <span>Intentos: {{ f.intentos }}</span>
-            @if (f.edad_horas != null) { <span>Edad: {{ f.edad_horas }}h</span> }
+            <span>{{ 'Intentos:' | t }} {{ f.intentos }}</span>
+            @if (f.edad_horas != null) { <span>{{ 'Edad:' | t }} {{ f.edad_horas }}{{ 'h' | t }}</span> }
           </div>
           @if (resumenTexto(f.payload_resumen); as res) {
             @if (res) { <p class="oba-resumen">{{ res }}</p> }
@@ -120,9 +118,9 @@
       <section class="oba-drawer-sec">
         <div class="oba-meta">
           <span class="oba-badge oba-badge--{{ d.atascado.categoria }}">{{ categoriaLabel(d.atascado.categoria) }}</span>
-          <span class="oba-tipo">{{ tipoLabel(d.atascado.tipo_op) }}</span>
+          <span class="oba-tipo">{{ tipoLabel(d.atascado.tipo_op) | t }}</span>
           @if (d.atascado.error_code) { <span class="oba-code">{{ d.atascado.error_code }}</span> }
-          <span>Intentos: {{ d.atascado.intentos }}</span>
+          <span>{{ 'Intentos:' | t }} {{ d.atascado.intentos }}</span>
         </div>
         @if (d.atascado.error_msg) { <p class="oba-detalle">{{ d.atascado.error_msg }}</p> }
       </section>
@@ -131,7 +129,7 @@
       @if (d.conduce; as c) {
         <section class="oba-drawer-sec">
           <div class="oba-drawer-sec-title">
-            Conduce {{ c.codigo }}
+            {{ 'Conduce' | t }} {{ c.codigo }}
             @if (c.estado) { <span class="sgc-status-pill">{{ c.estado }}</span> }
             @if (c.anulado) { <span class="oba-chip-anulado">{{ 'Anulado' | t }}</span> }
           </div>
@@ -178,9 +176,9 @@
             @for (u of fotoUrls(); track u) { <img [src]="u" alt="{{ 'Evidencia' | t }}" loading="lazy" /> }
           </div>
         } @else {
-          <p class="oba-detalle">La foto está solo en el teléfono de {{ d.atascado.usuario_nombre || 'el usuario' }}.</p>
+          <p class="oba-detalle">{{ 'La foto está solo en el teléfono de' | t }} {{ d.atascado.usuario_nombre || 'el usuario' }}.</p>
           @if (minutosDesde(d.atascado.evidencia_solicitada_en); as m) {
-            <span class="oba-resuelto-tag">Evidencia solicitada · hace {{ m }} min</span>
+            <span class="oba-resuelto-tag">{{ 'Evidencia solicitada · hace' | t }} {{ m }} {{ 'min' | t }}</span>
           } @else {
             <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirEvidencia()">{{ 'Pedir que se suba' | t }}</button>
           }
@@ -190,7 +188,7 @@
       <!-- Acciones -->
       <section class="oba-drawer-actions">
         @if (minutosDesde(d.atascado.reintento_solicitado_en); as m) {
-          <span class="oba-resuelto-tag">Reintento solicitado · hace {{ m }} min</span>
+          <span class="oba-resuelto-tag">{{ 'Reintento solicitado · hace' | t }} {{ m }} {{ 'min' | t }}</span>
         } @else {
           <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirReintento()">{{ 'Reintentar ahora' | t }}</button>
         }

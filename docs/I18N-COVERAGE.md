@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 81%** (8217/10185 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 81%** (8234/10187 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -51,7 +51,6 @@
 | tecnologia/design-system | scope | 130 | 85 | 45 | 65% |
 | tecnologia/inventario | scope | 198 | 134 | 64 | 68% |
 | practica | scope | 34 | 24 | 10 | 71% |
-| tecnologia/outbox-atascados | scope | 53 | 38 | 15 | 72% |
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | admin/vault | scope | 73 | 65 | 8 | 89% |
 | asistente | scope | 36 | 33 | 3 | 92% |
@@ -194,6 +193,7 @@
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
+| tecnologia/outbox-atascados | enforce | 55 | 55 | 0 | 100% |
 | tecnologia/qa | enforce | 77 | 77 | 0 | 100% |
 | tecnologia/reportes-errores | enforce | 59 | 59 | 0 | 100% |
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**227 literal(es) sin t()** en 30 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**220 literal(es) sin t()** en 29 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -220,7 +220,6 @@
 | src/app/pages/admin/roles/roles.ts | 7 | Permisos guardados · No se pudo cargar el historial · No se pudieron cargar los accesos … |
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
-| src/app/pages/tecnologia/outbox-atascados/outbox-atascados.ts | 7 | Reintento solicitado al teléfono · No se pudo solicitar el reintento · Le pedimos que suba la evidencia … |
 | src/app/pages/tecnologia/compras/compras-nueva/compras-nueva.ts | 6 | No se encontró esa compra tecnológica. · Esta compra ya no es un borrador · No autorizado … |
 | src/app/pages/admin/compa-conversaciones/compa-conversaciones.ts | 5 | No se pudo abrir · Guardado · No se pudo guardar … |
 | src/app/pages/admin/vault/vault.ts | 5 | El nombre es obligatorio · Guardado · Copiado — se borra del portapapeles en 30 s … |

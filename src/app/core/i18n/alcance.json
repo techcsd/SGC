@@ -133,9 +133,6 @@
     "practica": {
       "enforce": false
     },
-    "tecnologia/outbox-atascados": {
-      "enforce": false
-    },
     "admin/compa-conversaciones": {
       "enforce": false
     },
@@ -560,6 +557,9 @@
       "enforce": true
     },
     "tecnologia/oficina-agentes": {
+      "enforce": true
+    },
+    "tecnologia/outbox-atascados": {
       "enforce": true
     },
     "tecnologia/qa": {

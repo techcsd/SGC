@@ -2419,32 +2419,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/outbox-atascados",
-      "total": 53,
-      "cubiertos": 38,
-      "sin": 15,
-      "pct": 72,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Registros que la app no pudo enviar por errores del sistema (permiso, constraint, servidor). Es data real de obra atascada en el teléfono — no debe perderse. Al publicar el fix, el usuario reintenta y aquí lo marcas resuelto.",
-        "Intentos:",
-        "Edad: h",
-        "Intentos:",
-        "Conduce @if (c.estado) {",
-        "La foto está solo en el teléfono de .",
-        "Evidencia solicitada · hace min",
-        "Reintento solicitado · hace min",
-        "Reintento solicitado al teléfono",
-        "No se pudo solicitar el reintento",
-        "Le pedimos que suba la evidencia",
-        "No se pudo pedir la evidencia",
-        "No se pudo actualizar",
-        "Reintentar envío",
-        "Sube la evidencia"
-      ]
-    },
-    {
       "pantalla": "admin/compa-conversaciones",
       "total": 26,
       "cubiertos": 20,
@@ -3885,6 +3859,16 @@
       "pantalla": "tecnologia/oficina-agentes",
       "total": 31,
       "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/outbox-atascados",
+      "total": 55,
+      "cubiertos": 55,
       "sin": 0,
       "pct": 100,
       "enScope": true,
