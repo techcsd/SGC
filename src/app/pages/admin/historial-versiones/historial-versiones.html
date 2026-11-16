@@ -69,11 +69,11 @@
   <!-- ── Z27 — Mini-gráficos analíticos (plataforma activa) ── -->
   <div class="hv-charts">
     <div class="hv-chart-card sgc-card">
-      <app-bar-chart titulo="Releases por mes" [data]="chartPorMes()" />
+      <app-bar-chart [titulo]="'Releases por mes' | t" [data]="chartPorMes()" />
     </div>
     <div class="hv-chart-card sgc-card">
       @if (chartPorTipo().length > 0) {
-        <app-donut-chart titulo="Distribución por tipo" [data]="chartPorTipo()" />
+        <app-donut-chart [titulo]="'Distribución por tipo' | t" [data]="chartPorTipo()" />
       } @else {
         <p class="hv-chart-empty">{{ 'Distribución por tipo — sin cambios etiquetados aún.' | t }}</p>
       }
@@ -134,17 +134,17 @@
             @if (v.plataforma === 'web' && v.deploy_url && esTecnologia()) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.deploy_url" target="_blank" rel="noopener"
                  title="{{ 'Versión antigua · datos de dev — no operar sobre prod' | t }}">
-                <app-icon name="link" [size]="16" /> Abrir esta versión
+                <app-icon name="link" [size]="16" /> {{ 'Abrir esta versión' | t }}
               </a>
             }
             @if (v.plataforma === 'web' && v.url && esTecnologia()) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.url" target="_blank" rel="noopener">
-                <app-icon name="link" [size]="16" /> Ver cambios en el código
+                <app-icon name="link" [size]="16" /> {{ 'Ver cambios en el código' | t }}
               </a>
             }
             @if (v.plataforma === 'movil' && v.apk_url) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.apk_url" target="_blank" rel="noopener">
-                <app-icon name="download" [size]="16" /> Descargar APK v{{ v.version }}
+                <app-icon name="download" [size]="16" /> {{ 'Descargar APK v' | t }}{{ v.version }}
               </a>
             }
           </div>

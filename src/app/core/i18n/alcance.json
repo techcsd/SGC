@@ -76,9 +76,6 @@
     "admin/roles": {
       "enforce": false
     },
-    "admin/historial-versiones": {
-      "enforce": false
-    },
     "admin/vault": {
       "enforce": false
     },
@@ -113,6 +110,9 @@
       "enforce": true
     },
     "admin/empresa": {
+      "enforce": true
+    },
+    "admin/historial-versiones": {
       "enforce": true
     },
     "admin/importar": {

@@ -1326,20 +1326,6 @@
       ]
     },
     {
-      "pantalla": "admin/historial-versiones",
-      "total": 23,
-      "cubiertos": 20,
-      "sin": 3,
-      "pct": 87,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Abrir esta versión",
-        "Ver cambios en el código",
-        "Descargar APK v"
-      ]
-    },
-    {
       "pantalla": "admin/vault",
       "total": 72,
       "cubiertos": 65,
@@ -1470,6 +1456,16 @@
       "pantalla": "admin/empresa",
       "total": 41,
       "cubiertos": 41,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/historial-versiones",
+      "total": 23,
+      "cubiertos": 23,
       "sin": 0,
       "pct": 100,
       "enScope": true,

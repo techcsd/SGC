@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (9032/10096 literales de 192 pantallas en alcance). **`ht`: 95%**.
+**Alcance `en`: 89%** (9035/10096 literales de 192 pantallas en alcance). **`ht`: 95%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -32,7 +32,6 @@
 | admin/app-versiones | scope | 130 | 91 | 39 | 70% |
 | practica | scope | 34 | 24 | 10 | 71% |
 | admin/roles | scope | 153 | 112 | 41 | 73% |
-| admin/historial-versiones | scope | 23 | 20 | 3 | 87% |
 | admin/vault | scope | 72 | 65 | 7 | 90% |
 | asistente | scope | 36 | 33 | 3 | 92% |
 | borrador-claude | scope | 25 | 23 | 2 | 92% |
@@ -45,6 +44,7 @@
 | admin/compa-conversaciones | enforce | 25 | 25 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
 | admin/empresa | enforce | 41 | 41 | 0 | 100% |
+| admin/historial-versiones | enforce | 23 | 23 | 0 | 100% |
 | admin/importar | enforce | 2 | 2 | 0 | 100% |
 | admin/orden-modulos | enforce | 6 | 6 | 0 | 100% |
 | admin/otros-valores | enforce | 11 | 11 | 0 | 100% |

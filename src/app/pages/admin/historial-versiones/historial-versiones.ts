@@ -9,6 +9,7 @@ import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 const TAGS: CambioTag[] = ['nuevo', 'mejora', 'arreglo', 'seguridad'];
 
 /** Z27 — colores por tipo de cambio (paridad con los chips del historial). */
@@ -46,6 +47,7 @@ export interface GrupoCambios {
 export class AdminHistorialVersiones implements OnInit {
   private service = inject(AppVersionesService);
   private user = inject(UserService);
+  protected i18n = inject(I18nService);
   // CD6 — "Abrir esta versión" (deploy) y "Ver cambios en el código" (GitHub) solo Tecnología.
   esTecnologia = this.user.esTecnologia;
 
@@ -161,7 +163,7 @@ export class AdminHistorialVersiones implements OnInit {
   }
 
   tagLabel(t: string): string {
-    return CAMBIO_META[t]?.label ?? t;
+    return this.i18n.t(CAMBIO_META[t]?.label ?? t);
   }
 
   /** AJ1 — agrupa los bullets por módulo (campo `m`); los que no traen módulo
