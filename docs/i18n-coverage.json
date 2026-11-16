@@ -316,19 +316,6 @@
       ]
     },
     {
-      "pantalla": "borrador-claude",
-      "total": 25,
-      "cubiertos": 23,
-      "sin": 2,
-      "pct": 92,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Lote procesado",
-        "Borrador descartado."
-      ]
-    },
-    {
       "pantalla": "asistente",
       "total": 35,
       "cubiertos": 33,
@@ -735,6 +722,16 @@
       "pantalla": "bitacora/solicitudes-material",
       "total": 75,
       "cubiertos": 75,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "borrador-claude",
+      "total": 25,
+      "cubiertos": 25,
       "sin": 0,
       "pct": 100,
       "enScope": true,

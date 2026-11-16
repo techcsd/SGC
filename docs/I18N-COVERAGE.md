@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9814/10021 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9816/10021 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -17,7 +17,6 @@
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
 | soporte | scope | 35 | 29 | 6 | 83% |
-| borrador-claude | scope | 25 | 23 | 2 | 92% |
 | asistente | scope | 35 | 33 | 2 | 94% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
@@ -59,6 +58,7 @@
 | bitacora/orden-trabajo | enforce | 81 | 81 | 0 | 100% |
 | bitacora/solicitudes-compra | enforce | 26 | 26 | 0 | 100% |
 | bitacora/solicitudes-material | enforce | 75 | 75 | 0 | 100% |
+| borrador-claude | enforce | 25 | 25 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/ordenes | enforce | 111 | 111 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**103 literal(es) sin t()** en 9 archivo(s) (de 133 archivo(s) .ts con algo detectado).
+**101 literal(es) sin t()** en 8 archivo(s) (de 133 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -214,4 +214,3 @@
 | src/app/pages/obra/informes/informes.ts | 7 | Error al cargar · Informe generado · No se pudo generar … |
 | src/app/pages/obra/plan-dia/plan-dia.ts | 7 | Error al cargar · Error al cargar el plan · Charla de seguridad registrada … |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
-| src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |

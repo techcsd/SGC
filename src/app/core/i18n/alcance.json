@@ -31,9 +31,6 @@
     "soporte": {
       "enforce": false
     },
-    "borrador-claude": {
-      "enforce": false
-    },
     "asistente": {
       "enforce": false
     },
@@ -155,6 +152,9 @@
       "enforce": true
     },
     "bitacora/solicitudes-material": {
+      "enforce": true
+    },
+    "borrador-claude": {
       "enforce": true
     },
     "claude": {

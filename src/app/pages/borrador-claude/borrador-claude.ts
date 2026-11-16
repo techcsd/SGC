@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from '../../../shared/ui/button/button.directive';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { edgeErrorMessage } from '../../../shared/utils/edge.util';
@@ -65,6 +66,7 @@ export class BorradorClaude implements OnInit {
   private router = inject(Router);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   error = signal<string | null>(null);
@@ -106,7 +108,7 @@ export class BorradorClaude implements OnInit {
         this.seleccionadas.set(new Set(filas.map((_, i) => i)));
       }
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el borrador.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar el borrador.'));
     } finally {
       this.cargando.set(false);
     }
@@ -145,9 +147,9 @@ export class BorradorClaude implements OnInit {
       if (error) throw new Error(await edgeErrorMessage(error));
       this.resultado.set({ ok: !!data.ok, mensaje: data.mensaje ?? '' });
       await this.cargar();
-      this.toast.success('Lote procesado', data.mensaje ?? '');
+      this.toast.success(this.i18n.t('Lote procesado'), data.mensaje ?? '');
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo cargar el lote');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo cargar el lote'));
     } finally {
       this.enviando.set(false);
     }
@@ -174,12 +176,12 @@ export class BorradorClaude implements OnInit {
       this.resultado.set({ ok: !!data.ok, mensaje: data.mensaje ?? '' });
       if (data.ok) {
         await this.cargar();
-        this.toast.success(data.duplicado ? 'Ya estaba confirmado.' : 'Creado correctamente.');
+        this.toast.success(data.duplicado ? this.i18n.t('Ya estaba confirmado.') : this.i18n.t('Creado correctamente.'));
       } else {
-        this.toast.error(data.mensaje ?? 'No se pudo completar.');
+        this.toast.error(data.mensaje ?? this.i18n.t('No se pudo completar.'));
       }
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo confirmar el borrador');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo confirmar el borrador'));
     } finally {
       this.enviando.set(false);
     }
@@ -191,9 +193,9 @@ export class BorradorClaude implements OnInit {
     try {
       await this.invoke('descartar');
       await this.cargar();
-      this.toast.success('Borrador descartado.');
+      this.toast.success(this.i18n.t('Borrador descartado.'));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo descartar el borrador');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo descartar el borrador'));
     } finally {
       this.enviando.set(false);
     }
