@@ -18,7 +18,7 @@
     @if (actual(); as a) {
       <section class="mirend-actual" [class.mirend-actual--ok]="a.cumplio">
         <div class="mirend-actual__top">
-          <span class="mirend-actual__week">Semana {{ a.semana }}/{{ a.anio }} · {{ formatFecha(a.inicio) }}–{{ formatFecha(a.fin) }}</span>
+          <span class="mirend-actual__week">{{ i18n.t('Semana {s}/{a} · {ini}–{fin}', { s: a.semana, a: a.anio, ini: formatFecha(a.inicio), fin: formatFecha(a.fin) }) }}</span>
           @if (a.cumplio) {
             <span class="inc-badge inc-badge--ok">{{ 'Cumpliste 🎯' | t }}</span>
           } @else {
@@ -27,7 +27,7 @@
         </div>
         <div class="mirend-actual__score">
           <span class="mirend-actual__pts">{{ a.puntaje }}</span>
-          <span class="mirend-actual__min">de {{ a.minimo }} para el incentivo</span>
+          <span class="mirend-actual__min">{{ i18n.t('de {min} para el incentivo', { min: a.minimo }) }}</span>
         </div>
         <div class="mirend-bar"><div class="mirend-bar__fill" [style.width.%]="progreso(a)" [class.mirend-bar__fill--ok]="a.cumplio"></div></div>
         @if (a.decision === 'aprobado') {
@@ -44,7 +44,7 @@
       @for (s of semanas(); track s.informe_id) {
         <div class="mirend-item" [class.mirend-item--open]="expandido() === s.informe_id">
           <button type="button" class="mirend-item__main" (click)="toggle(s.informe_id)">
-            <span class="mirend-item__week">Sem. {{ s.semana }}/{{ s.anio }}</span>
+            <span class="mirend-item__week">{{ i18n.t('Sem. {s}/{a}', { s: s.semana, a: s.anio }) }}</span>
             <span class="mirend-item__dates">{{ formatFecha(s.inicio) }}–{{ formatFecha(s.fin) }}</span>
             <span class="mirend-item__pts">{{ s.puntaje }}/{{ s.minimo }}</span>
             @if (s.cumplio) { <span class="inc-badge inc-badge--ok">{{ 'Cumplió' | t }}</span> } @else { <span class="inc-badge inc-badge--bad">{{ 'Bajo' | t }}</span> }
@@ -57,8 +57,8 @@
               @for (r of renglones; track r) {
                 @if (conteoDe(s, r); as c) {
                   <div class="mirend-renglon">
-                    <span>{{ RENGLON_LABELS[r] }}</span>
-                    <span class="mirend-renglon__count">{{ c.propio }}@if (c.ayudante) { <em>+{{ c.ayudante }} ayud.</em> } · {{ c.puntos }} pts</span>
+                    <span>{{ RENGLON_LABELS[r] | t }}</span>
+                    <span class="mirend-renglon__count">{{ c.propio }}@if (c.ayudante) { <em>{{ i18n.t('+{n} ayud.', { n: c.ayudante }) }}</em> } {{ i18n.t('· {p} pts', { p: c.puntos }) }}</span>
                   </div>
                 }
               }

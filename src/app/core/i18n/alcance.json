@@ -16,9 +16,6 @@
     "auth": {
       "enforce": false
     },
-    "mi-rendimiento": {
-      "enforce": false
-    },
     "obra/subcontratistas": {
       "enforce": false
     },
@@ -395,6 +392,9 @@
       "enforce": true
     },
     "mensajes": {
+      "enforce": true
+    },
+    "mi-rendimiento": {
       "enforce": true
     },
     "mis-choferes": {

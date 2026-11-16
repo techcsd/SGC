@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 98%** (9818/10021 literales de 192 pantallas en alcance). **`ht`: 96%**.
+**Alcance `en`: 98%** (9818/10016 literales de 192 pantallas en alcance). **`ht`: 96%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,7 +12,6 @@
 | obra/no-conformidades | scope | 95 | 61 | 34 | 64% |
 | obra/checklists | scope | 48 | 33 | 15 | 69% |
 | auth | scope | 37 | 26 | 11 | 70% |
-| mi-rendimiento | scope | 17 | 12 | 5 | 71% |
 | obra/subcontratistas | scope | 75 | 56 | 19 | 75% |
 | obra/informes | scope | 47 | 37 | 10 | 79% |
 | obra/avance | scope | 77 | 63 | 14 | 82% |
@@ -139,6 +138,7 @@
 | legal/firmas-pendientes | enforce | 11 | 11 | 0 | 100% |
 | mensajes/grupo-info | enforce | 29 | 29 | 0 | 100% |
 | mensajes | enforce | 34 | 34 | 0 | 100% |
+| mi-rendimiento | enforce | 12 | 12 | 0 | 100% |
 | mis-choferes | enforce | 9 | 9 | 0 | 100% |
 | notas/editor | enforce | 32 | 32 | 0 | 100% |
 | notas | enforce | 37 | 37 | 0 | 100% |

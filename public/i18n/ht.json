@@ -7542,5 +7542,21 @@
   "Falta authorization_id en el enlace. Vuelve a intentar conectar desde Claude.": "Manke authorization_id nan lyen an. Eseye konekte apati Claude ankò.",
   "No se pudo cargar la solicitud de autorización: {mensaje}": "Pa t kapab chaje demann otorizasyon an: {mensaje}",
   "No se pudo cargar la solicitud de autorización.": "Pa t kapab chaje demann otorizasyon an.",
-  "No se pudo autorizar a Claude.": "Pa t kapab otorize Claude."
+  "No se pudo autorizar a Claude.": "Pa t kapab otorize Claude.",
+  "Semana {s}/{a} · {ini}–{fin}": "Semèn {s}/{a} · {ini}–{fin}",
+  "de {min} para el incentivo": "nan {min} pou enkitasyon an",
+  "Sem. {s}/{a}": "Sm. {s}/{a}",
+  "+{n} ayud.": "+{n} èd",
+  "· {p} pts": "· {p} pwen",
+  "Reporte semanal": "Rapò semenn",
+  "Registro de combustible": "Rejis gaz",
+  "Conduces confirmados": "Bòdwo konfime",
+  "Tu actividad semanal en la app y el puntaje del incentivo. Solo tú ves esta información.": "Aktivite ou chak semèn nan app la ak pwen enkitasyon an. Se sèlman ou ki wè enfòmasyon sa a.",
+  "Aún no tienes un informe de rendimiento. Se generan cada lunes con la actividad de la semana anterior (rutas, conduces, echadas, inspecciones y tu reporte semanal).": "Ou poko gen yon rapò pèfòmans. Yo jenere yo chak lendi ak aktivite semèn pase a (wout, bòdwo, gaz, enspeksyon ak rapò semenn ou).",
+  "Cumpliste 🎯": "Ou rive nan objektif la 🎯",
+  "Aún no llegas al mínimo": "Ou poko rive nan minimòm nan",
+  "Tu incentivo de esta semana fue aprobado.": "Enkitasyon ou pou semèn sa a te apwouve.",
+  "Tu incentivo de esta semana no fue aprobado.": "Enkitasyon ou pou semèn sa a pa t apwouve.",
+  "Cumplió": "Rive",
+  "Bajo": "Anba"
 }

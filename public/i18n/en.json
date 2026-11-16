@@ -7820,5 +7820,21 @@
   "Falta authorization_id en el enlace. Vuelve a intentar conectar desde Claude.": "Missing authorization_id in the link. Try connecting from Claude again.",
   "No se pudo cargar la solicitud de autorización: {mensaje}": "Could not load the authorization request: {mensaje}",
   "No se pudo cargar la solicitud de autorización.": "Could not load the authorization request.",
-  "No se pudo autorizar a Claude.": "Could not authorize Claude."
+  "No se pudo autorizar a Claude.": "Could not authorize Claude.",
+  "Semana {s}/{a} · {ini}–{fin}": "Week {s}/{a} · {ini}–{fin}",
+  "de {min} para el incentivo": "of {min} for the incentive",
+  "Sem. {s}/{a}": "Wk. {s}/{a}",
+  "+{n} ayud.": "+{n} helper(s)",
+  "· {p} pts": "· {p} pts",
+  "Reporte semanal": "Weekly report",
+  "Registro de combustible": "Fuel log",
+  "Conduces confirmados": "Confirmed delivery notes",
+  "Tu actividad semanal en la app y el puntaje del incentivo. Solo tú ves esta información.": "Your weekly activity in the app and your incentive score. Only you see this information.",
+  "Aún no tienes un informe de rendimiento. Se generan cada lunes con la actividad de la semana anterior (rutas, conduces, echadas, inspecciones y tu reporte semanal).": "You don't have a performance report yet. Reports are generated every Monday with last week's activity (routes, delivery notes, fuel logs, inspections and your weekly report).",
+  "Cumpliste 🎯": "You hit the target 🎯",
+  "Aún no llegas al mínimo": "You haven't reached the minimum yet",
+  "Tu incentivo de esta semana fue aprobado.": "Your incentive for this week was approved.",
+  "Tu incentivo de esta semana no fue aprobado.": "Your incentive for this week was not approved.",
+  "Cumplió": "Met",
+  "Bajo": "Below"
 }

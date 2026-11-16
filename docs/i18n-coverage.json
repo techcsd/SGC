@@ -207,22 +207,6 @@
       ]
     },
     {
-      "pantalla": "mi-rendimiento",
-      "total": 17,
-      "cubiertos": 12,
-      "sin": 5,
-      "pct": 71,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Semana / · –",
-        "de para el incentivo",
-        "Sem. /",
-        "+ ayud.",
-        "} · pts"
-      ]
-    },
-    {
       "pantalla": "obra/subcontratistas",
       "total": 75,
       "cubiertos": 56,
@@ -1529,6 +1513,16 @@
       "pantalla": "mensajes",
       "total": 34,
       "cubiertos": 34,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "mi-rendimiento",
+      "total": 12,
+      "cubiertos": 12,
       "sin": 0,
       "pct": 100,
       "enScope": true,
