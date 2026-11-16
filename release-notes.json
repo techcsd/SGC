@@ -1,73 +1,233 @@
 {
   "web": {
+    "1.217.1": {
+      "titulo": "Kreyòl al 100%, fechas por idioma y arreglo del kardex tras conteo físico",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "El kardex de un artículo ya no cuenta dos veces un conteo físico aplicado: el saldo del kardex ahora coincide con el stock del almacén tras ajustar el conteo."
+        },
+        {
+          "t": "mejora",
+          "m": "Idioma",
+          "d": "Kreyòl ayisyen completo: las pantallas y mensajes que aún quedaban en español ya se traducen."
+        },
+        {
+          "t": "mejora",
+          "m": "Idioma",
+          "d": "Las fechas y horas respetan el idioma elegido (Español, Inglés o Kreyòl) en todas las pantallas."
+        }
+      ]
+    },
     "1.217.0": {
       "titulo": "Toda la app disponible en Inglés y Kreyòl ayisyen",
       "cambios": [
-        { "t": "mejora", "m": "Idioma", "d": "Las 192 pantallas de la app (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones, Tareas, Notas, Mensajería, Tecnología, Administración, Dirección, Incentivos, Soporte, bitácora de obra y el resto) ya se traducen por completo al cambiar el idioma a Inglés o Kreyòl ayisyen en Configuración › Idioma — antes quedaba texto a medias en español en la mayoría de ellas." }
+        {
+          "t": "mejora",
+          "m": "Idioma",
+          "d": "Las 192 pantallas de la app (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones, Tareas, Notas, Mensajería, Tecnología, Administración, Dirección, Incentivos, Soporte, bitácora de obra y el resto) ya se traducen por completo al cambiar el idioma a Inglés o Kreyòl ayisyen en Configuración › Idioma — antes quedaba texto a medias en español en la mayoría de ellas."
+        }
       ]
     },
     "1.216.0": {
       "titulo": "Inventario 100% disponible en Inglés y Kreyòl ayisyen",
       "cambios": [
-        { "t": "mejora", "m": "Inventario", "d": "Todo el módulo de Inventario (artículos, almacenes, conduces, salidas, entradas, requisiciones, retiros, activos fijos y más) ya se traduce por completo al cambiar el idioma a Inglés o Kreyòl ayisyen en Configuración › Idioma — antes quedaba texto a medias en español." }
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Todo el módulo de Inventario (artículos, almacenes, conduces, salidas, entradas, requisiciones, retiros, activos fijos y más) ya se traduce por completo al cambiar el idioma a Inglés o Kreyòl ayisyen en Configuración › Idioma — antes quedaba texto a medias en español."
+        }
       ]
     },
     "1.215.0": {
       "titulo": "Transporte, Organigrama, Reclutamiento + CV con IA, y módulo Claude/Skills ampliado",
       "cambios": [
-        { "t": "nuevo", "m": "Flota/Transporte", "d": "Apoyo de transporte: ya se puede \"Aprobar\" un apoyo pendiente directamente desde su ficha (crea la ruta y asigna chofer/vehículo)." },
-        { "t": "mejora", "m": "RRHH", "d": "Organigrama: ahora se ve como un árbol de verdad (jefe → reportes), no una lista plana." },
-        { "t": "nuevo", "m": "RRHH", "d": "Reclutamiento: más datos del candidato (experiencia, educación, expectativa salarial, fuente, teléfono alterno), subida real de CV, y una nueva vista \"Candidatos\" para buscar y gestionar a todos, con Activos/Archivados." },
-        { "t": "nuevo", "m": "RRHH", "d": "El CV de un candidato ahora se puede leer con IA: extrae nombre, teléfono, experiencia y educación para revisión (no se expone al chat de Compa)." },
-        { "t": "mejora", "m": "RRHH", "d": "Un candidato que ya no sigue en proceso se archiva en vez de borrarse — su información se conserva por si se reconsidera." },
-        { "t": "mejora", "m": "Claude", "d": "Arreglos de interfaz: la pestaña Conexiones ya no repite el encabezado, Crear una skill quedó en dos columnas (formulario y vista previa), y hay un enlace directo a \"Mi conexión\"." },
-        { "t": "nuevo", "m": "Claude", "d": "Módulo Skills: se puede proponer una skill a un equipo/departamento específico (no solo a un rol o a toda la empresa), cada skill muestra cuántas descargas y calificaciones tiene, Compa puede sugerir una skill relevante a mitad de conversación, un botón de IA ayuda a redactar los pasos/ejemplo al crear una skill, y hay plantillas guiadas (correo formal, resumen, checklist, guía paso a paso)." }
+        {
+          "t": "nuevo",
+          "m": "Flota/Transporte",
+          "d": "Apoyo de transporte: ya se puede \"Aprobar\" un apoyo pendiente directamente desde su ficha (crea la ruta y asigna chofer/vehículo)."
+        },
+        {
+          "t": "mejora",
+          "m": "RRHH",
+          "d": "Organigrama: ahora se ve como un árbol de verdad (jefe → reportes), no una lista plana."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Reclutamiento: más datos del candidato (experiencia, educación, expectativa salarial, fuente, teléfono alterno), subida real de CV, y una nueva vista \"Candidatos\" para buscar y gestionar a todos, con Activos/Archivados."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "El CV de un candidato ahora se puede leer con IA: extrae nombre, teléfono, experiencia y educación para revisión (no se expone al chat de Compa)."
+        },
+        {
+          "t": "mejora",
+          "m": "RRHH",
+          "d": "Un candidato que ya no sigue en proceso se archiva en vez de borrarse — su información se conserva por si se reconsidera."
+        },
+        {
+          "t": "mejora",
+          "m": "Claude",
+          "d": "Arreglos de interfaz: la pestaña Conexiones ya no repite el encabezado, Crear una skill quedó en dos columnas (formulario y vista previa), y hay un enlace directo a \"Mi conexión\"."
+        },
+        {
+          "t": "nuevo",
+          "m": "Claude",
+          "d": "Módulo Skills: se puede proponer una skill a un equipo/departamento específico (no solo a un rol o a toda la empresa), cada skill muestra cuántas descargas y calificaciones tiene, Compa puede sugerir una skill relevante a mitad de conversación, un botón de IA ayuda a redactar los pasos/ejemplo al crear una skill, y hay plantillas guiadas (correo formal, resumen, checklist, guía paso a paso)."
+        }
       ]
     },
     "1.214.0": {
       "titulo": "RRHH ampliado (contratos, organigrama, reclutamiento, nómina) y administración de la empresa",
       "cambios": [
-        { "t": "nuevo", "m": "RRHH", "d": "Contratos y documentos: ve los vencimientos de contratos y documentos del personal con 30 días de aviso, y administra la vigencia de cada uno." },
-        { "t": "nuevo", "m": "RRHH", "d": "Organigrama: estructura de la empresa, quién reporta a quién." },
-        { "t": "nuevo", "m": "RRHH", "d": "Reclutamiento: vacantes y candidatos con su proceso (aplicó, entrevista, oferta, contratado o rechazado)." },
-        { "t": "nuevo", "m": "RRHH", "d": "Capacitación: cursos y certificaciones del personal (ej. seguridad en obra) con aviso de vencimiento." },
-        { "t": "nuevo", "m": "RRHH", "d": "Evaluaciones de desempeño, visibles solo para RRHH y Gerencia." },
-        { "t": "nuevo", "m": "RRHH", "d": "Nómina: parámetros de ley (TSS/AFP/ISR) y períodos — por ahora sin calcular ni pagar, a la espera de que el contador valide las fórmulas." },
-        { "t": "nuevo", "m": "RRHH", "d": "Administración de la empresa: Gastos y caja chica (el mismo de Compras), Trámites y cumplimiento con vencimientos, Proveedores administrativos (internet, limpieza, seguros) y Activos de oficina." },
-        { "t": "mejora", "m": "Proyectos", "d": "En Cargos y alias, al hacer clic en un cargo ahora se abre su detalle: los alias que lo identifican y cuántas personas de obra lo tienen." },
-        { "t": "mejora", "m": "Claude", "d": "La casilla \"Conecté el SGC a Claude\" ya no se queda pegada — se marca sola en cuanto Claude está conectado de verdad. Conectarlo quedó en un solo paso." }
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Contratos y documentos: ve los vencimientos de contratos y documentos del personal con 30 días de aviso, y administra la vigencia de cada uno."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Organigrama: estructura de la empresa, quién reporta a quién."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Reclutamiento: vacantes y candidatos con su proceso (aplicó, entrevista, oferta, contratado o rechazado)."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Capacitación: cursos y certificaciones del personal (ej. seguridad en obra) con aviso de vencimiento."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Evaluaciones de desempeño, visibles solo para RRHH y Gerencia."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Nómina: parámetros de ley (TSS/AFP/ISR) y períodos — por ahora sin calcular ni pagar, a la espera de que el contador valide las fórmulas."
+        },
+        {
+          "t": "nuevo",
+          "m": "RRHH",
+          "d": "Administración de la empresa: Gastos y caja chica (el mismo de Compras), Trámites y cumplimiento con vencimientos, Proveedores administrativos (internet, limpieza, seguros) y Activos de oficina."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "En Cargos y alias, al hacer clic en un cargo ahora se abre su detalle: los alias que lo identifican y cuántas personas de obra lo tienen."
+        },
+        {
+          "t": "mejora",
+          "m": "Claude",
+          "d": "La casilla \"Conecté el SGC a Claude\" ya no se queda pegada — se marca sola en cuanto Claude está conectado de verdad. Conectarlo quedó en un solo paso."
+        }
       ]
     },
     "1.213.0": {
       "titulo": "Módulo Claude, agente de pendientes y 4 reportes resueltos",
       "cambios": [
-        { "t": "nuevo", "m": "Claude", "d": "Nuevo módulo Claude (biblioteca de skills por rol, paquete de arranque \"Setup inicial\", creador guiado de skills y auditoría de uso de Claude en la empresa). Sube, descarga y propone skills para tu rol o toda la empresa, con revisión de Tecnología si trae código." },
-        { "t": "nuevo", "m": "Tecnología", "d": "Agente de Pendientes: cada mañana (y los lunes, el cierre de la semana) deja en una nota fija lo que sigue abierto — reportes de Soporte, errores del sistema, preguntas que Compa no pudo contestar y hallazgos de WhatsApp. Botón \"Probar ahora\" para verlo sin esperar." },
-        { "t": "arreglo", "m": "Flota", "d": "Registrar una echada de combustible el mismo día que un mantenimiento con más kilometraje ya no da error de servidor." },
-        { "t": "arreglo", "m": "Compras", "d": "Cuando una orden no se puede marcar \"recibida\" por renglones sin recibir, ahora hay un botón \"Registrar entrada ahora\" en vez de un aviso sin salida." },
-        { "t": "arreglo", "m": "Inventario", "d": "Quitar un renglón de una requisición ya no puede fallar en silencio en algunos navegadores." },
-        { "t": "nuevo", "m": "Inventario", "d": "En el detalle de un conduce: \"← Anterior · Siguiente →\" (también con las flechas del teclado) y un botón \"Siguiente pendiente para mí\"." }
+        {
+          "t": "nuevo",
+          "m": "Claude",
+          "d": "Nuevo módulo Claude (biblioteca de skills por rol, paquete de arranque \"Setup inicial\", creador guiado de skills y auditoría de uso de Claude en la empresa). Sube, descarga y propone skills para tu rol o toda la empresa, con revisión de Tecnología si trae código."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Agente de Pendientes: cada mañana (y los lunes, el cierre de la semana) deja en una nota fija lo que sigue abierto — reportes de Soporte, errores del sistema, preguntas que Compa no pudo contestar y hallazgos de WhatsApp. Botón \"Probar ahora\" para verlo sin esperar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Registrar una echada de combustible el mismo día que un mantenimiento con más kilometraje ya no da error de servidor."
+        },
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "Cuando una orden no se puede marcar \"recibida\" por renglones sin recibir, ahora hay un botón \"Registrar entrada ahora\" en vez de un aviso sin salida."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Quitar un renglón de una requisición ya no puede fallar en silencio en algunos navegadores."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "En el detalle de un conduce: \"← Anterior · Siguiente →\" (también con las flechas del teclado) y un botón \"Siguiente pendiente para mí\"."
+        }
       ]
     },
     "1.212.0": {
       "titulo": "WhatsApp: seguimiento, recordatorios y recap con PDF",
       "cambios": [
-        { "t": "mejora", "m": "Tecnología", "d": "Los hallazgos de WhatsApp ahora tienen responsable y estado de seguimiento (activo, resuelto, vencido…); \"Convertir\" en tarea ya crea la tarea de verdad en vez de solo copiar el texto." },
-        { "t": "nuevo", "m": "Tecnología", "d": "Recordatorios automáticos por correo/bandeja/app si un pendiente de un grupo de WhatsApp no se cierra (escalera de 24h/48h/72h hasta 14 días). Botón \"Probar mis recordatorios\" para verlo antes de activarlo." },
-        { "t": "nuevo", "m": "Tecnología", "d": "Recap diario y semanal por grupo de WhatsApp, con PDF por correo (resumen, decisiones y pendientes abiertos) — nueva pestaña Resúmenes, con responsables y destinatarios configurables por grupo." },
-        { "t": "mejora", "m": "Compa", "d": "Compa ya detecta cuando un mensaje responde un pendiente anterior (lo cierra solo) y evita duplicar el mismo hallazgo si se repite con otras palabras. Cualquier usuario puede preguntarle \"¿qué me falta de los grupos?\" y ver solo lo suyo." },
-        { "t": "arreglo", "m": "Tecnología", "d": "El desplegable \"Proyecto\" de Grupos ya no queda tapado por las tarjetas de abajo; la insignia de aviso de privacidad ahora explica qué significa." },
-        { "t": "arreglo", "m": "Administración", "d": "\"Entrar como\" otro usuario es más confiable (reintenta solo si falla la conexión) y, si falla, ya no esconde la lista de usuarios. El rol Gerencia ahora ve el inventario tecnológico." },
-        { "t": "mejora", "m": "Tecnología", "d": "La configuración del puente de grupos (modo por defecto, tope de respuestas, presupuesto de IA, recordatorio por WhatsApp) ya se puede editar desde la pantalla, no solo verla." }
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Los hallazgos de WhatsApp ahora tienen responsable y estado de seguimiento (activo, resuelto, vencido…); \"Convertir\" en tarea ya crea la tarea de verdad en vez de solo copiar el texto."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Recordatorios automáticos por correo/bandeja/app si un pendiente de un grupo de WhatsApp no se cierra (escalera de 24h/48h/72h hasta 14 días). Botón \"Probar mis recordatorios\" para verlo antes de activarlo."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Recap diario y semanal por grupo de WhatsApp, con PDF por correo (resumen, decisiones y pendientes abiertos) — nueva pestaña Resúmenes, con responsables y destinatarios configurables por grupo."
+        },
+        {
+          "t": "mejora",
+          "m": "Compa",
+          "d": "Compa ya detecta cuando un mensaje responde un pendiente anterior (lo cierra solo) y evita duplicar el mismo hallazgo si se repite con otras palabras. Cualquier usuario puede preguntarle \"¿qué me falta de los grupos?\" y ver solo lo suyo."
+        },
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "El desplegable \"Proyecto\" de Grupos ya no queda tapado por las tarjetas de abajo; la insignia de aviso de privacidad ahora explica qué significa."
+        },
+        {
+          "t": "arreglo",
+          "m": "Administración",
+          "d": "\"Entrar como\" otro usuario es más confiable (reintenta solo si falla la conexión) y, si falla, ya no esconde la lista de usuarios. El rol Gerencia ahora ve el inventario tecnológico."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "La configuración del puente de grupos (modo por defecto, tope de respuestas, presupuesto de IA, recordatorio por WhatsApp) ya se puede editar desde la pantalla, no solo verla."
+        }
       ]
     },
     "1.211.0": {
       "titulo": "WhatsApp: memoria de grupos y hallazgos con IA",
       "cambios": [
-        { "t": "nuevo", "m": "Tecnología", "d": "Compa ahora puede leer los grupos de WhatsApp de la empresa (vía un número dedicado) y recordar lo que se acordó: pedidos de material, montos, fechas límite y acuerdos quedan como \"hallazgos\" revisables en Tecnología › Compa en WhatsApp." },
-        { "t": "nuevo", "m": "Compa", "d": "Desde el chat normal y desde Claude Desktop, Compa puede buscar en el archivo de un grupo de WhatsApp, listar los hallazgos detectados y dar el resumen del día o de la semana de un grupo — solo quien tenga el permiso puede verlo." },
-        { "t": "nuevo", "m": "Tecnología", "d": "Nuevas pestañas Grupos, Hallazgos y Archivo en la pantalla de WhatsApp: activar/desactivar memoria por grupo, revisar/descartar/convertir cada hallazgo en tarea o nota, y buscar en el historial de mensajes." },
-        { "t": "nuevo", "m": "Administración", "d": "Nuevo permiso granular \"WhatsApp — grupos\" para dar acceso a esta pantalla sin abrir el resto de Tecnología." }
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Compa ahora puede leer los grupos de WhatsApp de la empresa (vía un número dedicado) y recordar lo que se acordó: pedidos de material, montos, fechas límite y acuerdos quedan como \"hallazgos\" revisables en Tecnología › Compa en WhatsApp."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compa",
+          "d": "Desde el chat normal y desde Claude Desktop, Compa puede buscar en el archivo de un grupo de WhatsApp, listar los hallazgos detectados y dar el resumen del día o de la semana de un grupo — solo quien tenga el permiso puede verlo."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nuevas pestañas Grupos, Hallazgos y Archivo en la pantalla de WhatsApp: activar/desactivar memoria por grupo, revisar/descartar/convertir cada hallazgo en tarea o nota, y buscar en el historial de mensajes."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nuevo permiso granular \"WhatsApp — grupos\" para dar acceso a esta pantalla sin abrir el resto de Tecnología."
+        }
       ]
     },
     "1.208.0": {
