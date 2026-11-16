@@ -159,20 +159,6 @@
       ]
     },
     {
-      "pantalla": "mis-choferes",
-      "total": 9,
-      "cubiertos": 6,
-      "sin": 3,
-      "pct": 67,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Hoy: trabajo(s)",
-        "en proceso",
-        "Vehículo:"
-      ]
-    },
-    {
       "pantalla": "politicas/eliminar-cuenta",
       "total": 9,
       "cubiertos": 6,
@@ -717,7 +703,7 @@
       "sin": 0,
       "pct": 100,
       "enScope": true,
-      "enforce": false,
+      "enforce": true,
       "faltantes": []
     },
     {
@@ -1608,6 +1594,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "mis-choferes",
+      "total": 9,
+      "cubiertos": 9,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

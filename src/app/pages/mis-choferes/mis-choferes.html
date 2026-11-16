@@ -19,7 +19,7 @@
       <div class="mc-card">
         <div class="mc-card__top">
           <span class="mc-card__nombre">{{ c.nombre }}</span>
-          <span class="mc-estado mc-estado--{{ c.estado }}">{{ estadoLabel(c.estado) }}</span>
+          <span class="mc-estado mc-estado--{{ c.estado }}">{{ estadoLabel(c.estado) | t }}</span>
         </div>
         <div class="mc-card__row">
           <span class="mc-senal mc-senal--{{ senal(c) }}"></span>
@@ -27,10 +27,10 @@
           @if (c.bateria != null) { <span class="mc-card__meta">· {{ c.bateria }}%</span> }
         </div>
         <div class="mc-card__row">
-          <span class="mc-card__meta">Hoy: {{ c.trabajos_hoy }} trabajo(s)</span>
-          @if (c.en_proceso > 0) { <span class="sgc-badge sgc-badge--info">{{ c.en_proceso }} en proceso</span> }
+          <span class="mc-card__meta">{{ 'Hoy:' | t }} {{ c.trabajos_hoy }} {{ 'trabajo(s)' | t }}</span>
+          @if (c.en_proceso > 0) { <span class="sgc-badge sgc-badge--info">{{ c.en_proceso }} {{ 'en proceso' | t }}</span> }
         </div>
-        @if (c.vehiculo_en_uso) { <div class="mc-card__meta">Vehículo: {{ c.vehiculo_en_uso }}</div> }
+        @if (c.vehiculo_en_uso) { <div class="mc-card__meta">{{ 'Vehículo:' | t }} {{ c.vehiculo_en_uso }}</div> }
         <div class="mc-card__actions">
           @if (c.telefono) { <a class="sgc-btn sgc-btn--ghost" [href]="'tel:' + c.telefono">{{ 'Llamar' | t }}</a> }
         </div>

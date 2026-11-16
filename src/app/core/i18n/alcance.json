@@ -10,9 +10,6 @@
     "obra/no-conformidades": {
       "enforce": false
     },
-    "mis-choferes": {
-      "enforce": false
-    },
     "politicas/eliminar-cuenta": {
       "enforce": false
     },
@@ -407,6 +404,9 @@
       "enforce": true
     },
     "mensajes": {
+      "enforce": true
+    },
+    "mis-choferes": {
       "enforce": true
     },
     "notas/editor": {

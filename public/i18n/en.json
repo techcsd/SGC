@@ -7655,5 +7655,14 @@
   "Nueva contraseña": "New password",
   "Confirmar contraseña": "Confirm password",
   "Confirma tu contraseña.": "Confirm your password.",
-  "Tecnología CSD": "CSD Technology"
+  "Tecnología CSD": "CSD Technology",
+  "Hoy:": "Today:",
+  "trabajo(s)": "job(s)",
+  "en proceso": "in progress",
+  "Vehículo:": "Vehicle:",
+  "Sin señal": "No signal",
+  "Sin estado": "No status",
+  "Estado de cada chofer, su trabajo de hoy y su última señal.": "Status of each driver, their work today, and their last signal.",
+  "No hay choferes activos.": "There are no active drivers.",
+  "Llamar": "Call"
 }
