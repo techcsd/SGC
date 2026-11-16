@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 65,
+  "pctScopeEn": 66,
   "pctHt": 86,
   "filas": [
     {
@@ -4205,40 +4205,6 @@
       ]
     },
     {
-      "pantalla": "rrhh/candidatos",
-      "total": 56,
-      "cubiertos": 33,
-      "sin": 23,
-      "pct": 59,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Activos ( )",
-        "Archivados ( )",
-        "Vacante:",
-        "Agregado el",
-        "Ver CV",
-        "Ver detalle de",
-        "Candidato",
-        "No se pudieron cargar los candidatos",
-        "Falta el nombre",
-        "Candidato actualizado",
-        "No se pudo guardar",
-        "No se pudo actualizar la etapa",
-        "CV subido",
-        "No se pudo subir el CV",
-        "CV leído",
-        "No se pudo leer el CV",
-        "No se pudo abrir el CV",
-        "Candidato archivado",
-        "No se pudo archivar",
-        "Candidato restaurado",
-        "No se pudo restaurar",
-        "Candidato eliminado para siempre",
-        "No se pudo eliminar"
-      ]
-    },
-    {
       "pantalla": "rrhh/ausencias",
       "total": 40,
       "cubiertos": 26,
@@ -5541,6 +5507,16 @@
       "pantalla": "rrhh/asistencia",
       "total": 31,
       "cubiertos": 31,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "rrhh/candidatos",
+      "total": 58,
+      "cubiertos": 58,
       "sin": 0,
       "pct": 100,
       "enScope": true,

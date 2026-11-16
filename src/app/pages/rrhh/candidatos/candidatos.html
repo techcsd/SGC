@@ -11,10 +11,10 @@
       [value]="query()" (input)="query.set($any($event.target).value)" />
     <div class="cand-tabs">
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="tab() === 'activos'" [class.sgc-btn--ghost]="tab() !== 'activos'" (click)="tab.set('activos')">
-        Activos ({{ activosCount() }})
+        {{ 'Activos' | t }} ({{ activosCount() }})
       </button>
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="tab() === 'archivados'" [class.sgc-btn--ghost]="tab() !== 'archivados'" (click)="tab.set('archivados')">
-        Archivados ({{ archivadosCount() }})
+        {{ 'Archivados' | t }} ({{ archivadosCount() }})
       </button>
     </div>
   </div>
@@ -23,7 +23,7 @@
     <p class="text-muted">{{ 'Cargando…' | t }}</p>
   } @else if (!filtrados().length) {
     <p class="text-muted">
-      @if (tab() === 'archivados') { No hay candidatos archivados. } @else { No hay candidatos que coincidan. }
+      @if (tab() === 'archivados') { {{ 'No hay candidatos archivados.' | t }} } @else { {{ 'No hay candidatos que coincidan.' | t }} }
     </p>
   } @else {
     <div class="table-scroll">
@@ -33,14 +33,14 @@
         </thead>
         <tbody>
           @for (c of filtrados(); track c.id) {
-            <tr class="cand-row" tabindex="0" role="button" [attr.aria-label]="'Ver detalle de ' + c.nombre"
+            <tr class="cand-row" tabindex="0" role="button" [attr.aria-label]="i18n.t('Ver detalle de') + ' ' + c.nombre"
                 (click)="abrirDetalle(c)" (keydown.enter)="abrirDetalle(c)">
               <td><b>{{ c.nombre }}</b></td>
               <td class="text-muted">{{ c.vacante_titulo || '—' }}</td>
               <td class="text-muted">{{ c.telefono || c.email || '—' }}</td>
               <td>
                 <span class="sgc-badge" [class.sgc-badge--success]="c.etapa === 'contratado'" [class.sgc-badge--danger]="c.etapa === 'rechazado'" [class.sgc-badge--info]="c.etapa !== 'contratado' && c.etapa !== 'rechazado'">
-                  {{ etapaLabel[c.etapa] }}
+                  {{ etapaLabel[c.etapa] | t }}
                 </span>
               </td>
               <td>
@@ -55,23 +55,23 @@
 </section>
 
 <!-- Panel de detalle -->
-<app-form-drawer [title]="seleccionado()?.nombre ?? 'Candidato'" [open]="!!seleccionado()" (closed)="cerrarDetalle()">
+<app-form-drawer [title]="seleccionado()?.nombre ?? i18n.t('Candidato')" [open]="!!seleccionado()" (closed)="cerrarDetalle()">
   @if (seleccionado(); as c) {
     <div class="cand-detalle">
       <div class="cand-detalle__meta">
-        @if (c.vacante_titulo) { <span class="text-muted">Vacante: {{ c.vacante_titulo }}</span> }
+        @if (c.vacante_titulo) { <span class="text-muted">{{ 'Vacante:' | t }} {{ c.vacante_titulo }}</span> }
         <span class="sgc-badge" [class.sgc-badge--success]="c.etapa === 'contratado'" [class.sgc-badge--danger]="c.etapa === 'rechazado'" [class.sgc-badge--info]="c.etapa !== 'contratado' && c.etapa !== 'rechazado'">
-          {{ etapaLabel[c.etapa] }}
+          {{ etapaLabel[c.etapa] | t }}
         </span>
         @if (c.archivado) { <span class="sgc-badge sgc-badge--neutral">{{ 'Archivado' | t }}</span> }
-        <span class="text-muted">Agregado el {{ fFecha(c.created_at) }}</span>
+        <span class="text-muted">{{ 'Agregado el' | t }} {{ fFecha(c.created_at) }}</span>
       </div>
 
       @if (c.etapa !== 'contratado' && c.etapa !== 'rechazado' && !c.archivado) {
         <div class="cand-etapas">
           @for (e of etapas; track e) {
             <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--secondary]="e === c.etapa" [class.sgc-btn--ghost]="e !== c.etapa"
-              (click)="avanzarEtapa(e)">{{ etapaLabel[e] }}</button>
+              (click)="avanzarEtapa(e)">{{ etapaLabel[e] | t }}</button>
           }
         </div>
       }
@@ -109,26 +109,26 @@
         <textarea class="sgc-input" rows="2" [value]="eNotas()" (input)="eNotas.set($any($event.target).value)"></textarea>
       </label>
       <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoEdicion()" (click)="guardarEdicion()">
-        {{ guardandoEdicion() ? 'Guardando…' : 'Guardar cambios' }}
+        {{ (guardandoEdicion() ? 'Guardando…' : 'Guardar cambios') | t }}
       </button>
 
       <h3 class="cand-h">{{ 'CV' | t }}</h3>
       @if (c.cv_path) {
         <div class="cand-cv">
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="verCv()">
-            <app-icon name="file-text" [size]="15" /> Ver CV
+            <app-icon name="file-text" [size]="15" /> {{ 'Ver CV' | t }}
           </button>
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="leyendoCv()" (click)="leerCvConIa()">
-            {{ leyendoCv() ? 'Leyendo…' : 'Leer con IA' }}
+            {{ (leyendoCv() ? 'Leyendo…' : 'Leer con IA') | t }}
           </button>
           <label class="sgc-btn sgc-btn--ghost sgc-btn--sm">
-            {{ subiendoCv() ? 'Subiendo…' : 'Reemplazar' }}
+            {{ (subiendoCv() ? 'Subiendo…' : 'Reemplazar') | t }}
             <input type="file" accept=".pdf,.doc,.docx,image/*" style="display:none" [disabled]="subiendoCv()" (change)="onCvSeleccionado($event)" />
           </label>
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
-          {{ subiendoCv() ? 'Subiendo…' : 'Subir CV' }}
+          {{ (subiendoCv() ? 'Subiendo…' : 'Subir CV') | t }}
           <input type="file" accept=".pdf,.doc,.docx,image/*" style="display:none" [disabled]="subiendoCv()" (change)="onCvSeleccionado($event)" />
         </label>
       }
@@ -143,7 +143,7 @@
         </div>
       }
 
-      <h3 class="cand-h">{{ c.archivado ? 'Restaurar' : 'Archivar' }}</h3>
+      <h3 class="cand-h">{{ (c.archivado ? 'Restaurar' : 'Archivar') | t }}</h3>
       @if (c.archivado) {
         <p class="text-muted">{{ 'Este candidato está archivado. Restaúralo si RRHH decide retomarlo.' | t }}</p>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(c)">{{ 'Restaurar' | t }}</button>
@@ -168,10 +168,10 @@
 
 <app-confirm-dialog [open]="!!candidatoAArchivar()" title="{{ '¿Archivar este candidato?' | t }}"
   [message]="candidatoAArchivar() ? ('«' + candidatoAArchivar()!.nombre + '» se saca del pipeline activo, pero su información se conserva.') : ''"
-  confirmLabel="Archivar" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Archivar' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarArchivar()" (cancelled)="candidatoAArchivar.set(null)" />
 
 <app-confirm-dialog [open]="!!candidatoAEliminarFisico()" title="{{ '¿Eliminar para siempre?' | t }}"
   [message]="candidatoAEliminarFisico() ? ('«' + candidatoAEliminarFisico()!.nombre + '» y su CV se borran sin dejar rastro. Esto NO se puede deshacer.') : ''"
-  confirmLabel="Sí, eliminar para siempre" cancelLabel="Cancelar" tone="danger"
+  [confirmLabel]="'Sí, eliminar para siempre' | t" [cancelLabel]="'Cancelar' | t" tone="danger"
   (confirmed)="confirmarEliminarFisico()" (cancelled)="candidatoAEliminarFisico.set(null)" />

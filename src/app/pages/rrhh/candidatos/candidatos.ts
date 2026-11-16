@@ -11,6 +11,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 type Tab = 'activos' | 'archivados';
 
 /**
@@ -30,6 +31,7 @@ export class RrhhCandidatos implements OnInit {
   private svc = inject(RrhhOnboardingService);
   private lector = inject(RrhhCandidatosLectorService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private userService = inject(UserService);
 
   cargando = signal(true);
@@ -90,7 +92,7 @@ export class RrhhCandidatos implements OnInit {
     try {
       this.candidatos.set(await this.svc.listarCandidatosGlobal());
     } catch (e) {
-      this.toast.error('No se pudieron cargar los candidatos', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los candidatos'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -116,7 +118,7 @@ export class RrhhCandidatos implements OnInit {
   async guardarEdicion() {
     const c = this.seleccionado();
     const nombre = this.eNombre().trim();
-    if (!c || !nombre) { this.toast.warning('Falta el nombre'); return; }
+    if (!c || !nombre) { this.toast.warning(this.i18n.t('Falta el nombre')); return; }
     this.guardandoEdicion.set(true);
     try {
       const expectativa = this.eExpectativa().trim();
@@ -131,12 +133,12 @@ export class RrhhCandidatos implements OnInit {
         fuente: this.eFuente().trim() || null,
         notas: this.eNotas().trim() || null,
       });
-      this.toast.success('Candidato actualizado');
+      this.toast.success(this.i18n.t('Candidato actualizado'));
       await this.cargar();
       const actualizado = this.candidatos().find((x) => x.id === c.id);
       if (actualizado) this.seleccionado.set(actualizado);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardandoEdicion.set(false);
     }
@@ -151,7 +153,7 @@ export class RrhhCandidatos implements OnInit {
       const actualizado = this.candidatos().find((x) => x.id === c.id);
       if (actualizado) this.seleccionado.set(actualizado);
     } catch (e) {
-      this.toast.error('No se pudo actualizar la etapa', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar la etapa'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -164,11 +166,11 @@ export class RrhhCandidatos implements OnInit {
     this.subiendoCv.set(true);
     try {
       const path = await this.svc.subirCv(c.id, file);
-      this.toast.success('CV subido');
+      this.toast.success(this.i18n.t('CV subido'));
       this.seleccionado.update((cur) => (cur ? { ...cur, cv_path: path } : cur));
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo subir el CV', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir el CV'), e instanceof Error ? e.message : undefined);
     } finally {
       this.subiendoCv.set(false);
     }
@@ -200,11 +202,11 @@ export class RrhhCandidatos implements OnInit {
       const mime = blob.type || this.mimeDesdeExtension(c.cv_path);
       const data = await this.lector.archivoABase64(new File([blob], 'cv', { type: mime }));
       const extraido = await this.lector.leer(c.id, { data, mime });
-      this.toast.success('CV leído', 'Revisa los datos antes de confiar en ellos.');
+      this.toast.success(this.i18n.t('CV leído'), 'Revisa los datos antes de confiar en ellos.');
       this.seleccionado.update((cur) => (cur ? { ...cur, cv_extraido: extraido } : cur));
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo leer el CV', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo leer el CV'), e instanceof Error ? e.message : undefined);
     } finally {
       this.leyendoCv.set(false);
     }
@@ -222,7 +224,7 @@ export class RrhhCandidatos implements OnInit {
         window.open(url, '_blank', 'noopener');
       }
     } catch (e) {
-      this.toast.error('No se pudo abrir el CV', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir el CV'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -236,11 +238,11 @@ export class RrhhCandidatos implements OnInit {
     if (!c) return;
     try {
       await this.svc.archivarCandidato(c.id, this.userService.profile()?.id ?? null);
-      this.toast.success('Candidato archivado');
+      this.toast.success(this.i18n.t('Candidato archivado'));
       await this.cargar();
       this.cerrarDetalle();
     } catch (e) {
-      this.toast.error('No se pudo archivar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo archivar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.candidatoAArchivar.set(null);
     }
@@ -249,12 +251,12 @@ export class RrhhCandidatos implements OnInit {
   async restaurar(c: RrhhCandidatoConVacante) {
     try {
       await this.svc.restaurarCandidato(c.id);
-      this.toast.success('Candidato restaurado');
+      this.toast.success(this.i18n.t('Candidato restaurado'));
       await this.cargar();
       const actualizado = this.candidatos().find((x) => x.id === c.id);
       if (actualizado) this.seleccionado.set(actualizado);
     } catch (e) {
-      this.toast.error('No se pudo restaurar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo restaurar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -267,11 +269,11 @@ export class RrhhCandidatos implements OnInit {
     if (!c) return;
     try {
       await this.svc.eliminarCandidatoFisico(c.id, c.cv_path);
-      this.toast.success('Candidato eliminado para siempre');
+      this.toast.success(this.i18n.t('Candidato eliminado para siempre'));
       await this.cargar();
       this.cerrarDetalle();
     } catch (e) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.candidatoAEliminarFisico.set(null);
     }

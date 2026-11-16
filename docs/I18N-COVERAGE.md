@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 65%** (6833/10457 literales de 192 pantallas en alcance). **`ht`: 86%**.
+**Alcance `en`: 66%** (6858/10459 literales de 192 pantallas en alcance). **`ht`: 86%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -78,7 +78,6 @@
 | tecnologia/dev-notes | scope | 95 | 13 | 82 | 14% |
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
-| rrhh/candidatos | scope | 56 | 33 | 23 | 59% |
 | rrhh/ausencias | scope | 40 | 26 | 14 | 65% |
 | rrhh/onboarding | scope | 40 | 27 | 13 | 68% |
 | rrhh/tramites | scope | 44 | 31 | 13 | 70% |
@@ -190,6 +189,7 @@
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
 | proyectos/personal | enforce | 252 | 252 | 0 | 100% |
 | rrhh/asistencia | enforce | 31 | 31 | 0 | 100% |
+| rrhh/candidatos | enforce | 58 | 58 | 0 | 100% |
 | rrhh/capacitacion | enforce | 31 | 31 | 0 | 100% |
 | rrhh/contratos | enforce | 32 | 32 | 0 | 100% |
 | rrhh/evaluaciones | enforce | 21 | 21 | 0 | 100% |
@@ -202,14 +202,13 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**408 literal(es) sin t()** en 57 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**392 literal(es) sin t()** en 56 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
 | src/app/pages/incentivos/incentivos.ts | 38 | No se pudo registrar la decisión · Nada que decidir · ${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'} … |
 | src/app/pages/tecnologia/inventario/inventario.ts | 20 | No se pudo leer la captura · Captura leída · No se pudo leer la captura … |
 | src/app/pages/admin/matriz-notificaciones/matriz-notificaciones.ts | 16 | No se pudo guardar el canal · Silenciada para · No se pudo silenciar … |
-| src/app/pages/rrhh/candidatos/candidatos.ts | 16 | No se pudieron cargar los candidatos · Falta el nombre · Candidato actualizado … |
 | src/app/pages/ingenieria/pagos/pagos.ts | 14 | No se pudo crear la semana · No se pudo crear la semana · No se pudo guardar … |
 | src/app/pages/mensajes/grupo-info/grupo-info.ts | 14 | No se pudo cargar el grupo · Grupo actualizado · No se pudo guardar … |
 | src/app/pages/mensajes/mensajes.ts | 14 | No se pudo abrir la conversación · No se pudo abrir el archivo · No se pudo abrir la imagen … |
