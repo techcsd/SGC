@@ -1,6 +1,6 @@
 {
-  "pctScopeEn": 89,
-  "pctHt": 95,
+  "pctScopeEn": 90,
+  "pctHt": 96,
   "filas": [
     {
       "pantalla": "auth/set-password",
@@ -1326,24 +1326,6 @@
       ]
     },
     {
-      "pantalla": "admin/vault",
-      "total": 72,
-      "cubiertos": 65,
-      "sin": 7,
-      "pct": 90,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "2FA",
-        "bits —",
-        "El nombre es obligatorio",
-        "Guardado",
-        "Copiado — se borra del portapapeles en 30 s",
-        "No se pudo copiar",
-        "Eliminado"
-      ]
-    },
-    {
       "pantalla": "asistente",
       "total": 36,
       "cubiertos": 33,
@@ -1566,6 +1548,16 @@
       "pantalla": "admin/usuarios-test",
       "total": 32,
       "cubiertos": 32,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/vault",
+      "total": 72,
+      "cubiertos": 72,
       "sin": 0,
       "pct": 100,
       "enScope": true,

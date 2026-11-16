@@ -7118,5 +7118,18 @@
   "Filtrar:": "Filter:",
   "No hay versiones que coincidan con el filtro.": "No versions match the filter.",
   "● Actual": "● Current",
-  "Versión antigua · datos de dev — no operar sobre prod": "Old version · dev data — do not operate on prod"
+  "Versión antigua · datos de dev — no operar sobre prod": "Old version · dev data — do not operate on prod",
+  "2FA": "2FA",
+  "bits —": "bits —",
+  "El nombre es obligatorio": "The name is required",
+  "Copiado — se borra del portapapeles en 30 s": "Copied — it clears from the clipboard in 30s",
+  "Eliminado": "Deleted",
+  "No se pudo cargar el Vault": "Couldn't load the Vault",
+  "No se pudo revelar": "Couldn't reveal",
+  "No se pudo mostrar la semilla": "Couldn't show the seed",
+  "No se pudo calcular el código": "Couldn't compute the code",
+  "No se pudo descargar": "Couldn't download",
+  "No se pudo cargar el registro": "Couldn't load the log",
+  "¿Quién es responsable?": "Who's responsible?",
+  "Llave API": "API key"
 }

@@ -76,9 +76,6 @@
     "admin/roles": {
       "enforce": false
     },
-    "admin/vault": {
-      "enforce": false
-    },
     "asistente": {
       "enforce": false
     },
@@ -143,6 +140,9 @@
       "enforce": true
     },
     "admin/usuarios-test": {
+      "enforce": true
+    },
+    "admin/vault": {
       "enforce": true
     },
     "ajustes-notificaciones": {
