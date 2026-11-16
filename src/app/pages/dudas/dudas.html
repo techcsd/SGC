@@ -3,12 +3,12 @@
   <!-- Page header -->
   <div class="dudas__header">
     <div>
-      <h1>Dudas y Ayuda</h1>
-      <p>Encuentra cómo usar cada sección del sistema, o busca una pregunta frecuente.</p>
+      <h1>{{ 'Dudas y Ayuda' | t }}</h1>
+      <p>{{ 'Encuentra cómo usar cada sección del sistema, o busca una pregunta frecuente.' | t }}</p>
     </div>
     <div class="dudas__header-actions">
-      <a class="sgc-btn sgc-btn--secondary sgc-btn--sm" routerLink="/practica">Modo práctica</a>
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verBienvenida()">Ver la bienvenida otra vez</button>
+      <a class="sgc-btn sgc-btn--secondary sgc-btn--sm" routerLink="/practica">{{ 'Modo práctica' | t }}</a>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verBienvenida()">{{ 'Ver la bienvenida otra vez' | t }}</button>
     </div>
   </div>
 
@@ -16,10 +16,10 @@
   @if (guias().length) {
     <section class="dudas__guias">
       <div class="dudas__guias-head">
-        <h2 class="dudas__guias-title">Guías rápidas</h2>
+        <h2 class="dudas__guias-title">{{ 'Guías rápidas' | t }}</h2>
         @if (hayVideos()) {
           <button type="button" class="dudas__video-filtro" [class.dudas__video-filtro--on]="soloConVideo()"
-            (click)="toggleSoloConVideo()">Con video</button>
+            (click)="toggleSoloConVideo()">{{ 'Con video' | t }}</button>
         }
       </div>
       <div class="dudas__guias-grid">
@@ -78,7 +78,7 @@
                 <span class="dudas__guia-play-ic" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </span>
-                <span class="dudas__guia-play-tx">Ver video@if (v.duracion) { · {{ formatDuracion(v.duracion) }} }</span>
+                <span class="dudas__guia-play-tx">{{ 'Ver video' | t }}@if (v.duracion) { · {{ formatDuracion(v.duracion) }} }</span>
               </button>
             }
             <ol class="dudas__guia-pasos">
@@ -96,10 +96,10 @@
   <div class="sgc-field dudas__search">
     <input
       type="search"
-      placeholder="Buscar, por ejemplo: cómo creo una orden de compra…"
+      placeholder="{{ 'Buscar, por ejemplo: cómo creo una orden de compra…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar en las preguntas frecuentes"
+      aria-label="{{ 'Buscar en las preguntas frecuentes' | t }}"
     />
   </div>
 
@@ -108,8 +108,8 @@
     <app-skeleton variant="cards" [rows]="3" />
   } @else if (!hasResults()) {
     <div class="dudas__empty sgc-card">
-      <p>No encontramos nada con esa búsqueda. Prueba con otras palabras, o contáctanos.</p>
-      <a routerLink="/soporte" class="sgc-btn sgc-btn--secondary">Ir a Soporte</a>
+      <p>{{ 'No encontramos nada con esa búsqueda. Prueba con otras palabras, o contáctanos.' | t }}</p>
+      <a routerLink="/soporte" class="sgc-btn sgc-btn--secondary">{{ 'Ir a Soporte' | t }}</a>
     </div>
   } @else {
     @for (categoria of filteredCategorias(); track categoria.id) {
@@ -143,10 +143,10 @@
   <!-- Contact fallback -->
   <div class="dudas__footer">
     <p>
-      ¿No encontraste lo que buscabas? Escríbenos en
-      <a routerLink="/soporte">Soporte</a>
-      o contacta directamente a
-      <a href="mailto:tecnologia@constructorasd.com">Tecnología CSD</a>.
+      {{ '¿No encontraste lo que buscabas? Escríbenos en' | t }}
+      <a routerLink="/soporte">{{ 'Soporte' | t }}</a>
+      {{ 'o contacta directamente a' | t }}
+      <a href="mailto:tecnologia@constructorasd.com">{{ 'Tecnología CSD' | t }}</a>.
     </p>
   </div>
 

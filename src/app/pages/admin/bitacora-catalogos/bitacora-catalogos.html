@@ -1,20 +1,19 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Catálogos de bitácora</h1>
-    <span class="page-count">{{ catalogos().length }} valores</span>
+    <h1 class="page-title">{{ 'Catálogos de bitácora' | t }}</h1>
+    <span class="page-count">{{ catalogos().length }} {{ 'valores' | t }}</span>
   </div>
 </div>
 
 <p class="bc-lead">
-  Estos catálogos alimentan los desplegables al llenar una <strong>bitácora / incidente</strong>
-  (web y app de campo). Cada columna abajo dice qué alimenta y dónde aparece. Agrega, reordena o
-  desactiva valores; los cambios se reflejan en ambos lados al instante.
+  {{ 'Estos catálogos alimentan los desplegables al llenar una' | t }} <strong>{{ 'bitácora / incidente' | t }}</strong>
+  {{ '(web y app de campo). Cada columna abajo dice qué alimenta y dónde aparece. Agrega, reordena o desactiva valores; los cambios se reflejan en ambos lados al instante.' | t }}
 </p>
 
 <div class="bc-add">
   <select [ngModel]="nuevoTipo()" (ngModelChange)="nuevoTipo.set($event)">
     @for (g of grupos; track g.tipo) {
-      <option [value]="g.tipo">{{ g.label }}</option>
+      <option [value]="g.tipo">{{ g.label | t }}</option>
     }
   </select>
   <input
@@ -22,10 +21,10 @@
     [ngModel]="nuevoValor()"
     (ngModelChange)="nuevoValor.set($event)"
     (keyup.enter)="agregar()"
-    placeholder="Nuevo valor (ej: ESCALERAS)"
+    placeholder="{{ 'Nuevo valor (ej: ESCALERAS)' | t }}"
   />
   <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="agregar()">
-    Agregar
+    {{ 'Agregar' | t }}
   </button>
 </div>
 
@@ -35,8 +34,8 @@
     type="search"
     [ngModel]="busqueda()"
     (ngModelChange)="busqueda.set($event)"
-    placeholder="Buscar un valor en todos los catálogos…"
-    aria-label="Buscar valor"
+    placeholder="{{ 'Buscar un valor en todos los catálogos…' | t }}"
+    aria-label="{{ 'Buscar valor' | t }}"
   />
 </div>
 
@@ -50,22 +49,22 @@
   <div class="bc-grid">
     @for (g of grupos; track g.tipo) {
       <section class="bc-col">
-        <h2 class="bc-col__title">{{ g.label }} <span class="bc-col__count">{{ conteoPorTipo()[g.tipo] ?? 0 }}</span></h2>
-        <p class="bc-col__desc">{{ g.desc }}</p>
+        <h2 class="bc-col__title">{{ g.label | t }} <span class="bc-col__count">{{ conteoPorTipo()[g.tipo] ?? 0 }}</span></h2>
+        <p class="bc-col__desc">{{ g.desc | t }}</p>
         @for (c of porTipoFiltrado()[g.tipo]; track c.id; let i = $index; let count = $count) {
           <div class="bc-item" [class.bc-item--off]="!c.activo">
             <span class="bc-item__ord">
               <button
                 class="sgc-btn sgc-btn--sm sgc-btn--ghost"
                 type="button"
-                title="Subir"
+                title="{{ 'Subir' | t }}"
                 [disabled]="i === 0 || saving()"
                 (click)="mover(c, -1)"
               ><app-icon name="arrow-up" [size]="16" /></button>
               <button
                 class="sgc-btn sgc-btn--sm sgc-btn--ghost"
                 type="button"
-                title="Bajar"
+                title="{{ 'Bajar' | t }}"
                 [disabled]="i === count - 1 || saving()"
                 (click)="mover(c, 1)"
               ><app-icon name="arrow-down" [size]="16" /></button>
@@ -73,13 +72,13 @@
             <span class="bc-item__val">{{ c.valor }}</span>
             <!-- AW1 — solo actividades: permitir "se trabajó" sin cantidad exacta (~). -->
             @if (g.tipo === 'actividad') {
-              <label class="bc-item__aprox" title="Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)">
+              <label class="bc-item__aprox" title="{{ 'Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)' | t }}">
                 <input type="checkbox" [checked]="c.permite_sin_cantidad" (change)="togglePermiteSinCantidad(c)" />
-                <span>~ aprox.</span>
+                <span>{{ '~ aprox.' | t }}</span>
               </label>
             }
             <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(c)">
-              {{ c.activo ? 'Desactivar' : 'Activar' }}
+              {{ (c.activo ? 'Desactivar' : 'Activar') | t }}
             </button>
           </div>
         }

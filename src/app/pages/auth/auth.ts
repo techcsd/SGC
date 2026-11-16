@@ -7,6 +7,7 @@ import { UserService } from '../../core/services/user.service';
 import { PreferenciasService } from '../../../shared/services/preferencias.service';
 import { LogoRevealService } from '../../../shared/ui/logo-reveal/logo-reveal.service';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 import { CedulaMask } from '../../../shared/ui/cedula-mask.directive';
 import { normalizarCedula } from '../../../shared/utils/cedula.util';
 
@@ -24,6 +25,7 @@ export class Auth {
   private logoReveal = inject(LogoRevealService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
 
   loading = signal(false);
   errorMessage = signal('');
@@ -51,7 +53,7 @@ export class Auth {
     this.errorMessage.set('');
     const { error } = await this.authService.sendMagicLink(this.email.value!);
     this.magicLoading.set(false);
-    if (error) { this.errorMessage.set('No se pudo enviar el enlace. Intenta de nuevo.'); return; }
+    if (error) { this.errorMessage.set(this.i18n.t('No se pudo enviar el enlace. Intenta de nuevo.')); return; }
     this.magicSent.set(true);
   }
 
@@ -112,11 +114,11 @@ export class Auth {
       this.loading.set(false);
       const msg = error?.message ?? '';
       if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
-        this.errorMessage.set('Correo o contraseña incorrectos.');
+        this.errorMessage.set(this.i18n.t('Correo o contraseña incorrectos.'));
       } else if (msg.includes('Email not confirmed')) {
-        this.errorMessage.set('Debes confirmar tu correo antes de iniciar sesión.');
+        this.errorMessage.set(this.i18n.t('Debes confirmar tu correo antes de iniciar sesión.'));
       } else {
-        this.errorMessage.set('Error al iniciar sesión. Intenta de nuevo.');
+        this.errorMessage.set(this.i18n.t('Error al iniciar sesión. Intenta de nuevo.'));
       }
       return;
     }
@@ -141,9 +143,9 @@ export class Auth {
       this.loading.set(false);
       if (res.retryInSeconds && res.retryInSeconds > 0) {
         const min = Math.max(1, Math.ceil(res.retryInSeconds / 60));
-        this.errorMessage.set(`Demasiados intentos. Intenta de nuevo en ~${min} min.`);
+        this.errorMessage.set(this.i18n.t('Demasiados intentos. Intenta de nuevo en ~{min} min.', { min }));
       } else {
-        this.errorMessage.set(res.error ?? 'No se pudo iniciar sesión.');
+        this.errorMessage.set(res.error ?? this.i18n.t('No se pudo iniciar sesión.'));
       }
       return;
     }
@@ -159,14 +161,14 @@ export class Auth {
     if (!profile) {
       await this.authService.signOut();
       this.loading.set(false);
-      this.errorMessage.set('No se pudo cargar tu perfil. Contacta al administrador.');
+      this.errorMessage.set(this.i18n.t('No se pudo cargar tu perfil. Contacta al administrador.'));
       return;
     }
 
     if (!profile.activo) {
       await this.authService.signOut();
       this.loading.set(false);
-      this.errorMessage.set('Tu cuenta está desactivada. Contacta al administrador.');
+      this.errorMessage.set(this.i18n.t('Tu cuenta está desactivada. Contacta al administrador.'));
       return;
     }
 

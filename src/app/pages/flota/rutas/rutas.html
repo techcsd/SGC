@@ -1,14 +1,14 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Rutas</h1>
-    <span class="page-count">{{ filtered().length }} ruta{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Rutas' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'rutas' : 'ruta') | t }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Planificar ruta
+    {{ 'Planificar ruta' | t }}
   </button>
 </div>
 
@@ -17,10 +17,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por origen, destino o placa…"
+      placeholder="{{ 'Buscar por origen, destino o placa…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar rutas"
+      aria-label="{{ 'Buscar rutas' | t }}"
     />
   </div>
 
@@ -28,18 +28,18 @@
     <select
       [value]="selectedEstado()"
       (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="">Todos los estados</option>
+      <option value="">{{ 'Todos los estados' | t }}</option>
       @for (e of RUTA_ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
 
   @if (searchQuery() || selectedEstado()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
@@ -47,7 +47,7 @@
     <label class="rutas__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked); page.set(1)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -81,32 +81,32 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de rutas">
+      <table class="data-table" aria-label="{{ 'Lista de rutas' | t }}">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Vehículo</th>
-            <th>Conductor</th>
-            <th>Origen → Destino</th>
-            <th class="text-right">Km (est./real)</th>
-            <th class="text-right">Tiempo (est./real)</th>
-            <th>Estado</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Vehículo' | t }}</th>
+            <th>{{ 'Conductor' | t }}</th>
+            <th>{{ 'Origen → Destino' | t }}</th>
+            <th class="text-right">{{ 'Km (est./real)' | t }}</th>
+            <th class="text-right">{{ 'Tiempo (est./real)' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (r of paginated(); track r.id) {
             <tr class="rutas__row--link" [appHighlightItem]="r.id" (click)="openDetail(r)" role="button" tabindex="0"
-                (keydown.enter)="openDetail(r)" [attr.aria-label]="'Ver detalle de la ruta ' + r.origen + ' a ' + r.destino">
+                (keydown.enter)="openDetail(r)" [attr.aria-label]="i18n.t('Ver detalle de la ruta {origen} a {destino}', { origen: r.origen, destino: r.destino })">
               <td class="rutas__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>{{ r.vehiculo ? idVehiculo(r.vehiculo) : '—' }}</td>
               <td>{{ r.conductor?.nombre ?? '—' }}</td>
               <td>
                 <span class="rutas__trip">{{ r.origen }} <span class="rutas__arrow">→</span> {{ r.destino }}</span>
-                <span class="sgc-badge sgc-badge--neutral" [title]="'Ruta de ' + getTipoInfo(r.tipo).label">
-                  <app-icon [name]="getTipoInfo(r.tipo).icon" [size]="13" /> {{ getTipoInfo(r.tipo).label }}
+                <span class="sgc-badge sgc-badge--neutral" [title]="i18n.t('Ruta de {tipo}', { tipo: i18n.t(getTipoInfo(r.tipo).label) })">
+                  <app-icon [name]="getTipoInfo(r.tipo).icon" [size]="13" /> {{ getTipoInfo(r.tipo).label | t }}
                 </span>
-                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                 @if (climaRuta(r); as rec) {
                   <span class="clima-chip" [class]="nivelClima(rec.nivel)" [title]="rec.detalle">
                     <app-icon [name]="rec.nivel === 'peligro' ? 'cloud-lightning' : 'cloud-rain'" [size]="14" /> {{ rec.titulo }}
@@ -131,7 +131,7 @@
               </td>
               <td>
                 <span [class]="'sgc-badge sgc-badge--' + getEstadoInfo(r.estado)?.badge">
-                  {{ getEstadoInfo(r.estado)?.label }}
+                  {{ (getEstadoInfo(r.estado)?.label ?? '') | t }}
                 </span>
               </td>
               <td>
@@ -141,8 +141,8 @@
                       type="button"
                       class="action-btn action-btn--edit"
                       (click)="openRegistrar(r)"
-                      title="Registrar resultado"
-                      aria-label="Registrar resultado de la ruta"
+                      title="{{ 'Registrar resultado' | t }}"
+                      aria-label="{{ 'Registrar resultado de la ruta' | t }}"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
@@ -153,8 +153,8 @@
                     type="button"
                     class="action-btn"
                     (click)="openEdit(r)"
-                    title="Editar"
-                    aria-label="Editar ruta"
+                    title="{{ 'Editar' | t }}"
+                    aria-label="{{ 'Editar ruta' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -182,7 +182,7 @@
 
     <!-- AD6 — tipo de ruta (personal/traslado no exigen carga) -->
     <div class="sgc-field">
-      <label for="tipo">Tipo de ruta <span class="required">*</span></label>
+      <label for="tipo">{{ 'Tipo de ruta' | t }} <span class="required">*</span></label>
       <select id="tipo" formControlName="tipo">
         @for (t of RUTA_TIPOS; track t.value) {
           <option [value]="t.value">{{ t.label }}</option>
@@ -192,17 +192,17 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
+        <label for="vehiculo_id">{{ 'Vehículo' | t }} <span class="required">*</span></label>
         <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="activeVehiculos()" [asignados]="asignadosOtros()" />
         @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
-          <span class="field-error">El vehículo es obligatorio.</span>
+          <span class="field-error">{{ 'El vehículo es obligatorio.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="conductor_id">Conductor</label>
+        <label for="conductor_id">{{ 'Conductor' | t }}</label>
         <select id="conductor_id" formControlName="conductor_id">
-          <option [ngValue]="null">Sin asignar</option>
+          <option [ngValue]="null">{{ 'Sin asignar' | t }}</option>
           @for (c of activeConductores(); track c.id) {
             <option [value]="c.id">{{ c.nombre }}</option>
           }
@@ -212,18 +212,18 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="origen">Origen <span class="required">*</span></label>
-        <input id="origen" type="text" formControlName="origen" placeholder="Punto de partida" [class.invalid]="f.origen.invalid && f.origen.touched" />
+        <label for="origen">{{ 'Origen' | t }} <span class="required">*</span></label>
+        <input id="origen" type="text" formControlName="origen" placeholder="{{ 'Punto de partida' | t }}" [class.invalid]="f.origen.invalid && f.origen.touched" />
         @if (f.origen.invalid && f.origen.touched) {
-          <span class="field-error">El origen es obligatorio.</span>
+          <span class="field-error">{{ 'El origen es obligatorio.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="destino">Destino <span class="required">*</span></label>
-        <input id="destino" type="text" formControlName="destino" placeholder="Punto de llegada" [class.invalid]="f.destino.invalid && f.destino.touched" />
+        <label for="destino">{{ 'Destino' | t }} <span class="required">*</span></label>
+        <input id="destino" type="text" formControlName="destino" placeholder="{{ 'Punto de llegada' | t }}" [class.invalid]="f.destino.invalid && f.destino.touched" />
         @if (f.destino.invalid && f.destino.touched) {
-          <span class="field-error">El destino es obligatorio.</span>
+          <span class="field-error">{{ 'El destino es obligatorio.' | t }}</span>
         }
       </div>
     </div>
@@ -231,17 +231,17 @@
     <!-- Origin location → auto km/tiempo estimate -->
     <div class="sgc-field">
       <div class="rutas__origen-head">
-        <label>Punto de origen (calcula distancia y tiempo)</label>
+        <label>{{ 'Punto de origen (calcula distancia y tiempo)' | t }}</label>
         <button type="button" class="sgc-btn sgc-btn--ghost rutas__geo-btn" (click)="usarUbicacionActual()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/>
           </svg>
-          Usar mi ubicación actual
+          {{ 'Usar mi ubicación actual' | t }}
         </button>
       </div>
-      <select class="rutas__lugar-select" aria-label="Origen desde obra o almacén"
+      <select class="rutas__lugar-select" aria-label="{{ 'Origen desde obra o almacén' | t }}"
               (change)="onOrigenLugar($any($event.target).value); $any($event.target).value=''">
-        <option value="">O elegir una obra o almacén…</option>
+        <option value="">{{ 'O elegir una obra o almacén…' | t }}</option>
         <optgroup label="Obras">
           @for (o of obrasDestino(); track o.id) { <option [value]="'obra:' + o.id">{{ o.codigo }} — {{ o.nombre }}</option> }
         </optgroup>
@@ -254,16 +254,16 @@
         [longitud]="f.origen_lng.value"
         (ubicacionChange)="onOrigenPicked($event)"
       />
-      <span class="field-hint">Marca el origen en el mapa, usa tu ubicación, o elige una obra/almacén. La distancia y el tiempo se llenan solos.</span>
+      <span class="field-hint">{{ 'Marca el origen en el mapa, usa tu ubicación, o elige una obra/almacén. La distancia y el tiempo se llenan solos.' | t }}</span>
     </div>
 
     <!-- Destination location → weather at destination -->
     @if (almacenes().length > 0) {
       <div class="sgc-field">
-        <label for="destino_lugar">Destino: obra o almacén (atajo)</label>
-        <select id="destino_lugar" class="rutas__lugar-select" aria-label="Destino desde obra o almacén"
+        <label for="destino_lugar">{{ 'Destino: obra o almacén (atajo)' | t }}</label>
+        <select id="destino_lugar" class="rutas__lugar-select" aria-label="{{ 'Destino desde obra o almacén' | t }}"
                 (change)="onDestinoLugar($any($event.target).value); $any($event.target).value=''">
-          <option value="">Elegir una obra o almacén…</option>
+          <option value="">{{ 'Elegir una obra o almacén…' | t }}</option>
           <optgroup label="Obras">
             @for (o of obrasDestino(); track o.id) { <option [value]="'obra:' + o.id">{{ o.codigo }} — {{ o.nombre }}</option> }
           </optgroup>
@@ -271,23 +271,23 @@
             @for (a of almacenes(); track a.id) { <option [value]="'alm:' + a.id">{{ a.nombre }}</option> }
           </optgroup>
         </select>
-        <span class="field-hint">Un almacén fija el punto de destino con sus coordenadas.</span>
+        <span class="field-hint">{{ 'Un almacén fija el punto de destino con sus coordenadas.' | t }}</span>
       </div>
     }
     <div class="sgc-field">
-      <label for="destino_proyecto_id">Obra de destino (opcional)</label>
+      <label for="destino_proyecto_id">{{ 'Obra de destino (opcional)' | t }}</label>
       <select id="destino_proyecto_id" formControlName="destino_proyecto_id" (change)="onObraChange($any($event.target).value)">
-        <option [ngValue]="null">No es una obra / seleccionar en el mapa</option>
+        <option [ngValue]="null">{{ 'No es una obra / seleccionar en el mapa' | t }}</option>
         @for (o of obrasDestino(); track o.id) {
           <option [value]="o.id">{{ o.codigo }} — {{ o.nombre }}</option>
         }
       </select>
-      <span class="field-hint">Vincula el destino a una obra para ver su clima y recibir avisos de despacho.</span>
+      <span class="field-hint">{{ 'Vincula el destino a una obra para ver su clima y recibir avisos de despacho.' | t }}</span>
     </div>
 
     @if (!obraSeleccionada()) {
       <div class="sgc-field">
-        <label>O marca el punto de destino en el mapa (opcional)</label>
+        <label>{{ 'O marca el punto de destino en el mapa (opcional)' | t }}</label>
         <app-location-picker
           [latitud]="f.destino_lat.value"
           [longitud]="f.destino_lng.value"
@@ -299,33 +299,33 @@
     <!-- AC13 — Paradas intermedias (multi-stop) -->
     <div class="sgc-field rutas__paradas">
       <div class="rutas__paradas-head">
-        <label>Paradas (opcional)</label>
+        <label>{{ 'Paradas (opcional)' | t }}</label>
         <button type="button" class="sgc-btn sgc-btn--ghost rutas__geo-btn" (click)="agregarParada()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Agregar parada
+          {{ 'Agregar parada' | t }}
         </button>
       </div>
       @if (paradas().length === 0) {
-        <span class="field-hint">Agrega paradas intermedias en orden entre el origen y el destino.</span>
+        <span class="field-hint">{{ 'Agrega paradas intermedias en orden entre el origen y el destino.' | t }}</span>
       }
       @for (p of paradas(); track $index) {
         <div class="rutas__parada">
           <div class="rutas__parada-head">
-            <span class="rutas__parada-num">Parada {{ $index + 1 }}</span>
+            <span class="rutas__parada-num">{{ 'Parada' | t }} {{ $index + 1 }}</span>
             <div class="rutas__parada-ctrl">
               <button type="button" class="rutas__parada-btn" (click)="moverParada($index, -1)"
-                      [disabled]="$index === 0" title="Subir" aria-label="Subir parada"><app-icon name="arrow-up" [size]="14" /></button>
+                      [disabled]="$index === 0" title="{{ 'Subir' | t }}" aria-label="{{ 'Subir parada' | t }}"><app-icon name="arrow-up" [size]="14" /></button>
               <button type="button" class="rutas__parada-btn" (click)="moverParada($index, 1)"
-                      [disabled]="$index === paradas().length - 1" title="Bajar" aria-label="Bajar parada"><app-icon name="arrow-down" [size]="14" /></button>
+                      [disabled]="$index === paradas().length - 1" title="{{ 'Bajar' | t }}" aria-label="{{ 'Bajar parada' | t }}"><app-icon name="arrow-down" [size]="14" /></button>
               <button type="button" class="rutas__parada-btn rutas__parada-btn--del" (click)="quitarParada($index)"
-                      title="Quitar" aria-label="Quitar parada"><app-icon name="x" [size]="14" /></button>
+                      title="{{ 'Quitar' | t }}" aria-label="{{ 'Quitar parada' | t }}"><app-icon name="x" [size]="14" /></button>
             </div>
           </div>
           <input type="text" class="rutas__parada-input" [value]="p.ubicacion"
                  (input)="updateParadaCampo($index, 'ubicacion', $any($event.target).value)"
-                 placeholder="Nombre o dirección de la parada" />
+                 placeholder="{{ 'Nombre o dirección de la parada' | t }}" />
           <app-location-picker
             [latitud]="p.lat"
             [longitud]="p.lng"
@@ -333,36 +333,36 @@
           />
           <input type="text" class="rutas__parada-input" [value]="p.notas"
                  (input)="updateParadaCampo($index, 'notas', $any($event.target).value)"
-                 placeholder="Notas de la parada (opcional)" />
+                 placeholder="{{ 'Notas de la parada (opcional)' | t }}" />
         </div>
       }
     </div>
 
     <!-- AC6 — Fotos de evidencia (carga/vehículo/documento) -->
     <div class="sgc-field">
-      <label>Fotos de evidencia (carga/vehículo/documento)</label>
+      <label>{{ 'Fotos de evidencia (carga/vehículo/documento)' | t }}</label>
       <input type="file" accept="image/*" capture="environment" multiple (change)="onRutaFotosSelected($event)" />
       @if (fotoPreviews().length) {
         <div class="rutas__fotos-grid">
           @for (p of fotoPreviews(); track $index) {
             <div class="rutas__foto-thumb">
-              <img [src]="p" alt="Foto de evidencia" />
-              <button type="button" class="rutas__foto-quitar" (click)="quitarRutaFoto($index)" aria-label="Quitar foto"><app-icon name="x" [size]="14" /></button>
+              <img [src]="p" alt="{{ 'Foto de evidencia' | t }}" />
+              <button type="button" class="rutas__foto-quitar" (click)="quitarRutaFoto($index)" aria-label="{{ 'Quitar foto' | t }}"><app-icon name="x" [size]="14" /></button>
             </div>
           }
         </div>
       }
-      <span class="field-hint">Se suben al guardar la ruta. Usa la cámara para capturar en campo.</span>
+      <span class="field-hint">{{ 'Se suben al guardar la ruta. Usa la cámara para capturar en campo.' | t }}</span>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha">Fecha <span class="required">*</span></label>
+        <label for="fecha">{{ 'Fecha' | t }} <span class="required">*</span></label>
         <input id="fecha" type="date" formControlName="fecha" (change)="onFechaChange($any($event.target).value)" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
       </div>
 
       <div class="sgc-field">
-        <label for="estado">Estado <span class="required">*</span></label>
+        <label for="estado">{{ 'Estado' | t }} <span class="required">*</span></label>
         <select id="estado" formControlName="estado">
           @for (e of RUTA_ESTADOS; track e.value) {
             <option [value]="e.value">{{ e.label }}</option>
@@ -373,27 +373,27 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="km_estimado">Kilometraje estimado</label>
+        <label for="km_estimado">{{ 'Kilometraje estimado' | t }}</label>
         <input id="km_estimado" type="number" min="0" step="0.1" formControlName="km_estimado" placeholder="0.0" />
       </div>
 
       <div class="sgc-field">
-        <label for="tiempo_estimado_min">Tiempo estimado (min)</label>
+        <label for="tiempo_estimado_min">{{ 'Tiempo estimado (min)' | t }}</label>
         <input id="tiempo_estimado_min" type="number" min="0" formControlName="tiempo_estimado_min" placeholder="0" />
       </div>
     </div>
 
     @if (calculandoRuta()) {
       <span class="field-hint rutas__estimando">
-        <span class="spinner-dark" aria-hidden="true"></span> Calculando distancia y tiempo por mapa…
+        <span class="spinner-dark" aria-hidden="true"></span> {{ 'Calculando distancia y tiempo por mapa…' | t }}
       </span>
     } @else if (autoEstimado()) {
-      <span class="field-hint"><app-icon name="check" [size]="14" /> Distancia y tiempo estimados por mapa — puedes ajustarlos.</span>
+      <span class="field-hint"><app-icon name="check" [size]="14" /> {{ 'Distancia y tiempo estimados por mapa — puedes ajustarlos.' | t }}</span>
     }
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
+      <label for="notas">{{ 'Notas' | t }}</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="{{ 'Notas adicionales…' | t }}"></textarea>
     </div>
 
     <!-- Weather at destination + dispatch advisory -->
@@ -405,7 +405,7 @@
         </div>
       } @else if (drawerClima()?.dia) {
         <div class="dispatch-advisory dispatch-advisory--ok">
-          <span>Sin alertas de clima para la fecha del viaje en el destino.</span>
+          <span>{{ 'Sin alertas de clima para la fecha del viaje en el destino.' | t }}</span>
         </div>
       }
       <app-weather-card [latitud]="c.latitud" [longitud]="c.longitud" titulo="Clima en el destino" />
@@ -421,13 +421,13 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Planificar ruta' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Planificar ruta') | t }}
         }
       </button>
     </div>
@@ -437,7 +437,7 @@
 
 <!-- ── Registrar resultado Drawer ── -->
 <app-form-drawer
-  title="Registrar resultado de la ruta"
+  title="{{ 'Registrar resultado de la ruta' | t }}"
   [open]="registrarDrawerOpen()"
   (closed)="closeRegistrar()"
 >
@@ -449,21 +449,21 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="km_real">Kilometraje real</label>
+        <label for="km_real">{{ 'Kilometraje real' | t }}</label>
         <input id="km_real" type="number" min="0" step="0.1" formControlName="km_real" placeholder="0.0" />
       </div>
 
       <div class="sgc-field">
-        <label for="tiempo_real_min">Tiempo real (min)</label>
+        <label for="tiempo_real_min">{{ 'Tiempo real (min)' | t }}</label>
         <input id="tiempo_real_min" type="number" min="0" formControlName="tiempo_real_min" placeholder="0" />
       </div>
     </div>
 
     <div class="sgc-field">
-      <label for="registrar-estado">Estado</label>
+      <label for="registrar-estado">{{ 'Estado' | t }}</label>
       <select id="registrar-estado" formControlName="estado">
         @for (e of RUTA_ESTADOS; track e.value) {
-          <option [value]="e.value">{{ e.label }}</option>
+          <option [value]="e.value">{{ e.label | t }}</option>
         }
       </select>
     </div>
@@ -473,13 +473,13 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeRegistrar()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeRegistrar()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          Guardar resultado
+          {{ 'Guardar resultado' | t }}
         }
       </button>
     </div>
@@ -488,28 +488,28 @@
 </app-form-drawer>
 
 <!-- ── R3 — Detalle de ruta (read-only) ── -->
-<app-form-drawer title="Detalle de la ruta" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle de la ruta' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailRuta(); as r) {
     <div class="ruta-detalle">
       <!-- Estado + fecha -->
       <div class="ruta-detalle__band ruta-detalle__band--{{ getEstadoInfo(r.estado)?.badge }}">
-        <span class="ruta-detalle__estado">{{ getEstadoInfo(r.estado)?.label }}</span>
+        <span class="ruta-detalle__estado">{{ (getEstadoInfo(r.estado)?.label ?? '') | t }}</span>
         <span class="ruta-detalle__fecha">{{ formatFecha(r.fecha) }}</span>
       </div>
 
       <!-- Trayecto -->
-      <h4 class="ruta-detalle__title">Trayecto</h4>
+      <h4 class="ruta-detalle__title">{{ 'Trayecto' | t }}</h4>
       <p class="ruta-detalle__trip">
         <strong>{{ r.origen }}</strong> <span class="rutas__arrow">→</span> <strong>{{ r.destino }}</strong>
       </p>
       @if (r.destino_proyecto?.nombre) {
-        <p class="ruta-detalle__sub">Obra de destino: {{ r.destino_proyecto?.nombre }}</p>
+        <p class="ruta-detalle__sub">{{ 'Obra de destino:' | t }} {{ r.destino_proyecto?.nombre }}</p>
       }
 
       <!-- AU5 — Ver trayectoria (replay del recorrido GPS de la ruta) -->
       @if (r.estado === 'completada' || r.estado === 'cancelada' || r.estado === 'en_curso') {
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="verTrayectoria(r.id)">
-          Ver trayectoria
+          {{ 'Ver trayectoria' | t }}
         </button>
       }
 
@@ -518,32 +518,32 @@
         <app-location-picker [latitud]="d.latitud" [longitud]="d.longitud" />
         <app-weather-card [latitud]="d.latitud" [longitud]="d.longitud" titulo="Pronóstico en el destino" />
       } @else {
-        <p class="ruta-detalle__sub text-muted">Sin ubicación exacta del destino — no hay pronóstico.</p>
+        <p class="ruta-detalle__sub text-muted">{{ 'Sin ubicación exacta del destino — no hay pronóstico.' | t }}</p>
       }
 
       <!-- AC13/AE5 — Paradas con estado y conduce vinculado -->
       @if (detalleTransporte()?.paradas?.length) {
-        <h4 class="ruta-detalle__title">Paradas ({{ detalleTransporte()!.paradas.length }})</h4>
+        <h4 class="ruta-detalle__title">{{ 'Paradas' | t }} ({{ detalleTransporte()!.paradas.length }})</h4>
         <ol class="ruta-paradas">
           @for (p of detalleTransporte()!.paradas; track p.id) {
             <li class="ruta-paradas__item">
               <div class="ruta-paradas__row">
                 <span class="ruta-paradas__ubi">{{ p.ubicacion }}</span>
-                <span class="sgc-badge sgc-badge--{{ paradaEstadoBadge(p.estado) }}">{{ paradaEstadoLabel(p.estado) }}</span>
+                <span class="sgc-badge sgc-badge--{{ paradaEstadoBadge(p.estado) }}">{{ paradaEstadoLabel(p.estado) | t }}</span>
               </div>
-              @if (p.obra) { <span class="ruta-paradas__notas">Obra: {{ p.obra }}</span> }
+              @if (p.obra) { <span class="ruta-paradas__notas">{{ 'Obra:' | t }} {{ p.obra }}</span> }
               @if (p.notas) { <span class="ruta-paradas__notas">{{ p.notas }}</span> }
               @if (p.conduce_id) {
-                <span class="ruta-paradas__notas">Conduce vinculado: <strong>CND-{{ p.conduce_id.slice(0, 8) }}</strong></span>
+                <span class="ruta-paradas__notas">{{ 'Conduce vinculado:' | t }} <strong>CND-{{ p.conduce_id.slice(0, 8) }}</strong></span>
               }
               @if (p.entregada_at) {
-                <span class="ruta-paradas__notas text-muted">Entregada {{ formatHora(p.entregada_at) }}@if (p.entregado_a) { · recibió {{ p.entregado_a }} }</span>
+                <span class="ruta-paradas__notas text-muted">{{ 'Entregada' | t }} {{ formatHora(p.entregada_at) }}@if (p.entregado_a) { · {{ 'recibió' | t }} {{ p.entregado_a }} }</span>
               }
             </li>
           }
         </ol>
       } @else if (detailParadas().length > 0) {
-        <h4 class="ruta-detalle__title">Paradas ({{ detailParadas().length }})</h4>
+        <h4 class="ruta-detalle__title">{{ 'Paradas' | t }} ({{ detailParadas().length }})</h4>
         <ol class="ruta-paradas">
           @for (p of detailParadas(); track p.id ?? $index) {
             <li class="ruta-paradas__item">
@@ -556,31 +556,31 @@
 
       <!-- AC6 — Fotos de evidencia de la ruta -->
       @if (detailFotos().length > 0) {
-        <h4 class="ruta-detalle__title">Fotos de evidencia ({{ detailFotos().length }})</h4>
+        <h4 class="ruta-detalle__title">{{ 'Fotos de evidencia' | t }} ({{ detailFotos().length }})</h4>
         <div class="rutas__fotos-grid">
           @for (f of detailFotos(); track f.id) {
             <button type="button" class="rutas__foto-thumb" (click)="abrirFotoLightbox(f.storage_path)">
-              <img [src]="f.url" alt="Foto de evidencia de la ruta" loading="lazy" />
+              <img [src]="f.url" alt="{{ 'Foto de evidencia de la ruta' | t }}" loading="lazy" />
             </button>
           }
         </div>
       }
 
       <!-- Datos -->
-      <h4 class="ruta-detalle__title">Datos</h4>
+      <h4 class="ruta-detalle__title">{{ 'Datos' | t }}</h4>
       <dl class="ruta-detalle__meta">
-        <div><dt>Vehículo</dt><dd>{{ r.vehiculo ? idVehiculo(r.vehiculo) : '—' }}</dd></div>
-        <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
-        <div><dt>Km estimado</dt><dd>{{ r.km_estimado ?? '—' }}</dd></div>
-        <div><dt>Km real</dt><dd>{{ r.km_real ?? '—' }}@if (kmDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="kmDesvio(r)! > 0">({{ kmDesvio(r)! > 0 ? '+' : '' }}{{ kmDesvio(r) }})</span> }</dd></div>
-        <div><dt>Tiempo estimado</dt><dd>{{ r.tiempo_estimado_min != null ? formatDur(r.tiempo_estimado_min) : '—' }}</dd></div>
-        <div><dt>Tiempo real</dt><dd>{{ r.tiempo_real_min != null ? formatDur(r.tiempo_real_min) : '—' }}@if (tiempoDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="tiempoDesvio(r)! > 0">({{ tiempoDesvio(r)! > 0 ? '+' : '' }}{{ tiempoDesvio(r) }})</span> }</dd></div>
+        <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ r.vehiculo ? idVehiculo(r.vehiculo) : '—' }}</dd></div>
+        <div><dt>{{ 'Conductor' | t }}</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
+        <div><dt>{{ 'Km estimado' | t }}</dt><dd>{{ r.km_estimado ?? '—' }}</dd></div>
+        <div><dt>{{ 'Km real' | t }}</dt><dd>{{ r.km_real ?? '—' }}@if (kmDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="kmDesvio(r)! > 0">({{ kmDesvio(r)! > 0 ? '+' : '' }}{{ kmDesvio(r) }})</span> }</dd></div>
+        <div><dt>{{ 'Tiempo estimado' | t }}</dt><dd>{{ r.tiempo_estimado_min != null ? formatDur(r.tiempo_estimado_min) : '—' }}</dd></div>
+        <div><dt>{{ 'Tiempo real' | t }}</dt><dd>{{ r.tiempo_real_min != null ? formatDur(r.tiempo_real_min) : '—' }}@if (tiempoDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="tiempoDesvio(r)! > 0">({{ tiempoDesvio(r)! > 0 ? '+' : '' }}{{ tiempoDesvio(r) }})</span> }</dd></div>
       </dl>
 
       <!-- Z22.2 — Conduces y notas de voz asociados a la ruta -->
       @if (detalleTransporte(); as t) {
         @if (t.conduces.length > 0) {
-          <h4 class="ruta-detalle__title">Conduces de la ruta ({{ t.conduces.length }})</h4>
+          <h4 class="ruta-detalle__title">{{ 'Conduces de la ruta' | t }} ({{ t.conduces.length }})</h4>
           <ul class="ruta-conduces">
             @for (c of t.conduces; track c.id) {
               <li class="ruta-conduces__item">
@@ -588,7 +588,7 @@
                   <span class="ruta-conduces__cnd">CND-{{ c.id.slice(0, 8) }}</span>
                   <span class="sgc-badge sgc-badge--{{ c.estado === 'entregado' ? 'success' : (c.estado === 'entregado_incompleto' ? 'warning' : 'neutral') }}">{{ estadoConduce(c.estado) }}</span>
                   @if (c.destino) { <span class="text-muted">→ {{ c.destino }}</span> }
-                  @if (c.parada_ubicacion) { <span class="text-muted">· parada: {{ c.parada_ubicacion }}</span> }
+                  @if (c.parada_ubicacion) { <span class="text-muted">· {{ 'parada:' | t }} {{ c.parada_ubicacion }}</span> }
                 </div>
                 <div class="ruta-conduces__items">
                   @for (it of c.items; track $index) {
@@ -600,23 +600,23 @@
           </ul>
         }
         @if (t.notas_voz.length > 0) {
-          <h4 class="ruta-detalle__title">Notas de voz ({{ t.notas_voz.length }})</h4>
-          <p class="ruta-detalle__sub text-muted">{{ t.notas_voz.length }} nota(s) de voz registrada(s) en esta ruta.</p>
+          <h4 class="ruta-detalle__title">{{ 'Notas de voz' | t }} ({{ t.notas_voz.length }})</h4>
+          <p class="ruta-detalle__sub text-muted">{{ i18n.t('{n} nota(s) de voz registrada(s) en esta ruta.', { n: t.notas_voz.length }) }}</p>
         }
       } @else if (detalleTransporteCargando()) {
-        <p class="ruta-detalle__sub text-muted">Cargando conduces…</p>
+        <p class="ruta-detalle__sub text-muted">{{ 'Cargando conduces…' | t }}</p>
       }
 
       <!-- Y4 — Tiempos reales del TAP (inicio/fin) capturados en la app -->
       @if (r.iniciada_at || r.finalizada_at) {
-        <h4 class="ruta-detalle__title">Tiempo real de la ruta</h4>
+        <h4 class="ruta-detalle__title">{{ 'Tiempo real de la ruta' | t }}</h4>
         <p class="ruta-detalle__tiempos">
-          @if (r.iniciada_at) { <span>Inició <strong>{{ formatHora(r.iniciada_at) }}</strong></span> }
-          @if (r.finalizada_at) { <span class="rutas__dot">·</span><span>Finalizó <strong>{{ formatHora(r.finalizada_at) }}</strong></span> }
+          @if (r.iniciada_at) { <span>{{ 'Inició' | t }} <strong>{{ formatHora(r.iniciada_at) }}</strong></span> }
+          @if (r.finalizada_at) { <span class="rutas__dot">·</span><span>{{ 'Finalizó' | t }} <strong>{{ formatHora(r.finalizada_at) }}</strong></span> }
           @if (duracionReal(r) !== null) {
-            <span class="rutas__dot">·</span><span>Duración <strong>{{ formatDur(duracionReal(r)!) }}</strong></span>
+            <span class="rutas__dot">·</span><span>{{ 'Duración' | t }} <strong>{{ formatDur(duracionReal(r)!) }}</strong></span>
             @if (r.tiempo_estimado_min != null) {
-              <span class="rutas__dot">·</span><span>Estimado {{ formatDur(r.tiempo_estimado_min) }}@if (desvioDuracionPct(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="desvioDuracionPct(r)! > 0"> ({{ desvioDuracionPct(r)! > 0 ? '+' : '' }}{{ desvioDuracionPct(r) }}%)</span> }</span>
+              <span class="rutas__dot">·</span><span>{{ 'Estimado' | t }} {{ formatDur(r.tiempo_estimado_min) }}@if (desvioDuracionPct(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="desvioDuracionPct(r)! > 0"> ({{ desvioDuracionPct(r)! > 0 ? '+' : '' }}{{ desvioDuracionPct(r) }}%)</span> }</span>
             }
           }
         </p>
@@ -624,14 +624,14 @@
 
       <!-- AV13 — indicador "(modificada)" + historial de cambios de la ruta -->
       @if (detalleTransporte()?.ruta?.modificada_at; as mod) {
-        <p class="ruta-detalle__mod"><app-icon name="pen" [size]="14" /> (modificada) · {{ formatFechaHora(mod) }}</p>
+        <p class="ruta-detalle__mod"><app-icon name="pen" [size]="14" /> {{ '(modificada)' | t }} · {{ formatFechaHora(mod) }}</p>
       }
       @if (detalleTransporte()?.eventos?.length) {
-        <h4 class="ruta-detalle__title">Historial de la ruta</h4>
+        <h4 class="ruta-detalle__title">{{ 'Historial de la ruta' | t }}</h4>
         <ul class="ruta-detalle__historial">
           @for (ev of detalleTransporte()!.eventos!; track $index) {
             <li>
-              <strong>{{ eventoLabel(ev.tipo) }}</strong>
+              <strong>{{ eventoLabel(ev.tipo) | t }}</strong>
               @if (ev.detalle) { <span class="ruta-detalle__hist-det">{{ ev.detalle }}</span> }
               <span class="text-muted"> · {{ formatFechaHora(ev.created_at) }}@if (ev.por) { · {{ ev.por }} }</span>
             </li>
@@ -640,17 +640,17 @@
       }
 
       @if (r.notas) {
-        <h4 class="ruta-detalle__title">Notas</h4>
+        <h4 class="ruta-detalle__title">{{ 'Notas' | t }}</h4>
         <p class="ruta-detalle__notas">{{ r.notas }}</p>
       }
 
       <!-- Z23c — notas de voz de la ruta -->
-      <h4 class="ruta-detalle__title">Notas de voz</h4>
+      <h4 class="ruta-detalle__title">{{ 'Notas de voz' | t }}</h4>
       <app-audio-notas entidadTipo="ruta" [entidadId]="r.id" bucket="flota-documentos" [esPrueba]="r.es_prueba ?? false" />
 
       @if (r.estado === 'planificada' || r.estado === 'en_curso') {
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(r)">
-          Editar ruta
+          {{ 'Editar ruta' | t }}
         </button>
       }
 
@@ -658,13 +658,13 @@
       @if (esAdmin()) {
         <div class="rutas__prueba">
           @if (r.es_prueba) {
-            <span class="sgc-badge sgc-badge--neutral">Dato de prueba</span>
+            <span class="sgc-badge sgc-badge--neutral">{{ 'Dato de prueba' | t }}</span>
             <div class="rutas__prueba-actions">
-              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, false)">Quitar prueba</button>
-              <button type="button" class="sgc-btn sgc-btn--ghost rutas__prueba-del" (click)="eliminarPrueba(r)">Eliminar</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, false)">{{ 'Quitar prueba' | t }}</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost rutas__prueba-del" (click)="eliminarPrueba(r)">{{ 'Eliminar' | t }}</button>
             </div>
           } @else {
-            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, true)">Marcar como dato de prueba</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, true)">{{ 'Marcar como dato de prueba' | t }}</button>
           }
         </div>
       }
@@ -674,7 +674,7 @@
 
 <!-- AC6 — lightbox in-page para las fotos de evidencia de la ruta -->
 @if (fotoLightbox(); as url) {
-  <app-lightbox [src]="url" alt="Foto de evidencia de la ruta" (closed)="fotoLightbox.set(null)" />
+  <app-lightbox [src]="url" alt="{{ 'Foto de evidencia de la ruta' | t }}" (closed)="fotoLightbox.set(null)" />
 }
 
 <!-- AU5 — modal de trayectoria (replay del recorrido de la ruta) -->

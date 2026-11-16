@@ -11,6 +11,8 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { ToastService } from '../../../../shared/services/toast.service';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type FiltroTipo = 'todos' | 'orden_compra' | 'ferreteria' | 'gasto_directo';
 
@@ -27,7 +29,7 @@ const TIPO_LABEL: Record<string, string> = {
  */
 @Component({
   selector: 'app-proyecto-compras',
-  imports: [RouterLink, DecimalPipe, FormDrawer, Icon],
+  imports: [RouterLink, DecimalPipe, FormDrawer, Icon, TranslatePipe],
   templateUrl: './compras.html',
   styleUrl: './compras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +38,7 @@ export class ProyectoCompras implements OnInit {
   private route = inject(ActivatedRoute);
   private service = inject(ProyectosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   proyectoId = signal('');
   proyectoNombre = signal('');
@@ -147,7 +150,7 @@ export class ProyectoCompras implements OnInit {
         fecha: this.gFecha() || null,
       });
       this.gastoOpen.set(false);
-      this.toast.success('Gasto registrado', 'Se sumó al gasto real del proyecto.');
+      this.toast.success(this.i18n.t('Gasto registrado'), 'Se sumó al gasto real del proyecto.');
       await this.cargar();
     } catch (e) {
       this.gastoError.set(e instanceof Error ? e.message : 'No se pudo registrar el gasto.');

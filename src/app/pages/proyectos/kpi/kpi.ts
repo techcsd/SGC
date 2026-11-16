@@ -6,6 +6,8 @@ import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 // AY3 — Pesos del score (suma = 1). Rebalanceados: el "desempeño" del encargado son
 // las señales que él CONTROLA (disciplina de reporte, seguridad, presupuesto). El
@@ -37,7 +39,7 @@ interface KpiProyecto extends KpiProyectoRaw {
 
 @Component({
   selector: 'app-proyectos-kpi',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './kpi.html',
   styleUrl: './kpi.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,6 +47,7 @@ interface KpiProyecto extends KpiProyectoRaw {
 export class Kpi implements OnInit {
   private proyectosService = inject(ProyectosService);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   error = signal('');
@@ -111,9 +114,9 @@ export class Kpi implements OnInit {
   desempenoDonut = computed<DonutDatum[]>(() => {
     const r = this.ranking();
     return [
-      { label: 'Buen desempeño (80+)', value: r.filter((k) => k.scoreTotal >= UMBRAL_BUENO).length, color: 'var(--sgc-success)' },
-      { label: 'Aceptable (60-79)', value: r.filter((k) => k.scoreTotal >= UMBRAL_MEDIO && k.scoreTotal < UMBRAL_BUENO).length, color: 'var(--sgc-warning)' },
-      { label: 'Necesita atención (<60)', value: r.filter((k) => k.scoreTotal < UMBRAL_MEDIO).length, color: 'var(--sgc-danger)' },
+      { label: this.i18n.t('Buen desempeño (≥80)'), value: r.filter((k) => k.scoreTotal >= UMBRAL_BUENO).length, color: 'var(--sgc-success)' },
+      { label: this.i18n.t('Aceptable (60–79)'), value: r.filter((k) => k.scoreTotal >= UMBRAL_MEDIO && k.scoreTotal < UMBRAL_BUENO).length, color: 'var(--sgc-warning)' },
+      { label: this.i18n.t('Necesita atención (menor a 60)'), value: r.filter((k) => k.scoreTotal < UMBRAL_MEDIO).length, color: 'var(--sgc-danger)' },
     ];
   });
 

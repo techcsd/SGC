@@ -9,10 +9,12 @@ import {
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** AW9 — Inventario de APIs/servicios del proyecto y su costo estimado/mes. */
 @Component({
   selector: 'app-tec-apis-consumo',
-  imports: [FormsModule, DecimalPipe, Skeleton],
+  imports: [FormsModule, DecimalPipe, Skeleton, TranslatePipe],
   templateUrl: './apis-consumo.html',
   styleUrl: './apis-consumo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +22,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 export class TecApisConsumo implements OnInit {
   private service = inject(ApiServiciosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   servicios = signal<ApiServicio[]>([]);
   loading = signal(true);
@@ -81,7 +84,7 @@ export class TecApisConsumo implements OnInit {
   async guardar() {
     const f = this.form();
     if (!f.nombre || !f.nombre.trim()) {
-      this.toast.error('Falta el nombre', 'Escribe el nombre de la API/servicio.');
+      this.toast.error(this.i18n.t('Falta el nombre'), 'Escribe el nombre de la API/servicio.');
       return;
     }
     this.saving.set(true);
@@ -101,21 +104,21 @@ export class TecApisConsumo implements OnInit {
       else await this.service.create(patch);
       this.cerrarEditor();
       await this.load();
-      this.toast.success('Guardado');
+      this.toast.success(this.i18n.t('Guardado'));
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
     }
   }
 
   async eliminar(s: ApiServicio) {
-    if (!confirm(`¿Eliminar "${s.nombre}" del inventario de APIs?`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar "{nombre}" del inventario de APIs?', { nombre: s.nombre }))) return;
     try {
       await this.service.remove(s.id);
       await this.load();
     } catch (e) {
-      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo eliminar'), e instanceof Error ? e.message : undefined);
     }
   }
 }

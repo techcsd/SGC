@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { PulsoSistemaEstado, PulsoSistemaFila, PulsoSistemaService } from '../../../../shared/services/pulso-sistema.service';
 import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 
@@ -27,6 +28,7 @@ const ESTADO_LABEL: Record<PulsoSistemaEstado, string> = {
 })
 export class AdminPulsoSistema implements OnInit {
   private service = inject(PulsoSistemaService);
+  protected i18n = inject(I18nService);
 
   readonly estadoLabel = ESTADO_LABEL;
 
@@ -35,7 +37,7 @@ export class AdminPulsoSistema implements OnInit {
   filas = this.service.filas;
 
   relativo = (fila: PulsoSistemaFila): string =>
-    fila.ultima_actividad ? formatFechaRelativa(fila.ultima_actividad) : 'nunca';
+    fila.ultima_actividad ? formatFechaRelativa(fila.ultima_actividad) : this.i18n.t('nunca');
 
   async ngOnInit() {
     await this.cargar();

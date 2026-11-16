@@ -1,13 +1,12 @@
 <div class="cnc">
   <header class="cnc-head">
     <div>
-      <h1>Consultas no atendidas de Compa</h1>
+      <h1>{{ 'Consultas no atendidas de Compa' | t }}</h1>
       <p class="cnc-sub">
-        El backlog automático: lo que la gente le pide a Compa y no puede responder.
-        Esta lista es la fuente de la próxima tanda de capacidades — no las capturas a mano.
+        {{ 'El backlog automático: lo que la gente le pide a Compa y no puede responder. Esta lista es la fuente de la próxima tanda de capacidades — no las capturas a mano.' | t }}
       </p>
     </div>
-    <button class="cnc-btn" (click)="load()" [disabled]="loading()">Actualizar</button>
+    <button class="cnc-btn" (click)="load()" [disabled]="loading()">{{ 'Actualizar' | t }}</button>
   </header>
 
   @if (error()) {
@@ -19,45 +18,45 @@
     <div class="cnc-kpis">
       <div class="cnc-kpi">
         <span class="cnc-kpi-n">{{ c.total }}</span>
-        <span class="cnc-kpi-l">Total</span>
+        <span class="cnc-kpi-l">{{ 'Total' | t }}</span>
       </div>
       <div class="cnc-kpi cnc-kpi--warn">
         <span class="cnc-kpi-n">{{ c.pendientes }}</span>
-        <span class="cnc-kpi-l">Pendientes</span>
+        <span class="cnc-kpi-l">{{ 'Pendientes' | t }}</span>
       </div>
       <div class="cnc-kpi">
         <span class="cnc-kpi-n">{{ c.ultimos_7d }}</span>
-        <span class="cnc-kpi-l">Últimos 7 días</span>
+        <span class="cnc-kpi-l">{{ 'Últimos 7 días' | t }}</span>
       </div>
       <div class="cnc-kpi">
         <span class="cnc-kpi-n">{{ c.sin_tool }}</span>
-        <span class="cnc-kpi-l">Sin herramienta</span>
+        <span class="cnc-kpi-l">{{ 'Sin herramienta' | t }}</span>
       </div>
       <div class="cnc-kpi">
         <span class="cnc-kpi-n">{{ c.error_de_tool }}</span>
-        <span class="cnc-kpi-l">Error de herramienta</span>
+        <span class="cnc-kpi-l">{{ 'Error de herramienta' | t }}</span>
       </div>
       <div class="cnc-kpi">
         <span class="cnc-kpi-n">{{ c.sin_permiso }}</span>
-        <span class="cnc-kpi-l">Sin permiso</span>
+        <span class="cnc-kpi-l">{{ 'Sin permiso' | t }}</span>
       </div>
     </div>
   }
 
   <!-- Filtros -->
   <div class="cnc-filtros">
-    <button class="cnc-chip" [class.active]="filtroMotivo() === 'todos'" (click)="setMotivo('todos')">Todas</button>
-    <button class="cnc-chip" [class.active]="filtroMotivo() === 'sin_tool'" (click)="setMotivo('sin_tool')">Sin herramienta</button>
-    <button class="cnc-chip" [class.active]="filtroMotivo() === 'error_de_tool'" (click)="setMotivo('error_de_tool')">Error</button>
-    <button class="cnc-chip" [class.active]="filtroMotivo() === 'sin_permiso'" (click)="setMotivo('sin_permiso')">Sin permiso</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'todos'" (click)="setMotivo('todos')">{{ 'Todas' | t }}</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'sin_tool'" (click)="setMotivo('sin_tool')">{{ 'Sin herramienta' | t }}</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'error_de_tool'" (click)="setMotivo('error_de_tool')">{{ 'Error' | t }}</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'sin_permiso'" (click)="setMotivo('sin_permiso')">{{ 'Sin permiso' | t }}</button>
     <span class="cnc-sep"></span>
-    <button class="cnc-chip" [class.active]="soloPendientes()" (click)="togglePendientes()">Solo pendientes</button>
+    <button class="cnc-chip" [class.active]="soloPendientes()" (click)="togglePendientes()">{{ 'Solo pendientes' | t }}</button>
   </div>
 
   @if (loading()) {
-    <p class="cnc-empty">Cargando…</p>
+    <p class="cnc-empty">{{ 'Cargando…' | t }}</p>
   } @else if (filasVisibles().length === 0) {
-    <p class="cnc-empty">No hay consultas con este filtro. 🎉</p>
+    <p class="cnc-empty">{{ 'No hay consultas con este filtro. 🎉' | t }}</p>
   } @else {
     <div class="cnc-list">
       @for (f of filasVisibles(); track f.id) {
@@ -75,11 +74,11 @@
           @if (f.detalle) { <p class="cnc-detalle">{{ f.detalle }}</p> }
           <div class="cnc-actions">
             @if (!f.resuelto) {
-              <button class="cnc-btn cnc-btn--sm" (click)="resolverYAvisar(f)" title="Marca las consultas equivalentes y avisa a quienes preguntaron">Resolver y avisar</button>
-              <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, true)">Marcar resuelta</button>
+              <button class="cnc-btn cnc-btn--sm" (click)="resolverYAvisar(f)" title="{{ 'Marca las consultas equivalentes y avisa a quienes preguntaron' | t }}">{{ 'Resolver y avisar' | t }}</button>
+              <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, true)">{{ 'Marcar resuelta' | t }}</button>
             } @else {
-              <span class="cnc-resuelto-tag">Resuelta</span>
-              <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, false)">Reabrir</button>
+              <span class="cnc-resuelto-tag">{{ 'Resuelta' | t }}</span>
+              <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, false)">{{ 'Reabrir' | t }}</button>
             }
           </div>
         </article>

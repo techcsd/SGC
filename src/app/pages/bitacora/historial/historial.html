@@ -1,33 +1,33 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">{{ alcance() === 'mias' ? 'Mis Bitácoras' : 'Todas las Bitácoras' }}</h1>
-    <span class="page-count">{{ filtered().length }} bitácora{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ (alcance() === 'mias' ? 'Mis Bitácoras' : 'Todas las Bitácoras') | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'bitácoras' : 'bitácora') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarListaExcel()"
-            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el listado filtrado a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
     <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva bitácora
+      {{ 'Nueva bitácora' | t }}
     </a>
   </div>
 </div>
 
 <!-- Z19 — alcance: mis bitácoras vs todas -->
-<div class="bitacora-alcance" role="tablist" aria-label="Alcance de bitácoras">
+<div class="bitacora-alcance" role="tablist" aria-label="{{ 'Alcance de bitácoras' | t }}">
   <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'mias'"
     [attr.aria-selected]="alcance() === 'mias'" (click)="setAlcance('mias')">
-    Mis bitácoras <span class="bitacora-alcance__count">{{ countMias() }}</span>
+    {{ 'Mis bitácoras' | t }} <span class="bitacora-alcance__count">{{ countMias() }}</span>
   </button>
   <!-- Z19 — "Todas" solo para roles que pueden ver bitácoras de otros (admin o módulo proyectos, espejo de RLS) -->
   @if (puedeVerTodas()) {
     <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'todas'"
       [attr.aria-selected]="alcance() === 'todas'" (click)="setAlcance('todas')">
-      Todas <span class="bitacora-alcance__count">{{ countTodas() }}</span>
+      {{ 'Todas' | t }} <span class="bitacora-alcance__count">{{ countTodas() }}</span>
     </button>
   }
 </div>
@@ -37,16 +37,16 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por bloque o ingeniero…"
+      placeholder="{{ 'Buscar por bloque o ingeniero…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar bitácoras"
+      aria-label="{{ 'Buscar bitácoras' | t }}"
     />
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedProyecto()" (change)="onProyectoChange($any($event.target).value)" aria-label="Filtrar por obra">
-      <option value="">Todas las obras</option>
+    <select [value]="selectedProyecto()" (change)="onProyectoChange($any($event.target).value)" aria-label="{{ 'Filtrar por obra' | t }}">
+      <option value="">{{ 'Todas las obras' | t }}</option>
       @for (p of proyectosVisibles(); track p.id) {
         <option [value]="p.id">{{ p.nombre }}</option>
       }
@@ -56,8 +56,8 @@
   <!-- Z19 — filtro por autor (solo en alcance "Todas") -->
   @if (alcance() === 'todas') {
     <div class="sgc-field filters-bar__select">
-      <select [value]="selectedUsuario()" (change)="onUsuarioChange($any($event.target).value)" aria-label="Filtrar por usuario">
-        <option value="">Todos los usuarios</option>
+      <select [value]="selectedUsuario()" (change)="onUsuarioChange($any($event.target).value)" aria-label="{{ 'Filtrar por usuario' | t }}">
+        <option value="">{{ 'Todos los usuarios' | t }}</option>
         @for (u of usuarios(); track u.id) {
           <option [value]="u.id">{{ u.nombre }}</option>
         }
@@ -69,7 +69,7 @@
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
@@ -81,7 +81,7 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -97,26 +97,26 @@
     <div class="table-empty">
       <p>
         @if (hasActiveFilters()) {
-          No se encontraron bitácoras con los filtros aplicados.
+          {{ 'No se encontraron bitácoras con los filtros aplicados.' | t }}
         } @else {
-          Aún no hay bitácoras registradas.
+          {{ 'Aún no hay bitácoras registradas.' | t }}
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-    <table class="data-table" aria-label="Lista de bitácoras">
+    <table class="data-table" aria-label="{{ 'Lista de bitácoras' | t }}">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Registró</th>
-          <th>Tipo</th>
-          <th>Obra</th>
-          <th>Detalle</th>
-          <th>Responsable / visitante</th>
-          <th>Resumen</th>
+          <th>{{ 'Fecha' | t }}</th>
+          <th>{{ 'Registró' | t }}</th>
+          <th>{{ 'Tipo' | t }}</th>
+          <th>{{ 'Obra' | t }}</th>
+          <th>{{ 'Detalle' | t }}</th>
+          <th>{{ 'Responsable / visitante' | t }}</th>
+          <th>{{ 'Resumen' | t }}</th>
           @if (esAdmin()) {
-            <th class="text-center">Acciones</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           }
         </tr>
       </thead>
@@ -126,7 +126,7 @@
             <td>
               {{ formatFecha(b.fecha) }}
               @if (esRetrofechada(b)) {
-                <span class="bit-retro-chip" title="Bitácora de otra fecha (filada tarde)">otra fecha</span>
+                <span class="bit-retro-chip" title="{{ 'Bitácora de otra fecha (filada tarde)' | t }}">{{ 'otra fecha' | t }}</span>
               }
             </td>
             <!-- AW2 — autor + hora exacta de registro -->
@@ -137,16 +137,16 @@
               }
             </td>
             <td>
-              <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+              <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) | t }}</span>
               @if (b.sin_actividad) {
-                <span class="sgc-badge sgc-badge--warning historial__badge-inline">Sin actividad</span>
+                <span class="sgc-badge sgc-badge--warning historial__badge-inline">{{ 'Sin actividad' | t }}</span>
               }
               @if (b.es_prueba) {
-                <span class="sgc-badge sgc-badge--neutral historial__badge-inline">PRUEBA</span>
+                <span class="sgc-badge sgc-badge--neutral historial__badge-inline">{{ 'PRUEBA' | t }}</span>
               }
               @if (b.cronograma_tareas && b.cronograma_tareas.length > 0) {
                 <span class="sgc-badge sgc-badge--info historial__badge-inline"
-                      [title]="'Cronograma: ' + b.cronograma_tareas[0].tarea?.nombre"><app-icon name="link" [size]="14" /> Tarea</span>
+                      [title]="i18n.t('Cronograma:') + ' ' + b.cronograma_tareas[0].tarea?.nombre"><app-icon name="link" [size]="14" /> {{ 'Tarea' | t }}</span>
               }
             </td>
             <td>{{ b.proyecto?.nombre ?? '—' }}</td>
@@ -162,8 +162,8 @@
             <td class="text-muted">
               @switch (b.tipo) {
                 @case ('parte_diario') { {{ actividadesResumen(b) }} }
-                @case ('visita') { {{ visitanteLabel(b.visita_tipo_visitante) }} }
-                @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }} }
+                @case ('visita') { {{ visitanteLabel(b.visita_tipo_visitante) | t }} }
+                @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) | t }} · {{ gravedadLabel(b.incidente_gravedad) | t }} }
                 @case ('orden_trabajo') { Orden de trabajo }
               }
             </td>
@@ -175,8 +175,8 @@
                     type="button"
                     class="action-btn"
                     (click)="marcarPrueba(b, !b.es_prueba)"
-                    [attr.aria-label]="b.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
-                    [title]="b.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                    [attr.aria-label]="b.es_prueba ? i18n.t('Quitar de datos de prueba') : i18n.t('Marcar como dato de prueba')"
+                    [title]="b.es_prueba ? i18n.t('Quitar de datos de prueba') : i18n.t('Marcar como dato de prueba')"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6L12 2z"/>
@@ -187,8 +187,8 @@
                       type="button"
                       class="action-btn action-btn--danger"
                       (click)="eliminarPrueba(b)"
-                      aria-label="Eliminar dato de prueba"
-                      title="Eliminar (dato de prueba)"
+                      aria-label="{{ 'Eliminar dato de prueba' | t }}"
+                      title="{{ 'Eliminar (dato de prueba)' | t }}"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
@@ -211,10 +211,10 @@
   <div class="pagination">
     <span class="pagination__info">
       {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-      de {{ filtered().length }}
+      {{ 'de' | t }} {{ filtered().length }}
     </span>
     <div class="pagination__controls">
-      <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="Página anterior">
+      <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="{{ 'Página anterior' | t }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
@@ -222,7 +222,7 @@
       @for (p of pages; track p) {
         <button class="page-btn" type="button" (click)="goToPage(p)" [class.page-btn--active]="p === currentPage()">{{ p }}</button>
       }
-      <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">
+      <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="{{ 'Página siguiente' | t }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
@@ -235,7 +235,7 @@
 <app-form-drawer [title]="drawerTitle()" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as b) {
     <div class="bit-toolbar no-print">
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()"><app-icon name="printer" [size]="16" /> Imprimir / PDF</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()"><app-icon name="printer" [size]="16" /> {{ 'Imprimir / PDF' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarDetalleExcel()"><app-icon name="download" [size]="16" /> Excel</button>
     </div>
     <div class="bitacora-detail" id="bitacora-report-print">
@@ -245,43 +245,43 @@
           <span class="bit-band__obra">{{ proyectoNombre(b) }}</span>
           <span class="bit-band__fecha">{{ formatFecha(b.fecha) }}</span>
           @if (esRetrofechada(b)) {
-            <span class="bit-band__retro" [title]="'Bitácora de otra fecha — registrada el ' + formatFechaHora(b.created_at)">
-              Otra fecha · registrada {{ formatFecha(b.created_at) }}
+            <span class="bit-band__retro" [title]="i18n.t('Bitácora de otra fecha — registrada el') + ' ' + formatFechaHora(b.created_at)">
+              {{ 'Otra fecha · registrada' | t }} {{ formatFecha(b.created_at) }}
             </span>
           }
         </div>
-        <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+        <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) | t }}</span>
       </div>
 
       @if (b.tipo === 'parte_diario') {
         @if (b.sin_actividad) {
           <!-- Z4 — día reportado sin trabajo -->
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Sin actividad</span>
+            <span class="bitacora-detail__label">{{ 'Sin actividad' | t }}</span>
             <span>
-              No se trabajó en obra — {{ motivoSinActividadLabel(b.motivo_sin_actividad) }}@if (b.motivo_sin_actividad_detalle) { : {{ b.motivo_sin_actividad_detalle }} }
+              {{ 'No se trabajó en obra —' | t }} {{ motivoSinActividadLabel(b.motivo_sin_actividad) | t }}@if (b.motivo_sin_actividad_detalle) { : {{ b.motivo_sin_actividad_detalle }} }
             </span>
           </div>
         } @else {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Bloque/Entrepiso</span>
+            <span class="bitacora-detail__label">{{ 'Bloque/Entrepiso' | t }}</span>
             <span>{{ b.bloque_entrepiso ?? '—' }}</span>
           </div>
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Ingeniero</span>
+            <span class="bitacora-detail__label">{{ 'Ingeniero' | t }}</span>
             <span>{{ b.ingeniero_responsable ?? '—' }}</span>
           </div>
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Fin de jornada</span>
+            <span class="bitacora-detail__label">{{ 'Fin de jornada' | t }}</span>
             <span>{{ b.hora_fin_trabajo ? formatHora(b.hora_fin_trabajo) : '—' }}</span>
           </div>
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Personal</span>
-            <span>Carpintería: {{ b.personal_carpinteria }} · Acero: {{ b.personal_acero }} · Casa: {{ b.trabajadores_casa }}</span>
+            <span class="bitacora-detail__label">{{ 'Personal' | t }}</span>
+            <span>{{ 'Carpintería:' | t }} {{ b.personal_carpinteria }} · {{ 'Acero:' | t }} {{ b.personal_acero }} · {{ 'Casa:' | t }} {{ b.trabajadores_casa }}</span>
           </div>
           @if (b.otro_personal) {
             <div class="bitacora-detail__row">
-              <span class="bitacora-detail__label">Otro personal</span>
+              <span class="bitacora-detail__label">{{ 'Otro personal' | t }}</span>
               <span>{{ b.otro_personal }}</span>
             </div>
           }
@@ -290,16 +290,16 @@
         <!-- R21 — lluvia (información normal, no incidente) -->
         @if (b.llovio !== null) {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Clima</span>
+            <span class="bitacora-detail__label">{{ 'Clima' | t }}</span>
             <span>
               @if (b.llovio) {
-                <app-icon name="cloud-rain" [size]="14" /> Llovió@if (b.horas_lluvia != null) { · afectó {{ b.horas_lluvia }} h }
-              } @else { Sin lluvia }
+                <app-icon name="cloud-rain" [size]="14" /> {{ 'Llovió' | t }}@if (b.horas_lluvia != null) { · {{ 'afectó' | t }} {{ b.horas_lluvia }} h }
+              } @else { {{ 'Sin lluvia' | t }} }
             </span>
           </div>
           @if (b.llovio && b.lluvia_detalle) {
             <div class="bitacora-detail__section">
-              <h3>Detalle de la lluvia</h3>
+              <h3>{{ 'Detalle de la lluvia' | t }}</h3>
               <p>{{ b.lluvia_detalle }}</p>
             </div>
           }
@@ -308,12 +308,12 @@
         <!-- R22 — migración -->
         @if (b.hubo_migracion) {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Migración</span>
-            <span>Hubo problemas de migración</span>
+            <span class="bitacora-detail__label">{{ 'Migración' | t }}</span>
+            <span>{{ 'Hubo problemas de migración' | t }}</span>
           </div>
           @if (migracionObreros(b).length > 0) {
             <div class="bitacora-detail__section">
-              <h3>Obreros afectados</h3>
+              <h3>{{ 'Obreros afectados' | t }}</h3>
               <ul class="bitacora-detail__list">
                 @for (o of migracionObreros(b); track o) {
                   <li>{{ o }}</li>
@@ -326,22 +326,22 @@
 
       @if (b.tipo === 'visita') {
         <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Tipo de visitante</span>
-          <span>{{ visitanteLabel(b.visita_tipo_visitante) }}</span>
+          <span class="bitacora-detail__label">{{ 'Tipo de visitante' | t }}</span>
+          <span>{{ visitanteLabel(b.visita_tipo_visitante) | t }}</span>
         </div>
         <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Visitante</span>
+          <span class="bitacora-detail__label">{{ 'Visitante' | t }}</span>
           <span>{{ b.visita_nombre ?? '—' }}</span>
         </div>
         @if (b.visita_organizacion) {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Organización</span>
+            <span class="bitacora-detail__label">{{ 'Organización' | t }}</span>
             <span>{{ b.visita_organizacion }}</span>
           </div>
         }
         @if (b.visita_motivo) {
           <div class="bitacora-detail__section">
-            <h3>Motivo de la visita</h3>
+            <h3>{{ 'Motivo de la visita' | t }}</h3>
             <p>{{ b.visita_motivo }}</p>
           </div>
         }
@@ -350,30 +350,30 @@
       @if (b.tipo === 'orden_trabajo') {
         <!-- BN1 — el detalle (descripción/monto/firmas) vive en tabla hija; se abre en su ficha. -->
         <div class="bitacora-detail__section">
-          <h3>Orden de trabajo</h3>
+          <h3>{{ 'Orden de trabajo' | t }}</h3>
           @if (b.comentarios) { <p>{{ b.comentarios }}</p> }
           <a [routerLink]="['/bitacora/orden-trabajo', b.id]" class="sgc-btn sgc-btn--secondary sgc-btn--sm">
-            Ver orden y firmas →
+            {{ 'Ver orden y firmas →' | t }}
           </a>
         </div>
       }
 
       @if (b.tipo === 'incidente') {
         <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Clasificación</span>
+          <span class="bitacora-detail__label">{{ 'Clasificación' | t }}</span>
           <span>
-            {{ incidenteTipoLabel(b.incidente_tipo) }}@if (b.incidente_tipo === 'accidente') { · {{ gravedadLabel(b.incidente_gravedad) }} }
+            {{ incidenteTipoLabel(b.incidente_tipo) | t }}@if (b.incidente_tipo === 'accidente') { · {{ gravedadLabel(b.incidente_gravedad) | t }} }
           </span>
         </div>
         @if (b.incidente_suceso) {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">¿Qué pasó?</span>
-            <span>{{ sucesoLabel(b.incidente_suceso) }}</span>
+            <span class="bitacora-detail__label">{{ '¿Qué pasó?' | t }}</span>
+            <span>{{ sucesoLabel(b.incidente_suceso) | t }}</span>
           </div>
         }
         @if (b.incidente_tipo === 'incidente_equipo') {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Equipo</span>
+            <span class="bitacora-detail__label">{{ 'Equipo' | t }}</span>
             <span>
               {{ b.incidente_equipo_nombre ?? '—' }}
               @if (b.incidente_equipo_alquilado != null) { <span class="text-muted">· {{ b.incidente_equipo_alquilado ? 'Alquilado' : 'Propio' }}</span> }
@@ -381,38 +381,38 @@
           </div>
           @if (b.incidente_equipo_operativo != null) {
             <div class="bitacora-detail__row">
-              <span class="bitacora-detail__label">¿Queda operativo?</span>
+              <span class="bitacora-detail__label">{{ '¿Queda operativo?' | t }}</span>
               <span>{{ b.incidente_equipo_operativo ? 'Sí' : 'No, fuera de servicio' }}</span>
             </div>
           }
           @if (b.incidente_equipo_operativo_comentario) {
             <div class="bitacora-detail__row">
-              <span class="bitacora-detail__label">Comentario de operatividad</span>
+              <span class="bitacora-detail__label">{{ 'Comentario de operatividad' | t }}</span>
               <span>{{ b.incidente_equipo_operativo_comentario }}</span>
             </div>
           }
         }
         @if (b.incidente_subcontratista) {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Subcontratista</span>
+            <span class="bitacora-detail__label">{{ 'Subcontratista' | t }}</span>
             <span>{{ b.incidente_subcontratista }}</span>
           </div>
         }
         @if (b.incidente_tipo === 'accidente') {
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Lesionados</span>
+            <span class="bitacora-detail__label">{{ 'Lesionados' | t }}</span>
             <span>{{ b.incidente_lesionados ?? 0 }}</span>
           </div>
         }
         @if (b.incidente_descripcion) {
           <div class="bitacora-detail__section">
-            <h3>Descripción</h3>
+            <h3>{{ 'Descripción' | t }}</h3>
             <p>{{ b.incidente_descripcion }}</p>
           </div>
         }
         @if (b.incidente_acciones) {
           <div class="bitacora-detail__section">
-            <h3>Acciones tomadas</h3>
+            <h3>{{ 'Acciones tomadas' | t }}</h3>
             <p>{{ b.incidente_acciones }}</p>
           </div>
         }
@@ -420,7 +420,7 @@
 
       @if (b.weather_snapshot; as w) {
         <div class="bitacora-detail__section">
-          <h3>Clima registrado @if (b.tipo === 'incidente') { <span class="bitacora-clima__tag">al momento del incidente</span> }</h3>
+          <h3>{{ 'Clima registrado' | t }} @if (b.tipo === 'incidente') { <span class="bitacora-clima__tag">{{ 'al momento del incidente' | t }}</span> }</h3>
           <div class="bitacora-clima">
             <span class="bitacora-clima__icon" aria-hidden="true">{{ detailTiempo().icono }}</span>
             <div class="bitacora-clima__main">
@@ -429,19 +429,19 @@
             </div>
           </div>
           <div class="bitacora-clima__stats">
-            <span>Sensación {{ w.sensacion != null ? (w.sensacion | number:'1.0-0') + '°' : '—' }}</span>
-            <span>Humedad {{ w.humedad ?? '—' }}%</span>
-            <span>Viento {{ w.viento_kmh != null ? (w.viento_kmh | number:'1.0-0') + ' km/h' : '—' }}</span>
-            <span>Lluvia {{ w.precipitacion_mm ?? 0 }} mm</span>
-            <span>UV {{ w.uv != null ? (w.uv | number:'1.0-0') : '—' }}</span>
+            <span>{{ 'Sensación' | t }} {{ w.sensacion != null ? (w.sensacion | number:'1.0-0') + '°' : '—' }}</span>
+            <span>{{ 'Humedad' | t }} {{ w.humedad ?? '—' }}%</span>
+            <span>{{ 'Viento' | t }} {{ w.viento_kmh != null ? (w.viento_kmh | number:'1.0-0') + ' km/h' : '—' }}</span>
+            <span>{{ 'Lluvia' | t }} {{ w.precipitacion_mm ?? 0 }} {{ 'mm' | t }}</span>
+            <span>{{ 'UV' | t }} {{ w.uv != null ? (w.uv | number:'1.0-0') : '—' }}</span>
           </div>
-          <span class="bitacora-clima__note">Capturado automáticamente al registrar la bitácora.</span>
+          <span class="bitacora-clima__note">{{ 'Capturado automáticamente al registrar la bitácora.' | t }}</span>
         </div>
       }
 
       @if ((b.actividades ?? []).length > 0) {
         <div class="bitacora-detail__section">
-          <h3>Actividades</h3>
+          <h3>{{ 'Actividades' | t }}</h3>
           @for (grupo of actividadesAgrupadas(b); track grupo.bloque) {
             @if (grupo.bloque) {
               <h4 class="bitacora-detail__subtitle">{{ grupo.bloque }}</h4>
@@ -449,7 +449,7 @@
             <ul class="bitacora-detail__list">
               @for (a of grupo.items; track a.id) {
                 <!-- AW1 — cantidad aproximada (~) vs exacta; "se trabajó" cuando no hay cantidad. -->
-                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× @if (a.es_aproximada) { ~ }{{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} }@if (a.es_aproximada) { &nbsp;<span class="sgc-badge sgc-badge--neutral">aprox.</span> } } @else if (a.es_aproximada) { &nbsp;<span class="text-muted">(se trabajó)</span> }</li>
+                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× @if (a.es_aproximada) { ~ }{{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} }@if (a.es_aproximada) { &nbsp;<span class="sgc-badge sgc-badge--neutral">{{ 'aprox.' | t }}</span> } } @else if (a.es_aproximada) { &nbsp;<span class="text-muted">{{ '(se trabajó)' | t }}</span> }</li>
               }
             </ul>
           }
@@ -458,7 +458,7 @@
 
       @if ((b.restricciones ?? []).length > 0) {
         <div class="bitacora-detail__section">
-          <h3>Restricciones</h3>
+          <h3>{{ 'Restricciones' | t }}</h3>
           <ul class="bitacora-detail__list">
             @for (r of b.restricciones; track r.id) {
               <li>
@@ -475,7 +475,7 @@
                   @let raudio = getRestriccionAudioUrl(r.id);
                   @if (raudio) {
                     <div class="bitacora-archivo bitacora-archivo--audio">
-                      <span><app-icon name="mic" [size]="14" /> Nota de voz</span>
+                      <span><app-icon name="mic" [size]="14" /> {{ 'Nota de voz' | t }}</span>
                       <audio controls preload="none" [src]="raudio"></audio>
                       @if (r.transcripcion) { <p class="bitacora-archivo__transcripcion">“{{ r.transcripcion }}”</p> }
                     </div>
@@ -489,13 +489,13 @@
 
       @if ((b.equipos ?? []).length > 0) {
         <div class="bitacora-detail__section">
-          <h3>Equipos alquilados</h3>
+          <h3>{{ 'Equipos alquilados' | t }}</h3>
           <ul class="bitacora-detail__list">
             @for (e of b.equipos; track e.id) {
               <li>
                 <strong>{{ e.equipo }}</strong>@if (e.uso) { — {{ e.uso }} }@if (e.proveedor) { <span class="text-muted">· {{ e.proveedor }}</span> }
-                @if (e.para_retirar) { <span class="sgc-badge sgc-badge--warning">Para retirar</span> }
-                @if (e.danado) { <span class="sgc-badge sgc-badge--danger">Dañado</span>@if (e.dano_detalle) { <span class="text-muted">: {{ e.dano_detalle }}</span> } }
+                @if (e.para_retirar) { <span class="sgc-badge sgc-badge--warning">{{ 'Para retirar' | t }}</span> }
+                @if (e.danado) { <span class="sgc-badge sgc-badge--danger">{{ 'Dañado' | t }}</span>@if (e.dano_detalle) { <span class="text-muted">: {{ e.dano_detalle }}</span> } }
                 @if (getEquipoFotos(e.id).length) {
                   <div class="bitacora-archivos">
                     @for (u of getEquipoFotos(e.id); track u) {
@@ -513,7 +513,7 @@
 
       @if ((b.danos ?? []).length > 0) {
         <div class="bitacora-detail__section">
-          <h3>Daños</h3>
+          <h3>{{ 'Daños' | t }}</h3>
           <ul class="bitacora-detail__list">
             @for (d of b.danos; track d.id) {
               <li>
@@ -521,7 +521,7 @@
                 <strong>{{ d.nombre_libre }}</strong>
                 @if (d.cantidad) { <span class="text-muted">· {{ d.cantidad }}{{ d.unidad ? ' ' + d.unidad : '' }}</span> }
                 <span class="text-muted">— {{ d.detalle }}</span>
-                @if (d.retiro_id) { <span class="sgc-badge sgc-badge--warning">Retiro solicitado</span> }
+                @if (d.retiro_id) { <span class="sgc-badge sgc-badge--warning">{{ 'Retiro solicitado' | t }}</span> }
                 @if (getDanoFotos(d.id).length) {
                   <div class="bitacora-archivos">
                     @for (u of getDanoFotos(d.id); track u) {
@@ -539,15 +539,15 @@
 
       @if ((b.moldes ?? []).length > 0) {
         <div class="bitacora-detail__section">
-          <h3>Moldes del día</h3>
+          <h3>{{ 'Moldes del día' | t }}</h3>
           @for (m of b.moldes; track m.id; let i = $index) {
             <div class="bitacora-detail__molde">
               <div class="bitacora-detail__molde-head">
-                <strong>Molde</strong>
+                <strong>{{ 'Molde' | t }}</strong>
                 @if (m.estructura) { <span class="text-muted">· {{ m.estructura }}</span> }
                 @if (m.identificador) { <span class="text-muted">· {{ m.identificador }}</span> }
                 @if (m.desviacion_max_cm != null) {
-                  <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">Desvío {{ m.desviacion_max_cm }} cm</span>
+                  <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">{{ 'Desvío' | t }} {{ m.desviacion_max_cm }} {{ 'cm' | t }}</span>
                 }
               </div>
               <!-- DI2 — ampliable: clic en el esquema o en "Ampliar" abre app-molde-visor. -->
@@ -562,7 +562,7 @@
 
       @if (b.comentarios) {
         <div class="bitacora-detail__section">
-          <h3>Comentarios</h3>
+          <h3>{{ 'Comentarios' | t }}</h3>
           <p>{{ b.comentarios }}</p>
         </div>
       }
@@ -570,7 +570,7 @@
       <!-- U13/AW2 — quién/cuándo: autor + fecha de registro (distinta de la operativa) -->
       @if (b.created_at || b.autor) {
         <div class="bitacora-detail__row bitacora-detail__row--foot">
-          <span class="bitacora-detail__label">Registró</span>
+          <span class="bitacora-detail__label">{{ 'Registró' | t }}</span>
           <span class="text-muted">
             {{ b.autor?.nombre ?? '—' }}@if (b.created_at) { · {{ formatFechaHora(b.created_at) }}}
           </span>
@@ -579,7 +579,7 @@
 
       @if ((b.archivos ?? []).length > 0) {
         <div class="bitacora-detail__section">
-          <h3>Archivos</h3>
+          <h3>{{ 'Archivos' | t }}</h3>
           <div class="bitacora-archivos">
             @for (a of b.archivos; track a.id) {
               @let url = getArchivoUrl(a);
@@ -589,7 +589,7 @@
                 </a>
               } @else if (url && isAudio(a)) {
                 <div class="bitacora-archivo bitacora-archivo--audio">
-                  <span class="bitacora-archivo__cap"><app-icon name="mic" [size]="14" /> Nota de voz</span>
+                  <span class="bitacora-archivo__cap"><app-icon name="mic" [size]="14" /> {{ 'Nota de voz' | t }}</span>
                   <audio controls preload="none" [src]="url"></audio>
                   @if (a.transcripcion) {
                     <p class="bitacora-archivo__transcripcion">“{{ a.transcripcion }}”</p>

@@ -9,6 +9,8 @@ import {
   inject,
 } from '@angular/core';
 import { Icon } from '../icon/icon';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../i18n/i18n.service';
 
 export interface FilterOption { value: string; label: string; group?: string; }
 
@@ -22,13 +24,14 @@ export interface FilterOption { value: string; label: string; group?: string; }
  */
 @Component({
   selector: 'app-filter-select',
-  imports: [Icon],
+  imports: [Icon, TranslatePipe],
   templateUrl: './filter-select.html',
   styleUrl: './filter-select.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'onDocClick($event)' },
 })
 export class FilterSelect {
+  protected i18n = inject(I18nService);
   label = input.required<string>();
   options = input<FilterOption[]>([]);
   value = input<string | null>(null);        // single
@@ -48,7 +51,8 @@ export class FilterSelect {
   countLabel = computed(() => {
     if (this.multiple()) return this.values().length ? String(this.values().length) : '';
     const v = this.value();
-    return v ? (this.options().find((o) => o.value === v)?.label ?? v) : '';
+    const label = v ? (this.options().find((o) => o.value === v)?.label ?? v) : '';
+    return label ? this.i18n.t(label) : '';
   });
 
   filtered = computed(() => {

@@ -59,7 +59,7 @@
         {{ 'Llaves API' | t }} <span class="filtro-chip__count">{{ conteo('api') }}</span>
       </button>
       <button type="button" class="filtro-chip" [class.active]="filtroTipo() === '2fa'" (click)="filtroTipo.set('2fa'); page.set(1)">
-        2FA <span class="filtro-chip__count">{{ conteo('2fa') }}</span>
+        {{ '2FA' | t }} <span class="filtro-chip__count">{{ conteo('2fa') }}</span>
       </button>
       <button type="button" class="filtro-chip" [class.active]="filtroTipo() === 'nota'" (click)="filtroTipo.set('nota'); page.set(1)">
         {{ 'Notas' | t }} <span class="filtro-chip__count">{{ conteo('nota') }}</span>
@@ -124,7 +124,7 @@
       <!-- DH4 — Responsable: persona SGC a cargo (select, ya no texto libre). -->
       <div class="sgc-field">
         <label>{{ 'Responsable' | t }}</label>
-        <app-user-picker [value]="responsableId()" placeholder="¿Quién es responsable?" (selected)="onResponsableSeleccionado($event)" />
+        <app-user-picker [value]="responsableId()" placeholder="{{ '¿Quién es responsable?' | t }}" (selected)="onResponsableSeleccionado($event)" />
       </div>
       @if (form.getRawValue().tipo !== 'archivo' && form.getRawValue().tipo !== 'nota') {
         <div class="form-row">
@@ -207,7 +207,7 @@
     @if (generadorResultado(); as r) {
       <div class="vault-generado">
         <code>{{ r.valor }}</code>
-        <span class="text-muted">{{ r.bitsEntropia }} bits — {{ etiquetaFortaleza(r.bitsEntropia) | t }}</span>
+        <span class="text-muted">{{ r.bitsEntropia }} {{ 'bits —' | t }} {{ etiquetaFortaleza(r.bitsEntropia) | t }}</span>
       </div>
     }
     <div class="drawer-actions">

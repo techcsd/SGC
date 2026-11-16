@@ -23,6 +23,8 @@ import { VehiculoPicker } from '../../../../../shared/components/vehiculo-picker
 import { SignaturePad } from '../../../../../shared/ui/signature-pad/signature-pad';
 import { comprimirImagen } from '../../../../../shared/utils/comprimir-imagen.util';
 import { Icon } from '../../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../../shared/i18n/i18n.service';
 
 interface DanoEdit {
   zona: string;
@@ -48,7 +50,7 @@ const ENTREGA_SLOTS: { slot: string; label: string }[] = [
  */
 @Component({
   selector: 'app-registrar-entrega',
-  imports: [DecimalPipe, DatePipe, ReactiveFormsModule, VehiculoPicker, SignaturePad, Icon],
+  imports: [DecimalPipe, DatePipe, ReactiveFormsModule, VehiculoPicker, SignaturePad, Icon, TranslatePipe],
   templateUrl: './registrar-entrega.html',
   styleUrl: './registrar-entrega.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +59,7 @@ export class RegistrarEntrega implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private user = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   creada = output<void>();
   cancelar = output<void>();

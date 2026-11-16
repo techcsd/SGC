@@ -5,6 +5,8 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * CW1 — Conduces huérfanos: lista de solo lectura (ensayo en seco) de conduces que
  * se quedaron atascados en "despachado" sin confirmación ni recepción. Nace del
@@ -18,7 +20,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-admin-conduces-huerfanos',
-  imports: [Skeleton, DatePipe, Icon],
+  imports: [Skeleton, DatePipe, Icon, TranslatePipe],
   templateUrl: './conduces-huerfanos.html',
   styleUrl: './conduces-huerfanos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 export class AdminConducesHuerfanos implements OnInit {
   private svc = inject(SalidasService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   filas = signal<ConduceHuerfano[]>([]);
   loading = signal(true);
@@ -62,7 +65,7 @@ export class AdminConducesHuerfanos implements OnInit {
     this.anulando.set(f.id);
     try {
       await this.svc.anularConduce(f.id, motivo.trim());
-      this.toast.success('Conduce anulado', `${f.codigo} se anuló.`);
+      this.toast.success(this.i18n.t('Conduce anulado'), `${f.codigo} se anuló.`);
       await this.cargar();
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo anular.');

@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Mi Proyecto</h1>
-    <span class="page-count">Obras a las que estás asignado</span>
+    <h1 class="page-title">{{ 'Mi Proyecto' | t }}</h1>
+    <span class="page-count">{{ 'Obras a las que estás asignado' | t }}</span>
   </div>
 </div>
 
@@ -13,7 +13,7 @@
   <app-skeleton variant="cards" />
 } @else if (proyectos().length === 0) {
   <div class="table-empty sgc-card">
-    <p>Aún no tienes una obra asignada. Contacta a tu supervisor para que te agreguen al equipo de un proyecto.</p>
+    <p>{{ 'Aún no tienes una obra asignada. Contacta a tu supervisor para que te agreguen al equipo de un proyecto.' | t }}</p>
   </div>
 } @else {
   <div class="mi-proyecto-list">
@@ -30,7 +30,7 @@
           <p class="mi-proyecto-card__desc">{{ p.descripcion }}</p>
         }
         @if (p.presupuesto) {
-          <p class="mi-proyecto-card__meta">Presupuesto: RD$ {{ p.presupuesto | number:'1.0-0' }}</p>
+          <p class="mi-proyecto-card__meta">{{ 'Presupuesto: RD$' | t }} {{ p.presupuesto | number:'1.0-0' }}</p>
         }
 
         @if (p.latitud != null && p.longitud != null) {
@@ -41,7 +41,7 @@
 
         @if ((p.fases ?? []).length > 0) {
           <div class="mi-proyecto-card__fases">
-            <h3>Fases</h3>
+            <h3>{{ 'Fases' | t }}</h3>
             @for (fase of p.fases; track fase.id) {
               <div class="mi-proyecto-fase">
                 <div class="mi-proyecto-fase__header">

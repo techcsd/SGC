@@ -17,9 +17,11 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-ausencias',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, Icon, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './ausencias.html',
   styleUrl: './ausencias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +32,7 @@ export class Ausencias implements OnInit {
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private motion = inject(MotionService);
   private datosPruebaSvc = inject(DatosPruebaViewService);
 
@@ -218,13 +221,13 @@ export class Ausencias implements OnInit {
       if (estado === 'aprobada') {
         this.ausenciasService
           .aplicarAsistencia(s.id)
-          .then(() => this.toast.success('Asistencia actualizada'))
+          .then(() => this.toast.success(this.i18n.t('Asistencia actualizada')))
           .catch((err: unknown) =>
-            this.toast.error('No se pudo actualizar la asistencia', err instanceof Error ? err.message : undefined),
+            this.toast.error(this.i18n.t('No se pudo actualizar la asistencia'), err instanceof Error ? err.message : undefined),
           );
       }
     } catch (e: unknown) {
-      this.toast.error('No se pudo resolver la solicitud', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo resolver la solicitud'), e instanceof Error ? e.message : undefined);
     } finally {
       this.resolving.set(false);
     }

@@ -20,9 +20,11 @@ import { Router } from '@angular/router';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { APP_VERSION } from '../../../../environments/version';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-tec-reportes-errores',
-  imports: [DecimalPipe, DateRangeFilter, Skeleton, Icon],
+  imports: [DecimalPipe, DateRangeFilter, Skeleton, Icon, TranslatePipe],
   templateUrl: './reportes-errores.html',
   styleUrl: './reportes-errores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +34,7 @@ export class TecReportesErrores implements OnInit {
   private jira = inject(JiraService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   readonly tipos = APP_ERROR_TYPES;
 
@@ -42,10 +45,10 @@ export class TecReportesErrores implements OnInit {
     this.creandoIssue.set(reporteId);
     try {
       await this.jira.crearDesdeReporte(reporteId);
-      this.toast.success('Issue creado', 'Se creó un bug en el board de Issues.');
+      this.toast.success(this.i18n.t('Issue creado'), 'Se creó un bug en el board de Issues.');
       void this.router.navigate(['/tecnologia/issues']);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear el issue', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear el issue'), e instanceof Error ? e.message : undefined);
     } finally {
       this.creandoIssue.set(null);
     }
@@ -177,7 +180,7 @@ export class TecReportesErrores implements OnInit {
   /** BI4 — crear un issue directamente desde un GRUPO (usa una ocurrencia de ejemplo). */
   async crearIssueDeGrupo(g: AppErrorGrupo) {
     if (!g.ejemplo_id) {
-      this.toast.error('Sin ocurrencia de ejemplo', 'No se pudo identificar un reporte del grupo.');
+      this.toast.error(this.i18n.t('Sin ocurrencia de ejemplo'), 'No se pudo identificar un reporte del grupo.');
       return;
     }
     await this.crearIssue(g.ejemplo_id);

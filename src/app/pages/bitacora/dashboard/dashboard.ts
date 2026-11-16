@@ -6,6 +6,7 @@ import { Bitacora } from '../../../../shared/models/bitacora.model';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 const CAT = ['#1F4E79', '#2D7D46', '#B45309', '#5B3A8E', '#0E7490', '#C0392B', '#64748b'];
 const GRAVEDAD_COLOR: Record<string, string> = {
@@ -18,7 +19,7 @@ const GRAVEDAD_LABEL: Record<string, string> = {
 /** U14 — Dashboard de bitácoras: métricas agregadas de los partes/visitas/incidentes. */
 @Component({
   selector: 'app-bitacora-dashboard',
-  imports: [RouterLink, DecimalPipe, BarChart, DonutChart, Skeleton],
+  imports: [RouterLink, DecimalPipe, BarChart, DonutChart, Skeleton, TranslatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

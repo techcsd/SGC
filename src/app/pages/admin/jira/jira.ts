@@ -8,6 +8,8 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 const COLUMNAS: { estado: JiraEstado; label: string }[] = [
   { estado: 'backlog', label: 'Backlog' },
   { estado: 'por_hacer', label: 'Por hacer' },
@@ -23,7 +25,7 @@ const COLUMNAS: { estado: JiraEstado; label: string }[] = [
  */
 @Component({
   selector: 'app-admin-jira',
-  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './jira.html',
   styleUrl: './jira.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +33,7 @@ const COLUMNAS: { estado: JiraEstado; label: string }[] = [
 export class AdminJira implements OnInit {
   private svc = inject(JiraService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly columnas = COLUMNAS;
   issues = signal<JiraIssue[]>([]);
@@ -99,7 +102,7 @@ export class AdminJira implements OnInit {
     try {
       this.issues.set(await this.svc.listar());
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudieron cargar los issues.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudieron cargar los issues.'));
     } finally {
       this.loading.set(false);
     }
@@ -124,7 +127,7 @@ export class AdminJira implements OnInit {
     try {
       await this.svc.mover(id, estado, maxOrden + 10);
     } catch (e: unknown) {
-      this.toast.error('No se pudo mover el issue', e instanceof Error ? e.message : undefined);
+      this.toast.errorFrom(e, this.i18n.t('No se pudo mover el issue'));
       await this.cargar();
     }
   }
@@ -165,19 +168,19 @@ export class AdminJira implements OnInit {
           titulo: v.titulo!, descripcion: v.descripcion ?? null, tipo: v.tipo as JiraTipo,
           prioridad: v.prioridad as JiraPrioridad, labels: this.labelsArray(), asignado_a: v.asignado_a ?? null, epica_id: v.epica_id ?? null,
         });
-        this.toast.success('Issue actualizado');
+        this.toast.success(this.i18n.t('Issue actualizado'));
       } else {
         await this.svc.crear({
           titulo: v.titulo!, tipo: v.tipo as JiraTipo, descripcion: v.descripcion ?? null,
           prioridad: v.prioridad as JiraPrioridad, labels: this.labelsArray(), asignado_a: v.asignado_a ?? null,
           epica_id: v.epica_id ?? null, estado: v.estado as JiraEstado,
         });
-        this.toast.success('Issue creado');
+        this.toast.success(this.i18n.t('Issue creado'));
       }
       this.drawerOpen.set(false);
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo guardar.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar.'));
     } finally {
       this.saving.set(false);
     }
@@ -191,7 +194,7 @@ export class AdminJira implements OnInit {
     try {
       this.detalle.set(await this.svc.detalle(i.id));
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo abrir el issue.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo abrir el issue.'));
     }
   }
 
@@ -206,7 +209,7 @@ export class AdminJira implements OnInit {
       this.detalle.set(await this.svc.detalle(d.issue.id));
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo comentar.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo comentar.'));
     } finally {
       this.detalleBusy.set(false);
     }
@@ -221,9 +224,9 @@ export class AdminJira implements OnInit {
     try {
       await this.svc.adjuntar(d.issue.id, file);
       this.detalle.set(await this.svc.detalle(d.issue.id));
-      this.toast.success('Adjunto subido');
+      this.toast.success(this.i18n.t('Adjunto subido'));
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo subir el adjunto.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo subir el adjunto.'));
     } finally {
       this.detalleBusy.set(false);
       input.value = '';
@@ -234,21 +237,21 @@ export class AdminJira implements OnInit {
     try {
       window.open(await this.svc.adjuntoUrl(path), '_blank');
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo abrir el adjunto.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo abrir el adjunto.'));
     }
   }
 
   async eliminar() {
     const d = this.detalle();
     if (!d) return;
-    if (!confirm(`¿Eliminar el issue "${d.issue.titulo}"? No se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el issue "{titulo}"? No se puede deshacer.', { titulo: d.issue.titulo }))) return;
     try {
       await this.svc.eliminar(d.issue.id);
       this.detalleOpen.set(false);
-      this.toast.success('Issue eliminado');
+      this.toast.success(this.i18n.t('Issue eliminado'));
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo eliminar.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo eliminar.'));
     }
   }
 
@@ -261,15 +264,18 @@ export class AdminJira implements OnInit {
       this.epicas.set(await this.svc.epicasListar());
       this.epicaTitulo.reset('');
       this.epicaOpen.set(false);
-      this.toast.success('Épica creada');
+      this.toast.success(this.i18n.t('Épica creada'));
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo crear la épica.');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo crear la épica.'));
     }
   }
 
   // ── UI helpers ────────────────────────────────────────────
   tipoLabel(t: string): string {
     return { tarea: 'Tarea', bug: 'Bug', mejora: 'Mejora', epica: 'Épica' }[t] ?? t;
+  }
+  prioLabel(p: string): string {
+    return { urgente: 'Urgente', alta: 'Alta', media: 'Media', baja: 'Baja' }[p] ?? p;
   }
   prioClase(p: string): string { return `jira-prio jira-prio--${p}`; }
   tipoClase(t: string): string { return `jira-tipo jira-tipo--${t}`; }

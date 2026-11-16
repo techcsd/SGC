@@ -27,6 +27,8 @@ import {
   NOTA_COLORES,
 } from '../../../../shared/models/nota.model';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * AD9 — Editor de nota en PÁGINA COMPLETA con barra de herramientas tipo Word,
  * checklist "de verdad" (ítems clicables, reordenables, vinculables a una Tarea)
@@ -37,13 +39,14 @@ import {
  */
 @Component({
   selector: 'app-nota-editor',
-  imports: [Icon],
+  imports: [Icon, TranslatePipe],
   templateUrl: './nota-editor.html',
   styleUrl: './nota-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotaEditor implements OnInit, OnDestroy {
   private notasSvc = inject(NotasService);
+  protected i18n = inject(I18nService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
   private jira = inject(JiraService);
@@ -184,7 +187,7 @@ export class NotaEditor implements OnInit, OnDestroy {
       const permiso: NotaPermiso =
         !nota || (miId && nota.owner_id === miId) ? 'editar' : nota.mi_permiso ?? 'ver';
       if (!nota) {
-        this.toast.error('Nota no encontrada', 'Puede que ya no exista o no tengas acceso.');
+        this.toast.error(this.i18n.t('Nota no encontrada'), 'Puede que ya no exista o no tengas acceso.');
         this.router.navigate(['/notas']);
         return;
       }
@@ -407,7 +410,7 @@ export class NotaEditor implements OnInit, OnDestroy {
     try {
       await this.notasSvc.linkChecklistItem(item.id, tareaId ? 'tarea' : null, tareaId || null);
       await this.recargarChecklist();
-      if (tareaId) this.toast.success('Vinculado a la tarea', 'El ítem se marcará solo cuando la tarea se complete.');
+      if (tareaId) this.toast.success(this.i18n.t('Vinculado a la tarea'), 'El ítem se marcará solo cuando la tarea se complete.');
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo vincular');
     }
@@ -445,7 +448,7 @@ export class NotaEditor implements OnInit, OnDestroy {
       await this.notasSvc.compartir(id, usuarioId, this.compartirPermiso());
       this.compartirUsuario.set(null);
       await this.recargarCompartidos();
-      this.toast.success('Nota compartida');
+      this.toast.success(this.i18n.t('Nota compartida'));
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo compartir');
     }
@@ -516,7 +519,7 @@ export class NotaEditor implements OnInit, OnDestroy {
         this.lastUpdatedAt,
       );
       this.lastUpdatedAt = res.nota.updated_at;
-      this.toast.success('Movida a Dev notes');
+      this.toast.success(this.i18n.t('Movida a Dev notes'));
       this.router.navigate(['/tecnologia/dev-notes']);
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo mover a Dev notes');

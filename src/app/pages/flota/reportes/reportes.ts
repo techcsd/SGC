@@ -14,6 +14,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface VehiculoReport {
   id: string;
@@ -71,7 +73,7 @@ interface PlacaInfo {
 
 @Component({
   selector: 'app-flota-reportes',
-  imports: [DecimalPipe, TitleCasePipe, Skeleton, Icon],
+  imports: [DecimalPipe, TitleCasePipe, Skeleton, Icon, TranslatePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,6 +82,7 @@ export class FlotaReportes implements OnInit {
   private supabase = inject(SupabaseService);
   private combustibleService = inject(CombustibleService);
   private router = inject(Router);
+  protected i18n = inject(I18nService);
 
   // X6 — etiqueta legible del tipo de visita a taller.
   tipoMantLabel(tipo: string): string {

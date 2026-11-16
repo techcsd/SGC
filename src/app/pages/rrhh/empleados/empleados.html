@@ -1,15 +1,15 @@
 <!-- ── Summary cards ── -->
 <div class="empleados__summary">
   <div class="empleados__summary-card">
-    <span class="empleados__summary-label">Total empleados</span>
+    <span class="empleados__summary-label">{{ 'Total empleados' | t }}</span>
     <span class="empleados__summary-value">{{ empleados().length }}</span>
   </div>
   <div class="empleados__summary-card empleados__summary-card--active">
-    <span class="empleados__summary-label">Activos</span>
+    <span class="empleados__summary-label">{{ 'Activos' | t }}</span>
     <span class="empleados__summary-value">{{ totalActivos() }}</span>
   </div>
   <div class="empleados__summary-card empleados__summary-card--contract">
-    <span class="empleados__summary-label">Temporal / Por obra</span>
+    <span class="empleados__summary-label">{{ 'Temporal / Por obra' | t }}</span>
     <span class="empleados__summary-value">{{ totalPorContrato() }}</span>
   </div>
 </div>
@@ -17,8 +17,8 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Empleados</h1>
-    <span class="page-count">{{ filtered().length }} empleado{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Empleados' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'empleados' : 'empleado') | t }}</span>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="empleados" [rows]="filtered()" [allRows]="empleados()"
@@ -27,7 +27,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo empleado
+      {{ 'Nuevo empleado' | t }}
     </button>
   </div>
 </div>
@@ -37,10 +37,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre, cédula o cargo…"
+      placeholder="{{ 'Buscar por nombre, cédula o cargo…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar empleados"
+      aria-label="{{ 'Buscar empleados' | t }}"
     />
   </div>
 
@@ -48,9 +48,9 @@
     <select
       [value]="selectedDepartamento()"
       (change)="onDepartamentoChange($any($event.target).value)"
-      aria-label="Filtrar por departamento"
+      aria-label="{{ 'Filtrar por departamento' | t }}"
     >
-      <option value="">Todos los departamentos</option>
+      <option value="">{{ 'Todos los departamentos' | t }}</option>
       @for (dept of DEPARTAMENTOS; track dept) {
         <option [value]="dept">{{ dept }}</option>
       }
@@ -61,11 +61,11 @@
     <select
       [value]="selectedTipoContrato()"
       (change)="onTipoContratoChange($any($event.target).value)"
-      aria-label="Filtrar por tipo de contrato"
+      aria-label="{{ 'Filtrar por tipo de contrato' | t }}"
     >
-      <option value="">Todos los contratos</option>
+      <option value="">{{ 'Todos los contratos' | t }}</option>
       @for (tipo of TIPOS_CONTRATO; track tipo.value) {
-        <option [value]="tipo.value">{{ tipo.label }}</option>
+        <option [value]="tipo.value">{{ tipo.label | t }}</option>
       }
     </select>
   </div>
@@ -74,24 +74,24 @@
     <select
       [value]="selectedActivo()"
       (change)="onActivoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="all">Todos los estados</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
+      <option value="all">{{ 'Todos los estados' | t }}</option>
+      <option value="active">{{ 'Activos' | t }}</option>
+      <option value="inactive">{{ 'Inactivos' | t }}</option>
     </select>
   </div>
 
   @if (hasFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
   @if (esAdmin()) {
     <label class="empleados__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -127,30 +127,30 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de empleados">
+      <table class="data-table" aria-label="{{ 'Lista de empleados' | t }}">
         <thead>
           <tr>
-            <th>Empleado</th>
-            <th>Cédula</th>
-            <th>Cargo</th>
-            <th>Departamento</th>
-            <th>Contrato</th>
-            <th class="text-right">Salario</th>
-            <th>Antigüedad</th>
-            <th>Estado</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Empleado' | t }}</th>
+            <th>{{ 'Cédula' | t }}</th>
+            <th>{{ 'Cargo' | t }}</th>
+            <th>{{ 'Departamento' | t }}</th>
+            <th>{{ 'Contrato' | t }}</th>
+            <th class="text-right">{{ 'Salario' | t }}</th>
+            <th>{{ 'Antigüedad' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (emp of paginated(); track emp.id) {
             <tr class="row--link" [class.row--inactive]="!emp.activo" (click)="openDetail(emp)"
                 role="button" tabindex="0" (keydown.enter)="openDetail(emp)"
-                [attr.aria-label]="'Ver detalle de ' + emp.nombre + ' ' + emp.apellido">
+                [attr.aria-label]="i18n.t('Ver detalle de') + ' ' + emp.nombre + ' ' + emp.apellido">
               <td>
                 <div class="empleados__name-cell">
                   <span class="empleados__name">
                     {{ emp.apellido }}, {{ emp.nombre }}
-                    @if (emp.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                    @if (emp.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'PRUEBA' | t }}</span> }
                   </span>
                   @if (emp.email) {
                     <span class="empleados__email">{{ emp.email }}</span>
@@ -164,7 +164,7 @@
               <td>{{ emp.departamento ?? '—' }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getTipoContratoBadge(emp.tipo_contrato)">
-                  {{ getTipoContratoLabel(emp.tipo_contrato) }}
+                  {{ getTipoContratoLabel(emp.tipo_contrato) | t }}
                 </span>
               </td>
               <td class="text-right">
@@ -173,9 +173,9 @@
               <td class="text-muted">{{ getAntiguedad(emp.fecha_ingreso) }}</td>
               <td>
                 @if (emp.activo) {
-                  <span class="sgc-badge sgc-badge--success">Activo</span>
+                  <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span>
                 } @else {
-                  <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span>
                 }
               </td>
               <td>
@@ -184,8 +184,8 @@
                     type="button"
                     class="action-btn action-btn--view"
                     (click)="$event.stopPropagation(); openDetail(emp)"
-                    [attr.aria-label]="'Ver ' + emp.nombre + ' ' + emp.apellido"
-                    title="Ver detalle"
+                    [attr.aria-label]="i18n.t('Ver') + ' ' + emp.nombre + ' ' + emp.apellido"
+                    title="{{ 'Ver detalle' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -196,8 +196,8 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="$event.stopPropagation(); openEdit(emp)"
-                    [attr.aria-label]="'Editar ' + emp.nombre + ' ' + emp.apellido"
-                    title="Editar"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + emp.nombre + ' ' + emp.apellido"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -210,8 +210,8 @@
                     [class.action-btn--deactivate]="emp.activo"
                     [class.action-btn--activate]="!emp.activo"
                     (click)="$event.stopPropagation(); toggleActivo(emp)"
-                    [attr.aria-label]="(emp.activo ? 'Desactivar' : 'Activar') + ' ' + emp.nombre"
-                    [title]="emp.activo ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="i18n.t(emp.activo ? 'Desactivar' : 'Activar') + ' ' + emp.nombre"
+                    [title]="i18n.t(emp.activo ? 'Desactivar' : 'Activar')"
                   >
                     @if (emp.activo) {
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -224,7 +224,7 @@
                     }
                   </button>
                   @if (esAdmin() && emp.es_prueba) {
-                    <button class="empleados__delete-prueba" type="button" (click)="$event.stopPropagation(); eliminarPrueba(emp)" title="Eliminar dato de prueba" [attr.aria-label]="'Eliminar dato de prueba ' + emp.nombre">
+                    <button class="empleados__delete-prueba" type="button" (click)="$event.stopPropagation(); eliminarPrueba(emp)" title="{{ 'Eliminar dato de prueba' | t }}" [attr.aria-label]="i18n.t('Eliminar dato de prueba') + ' ' + emp.nombre">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>
@@ -243,7 +243,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -251,7 +251,7 @@
             type="button"
             (click)="goToPage(currentPage() - 1)"
             [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
+            aria-label="{{ 'Página anterior' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 18 9 12 15 6"/>
@@ -272,7 +272,7 @@
             type="button"
             (click)="goToPage(currentPage() + 1)"
             [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
+            aria-label="{{ 'Página siguiente' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
@@ -294,7 +294,7 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="cedula">Cédula <span class="required">*</span></label>
+        <label for="cedula">{{ 'Cédula' | t }} <span class="required">*</span></label>
         <input
           id="cedula"
           type="text"
@@ -312,7 +312,7 @@
       </div>
 
       <div class="sgc-field">
-        <label for="tipo_contrato">Tipo contrato <span class="required">*</span></label>
+        <label for="tipo_contrato">{{ 'Tipo contrato' | t }} <span class="required">*</span></label>
         <select
           id="tipo_contrato"
           formControlName="tipo_contrato"
@@ -323,50 +323,50 @@
           }
         </select>
         @if (f.tipo_contrato.invalid && f.tipo_contrato.touched) {
-          <span class="field-error">El tipo de contrato es obligatorio.</span>
+          <span class="field-error">{{ 'El tipo de contrato es obligatorio.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="nombre">Nombre <span class="required">*</span></label>
+        <label for="nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
         <input
           id="nombre"
           type="text"
           formControlName="nombre"
-          placeholder="Nombres"
+          placeholder="{{ 'Nombres' | t }}"
           [class.invalid]="f.nombre.invalid && f.nombre.touched"
         />
         @if (f.nombre.invalid && f.nombre.touched) {
-          <span class="field-error">El nombre es obligatorio.</span>
+          <span class="field-error">{{ 'El nombre es obligatorio.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="apellido">Apellido <span class="required">*</span></label>
+        <label for="apellido">{{ 'Apellido' | t }} <span class="required">*</span></label>
         <input
           id="apellido"
           type="text"
           formControlName="apellido"
-          placeholder="Apellidos"
+          placeholder="{{ 'Apellidos' | t }}"
           [class.invalid]="f.apellido.invalid && f.apellido.touched"
         />
         @if (f.apellido.invalid && f.apellido.touched) {
-          <span class="field-error">El apellido es obligatorio.</span>
+          <span class="field-error">{{ 'El apellido es obligatorio.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="cargo">Cargo <span class="required">*</span></label>
+        <label for="cargo">{{ 'Cargo' | t }} <span class="required">*</span></label>
         <input
           id="cargo"
           type="text"
           formControlName="cargo"
           list="cargos-list"
-          placeholder="Selecciona o escribe el cargo"
+          placeholder="{{ 'Selecciona o escribe el cargo' | t }}"
           [class.invalid]="f.cargo.invalid && f.cargo.touched"
         />
         <datalist id="cargos-list">
@@ -375,14 +375,14 @@
           }
         </datalist>
         @if (f.cargo.invalid && f.cargo.touched) {
-          <span class="field-error">El cargo es obligatorio.</span>
+          <span class="field-error">{{ 'El cargo es obligatorio.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="departamento">Departamento</label>
+        <label for="departamento">{{ 'Departamento' | t }}</label>
         <select id="departamento" formControlName="departamento">
-          <option [ngValue]="null">Sin departamento</option>
+          <option [ngValue]="null">{{ 'Sin departamento' | t }}</option>
           @for (dept of DEPARTAMENTOS; track dept) {
             <option [value]="dept">{{ dept }}</option>
           }
@@ -392,7 +392,7 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha_ingreso">Fecha de ingreso <span class="required">*</span></label>
+        <label for="fecha_ingreso">{{ 'Fecha de ingreso' | t }} <span class="required">*</span></label>
         <input
           id="fecha_ingreso"
           type="date"
@@ -400,12 +400,12 @@
           [class.invalid]="f.fecha_ingreso.invalid && f.fecha_ingreso.touched"
         />
         @if (f.fecha_ingreso.invalid && f.fecha_ingreso.touched) {
-          <span class="field-error">La fecha de ingreso es obligatoria.</span>
+          <span class="field-error">{{ 'La fecha de ingreso es obligatoria.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="salario">Salario (DOP) <span class="required">*</span></label>
+        <label for="salario">{{ 'Salario (DOP)' | t }} <span class="required">*</span></label>
         <input
           id="salario"
           type="number"
@@ -416,14 +416,14 @@
           [class.invalid]="f.salario.invalid && f.salario.touched"
         />
         @if (f.salario.invalid && f.salario.touched) {
-          <span class="field-error">Ingresa un salario mayor a 0.</span>
+          <span class="field-error">{{ 'Ingresa un salario mayor a 0.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="telefono">Teléfono</label>
+        <label for="telefono">{{ 'Teléfono' | t }}</label>
         <input
           id="telefono"
           type="tel"
@@ -434,39 +434,39 @@
       </div>
 
       <div class="sgc-field">
-        <label for="email">Correo electrónico</label>
+        <label for="email">{{ 'Correo electrónico' | t }}</label>
         <input
           id="email"
           type="email"
           formControlName="email"
-          placeholder="correo@ejemplo.com"
+          placeholder="{{ 'correo@ejemplo.com' | t }}"
           [class.invalid]="f.email.invalid && f.email.touched"
         />
         @if (f.email.invalid && f.email.touched) {
-          <span class="field-error">El correo no es válido.</span>
+          <span class="field-error">{{ 'El correo no es válido.' | t }}</span>
         }
       </div>
     </div>
 
     <div class="sgc-field">
-      <label for="direccion">Dirección</label>
+      <label for="direccion">{{ 'Dirección' | t }}</label>
       <textarea
         id="direccion"
         formControlName="direccion"
         rows="2"
-        placeholder="Dirección del empleado…"
+        placeholder="{{ 'Dirección del empleado…' | t }}"
       ></textarea>
     </div>
 
     <!-- ── Datos personales ── -->
-    <div class="form-section-title">Datos personales</div>
+    <div class="form-section-title">{{ 'Datos personales' | t }}</div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha_nacimiento">Fecha de nacimiento</label>
+        <label for="fecha_nacimiento">{{ 'Fecha de nacimiento' | t }}</label>
         <input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" [max]="today" />
       </div>
       <div class="sgc-field">
-        <label for="genero">Género</label>
+        <label for="genero">{{ 'Género' | t }}</label>
         <select id="genero" formControlName="genero">
           <option [ngValue]="null">—</option>
           @for (g of GENEROS; track g.value) {
@@ -477,7 +477,7 @@
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="estado_civil">Estado civil</label>
+        <label for="estado_civil">{{ 'Estado civil' | t }}</label>
         <select id="estado_civil" formControlName="estado_civil">
           <option [ngValue]="null">—</option>
           @for (ec of ESTADOS_CIVILES; track ec.value) {
@@ -486,9 +486,9 @@
         </select>
       </div>
       <div class="sgc-field">
-        <label for="jefe_id">Supervisor / Jefe directo</label>
+        <label for="jefe_id">{{ 'Supervisor / Jefe directo' | t }}</label>
         <select id="jefe_id" formControlName="jefe_id">
-          <option [ngValue]="null">Sin supervisor</option>
+          <option [ngValue]="null">{{ 'Sin supervisor' | t }}</option>
           @for (j of jefeOptions(); track j.id) {
             <option [value]="j.id">{{ j.nombre }} {{ j.apellido }}</option>
           }
@@ -497,48 +497,48 @@
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="contacto_emergencia_nombre">Contacto de emergencia</label>
-        <input id="contacto_emergencia_nombre" type="text" formControlName="contacto_emergencia_nombre" placeholder="Nombre" />
+        <label for="contacto_emergencia_nombre">{{ 'Contacto de emergencia' | t }}</label>
+        <input id="contacto_emergencia_nombre" type="text" formControlName="contacto_emergencia_nombre" placeholder="{{ 'Nombre' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="contacto_emergencia_telefono">Teléfono de emergencia</label>
+        <label for="contacto_emergencia_telefono">{{ 'Teléfono de emergencia' | t }}</label>
         <input id="contacto_emergencia_telefono" type="tel" appTelefono formControlName="contacto_emergencia_telefono" placeholder="(809) 000-0000" />
       </div>
     </div>
 
     <!-- ── Seguridad social y nómina ── -->
-    <div class="form-section-title">Seguridad social y nómina</div>
+    <div class="form-section-title">{{ 'Seguridad social y nómina' | t }}</div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="numero_tss">No. TSS</label>
-        <input id="numero_tss" type="text" formControlName="numero_tss" placeholder="Seguridad Social" />
+        <label for="numero_tss">{{ 'No. TSS' | t }}</label>
+        <input id="numero_tss" type="text" formControlName="numero_tss" placeholder="{{ 'Seguridad Social' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="dias_vacaciones_anuales">Días de vacaciones al año</label>
+        <label for="dias_vacaciones_anuales">{{ 'Días de vacaciones al año' | t }}</label>
         <input id="dias_vacaciones_anuales" type="number" min="0" max="60" formControlName="dias_vacaciones_anuales" />
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="afp">AFP (pensiones)</label>
-        <input id="afp" type="text" formControlName="afp" list="afp-list" placeholder="Fondo de pensiones" />
+        <label for="afp">{{ 'AFP (pensiones)' | t }}</label>
+        <input id="afp" type="text" formControlName="afp" list="afp-list" placeholder="{{ 'Fondo de pensiones' | t }}" />
         <datalist id="afp-list">@for (a of AFPS; track a) { <option [value]="a"></option> }</datalist>
       </div>
       <div class="sgc-field">
-        <label for="ars">ARS (salud)</label>
-        <input id="ars" type="text" formControlName="ars" list="ars-list" placeholder="Seguro de salud" />
+        <label for="ars">{{ 'ARS (salud)' | t }}</label>
+        <input id="ars" type="text" formControlName="ars" list="ars-list" placeholder="{{ 'Seguro de salud' | t }}" />
         <datalist id="ars-list">@for (a of ARS_LIST; track a) { <option [value]="a"></option> }</datalist>
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="banco">Banco</label>
-        <input id="banco" type="text" formControlName="banco" list="banco-list" placeholder="Banco para nómina" />
+        <label for="banco">{{ 'Banco' | t }}</label>
+        <input id="banco" type="text" formControlName="banco" list="banco-list" placeholder="{{ 'Banco para nómina' | t }}" />
         <datalist id="banco-list">@for (b of BANCOS; track b) { <option [value]="b"></option> }</datalist>
       </div>
       <div class="sgc-field">
-        <label for="cuenta_banco">No. de cuenta</label>
-        <input id="cuenta_banco" type="text" formControlName="cuenta_banco" placeholder="Cuenta bancaria" />
+        <label for="cuenta_banco">{{ 'No. de cuenta' | t }}</label>
+        <input id="cuenta_banco" type="text" formControlName="cuenta_banco" placeholder="{{ 'Cuenta bancaria' | t }}" />
       </div>
     </div>
 
@@ -551,7 +551,7 @@
           class="toggle-input"
         />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Empleado activo
+        {{ 'Empleado activo' | t }}
       </label>
     </div>
 
@@ -559,30 +559,30 @@
     @if (!f.activo.value) {
       <div class="form-row">
         <div class="sgc-field">
-          <label for="fecha_egreso">Fecha de salida</label>
+          <label for="fecha_egreso">{{ 'Fecha de salida' | t }}</label>
           <input id="fecha_egreso" type="date" formControlName="fecha_egreso" [max]="today" />
         </div>
         <div class="sgc-field">
-          <label for="motivo_egreso">Motivo de salida</label>
-          <input id="motivo_egreso" type="text" formControlName="motivo_egreso" placeholder="Renuncia, despido, fin de obra…" />
+          <label for="motivo_egreso">{{ 'Motivo de salida' | t }}</label>
+          <input id="motivo_egreso" type="text" formControlName="motivo_egreso" placeholder="{{ 'Renuncia, despido, fin de obra…' | t }}" />
         </div>
       </div>
     }
 
     <!-- ── Documentos del empleado (solo en edición) ── -->
     @if (editingId()) {
-      <div class="form-section-title">Documentos del empleado</div>
+      <div class="form-section-title">{{ 'Documentos del empleado' | t }}</div>
       <div class="doc-upload-row">
-        <select [formControl]="docTipo" aria-label="Tipo de documento" class="doc-tipo-select">
+        <select [formControl]="docTipo" aria-label="{{ 'Tipo de documento' | t }}" class="doc-tipo-select">
           @for (t of TIPOS_DOCUMENTO; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+            <option [value]="t.value">{{ t.label | t }}</option>
           }
         </select>
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm doc-upload-btn">
           @if (uploadingDoc()) {
-            <span class="spinner" aria-hidden="true"></span> Subiendo…
+            <span class="spinner" aria-hidden="true"></span> {{ 'Subiendo…' | t }}
           } @else {
-            Adjuntar documento
+            {{ 'Adjuntar documento' | t }}
           }
           <input type="file" class="sr-only" (change)="onDocSelected($event)" [disabled]="uploadingDoc()" />
         </label>
@@ -590,14 +590,14 @@
       @if (documentosLoading()) {
         <app-skeleton variant="list" [rows]="4" />
       } @else if (documentos().length === 0) {
-        <p class="doc-empty">Sin documentos adjuntos.</p>
+        <p class="doc-empty">{{ 'Sin documentos adjuntos.' | t }}</p>
       } @else {
         <ul class="doc-list">
           @for (d of documentos(); track d.id) {
             <li class="doc-item">
-              <span class="doc-item__tipo">{{ docTipoLabel(d.tipo) }}</span>
+              <span class="doc-item__tipo">{{ docTipoLabel(d.tipo) | t }}</span>
               <button type="button" class="doc-item__name" (click)="descargarDoc(d)">{{ d.nombre }}</button>
-              <button type="button" class="doc-item__remove" (click)="eliminarDoc(d)" [attr.aria-label]="'Eliminar ' + d.nombre" title="Eliminar">
+              <button type="button" class="doc-item__remove" (click)="eliminarDoc(d)" [attr.aria-label]="i18n.t('Eliminar') + ' ' + d.nombre" title="{{ 'Eliminar' | t }}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -613,9 +613,9 @@
         <label class="toggle-label" for="emp-es-prueba">
           <input id="emp-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
           <span class="toggle-switch" aria-hidden="true"></span>
-          Dato de prueba
+          {{ 'Dato de prueba' | t }}
         </label>
-        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+        <small class="sgc-field__hint">{{ 'Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.' | t }}</small>
       </div>
     }
 
@@ -630,14 +630,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear empleado' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear empleado') | t }}
         }
       </button>
     </div>
@@ -655,144 +655,144 @@
     <div class="detail-body">
 
       <!-- Datos laborales -->
-      <div class="detail-section-title">Datos laborales</div>
+      <div class="detail-section-title">{{ 'Datos laborales' | t }}</div>
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">Cédula</span>
+          <span class="detail-field__label">{{ 'Cédula' | t }}</span>
           <code class="code-tag">{{ emp.cedula }}</code>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Estado</span>
+          <span class="detail-field__label">{{ 'Estado' | t }}</span>
           @if (emp.activo) {
-            <span class="sgc-badge sgc-badge--success">Activo</span>
+            <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span>
           } @else {
-            <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+            <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span>
           }
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Cargo</span>
+          <span class="detail-field__label">{{ 'Cargo' | t }}</span>
           <span>{{ emp.cargo }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Departamento</span>
+          <span class="detail-field__label">{{ 'Departamento' | t }}</span>
           <span>{{ emp.departamento ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Tipo de contrato</span>
+          <span class="detail-field__label">{{ 'Tipo de contrato' | t }}</span>
           <span class="sgc-badge" [class]="'sgc-badge--' + getTipoContratoBadge(emp.tipo_contrato)">
-            {{ getTipoContratoLabel(emp.tipo_contrato) }}
+            {{ getTipoContratoLabel(emp.tipo_contrato) | t }}
           </span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Salario</span>
+          <span class="detail-field__label">{{ 'Salario' | t }}</span>
           <span>RD$ {{ emp.salario | number:'1.0-0' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Fecha de ingreso</span>
+          <span class="detail-field__label">{{ 'Fecha de ingreso' | t }}</span>
           <span>{{ formatFecha(emp.fecha_ingreso) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Antigüedad</span>
+          <span class="detail-field__label">{{ 'Antigüedad' | t }}</span>
           <span>{{ getAntiguedad(emp.fecha_ingreso) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Supervisor / Jefe</span>
+          <span class="detail-field__label">{{ 'Supervisor / Jefe' | t }}</span>
           <span>{{ jefeNombre(emp) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Días de vacaciones/año</span>
+          <span class="detail-field__label">{{ 'Días de vacaciones/año' | t }}</span>
           <span>{{ emp.dias_vacaciones_anuales }}</span>
         </div>
       </div>
 
       <!-- Contacto -->
-      <div class="detail-section-title">Contacto</div>
+      <div class="detail-section-title">{{ 'Contacto' | t }}</div>
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">Teléfono</span>
+          <span class="detail-field__label">{{ 'Teléfono' | t }}</span>
           <span>{{ emp.telefono ? formatTelefono(emp.telefono) : '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Correo</span>
+          <span class="detail-field__label">{{ 'Correo' | t }}</span>
           <span>{{ emp.email ?? '—' }}</span>
         </div>
         <div class="detail-field detail-field--full">
-          <span class="detail-field__label">Dirección</span>
+          <span class="detail-field__label">{{ 'Dirección' | t }}</span>
           <span>{{ emp.direccion ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Contacto de emergencia</span>
+          <span class="detail-field__label">{{ 'Contacto de emergencia' | t }}</span>
           <span>{{ emp.contacto_emergencia_nombre ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Tel. de emergencia</span>
+          <span class="detail-field__label">{{ 'Tel. de emergencia' | t }}</span>
           <span>{{ emp.contacto_emergencia_telefono ? formatTelefono(emp.contacto_emergencia_telefono) : '—' }}</span>
         </div>
       </div>
 
       <!-- Datos personales -->
-      <div class="detail-section-title">Datos personales</div>
+      <div class="detail-section-title">{{ 'Datos personales' | t }}</div>
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">Fecha de nacimiento</span>
+          <span class="detail-field__label">{{ 'Fecha de nacimiento' | t }}</span>
           <span>{{ emp.fecha_nacimiento ? formatFecha(emp.fecha_nacimiento) : '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Género</span>
-          <span>{{ generoLabel(emp.genero) }}</span>
+          <span class="detail-field__label">{{ 'Género' | t }}</span>
+          <span>{{ generoLabel(emp.genero) | t }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Estado civil</span>
-          <span>{{ estadoCivilLabel(emp.estado_civil) }}</span>
+          <span class="detail-field__label">{{ 'Estado civil' | t }}</span>
+          <span>{{ estadoCivilLabel(emp.estado_civil) | t }}</span>
         </div>
       </div>
 
       <!-- Seguridad social y nómina -->
-      <div class="detail-section-title">Seguridad social y nómina</div>
+      <div class="detail-section-title">{{ 'Seguridad social y nómina' | t }}</div>
       <div class="detail-grid">
         <div class="detail-field">
-          <span class="detail-field__label">No. TSS</span>
+          <span class="detail-field__label">{{ 'No. TSS' | t }}</span>
           <span>{{ emp.numero_tss ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">AFP (pensiones)</span>
+          <span class="detail-field__label">{{ 'AFP (pensiones)' | t }}</span>
           <span>{{ emp.afp ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">ARS (salud)</span>
+          <span class="detail-field__label">{{ 'ARS (salud)' | t }}</span>
           <span>{{ emp.ars ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Banco</span>
+          <span class="detail-field__label">{{ 'Banco' | t }}</span>
           <span>{{ emp.banco ?? '—' }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">No. de cuenta</span>
+          <span class="detail-field__label">{{ 'No. de cuenta' | t }}</span>
           <span>{{ emp.cuenta_banco ?? '—' }}</span>
         </div>
       </div>
 
       <!-- Salida / egreso -->
       @if (!emp.activo && (emp.fecha_egreso || emp.motivo_egreso)) {
-        <div class="detail-section-title">Salida</div>
+        <div class="detail-section-title">{{ 'Salida' | t }}</div>
         <div class="detail-grid">
           <div class="detail-field">
-            <span class="detail-field__label">Fecha de salida</span>
+            <span class="detail-field__label">{{ 'Fecha de salida' | t }}</span>
             <span>{{ emp.fecha_egreso ? formatFecha(emp.fecha_egreso) : '—' }}</span>
           </div>
           <div class="detail-field">
-            <span class="detail-field__label">Motivo de salida</span>
+            <span class="detail-field__label">{{ 'Motivo de salida' | t }}</span>
             <span>{{ emp.motivo_egreso ?? '—' }}</span>
           </div>
         </div>
       }
 
       <!-- Equipos TI asignados (solo lectura) -->
-      <div class="detail-section-title">Equipos TI asignados</div>
+      <div class="detail-section-title">{{ 'Equipos TI asignados' | t }}</div>
       @if (equiposTILoading()) {
         <app-skeleton variant="list" [rows]="2" />
       } @else if (equiposTI().length === 0) {
-        <p class="doc-empty">Sin equipos TI asignados.</p>
+        <p class="doc-empty">{{ 'Sin equipos TI asignados.' | t }}</p>
       } @else {
         <ul class="equipos-ti-list">
           @for (eq of equiposTI(); track eq.id) {
@@ -807,15 +807,15 @@
 
       <!-- AF33 — Asignaciones de la empresa (equipos, uniformes, cascos…) -->
       <div class="detail-section-title detail-section-title--action">
-        Asignaciones de la empresa
+        {{ 'Asignaciones de la empresa' | t }}
         @if (puedeGestionarRrhh()) {
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openAsignar()">＋ Asignar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openAsignar()">{{ '＋ Asignar' | t }}</button>
         }
       </div>
       @if (asigLoading()) {
         <app-skeleton variant="list" [rows]="2" />
       } @else if (asignaciones().length === 0) {
-        <p class="doc-empty">Sin asignaciones registradas.</p>
+        <p class="doc-empty">{{ 'Sin asignaciones registradas.' | t }}</p>
       } @else {
         <ul class="asig-list">
           @for (a of asignaciones(); track a.id) {
@@ -827,14 +827,14 @@
                 <div class="asig-item__top">
                   <span class="asig-item__nombre">{{ a.item_nombre }}</span>
                   @if (a.categoria) { <span class="sgc-badge sgc-badge--neutral">{{ a.categoria }}</span> }
-                  <span class="sgc-badge sgc-badge--{{ estadoAsigMeta(a.estado).badge }}">{{ estadoAsigMeta(a.estado).label }}</span>
+                  <span class="sgc-badge sgc-badge--{{ estadoAsigMeta(a.estado).badge }}">{{ estadoAsigMeta(a.estado).label | t }}</span>
                 </div>
-                <div class="asig-item__meta">Asignado: {{ formatFecha(a.asignado_en) }}@if (a.devuelto_en) { · Devuelto: {{ formatFecha(a.devuelto_en) }} }</div>
+                <div class="asig-item__meta">{{ 'Asignado:' | t }} {{ formatFecha(a.asignado_en) }}@if (a.devuelto_en) { · {{ 'Devuelto:' | t }} {{ formatFecha(a.devuelto_en) }} }</div>
                 @if (puedeGestionarRrhh() && a.estado === 'asignado') {
                   <div class="asig-item__actions">
-                    <button type="button" class="asig-link" (click)="cambiarEstadoAsig(a, 'devuelto')">Devolver</button>
-                    <button type="button" class="asig-link asig-link--danger" (click)="cambiarEstadoAsig(a, 'perdido')">Perdido</button>
-                    <button type="button" class="asig-link asig-link--warn" (click)="cambiarEstadoAsig(a, 'dañado')">Dañado</button>
+                    <button type="button" class="asig-link" (click)="cambiarEstadoAsig(a, 'devuelto')">{{ 'Devolver' | t }}</button>
+                    <button type="button" class="asig-link asig-link--danger" (click)="cambiarEstadoAsig(a, 'perdido')">{{ 'Perdido' | t }}</button>
+                    <button type="button" class="asig-link asig-link--warn" (click)="cambiarEstadoAsig(a, 'dañado')">{{ 'Dañado' | t }}</button>
                   </div>
                 }
               </div>
@@ -844,8 +844,8 @@
       }
 
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">Cerrar</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDetail(); openEdit(emp)">Editar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">{{ 'Cerrar' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDetail(); openEdit(emp)">{{ 'Editar' | t }}</button>
       </div>
 
     </div>
@@ -853,30 +853,30 @@
 </app-form-drawer>
 
 <!-- AF33 — Drawer: asignar item a un empleado -->
-<app-form-drawer title="Asignar item de la empresa" [open]="asigDrawer()" (closed)="closeAsignar()">
+<app-form-drawer title="{{ 'Asignar item de la empresa' | t }}" [open]="asigDrawer()" (closed)="closeAsignar()">
   <form [formGroup]="asigForm" (ngSubmit)="guardarAsignacion()" class="drawer-form">
     <div class="sgc-field">
-      <label for="asig-nombre">¿Qué se asigna?</label>
-      <input id="asig-nombre" type="text" formControlName="item_nombre" placeholder="Ej: Casco de seguridad, uniforme talla M, taladro…" />
+      <label for="asig-nombre">{{ '¿Qué se asigna?' | t }}</label>
+      <input id="asig-nombre" type="text" formControlName="item_nombre" placeholder="{{ 'Ej: Casco de seguridad, uniforme talla M, taladro…' | t }}" />
     </div>
     <div class="sgc-field">
-      <label for="asig-cat">Categoría</label>
+      <label for="asig-cat">{{ 'Categoría' | t }}</label>
       <select id="asig-cat" formControlName="categoria">
         @for (c of ASIG_CATEGORIAS; track c) { <option [value]="c">{{ c }}</option> }
       </select>
     </div>
     <div class="sgc-field">
-      <label for="asig-foto">Foto (opcional)</label>
+      <label for="asig-foto">{{ 'Foto (opcional)' | t }}</label>
       <input id="asig-foto" type="file" accept="image/*" (change)="onAsigFoto($event)" />
     </div>
     <div class="sgc-field">
-      <label for="asig-notas">Notas (opcional)</label>
-      <textarea id="asig-notas" rows="2" formControlName="notas" placeholder="Detalle de la entrega…"></textarea>
+      <label for="asig-notas">{{ 'Notas (opcional)' | t }}</label>
+      <textarea id="asig-notas" rows="2" formControlName="notas" placeholder="{{ 'Detalle de la entrega…' | t }}"></textarea>
     </div>
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAsignar()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAsignar()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="asigGuardando()">
-        @if (asigGuardando()) { Guardando… } @else { Asignar }
+        @if (asigGuardando()) { {{ 'Guardando…' | t }} } @else { {{ 'Asignar' | t }} }
       </button>
     </div>
   </form>

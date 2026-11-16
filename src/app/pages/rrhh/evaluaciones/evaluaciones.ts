@@ -6,11 +6,14 @@ import { RrhhEvaluacion } from '../../../../shared/models/rrhh-evaluacion.model'
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** DN-27 P2 — Evaluaciones de desempeño. SENSIBLE: cada lectura queda en
  *  sgc.rrhh_accesos_log (vía la RPC del servicio), gateada por
  *  sgc.puede_rrhh_sensible (sin bypass de admin). */
 @Component({
   selector: 'app-rrhh-evaluaciones',
+  imports: [TranslatePipe],
   templateUrl: './evaluaciones.html',
   styleUrl: './evaluaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +22,7 @@ export class RrhhEvaluaciones implements OnInit {
   private empleadosSvc = inject(EmpleadosService);
   private svc = inject(RrhhEvaluacionesService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   empleados = signal<Empleado[]>([]);
@@ -39,7 +43,7 @@ export class RrhhEvaluaciones implements OnInit {
     try {
       this.empleados.set(await this.empleadosSvc.getAll());
     } catch (e) {
-      this.toast.error('No se pudo cargar Evaluaciones', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar Evaluaciones'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -53,7 +57,7 @@ export class RrhhEvaluaciones implements OnInit {
     try {
       this.evaluaciones.set(await this.svc.evaluacionesDeEmpleado(id));
     } catch (e) {
-      this.toast.error('No se pudieron cargar las evaluaciones', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar las evaluaciones'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoEvaluaciones.set(false);
     }
@@ -67,17 +71,17 @@ export class RrhhEvaluaciones implements OnInit {
   async guardar() {
     const empleadoId = this.empleadoSeleccionadoId();
     const periodo = this.fPeriodo().trim();
-    if (!empleadoId || !periodo) { this.toast.warning('Falta el período', 'Escribe a qué período corresponde (ej. 2026-H2).'); return; }
+    if (!empleadoId || !periodo) { this.toast.warning(this.i18n.t('Falta el período'), 'Escribe a qué período corresponde (ej. 2026-H2).'); return; }
     this.guardando.set(true);
     try {
       await this.svc.crearEvaluacion(
         empleadoId, periodo, this.fPuntaje() ? Number(this.fPuntaje()) : null, this.fComentarios().trim() || null,
       );
-      this.toast.success('Evaluación guardada');
+      this.toast.success(this.i18n.t('Evaluación guardada'));
       this.mostrarForm.set(false);
       await this.seleccionarEmpleado(empleadoId);
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }

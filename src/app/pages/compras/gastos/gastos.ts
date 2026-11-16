@@ -6,6 +6,7 @@ import { GastosService, GastoCategoria, GastoDirecto } from '../../../../shared/
 import { PrivacidadService } from '../../../../shared/services/privacidad.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { clasificarConfianza, type ClasificacionConfianza } from '../../../../shared/utils/bitacora-ia.util';
@@ -33,6 +34,7 @@ export class Gastos implements OnInit {
   private gastosService = inject(GastosService);
   private privacidadService = inject(PrivacidadService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   proyectos = signal<Proyecto[]>([]);
   proyectosOrdenados = computed(() =>
@@ -106,7 +108,7 @@ export class Gastos implements OnInit {
     try {
       this.gastos.set(await this.gastosService.deProyecto(id));
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo cargar el historial de gastos');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo cargar el historial de gastos'));
     } finally {
       this.cargandoLista.set(false);
     }
@@ -132,7 +134,7 @@ export class Gastos implements OnInit {
     try {
       const r = await this.gastosService.leerFactura(file);
       if (!r.ok || !r.lectura) {
-        this.iaError.set(r.error || 'No se pudo leer la factura. Llénalo a mano.');
+        this.iaError.set(r.error || this.i18n.t('No se pudo leer la factura. Llénalo a mano.'));
         return;
       }
       const l = r.lectura;
@@ -146,7 +148,7 @@ export class Gastos implements OnInit {
       if (total != null && this.monto() == null) this.monto.set(total);
       this.iaPropuesta.set({ confianza: r.confianza ?? {} });
     } catch (e: unknown) {
-      this.iaError.set(e instanceof Error ? e.message : 'No se pudo leer la factura. Llénalo a mano.');
+      this.iaError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo leer la factura. Llénalo a mano.'));
     } finally {
       this.iaCargando.set(false);
     }
@@ -158,10 +160,10 @@ export class Gastos implements OnInit {
 
   async guardar() {
     const proyectoId = this.proyectoId();
-    if (!proyectoId) { this.formError.set('Elige la obra a la que pertenece este gasto.'); return; }
-    if (!this.concepto().trim()) { this.formError.set('Describe en qué se gastó.'); return; }
+    if (!proyectoId) { this.formError.set(this.i18n.t('Elige la obra a la que pertenece este gasto.')); return; }
+    if (!this.concepto().trim()) { this.formError.set(this.i18n.t('Describe en qué se gastó.')); return; }
     const monto = this.monto();
-    if (!monto || monto <= 0) { this.formError.set('El monto debe ser mayor que cero.'); return; }
+    if (!monto || monto <= 0) { this.formError.set(this.i18n.t('El monto debe ser mayor que cero.')); return; }
 
     this.formError.set('');
     this.guardando.set(true);
@@ -180,12 +182,12 @@ export class Gastos implements OnInit {
         ncf: this.ncf().trim() || null,
         numeroRecibo: this.numeroRecibo().trim() || null,
       });
-      this.toast.success('Gasto registrado');
+      this.toast.success(this.i18n.t('Gasto registrado'));
       this.limpiarFormulario();
       this.gastos.set(await this.gastosService.deProyecto(proyectoId));
     } catch (e) {
       this.formError.set(humanizeError(e).mensaje);
-      this.toast.errorFrom(e, 'No se pudo registrar el gasto');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo registrar el gasto'));
     } finally {
       this.guardando.set(false);
     }

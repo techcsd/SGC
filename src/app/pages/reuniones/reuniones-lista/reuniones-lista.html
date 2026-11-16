@@ -22,11 +22,11 @@
       <button type="button" class="rl__chip" [class.rl__chip--active]="verGoogle()" (click)="toggleGoogle()">{{ 'Mi calendario de Google' | t }}</button>
     </div>
     <div class="rl__selects">
-      <select class="sgc-input sgc-select" [ngModel]="filtroTipo() ?? ''" (ngModelChange)="onFiltroTipo($event)" aria-label="Filtrar por tipo">
+      <select class="sgc-input sgc-select" [ngModel]="filtroTipo() ?? ''" (ngModelChange)="onFiltroTipo($event)" aria-label="{{ 'Filtrar por tipo' | t }}">
         <option value="">{{ 'Todos los tipos' | t }}</option>
         @for (t of tipos(); track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
       </select>
-      <select class="sgc-input sgc-select" [ngModel]="filtroProyecto() ?? ''" (ngModelChange)="onFiltroProyecto($event)" aria-label="Filtrar por obra">
+      <select class="sgc-input sgc-select" [ngModel]="filtroProyecto() ?? ''" (ngModelChange)="onFiltroProyecto($event)" aria-label="{{ 'Filtrar por obra' | t }}">
         <option value="">{{ 'Todas las obras' | t }}</option>
         @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
       </select>
@@ -98,7 +98,7 @@
                 <b>{{ hora(r.inicio) }}</b>
                 <span class="rl__item-titulo">{{ r.titulo }}</span>
                 @if (r.fireflies_id) {
-                  <span class="rl__item-fireflies" title="Fireflies entra">
+                  <span class="rl__item-fireflies" title="{{ 'Fireflies entra' | t }}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/>
                     </svg>
@@ -130,7 +130,7 @@
                 <b>{{ fechaCorta(r.inicio) }} · {{ hora(r.inicio) }}</b>
                 <span class="rl__item-titulo">{{ r.titulo }}</span>
                 @if (r.fireflies_id) {
-                  <span class="rl__item-fireflies" title="Fireflies entra">
+                  <span class="rl__item-fireflies" title="{{ 'Fireflies entra' | t }}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/>
                     </svg>
@@ -166,7 +166,7 @@
     </label>
     <label class="sgc-field">
       <span class="sgc-field__label">{{ 'Título' | t }}</span>
-      <input class="sgc-input" type="text" [ngModel]="nuevoTitulo()" (ngModelChange)="nuevoTitulo.set($event)" placeholder="Coordinación semanal Torre Alpha" />
+      <input class="sgc-input" type="text" [ngModel]="nuevoTitulo()" (ngModelChange)="nuevoTitulo.set($event)" placeholder="{{ 'Coordinación semanal Torre Alpha' | t }}" />
     </label>
     <div class="rl__form-row">
       <label class="sgc-field">
@@ -193,7 +193,7 @@
     @if (nuevoModalidad() !== 'meet') {
       <label class="sgc-field">
         <span class="sgc-field__label">{{ 'Lugar' | t }}</span>
-        <input class="sgc-input" type="text" [ngModel]="nuevoLugar()" (ngModelChange)="nuevoLugar.set($event)" placeholder="Oficina central, 2do piso" />
+        <input class="sgc-input" type="text" [ngModel]="nuevoLugar()" (ngModelChange)="nuevoLugar.set($event)" placeholder="{{ 'Oficina central, 2do piso' | t }}" />
       </label>
     }
     <label class="sgc-field">
@@ -210,7 +210,7 @@
       @if (nuevosParticipantes().length) {
         <div class="rl__tags">
           @for (p of nuevosParticipantes(); track p.id) {
-            <span class="rl__tag">{{ p.nombre }} <button type="button" (click)="quitarParticipante(p.id)" aria-label="Quitar">✕</button></span>
+            <span class="rl__tag">{{ p.nombre }} <button type="button" (click)="quitarParticipante(p.id)" aria-label="{{ 'Quitar' | t }}">✕</button></span>
           }
         </div>
       }
@@ -219,14 +219,14 @@
     <div class="sgc-field">
       <span class="sgc-field__label">{{ 'Invitados externos (opcional)' | t }}</span>
       <div class="rl__form-row">
-        <input class="sgc-input" type="email" [ngModel]="nuevoExternoCorreo()" (ngModelChange)="nuevoExternoCorreo.set($event)" placeholder="correo@proveedor.com" />
-        <input class="sgc-input" type="text" [ngModel]="nuevoExternoNombre()" (ngModelChange)="nuevoExternoNombre.set($event)" placeholder="Nombre (opcional)" />
+        <input class="sgc-input" type="email" [ngModel]="nuevoExternoCorreo()" (ngModelChange)="nuevoExternoCorreo.set($event)" placeholder="{{ 'correo@proveedor.com' | t }}" />
+        <input class="sgc-input" type="text" [ngModel]="nuevoExternoNombre()" (ngModelChange)="nuevoExternoNombre.set($event)" placeholder="{{ 'Nombre (opcional)' | t }}" />
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="agregarExterno()">{{ 'Agregar' | t }}</button>
       </div>
       @if (nuevosExternos().length) {
         <div class="rl__tags">
           @for (e of nuevosExternos(); track $index; let i = $index) {
-            <span class="rl__tag">{{ e.nombre }} <button type="button" (click)="quitarExterno(i)" aria-label="Quitar">✕</button></span>
+            <span class="rl__tag">{{ e.nombre }} <button type="button" (click)="quitarExterno(i)" aria-label="{{ 'Quitar' | t }}">✕</button></span>
           }
         </div>
       }
@@ -237,12 +237,12 @@
       @if (nuevaAgenda().length) {
         <ul class="rl__agenda-list">
           @for (a of nuevaAgenda(); track $index; let i = $index) {
-            <li>{{ a }} <button type="button" (click)="quitarAgendaItem(i)" aria-label="Quitar">✕</button></li>
+            <li>{{ a }} <button type="button" (click)="quitarAgendaItem(i)" aria-label="{{ 'Quitar' | t }}">✕</button></li>
           }
         </ul>
       }
       <div class="rl__form-row">
-        <input class="sgc-input" type="text" [ngModel]="nuevoAgendaTexto()" (ngModelChange)="nuevoAgendaTexto.set($event)" placeholder="Punto de agenda…" (keydown.enter)="agregarAgendaItem()" />
+        <input class="sgc-input" type="text" [ngModel]="nuevoAgendaTexto()" (ngModelChange)="nuevoAgendaTexto.set($event)" placeholder="{{ 'Punto de agenda…' | t }}" (keydown.enter)="agregarAgendaItem()" />
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="agregarAgendaItem()">{{ 'Agregar' | t }}</button>
       </div>
     </div>

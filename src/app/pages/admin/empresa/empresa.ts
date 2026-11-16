@@ -6,6 +6,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * AG13 — Empresa / parámetros generales: datos de la constructora (razón social,
@@ -22,6 +23,7 @@ export class AdminEmpresa implements OnInit {
   private svc = inject(EmpresaService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   saving = signal(false);
@@ -51,7 +53,7 @@ export class AdminEmpresa implements OnInit {
   preview = computed(() => {
     const v = this.valores();
     return {
-      titulo: (v.razon_social || v.nombre_comercial || 'Nombre de la empresa').trim(),
+      titulo: (v.razon_social || v.nombre_comercial || this.i18n.t('Nombre de la empresa')).trim(),
       rnc: (v.rnc || '').trim(),
       direccion: [v.direccion, v.ciudad, v.pais].map((x) => (x || '').trim()).filter(Boolean).join(', '),
       contacto: [v.telefono, v.email, v.sitio_web].map((x) => (x || '').trim()).filter(Boolean).join('  ·  '),
@@ -102,7 +104,7 @@ export class AdminEmpresa implements OnInit {
         email: v.email?.trim() || null,
         sitio_web: v.sitio_web?.trim() || null,
       });
-      this.toast.success('Guardado', 'Los datos de la empresa se actualizaron.');
+      this.toast.success(this.i18n.t('Guardado'), 'Los datos de la empresa se actualizaron.');
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo guardar.');
     } finally {
@@ -117,9 +119,9 @@ export class AdminEmpresa implements OnInit {
     try {
       const path = await this.svc.subirLogo(file);
       this.logoPath.set(path);
-      this.toast.success('Logo actualizado', 'Ya sale en la vista previa y en los documentos nuevos.');
+      this.toast.success(this.i18n.t('Logo actualizado'), 'Ya sale en la vista previa y en los documentos nuevos.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo subir el logo', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo subir el logo'), e instanceof Error ? e.message : undefined);
     } finally {
       this.subiendoLogo.set(false);
     }

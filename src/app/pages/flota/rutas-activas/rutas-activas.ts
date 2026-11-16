@@ -23,6 +23,8 @@ import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/u
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { traducir } from '../../../../shared/utils/dominio-labels.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type Tab = 'activas' | 'historico';
 
@@ -56,13 +58,14 @@ interface ChoferRuta {
  */
 @Component({
   selector: 'app-rutas-activas',
-  imports: [FlotaSubnav, RouterLink, Icon],
+  imports: [FlotaSubnav, RouterLink, Icon, TranslatePipe],
   templateUrl: './rutas-activas.html',
   styleUrl: './rutas-activas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RutasActivas implements OnInit, OnDestroy {
   private seguimiento = inject(SeguimientoService);
+  protected i18n = inject(I18nService);
   formatFecha = formatFechaDisplay;
   formatFechaHora = formatFechaHoraDisplay; // AT22
   readonly ESTADO_META = ESTADO_META;

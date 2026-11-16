@@ -19,6 +19,8 @@ import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.mod
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { ErrorState } from '../../../../shared/ui/error-state/error-state';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type RespTab = 'uso' | 'historial';
 
@@ -37,7 +39,7 @@ interface EstadoUso {
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon, ErrorState],
+  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon, ErrorState, TranslatePipe],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,6 +85,7 @@ export class Responsabilidad implements OnInit {
   // siempre, por eso el Amarok de prueba aparecía "en uso por Misael".
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private motion = inject(MotionService);
+  protected i18n = inject(I18nService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   /** Flota mostrable en la rejilla: sin bajas y sin datos de prueba (salvo admin con el toggle). */

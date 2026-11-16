@@ -2,65 +2,65 @@
 <div class="nota-editor" [style.--accent]="color() || 'transparent'">
   <!-- Barra superior -->
   <div class="nota-editor__topbar">
-    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()"><app-icon name="arrow-left" [size]="16" /> Volver</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()"><app-icon name="arrow-left" [size]="16" /> {{ 'Volver' | t }}</button>
     <div class="nota-editor__status">
       @if (soloLectura()) {
-        <span class="sgc-badge sgc-badge--neutral">Solo lectura (compartida)</span>
+        <span class="sgc-badge sgc-badge--neutral">{{ 'Solo lectura (compartida)' | t }}</span>
       } @else if (guardando()) {
-        <span class="nota-editor__saving">Guardando…</span>
+        <span class="nota-editor__saving">{{ 'Guardando…' | t }}</span>
       } @else if (guardadoOk()) {
-        <span class="nota-editor__saved"><app-icon name="check" [size]="16" /> Guardado</span>
+        <span class="nota-editor__saved"><app-icon name="check" [size]="16" /> {{ 'Guardado' | t }}</span>
       }
     </div>
     @if (!soloLectura()) {
       <div class="nota-editor__topbar-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePin()" [class.is-active]="pinned()"
-          [title]="pinned() ? 'Quitar fijado' : 'Fijar'"><app-icon name="map-pin" [size]="15" /> {{ pinned() ? 'Fijada' : 'Fijar' }}</button>
+          [title]="pinned() ? i18n.t('Quitar fijado') : i18n.t('Fijar')"><app-icon name="map-pin" [size]="15" /> {{ (pinned() ? 'Fijada' : 'Fijar') | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleArchivar()"
-          [title]="archivada() ? 'Desarchivar' : 'Archivar'"><app-icon name="archive" [size]="15" /> {{ archivada() ? 'Archivada' : 'Archivar' }}</button>
+          [title]="archivada() ? i18n.t('Desarchivar') : i18n.t('Archivar')"><app-icon name="archive" [size]="15" /> {{ (archivada() ? 'Archivada' : 'Archivar') | t }}</button>
         @if (esDesarrollador() && esOwner() && !esNueva()) {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="moverADevNotes()"
-            title="Mover esta nota a Dev notes (solo Tecnología)"><app-icon name="code" [size]="15" /> Mover a Dev notes</button>
+            title="{{ 'Mover esta nota a Dev notes (solo Tecnología)' | t }}"><app-icon name="code" [size]="15" /> {{ 'Mover a Dev notes' | t }}</button>
         }
       </div>
     }
   </div>
 
   @if (loading()) {
-    <p class="nota-editor__loading">Cargando…</p>
+    <p class="nota-editor__loading">{{ 'Cargando…' | t }}</p>
   } @else {
     <!-- Título -->
-    <input class="nota-editor__titulo" type="text" placeholder="Título"
+    <input class="nota-editor__titulo" type="text" placeholder="{{ 'Título' | t }}"
       [value]="titulo()" (input)="onTitulo($any($event.target).value)" [disabled]="soloLectura()" />
 
     <!-- Barra de herramientas tipo Word -->
     @if (!soloLectura()) {
-      <div class="nota-editor__toolbar" role="toolbar" aria-label="Formato">
-        <button type="button" title="Negrita" (click)="exec('bold')"><b>B</b></button>
-        <button type="button" title="Cursiva" (click)="exec('italic')"><i>I</i></button>
-        <button type="button" title="Subrayado" (click)="exec('underline')"><u>U</u></button>
+      <div class="nota-editor__toolbar" role="toolbar" aria-label="{{ 'Formato' | t }}">
+        <button type="button" title="{{ 'Negrita' | t }}" (click)="exec('bold')"><b>B</b></button>
+        <button type="button" title="{{ 'Cursiva' | t }}" (click)="exec('italic')"><i>I</i></button>
+        <button type="button" title="{{ 'Subrayado' | t }}" (click)="exec('underline')"><u>U</u></button>
         <span class="nota-editor__sep"></span>
-        <button type="button" title="Título" (click)="exec('formatBlock','H2')">H</button>
-        <button type="button" title="Lista con viñetas" (click)="exec('insertUnorderedList')">• Lista</button>
-        <button type="button" title="Lista numerada" (click)="exec('insertOrderedList')">1. Lista</button>
+        <button type="button" title="{{ 'Título' | t }}" (click)="exec('formatBlock','H2')">H</button>
+        <button type="button" title="{{ 'Lista con viñetas' | t }}" (click)="exec('insertUnorderedList')">{{ '• Lista' | t }}</button>
+        <button type="button" title="{{ 'Lista numerada' | t }}" (click)="exec('insertOrderedList')">{{ '1. Lista' | t }}</button>
         <span class="nota-editor__sep"></span>
-        <label class="nota-editor__color-tool" title="Color del texto">
+        <label class="nota-editor__color-tool" title="{{ 'Color del texto' | t }}">
           A
           <input type="color" (change)="exec('foreColor', $any($event.target).value)" />
         </label>
-        <button type="button" title="Deshacer" (click)="exec('undo')"><app-icon name="rotate-ccw" [size]="16" /></button>
-        <button type="button" title="Rehacer" (click)="exec('redo')"><app-icon name="rotate-cw" [size]="16" /></button>
+        <button type="button" title="{{ 'Deshacer' | t }}" (click)="exec('undo')"><app-icon name="rotate-ccw" [size]="16" /></button>
+        <button type="button" title="{{ 'Rehacer' | t }}" (click)="exec('redo')"><app-icon name="rotate-cw" [size]="16" /></button>
       </div>
     }
 
     <!-- Cuerpo editable -->
     <div #body class="nota-editor__body" [attr.contenteditable]="!soloLectura()"
-      (input)="onBodyInput()" data-placeholder="Escribe aquí…"></div>
+      (input)="onBodyInput()" [attr.data-placeholder]="i18n.t('Escribe aquí…')"></div>
 
     <!-- Checklist -->
     <section class="nota-editor__section">
       <div class="nota-editor__section-head">
-        <h2><app-icon name="check" [size]="16" /> Checklist
+        <h2><app-icon name="check" [size]="16" /> {{ 'Checklist' | t }}
           @if (checklistProgreso().total > 0) {
             <span class="nota-editor__progress">{{ checklistProgreso().done }}/{{ checklistProgreso().total }}</span>
           }
@@ -71,27 +71,27 @@
         @for (item of checklist(); track item.id) {
           <li class="nota-editor__check" [class.is-done]="item.done">
             <input type="checkbox" [checked]="item.done" (change)="toggleItem(item)" [disabled]="soloLectura()"
-              [attr.aria-label]="'Marcar ' + item.texto" />
+              [attr.aria-label]="i18n.t('Marcar') + ' ' + item.texto" />
             <input class="nota-editor__check-text" type="text" [value]="item.texto"
               (blur)="editarTextoItem(item, $any($event.target).value)" [disabled]="soloLectura()" />
 
             @if (item.ref_tipo) {
-              <span class="nota-editor__link-chip" [title]="'Vinculado a ' + item.ref_tipo + (item.ref_tipo === 'tarea' ? '; se marca solo al completarse' : '')">
-                <app-icon name="link" [size]="14" /> {{ item.ref_label || (item.ref_tipo === 'issue' ? 'Issue' : item.ref_tipo === 'version' ? 'Versión' : 'Tarea') }}
+              <span class="nota-editor__link-chip" [title]="i18n.t('Vinculado a') + ' ' + item.ref_tipo + (item.ref_tipo === 'tarea' ? i18n.t('; se marca solo al completarse') : '')">
+                <app-icon name="link" [size]="14" /> {{ item.ref_label || ((item.ref_tipo === 'issue' ? 'Issue' : item.ref_tipo === 'version' ? 'Versión' : 'Tarea') | t) }}
                 @if (!soloLectura()) {
-                  <button type="button" (click)="desvincularTarea(item)" aria-label="Desvincular"><app-icon name="x" [size]="14" /></button>
+                  <button type="button" (click)="desvincularTarea(item)" aria-label="{{ 'Desvincular' | t }}"><app-icon name="x" [size]="14" /></button>
                 }
               </span>
             }
 
             @if (!soloLectura()) {
               <div class="nota-editor__check-actions">
-                <button type="button" (click)="moverItem(item, -1)" title="Subir"><app-icon name="arrow-up" [size]="14" /></button>
-                <button type="button" (click)="moverItem(item, 1)" title="Bajar"><app-icon name="arrow-down" [size]="14" /></button>
+                <button type="button" (click)="moverItem(item, -1)" title="{{ 'Subir' | t }}"><app-icon name="arrow-up" [size]="14" /></button>
+                <button type="button" (click)="moverItem(item, 1)" title="{{ 'Bajar' | t }}"><app-icon name="arrow-down" [size]="14" /></button>
                 @if (!item.ref_tipo) {
-                  <button type="button" (click)="abrirVincular(item)" title="Vincular a tarea, issue o versión"><app-icon name="link" [size]="14" /></button>
+                  <button type="button" (click)="abrirVincular(item)" title="{{ 'Vincular a tarea, issue o versión' | t }}"><app-icon name="link" [size]="14" /></button>
                 }
-                <button type="button" (click)="quitarItem(item)" title="Quitar"><app-icon name="trash" [size]="14" /></button>
+                <button type="button" (click)="quitarItem(item)" title="{{ 'Quitar' | t }}"><app-icon name="trash" [size]="14" /></button>
               </div>
             }
 
@@ -99,27 +99,27 @@
               <div class="nota-editor__link-picker">
                 @if (esDesarrollador()) {
                   <select class="nota-editor__link-select" [value]="linkTipo()" (change)="linkTipo.set($any($event.target).value)">
-                    <option value="tarea">Tarea</option>
-                    <option value="issue">Issue</option>
-                    <option value="version">Versión</option>
+                    <option value="tarea">{{ 'Tarea' | t }}</option>
+                    <option value="issue">{{ 'Issue' | t }}</option>
+                    <option value="version">{{ 'Versión' | t }}</option>
                   </select>
                 }
                 @switch (linkTipo()) {
                   @case ('issue') {
                     <select class="nota-editor__link-select" (change)="vincularRef(item, 'issue', $any($event.target).value)">
-                      <option value="">Elige un issue…</option>
+                      <option value="">{{ 'Elige un issue…' | t }}</option>
                       @for (i of issues(); track i.id) { <option [value]="i.id">{{ i.label }}</option> }
                     </select>
                   }
                   @case ('version') {
                     <select class="nota-editor__link-select" (change)="vincularRef(item, 'version', $any($event.target).value)">
-                      <option value="">Elige una versión…</option>
+                      <option value="">{{ 'Elige una versión…' | t }}</option>
                       @for (v of versiones(); track v.id) { <option [value]="v.id">{{ v.label }}</option> }
                     </select>
                   }
                   @default {
                     <select class="nota-editor__link-select" (change)="vincularTarea(item, $any($event.target).value)">
-                      <option value="">Elige una tarea…</option>
+                      <option value="">{{ 'Elige una tarea…' | t }}</option>
                       @for (t of tareas(); track t.id) { <option [value]="t.id">{{ t.titulo }} ({{ t.estado }})</option> }
                     </select>
                   }
@@ -132,10 +132,10 @@
 
       @if (!soloLectura()) {
         <div class="nota-editor__add-item">
-          <input type="text" placeholder="Agregar ítem y presiona Enter" [value]="nuevoItemTexto()"
+          <input type="text" placeholder="{{ 'Agregar ítem y presiona Enter' | t }}" [value]="nuevoItemTexto()"
             (input)="nuevoItemTexto.set($any($event.target).value)"
             (keydown.enter)="agregarItem()" />
-          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="agregarItem()">+ Agregar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="agregarItem()">{{ '+ Agregar' | t }}</button>
         </div>
       }
     </section>
@@ -143,10 +143,10 @@
     <!-- Compartir + color (solo dueño/editor) -->
     @if (!soloLectura()) {
       <section class="nota-editor__section">
-        <div class="nota-editor__section-head"><h2><app-icon name="palette" [size]="16" /> Color</h2></div>
+        <div class="nota-editor__section-head"><h2><app-icon name="palette" [size]="16" /> {{ 'Color' | t }}</h2></div>
         <div class="nota-editor__colors">
           <button type="button" class="nota-editor__color-dot" [class.is-active]="color() === null"
-            (click)="setColor(null)" title="Sin color" style="background:#ffffff;border:1px solid #ccc"></button>
+            (click)="setColor(null)" title="{{ 'Sin color' | t }}" style="background:#ffffff;border:1px solid #ccc"></button>
           @for (c of COLORES; track c.value) {
             <button type="button" class="nota-editor__color-dot" [class.is-active]="color() === c.value"
               [style.background]="c.value" [title]="c.label" (click)="setColor(c.value)"></button>
@@ -155,23 +155,23 @@
       </section>
 
       <section class="nota-editor__section">
-        <div class="nota-editor__section-head"><h2><app-icon name="users" [size]="16" /> Compartir con…</h2></div>
+        <div class="nota-editor__section-head"><h2><app-icon name="users" [size]="16" /> {{ 'Compartir con…' | t }}</h2></div>
         <div class="nota-editor__share-add">
           <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
-            <option [value]="''">Elige una persona…</option>
+            <option [value]="''">{{ 'Elige una persona…' | t }}</option>
             @for (u of directorio(); track u.id) {
               <option [value]="u.id">{{ u.nombre }}</option>
             }
           </select>
           <!-- AN7 — segmented control Ver/Editar (más claro que un dropdown suelto) -->
-          <div class="nota-editor__seg" role="group" aria-label="Permiso al compartir">
+          <div class="nota-editor__seg" role="group" aria-label="{{ 'Permiso al compartir' | t }}">
             <button type="button" [class.active]="compartirPermiso() === 'ver'"
-              (click)="compartirPermiso.set('ver')">Solo ver</button>
+              (click)="compartirPermiso.set('ver')">{{ 'Solo ver' | t }}</button>
             <button type="button" [class.active]="compartirPermiso() === 'editar'"
-              (click)="compartirPermiso.set('editar')">Editar</button>
+              (click)="compartirPermiso.set('editar')">{{ 'Editar' | t }}</button>
           </div>
           <button type="button" class="sgc-btn sgc-btn--primary" (click)="agregarCompartido()"
-            [disabled]="!compartirUsuario()">Compartir</button>
+            [disabled]="!compartirUsuario()">{{ 'Compartir' | t }}</button>
         </div>
 
         @if (compartidos().length > 0) {
@@ -185,10 +185,10 @@
                   }
                 </span>
                 <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
-                  <option value="ver">Puede ver</option>
-                  <option value="editar">Puede editar</option>
+                  <option value="ver">{{ 'Puede ver' | t }}</option>
+                  <option value="editar">{{ 'Puede editar' | t }}</option>
                 </select>
-                <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso"><app-icon name="x" [size]="14" /></button>
+                <button type="button" (click)="quitarCompartido(c)" aria-label="{{ 'Quitar acceso' | t }}"><app-icon name="x" [size]="14" /></button>
               </li>
             }
           </ul>

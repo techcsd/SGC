@@ -4,12 +4,15 @@ import { Empleado, EmpleadoDocumento, RrhhDocumentoPorVencer } from '../../../..
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** DN-27 (P1) — Contratos y documentos: submódulo SENSIBLE (rrhh.contratos),
  *  gateado server-side por sgc.puede_rrhh_sensible (sin bypass de admin) +
  *  cada lectura queda en sgc.rrhh_accesos_log. Vencimientos con alerta
  *  30/15/7 días sobre sgc.empleado_documentos.vigencia_hasta. */
 @Component({
   selector: 'app-rrhh-contratos',
+  imports: [TranslatePipe],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,6 +20,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 export class RrhhContratos implements OnInit {
   private svc = inject(EmpleadosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   cargando = signal(true);
   porVencer = signal<RrhhDocumentoPorVencer[]>([]);
@@ -45,7 +49,7 @@ export class RrhhContratos implements OnInit {
       this.porVencer.set(porVencer);
       this.empleados.set(empleados);
     } catch (e) {
-      this.toast.error('No se pudo cargar Contratos y documentos', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar Contratos y documentos'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargando.set(false);
     }
@@ -59,7 +63,7 @@ export class RrhhContratos implements OnInit {
     try {
       this.documentos.set(await this.svc.contratosDeEmpleado(id));
     } catch (e) {
-      this.toast.error('No se pudieron cargar los documentos', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los documentos'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoDocumentos.set(false);
     }
@@ -84,12 +88,12 @@ export class RrhhContratos implements OnInit {
       await this.svc.guardarVigenciaDocumento(
         id, this.editVigenciaDesde() || null, this.editVigenciaHasta() || null, this.editEsContrato(),
       );
-      this.toast.success('Guardado', 'La vigencia del documento se actualizó.');
+      this.toast.success(this.i18n.t('Guardado'), 'La vigencia del documento se actualizó.');
       this.editandoId.set(null);
       await this.seleccionarEmpleado(this.empleadoSeleccionadoId());
       this.porVencer.set(await this.svc.documentosPorVencer(30));
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.guardando.set(false);
     }

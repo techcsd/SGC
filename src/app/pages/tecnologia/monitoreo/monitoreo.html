@@ -1,22 +1,22 @@
 <div class="mon">
   <header class="mon__head">
     <div>
-      <h1 class="mon__title">Monitoreo de Infraestructura</h1>
-      <p class="mon__sub">Dominios, DNS y suscripciones tecnológicas · alertas escalonadas por Telegram</p>
+      <h1 class="mon__title">{{ 'Monitoreo de Infraestructura' | t }}</h1>
+      <p class="mon__sub">{{ 'Dominios, DNS y suscripciones tecnológicas · alertas escalonadas por Telegram' | t }}</p>
     </div>
   </header>
 
   <div class="mon__tabs">
-    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'dominios'" (click)="cambiarTab('dominios')"><app-icon name="globe" [size]="16" /> Dominios</button>
-    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'suscripciones'" (click)="cambiarTab('suscripciones')"><app-icon name="credit-card" [size]="16" /> Suscripciones</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'dominios'" (click)="cambiarTab('dominios')"><app-icon name="globe" [size]="16" /> {{ 'Dominios' | t }}</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'suscripciones'" (click)="cambiarTab('suscripciones')"><app-icon name="credit-card" [size]="16" /> {{ 'Suscripciones' | t }}</button>
     <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'alertas'" (click)="cambiarTab('alertas')">
-      <app-icon name="bell" [size]="16" /> Alertas @if (alertasActivasCount() > 0) { <span class="mon__badge">{{ alertasActivasCount() }}</span> }
+      <app-icon name="bell" [size]="16" /> {{ 'Alertas' | t }} @if (alertasActivasCount() > 0) { <span class="mon__badge">{{ alertasActivasCount() }}</span> }
     </button>
-    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'historico'" (click)="cambiarTab('historico')"><app-icon name="file-text" [size]="16" /> Histórico</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'historico'" (click)="cambiarTab('historico')"><app-icon name="file-text" [size]="16" /> {{ 'Histórico' | t }}</button>
   </div>
 
   @if (error()) { <p class="mon__error">{{ error() }}</p> }
-  @if (loading()) { <p class="mon__muted">Cargando…</p> }
+  @if (loading()) { <p class="mon__muted">{{ 'Cargando…' | t }}</p> }
 
   <!-- ── Dominios (semáforo) ── -->
   @if (tab() === 'dominios' && !loading()) {
@@ -26,52 +26,54 @@
           <div class="mon__card-top">
             <span class="mon__light" [attr.data-status]="semaforo(d)"></span>
             <strong>{{ d.domain }}</strong>
-            @if (!d.is_active) { <span class="mon__muted">(inactivo)</span> }
+            @if (!d.is_active) { <span class="mon__muted">{{ '(inactivo)' | t }}</span> }
           </div>
           <div class="mon__card-body">
-            <div><span class="mon__k">Estado:</span> {{ d.last_status ?? 'sin datos' }}</div>
+            <div><span class="mon__k">{{ 'Estado:' | t }}</span> {{ d.last_status ?? ('sin datos' | t) }}</div>
             @if (d.rdap_expires_at) {
-              <div><span class="mon__k">Expira:</span> {{ formatFecha(d.rdap_expires_at) }}
-                @if (diasHasta(d.rdap_expires_at) !== null) { <em>({{ diasHasta(d.rdap_expires_at) }} días)</em> }
+              @let diasExpira = diasHasta(d.rdap_expires_at);
+              <div><span class="mon__k">{{ 'Expira:' | t }}</span> {{ formatFecha(d.rdap_expires_at) }}
+                @if (diasExpira !== null) { <em>{{ i18n.t('({dias} días)', { dias: diasExpira }) }}</em> }
               </div>
             }
-            <div><span class="mon__k">Registrador:</span> {{ d.registrar ?? '—' }}</div>
-            <div><span class="mon__k">Último check:</span> {{ d.last_checked_at ? formatTs(d.last_checked_at) : 'nunca' }}</div>
+            <div><span class="mon__k">{{ 'Registrador:' | t }}</span> {{ d.registrar ?? '—' }}</div>
+            <div><span class="mon__k">{{ 'Último check:' | t }}</span> {{ d.last_checked_at ? formatTs(d.last_checked_at) : ('nunca' | t) }}</div>
             @if (d.notes) { <div class="mon__notes">{{ d.notes }}</div> }
           </div>
         </div>
-      } @empty { <p class="mon__muted">No hay dominios configurados.</p> }
+      } @empty { <p class="mon__muted">{{ 'No hay dominios configurados.' | t }}</p> }
     </div>
   }
 
   <!-- ── Suscripciones ── -->
   @if (tab() === 'suscripciones' && !loading()) {
     <div class="mon__toolbar">
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirNuevaSub()">+ Nueva suscripción</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirNuevaSub()">{{ '+ Nueva suscripción' | t }}</button>
     </div>
     <div class="mon__table-wrap">
       <table class="data-table">
         <thead>
-          <tr><th>Servicio</th><th>Proveedor</th><th>Renovación</th><th>Auto</th><th>Pago</th><th>Monto</th><th>Responsable</th><th class="data-table__actions-h">Acciones</th></tr>
+          <tr><th>{{ 'Servicio' | t }}</th><th>{{ 'Proveedor' | t }}</th><th>{{ 'Renovación' | t }}</th><th>{{ 'Auto' | t }}</th><th>{{ 'Pago' | t }}</th><th>{{ 'Monto' | t }}</th><th>{{ 'Responsable' | t }}</th><th class="data-table__actions-h">{{ 'Acciones' | t }}</th></tr>
         </thead>
         <tbody>
           @for (s of subscriptions(); track s.id) {
             <tr [class.mon__row--off]="!s.is_active">
               <td>
                 <strong>{{ s.name }}</strong>
-                @if (s.panel_url) { <a class="mon__ext" [href]="s.panel_url" target="_blank" rel="noopener" aria-label="Abrir panel"><app-icon name="external-link" [size]="14" /></a> }
+                @if (s.panel_url) { <a class="mon__ext" [href]="s.panel_url" target="_blank" rel="noopener" aria-label="{{ 'Abrir panel' | t }}"><app-icon name="external-link" [size]="14" /></a> }
                 @if (s.impact_if_expired) { <div class="mon__muted mon__impact">{{ s.impact_if_expired }}</div> }
               </td>
               <td>{{ s.provider ?? '—' }}</td>
               <td class="mon__ts">
                 @if (s.renewal_date) {
+                  @let diasRenueva = diasHasta(s.renewal_date);
                   {{ formatFecha(s.renewal_date) }}
-                  @if (diasHasta(s.renewal_date) !== null) {
-                    <span class="mon__dias" [class.mon__dias--warn]="(diasHasta(s.renewal_date) ?? 999) <= 30" [class.mon__dias--crit]="(diasHasta(s.renewal_date) ?? 999) <= 7">
-                      ({{ diasHasta(s.renewal_date) }}d)
+                  @if (diasRenueva !== null) {
+                    <span class="mon__dias" [class.mon__dias--warn]="diasRenueva <= 30" [class.mon__dias--crit]="diasRenueva <= 7">
+                      {{ i18n.t('({dias}d)', { dias: diasRenueva }) }}
                     </span>
                   }
-                } @else { <span class="mon__muted">sin fecha</span> }
+                } @else { <span class="mon__muted">{{ 'sin fecha' | t }}</span> }
               </td>
               <td>@if (s.auto_renew) { <app-icon name="check" [size]="16" /> } @else { — }</td>
               <td>@if (s.payment_ok) { <app-icon name="check" [size]="16" /> } @else { <app-icon name="alert-triangle" [size]="16" /> }</td>
@@ -79,12 +81,12 @@
               <td>{{ s.internal_responsible ?? '—' }}</td>
               <td class="data-table__actions">
                 <div>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarSub(s)">Editar</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminarSub(s)">Eliminar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarSub(s)">{{ 'Editar' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminarSub(s)">{{ 'Eliminar' | t }}</button>
                 </div>
               </td>
             </tr>
-          } @empty { <tr><td colspan="8" class="mon__muted mon__empty">Sin suscripciones registradas.</td></tr> }
+          } @empty { <tr><td colspan="8" class="mon__muted mon__empty">{{ 'Sin suscripciones registradas.' | t }}</td></tr> }
         </tbody>
       </table>
     </div>
@@ -94,31 +96,31 @@
   @if (tab() === 'alertas' && !loading()) {
     <div class="mon__toolbar">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleAlertasFiltro()">
-        {{ alertasSoloActivas() ? 'Ver históricas' : 'Ver solo activas' }}
+        {{ (alertasSoloActivas() ? 'Ver históricas' : 'Ver solo activas') | t }}
       </button>
     </div>
     <div class="mon__table-wrap">
       <table class="data-table">
-        <thead><tr><th>Severidad</th><th>Fuente</th><th>Mensaje</th><th>Creada</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>{{ 'Severidad' | t }}</th><th>{{ 'Fuente' | t }}</th><th>{{ 'Mensaje' | t }}</th><th>{{ 'Creada' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr></thead>
         <tbody>
           @for (a of alerts(); track a.id) {
             <tr>
-              <td><span class="mon__sev" [attr.data-sev]="a.severity">{{ sevLabel[a.severity] }}</span></td>
+              <td><span class="mon__sev" [attr.data-sev]="a.severity">{{ sevLabel[a.severity] | t }}</span></td>
               <td>{{ nombreFuente(a) }}</td>
               <td>{{ a.message }}</td>
               <td class="mon__ts">{{ formatTs(a.created_at) }}</td>
               <td>
-                @if (a.resolved_at) { <span class="mon__muted">Resuelta</span> }
-                @else if (a.acknowledged_at) { <span class="mon__muted">Reconocida</span> }
-                @else { <span class="mon__sev" data-sev="alta">Activa</span> }
+                @if (a.resolved_at) { <span class="mon__muted">{{ 'Resuelta' | t }}</span> }
+                @else if (a.acknowledged_at) { <span class="mon__muted">{{ 'Reconocida' | t }}</span> }
+                @else { <span class="mon__sev" data-sev="alta">{{ 'Activa' | t }}</span> }
               </td>
               <td>
                 @if (!a.acknowledged_at && !a.resolved_at) {
-                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reconocer(a)">Reconocer</button>
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reconocer(a)">{{ 'Reconocer' | t }}</button>
                 }
               </td>
             </tr>
-          } @empty { <tr><td colspan="6" class="mon__muted mon__empty">Sin alertas.</td></tr> }
+          } @empty { <tr><td colspan="6" class="mon__muted mon__empty">{{ 'Sin alertas.' | t }}</td></tr> }
         </tbody>
       </table>
     </div>
@@ -128,31 +130,31 @@
   @if (tab() === 'historico' && !loading()) {
     <div class="mon__toolbar">
       <select class="mon__input" [value]="histDomainId() ?? ''" (change)="histDomainId.set($any($event.target).value || null)">
-        <option value="">Todos los dominios</option>
+        <option value="">{{ 'Todos los dominios' | t }}</option>
         @for (d of domains(); track d.id) { <option [value]="d.id">{{ d.domain }}</option> }
       </select>
       <select class="mon__input" [value]="histTipo() ?? ''" (change)="histTipo.set($any($event.target).value || null)">
-        <option value="">Todo tipo de check</option>
+        <option value="">{{ 'Todo tipo de check' | t }}</option>
         @for (t of ['dns_resolution','rdap_status','mx_records','spf','dkim','ssl','http']; track t) {
-          <option [value]="t">{{ checkLabel[t] }}</option>
+          <option [value]="t">{{ checkLabel[t] | t }}</option>
         }
       </select>
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="aplicarFiltroHist()">Filtrar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="aplicarFiltroHist()">{{ 'Filtrar' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarHistorico()"><app-icon name="download" [size]="16" /> Excel</button>
     </div>
     <div class="mon__table-wrap">
       <table class="data-table">
-        <thead><tr><th>Fecha</th><th>Dominio</th><th>Check</th><th>Estado</th><th>Detalle</th></tr></thead>
+        <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Dominio' | t }}</th><th>{{ 'Check' | t }}</th><th>{{ 'Estado' | t }}</th><th>{{ 'Detalle' | t }}</th></tr></thead>
         <tbody>
           @for (c of checks(); track c.id) {
             <tr>
               <td class="mon__ts">{{ formatTs(c.checked_at) }}</td>
               <td>{{ nombreDominio(c.domain_id) }}</td>
-              <td>{{ checkLabel[c.check_type] ?? c.check_type }}</td>
+              <td>{{ (checkLabel[c.check_type] ?? c.check_type) | t }}</td>
               <td><span class="mon__st" [attr.data-status]="c.status">{{ c.status }}</span></td>
               <td>{{ c.detail }}</td>
             </tr>
-          } @empty { <tr><td colspan="5" class="mon__muted mon__empty">Sin checks en el histórico.</td></tr> }
+          } @empty { <tr><td colspan="5" class="mon__muted mon__empty">{{ 'Sin checks en el histórico.' | t }}</td></tr> }
         </tbody>
       </table>
     </div>
@@ -162,28 +164,28 @@
   @if (subDrawerOpen()) {
     <div class="mon__overlay" (click)="subDrawerOpen.set(false)"></div>
     <aside class="mon__drawer">
-      <h3>{{ editingSubId() ? 'Editar suscripción' : 'Nueva suscripción' }}</h3>
+      <h3>{{ (editingSubId() ? 'Editar suscripción' : 'Nueva suscripción') | t }}</h3>
       <form [formGroup]="subForm" (ngSubmit)="guardarSub()" class="mon__form">
-        <label class="mon__field"><span>Servicio *</span><input type="text" formControlName="name" /></label>
-        <label class="mon__field"><span>Proveedor</span><input type="text" formControlName="provider" /></label>
-        <label class="mon__field"><span>Categoría</span><input type="text" formControlName="category" /></label>
-        <label class="mon__field"><span>Fecha de renovación</span><input type="date" formControlName="renewal_date" /></label>
-        <label class="mon__field"><span>Monto</span><input type="number" formControlName="amount" /></label>
-        <label class="mon__field"><span>Moneda</span><input type="text" formControlName="currency" /></label>
-        <label class="mon__field"><span>Método de pago</span><input type="text" formControlName="payment_method" /></label>
-        <label class="mon__field"><span>Dueño de la cuenta</span><input type="text" formControlName="account_owner" /></label>
-        <label class="mon__field"><span>Responsable interno</span><input type="text" formControlName="internal_responsible" /></label>
-        <label class="mon__field"><span>URL del panel</span><input type="text" formControlName="panel_url" /></label>
-        <label class="mon__field mon__field--wide"><span>Impacto si vence</span><textarea rows="2" formControlName="impact_if_expired"></textarea></label>
-        <label class="mon__field mon__field--wide"><span>Notas</span><textarea rows="2" formControlName="notes"></textarea></label>
+        <label class="mon__field"><span>{{ 'Servicio *' | t }}</span><input type="text" formControlName="name" /></label>
+        <label class="mon__field"><span>{{ 'Proveedor' | t }}</span><input type="text" formControlName="provider" /></label>
+        <label class="mon__field"><span>{{ 'Categoría' | t }}</span><input type="text" formControlName="category" /></label>
+        <label class="mon__field"><span>{{ 'Fecha de renovación' | t }}</span><input type="date" formControlName="renewal_date" /></label>
+        <label class="mon__field"><span>{{ 'Monto' | t }}</span><input type="number" formControlName="amount" /></label>
+        <label class="mon__field"><span>{{ 'Moneda' | t }}</span><input type="text" formControlName="currency" /></label>
+        <label class="mon__field"><span>{{ 'Método de pago' | t }}</span><input type="text" formControlName="payment_method" /></label>
+        <label class="mon__field"><span>{{ 'Dueño de la cuenta' | t }}</span><input type="text" formControlName="account_owner" /></label>
+        <label class="mon__field"><span>{{ 'Responsable interno' | t }}</span><input type="text" formControlName="internal_responsible" /></label>
+        <label class="mon__field"><span>{{ 'URL del panel' | t }}</span><input type="text" formControlName="panel_url" /></label>
+        <label class="mon__field mon__field--wide"><span>{{ 'Impacto si vence' | t }}</span><textarea rows="2" formControlName="impact_if_expired"></textarea></label>
+        <label class="mon__field mon__field--wide"><span>{{ 'Notas' | t }}</span><textarea rows="2" formControlName="notes"></textarea></label>
         <div class="mon__checks">
-          <label class="sgc-checkbox"><input type="checkbox" formControlName="auto_renew" /><span>Auto-renovación</span></label>
-          <label class="sgc-checkbox"><input type="checkbox" formControlName="payment_ok" /><span>Pago al día</span></label>
-          <label class="sgc-checkbox"><input type="checkbox" formControlName="is_active" /><span>Activa</span></label>
+          <label class="sgc-checkbox"><input type="checkbox" formControlName="auto_renew" /><span>{{ 'Auto-renovación' | t }}</span></label>
+          <label class="sgc-checkbox"><input type="checkbox" formControlName="payment_ok" /><span>{{ 'Pago al día' | t }}</span></label>
+          <label class="sgc-checkbox"><input type="checkbox" formControlName="is_active" /><span>{{ 'Activa' | t }}</span></label>
         </div>
         <div class="mon__form-actions">
-          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="subDrawerOpen.set(false)">Cancelar</button>
-          <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">Guardar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="subDrawerOpen.set(false)">{{ 'Cancelar' | t }}</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ 'Guardar' | t }}</button>
         </div>
       </form>
     </aside>

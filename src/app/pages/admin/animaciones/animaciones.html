@@ -1,36 +1,36 @@
 <div class="page an-page">
   <header class="page-header">
     <div class="page-header__left">
-      <h1 class="page-title">Animaciones</h1>
-      <p class="page-sub">Catálogo del movimiento del sistema (web y app). Solo consulta.</p>
+      <h1 class="page-title">{{ 'Animaciones' | t }}</h1>
+      <p class="page-sub">{{ 'Catálogo del movimiento del sistema (web y app). Solo consulta.' | t }}</p>
     </div>
   </header>
 
   @if (loading()) {
-    <div class="sgc-card">Cargando…</div>
+    <div class="sgc-card">{{ 'Cargando…' | t }}</div>
   } @else if (error()) {
     <div class="page-error" role="alert">{{ error() }}</div>
   } @else {
     <!-- Contadores -->
     <div class="an-counts">
-      <div class="an-count"><span class="an-count__n">{{ rows().length }}</span><span class="an-count__l">animaciones</span></div>
-      <div class="an-count"><span class="an-count__n">{{ enUso() }}</span><span class="an-count__l">en uso</span></div>
-      <div class="an-count"><span class="an-count__n">{{ pantallasTotal() }}</span><span class="an-count__l">pantallas</span></div>
+      <div class="an-count"><span class="an-count__n">{{ rows().length }}</span><span class="an-count__l">{{ 'animaciones' | t }}</span></div>
+      <div class="an-count"><span class="an-count__n">{{ enUso() }}</span><span class="an-count__l">{{ 'en uso' | t }}</span></div>
+      <div class="an-count"><span class="an-count__n">{{ pantallasTotal() }}</span><span class="an-count__l">{{ 'pantallas' | t }}</span></div>
     </div>
 
     <!-- Filtros -->
     <div class="filters-bar an-filters">
-      <input class="sgc-input an-search" placeholder="Buscar animación…" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+      <input class="sgc-input an-search" placeholder="{{ 'Buscar animación…' | t }}" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
       <select class="sgc-select" [value]="filtroNivel()" (change)="filtroNivel.set($any($event.target).value)">
-        <option value="todos">Todos los niveles</option>
-        <option value="grande">Grande</option>
-        <option value="mediano">Mediano</option>
-        <option value="base">Base</option>
+        <option value="todos">{{ 'Todos los niveles' | t }}</option>
+        <option value="grande">{{ 'Grande' | t }}</option>
+        <option value="mediano">{{ 'Mediano' | t }}</option>
+        <option value="base">{{ 'Base' | t }}</option>
       </select>
       <select class="sgc-select" [value]="filtroSistema()" (change)="filtroSistema.set($any($event.target).value)">
-        <option value="todos">Web y app</option>
-        <option value="web">Web</option>
-        <option value="app">App</option>
+        <option value="todos">{{ 'Web y app' | t }}</option>
+        <option value="web">{{ 'Web' | t }}</option>
+        <option value="app">{{ 'App' | t }}</option>
       </select>
     </div>
 
@@ -40,7 +40,7 @@
         <div class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Animación</th><th>Sistema</th><th>Nivel</th><th>Dónde sale</th><th>Dura</th></tr>
+              <tr><th>{{ 'Animación' | t }}</th><th>{{ 'Sistema' | t }}</th><th>{{ 'Nivel' | t }}</th><th>{{ 'Dónde sale' | t }}</th><th>{{ 'Dura' | t }}</th></tr>
             </thead>
             <tbody>
               @for (r of filtradas(); track r.sistema + r.id) {
@@ -49,7 +49,7 @@
                   <td><span class="sgc-badge" [class]="r.sistema === 'web' ? 'sgc-badge--info' : 'sgc-badge--neutral'">{{ r.sistema }}</span></td>
                   <td><span class="sgc-badge sgc-badge--neutral">{{ r.nivel }}</span></td>
                   <td>{{ r.donde }}</td>
-                  <td>{{ r.duracion_ms }} ms</td>
+                  <td>{{ r.duracion_ms }} {{ 'ms' | t }}</td>
                 </tr>
               }
             </tbody>
@@ -64,7 +64,7 @@
           <div class="an-preview__meta">
             <span class="sgc-badge sgc-badge--neutral">{{ r.nivel }}</span>
             <span class="sgc-badge" [class]="r.sistema === 'web' ? 'sgc-badge--info' : 'sgc-badge--neutral'">{{ r.sistema }}</span>
-            <span class="an-ver">Desde {{ r.desde_version }}</span>
+            <span class="an-ver">{{ 'Desde' | t }} {{ r.desde_version }}</span>
           </div>
 
           <!-- Escenario de vista previa -->
@@ -72,7 +72,7 @@
             @if (r.sistema !== 'web') {
               <div class="an-appnote">
                 <app-icon name="smartphone" [size]="22" />
-                <p>Vista de la app. Se reproduce en la CSD App; aquí solo el dato del catálogo.</p>
+                <p>{{ 'Vista de la app. Se reproduce en la CSD App; aquí solo el dato del catálogo.' | t }}</p>
               </div>
             } @else if (r.nivel === 'base') {
               @switch (r.id) {
@@ -82,7 +82,7 @@
                   @for (n of [demoNonce()]; track n) {
                     <ul class="an-demo-list" appStagger>
                       @for (f of demoFilas; track f; let i = $index) {
-                        <li>Fila de ejemplo {{ i + 1 }}</li>
+                        <li>{{ 'Fila de ejemplo' | t }} {{ i + 1 }}</li>
                       }
                     </ul>
                   }
@@ -91,33 +91,33 @@
                   <div class="an-demo-kpi"><span [appCountUp]="demoNonce() % 2 === 0 ? 1280 : 964"></span></div>
                 }
                 @case ('base-estado-pulse') {
-                  <span class="sgc-badge sgc-badge--success an-demo-chip" [appEstadoPulse]="estadoDemo()">{{ estadoDemo() }}</span>
+                  <span class="sgc-badge sgc-badge--success an-demo-chip" [appEstadoPulse]="estadoDemo()">{{ estadoDemo() | t }}</span>
                 }
               }
             } @else {
-              <p class="an-stage__hint">Toca «Reproducir» para ver la animación {{ r.nivel }} real.</p>
+              <p class="an-stage__hint">{{ i18n.t('Toca «Reproducir» para ver la animación {nivel} real.', { nivel: r.nivel }) }}</p>
             }
           </div>
 
           <div class="an-preview__actions">
             @if (r.sistema === 'web') {
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reproducir()">Reproducir</button>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reproducir()">{{ 'Reproducir' | t }}</button>
             }
             <label class="an-reducida">
               <input type="checkbox" [checked]="verReducida()" (change)="toggleReducida($any($event.target).checked)" />
-              <span>Ver reducida</span>
+              <span>{{ 'Ver reducida' | t }}</span>
             </label>
           </div>
 
           <dl class="an-kv">
-            <div><dt>Duración</dt><dd>{{ r.duracion_ms }} ms</dd></div>
-            <div><dt>Curva</dt><dd><code>{{ r.curva }}</code></dd></div>
-            <div><dt>Reducida</dt><dd>{{ r.reducido }}</dd></div>
-            <div><dt>Dónde</dt><dd>{{ r.donde }}</dd></div>
-            <div><dt>Pantallas</dt><dd>{{ r.pantallas.join(', ') || '—' }}</dd></div>
-            <div><dt>Estado</dt><dd>{{ r.estado === 'en_uso' ? 'En uso' : 'Pendiente' }}</dd></div>
+            <div><dt>{{ 'Duración' | t }}</dt><dd>{{ r.duracion_ms }} {{ 'ms' | t }}</dd></div>
+            <div><dt>{{ 'Curva' | t }}</dt><dd><code>{{ r.curva }}</code></dd></div>
+            <div><dt>{{ 'Reducida' | t }}</dt><dd>{{ r.reducido }}</dd></div>
+            <div><dt>{{ 'Dónde' | t }}</dt><dd>{{ r.donde }}</dd></div>
+            <div><dt>{{ 'Pantallas' | t }}</dt><dd>{{ r.pantallas.join(', ') || '—' }}</dd></div>
+            <div><dt>{{ 'Estado' | t }}</dt><dd>{{ (r.estado === 'en_uso' ? 'En uso' : 'Pendiente') | t }}</dd></div>
           </dl>
-          <p class="an-doc">Detalle y mapa completo en <code>docs/MOVIMIENTO.md</code>.</p>
+          <p class="an-doc">{{ 'Detalle y mapa completo en' | t }} <code>{{ 'docs/MOVIMIENTO.md' | t }}</code>.</p>
         </aside>
       }
     </div>

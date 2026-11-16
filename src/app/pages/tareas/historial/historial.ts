@@ -11,9 +11,10 @@ import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 @Component({
   selector: 'app-tareas-historial',
-  imports: [DatePipe, TareaDetalle, DonutChart, BarChart, Skeleton, Icon],
+  imports: [DatePipe, TareaDetalle, DonutChart, BarChart, Skeleton, Icon, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,9 +1,9 @@
 <section class="page">
   <header class="page__head">
     <div>
-      <a routerLink="/proyectos/personal" class="page__back">← Personal de obra</a>
-      <h1 class="page__title">Importar personal desde Excel</h1>
-      <p class="page__sub">Sube el listado (formato de Sonia). Se detecta la obra, se mapean los cargos y verás una vista previa antes de confirmar. Las fotos se toman luego en obra con la app.</p>
+      <a routerLink="/proyectos/personal" class="page__back">{{ '← Personal de obra' | t }}</a>
+      <h1 class="page__title">{{ 'Importar personal desde Excel' | t }}</h1>
+      <p class="page__sub">{{ 'Sube el listado (formato de Sonia). Se detecta la obra, se mapean los cargos y verás una vista previa antes de confirmar. Las fotos se toman luego en obra con la app.' | t }}</p>
     </div>
   </header>
 
@@ -17,16 +17,16 @@
         <span class="pi-drop__icon">
           <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </span>
-        <span class="pi-drop__title">Elegir archivo Excel</span>
-        <span class="pi-drop__hint">.xlsx con columnas Nombre · Ocupación · # Documento · Nacionalidad · Técnico</span>
+        <span class="pi-drop__title">{{ 'Elegir archivo Excel' | t }}</span>
+        <span class="pi-drop__hint">{{ '.xlsx con columnas Nombre · Ocupación · # Documento · Nacionalidad · Técnico' | t }}</span>
       </label>
     </div>
     <div class="pi-tpl">
-      <p class="pi-tpl__hint">¿No tienes el formato? Descarga la plantilla con el encabezado, las columnas y la lista de cargos válidos.</p>
+      <p class="pi-tpl__hint">{{ '¿No tienes el formato? Descarga la plantilla con el encabezado, las columnas y la lista de cargos válidos.' | t }}</p>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla()">
-        <app-icon name="download" [size]="15" /> Descargar plantilla
+        <app-icon name="download" [size]="15" /> {{ 'Descargar plantilla' | t }}
       </button>
-      <a routerLink="/proyectos/cargos" class="pi-tpl__link">Gestionar cargos y alias</a>
+      <a routerLink="/proyectos/cargos" class="pi-tpl__link">{{ 'Gestionar cargos y alias' | t }}</a>
     </div>
   }
 
@@ -35,71 +35,71 @@
     <div class="pi-meta">
       <div class="pi-meta__file"><app-icon name="file-text" [size]="14" /> {{ archivoNombre() }}</div>
       <div class="pi-meta__grid">
-        <div><span>Proyecto (archivo)</span><strong>{{ proyectoDetectado() || '—' }}</strong></div>
-        <div><span>Ubicación</span><strong>{{ ubicacionDetectada() || '—' }}</strong></div>
-        <div><span>Enc. de obra</span><strong>{{ encObra() || '—' }}</strong></div>
+        <div><span>{{ 'Proyecto (archivo)' | t }}</span><strong>{{ proyectoDetectado() || '—' }}</strong></div>
+        <div><span>{{ 'Ubicación' | t }}</span><strong>{{ ubicacionDetectada() || '—' }}</strong></div>
+        <div><span>{{ 'Enc. de obra' | t }}</span><strong>{{ encObra() || '—' }}</strong></div>
       </div>
     </div>
 
     <div class="pi-controls">
       <label class="pi-field">
-        <span>Importar a la obra <b>*</b></span>
+        <span>{{ 'Importar a la obra' | t }} <b>*</b></span>
         <select class="sgc-select" [value]="obraSeleccionada() ?? ''" (change)="onObraChange($any($event.target).value)">
-          <option value="">Selecciona la obra…</option>
+          <option value="">{{ 'Selecciona la obra…' | t }}</option>
           @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
         </select>
       </label>
       <label class="pi-field">
-        <span>Si el documento ya existe</span>
+        <span>{{ 'Si el documento ya existe' | t }}</span>
         <select class="sgc-select" [value]="modo()" (change)="modo.set($any($event.target).value)">
-          <option value="actualizar">Actualizar sus datos</option>
-          <option value="saltar">Saltar (no tocar)</option>
+          <option value="actualizar">{{ 'Actualizar sus datos' | t }}</option>
+          <option value="saltar">{{ 'Saltar (no tocar)' | t }}</option>
         </select>
       </label>
     </div>
 
     <div class="pi-summary">
-      <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
-      @if (errCount()) { <span class="pi-chip pi-chip--err">{{ errCount() }} con error</span> }
-      @if (dupCount()) { <span class="pi-chip pi-chip--dup">{{ dupCount() }} ya existen</span> }
+      <span class="pi-chip pi-chip--ok">{{ okCount() }} {{ 'listas' | t }}</span>
+      @if (errCount()) { <span class="pi-chip pi-chip--err">{{ errCount() }} {{ 'con error' | t }}</span> }
+      @if (dupCount()) { <span class="pi-chip pi-chip--dup">{{ dupCount() }} {{ 'ya existen' | t }}</span> }
     </div>
 
     <div class="table-scroll">
       <table class="data-table pi-table">
         <thead>
-          <tr><th></th><th>Nombre</th><th>Documento</th><th>Nacionalidad</th><th>Cargo</th><th>Permiso</th><th>Observación</th></tr>
+          <tr><th></th><th>{{ 'Nombre' | t }}</th><th>{{ 'Documento' | t }}</th><th>{{ 'Nacionalidad' | t }}</th><th>{{ 'Cargo' | t }}</th><th>{{ 'Permiso' | t }}</th><th>{{ 'Observación' | t }}</th></tr>
         </thead>
         <tbody>
           @for (f of filas(); track $index) {
             <tr [class.pi-row--err]="f.estado === 'error'" [class.pi-row--warn]="f.estado === 'warning'">
               <td class="pi-status">
                 @switch (f.estado) {
-                  @case ('ok') { <span class="pi-dot pi-dot--ok" title="Lista"><app-icon name="check" [size]="13" /></span> }
+                  @case ('ok') { <span class="pi-dot pi-dot--ok" title="{{ 'Lista' | t }}"><app-icon name="check" [size]="13" /></span> }
                   @case ('warning') { <span class="pi-dot pi-dot--warn" [title]="f.motivo"><app-icon name="alert-triangle" [size]="13" /></span> }
                   @case ('error') { <span class="pi-dot pi-dot--err" [title]="f.motivo"><app-icon name="x" [size]="13" /></span> }
                 }
-                @if (f.yaExiste) { <span class="pi-dup" title="Ya existe en la obra"><app-icon name="refresh" [size]="13" /></span> }
+                @if (f.yaExiste) { <span class="pi-dup" title="{{ 'Ya existe en la obra' | t }}"><app-icon name="refresh" [size]="13" /></span> }
               </td>
               <td>{{ f.nombre }}</td>
               <td class="text-muted">{{ f.documento || '—' }} <small>{{ f.tipo_documento }}</small></td>
               <td class="text-muted">{{ f.nacionalidad }}</td>
               <td>
                 <select class="pi-cargo sgc-select" [value]="f.cargo_id ?? ''" (change)="setCargo($index, $any($event.target).value)">
-                  <option value="">Sin cargo</option>
+                  <option value="">{{ 'Sin cargo' | t }}</option>
                   @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
                 </select>
-                @if (f.cargo_origen !== '—') { <small class="pi-cargo-src" [class.pi-cargo-src--warn]="!f.cargo_id">del archivo: {{ f.cargo_origen }}</small> }
+                @if (f.cargo_origen !== '—') { <small class="pi-cargo-src" [class.pi-cargo-src--warn]="!f.cargo_id">{{ 'del archivo:' | t }} {{ f.cargo_origen }}</small> }
                 @if (f.cargo_id && igualesCount($index) > 0) {
-                  <button type="button" class="pi-aplicar" (click)="aplicarATodosIguales($index)" [title]="'Poner este cargo a todas las filas con «' + f.cargo_origen + '»'">
-                    Aplicar a los {{ igualesCount($index) + 1 }} «{{ f.cargo_origen }}»
+                  <button type="button" class="pi-aplicar" (click)="aplicarATodosIguales($index)" [title]="i18n.t('Poner este cargo a todas las filas con «{cargo}»', { cargo: f.cargo_origen })">
+                    {{ i18n.t('Aplicar a los {n} «{cargo}»', { n: igualesCount($index) + 1, cargo: f.cargo_origen }) }}
                   </button>
                 }
               </td>
               <td class="pi-permiso">
                 @if (f.permiso_vencimiento; as pv) {
                   @switch (permisoEstado(pv)) {
-                    @case ('vigente') { <span class="pi-chip pi-chip--ok" [title]="'Vence el ' + pv">Vigente</span> }
-                    @case ('vencido') { <span class="pi-chip pi-chip--err" [title]="'Venció el ' + pv">Vencido</span> }
+                    @case ('vigente') { <span class="pi-chip pi-chip--ok" [title]="i18n.t('Vence el {fecha}', { fecha: pv })">{{ 'Vigente' | t }}</span> }
+                    @case ('vencido') { <span class="pi-chip pi-chip--err" [title]="i18n.t('Venció el {fecha}', { fecha: pv })">{{ 'Vencido' | t }}</span> }
                   }
                 } @else { <span class="text-muted">—</span> }
               </td>
@@ -111,9 +111,9 @@
     </div>
 
     <div class="pi-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">Cambiar archivo</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">{{ 'Cambiar archivo' | t }}</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="verDiff()">
-        {{ procesando() ? 'Calculando…' : 'Revisar cambios (' + okCount() + ')' }}
+        {{ procesando() ? ('Calculando…' | t) : i18n.t('Revisar cambios ({n})', { n: okCount() }) }}
       </button>
     </div>
   }
@@ -122,58 +122,57 @@
   @if (paso() === 'diff' && preview(); as pv) {
     <div class="pi-diff">
       <p class="pi-diff__intro">
-        Comparación del listado con el personal actual de la obra. Confirma qué personas
-        que ya no aparecen se dan de baja (no se inactivan solas).
+        {{ 'Comparación del listado con el personal actual de la obra. Confirma qué personas que ya no aparecen se dan de baja (no se inactivan solas).' | t }}
       </p>
       <div class="pi-diff__nums">
-        <div class="pi-num pi-num--ok"><span>{{ pv.altas.length }}</span>altas</div>
-        <div class="pi-num"><span>{{ pv.actualizaciones.length }}</span>actualizaciones</div>
-        <div class="pi-num pi-num--warn"><span>{{ pv.bajas.length }}</span>ya no vienen</div>
+        <div class="pi-num pi-num--ok"><span>{{ pv.altas.length }}</span>{{ 'altas' | t }}</div>
+        <div class="pi-num"><span>{{ pv.actualizaciones.length }}</span>{{ 'actualizaciones' | t }}</div>
+        <div class="pi-num pi-num--warn"><span>{{ pv.bajas.length }}</span>{{ 'ya no vienen' | t }}</div>
       </div>
 
       @if (pv.altas.length) {
-        <h3 class="pi-diff__h">Altas ({{ pv.altas.length }})</h3>
+        <h3 class="pi-diff__h">{{ i18n.t('Altas ({n})', { n: pv.altas.length }) }}</h3>
         <ul class="pi-diff__list">
           @for (a of pv.altas; track a.documento_numero || a.nombre) {
             <li><span class="pi-diff__nom">{{ a.nombre }}</span>
-              <span class="pi-diff__meta">{{ a.documento_numero || 'sin documento' }} · cargo: {{ cargoDeDocumento(a.documento_numero) }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
+              <span class="pi-diff__meta">{{ a.documento_numero || ('sin documento' | t) }} · {{ 'cargo:' | t }} {{ cargoDeDocumento(a.documento_numero) }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
           }
         </ul>
       }
 
       @if (pv.actualizaciones.length) {
-        <h3 class="pi-diff__h">Actualizaciones ({{ pv.actualizaciones.length }})</h3>
+        <h3 class="pi-diff__h">{{ i18n.t('Actualizaciones ({n})', { n: pv.actualizaciones.length }) }}</h3>
         <ul class="pi-diff__list">
           @for (u of pv.actualizaciones; track u.id) {
             <li><span class="pi-diff__nom">{{ u.despues.nombre }}</span>
               <span class="pi-diff__meta">
-                {{ u.documento_numero }} · cargo: {{ cargoDeDocumento(u.documento_numero) }}
-                @if (u.antes.nombre !== u.despues.nombre) { · nombre: {{ u.antes.nombre }} → {{ u.despues.nombre }} }
-                @if (u.despues.cuadrilla && u.antes.cuadrilla !== u.despues.cuadrilla) { · cuadrilla: {{ u.antes.cuadrilla || '—' }} → {{ u.despues.cuadrilla }} }
-                @if (!u.antes.activo_en_obra) { · reactiva (volvió al listado) }
+                {{ u.documento_numero }} · {{ 'cargo:' | t }} {{ cargoDeDocumento(u.documento_numero) }}
+                @if (u.antes.nombre !== u.despues.nombre) { · {{ 'nombre:' | t }} {{ u.antes.nombre }} → {{ u.despues.nombre }} }
+                @if (u.despues.cuadrilla && u.antes.cuadrilla !== u.despues.cuadrilla) { · {{ 'cuadrilla:' | t }} {{ u.antes.cuadrilla || '—' }} → {{ u.despues.cuadrilla }} }
+                @if (!u.antes.activo_en_obra) { · {{ 'reactiva (volvió al listado)' | t }} }
               </span></li>
           }
         </ul>
       }
 
       @if (pv.bajas.length) {
-        <h3 class="pi-diff__h">Ya no vienen en el listado ({{ pv.bajas.length }})</h3>
+        <h3 class="pi-diff__h">{{ i18n.t('Ya no vienen en el listado ({n})', { n: pv.bajas.length }) }}</h3>
         <ul class="pi-diff__list pi-diff__list--bajas">
           @for (b of pv.bajas; track b.id) {
             <li>
               <label class="pi-diff__baja">
                 <input type="checkbox" [checked]="esBaja(b.id)" (change)="toggleBaja(b.id)" />
                 <span class="pi-diff__nom">{{ b.nombre }}</span>
-                <span class="pi-diff__meta">{{ b.documento_numero || 'sin documento' }}{{ b.cuadrilla ? ' · ' + b.cuadrilla : '' }}</span>
+                <span class="pi-diff__meta">{{ b.documento_numero || ('sin documento' | t) }}{{ b.cuadrilla ? ' · ' + b.cuadrilla : '' }}</span>
               </label>
             </li>
           }
         </ul>
-        <p class="pi-diff__hint">Marca las que quieras dar de baja en esta obra. Las que dejes sin marcar quedan activas.</p>
+        <p class="pi-diff__hint">{{ 'Marca las que quieras dar de baja en esta obra. Las que dejes sin marcar quedan activas.' | t }}</p>
       }
 
       <div class="pi-actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAPrevisualizar()">Volver</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAPrevisualizar()">{{ 'Volver' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando()" (click)="confirmarImport()">
           {{ procesando() ? 'Importando…' : 'Confirmar import' }}
         </button>
@@ -184,22 +183,22 @@
   <!-- Paso 3 — resultado -->
   @if (paso() === 'resultado' && resultado(); as r) {
     <div class="pi-result">
-      <h2 class="pi-result__title">Importación completada</h2>
+      <h2 class="pi-result__title">{{ 'Importación completada' | t }}</h2>
       <div class="pi-result__nums">
-        <div class="pi-num pi-num--ok"><span>{{ r.creados }}</span>altas</div>
-        <div class="pi-num"><span>{{ r.actualizados }}</span>actualizados</div>
-        <div class="pi-num pi-num--warn"><span>{{ r.bajas ?? 0 }}</span>bajas</div>
-        <div class="pi-num pi-num--err"><span>{{ r.errores.length }}</span>con error</div>
+        <div class="pi-num pi-num--ok"><span>{{ r.creados }}</span>{{ 'altas' | t }}</div>
+        <div class="pi-num"><span>{{ r.actualizados }}</span>{{ 'actualizados' | t }}</div>
+        <div class="pi-num pi-num--warn"><span>{{ r.bajas ?? 0 }}</span>{{ 'bajas' | t }}</div>
+        <div class="pi-num pi-num--err"><span>{{ r.errores.length }}</span>{{ 'con error' | t }}</div>
       </div>
       @if (r.errores.length) {
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarErrores()">Descargar reporte de errores</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarErrores()">{{ 'Descargar reporte de errores' | t }}</button>
       }
       <div class="pi-result__actions">
         @if (ultimoLote()) {
-          <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="procesando()" (click)="deshacer()">Deshacer este lote</button>
+          <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="procesando()" (click)="deshacer()">{{ 'Deshacer este lote' | t }}</button>
         }
-        <a routerLink="/proyectos/personal" class="sgc-btn sgc-btn--secondary">Ver personal</a>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">Importar otro archivo</button>
+        <a routerLink="/proyectos/personal" class="sgc-btn sgc-btn--secondary">{{ 'Ver personal' | t }}</a>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">{{ 'Importar otro archivo' | t }}</button>
       </div>
     </div>
   }

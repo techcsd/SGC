@@ -10,6 +10,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { Paginador } from '../../../../shared/components/paginador/paginador';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { DecimalPipe } from '@angular/common';
 
 type FiltroEstadoLinea = 'todos' | 'pendiente' | 'firmado' | 'ausente';
@@ -33,6 +34,7 @@ export class IngenieriaPagos implements OnInit {
   private proyectos = inject(ProyectosService);
   private user = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   pad = viewChild(SignaturePad);
 
@@ -202,7 +204,7 @@ export class IngenieriaPagos implements OnInit {
       const id = await this.service.crear(obraId, desde, hasta);
       await this.abrirObra(obraId, id);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear la semana', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear la semana'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -246,7 +248,7 @@ export class IngenieriaPagos implements OnInit {
       const pago = this.pagos().find((p) => p.id === id);
       if (pago) await this.abrir(pago);
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear la semana', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear la semana'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -276,7 +278,7 @@ export class IngenieriaPagos implements OnInit {
       await this.service.guardarLinea(l.id, { monto });
       this.lineas.update((ls) => ls.map((x) => (x.id === l.id ? { ...x, monto } : x)));
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     }
   }
 
@@ -285,7 +287,7 @@ export class IngenieriaPagos implements OnInit {
       await this.service.guardarLinea(l.id, { concepto: concepto || null });
       this.lineas.update((ls) => ls.map((x) => (x.id === l.id ? { ...x, concepto: concepto || x.concepto } : x)));
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     }
   }
 
@@ -294,7 +296,7 @@ export class IngenieriaPagos implements OnInit {
       await this.service.guardarLinea(l.id, { ausente });
       this.lineas.update((ls) => ls.map((x) => (x.id === l.id ? { ...x, estado: ausente ? 'ausente' : 'pendiente' } : x)));
     } catch (e: unknown) {
-      this.toast.error('No se pudo marcar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo marcar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     }
   }
 
@@ -306,7 +308,7 @@ export class IngenieriaPagos implements OnInit {
     const pago = this.pagoSel();
     const pad = this.pad();
     if (!l || !pago || !pad || this.saving()) return;
-    if (pad.isEmpty()) { this.toast.error('Falta la firma', 'La persona debe firmar en el recuadro.'); return; }
+    if (pad.isEmpty()) { this.toast.error(this.i18n.t('Falta la firma'), 'La persona debe firmar en el recuadro.'); return; }
     this.saving.set(true);
     try {
       const blob = await pad.toBlob();
@@ -315,9 +317,9 @@ export class IngenieriaPagos implements OnInit {
       await this.service.guardarLinea(l.id, { firmaPath: path });
       this.lineas.update((ls) => ls.map((x) => (x.id === l.id ? { ...x, estado: 'firmado', firma_path: path, firmado_at: new Date().toISOString() } : x)));
       this.firmandoLinea.set(null);
-      this.toast.success('Descargo firmado', `${l.nombre_snapshot} quedó firmado.`);
+      this.toast.success(this.i18n.t('Descargo firmado'), `${l.nombre_snapshot} quedó firmado.`);
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar la firma', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar la firma'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -343,12 +345,12 @@ export class IngenieriaPagos implements OnInit {
     this.saving.set(true);
     try {
       await this.service.enviar(pago.id);
-      this.toast.success('Reporte enviado', 'La semana quedó cerrada; el PDF va en camino por correo.');
+      this.toast.success(this.i18n.t('Reporte enviado'), 'La semana quedó cerrada; el PDF va en camino por correo.');
       await this.cargarPagos();
       const ref = this.pagos().find((p) => p.id === pago.id);
       if (ref) await this.abrir(ref);
     } catch (e: unknown) {
-      this.toast.error('No se pudo enviar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -363,9 +365,9 @@ export class IngenieriaPagos implements OnInit {
       await this.cargarPagos();
       const nuevo = this.pagos().find((p) => p.id === id);
       if (nuevo) await this.abrir(nuevo);
-      this.toast.success('Complemento creado', 'Con las personas que quedaron sin firmar.');
+      this.toast.success(this.i18n.t('Complemento creado'), 'Con las personas que quedaron sin firmar.');
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear el complemento', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear el complemento'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -390,7 +392,7 @@ export class IngenieriaPagos implements OnInit {
       const ref = this.pagos().find((p) => p.id === pago.id);
       if (ref) await this.abrir(ref);
     } catch (e: unknown) {
-      this.toast.error('No se pudo reabrir', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo reabrir'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.saving.set(false);
     }
@@ -403,7 +405,7 @@ export class IngenieriaPagos implements OnInit {
     try {
       window.open(await this.service.pdfUrl(path), '_blank');
     } catch (e: unknown) {
-      this.toast.error('No se pudo abrir el PDF', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir el PDF'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.pdfAbriendo.set(false);
     }

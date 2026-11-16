@@ -13,6 +13,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type ModoResolucion = 'vincular' | 'crear' | 'rechazar' | null;
 
@@ -36,6 +37,7 @@ export class ProductosPorDarDeAlta implements OnInit {
   private categoriasSvc = inject(CategoriasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly unidades = UNIDADES;
 
@@ -98,7 +100,7 @@ export class ProductosPorDarDeAlta implements OnInit {
     try {
       this.solicitudes.set(await this.svc.listar());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar la bandeja.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar la bandeja.'));
     } finally {
       this.loading.set(false);
     }
@@ -125,17 +127,17 @@ export class ProductosPorDarDeAlta implements OnInit {
     if (this.creando()) return;
     const descripcion = this.crearDescripcion().trim();
     const busqueda = this.crearBusqueda().trim();
-    if (!descripcion) { this.crearError.set('Describe el material que necesitas.'); return; }
-    if (!busqueda) { this.crearError.set('Escribe qué buscaste antes de pedir el alta (para que Compras no repita la búsqueda).'); return; }
+    if (!descripcion) { this.crearError.set(this.i18n.t('Describe el material que necesitas.')); return; }
+    if (!busqueda) { this.crearError.set(this.i18n.t('Escribe qué buscaste antes de pedir el alta (para que Compras no repita la búsqueda).')); return; }
     this.creando.set(true);
     this.crearError.set('');
     try {
       await this.svc.crear(descripcion, busqueda);
-      this.toast.success('Solicitud enviada.', 'Compras la resolverá creando o vinculando el producto.');
+      this.toast.success(this.i18n.t('Solicitud enviada.'), 'Compras la resolverá creando o vinculando el producto.');
       this.crearOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.crearError.set(e instanceof Error ? e.message : 'No se pudo enviar la solicitud.');
+      this.crearError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo enviar la solicitud.'));
     } finally {
       this.creando.set(false);
     }
@@ -171,8 +173,8 @@ export class ProductosPorDarDeAlta implements OnInit {
     const s = this.drawerSolicitud();
     const articuloId = this.vincularArticuloId();
     if (!s || this.resolviendo()) return;
-    if (!articuloId) { this.resolverError.set('Selecciona un artículo del catálogo.'); return; }
-    await this.resolver(s.id, 'vinculado_existente', articuloId, null, 'No se pudo vincular.');
+    if (!articuloId) { this.resolverError.set(this.i18n.t('Selecciona un artículo del catálogo.')); return; }
+    await this.resolver(s.id, 'vinculado_existente', articuloId, null, this.i18n.t('No se pudo vincular.'));
   }
 
   async confirmarCrearYResolver() {
@@ -180,8 +182,8 @@ export class ProductosPorDarDeAlta implements OnInit {
     const nombre = this.nuevoNombre().trim();
     const categoriaId = this.nuevaCategoria();
     if (!s || this.resolviendo()) return;
-    if (!nombre) { this.resolverError.set('El nombre del artículo es obligatorio.'); return; }
-    if (categoriaId == null) { this.resolverError.set('Elige una categoría.'); return; }
+    if (!nombre) { this.resolverError.set(this.i18n.t('El nombre del artículo es obligatorio.')); return; }
+    if (categoriaId == null) { this.resolverError.set(this.i18n.t('Elige una categoría.')); return; }
     this.resolviendo.set(true);
     this.resolverError.set('');
     try {
@@ -197,11 +199,11 @@ export class ProductosPorDarDeAlta implements OnInit {
       });
       await this.svc.resolver(s.id, 'creado', articulo.id, null);
       this.catalogo.update((list) => [...list, articulo]);
-      this.toast.success('Artículo creado.', 'Quedó marcado como puente a Odoo (D-10) y la línea de OC se actualizó.');
+      this.toast.success(this.i18n.t('Artículo creado.'), 'Quedó marcado como puente a Odoo (D-10) y la línea de OC se actualizó.');
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.resolverError.set(e instanceof Error ? e.message : 'No se pudo crear el artículo.');
+      this.resolverError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo crear el artículo.'));
     } finally {
       this.resolviendo.set(false);
     }
@@ -211,8 +213,8 @@ export class ProductosPorDarDeAlta implements OnInit {
     const s = this.drawerSolicitud();
     const motivo = this.rechazarMotivo().trim();
     if (!s || this.resolviendo()) return;
-    if (!motivo) { this.resolverError.set('Escribe el motivo del rechazo.'); return; }
-    await this.resolver(s.id, 'rechazado', null, motivo, 'No se pudo rechazar.');
+    if (!motivo) { this.resolverError.set(this.i18n.t('Escribe el motivo del rechazo.')); return; }
+    await this.resolver(s.id, 'rechazado', null, motivo, this.i18n.t('No se pudo rechazar.'));
   }
 
   private async resolver(id: string, decision: OdooProductoSolicitud['estado'], articuloId: string | null, motivo: string | null, errorPrefijo: string) {
@@ -220,7 +222,7 @@ export class ProductosPorDarDeAlta implements OnInit {
     this.resolverError.set('');
     try {
       await this.svc.resolver(id, decision, articuloId, motivo);
-      this.toast.success('Solicitud resuelta.');
+      this.toast.success(this.i18n.t('Solicitud resuelta.'));
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {

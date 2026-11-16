@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import {
   MODULOS_DISPONIBLES,
   SUBMODULOS,
@@ -7,6 +7,8 @@ import {
 } from '../../../../shared/services/roles.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** Nivel homologado que se muestra en el control de 3 posiciones. */
 type NivelUI = '' | 'ver' | 'operar';
 /** AS4 — estado del módulo completo en el encabezado tri-estado. */
@@ -37,12 +39,14 @@ interface GrupoModulo {
  */
 @Component({
   selector: 'app-role-permisos-editor',
-  imports: [Icon],
+  imports: [Icon, TranslatePipe],
   templateUrl: './role-permisos-editor.html',
   styleUrl: './role-permisos-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RolePermisosEditor {
+  protected i18n = inject(I18nService);
+
   /** Módulos completos (cada uno = 'operar' heredado en todos sus submódulos). */
   selectedModulos = input<string[]>([]);
   /** Mapa "modulo.submodulo" → nivel (grants granulares explícitos). */
@@ -73,10 +77,14 @@ export class RolePermisosEditor {
             );
         return {
           key: m.key,
-          label: m.label,
-          desc: m.desc,
+          label: this.i18n.t(m.label),
+          desc: this.i18n.t(m.desc),
           sensible: !!m.sensible,
-          subs,
+          subs: subs.map((s) => ({
+            ...s,
+            label: this.i18n.t(s.label),
+            descripcion: s.descripcion ? this.i18n.t(s.descripcion) : s.descripcion,
+          })),
           tieneSubs: allSubs.length > 0,
         };
       })

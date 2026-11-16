@@ -16,6 +16,7 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Paginador } from '../../../../shared/components/paginador/paginador';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface ObraRef { id: string; nombre: string; }
 
@@ -37,6 +38,7 @@ export class Cartillas implements OnInit {
   private proyectos = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   formatFecha = formatFechaDisplay;
 
@@ -191,7 +193,7 @@ export class Cartillas implements OnInit {
       for (const p of d.fotos) this.svc.getFotoUrl(p).then((u) => { if (u) this.fotoUrls.update((m) => ({ ...m, [p]: u })); });
       if (d.plano_path) this.svc.getFotoUrl(d.plano_path).then((u) => this.planoUrl.set(u));
     } catch (e) {
-      this.toast.error('No se pudo abrir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir'), e instanceof Error ? e.message : undefined);
       this.detalleOpen.set(false);
     } finally {
       this.detalleLoading.set(false);
@@ -207,15 +209,15 @@ export class Cartillas implements OnInit {
   async cambiarEstado(estado: string) {
     const d = this.detalle();
     if (!d || this.estadoBusy()) return;
-    if (estado === 'observada' && !this.estadoNota().trim()) { this.toast.error('Escribe la observación'); return; }
+    if (estado === 'observada' && !this.estadoNota().trim()) { this.toast.error(this.i18n.t('Escribe la observación')); return; }
     this.estadoBusy.set(true);
     try {
       await this.svc.cambiarEstado(d.id, estado, this.estadoNota().trim() || null);
-      this.toast.success('Cartilla actualizada', this.ESTADO_LABEL[estado] ?? estado);
+      this.toast.success(this.i18n.t('Cartilla actualizada'), this.ESTADO_LABEL[estado] ?? estado);
       await this.abrirDetalle({ id: d.id } as CartillaListItem);
       await this.cargar();
     } catch (e) {
-      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo actualizar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.estadoBusy.set(false);
     }
@@ -230,14 +232,14 @@ export class Cartillas implements OnInit {
   async guardarKgm(codigo: string, kg: number) {
     if (this.catBusy() || !(kg > 0)) return;
     this.catBusy.set(true);
-    try { await this.svc.guardarDiametro(codigo, { kg_por_m: kg }); this.diametros.set(await this.svc.diametros()); this.toast.success('Diámetro actualizado'); }
-    catch (e) { this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined); }
+    try { await this.svc.guardarDiametro(codigo, { kg_por_m: kg }); this.diametros.set(await this.svc.diametros()); this.toast.success(this.i18n.t('Diámetro actualizado')); }
+    catch (e) { this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined); }
     finally { this.catBusy.set(false); }
   }
   async toggleFigura(codigo: string, activo: boolean) {
     this.catBusy.set(true);
     try { await this.svc.guardarFigura(codigo, { activo }); this.figuras.set(await this.svc.figuras()); }
-    catch (e) { this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined); }
+    catch (e) { this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined); }
     finally { this.catBusy.set(false); }
   }
 
@@ -346,7 +348,7 @@ export class Cartillas implements OnInit {
       try {
         if (this.cPlano()) planoPath = await this.svc.subirArchivo('plano', id, this.cPlano()!);
         for (const f of this.cFotos()) fotoPaths.push({ path: await this.svc.subirArchivo('foto', id, f.file) });
-      } catch { this.toast.warning('Cartilla', 'No se pudieron subir algunas imágenes; la cartilla se guarda igual.'); }
+      } catch { this.toast.warning(this.i18n.t('Cartilla'), 'No se pudieron subir algunas imágenes; la cartilla se guarda igual.'); }
       await this.svc.crear({
         id, proyectoId: this.cObra(), fecha: this.cFecha(), planoPath, fotos: fotoPaths,
         atados: atados.map((a) => ({
@@ -358,7 +360,7 @@ export class Cartillas implements OnInit {
         })),
         notas: this.cNotas().trim() || null,
       });
-      this.toast.success('Cartilla enviada', 'Oficina la revisará.');
+      this.toast.success(this.i18n.t('Cartilla enviada'), 'Oficina la revisará.');
       this.capturaOpen.set(false);
       await this.cargar();
     } catch (e) {

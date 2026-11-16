@@ -196,7 +196,7 @@ export class TecWhatsapp implements OnInit {
   private enviosService = inject(EnviosAutomaticosService);
   private toast = inject(ToastService);
   private users = inject(UserService);
-  private i18n = inject(I18nService);
+  protected i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
 
   readonly estadoLabel = ESTADO_LABEL;

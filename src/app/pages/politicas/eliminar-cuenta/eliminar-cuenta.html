@@ -4,7 +4,7 @@
       <div class="pol__brand">
         <img src="assets/imgs/logos/csd-no-bg-logo-white.png" alt="Constructora SD" />
       </div>
-      <h1 class="pol__titulo">Eliminar cuenta</h1>
+      <h1 class="pol__titulo">{{ 'Eliminar cuenta' | t }}</h1>
     </header>
 
     <article class="pol__body" [innerHTML]="html()"></article>
@@ -13,37 +13,37 @@
       <div class="pol__borrador" role="status" style="background: rgba(34,197,94,0.15); color: #22c55e;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <path d="M20 6 9 17l-5-5"/></svg>
-        Recibimos tu solicitud. Si tus datos corresponden a una cuenta, la procesaremos en un máximo de 30 días.
+        {{ 'Recibimos tu solicitud. Si tus datos corresponden a una cuenta, la procesaremos en un máximo de 30 días.' | t }}
       </div>
     } @else {
       <form class="pol__form" (ngSubmit)="enviar()">
-        <label class="pol__label" for="ident">Correo o cédula asociada a tu cuenta</label>
+        <label class="pol__label" for="ident">{{ 'Correo o cédula asociada a tu cuenta' | t }}</label>
         <input id="ident" class="pol__input" type="text" name="ident"
                [ngModel]="identificador()" (ngModelChange)="identificador.set($event)"
-               placeholder="correo@ejemplo.com o 000-0000000-0" required autocomplete="off" />
+               placeholder="{{ 'correo@ejemplo.com o 000-0000000-0' | t }}" required autocomplete="off" />
 
-        <label class="pol__label" for="motivo">Motivo (opcional)</label>
+        <label class="pol__label" for="motivo">{{ 'Motivo (opcional)' | t }}</label>
         <textarea id="motivo" class="pol__input" name="motivo" rows="3"
                   [ngModel]="motivo()" (ngModelChange)="motivo.set($event)"
-                  placeholder="Cuéntanos por qué deseas eliminar tu cuenta"></textarea>
+                  placeholder="{{ 'Cuéntanos por qué deseas eliminar tu cuenta' | t }}"></textarea>
 
         <!-- Honeypot: oculto para humanos, los bots lo rellenan -->
         <input class="pol__hp" type="text" name="website" tabindex="-1" autocomplete="off"
                [ngModel]="website()" (ngModelChange)="website.set($event)" aria-hidden="true" />
 
         <button type="submit" class="pol__print" [disabled]="enviando() || !identificador().trim()">
-          {{ enviando() ? 'Enviando…' : 'Solicitar eliminación' }}
+          {{ (enviando() ? 'Enviando…' : 'Solicitar eliminación') | t }}
         </button>
       </form>
     }
 
     <footer class="pol__pie">
       <nav class="pol__links">
-        <a href="/politicas/privacidad">Privacidad</a>
-        <a href="/politicas/terminos">Términos</a>
-        <a href="/politicas/soporte">Soporte</a>
+        <a href="/politicas/privacidad">{{ 'Privacidad' | t }}</a>
+        <a href="/politicas/terminos">{{ 'Términos' | t }}</a>
+        <a href="/politicas/soporte">{{ 'Soporte' | t }}</a>
       </nav>
-      <p>&copy; Constructora SD · <a href="https://sgcconstructorasd.com">sgcconstructorasd.com</a></p>
+      <p>&copy; {{ 'Constructora SD ·' | t }} <a href="https://sgcconstructorasd.com">{{ 'sgcconstructorasd.com' | t }}</a></p>
     </footer>
   </div>
 </div>

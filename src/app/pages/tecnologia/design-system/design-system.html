@@ -3,29 +3,28 @@
   <!-- Header -->
   <div class="ds__header">
     <div>
-      <h1 class="ds__title">Sistema de diseño</h1>
+      <h1 class="ds__title">{{ 'Sistema de diseño' | t }}</h1>
       <p class="ds__lead">
-        Tokens y componentes base del rediseño <strong>CB v2</strong> (paleta navy + naranja,
-        fuente Inter, vidrio, radios en escalera), vivos en ambos temas. Es el contrato visual
-        del que cuelga todo el rollout — un cambio de token se verifica aquí antes de tocar módulos.
+        {{ 'Tokens y componentes base del rediseño' | t }} <strong>{{ 'CB v2' | t }}</strong>
+        {{ '(paleta navy + naranja, fuente Inter, vidrio, radios en escalera), vivos en ambos temas. Es el contrato visual del que cuelga todo el rollout — un cambio de token se verifica aquí antes de tocar módulos.' | t }}
       </p>
     </div>
     <button type="button" class="sgc-btn sgc-btn--ghost ds__theme" (click)="toggleTheme()">
       @if (theme() === 'dark') {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        Ver en claro
+        {{ 'Ver en claro' | t }}
       } @else {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        Ver en oscuro
+        {{ 'Ver en oscuro' | t }}
       }
     </button>
   </div>
 
   <!-- Colores -->
   <section class="ds__section">
-    <h2 class="ds__h2">Color — tokens semánticos</h2>
+    <h2 class="ds__h2">{{ 'Color — tokens semánticos' | t }}</h2>
     @for (group of colorGroups; track group.title) {
-      <h3 class="ds__h3">{{ group.title }}</h3>
+      <h3 class="ds__h3">{{ group.title | t }}</h3>
       <div class="ds__swatches">
         @for (t of group.tokens; track t) {
           <div class="ds__swatch">
@@ -39,12 +38,12 @@
 
   <!-- Tipografía -->
   <section class="ds__section">
-    <h2 class="ds__h2">Tipografía — escala de 7 pasos</h2>
+    <h2 class="ds__h2">{{ 'Tipografía — escala de 7 pasos' | t }}</h2>
     <div class="ds__type">
       @for (t of typeScale; track t.token) {
         <div class="ds__type-row">
           <span class="ds__type-sample" [style.font-size]="'var(' + t.token + ')'">
-            Constructora SD — Aa Bb 0123
+            {{ 'Constructora SD — Aa Bb 0123' | t }}
           </span>
           <code class="ds__code">{{ t.token }} · {{ t.px }}</code>
         </div>
@@ -54,7 +53,7 @@
 
   <!-- Espaciado -->
   <section class="ds__section">
-    <h2 class="ds__h2">Espaciado</h2>
+    <h2 class="ds__h2">{{ 'Espaciado' | t }}</h2>
     <div class="ds__space">
       @for (s of spaceScale; track s.token) {
         <div class="ds__space-row">
@@ -68,7 +67,7 @@
   <!-- Radios y sombras -->
   <section class="ds__section ds__section--split">
     <div>
-      <h2 class="ds__h2">Radios</h2>
+      <h2 class="ds__h2">{{ 'Radios' | t }}</h2>
       <div class="ds__tiles">
         @for (r of radiusScale; track r) {
           <div class="ds__tile" [style.border-radius]="'var(' + r + ')'">
@@ -78,7 +77,7 @@
       </div>
     </div>
     <div>
-      <h2 class="ds__h2">Sombras</h2>
+      <h2 class="ds__h2">{{ 'Sombras' | t }}</h2>
       <div class="ds__tiles">
         @for (sh of shadowScale; track sh) {
           <div class="ds__tile ds__tile--shadow" [style.box-shadow]="'var(' + sh + ')'">
@@ -91,77 +90,77 @@
 
   <!-- ═══ Componentes base del rediseño (BE3 / FASE 2) ═══ -->
   <section class="ds__section">
-    <h2 class="ds__h2">Componentes base <span class="ds__tag">BE3</span></h2>
+    <h2 class="ds__h2">{{ 'Componentes base' | t }} <span class="ds__tag">{{ 'BE3' | t }}</span></h2>
     <p class="ds__lead">
-      Los primitivos que matan el sprawl (estudio §2.7): <code class="ds__code">&lt;app-card&gt;</code>,
-      <code class="ds__code">&lt;app-badge&gt;</code> y la directiva
-      <code class="ds__code">appButton</code>. Solo consumen tokens semánticos → themean solos.
+      {{ 'Los primitivos que matan el sprawl (estudio §2.7):' | t }} <code class="ds__code">{{ 'app-card' | t }}</code>,
+      <code class="ds__code">{{ 'app-badge' | t }}</code> {{ 'y la directiva' | t }}
+      <code class="ds__code">{{ 'appButton' | t }}</code>. {{ 'Solo consumen tokens semánticos → themean solos.' | t }}
     </p>
 
-    <h3 class="ds__h3">appButton (directiva sobre &lt;button&gt;/&lt;a&gt; nativo)</h3>
-    <p class="ds__lead">CB: <strong>una sola</strong> acción naranja por pantalla (<code class="ds__code">accent</code>); guardar/confirmar = navy (<code class="ds__code">primary</code>). Nunca texto blanco sobre naranja — tinta navy.</p>
+    <h3 class="ds__h3">{{ 'appButton (directiva sobre button/a nativo)' | t }}</h3>
+    <p class="ds__lead">{{ 'CB:' | t }} <strong>{{ 'una sola' | t }}</strong> {{ 'acción naranja por pantalla (' | t }}<code class="ds__code">{{ 'accent' | t }}</code>{{ '); guardar/confirmar = navy (' | t }}<code class="ds__code">{{ 'primary' | t }}</code>{{ '). Nunca texto blanco sobre naranja — tinta navy.' | t }}</p>
     <div class="ds__row">
       <button appButton variant="accent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Nuevo conduce
+        {{ 'Nuevo conduce' | t }}
       </button>
-      <button appButton variant="primary">Guardar</button>
-      <button appButton variant="secondary">Secundario</button>
-      <button appButton variant="danger">Anular</button>
+      <button appButton variant="primary">{{ 'Guardar' | t }}</button>
+      <button appButton variant="secondary">{{ 'Secundario' | t }}</button>
+      <button appButton variant="danger">{{ 'Anular' | t }}</button>
       <button appButton variant="ghost">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-        Exportar
+        {{ 'Exportar' | t }}
       </button>
-      <button appButton variant="primary" size="sm">Pequeño</button>
-      <button appButton variant="primary" disabled>Deshabilitado</button>
+      <button appButton variant="primary" size="sm">{{ 'Pequeño' | t }}</button>
+      <button appButton variant="primary" disabled>{{ 'Deshabilitado' | t }}</button>
     </div>
 
-    <h3 class="ds__h3">app-badge</h3>
+    <h3 class="ds__h3">{{ 'app-badge' | t }}</h3>
     <div class="ds__row">
       <app-badge variant="success">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        Sin incidencias
+        {{ 'Sin incidencias' | t }}
       </app-badge>
-      <app-badge variant="danger">Echada inválida</app-badge>
-      <app-badge variant="warning">En revisión</app-badge>
-      <app-badge variant="info">En ruta</app-badge>
-      <app-badge variant="neutral">En cuarentena</app-badge>
-      <app-badge variant="brand">Destacado</app-badge>
+      <app-badge variant="danger">{{ 'Echada inválida' | t }}</app-badge>
+      <app-badge variant="warning">{{ 'En revisión' | t }}</app-badge>
+      <app-badge variant="info">{{ 'En ruta' | t }}</app-badge>
+      <app-badge variant="neutral">{{ 'En cuarentena' | t }}</app-badge>
+      <app-badge variant="brand">{{ 'Destacado' | t }}</app-badge>
     </div>
 
-    <h3 class="ds__h3">status-pill — punto + palabra + fondo suave (Regla 2)</h3>
-    <p class="ds__lead">Mapa único <code class="ds__code">estado→tono</code> en <code class="ds__code">shared/utils/estado-tono.ts</code> — mismo estado, mismo color en conduces, requisiciones, echadas, OT, bitácoras y compras.</p>
+    <h3 class="ds__h3">{{ 'status-pill — punto + palabra + fondo suave (Regla 2)' | t }}</h3>
+    <p class="ds__lead">{{ 'Mapa único' | t }} <code class="ds__code">{{ 'estado→tono' | t }}</code> {{ 'en' | t }} <code class="ds__code">{{ 'shared/utils/estado-tono.ts' | t }}</code> {{ '— mismo estado, mismo color en conduces, requisiciones, echadas, OT, bitácoras y compras.' | t }}</p>
     <div class="ds__row">
-      <span class="status-pill status-pill--success">Aprobado</span>
-      <span class="status-pill status-pill--warning">Pendiente</span>
-      <span class="status-pill status-pill--danger">Rechazado</span>
-      <span class="status-pill status-pill--info">En ruta</span>
-      <span class="status-pill status-pill--neutral">Borrador</span>
-      <span class="status-pill status-pill--accent">Nuevo</span>
-      <span class="status-pill status-pill--brand">Principal</span>
+      <span class="status-pill status-pill--success">{{ 'Aprobado' | t }}</span>
+      <span class="status-pill status-pill--warning">{{ 'Pendiente' | t }}</span>
+      <span class="status-pill status-pill--danger">{{ 'Rechazado' | t }}</span>
+      <span class="status-pill status-pill--info">{{ 'En ruta' | t }}</span>
+      <span class="status-pill status-pill--neutral">{{ 'Borrador' | t }}</span>
+      <span class="status-pill status-pill--accent">{{ 'Nuevo' | t }}</span>
+      <span class="status-pill status-pill--brand">{{ 'Principal' | t }}</span>
     </div>
     <div class="ds__row" style="margin-top: 8px;">
-      <app-badge variant="success" [dot]="true">Firmado</app-badge>
-      <app-badge variant="warning" [dot]="true">En revisión</app-badge>
-      <app-badge variant="danger" [dot]="true">Anulado</app-badge>
-      <app-badge variant="info" [dot]="true">En uso</app-badge>
+      <app-badge variant="success" [dot]="true">{{ 'Firmado' | t }}</app-badge>
+      <app-badge variant="warning" [dot]="true">{{ 'En revisión' | t }}</app-badge>
+      <app-badge variant="danger" [dot]="true">{{ 'Anulado' | t }}</app-badge>
+      <app-badge variant="info" [dot]="true">{{ 'En uso' | t }}</app-badge>
     </div>
 
-    <h3 class="ds__h3">app-card</h3>
+    <h3 class="ds__h3">{{ 'app-card' | t }}</h3>
     <div class="ds__cards2">
-      <app-card heading="Conduce CD-000142">
-        <a actions appButton variant="ghost" size="sm">Ver conduce</a>
+      <app-card [heading]="'Conduce CD-000142' | t">
+        <a actions appButton variant="ghost" size="sm">{{ 'Ver conduce' | t }}</a>
         <p style="margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-sm);">
-          NOVAL · Riviera Bay → Bodega Central · Transporta: Papo.
+          {{ 'NOVAL · Riviera Bay → Bodega Central · Transporta: Papo.' | t }}
         </p>
         <div class="ds__row">
-          <span class="status-pill status-pill--info">En ruta</span>
-          <span class="status-pill status-pill--success">Firmado origen</span>
+          <span class="status-pill status-pill--info">{{ 'En ruta' | t }}</span>
+          <span class="status-pill status-pill--success">{{ 'Firmado origen' | t }}</span>
         </div>
       </app-card>
-      <app-card heading="Resumen de la semana" [emphasis]="true">
+      <app-card [heading]="'Resumen de la semana' | t" [emphasis]="true">
         <p style="margin: 0; font-size: var(--fs-sm); opacity: 0.9;">
-          UNA tarjeta de énfasis navy por dashboard — para el KPI o el resumen que manda.
+          {{ 'UNA tarjeta de énfasis navy por dashboard — para el KPI o el resumen que manda.' | t }}
         </p>
       </app-card>
     </div>
@@ -169,29 +168,28 @@
 
   <!-- ═══ Vidrio (CB / capa flotante) ═══ -->
   <section class="ds__section">
-    <h2 class="ds__h2">Vidrio <span class="ds__tag">CB</span></h2>
+    <h2 class="ds__h2">{{ 'Vidrio' | t }} <span class="ds__tag">{{ 'CB' | t }}</span></h2>
     <p class="ds__lead">
-      Material esmerilado <strong>solo</strong> para la capa que flota sobre contenido
-      (topbar, barra de acciones en lote, controles sobre mapa/foto/visor). Nunca en tarjetas,
-      tablas ni formularios. Respaldo sólido con <code class="ds__code">&#64;supports</code>,
-      <code class="ds__code">prefers-reduced-transparency</code> y <code class="ds__code">.no-glass</code>.
+      {{ 'Material esmerilado' | t }} <strong>{{ 'solo' | t }}</strong>
+      {{ 'para la capa que flota sobre contenido (topbar, barra de acciones en lote, controles sobre mapa/foto/visor). Nunca en tarjetas, tablas ni formularios. Respaldo sólido con' | t }}
+      <code class="ds__code">{{ '@supports' | t }}</code>,
+      <code class="ds__code">{{ 'prefers-reduced-transparency' | t }}</code> {{ 'y' | t }} <code class="ds__code">{{ '.no-glass' | t }}</code>.
     </p>
     <div class="ds__glass-stage">
       <div class="glass ds__glass-bar">
-        <span>3 seleccionados</span>
-        <button appButton variant="accent" size="sm">Entregar y firmar</button>
-        <button appButton variant="ghost" size="sm">Cancelar</button>
+        <span>{{ '3 seleccionados' | t }}</span>
+        <button appButton variant="accent" size="sm">{{ 'Entregar y firmar' | t }}</button>
+        <button appButton variant="ghost" size="sm">{{ 'Cancelar' | t }}</button>
       </div>
     </div>
   </section>
 
   <!-- ═══ Iconografía (BE4 / set único) ═══ -->
   <section class="ds__section">
-    <h2 class="ds__h2">Iconografía <span class="ds__tag">BE4</span></h2>
+    <h2 class="ds__h2">{{ 'Iconografía' | t }} <span class="ds__tag">{{ 'BE4' | t }}</span></h2>
     <p class="ds__lead">
-      Set SVG único (<code class="ds__code">&lt;app-icon name="…"&gt;</code>, estilo lucide,
-      <code class="ds__code">stroke="currentColor"</code>). Reemplaza el emoji-como-icono (AW12).
-      Hereda color y tamaño del contexto.
+      {{ 'Set SVG único (' | t }}<code class="ds__code">{{ 'app-icon name="…"' | t }}</code>{{ '), estilo lucide,' | t }}
+      <code class="ds__code">{{ 'stroke="currentColor"' | t }}</code>{{ '). Reemplaza el emoji-como-icono (AW12). Hereda color y tamaño del contexto.' | t }}
     </p>
     <div class="ds__icons">
       @for (n of iconNames; track n) {
@@ -205,91 +203,90 @@
 
   <!-- Botones (legacy .sgc-btn — se mantienen hasta migrar cada pantalla) -->
   <section class="ds__section">
-    <h2 class="ds__h2">Botones <span class="ds__tag ds__tag--muted">legacy .sgc-btn</span></h2>
+    <h2 class="ds__h2">{{ 'Botones' | t }} <span class="ds__tag ds__tag--muted">{{ 'legacy .sgc-btn' | t }}</span></h2>
     <div class="ds__row">
-      <button class="sgc-btn sgc-btn--primary">Primario</button>
-      <button class="sgc-btn sgc-btn--secondary">Secundario</button>
-      <button class="sgc-btn sgc-btn--danger">Peligro</button>
-      <button class="sgc-btn sgc-btn--ghost">Fantasma</button>
-      <button class="sgc-btn sgc-btn--primary sgc-btn--sm">Pequeño</button>
-      <button class="sgc-btn sgc-btn--primary" disabled>Deshabilitado</button>
+      <button class="sgc-btn sgc-btn--primary">{{ 'Primario' | t }}</button>
+      <button class="sgc-btn sgc-btn--secondary">{{ 'Secundario' | t }}</button>
+      <button class="sgc-btn sgc-btn--danger">{{ 'Peligro' | t }}</button>
+      <button class="sgc-btn sgc-btn--ghost">{{ 'Fantasma' | t }}</button>
+      <button class="sgc-btn sgc-btn--primary sgc-btn--sm">{{ 'Pequeño' | t }}</button>
+      <button class="sgc-btn sgc-btn--primary" disabled>{{ 'Deshabilitado' | t }}</button>
     </div>
   </section>
 
   <!-- Badges -->
   <section class="ds__section">
-    <h2 class="ds__h2">Badges / chips de estado</h2>
+    <h2 class="ds__h2">{{ 'Badges / chips de estado' | t }}</h2>
     <div class="ds__row">
-      <span class="sgc-badge sgc-badge--success">Aprobado</span>
-      <span class="sgc-badge sgc-badge--danger">Cancelado</span>
-      <span class="sgc-badge sgc-badge--warning">Pendiente</span>
-      <span class="sgc-badge sgc-badge--info">En ruta</span>
-      <span class="sgc-badge sgc-badge--neutral">Borrador</span>
-      <span class="sgc-badge sgc-badge--hub">Destacado</span>
+      <span class="sgc-badge sgc-badge--success">{{ 'Aprobado' | t }}</span>
+      <span class="sgc-badge sgc-badge--danger">{{ 'Cancelado' | t }}</span>
+      <span class="sgc-badge sgc-badge--warning">{{ 'Pendiente' | t }}</span>
+      <span class="sgc-badge sgc-badge--info">{{ 'En ruta' | t }}</span>
+      <span class="sgc-badge sgc-badge--neutral">{{ 'Borrador' | t }}</span>
+      <span class="sgc-badge sgc-badge--hub">{{ 'Destacado' | t }}</span>
     </div>
   </section>
 
   <!-- Formulario -->
   <section class="ds__section">
-    <h2 class="ds__h2">Campos de formulario</h2>
+    <h2 class="ds__h2">{{ 'Campos de formulario' | t }}</h2>
     <div class="ds__form">
       <div class="sgc-field">
-        <label>Nombre del proyecto <span class="required">*</span></label>
-        <input type="text" placeholder="Torre Alpha" />
+        <label>{{ 'Nombre del proyecto' | t }} <span class="required">*</span></label>
+        <input type="text" placeholder="{{ 'Torre Alpha' | t }}" />
       </div>
       <div class="sgc-field">
-        <label>Zona</label>
+        <label>{{ 'Zona' | t }}</label>
         <select class="sgc-select">
-          <option>Gran Santo Domingo</option>
-          <option>Cibao</option>
-          <option>Este</option>
+          <option>{{ 'Gran Santo Domingo' | t }}</option>
+          <option>{{ 'Cibao' | t }}</option>
+          <option>{{ 'Este' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
-        <label>Con error</label>
+        <label>{{ 'Con error' | t }}</label>
         <input type="text" class="invalid" value="valor inválido" />
-        <span class="field-error">Este campo es obligatorio.</span>
+        <span class="field-error">{{ 'Este campo es obligatorio.' | t }}</span>
       </div>
     </div>
   </section>
 
   <!-- Tarjeta -->
   <section class="ds__section">
-    <h2 class="ds__h2">Tarjeta</h2>
+    <h2 class="ds__h2">{{ 'Tarjeta' | t }}</h2>
     <div class="sgc-card ds__card">
       <div class="ds__card-head">
-        <span class="ds__card-title">Conduce CD-000142</span>
-        <span class="sgc-badge sgc-badge--info">En ruta</span>
+        <span class="ds__card-title">{{ 'Conduce CD-000142' | t }}</span>
+        <span class="sgc-badge sgc-badge--info">{{ 'En ruta' | t }}</span>
       </div>
       <p class="ds__card-body">
-        NOVAL · Riviera Bay → Bodega Central · Transporta: Papo. Tarjeta base
-        (<code class="ds__code">.sgc-card</code>) sobre superficie tokenizada.
+        {{ 'NOVAL · Riviera Bay → Bodega Central · Transporta: Papo. Tarjeta base (' | t }}<code class="ds__code">{{ '.sgc-card' | t }}</code>{{ ') sobre superficie tokenizada.' | t }}
       </p>
       <div class="ds__row">
-        <button class="sgc-btn sgc-btn--primary sgc-btn--sm">Ver conduce</button>
-        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm">Cerrar</button>
+        <button class="sgc-btn sgc-btn--primary sgc-btn--sm">{{ 'Ver conduce' | t }}</button>
+        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm">{{ 'Cerrar' | t }}</button>
       </div>
     </div>
   </section>
 
   <!-- Tabla -->
   <section class="ds__section">
-    <h2 class="ds__h2">Tabla de datos</h2>
+    <h2 class="ds__h2">{{ 'Tabla de datos' | t }}</h2>
     <div class="sgc-card table-wrapper">
       <div class="table-scroll">
         <table class="data-table">
           <thead>
-            <tr><th>Código</th><th>Obra</th><th>Estado</th><th class="data-table__actions-h"></th></tr>
+            <tr><th>{{ 'Código' | t }}</th><th>{{ 'Obra' | t }}</th><th>{{ 'Estado' | t }}</th><th class="data-table__actions-h"></th></tr>
           </thead>
           <tbody>
-            <tr class="row--link"><td><span class="code-tag">REQ-000017</span></td><td>Torre Alpha</td><td><span class="sgc-badge sgc-badge--warning">Pendiente</span></td><td class="data-table__actions"><div><button class="sgc-btn sgc-btn--ghost sgc-btn--sm">Ver</button></div></td></tr>
-            <tr class="row--link"><td><span class="code-tag">REQ-000018</span></td><td>Volares</td><td><span class="sgc-badge sgc-badge--success">Aprobado</span></td><td class="data-table__actions"><div><button class="sgc-btn sgc-btn--ghost sgc-btn--sm">Ver</button></div></td></tr>
-            <tr class="row--link"><td><span class="code-tag">REQ-000019</span></td><td>Bodega Central</td><td><span class="sgc-badge sgc-badge--danger">Cancelado</span></td><td class="data-table__actions"><div><button class="sgc-btn sgc-btn--ghost sgc-btn--sm">Ver</button></div></td></tr>
+            <tr class="row--link"><td><span class="code-tag">{{ 'REQ-000017' | t }}</span></td><td>{{ 'Torre Alpha' | t }}</td><td><span class="sgc-badge sgc-badge--warning">{{ 'Pendiente' | t }}</span></td><td class="data-table__actions"><div><button class="sgc-btn sgc-btn--ghost sgc-btn--sm">{{ 'Ver' | t }}</button></div></td></tr>
+            <tr class="row--link"><td><span class="code-tag">{{ 'REQ-000018' | t }}</span></td><td>{{ 'Volares' | t }}</td><td><span class="sgc-badge sgc-badge--success">{{ 'Aprobado' | t }}</span></td><td class="data-table__actions"><div><button class="sgc-btn sgc-btn--ghost sgc-btn--sm">{{ 'Ver' | t }}</button></div></td></tr>
+            <tr class="row--link"><td><span class="code-tag">{{ 'REQ-000019' | t }}</span></td><td>{{ 'Bodega Central' | t }}</td><td><span class="sgc-badge sgc-badge--danger">{{ 'Cancelado' | t }}</span></td><td class="data-table__actions"><div><button class="sgc-btn sgc-btn--ghost sgc-btn--sm">{{ 'Ver' | t }}</button></div></td></tr>
           </tbody>
         </table>
       </div>
       <div class="pagination">
-        <span class="pagination__info">Mostrando 1–3 de 3</span>
+        <span class="pagination__info">{{ 'Mostrando 1–3 de 3' | t }}</span>
         <div class="pagination__controls">
           <button class="page-btn" disabled>‹</button>
           <button class="page-btn page-btn--active">1</button>

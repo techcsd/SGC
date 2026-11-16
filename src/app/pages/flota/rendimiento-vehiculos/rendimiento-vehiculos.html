@@ -2,8 +2,8 @@
 
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Rendimiento por vehículo</h1>
-    <span class="page-count">{{ filas().length }} vehículo{{ filas().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Rendimiento por vehículo' | t }}</h1>
+    <span class="page-count">{{ filas().length }} {{ (filas().length !== 1 ? 'vehículos' : 'vehículo') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelReporte()" [disabled]="!filas().length">
@@ -16,17 +16,15 @@
 </div>
 
 <p class="rv-aviso">
-  Aproximado: el sistema nunca registra "tanque lleno", así que el rendimiento se calcula
-  entre echadas (sin contar la primera del período) y no es exacto. Mientras más echadas y
-  más distancia recorrida, más confiable el número — por eso cada fila trae su confianza.
+  {{ 'Aproximado: el sistema nunca registra "tanque lleno", así que el rendimiento se calcula entre echadas (sin contar la primera del período) y no es exacto. Mientras más echadas y más distancia recorrida, más confiable el número — por eso cada fila trae su confianza.' | t }}
 </p>
 
 <div class="rv-filtros">
-  <label>Desde <input type="date" [ngModel]="desde()" (ngModelChange)="desde.set($event); cargar()" /></label>
-  <label>Hasta <input type="date" [ngModel]="hasta()" (ngModelChange)="hasta.set($event); cargar()" /></label>
-  <label>Vehículo
+  <label>{{ 'Desde' | t }} <input type="date" [ngModel]="desde()" (ngModelChange)="desde.set($event); cargar()" /></label>
+  <label>{{ 'Hasta' | t }} <input type="date" [ngModel]="hasta()" (ngModelChange)="hasta.set($event); cargar()" /></label>
+  <label>{{ 'Vehículo' | t }}
     <select [ngModel]="vehiculoSel()" (ngModelChange)="vehiculoSel.set($event); cargar()">
-      <option value="">Todos</option>
+      <option value="">{{ 'Todos' | t }}</option>
       @for (v of vehiculos(); track v.id) {
         <option [value]="v.id">{{ v.alias || v.placa || '(sin placa)' }}</option>
       }
@@ -37,25 +35,25 @@
 @if (loading()) {
   <app-skeleton variant="list" [rows]="4" />
 } @else if (!filas().length) {
-  <p class="cp-empty">No hay echadas de combustible en este período.</p>
+  <p class="cp-empty">{{ 'No hay echadas de combustible en este período.' | t }}</p>
 } @else {
   <div class="rv-resumen">
-    <span><strong>{{ totales().km | number:'1.0-0' }}</strong> km/horas totales</span>
-    <span><strong>{{ totales().gal | number:'1.1-1' }}</strong> galones totales</span>
+    <span><strong>{{ totales().km | number:'1.0-0' }}</strong> {{ 'km/horas totales' | t }}</span>
+    <span><strong>{{ totales().gal | number:'1.1-1' }}</strong> {{ 'galones totales' | t }}</span>
     @if (totales().promedio !== null) {
-      <span><strong>{{ totales().promedio }}</strong> promedio general (todos los vehículos)</span>
+      <span><strong>{{ totales().promedio }}</strong> {{ 'promedio general (todos los vehículos)' | t }}</span>
     }
   </div>
 
   <div class="rv-table" role="table">
     <div class="rv-row rv-row--head" role="row">
-      <span role="columnheader">Vehículo</span>
-      <span role="columnheader">Rendimiento</span>
-      <span role="columnheader">Confianza</span>
-      <span role="columnheader">Echadas usadas</span>
-      <span role="columnheader">Km/horas</span>
-      <span role="columnheader">Galones</span>
-      <span role="columnheader">Última echada</span>
+      <span role="columnheader">{{ 'Vehículo' | t }}</span>
+      <span role="columnheader">{{ 'Rendimiento' | t }}</span>
+      <span role="columnheader">{{ 'Confianza' | t }}</span>
+      <span role="columnheader">{{ 'Echadas usadas' | t }}</span>
+      <span role="columnheader">{{ 'Km/horas' | t }}</span>
+      <span role="columnheader">{{ 'Galones' | t }}</span>
+      <span role="columnheader">{{ 'Última echada' | t }}</span>
     </div>
     @for (f of filas(); track f.vehiculo_id) {
       <div class="rv-row" role="row">
@@ -64,7 +62,7 @@
           @if (f.rendimiento !== null) {
             {{ f.rendimiento }} {{ f.unidad }}
           } @else {
-            <span class="cp-muted">Sin datos</span>
+            <span class="cp-muted">{{ 'Sin datos' | t }}</span>
           }
         </span>
         <span role="cell">
@@ -72,12 +70,12 @@
             [class.rv-badge--media]="f.confianza === 'media'"
             [class.rv-badge--baja]="f.confianza === 'baja'"
             [class.rv-badge--sin-datos]="f.confianza === 'sin_datos'">
-            {{ confianzaLabel[f.confianza] }}
+            {{ confianzaLabel[f.confianza] | t }}
           </span>
         </span>
-        <span role="cell">{{ f.echadas_usadas }} de {{ f.echadas_total }}
+        <span role="cell">{{ f.echadas_usadas }} {{ 'de' | t }} {{ f.echadas_total }}
           @if (f.echadas_excluidas_dup > 0) {
-            <span class="cp-muted"> ({{ f.echadas_excluidas_dup }} duplicada{{ f.echadas_excluidas_dup !== 1 ? 's' : '' }} excluida{{ f.echadas_excluidas_dup !== 1 ? 's' : '' }})</span>
+            <span class="cp-muted"> ({{ f.echadas_excluidas_dup }} {{ (f.echadas_excluidas_dup !== 1 ? 'duplicadas excluidas' : 'duplicada excluida') | t }})</span>
           }
         </span>
         <span role="cell">{{ f.total_km | number:'1.0-0' }}</span>

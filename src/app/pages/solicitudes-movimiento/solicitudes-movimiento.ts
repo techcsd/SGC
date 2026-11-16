@@ -23,6 +23,8 @@ import { Bodega } from '../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../shared/ui/articulo-picker/articulo-picker';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 /**
  * AY11 — Solicitud de movimiento. El ingeniero solicita mover material/equipo; los
@@ -32,7 +34,7 @@ import { ArticuloPicker, ArticuloPickerSelection } from '../../../shared/ui/arti
  */
 @Component({
   selector: 'app-solicitudes-movimiento',
-  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, ArticuloPicker],
+  imports: [ReactiveFormsModule, DatePipe, FormDrawer, Skeleton, ArticuloPicker, TranslatePipe],
   templateUrl: './solicitudes-movimiento.html',
   styleUrl: './solicitudes-movimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +48,7 @@ export class SolicitudesMovimiento implements OnInit {
   private bodegasSvc = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private datosPruebaView = inject(DatosPruebaViewService);
 
   esReferente = computed(() => this.userService.esReferenteMovimiento());
@@ -169,7 +172,7 @@ export class SolicitudesMovimiento implements OnInit {
     try {
       this.solicitudes.set(await this.svc.listar());
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudieron cargar las solicitudes.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudieron cargar las solicitudes.'));
     } finally {
       this.loading.set(false);
     }
@@ -194,7 +197,7 @@ export class SolicitudesMovimiento implements OnInit {
     const items = this.renglonesValidos();
     if (this.form.invalid || this.saving()) return;
     if (!items.length) {
-      this.toast.error('Agrega al menos un renglón de lo que se va a mover.');
+      this.toast.error(this.i18n.t('Agrega al menos un renglón de lo que se va a mover.'));
       return;
     }
     this.saving.set(true);
@@ -223,11 +226,11 @@ export class SolicitudesMovimiento implements OnInit {
         fecha_requerimiento: v.fecha_requerimiento || null,
         notas: v.notas?.trim() || null,
       });
-      this.toast.success('Solicitud creada', 'El departamento de transporte fue notificado.');
+      this.toast.success(this.i18n.t('Solicitud creada'), 'El departamento de transporte fue notificado.');
       this.crearOpen.set(false);
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo crear la solicitud.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo crear la solicitud.'));
     } finally {
       this.saving.set(false);
     }
@@ -241,13 +244,13 @@ export class SolicitudesMovimiento implements OnInit {
   }
 
   async cancelar(s: SolicitudMovimiento) {
-    if (!confirm(`¿Cancelar la solicitud "${s.que_se_mueve}"?`)) return;
+    if (!confirm(this.i18n.t('¿Cancelar la solicitud "{que}"?', { que: s.que_se_mueve }))) return;
     try {
       await this.svc.cancelar(s.id);
-      this.toast.success('Solicitud cancelada');
+      this.toast.success(this.i18n.t('Solicitud cancelada'));
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo cancelar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo cancelar.'));
     }
   }
 
@@ -255,10 +258,10 @@ export class SolicitudesMovimiento implements OnInit {
   async completar(s: SolicitudMovimiento) {
     try {
       await this.svc.completar(s.id);
-      this.toast.success('Solicitud completada');
+      this.toast.success(this.i18n.t('Solicitud completada'));
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo completar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo completar.'));
     }
   }
 
@@ -288,24 +291,24 @@ export class SolicitudesMovimiento implements OnInit {
   usarChoferSugerido(c: ChoferCercano) {
     const cond = this.conductores().find((x) => x.usuario_id === c.usuario_id);
     if (cond) this.planConductor.set(cond.id);
-    else this.toast.info('Chofer sin ficha', 'Ese usuario no tiene ficha de conductor; elígelo manualmente.');
+    else this.toast.info(this.i18n.t('Chofer sin ficha'), 'Ese usuario no tiene ficha de conductor; elígelo manualmente.');
   }
 
   async guardarPlanificar() {
     const s = this.planActiva();
     if (!s || this.planSaving()) return;
     if (!this.planVehiculo() || !this.planConductor()) {
-      this.toast.error('Faltan datos', 'Elige vehículo y chofer.');
+      this.toast.error(this.i18n.t('Faltan datos'), 'Elige vehículo y chofer.');
       return;
     }
     this.planSaving.set(true);
     try {
       await this.svc.planificarConRuta(s.id, this.planVehiculo()!, this.planConductor()!, this.planFecha() || undefined);
-      this.toast.success('Ruta creada', 'La solicitud quedó planificada y el chofer fue notificado.');
+      this.toast.success(this.i18n.t('Ruta creada'), 'La solicitud quedó planificada y el chofer fue notificado.');
       this.planOpen.set(false);
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo planificar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo planificar.'));
     } finally {
       this.planSaving.set(false);
     }

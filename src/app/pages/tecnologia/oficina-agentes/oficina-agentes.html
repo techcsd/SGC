@@ -12,7 +12,7 @@
     <p class="oficina__cargando">{{ 'Cargando…' | t }}</p>
   } @else {
     <!-- ── Oficina isométrica — SVG propio, 6 estaciones (una por agente) ── -->
-    <div class="oficina__escena" role="img" [attr.aria-label]="'Oficina con ' + agentes().length + ' agentes'">
+    <div class="oficina__escena" role="img" [attr.aria-label]="i18n.t('Oficina con') + ' ' + agentes().length + ' ' + i18n.t('agentes')">
       <svg viewBox="0 0 900 420" class="oficina__svg" aria-hidden="true">
         <!-- piso isométrico: un rombo por fila de 3 escritorios -->
         <polygon points="450,40 820,140 450,240 80,140" class="oficina__piso" />

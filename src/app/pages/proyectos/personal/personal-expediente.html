@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
-    <a routerLink="/proyectos/personal" class="pob-back">← Personal de obra</a>
-    <h1 class="page-title">Expediente</h1>
+    <a routerLink="/proyectos/personal" class="pob-back">{{ '← Personal de obra' | t }}</a>
+    <h1 class="page-title">{{ 'Expediente' | t }}</h1>
   </div>
 </div>
 
@@ -18,31 +18,31 @@
           <h2 class="pob-exp__nom">{{ p.nombre }} {{ p.apellido }}</h2>
           <p class="text-muted">{{ p.cargo?.nombre ?? 'Sin cargo' }}@if (p.cargo) { · {{ p.cargo.codigo }} }</p>
         </div>
-        @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
-        @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+        @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span> }
+        @else { <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span> }
       </div>
       <dl class="pob-exp__dl">
-        <div><dt>Obra</dt><dd>{{ p.proyecto?.nombre ?? '—' }}</dd></div>
-        <div><dt>Nacionalidad</dt><dd>{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</dd></div>
-        <div><dt>Documento</dt><dd>{{ p.documento_numero ?? '—' }} <span class="text-muted">({{ p.tipo_documento }})</span></dd></div>
-        @if (p.cuadrilla) { <div><dt>Cuadrilla</dt><dd>{{ p.cuadrilla }}</dd></div> }
-        <div><dt>Teléfono</dt><dd>{{ p.telefono ?? '—' }}</dd></div>
-        <div><dt>Carnet</dt><dd>{{ p.carnet_numero ?? 'Sin emitir' }}</dd></div>
-        <div><dt>Registrado</dt><dd>{{ formatFecha(p.created_at) }}</dd></div>
+        <div><dt>{{ 'Obra' | t }}</dt><dd>{{ p.proyecto?.nombre ?? '—' }}</dd></div>
+        <div><dt>{{ 'Nacionalidad' | t }}</dt><dd>{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</dd></div>
+        <div><dt>{{ 'Documento' | t }}</dt><dd>{{ p.documento_numero ?? '—' }} <span class="text-muted">({{ p.tipo_documento }})</span></dd></div>
+        @if (p.cuadrilla) { <div><dt>{{ 'Cuadrilla' | t }}</dt><dd>{{ p.cuadrilla }}</dd></div> }
+        <div><dt>{{ 'Teléfono' | t }}</dt><dd>{{ p.telefono ?? '—' }}</dd></div>
+        <div><dt>{{ 'Carnet' | t }}</dt><dd>{{ p.carnet_numero ?? 'Sin emitir' }}</dd></div>
+        <div><dt>{{ 'Registrado' | t }}</dt><dd>{{ formatFecha(p.created_at) }}</dd></div>
       </dl>
 
       <!-- AV4 — Aseguramiento (flag manual + fecha) -->
       <div class="pob-exp__aseg">
         <div class="pob-exp__aseg-head">
-          <span class="pob-exp__aseg-lbl">Aseguramiento</span>
+          <span class="pob-exp__aseg-lbl">{{ 'Aseguramiento' | t }}</span>
           @switch (p.aseguramiento_estado) {
-            @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Asegurado</span> }
-            @case ('no_asegurado') { <span class="sgc-badge sgc-badge--danger">No asegurado</span> }
-            @default { <span class="sgc-badge sgc-badge--neutral">Sin dato</span> }
+            @case ('asegurado') { <span class="sgc-badge sgc-badge--success">{{ 'Asegurado' | t }}</span> }
+            @case ('no_asegurado') { <span class="sgc-badge sgc-badge--danger">{{ 'No asegurado' | t }}</span> }
+            @default { <span class="sgc-badge sgc-badge--neutral">{{ 'Sin dato' | t }}</span> }
           }
           @if (p.aseguramiento_fecha) { <span class="text-muted">· {{ formatFecha(p.aseguramiento_fecha) }}</span> }
           @if (!editandoAseg()) {
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(true)">Editar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(true)">{{ 'Editar' | t }}</button>
           }
         </div>
         @if (editandoAseg()) {
@@ -50,49 +50,49 @@
             <select #asegSel class="sgc-select" [value]="p.aseguramiento_estado ?? 'desconocido'">
               @for (a of aseguramientoEstados; track a.value) { <option [value]="a.value">{{ a.label }}</option> }
             </select>
-            <input #asegFecha type="date" class="sgc-input" [value]="p.aseguramiento_fecha ?? ''" aria-label="Fecha de aseguramiento" />
-            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarAseguramiento(asegSel.value, asegFecha.value)">Guardar</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(false)">Cancelar</button>
+            <input #asegFecha type="date" class="sgc-input" [value]="p.aseguramiento_fecha ?? ''" aria-label="{{ 'Fecha de aseguramiento' | t }}" />
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarAseguramiento(asegSel.value, asegFecha.value)">{{ 'Guardar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(false)">{{ 'Cancelar' | t }}</button>
           </div>
         }
       </div>
 
       @if (p.notas) {
         <div class="pob-exp__obs">
-          <span class="pob-exp__obs-lbl">Observaciones</span>
+          <span class="pob-exp__obs-lbl">{{ 'Observaciones' | t }}</span>
           <p class="pob-exp__notas">{{ p.notas }}</p>
         </div>
       }
       <div class="pob-exp__acciones">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="editar()">Editar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="editar()">{{ 'Editar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="toggleEstado()" [disabled]="saving()">
           {{ p.estado === 'activo' ? 'Marcar inactivo' : 'Reactivar' }}
         </button>
         <!-- CE9 — solo admin: marcar como prueba / eliminar -->
         @if (esAdmin()) {
           <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="togglePrueba()">
-            {{ p.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+            {{ (p.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba') | t }}
           </button>
           <button type="button" class="sgc-btn sgc-btn--ghost pob-exp__danger" (click)="confirmarEliminar.set(true)">
-            Eliminar
+            {{ 'Eliminar' | t }}
           </button>
         }
       </div>
       @if (p.es_prueba) {
-        <p class="pob-exp__prueba-aviso">Este registro está marcado como prueba (no cuenta en KPIs ni listados normales).</p>
+        <p class="pob-exp__prueba-aviso">{{ 'Este registro está marcado como prueba (no cuenta en KPIs ni listados normales).' | t }}</p>
       }
     </section>
 
     <!-- CE9 — confirmación de eliminación escribiendo el nombre (CF3: form-drawer) -->
-    <app-form-drawer title="Eliminar registro" [open]="confirmarEliminar()" (closed)="confirmarEliminar.set(false)">
+    <app-form-drawer title="{{ 'Eliminar registro' | t }}" [open]="confirmarEliminar()" (closed)="confirmarEliminar.set(false)">
       <div class="pob-exp__confirm">
-        <h3>Eliminar a {{ p.nombre }} {{ p.apellido }}</h3>
-        <p class="text-muted">Se mueve a la papelera (recuperable 30 días). Escribe el nombre completo para confirmar.</p>
+        <h3>{{ i18n.t('Eliminar a {nombre} {apellido}', { nombre: p.nombre, apellido: p.apellido ?? '' }) }}</h3>
+        <p class="text-muted">{{ 'Se mueve a la papelera (recuperable 30 días). Escribe el nombre completo para confirmar.' | t }}</p>
         <input type="text" class="sgc-input" placeholder="{{ p.nombre }} {{ p.apellido }}"
                [value]="nombreConfirmacion()" (input)="nombreConfirmacion.set($any($event.target).value)" />
         <div class="pob-docmodal__actions">
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="confirmarEliminar.set(false)">Cancelar</button>
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm pob-exp__danger" [disabled]="saving()" (click)="eliminar()">Eliminar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="confirmarEliminar.set(false)">{{ 'Cancelar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm pob-exp__danger" [disabled]="saving()" (click)="eliminar()">{{ 'Eliminar' | t }}</button>
         </div>
       </div>
     </app-form-drawer>
@@ -100,16 +100,16 @@
     <!-- AX2 — Acceso a la app por cédula (solo capataces) -->
     @if (esCapataz()) {
       <section class="sgc-card pob-exp__acceso">
-        <h3 class="pob-exp__sub">Acceso a la app</h3>
+        <h3 class="pob-exp__sub">{{ 'Acceso a la app' | t }}</h3>
         @if (tieneAcceso()) {
-          <p class="text-muted">Ya tiene acceso: inicia sesión en la app con su cédula ({{ p.documento_numero }}) y su PIN. Puedes restablecer el PIN abajo.</p>
+          <p class="text-muted">{{ i18n.t('Ya tiene acceso: inicia sesión en la app con su cédula ({cedula}) y su PIN. Puedes restablecer el PIN abajo.', { cedula: p.documento_numero ?? '' }) }}</p>
         } @else {
-          <p class="text-muted">Crea el acceso para que el capataz entre a la app con su cédula ({{ p.documento_numero || '— sin cédula' }}) y un PIN de 6 dígitos, igual que los choferes.</p>
+          <p class="text-muted">{{ i18n.t('Crea el acceso para que el capataz entre a la app con su cédula ({cedula}) y un PIN de 6 dígitos, igual que los choferes.', { cedula: p.documento_numero || ('— sin cédula' | t) }) }}</p>
         }
         @if (puedeGestionarAcceso()) {
           <div class="pob-exp__acceso-row">
             <input type="text" inputmode="numeric" maxlength="6" class="sgc-input"
-              placeholder="PIN (6 dígitos)" [value]="accesoPin()"
+              placeholder="{{ 'PIN (6 dígitos)' | t }}" [value]="accesoPin()"
               (input)="accesoPin.set($any($event.target).value)" [disabled]="accesoBusy()" />
             <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearAccesoCapataz()" [disabled]="accesoBusy()">
               {{ accesoBusy() ? 'Guardando…' : (tieneAcceso() ? 'Restablecer PIN' : 'Crear acceso') }}
@@ -118,21 +118,21 @@
           @if (accesoMsg()) { <p class="pob-exp__acceso-ok">{{ accesoMsg() }}</p> }
           @if (accesoError()) { <p class="page-error" role="alert">{{ accesoError() }}</p> }
         } @else {
-          <p class="text-muted">La gestión del PIN de acceso está reservada a Administración y Tecnología.</p>
+          <p class="text-muted">{{ 'La gestión del PIN de acceso está reservada a Administración y Tecnología.' | t }}</p>
         }
       </section>
     }
 
     <!-- Carnet -->
     <section class="sgc-card pob-exp__carnet">
-      <h3 class="pob-exp__sub">Carnet</h3>
+      <h3 class="pob-exp__sub">{{ 'Carnet' | t }}</h3>
       <app-personal-carnet [personal]="p" [fotoDataUrl]="personaDataUrl()" [verifyUrl]="verifyUrl" />
       <div class="pob-exp__carnet-acc">
         @if (!p.carnet_numero) {
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="emitirCarnet()" [disabled]="saving()">Emitir carnet</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="emitirCarnet()" [disabled]="saving()">{{ 'Emitir carnet' | t }}</button>
         } @else {
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimirCarnet()">Imprimir / PDF</button>
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="emitirCarnet()" [disabled]="saving()">Reemitir</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimirCarnet()">{{ 'Imprimir / PDF' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="emitirCarnet()" [disabled]="saving()">{{ 'Reemitir' | t }}</button>
         }
       </div>
     </section>
@@ -140,14 +140,14 @@
 
   <!-- Galería de evidencia -->
   <section class="sgc-card pob-exp__block">
-    <h3 class="pob-exp__sub">Evidencia fotográfica</h3>
+    <h3 class="pob-exp__sub">{{ 'Evidencia fotográfica' | t }}</h3>
     <div class="pob-galeria">
       @for (g of fotosGuia; track g.tipo) {
         <figure class="pob-galeria__item">
           @if (fotos()[g.tipo]; as url) {
             <img [src]="url" [alt]="g.label" (click)="lightboxUrl.set(url)" />
           } @else {
-            <div class="pob-galeria__missing">Sin foto</div>
+            <div class="pob-galeria__missing">{{ 'Sin foto' | t }}</div>
           }
           <figcaption>{{ g.label }}</figcaption>
         </figure>
@@ -157,9 +157,9 @@
 
   <!-- Historial de firmas -->
   <section class="sgc-card pob-exp__block">
-    <h3 class="pob-exp__sub">Documentos firmados</h3>
+    <h3 class="pob-exp__sub">{{ 'Documentos firmados' | t }}</h3>
     @if (!firmas().length) {
-      <p class="text-muted">Sin documentos firmados.</p>
+      <p class="text-muted">{{ 'Sin documentos firmados.' | t }}</p>
     } @else {
       <div class="pob-firmas2">
         @for (f of firmas(); track f.id) {
@@ -169,7 +169,7 @@
               <span class="pob-firmas2__actions">
                 <span class="text-muted">{{ formatFecha(f.firmado_at) }}</span>
                 @if (f.documento_html) {
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verDoc(f)">Ver documento</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verDoc(f)">{{ 'Ver documento' | t }}</button>
                 }
               </span>
             </div>
@@ -183,7 +183,7 @@
                   }
                   <span [class]="estadoLineaClase(l)">{{ estadoLineaTxt(l) }}</span>
                   @if (l.estado === 'pendiente' && l.rol !== 'trabajador' && esLegalOAdmin()) {
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirFirmarLinea(f, l.rol)">Registrar firma</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirFirmarLinea(f, l.rol)">{{ 'Registrar firma' | t }}</button>
                   }
                 </li>
               }
@@ -195,16 +195,16 @@
   </section>
 
   @if (lightboxUrl(); as url) {
-    <app-lightbox [src]="url" alt="Evidencia" (closed)="lightboxUrl.set(null)" />
+    <app-lightbox [src]="url" alt="{{ 'Evidencia' | t }}" (closed)="lightboxUrl.set(null)" />
   }
 
   <!-- AZ1 — documento firmado (snapshot congelado) (CF3: form-drawer compartido) -->
-  <app-form-drawer [title]="docVer()?.documento_nombre ?? 'Documento'" [open]="!!docVer()" [wide]="true" (closed)="docVer.set(null)">
+  <app-form-drawer [title]="docVer()?.documento_nombre ?? i18n.t('Documento')" [open]="!!docVer()" [wide]="true" (closed)="docVer.set(null)">
     @if (docVer(); as f) {
       <div class="pob-docview">
         <div class="pob-docview__actions">
-          <span class="text-muted">Firmado {{ formatFecha(f.firmado_at) }}</span>
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="imprimirDoc()">Imprimir / PDF</button>
+          <span class="text-muted">{{ 'Firmado' | t }} {{ formatFecha(f.firmado_at) }}</span>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="imprimirDoc()">{{ 'Imprimir / PDF' | t }}</button>
         </div>
         <!-- CE8 — el documento ahora se muestra con la(s) firma(s) incrustada(s). -->
         <div class="pob-docview__body" [innerHTML]="docVerHtml()"></div>
@@ -214,50 +214,50 @@
 
   <!-- CF1 — registrar la firma del empleador o de un testigo -->
   <app-form-drawer
-    [title]="firmarCtx() ? 'Firma de ' + rolLabel[firmarCtx()!.rol] : 'Firma'"
+    [title]="firmarCtx() ? i18n.t('Firma de {rol}', { rol: i18n.t(rolLabel[firmarCtx()!.rol]) }) : i18n.t('Firma')"
     [open]="!!firmarCtx()" (closed)="cerrarFirmarLinea()">
     @if (firmarCtx(); as ctx) {
       <div class="pob-firmar">
-        <p class="text-muted">Documento: {{ ctx.firma.documento_nombre }}</p>
+        <p class="text-muted">{{ 'Documento:' | t }} {{ ctx.firma.documento_nombre }}</p>
 
         @if (esTestigo(ctx.rol)) {
           @if (testigosFrecuentes().length) {
             <div class="pob-firmar__frec">
-              <span class="text-muted">Testigos frecuentes:</span>
+              <span class="text-muted">{{ 'Testigos frecuentes:' | t }}</span>
               @for (t of testigosFrecuentes(); track t.cedula) {
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarTestigo(t)">{{ t.nombre }}</button>
               }
             </div>
           }
           <div class="sgc-field">
-            <label>Nombre del testigo</label>
-            <input type="text" class="sgc-input" [value]="firmanteNombre()" (input)="firmanteNombre.set($any($event.target).value)" placeholder="Nombre completo" />
+            <label>{{ 'Nombre del testigo' | t }}</label>
+            <input type="text" class="sgc-input" [value]="firmanteNombre()" (input)="firmanteNombre.set($any($event.target).value)" placeholder="{{ 'Nombre completo' | t }}" />
           </div>
           <div class="sgc-field">
-            <label>Cédula del testigo</label>
+            <label>{{ 'Cédula del testigo' | t }}</label>
             <input type="text" class="sgc-input" [value]="firmanteCedula()" (input)="firmanteCedula.set($any($event.target).value)" placeholder="000-0000000-0" />
           </div>
         }
 
         <div class="pob-firmar__metodo">
-          <label><input type="radio" name="metodo-firma" [checked]="firmarMetodo() === 'pad'" (change)="firmarMetodo.set('pad')" /> Firmar ahora</label>
-          <label><input type="radio" name="metodo-firma" [checked]="firmarMetodo() === 'fisico'" (change)="firmarMetodo.set('fisico')" /> Firmado en papel</label>
+          <label><input type="radio" name="metodo-firma" [checked]="firmarMetodo() === 'pad'" (change)="firmarMetodo.set('pad')" /> {{ 'Firmar ahora' | t }}</label>
+          <label><input type="radio" name="metodo-firma" [checked]="firmarMetodo() === 'fisico'" (change)="firmarMetodo.set('fisico')" /> {{ 'Firmado en papel' | t }}</label>
         </div>
 
         @if (firmarMetodo() === 'pad') {
           <app-signature-pad #linePad ariaLabel="Área de firma" />
         } @else {
           <div class="sgc-field">
-            <label>Foto o PDF de la página firmada</label>
+            <label>{{ 'Foto o PDF de la página firmada' | t }}</label>
             <input type="file" accept="image/*,application/pdf" (change)="onFirmarFile($event)" />
-            <p class="text-muted">La firma quedará registrada como «firmada en físico» con el adjunto.</p>
+            <p class="text-muted">{{ 'La firma quedará registrada como «firmada en físico» con el adjunto.' | t }}</p>
           </div>
         }
 
         @if (firmarError()) { <div class="save-error" role="alert">{{ firmarError() }}</div> }
 
         <div class="drawer-actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarFirmarLinea()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarFirmarLinea()">{{ 'Cancelar' | t }}</button>
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="firmarBusy()" (click)="guardarFirmarLinea()">
             {{ firmarBusy() ? 'Guardando…' : 'Guardar firma' }}
           </button>

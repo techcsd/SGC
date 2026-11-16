@@ -5,6 +5,8 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /**
  * CI4 — Página PÚBLICA (sin login) para solicitar la eliminación de cuenta, para
  * quien ya no tiene acceso a la app. Renderiza eliminar-cuenta.md + un formulario
@@ -12,7 +14,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
  */
 @Component({
   selector: 'app-eliminar-cuenta',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './eliminar-cuenta.html',
   styleUrl: '../politicas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,6 +23,7 @@ export class EliminarCuenta implements OnInit {
   private supabase = inject(SupabaseService);
   private title = inject(Title);
   private metaTag = inject(Meta);
+  protected i18n = inject(I18nService);
 
   html = signal<string>('');
   identificador = signal('');
@@ -30,10 +33,10 @@ export class EliminarCuenta implements OnInit {
   enviado = signal(false);
 
   async ngOnInit() {
-    this.title.setTitle('Eliminar cuenta · Constructora SD');
+    this.title.setTitle(`${this.i18n.t('Eliminar cuenta')} · Constructora SD`);
     this.metaTag.updateTag({
       name: 'description',
-      content: 'Solicita la eliminación de tu cuenta de la CSD App de Constructora SD.',
+      content: this.i18n.t('Solicita la eliminación de tu cuenta de la CSD App de Constructora SD.'),
     });
     try {
       const res = await fetch('assets/politicas/eliminar-cuenta.md', { cache: 'no-cache' });

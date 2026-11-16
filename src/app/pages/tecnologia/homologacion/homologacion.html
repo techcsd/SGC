@@ -1,14 +1,14 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Herramientas homologadas</h1>
-    <span class="page-count">{{ herramientas().length }} herramienta{{ herramientas().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Herramientas homologadas' | t }}</h1>
+    <span class="page-count">{{ herramientas().length }} {{ 'herramienta' | t }}{{ herramientas().length !== 1 ? 's' : '' }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Nueva herramienta
+    {{ 'Nueva herramienta' | t }}
   </button>
 </div>
 
@@ -27,12 +27,12 @@
   <input
     type="search"
     class="sgc-input hom-toolbar__search"
-    placeholder="Buscar herramienta, uso o quién la usa…"
+    placeholder="{{ 'Buscar herramienta, uso o quién la usa…' | t }}"
     [value]="query()"
     (input)="onBuscar($any($event.target).value)"
   />
   <select class="hom-toolbar__filtro" [value]="filtroCategoria()" (change)="onFiltroCategoria($any($event.target).value)">
-    <option value="">Todas las categorías</option>
+    <option value="">{{ 'Todas las categorías' | t }}</option>
     @for (c of categorias(); track c.value) {
       <option [value]="c.value">{{ c.label }}</option>
     }
@@ -45,19 +45,19 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (herramientasFiltradas().length === 0) {
     <div class="table-empty">
-      <p>{{ herramientas().length === 0 ? 'No hay herramientas registradas. Crea la primera.' : 'Nada coincide con ese filtro.' }}</p>
+      <p>{{ (herramientas().length === 0 ? 'No hay herramientas registradas. Crea la primera.' : 'Nada coincide con ese filtro.') | t }}</p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de herramientas homologadas">
+      <table class="data-table" aria-label="{{ 'Lista de herramientas homologadas' | t }}">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Para qué</th>
-            <th>Quién usa</th>
-            <th>Activo</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Nombre' | t }}</th>
+            <th>{{ 'Categoría' | t }}</th>
+            <th>{{ 'Para qué' | t }}</th>
+            <th>{{ 'Quién usa' | t }}</th>
+            <th>{{ 'Activo' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,7 +70,7 @@
               <td class="text-muted cell-clamp">{{ h.para_que ?? '—' }}</td>
               <td class="text-muted cell-clamp">{{ h.quien_usa ?? '—' }}</td>
               <td>
-                <label class="toggle-label toggle-label--inline" [attr.aria-label]="(h.activo ? 'Desactivar' : 'Activar') + ' ' + h.nombre">
+                <label class="toggle-label toggle-label--inline" [attr.aria-label]="i18n.t(h.activo ? 'Desactivar' : 'Activar') + ' ' + h.nombre">
                   <input
                     type="checkbox"
                     class="toggle-input"
@@ -78,7 +78,7 @@
                     (change)="toggleActivo(h)"
                   />
                   <span class="toggle-switch" aria-hidden="true"></span>
-                  <span class="toggle-text">{{ h.activo ? 'Activo' : 'Inactivo' }}</span>
+                  <span class="toggle-text">{{ (h.activo ? 'Activo' : 'Inactivo') | t }}</span>
                 </label>
               </td>
               <td>
@@ -87,8 +87,8 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(h)"
-                    [attr.aria-label]="'Editar ' + h.nombre"
-                    title="Editar"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + h.nombre"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -99,8 +99,8 @@
                     type="button"
                     class="action-btn action-btn--delete"
                     (click)="remove(h)"
-                    [attr.aria-label]="'Eliminar ' + h.nombre"
-                    title="Eliminar"
+                    [attr.aria-label]="i18n.t('Eliminar') + ' ' + h.nombre"
+                    title="{{ 'Eliminar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"/>
@@ -118,72 +118,72 @@
   }
 </div>
 
-<app-confirm-dialog [open]="!!herramientaAEliminar()" title="¿Eliminar herramienta?"
-  [message]="'¿Eliminar «' + (herramientaAEliminar()?.nombre ?? '') + '»? Esta acción no se puede deshacer.'"
-  confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminar()" (cancelled)="cancelarEliminar()" />
+<app-confirm-dialog [open]="!!herramientaAEliminar()" title="{{ '¿Eliminar herramienta?' | t }}"
+  [message]="i18n.t('¿Eliminar «{nombre}»? Esta acción no se puede deshacer.', { nombre: herramientaAEliminar()?.nombre ?? '' })"
+  [confirmLabel]="'Eliminar' | t" tone="danger" (confirmed)="confirmarEliminar()" (cancelled)="cancelarEliminar()" />
 
 <!-- ── Form Drawer ── -->
-<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer [title]="drawerTitle() | t" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
-      <label for="nombre">Nombre <span class="required">*</span></label>
+      <label for="nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
       <input
         id="nombre"
         type="text"
         formControlName="nombre"
-        placeholder="Ej: Google Drive"
+        placeholder="{{ 'Ej: Google Drive' | t }}"
         [class.invalid]="f.nombre.invalid && f.nombre.touched"
       />
       @if (f.nombre.invalid && f.nombre.touched) {
-        <span class="field-error">El nombre es obligatorio.</span>
+        <span class="field-error">{{ 'El nombre es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="categoria">Categoría <span class="required">*</span></label>
+      <label for="categoria">{{ 'Categoría' | t }} <span class="required">*</span></label>
       <select
         id="categoria"
         formControlName="categoria"
         [class.invalid]="f.categoria.invalid && f.categoria.touched"
       >
-        <option [ngValue]="null">Seleccionar categoría…</option>
+        <option [ngValue]="null">{{ 'Seleccionar categoría…' | t }}</option>
         @for (c of categorias(); track c.value) {
           <option [value]="c.value">{{ c.label }}</option>
         }
       </select>
       @if (f.categoria.invalid && f.categoria.touched) {
-        <span class="field-error">La categoría es obligatoria.</span>
+        <span class="field-error">{{ 'La categoría es obligatoria.' | t }}</span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="para_que">Para qué</label>
+      <label for="para_que">{{ 'Para qué' | t }}</label>
       <textarea
         id="para_que"
         formControlName="para_que"
         rows="2"
-        placeholder="Ej: Almacenar y compartir documentos de obra…"
+        placeholder="{{ 'Ej: Almacenar y compartir documentos de obra…' | t }}"
       ></textarea>
     </div>
 
     <div class="sgc-field">
-      <label for="quien_usa">Quién la usa</label>
+      <label for="quien_usa">{{ 'Quién la usa' | t }}</label>
       <textarea
         id="quien_usa"
         formControlName="quien_usa"
         rows="2"
-        placeholder="Ej: Todo el personal administrativo…"
+        placeholder="{{ 'Ej: Todo el personal administrativo…' | t }}"
       ></textarea>
     </div>
 
     <div class="sgc-field">
-      <label for="url">Enlace</label>
+      <label for="url">{{ 'Enlace' | t }}</label>
       <input
         id="url"
         type="url"
         formControlName="url"
-        placeholder="https://…"
+        placeholder="{{ 'https://…' | t }}"
       />
     </div>
 
@@ -191,7 +191,7 @@
       <label class="toggle-label" for="activo">
         <input id="activo" type="checkbox" formControlName="activo" class="toggle-input" />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Herramienta activa
+        {{ 'Herramienta activa' | t }}
       </label>
     </div>
 
@@ -205,13 +205,13 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear herramienta' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear herramienta') | t }}
         }
       </button>
     </div>

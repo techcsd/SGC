@@ -2,14 +2,14 @@
 
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Choferes privados</h1>
-    <span class="page-count">{{ choferes().length }} chofer{{ choferes().length !== 1 ? 'es' : '' }}</span>
+    <h1 class="page-title">{{ 'Choferes privados' | t }}</h1>
+    <span class="page-count">{{ choferes().length }} {{ (choferes().length !== 1 ? 'choferes' : 'chofer') | t }}</span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="abrirAgregar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Agregar chofer privado
+      {{ 'Agregar chofer privado' | t }}
     </button>
   </div>
 </div>
@@ -17,7 +17,7 @@
 @if (cargando()) {
   <app-skeleton variant="list" [rows]="4" />
 } @else if (!choferes().length) {
-  <p class="cp-empty">No hay choferes privados todavía. Usa «Agregar chofer privado» para asignar el rol a un usuario.</p>
+  <p class="cp-empty">{{ 'No hay choferes privados todavía. Usa «Agregar chofer privado» para asignar el rol a un usuario.' | t }}</p>
 } @else {
   <div class="cp-list">
     @for (ch of choferes(); track ch.usuario_id) {
@@ -33,33 +33,33 @@
             </div>
           </div>
           @if (ch.en_uso; as u) {
-            <span class="cp-badge cp-badge--uso" [attr.title]="'En uso desde ' + fmtFecha(u.desde)">
-              En uso: {{ u.placa || (u.marca + ' ' + u.modelo) }}
+            <span class="cp-badge cp-badge--uso" [attr.title]="i18n.t('En uso desde') + ' ' + fmtFecha(u.desde)">
+              {{ 'En uso:' | t }} {{ u.placa || (u.marca + ' ' + u.modelo) }}
             </span>
           } @else {
-            <span class="cp-badge cp-badge--libre">Sin vehículo en uso</span>
+            <span class="cp-badge cp-badge--libre">{{ 'Sin vehículo en uso' | t }}</span>
           }
         </div>
 
         <div class="cp-card__chips">
           @if (!ch.autorizadas.length) {
-            <span class="cp-muted">Sin vehículos autorizados — por eso no puede tomar ninguno.</span>
+            <span class="cp-muted">{{ 'Sin vehículos autorizados — por eso no puede tomar ninguno.' | t }}</span>
           }
           @for (a of ch.autorizadas; track a.autorizacion_id) {
-            <span class="cp-chip" [attr.title]="a.hasta ? ('Hasta ' + fmtFecha(a.hasta)) : 'Sin vencimiento'">
+            <span class="cp-chip" [attr.title]="a.hasta ? (i18n.t('Hasta') + ' ' + fmtFecha(a.hasta)) : i18n.t('Sin vencimiento')">
               {{ a.placa || (a.marca + ' ' + a.modelo) }}
               <button type="button" class="cp-chip__x" (click)="retirar(ch, a.autorizacion_id, a.placa)"
-                      aria-label="Retirar autorización">×</button>
+                      aria-label="{{ 'Retirar autorización' | t }}">×</button>
             </span>
           }
         </div>
 
         <div class="cp-card__foot">
           <span class="cp-muted">
-            @if (ch.ultimo_uso_at) { Último uso: {{ fmtFecha(ch.ultimo_uso_at) }} } @else { Sin usos registrados }
+            @if (ch.ultimo_uso_at) { {{ 'Último uso:' | t }} {{ fmtFecha(ch.ultimo_uso_at) }} } @else { {{ 'Sin usos registrados' | t }} }
           </span>
           <button class="sgc-btn sgc-btn--sm" type="button" (click)="abrirAutorizar(ch)">
-            <app-icon name="plus" [size]="14" /> Autorizar vehículos
+            <app-icon name="plus" [size]="14" /> {{ 'Autorizar vehículos' | t }}
           </button>
         </div>
 
@@ -70,10 +70,10 @@
                    [disabled]="permitiendoTransporte() === ch.usuario_id"
                    (change)="toggleTransporte(ch)" />
             <span class="toggle-switch" aria-hidden="true"></span>
-            También conduces y rutas de empresa (chofer transportista)
+            {{ 'También conduces y rutas de empresa (chofer transportista)' | t }}
           </label>
           @if (ch.tiene_transportista) {
-            <span class="cp-badge cp-badge--transportista">También transportista</span>
+            <span class="cp-badge cp-badge--transportista">{{ 'También transportista' | t }}</span>
           }
         </div>
       </div>
@@ -82,10 +82,10 @@
 }
 
 <!-- Drawer: autorizar vehículos -->
-<app-form-drawer [open]="autOpen()" [title]="'Autorizar vehículos' + (autChofer() ? ' — ' + autChofer()!.nombre : '')"
+<app-form-drawer [open]="autOpen()" [title]="i18n.t('Autorizar vehículos') + (autChofer() ? ' — ' + autChofer()!.nombre : '')"
                  [dirty]="autSeleccion().size > 0" (closed)="autOpen.set(false)">
   <div class="cp-form">
-    <p class="cp-muted">Elige los vehículos que este chofer podrá tomar. La vigencia es opcional.</p>
+    <p class="cp-muted">{{ 'Elige los vehículos que este chofer podrá tomar. La vigencia es opcional.' | t }}</p>
     <div class="cp-veh-list">
       @for (v of vehiculosDisponibles(); track v.id) {
         <label class="cp-veh">
@@ -93,38 +93,38 @@
           <span>{{ v.placa || '(sin placa)' }} · {{ v.marca }} {{ v.modelo }}</span>
         </label>
       } @empty {
-        <p class="cp-muted">No hay vehículos activos disponibles para autorizar.</p>
+        <p class="cp-muted">{{ 'No hay vehículos activos disponibles para autorizar.' | t }}</p>
       }
     </div>
     <div class="cp-dates">
-      <label>Desde <input type="date" [ngModel]="autDesde()" (ngModelChange)="autDesde.set($event)" /></label>
-      <label>Hasta (opcional) <input type="date" [ngModel]="autHasta()" (ngModelChange)="autHasta.set($event)" /></label>
+      <label>{{ 'Desde' | t }} <input type="date" [ngModel]="autDesde()" (ngModelChange)="autDesde.set($event)" /></label>
+      <label>{{ 'Hasta (opcional)' | t }} <input type="date" [ngModel]="autHasta()" (ngModelChange)="autHasta.set($event)" /></label>
     </div>
-    <label class="cp-nota">Nota (opcional)
-      <input type="text" [ngModel]="autNota()" (ngModelChange)="autNota.set($event)" placeholder="Ej: asignación temporal" />
+    <label class="cp-nota">{{ 'Nota (opcional)' | t }}
+      <input type="text" [ngModel]="autNota()" (ngModelChange)="autNota.set($event)" placeholder="{{ 'Ej: asignación temporal' | t }}" />
     </label>
     <div class="cp-actions">
-      <button class="sgc-btn" type="button" (click)="autOpen.set(false)">Cancelar</button>
+      <button class="sgc-btn" type="button" (click)="autOpen.set(false)">{{ 'Cancelar' | t }}</button>
       <button class="sgc-btn sgc-btn--primary" type="button"
               [disabled]="autGuardando() || !autSeleccion().size" (click)="guardarAutorizacion()">
-        {{ autGuardando() ? 'Autorizando…' : 'Autorizar (' + autSeleccion().size + ')' }}
+        {{ (autGuardando() ? 'Autorizando…' : 'Autorizar') | t }} ({{ autSeleccion().size }})
       </button>
     </div>
   </div>
 </app-form-drawer>
 
 <!-- Drawer: agregar chofer privado -->
-<app-form-drawer [open]="addOpen()" [title]="'Agregar chofer privado'"
+<app-form-drawer [open]="addOpen()" [title]="i18n.t('Agregar chofer privado')"
                  [dirty]="!!addUsuario()" (closed)="addOpen.set(false)">
   <div class="cp-form">
-    <p class="cp-muted">Elige un usuario existente. Se le asigna el rol «Chofer privado» (y su ficha de conductor si hace falta). Luego autorízale vehículos.</p>
-    <app-user-picker [value]="addUsuario()?.usuario_id ?? null" placeholder="Busca por nombre o cédula"
+    <p class="cp-muted">{{ 'Elige un usuario existente. Se le asigna el rol «Chofer privado» (y su ficha de conductor si hace falta). Luego autorízale vehículos.' | t }}</p>
+    <app-user-picker [value]="addUsuario()?.usuario_id ?? null" placeholder="{{ 'Busca por nombre o cédula' | t }}"
                      (selected)="addUsuario.set($event)" />
     <div class="cp-actions">
-      <button class="sgc-btn" type="button" (click)="addOpen.set(false)">Cancelar</button>
+      <button class="sgc-btn" type="button" (click)="addOpen.set(false)">{{ 'Cancelar' | t }}</button>
       <button class="sgc-btn sgc-btn--primary" type="button"
               [disabled]="addGuardando() || !addUsuario()?.usuario_id" (click)="guardarAgregar()">
-        {{ addGuardando() ? 'Guardando…' : 'Hacer chofer privado' }}
+        {{ (addGuardando() ? 'Guardando…' : 'Hacer chofer privado') | t }}
       </button>
     </div>
   </div>

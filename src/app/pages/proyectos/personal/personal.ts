@@ -16,6 +16,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 interface PapeleraRow {
   id: string;
@@ -25,6 +26,13 @@ interface PapeleraRow {
   eliminado_por: string | null;
   eliminado_motivo: string | null;
 }
+
+const PENDIENTES_DEFS = [
+  { tipo: 'sin_carnet', label: 'sin carnet' },
+  { tipo: 'sin_asegurar', label: 'sin seguro' },
+  { tipo: 'sin_contrato', label: 'sin contrato' },
+  { tipo: 'sin_foto', label: 'sin foto' },
+] as const;
 
 /** BO6 — normaliza para búsqueda: minúsculas, sin acentos (NFD), espacios colapsados. */
 function norm(s: string | null | undefined): string {
@@ -49,6 +57,7 @@ export class PersonalObraLista implements OnInit {
   private route = inject(ActivatedRoute);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private host = inject(ElementRef<HTMLElement>);
 
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
@@ -188,14 +197,15 @@ export class PersonalObraLista implements OnInit {
     const total = this.totalVisibles();
     return total ? Math.round((this.expedientesCompletos() / total) * 100) : 0;
   });
-  pendientesChips = computed(() =>
-    ([
-      { tipo: 'sin_carnet', label: 'sin carnet', count: this.sinCarnet() },
-      { tipo: 'sin_asegurar', label: 'sin seguro', count: this.sinAsegurar() },
-      { tipo: 'sin_contrato', label: 'sin contrato', count: this.sinContrato() },
-      { tipo: 'sin_foto', label: 'sin foto', count: this.sinFoto() },
-    ] as const).filter((c) => c.count > 0),
-  );
+  pendientesChips = computed(() => {
+    const counts: Record<(typeof PENDIENTES_DEFS)[number]['tipo'], number> = {
+      sin_carnet: this.sinCarnet(),
+      sin_asegurar: this.sinAsegurar(),
+      sin_contrato: this.sinContrato(),
+      sin_foto: this.sinFoto(),
+    };
+    return PENDIENTES_DEFS.map((d) => ({ ...d, count: counts[d.tipo] })).filter((c) => c.count > 0);
+  });
 
   /** CP — tags de la columna "Le falta" (solo lo que falta; vacío = expediente completo). */
   faltantes(p: PersonalObra): string[] {
@@ -273,7 +283,7 @@ export class PersonalObraLista implements OnInit {
       // BB5/AU5(d)/AW1 — nunca el texto técnico crudo al usuario: mensaje humano
       // en pantalla, detalle crudo a telemetría.
       const f = humanizeError(e);
-      if (f.technical) this.telemetry.reportCaught(f.raw, { titulo: 'Cargar personal de obra' });
+      if (f.technical) this.telemetry.reportCaught(f.raw, { contexto: 'Cargar personal de obra' });
       this.error.set(f.mensaje || 'No pudimos cargar el personal — ya fue reportado.');
     } finally {
       this.loading.set(false);
@@ -322,7 +332,7 @@ export class PersonalObraLista implements OnInit {
     try {
       this.duplicados.set(await this.service.duplicados());
     } catch (e: unknown) {
-      this.toast.error('No se pudieron cargar los duplicados', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los duplicados'), e instanceof Error ? e.message : undefined);
     } finally {
       this.dupBusy.set(false);
     }
@@ -333,11 +343,11 @@ export class PersonalObraLista implements OnInit {
     this.dupBusy.set(true);
     try {
       await this.service.fusionar(keep, drop, 'Fusión de duplicados desde la lista');
-      this.toast.success('Registros fusionados', 'Se conservaron las fotos y firmas de ambos.');
+      this.toast.success(this.i18n.t('Registros fusionados'), 'Se conservaron las fotos y firmas de ambos.');
       this.duplicados.set(await this.service.duplicados());
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo fusionar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo fusionar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.dupBusy.set(false);
     }
@@ -349,18 +359,18 @@ export class PersonalObraLista implements OnInit {
     try {
       this.papelera.set((await this.service.papelera()) as PapeleraRow[]);
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar la papelera', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar la papelera'), e instanceof Error ? e.message : undefined);
     }
   }
 
   async restaurar(id: string) {
     try {
       await this.service.restaurar(id);
-      this.toast.success('Registro restaurado');
+      this.toast.success(this.i18n.t('Registro restaurado'));
       this.papelera.set((await this.service.papelera()) as PapeleraRow[]);
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo restaurar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo restaurar'), e instanceof Error ? e.message : undefined);
     }
   }
 

@@ -34,6 +34,7 @@ import { emparejarProyectoSugerido, emparejarItemsPropuestos } from '../../../..
 import type { PropuestaRequisicionIA } from '../../../../shared/utils/formulario-ia.util';
 import { clasificarConfianza, type ClasificacionConfianza } from '../../../../shared/utils/bitacora-ia.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** F2d — un renglón propuesto por voz ya emparejado contra el catálogo, para revisar antes de aceptar. */
 interface RenglonVozPropuesto {
@@ -119,6 +120,7 @@ export class SolicitudesMaterial implements OnInit {
   private bodegasService = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
   private formularioIa = inject(FormularioIaService);
   private privacidadService = inject(PrivacidadService);
 
@@ -264,15 +266,15 @@ export class SolicitudesMaterial implements OnInit {
   async guardarNuevaFecha(s: SolicitudMaterial) {
     if (this.saving()) return;
     const f = this.nuevaFecha();
-    if (!f) { this.toast.warning('Elige una fecha de necesidad'); return; }
+    if (!f) { this.toast.warning(this.i18n.t('Elige una fecha de necesidad')); return; }
     this.saving.set(true);
     try {
       await this.solicitudesService.setFechaNecesidad(s.id, f, this.motivoFecha().trim() || null);
-      this.toast.success('Fecha de necesidad actualizada');
+      this.toast.success(this.i18n.t('Fecha de necesidad actualizada'));
       this.editandoFechaId.set(null);
       await this.loadAll();
     } catch (e) {
-      this.toast.errorFrom(e, 'No se pudo actualizar la fecha');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo actualizar la fecha'));
     } finally {
       this.saving.set(false);
     }
@@ -717,7 +719,7 @@ export class SolicitudesMaterial implements OnInit {
         this.drawerOpen.set(false);
         this.editandoId.set(null);
         this.toast.success(
-          res.reenviada ? 'Requisición corregida y reenviada' : 'Requisición actualizada',
+          this.i18n.t(res.reenviada ? 'Requisición corregida y reenviada' : 'Requisición actualizada'),
           res.reenviada ? 'Volvió a la bandeja de aprobación como nueva versión.' : `Versión v${res.version}.`,
         );
         return;
@@ -746,7 +748,7 @@ export class SolicitudesMaterial implements OnInit {
       if (duplicadaDe) {
         // CT4/CT7 — el servidor detectó que ya existe una igual (mismo solicitante+
         // obra+renglones) en las últimas 24h: no se creó otra, reusa la existente.
-        this.toast.warning('Ya enviaste una igual hace poco', `Se usó la requisición existente ${folio} en vez de crear otra.`);
+        this.toast.warning(this.i18n.t('Ya enviaste una igual hace poco'), `Se usó la requisición existente ${folio} en vez de crear otra.`);
       } else {
         // U25 — registrar los "Otros" (texto libre) para la inteligencia de otros_valores.
         for (const i of items) {
@@ -754,7 +756,7 @@ export class SolicitudesMaterial implements OnInit {
             this.solicitudesService.registrarOtro(i.descripcion, created.id);
           }
         }
-        this.motion.momento('documento', { texto: 'Requisición enviada' });
+        this.motion.momento('documento', { texto: this.i18n.t('Requisición enviada') });
       }
 
       this.solicitudes.update((list) => [created, ...list]);

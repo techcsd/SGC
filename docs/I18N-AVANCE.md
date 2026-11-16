@@ -225,6 +225,607 @@ Lotes 10-14 cerraron las 6 pantallas restantes:
 **Módulo 4 (Inventario) CERRADO: 35/35 pantallas con `enforce:true`.**
 Siguiente módulo en la tabla de lotes: Compras (#5).
 
+## Compras — 100% COMPLETO (8/8 pantallas, 15-nov-2026)
+
+8 pantallas: `gastos`, `productos-por-dar-de-alta`, `reportes`,
+`solicitar-odoo`, `proveedores-odoo`, `proveedores`, `ordenes`,
+`ordenes-odoo`. Lotes 15-19:
+
+- **Lote 15** (`e61f8488`): `gastos` y `productos-por-dar-de-alta` → 100%.
+- **Lote 16** (`5221c3de`): `reportes` y `solicitar-odoo` → 100%.
+- **Lote 17** (`f4c7f771`): `proveedores-odoo` y `proveedores` → 100%.
+- **Lote 18** (`08f2664b`): `ordenes` → 100%. Undécimo fix: `verify-i18n.mjs`
+  compara claves con `.trim()`, pero el lookup en tiempo de ejecución
+  (`I18nService.t()`) hace match exacto sin trim — una clave con espacio
+  intencional (`' (y {n} más)'`, usada para concatenar con espaciado) nunca
+  puede pasar ambos checks a la vez si se guarda con el espacio. Fix: el
+  espacio sale del `t()` y se concatena aparte (`' ' + this.i18n.t('(y {n}
+  más)', {...})`), la clave queda limpia.
+- **Lote 19** (`8eda4b89`): `ordenes-odoo` → 100%, cierra el módulo. Pantalla
+  estructuralmente casi idéntica a `ordenes` (misma tabla de reconciliación
+  de recepción, panel de vincular artículo, historial de entradas) — mismo
+  patrón de fix reutilizado. No tenía `I18nService`/`TranslatePipe`
+  inyectados (quedó fuera del alcance del codemod automático) — se agregó
+  desde cero junto con el envolver de 16 toasts.
+- `public/i18n/en.json` y `ht.json`: pocas claves nuevas por módulo gracias
+  al solapamiento entre `ordenes`/`ordenes-odoo` (comparten casi todo el
+  vocabulario de reconciliación/recepción).
+- `alcance.json`: 8 pantallas nuevas `enforce:true` (total **43**).
+  `verify-i18n.mjs`: 43 pantallas enforce, 0 fallos. Build + 368/368 tests
+  verdes en todo momento.
+
+**Módulo 5 (Compras) CERRADO: 8/8 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Flota (#6).
+
+## Flota — 100% COMPLETO (23/23 pantallas, 15-nov-2026)
+
+El módulo más grande hasta ahora: 23 pantallas (29 archivos `.html` incl.
+sub-rutas `detalle/`, `registrar-entrega/`, `cargar-documentos/`), 2109
+literales totales. Lotes 20-33 (commits `a28cbf05`..`1a82044c`):
+
+- **Lote 20** (`a28cbf05`): codemod masivo
+  (`scripts/i18n-wrap-html.mjs --modulo flota --write`) sobre las 23
+  pantallas: 1377 envueltos, 147 saltados a mano. **Bug encontrado y
+  corregido antes de aceptar el resultado:** el codemod envolvió
+  `"10 || d"` dentro de una condición `@if` numérica sin texto real
+  (`@if (d > 10 || d < -10)` → `@if (d > {{ '10 || d' | t }} < -10)`,
+  NG5002 parser error en `combustible.html`) — mismo patrón de bug que el
+  de `@if (a > b)` ya corregido en el escáner de *medición*, pero esta vez
+  en el codemod de *escritura* (lógica separada). Único caso real en todo
+  el módulo.
+- **Lotes 21-33**: cierre pantalla por pantalla, repartido entre 6 forks
+  secuenciales (nunca en paralelo — el riesgo real es que dos forks
+  escriban a la vez sobre `alcance.json`/`en.json`/`ht.json`/
+  `docs/i18n-coverage.json`, que se regeneran enteros en cada corrida del
+  escáner; una corrida paralela podría perder el enforce-flip o las
+  traducciones de la otra). Cada fork recibió instrucciones explícitas
+  (patrones + gotchas conocidos) y cada resultado se **reverificó
+  independientemente** (`i18n-coverage.mjs` + `verify-i18n.mjs` + build +
+  368 tests) antes de aceptarlo — un fork devolvió progreso real pero
+  incompleto más de una vez (HTML envuelto al 100% pero sin traducir/
+  enforce/commit), terminado a mano siguiendo el mismo patrón.
+- **Gotcha recurrente, el más caro de todo el módulo:** una etiqueta
+  devuelta por un método/getter (`estadoLabel(x)`, `tipoLabel()`,
+  `confianzaTexto()`, `labelLectura()`) mostrada en el template SIN
+  `| t` — ninguno de los dos escáneres lo detecta (solo matchean
+  literales de texto, no expresiones de propiedad/método), así que la
+  pantalla pasa "100%" con un bug real de "siempre en español sin
+  importar el idioma". Apareció en `seguimiento`, `panel-dia`,
+  `rendimiento-vehiculos`, `checklists`, `mantenimientos`,
+  `conciliacion-combustible`, `combustible` (×2), `vehiculos` (×4) — una
+  revisión manual de cada llamada a un helper de etiqueta en el template
+  fue obligatoria en cada pantalla grande.
+- **Gotcha nuevo:** `confirm()`/`alert()` con un literal envuelto NO
+  tiene contraparte "ya cubierto" en el escáner — un template literal con
+  `i18n.t()` anidado dentro de backticks se cuenta como texto crudo sin
+  traducir (el regex captura todo el contenido entre backticks
+  literalmente). Fix: usar el placeholder nombrado de
+  `I18nService.t('texto {ph}', { ph })` como argumento completo de
+  `confirm()`, nunca un template literal con `${}` anidando `i18n.t()`.
+- **Gotcha nuevo:** un carácter `<`/`>` literal dentro de CUALQUIER
+  string traducible (incluso una interpolación `{{ }}` plana, no solo
+  dentro de `@if`/atributos vinculados) rompe la detección de límites de
+  etiqueta del escáner. La entidad `&lt;` tampoco sirve (no se decodifica
+  dentro de un literal JS interpolado — se mostraría literal al
+  usuario). Fix: reformular el texto sin el símbolo, o mover el cálculo a
+  un computed/método de `.ts` que devuelva el string ya formateado.
+  Encontrado en `seguimiento.html` (texto original con `&lt; 2 min`).
+- **Gotcha nuevo:** un `@Input()` de un componente compartido llamado
+  `label` (o similar) puesto como atributo estático plano (`label="texto"`)
+  NUNCA se traduce aunque la clave exista — hay que pasarlo como binding
+  de propiedad (`[label]="'texto' | t"`).
+- **Gotcha nuevo:** `i18n.t('texto {n}', { n: algo() })` donde `algo()`
+  puede devolver `null` (ej. `number | null`) es un error de tipos real de
+  TypeScript (`TS2322`) en build, no un problema de i18n —
+  `I18nService.t()` exige `string | number` para sus placeholders. Fix:
+  `algo() ?? 0` (o el fallback que corresponda). Encontrado en
+  `conductor-detalle.html` (`diasParaVencer()`) y `vehiculos.ts`/
+  `vehiculo-detalle.html` (placas `string | null` en `confirm()`).
+- `public/i18n/en.json`/`ht.json`: crecieron de ~2906/~2037 a **~4200/
+  ~3469** claves (el módulo más grande traducido hasta ahora).
+- `alcance.json`: 23 pantallas nuevas `enforce:true` (total **66**).
+  `verify-i18n.mjs`: 66 pantallas enforce, 0 fallos. Build + 368/368 tests
+  verdes en todo momento.
+
+**Módulo 6 (Flota) CERRADO: 23/23 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Bitácora (#7).
+
+## Bitácora — 100% COMPLETO (11/11 pantallas, 15-nov-2026)
+
+11 pantallas (13 archivos `.html` incl. sub-rutas `orden-trabajo-ficha/`,
+`orden-trabajo-lista/`), 706 literales totales. Lotes 34-39 (commits
+`8255e835`..`665235da`):
+
+- **Lote 34** (`8255e835`): codemod masivo sobre las 11 pantallas: 474
+  envueltos, 46 saltados a mano. Build limpio desde el primer intento —
+  a diferencia de Flota (lote 20), ningún `@if` numérico corrompido; se
+  revisó el diff completo buscando el mismo patrón, nada encontrado.
+- **Lote 35** (`d9da9e1a`): 7 pantallas pequeñas/medianas (dashboard,
+  entregas, moldes, solicitudes-compra, cobertura, mi-proyecto,
+  orden-trabajo) cerradas por un fork en un solo pase, verificado
+  independientemente antes de aceptar. Encontró el mismo patrón de bug
+  de "etiqueta de método sin `| t`" en `cobertura.ts` (`estado()`
+  devuelve `{label, tone}` sin pasar por `t()`) y el de `@Input()`
+  estático nunca traducido (`titulo="texto"` en `app-donut-chart`/
+  `app-bar-chart`, `ariaLabel="texto"` en `app-signature-pad` — ambos
+  necesitan convertirse a binding `[titulo]="'texto' | t"`).
+- **Lotes 36-39** (`6bab6bff`, `7a91af33`, `e6b201e0`, `665235da`):
+  historial, solicitudes-material, cartillas, nueva (la pantalla más
+  grande del módulo) — un segundo fork cerró los primeros 3 en un pase;
+  `nueva` se quedó sin presupuesto del fork justo antes de flipear
+  enforce/verificar/commitear (HTML/TS ya al 100% en el working tree) —
+  terminado a mano.
+- **Gotcha nuevo, encontrado en `nueva`:** un `&nbsp;` original en el
+  texto fuente se había decodificado en algún punto a un carácter
+  U+00A0 (espacio de no separación) real dentro del string de la
+  plantilla, en vez de un espacio normal U+0020. La clave guardada en
+  `en.json`/`ht.json` usaba espacio normal — `verify-i18n.mjs` hace
+  match EXACTO (no normaliza espacios ni caracteres Unicode
+  equivalentes), así que la traducción nunca calzaba aunque el texto
+  pareciera idéntico a simple vista. Mismo principio que el gotcha de
+  `&lt;`/`&gt;` ya documentado: cualquier carácter no-estándar dentro de
+  un string traducible rompe el match exacto en algún punto de la
+  cadena — hay que normalizarlo a su equivalente ASCII/espacio normal
+  en la plantilla, nunca dejarlo como entidad o carácter Unicode
+  "equivalente visualmente".
+- `public/i18n/en.json`/`ht.json`: crecieron de ~4200/~3469 a **~4551/
+  ~3859** claves.
+- `alcance.json`: 11 pantallas nuevas `enforce:true` (total **77**).
+  `verify-i18n.mjs`: 77 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 7 (Bitácora) CERRADO: 11/11 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Transporte/apoyo (#8).
+
+## Transporte/apoyo — 100% COMPLETO (3/3 pantallas, 15-nov-2026)
+
+Módulo pequeño: `apoyo-transporte`, `trabajos-transporte`,
+`solicitudes-movimiento` (175 literales totales). Lote 40 (codemod,
+`405507d3`) + lote 41 (`3b044583`, terminado a mano completo, sin
+fork — módulo lo bastante chico para no justificar el overhead de
+verificación de un fork).
+
+- Mismos gotchas de siempre: etiqueta de método sin `| t`
+  (`tipoLabel(r)` en `trabajos-transporte.ts`, switch que devuelve
+  'Movimiento'/'Retiro'/'Bote'/'Apoyo'/'Conduce'/'Actividad' crudo);
+  catálogo-arreglo correctamente exento en declaración pero nunca
+  envuelto en el display (`c.label` de `COLUMNAS`); espacio final
+  dentro de un string traducible (`'Central — '`) movido fuera del
+  `t()` proactivamente, sin que el escáner lo marcara primero.
+- `confirm()` con interpolación de template literal reescrito con
+  placeholder nombrado (`i18n.t('¿Cancelar la solicitud "{que}"?', {
+  que })`) en vez de `${}` anidando `i18n.t()`.
+- `public/i18n/en.json`/`ht.json`: +97/+100 claves nuevas.
+- `alcance.json`: 3 pantallas nuevas `enforce:true` (total **80**).
+  `verify-i18n.mjs`: 80 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 8 (Transporte/apoyo) CERRADO: 3/3 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Proyectos (#9).
+
+## Proyectos — 100% COMPLETO (10/10 pantallas, 15-nov-2026)
+
+10 pantallas (15 archivos `.html` incl. las 5 de `personal/`), 768
+literales totales. Lotes 42-46 (commits `84212977`..`7873a48a`):
+
+- **Lote 42** (`84212977`): codemod masivo: 499 envueltos, 46 saltados
+  a mano. **Segundo bug del codemod encontrado y corregido** (el
+  primero fue el `@if` numérico de Flota/lote 20): el
+  import-insertion de `asegurarTranslatePipe()` asumía que todo import
+  existente es de 1 línea — insertó el nuevo `import { TranslatePipe }`
+  EN MEDIO de un import multilínea ya existente en
+  `personal-registro.ts` (`import {\n  Cargo, PersonalObra, ...\n}
+  from '...'`), partiéndolo en dos bloques inválidos (38 errores de
+  build en cascada, todo símbolo del import roto reportado como "no
+  encontrado"). **Corregido en el script mismo** (no solo en el
+  archivo): ahora busca el CIERRE real de cada import statement
+  (`... from '...';`, multilínea incluido vía regex no-greedy) en vez
+  de la última línea que empieza con "import", para que no vuelva a
+  pasar en los módulos que faltan.
+- **Lote 43** (`e25fc52b`): `costos` ya estaba al 100% tras el
+  codemod — solo traducir + enforce.
+- **Lote 44-45**: 8 pantallas más (kpi, cargos, cronograma-import,
+  clima, cronograma, historial, compras, lista) cerradas por 2 forks
+  secuenciales, cada uno verificado independientemente antes de
+  aceptar — ambos dejaron 1 pantalla sin terminar al quedarse sin
+  presupuesto (compras al 100% sin commitear; cronograma mid-edición
+  real, confirmado por dos mediciones seguidas con el coverage subiendo).
+- **Lote 46** (`91ed2f9b` + `7873a48a`): `personal` (5 archivos:
+  `personal`, `personal-registro`, `personal-expediente`,
+  `personal-import`, `personal-carnet`) cierra el módulo. El fork se
+  quedó a 98% (4 fragmentos) sin commitear — terminado a mano.
+  - **Gotcha nuevo**: un catálogo-arreglo envuelto en paréntesis y
+    encadenado con `.filter()` dentro del propio `computed()`
+    (`computed(() => ([...] as const).filter(...))`) NO calza con el
+    regex de catálogo-exento del escáner (que solo reconoce `=>`/`=`
+    seguido DIRECTAMENTE de `[`, sin paréntesis de por medio) — los
+    labels se contaban como copy suelto. Fix: refactorizar a un
+    catálogo constante a nivel de módulo + un `computed()` que solo
+    adjunta los valores dinámicos (counts), separando la forma
+    estática del cálculo — mejor código además de calzar con el
+    escáner.
+  - **Hallazgo mayor, fuera del árbol de pantallas**: `verify-i18n.mjs`
+    exigía traducción para labels de catálogo que SÍ estaban
+    correctamente exentas en su declaración — resultó ser que el
+    componente COMPARTIDO `app-filter-select` (usado en Personal,
+    Conductores, Requisiciones, Almacenes y más) **nunca había tenido
+    `TranslatePipe`/`I18nService`**: `{{ o.label }}` (opciones), el
+    placeholder de búsqueda, "Sin opciones" y "Quitar filtro" se
+    mostraban siempre en español sin importar el idioma, en TODAS las
+    pantallas que usan el componente — invisible a ambos escáneres
+    porque viven fuera de `src/app/pages/**` (lo que escanean por
+    pantalla). Corregido en el componente compartido (`filter-select.
+    html`/`.ts`): beneficia TODAS las pantallas que ya lo usan
+    (incluidas las de Flota/Compras/Bitácora ya cerradas) sin tocar
+    ninguna de ellas ni requerir que agreguen nada.
+- `public/i18n/en.json`/`ht.json`: crecieron de ~4651/~3961 a
+  **~5136/~4512** claves.
+- `alcance.json`: 10 pantallas nuevas `enforce:true` (total **90**).
+  `verify-i18n.mjs`: 90 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 9 (Proyectos) CERRADO: 10/10 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: RRHH (#10).
+
+## RRHH — 100% COMPLETO (14/14 pantallas, 15-nov-2026)
+
+14 pantallas, 627 literales totales. Lotes 47-51 (commits
+`96846157`..`657519bf`):
+
+- **Lote 47** (`96846157`): codemod masivo: 469 envueltos, 12
+  saltados a mano. **Tercer bug del codemod encontrado y corregido**
+  (primero: `@if` numérico de Flota/lote 20; segundo: import
+  multilínea de Proyectos/lote 42): `asegurarTranslatePipe()` solo
+  sabía agregar `TranslatePipe` a un `imports: [...]` YA EXISTENTE —
+  si el `@Component` no tenía NINGÚN array `imports` (standalone sin
+  dependencias hasta ahora), el import se agregaba pero el array
+  nunca se creaba, dejando `NG8004` en TODO el archivo. Afectó 3/14
+  pantallas (`contratos`, `evaluaciones`, `nomina`); corregido en el
+  script: si no hay array `imports`, ahora inserta
+  `imports: [TranslatePipe],` justo después de `selector: '...'`.
+- **Lote 48**: `reportes` ya estaba al 100% tras el codemod — solo
+  traducir + enforce.
+- **Lotes 49-50**: 8 pantallas más (organigrama, evaluaciones,
+  asistencia, capacitacion, contratos, proveedores, nomina,
+  candidatos) cerradas por un fork en un solo pase, verificado
+  independientemente antes de aceptar.
+- **Lote 51** (`657519bf`): últimas 5 (ausencias, onboarding,
+  tramites, activos, empleados — la más grande del módulo, 134
+  literales) cerradas por un segundo fork. Se quedó sin presupuesto
+  justo antes de traducir las 76 claves nuevas de `empleados` (HTML/
+  TS ya al 100%, `enforce:true` ya flipeado) — terminado a mano. Dato
+  curioso: 74 de esas 76 claves YA EXISTÍAN en `en.json`/`ht.json` de
+  módulos anteriores (términos genéricos como "Banco"/"Supervisor"/
+  "Correo electrónico" reaparecen en RRHH) — solo 2 eran genuinamente
+  nuevas, confirmando que el solapamiento de vocabulario entre
+  módulos reduce el trabajo de traducción real a medida que avanza el
+  barrido completo de la app.
+- `public/i18n/en.json`/`ht.json`: crecieron de ~5156/~4530 a
+  **~5454/~4835** claves.
+- `alcance.json`: 14 pantallas nuevas `enforce:true` (total **104**).
+  `verify-i18n.mjs`: 104 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 10 (RRHH) CERRADO: 14/14 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Legal (#11).
+
+## Legal — 100% COMPLETO (5/5 pantallas, 15-nov-2026)
+
+5 pantallas (aprobaciones, configuracion, contratos, expedientes,
+firmas-pendientes), 221 literales totales. Lote 52 (codemod,
+`c02a8f21`) + lote 53 (`7e606f94`, terminado a mano completo, sin
+fork — módulo pequeño, mismo criterio que Transporte/apoyo).
+
+- Mismos gotchas de siempre: `estadoLabel()`/`tipoLabel()`/
+  `prioridadLabel()` sin `| t` en `expedientes`/`contratos`;
+  catálogos (`ESTADOS`/`TIPOS`) con `e.label`/`t.label` mostrados sin
+  `| t`; un `computed()` (`drawerTitle`) usado en un binding `[title]`
+  necesitaba `i18n.t()` en construcción, no `| t` (el pipe no aplica
+  dentro de un binding de propiedad).
+- Gotcha evitado proactivamente: `[attr.aria-label]="'Ver ' +
+  c.titulo"` (y `Editar`/`Eliminar`) con espacio final concatenado —
+  reescrito como `i18n.t('Ver') + ' ' + c.titulo` antes de que
+  `verify-i18n.mjs` lo marcara, aplicando el mismo patrón ya conocido
+  de `compras/ordenes`/Transporte-apoyo.
+- `public/i18n/en.json`/`ht.json`: +100/+108 claves nuevas (el lote
+  más grande de traducción nueva desde Flota, por tratarse de
+  vocabulario legal específico sin solapamiento con módulos
+  anteriores).
+- `alcance.json`: 5 pantallas nuevas `enforce:true` (total **109**).
+  `verify-i18n.mjs`: 109 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 11 (Legal) CERRADO: 5/5 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Documentos (#12).
+
+## Documentos — 100% COMPLETO (4/4 pantallas, 15-nov-2026)
+
+4 pantallas (generar, historial, plantillas, ver), 77 literales
+totales. Lote 54 (codemod, `3086c82f`) + lote 55 (`4de5fba8`,
+terminado a mano completo, sin fork — módulo muy pequeño).
+
+- Mismos gotchas de siempre: `estadoRevisionLabel()`/
+  `CATEGORIA_LABELS[c]` (2 sitios) sin `| t`; bindings `[title]` con
+  concatenación ("Ver · ", "Versiones · ") reescritos con `i18n.t()`.
+- **Gotcha nuevo en el ESCÁNER** (no en el código de la app):
+  `@defer`/`@placeholder`/`@loading`/`@error` (bloques de carga
+  diferida de Angular) no estaban en la lista de palabras clave de
+  control-flow que `i18n-coverage.mjs` reconoce como ruido — un
+  `} @placeholder {` aparecía como falso positivo de copy sin
+  traducir. Agregado a la lista junto a
+  `@if`/`@for`/`@else`/`@switch`/`@case`/`@default`/`@empty`/`@let`.
+- `public/i18n/en.json`/`ht.json`: +46/+46 claves nuevas.
+- `alcance.json`: 4 pantallas nuevas `enforce:true` (total **113**).
+  `verify-i18n.mjs`: 113 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 12 (Documentos) CERRADO: 4/4 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Ingeniería (#13).
+
+## Ingeniería — 100% COMPLETO (1/1 pantalla, 15-nov-2026)
+
+Módulo de una sola pantalla: `ingenieria/pagos` (68 literales, ya al
+79% por trabajo previo a este barrido). Lote 56 (`bed92636`): solo
+faltaba inyectar `I18nService` y envolver 11 toasts (título
+solamente, dejando el detalle en español como de costumbre).
+
+- `public/i18n/en.json`/`ht.json`: +9/+50 claves (ht estaba más
+  atrasado en este módulo específicamente).
+- `alcance.json`: 1 pantalla nueva `enforce:true` (total **114**).
+  `verify-i18n.mjs`: 114 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes.
+
+**Módulo 13 (Ingeniería) CERRADO: 1/1 pantalla con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Reuniones/Tareas/Notas/Mensajes (#14).
+
+## Reuniones/Tareas/Notas/Mensajes — 100% COMPLETO (9/9 pantallas, 15-nov-2026)
+
+9 pantallas (mensajes, mensajes/grupo-info, notas, notas/editor,
+reuniones/reunion-ficha, reuniones/reuniones-lista, tareas/gestion,
+tareas/historial, tareas/mis-tareas), 402 literales totales. Lote 57
+(codemod, `b2e99b45`) + lote 58 (`f04be843`, terminado a mano
+completo, sin fork). `reuniones/*` ya traía 82-91% de una ronda
+anterior (CP8); el resto arrancaba en 0%.
+
+- **Cuarto bug del codemod encontrado y corregido** (primero: `@if`
+  numérico de Flota; segundo: import multilínea de Proyectos;
+  tercero: `imports: []` faltante de RRHH): el regex de
+  atributos-visibles usaba `\b(placeholder)="..."` sin excluir el
+  caso en que el atributo real es un `data-*` personalizado — `\b`
+  matchea igual dentro de "data-placeholder" porque el `-` no es
+  carácter de palabra. Envolvió
+  `data-placeholder="Escribe aquí…"` (placeholder de contenteditable
+  vía CSS `content: attr(data-placeholder)`) como `data-placeholder=
+  "{{ '...' | t }}"`, y Angular reescribe CUALQUIER atributo
+  interpolado cuyo nombre (tras quitar "data-") calce con una
+  propiedad DOM conocida como binding de propiedad — NG8002 "Can't
+  bind to 'placeholder' … of 'div'". Corregido en el script con
+  `(?<!-)` antes del `\b`; el sitio real se reescribió con
+  `[attr.data-placeholder]="i18n.t('Escribe aquí…')"` (un binding
+  `[attr.X]` nunca sufre esta reescritura).
+- Mismos gotchas recurrentes: ternarias sin `| t` en templates
+  (`pinned() ? 'Fijada' : 'Fijar'`), catálogos (`CATEGORIA_LABELS`/
+  `e.label`/`t.label`/`p.label`) sin `| t` en varios selects de
+  filtro, bindings `[title]`/`[attr.aria-label]` con concatenación
+  "Ver "/"Editar "/"Quitar admin a " (espacio final) reescritos con
+  `i18n.t()` + concatenación separada.
+- `scripts/i18n-whitelist.json`: `"- [x]"` agregado (ejemplo de
+  sintaxis markdown dentro de un `<code>`, no es prosa).
+- `public/i18n/en.json`/`ht.json`: +168/+264 claves nuevas (el lote
+  de traducción más grande desde Legal — vocabulario de mensajería/
+  notas/reuniones sin solapamiento previo).
+- `alcance.json`: 9 pantallas nuevas `enforce:true` (total **123**).
+  `verify-i18n.mjs`: 123 pantallas enforce, 0 fallos. Build + 368/368
+  tests verdes en todo momento.
+
+**Módulo 14 (Reuniones/Tareas/Notas/Mensajes) CERRADO: 9/9 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Tecnología (#15).
+
+## Tecnología — 100% COMPLETO (20/20 pantallas, 15/16-nov-2026)
+
+20 pantallas (área de herramientas internas de desarrollo), 123 → **143**
+pantallas enforce en total. Lotes 59-61 (commits `180dfc09`..`51da7fdf`) +
+las últimas 5 pantallas (commits `8e14c319`..`318739d5`):
+
+- **Lote 59** (`180dfc09`): codemod masivo sobre las 20 pantallas.
+- **Lote 60** (`af243d76`): 9 pantallas (`whatsapp`, `estadisticas`,
+  `consultas-compa`, `odoo-sync`, `envios-automaticos`, `guia`,
+  `monitoreo` cerradas por un fork + `oficina-agentes`/`apis-consumo`
+  terminadas a mano tras quedarse el fork sin presupuesto).
+- **Lote 61** (`51da7fdf`): 6 pantallas (`matriz`, `resumen-operaciones`,
+  `cotizaciones`, `reportes-errores`, `homologacion` commiteadas por un
+  fork + `qa` terminada a mano).
+- **Últimas 5 pantallas** (`8e14c319`, `aa136d97`, `13fa7e1b`, `816e1e61`,
+  `318739d5` — cierra el módulo): `outbox-atascados`, `dev-notes`,
+  `compras` (comparte clave de cobertura con su subruta
+  `compras/compras-nueva` — ambos archivos se cerraron juntos),
+  `design-system`, `inventario`.
+  - **Gotcha de proceso, no de código:** dos dispatches consecutivos de
+    `subagent_type: "fork"` para este último lote volvieron con **0 usos
+    de herramientas** y una respuesta sin sentido (el fork describía
+    estar "esperando a que termine" otro fork, como si fuera el
+    orquestador y no el trabajador) — consistente con que un fork hereda
+    TODO el contexto de la conversación padre, y esa conversación ya
+    estaba saturada de lenguaje de "despaché un fork, reviso su
+    progreso" de rondas anteriores, haciendo que la instancia recién
+    bifurcada se confundiera de rol. Se resolvió cambiando a un agente
+    SIN herencia de contexto (`subagent_type` omitido / `general-purpose`)
+    con un prompt completamente autocontenido — terminó las 5 pantallas
+    de verdad, cada una verificada+build+tests+commiteada por separado.
+  - Mismos gotchas recurrentes de siempre: etiquetas de método sin
+    `| t` (`estadoLabel`, `getEstadoLabel`, `getCondicionLabel`,
+    `histTipoLabel`, `envioLabel`, `guardadoTexto`, `design-system`'s
+    `group.title`); concatenación con espacio final en
+    `[attr.aria-label]` (`'Editar ' + e.nombre`); `confirm()` con
+    template-literal `${}` reescrito a placeholder nombrado;
+    `@Component` con atributo estático de un `@Input()` compartido
+    (`confirmLabel="Eliminar"`, `heading="..."`) convertido a binding
+    (`[confirmLabel]="'Eliminar' | t"`).
+  - **Gotcha nuevo**: texto con entidades HTML de código de ejemplo
+    (`&amp;lt;app-card&amp;gt;`, `&amp;#64;supports`) en `design-system`
+    rompía el parseo del escáner — reformulado sin el símbolo, mismo
+    principio que el gotcha de `&lt;`/`&gt;` ya documentado.
+  - **Decisión de criterio en `inventario`**: `tipos()`/
+    `comprasOpciones()`/`getTipoLabel()`/`getUbicacionLabel()`/
+    `compraLabel()` quedaron sin traducir a propósito — son catálogos
+    libres administrados desde la BD (datos del negocio, no copy de
+    UI), a diferencia de `estados()`/`condiciones()` que sí mapean a
+    los catálogos fijos `TEC_EQUIPO_ESTADOS`/`TEC_EQUIPO_CONDICIONES`
+    y sí se envolvieron + tradujeron.
+  - Se agregaron ayudantes de pluralización (`{n} solicitud/
+    solicitudes`, `{n} renglón/renglones`, `{n} equipo/equipos`) en vez
+    de la concatenación rota `'s' : ''`.
+- `public/i18n/en.json`: → **6.596** claves. `public/i18n/ht.json`: →
+  **6.361** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+- `verify-i18n.mjs`: **143 pantallas enforce, 0 fallos.** Build + 368/368
+  tests verdes en todo momento (verificado independientemente, no solo
+  reportado por el agente).
+
+**Módulo 15 (Tecnología) CERRADO: 20/20 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Admin (#16).
+
+## Admin — 100% COMPLETO (25/25 pantallas, 16-nov-2026)
+
+25 pantallas (herramientas solo-admin: usuarios, roles, parámetros,
+catálogos, versiones, jira interno). 143 → **167** pantallas enforce en
+total. Lote 62 (codemod, `9deccdab`) + 3 lotes de cierre por pantalla
+(`e8fe9b40`..`d3b254bf`):
+
+- **Lote 62** (`9deccdab`): codemod masivo: 607 envueltos, 35 saltados a
+  mano.
+- **Batch 1** (11 pantallas pequeñas, `e8fe9b40`..`a6515821`):
+  `almacenes-duplicados`, `bitacora-catalogos`, `solicitudes-eliminacion`,
+  `conduces-huerfanos`, `parametros`, `orden-modulos`, `otros-valores`,
+  `unidades`, `importar`, `pulso-sistema`, `auditoria`. `auditoria` tenía
+  1 solo fragmento marcado por el escáner pero **6 llamadas más** a
+  `tablaLabel()`/`accionLabel()`/`adminAccionLabel()` sin `| t` encontradas
+  en revisión manual de plantilla — mismo patrón "etiqueta de método" de
+  siempre, bug real (siempre en español) invisible al escáner. Se encontró
+  también una clave de `confirm()` guardada con SALTOS DE LÍNEA LITERALES
+  en vez del escape `\n` — nunca hubiera calzado en runtime
+  (`verify-i18n.mjs` lo atrapó antes de commitear).
+- **Batch 2** (8 pantallas medianas, `6cc8edfe`..`e0c3aa4b`):
+  `animaciones`, `reportes`, `usuarios-test`, `empresa`,
+  `usuarios-duplicados`, `compa-conversaciones`, `historial-versiones`,
+  `vault`. **Gotcha nuevo**: un `confirm()` con `\n\n` real (newline
+  evaluado por JS) dentro de UN SOLO string traducido nunca calza —
+  el escáner extrae el escape literal de 2 caracteres del código fuente,
+  pero el string evaluado en runtime tiene un salto de línea real. Fix:
+  partir el mensaje en 2 llamadas `i18n.t()` SIN newline, unidas por
+  `'\n\n'` fuera de las partes traducidas.
+- **Batch 3** (las 5 más grandes/complejas, `6590354b`..`d3b254bf`):
+  `jira` (board Kanban interno), `matriz-notificaciones`,
+  `app-versiones` (chips de tipo nuevo/mejora/arreglo/seguridad del
+  historial de versiones — SÍ son copy de UI, se envolvieron; el
+  changelog libre de cada versión queda sin traducir, es contenido
+  autorado por el admin, no copy de UI), `roles` (incluye
+  `role-permisos-editor.html`/`.ts`, que comparte el cupo de cobertura
+  de `admin/roles` por no ser una ruta propia — sus catálogos
+  `PRESETS_CARGO` se tradujeron; el catálogo grande de
+  `MODULOS_DISPONIBLES`/`SUBMODULOS` queda sin traducir a propósito, cae
+  a español por diseño sin afectar el % medido), `usuarios` (cierra el
+  módulo, 67 literales). Mismos gotchas recurrentes de siempre: ternarias
+  sin `| t` (`'Operar'/'Ver'`, `'Encendido'/'Apagado'`,
+  `'Guardando…'/'Guardar'`), etiquetas de método sin `| t` (`tipoLabel`,
+  `getModuloLabel`, `labelSubmodulo`, `tipoConductorLabel`), `confirm()`
+  reescritos con placeholder nombrado, concatenación con espacio final
+  en `[attr.aria-label]`, una entidad `&amp;quot;` en un `title` reescrita
+  con comillas angulares para evitar el gotcha de tag-boundary ya
+  conocido.
+- Los 3 lotes se dispacharon como agentes `general-purpose` SIN contexto
+  heredado (no `subagent_type: "fork"`) — ver la sección de Tecnología
+  arriba para el porqué (forks devolviendo 0 usos de herramienta por
+  contexto de orquestación heredado). Los 3 terminaron de verdad, sin
+  dejar trabajo a medias, cada uno reverificado independientemente
+  (`verify-i18n.mjs` + build + 368 tests) antes de aceptarlo.
+- `public/i18n/en.json`: → **7.321** claves. `public/i18n/ht.json`: →
+  **7.162** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+- `verify-i18n.mjs`: **167 pantallas enforce, 0 fallos.** Build + 368/368
+  tests verdes en todo momento (verificado independientemente, no solo
+  reportado por los agentes).
+
+**Módulo 16 (Admin) CERRADO: 25/25 pantallas con `enforce:true`.**
+Siguiente módulo en la tabla de lotes: Resto (#17).
+
+## Resto — 100% COMPLETO (23/23 pantallas) — BARRIDO COMPLETO DE LA APP (192/192), 16-nov-2026
+
+Último módulo: 28 pantallas que no caían en ningún módulo nombrado (5 ya
+cerradas de antes — `apoyo-transporte`/`solicitudes-movimiento`/
+`trabajos-transporte` del módulo 8, más `demo/escenarios`/`demo/progreso`
+que resultaron estar al 100% sin enforce — ver cierre final abajo). 167 →
+**192** pantallas enforce en total — **TODA pantalla medida por
+`i18n-coverage.mjs` tiene `enforce:true`**. Lote 63 (codemod, `a3cc5a66`)
++ fix de codemod (`dcb7644`) + 3 batches de cierre (`8e461924`..`562b0559`)
++ cierre final de 2 pantallas sueltas (`059814dc`):
+
+- **Quinto bug del codemod, encontrado ANTES de aceptar el resultado**
+  (primero: `@if` numérico de Flota/lote 20; segundo: import multilínea
+  de Proyectos; tercero: `imports: []` faltante de RRHH; cuarto: `data-*`
+  de Reuniones): al correr `i18n-wrap-html.mjs --write` SIN `--modulo`
+  (resto no tiene una carpeta común — abarca `incentivos`, `obra/*`,
+  `auth`, `direccion`, `dudas`, `politicas`, etc.), el codemod reprodujo
+  EXACTO el bug original de Flota lote 20 (`@if (d > 10 || d < -10)` →
+  `@if (d > {{ '10 || d' | t }} < -10)`, NG5002) en el MISMO archivo
+  (`flota/combustible.html`) — resultó que el "fix" documentado en el
+  lote 20 nunca se aplicó al script, solo se corrigió el archivo a mano
+  esa vez. Esta vez sí se corrigió en el script (`dcb7644`): nuevo guard
+  que salta toda la línea si detecta `@if`/`@else if`/`@for`/`@switch`
+  con un `<`/`>` de comparación dentro de la condición. Se revirtió el
+  write completo, se aplicó el fix, y se re-corrió limpio (confirmado:
+  `flota/combustible.html` ya no aparece en la lista de archivos
+  tocados). **Lección: un "corregido" en este documento para el CODEMOD
+  DE ESCRITURA debe verificarse releyendo el script, no solo la nota —
+  la nota puede describir un parche al archivo, no al script.**
+- **Batch 1** (13 pantallas pequeñas, `8e461924`..`a62f5d18`): `forbidden`,
+  `politicas`, `auth/set-password`, `mis-choferes`,
+  `politicas/eliminar-cuenta`, `verificar`, `dudas`, `direccion`,
+  `practica`, `app-movil`, `borrador-claude`, `asistente`,
+  `oauth-consent`. **Gotcha nuevo** (`0e342c5a`): un carácter `©` crudo
+  dentro de una plantilla (contenido visible normal, no un ícono) activó
+  el guard `AW12` de emoji-icono porque `©` cae en la categoría Unicode
+  `Extended_Pictographic` — el guard no distingue "ícono de botón" de
+  "símbolo de copyright en texto". Fix: usar la entidad `&copy;` en vez
+  del carácter crudo, fuera de cualquier string traducido.
+- **Batch 2** (7 pantallas medianas, `4f963ee7`..`4f5bf99c`):
+  `mi-rendimiento`, `auth`, `soporte`, `obra/informes`, `obra/avance`,
+  `obra/checklists`, `obra/plan-dia` — pantallas de bitácora/seguimiento
+  de obra en campo (checklists, avance, plan del día). Mismos gotchas
+  recurrentes de siempre (etiquetas de catálogo sin `| t`, fallback
+  estático sin traducir dentro de un binding `[title]`, agrupación por
+  clave de fallback — `'Sin brigada'` — traducida en el `.ts` antes de
+  llegar a la plantilla).
+- **Batch 3** (las 3 más grandes, cierra el módulo, `eb8e4b35`..`562b0559`):
+  `obra/subcontratistas`, `obra/no-conformidades`, `incentivos` (la
+  pantalla más grande de TODO el barrido completo, 72 literales:
+  catálogos de tier/umbral/estado del programa de incentivos). Una línea
+  de historial que mezclaba varios fragmentos literales alrededor de
+  interpolaciones (`decision`/`decidido_por_nombre`) se colapsó en una
+  sola llamada `i18n.t()` con placeholders en vez de fragmentos sueltos
+  con puntuación suelta sin traducir entre medio.
+- **Cierre final** (`059814dc`): al terminar el batch 3, `verify-i18n.mjs`
+  reportaba 190/192 pantallas enforce — quedaban 2 sueltas
+  (`demo/escenarios`, `demo/progreso`) que YA estaban al 100% de
+  cobertura (wrapeadas por trabajo previo del módulo `practica`/demo)
+  pero nunca se habían flippeado a `enforce:true` ni tenían sus 15 claves
+  en `ht.json`. Se completaron las traducciones faltantes y se activó el
+  guard — con esto, **TODA pantalla que mide `i18n-coverage.mjs` tiene
+  `enforce:true`**, cerrando el barrido completo de la app.
+- `public/i18n/en.json`: → **7.930** claves. `public/i18n/ht.json`: →
+  **7.831** claves. Siguen **sin revisión humana**
+  (`docs/I18N-REVISAR-HT.md`).
+- `verify-i18n.mjs`: **192 pantallas enforce, 0 fallos — TODA la app.**
+  Build + 368/368 tests verdes en todo momento (verificado
+  independientemente, no solo reportado por los agentes).
+
+**Módulo 17 (Resto) CERRADO: 23/23 pantallas con `enforce:true`.**
+**BARRIDO COMPLETO DE LA APP: 192/192 pantallas con `enforce:true`,
+0 fallos. No queda ninguna pantalla sin `enforce:true`.** Trabajo
+realizado en `feature/dq-compras-i18n`; los módulos 5-16 (Compras hasta
+Admin) ya se mergearon a `dev` vía PR #150 — el resto de este trabajo
+(módulo 17) sigue pendiente de mergear.
+
 - `scripts/i18n-wrap-html.mjs --modulo inventario --write` corrido sobre
   TODO el módulo de una vez (28 archivos, +1193 envueltos, 86 saltados).
   **Bug crítico encontrado y corregido ANTES de aceptar el resultado:** una
@@ -258,19 +859,19 @@ Admin, resto.
 | 2 | Configuración/perfil/shell | configuracion, perfil, ajustes-notificaciones | ~55 envueltos | ~15 envueltos | ✅ **100% — hecho** | (ver rama) | **true** |
 | 3 | Dashboard | dashboard | 59 auto + 7 a mano | 1 (label de computed) | ✅ **100% — hecho** | (ver rama) | **true** |
 | 4 | Inventario | 35/35 pantallas 100% (ver detalle arriba) | ~1193 (codemod) + ~350 a mano | ~130 (toasts/confirm/error) | ✅ **100% — hecho** | 46a3c9c5..9e839268 | **true** |
-| 5 | Compras | — | — | — | ⏳ pendiente | — | false |
-| 6 | Flota | — | — | — | ⏳ pendiente | — | false |
-| 7 | Bitácora | — | — | — | ⏳ pendiente | — | false |
-| 8 | Transporte/apoyo | — | — | — | ⏳ pendiente | — | false |
-| 9 | Proyectos | — | — | — | ⏳ pendiente | — | false |
-| 10 | RRHH | — | — | — | ⏳ pendiente | — | false |
-| 11 | Legal | — | — | — | ⏳ pendiente | — | false |
-| 12 | Documentos | — | — | — | ⏳ pendiente | — | false |
-| 13 | Ingeniería | — | — | — | ⏳ pendiente | — | false |
-| 14 | Reuniones/Tareas/Notas/Mensajes | — | — | — | ⏳ pendiente | — | false |
-| 15 | Tecnología | — | — | — | ⏳ pendiente | — | false |
-| 16 | Admin | — | — | — | ⏳ pendiente | — | false |
-| 17 | Resto | — | — | — | ⏳ pendiente | — | false |
+| 5 | Compras | 8/8 pantallas 100% (ver detalle arriba) | ~cablear HTML a mano (sin codemod) | toasts/confirm/error | ✅ **100% — hecho** | e61f8488..8eda4b89 | **true** |
+| 6 | Flota | 23/23 pantallas 100% (ver detalle arriba) | 1377 (codemod) + ~730 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | a28cbf05..1a82044c | **true** |
+| 7 | Bitácora | 11/11 pantallas 100% (ver detalle arriba) | 474 (codemod) + ~230 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 8255e835..665235da | **true** |
+| 8 | Transporte/apoyo | 3/3 pantallas 100% (ver detalle arriba) | 103 (codemod) + ~72 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 405507d3..3b044583 | **true** |
+| 9 | Proyectos | 10/10 pantallas 100% (ver detalle arriba) | 499 (codemod) + ~190 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 84212977..7873a48a | **true** |
+| 10 | RRHH | 14/14 pantallas 100% (ver detalle arriba) | 469 (codemod) + ~160 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 96846157..657519bf | **true** |
+| 11 | Legal | 5/5 pantallas 100% (ver detalle arriba) | 168 (codemod) + ~50 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | c02a8f21..7e606f94 | **true** |
+| 12 | Documentos | 4/4 pantallas 100% (ver detalle arriba) | 51 (codemod) + ~26 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 3086c82f..4de5fba8 | **true** |
+| 13 | Ingeniería | 1/1 pantalla 100% (ver detalle arriba) | ~14 a mano (ya 79% por trabajo previo) | toasts | ✅ **100% — hecho** | bed92636 | **true** |
+| 14 | Reuniones/Tareas/Notas/Mensajes | 9/9 pantallas 100% (ver detalle arriba) | 176 (codemod) + ~120 a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | b2e99b45..f04be843 | **true** |
+| 15 | Tecnología | 20/20 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 180dfc09..318739d5 | **true** |
+| 16 | Admin | 25/25 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho** | 9deccdab..d3b254bf | **true** |
+| 17 | Resto | 23/23 pantallas 100% (ver detalle arriba) | codemod + a mano | toasts/confirm/error + labels sin `\| t` | ✅ **100% — hecho (192/192 TODA la app)** | a3cc5a66..059814dc | **true** |
 
 ## F7 — selector honesto + guardias estrictas (13-nov-2026)
 

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /**
  * CP2/CP3 — "Conversaciones de Compa": vista de admin para revisar lo que la
@@ -44,6 +45,7 @@ interface MensajeAdmin {
 export class AdminCompaConversaciones implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   error = signal('');
@@ -115,7 +117,7 @@ export class AdminCompaConversaciones implements OnInit {
       if (error) throw error;
       this.mensajes.set((data ?? []) as MensajeAdmin[]);
     } catch (e) {
-      this.toast.error('No se pudo abrir', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo abrir'), e instanceof Error ? e.message : undefined);
     } finally {
       this.cargandoDetalle.set(false);
     }
@@ -129,9 +131,9 @@ export class AdminCompaConversaciones implements OnInit {
         p_conversacion_id: sel.conversacion_id, p_mensaje_id: m.mensaje_id, p_mensaje: m.contenido, p_nota: null,
       });
       if (error) throw error;
-      this.toast.success('Guardado', 'Queda en el backlog de casos de prueba para curar en los evals.');
+      this.toast.success(this.i18n.t('Guardado'), 'Queda en el backlog de casos de prueba para curar en los evals.');
     } catch (e) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -144,9 +146,9 @@ export class AdminCompaConversaciones implements OnInit {
         p_conversacion_id: sel.conversacion_id, p_pregunta: m.contenido, p_motivo: motivo,
       });
       if (error) throw error;
-      this.toast.success('Enviado', 'Ya está en Consultas de Compa.');
+      this.toast.success(this.i18n.t('Enviado'), 'Ya está en Consultas de Compa.');
     } catch (e) {
-      this.toast.error('No se pudo enviar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo enviar'), e instanceof Error ? e.message : undefined);
     }
   }
 }

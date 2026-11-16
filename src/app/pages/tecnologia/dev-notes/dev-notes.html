@@ -2,18 +2,18 @@
      lista y el editor a pantalla completa, para que no vuelvan a desfasarse. -->
 <ng-template #listaCompleta>
         <div class="dev-notes__tabs">
-          <button type="button" [class.active]="tab() === 'mias'" (click)="tab.set('mias')">Mis notas</button>
-          <button type="button" [class.active]="tab() === 'compartidas'" (click)="tab.set('compartidas')">Compartidas conmigo</button>
+          <button type="button" [class.active]="tab() === 'mias'" (click)="tab.set('mias')">{{ 'Mis notas' | t }}</button>
+          <button type="button" [class.active]="tab() === 'compartidas'" (click)="tab.set('compartidas')">{{ 'Compartidas conmigo' | t }}</button>
         </div>
 
         <div class="dev-notes__search">
           <app-icon name="search" [size]="15" />
-          <input type="text" placeholder="Buscar en todas…" [value]="query()" (input)="query.set($any($event.target).value)" />
+          <input type="text" placeholder="{{ 'Buscar en todas…' | t }}" [value]="query()" (input)="query.set($any($event.target).value)" />
         </div>
 
         @if (tagsDisponibles().length) {
           <div class="dev-notes__tagbar">
-            <button type="button" class="tag-chip" [class.active]="!tagFiltro()" (click)="tagFiltro.set(null)">Todas</button>
+            <button type="button" class="tag-chip" [class.active]="!tagFiltro()" (click)="tagFiltro.set(null)">{{ 'Todas' | t }}</button>
             @for (t of tagsDisponibles(); track t) {
               <button type="button" class="tag-chip" [class.active]="tagFiltro() === t" (click)="tagFiltro.set(t)">#{{ t }}</button>
             }
@@ -24,17 +24,17 @@
         @if (tab() === 'mias') {
           <div class="dev-notes__grupos-bar">
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCrearGrupo(null)">
-              <app-icon name="plus" [size]="14" /> Nuevo grupo
+              <app-icon name="plus" [size]="14" /> {{ 'Nuevo grupo' | t }}
             </button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [class.active]="agruparPorMes()"
-              (click)="toggleAgruparPorMes()" title="Reagrupa en pantalla lo que no tiene grupo propio">
-              Agrupar por mes y año
+              (click)="toggleAgruparPorMes()" title="{{ 'Reagrupa en pantalla lo que no tiene grupo propio' | t }}">
+              {{ 'Agrupar por mes y año' | t }}
             </button>
           </div>
         }
 
         @if (loading()) {
-          <p class="dev-notes__empty">Cargando…</p>
+          <p class="dev-notes__empty">{{ 'Cargando…' | t }}</p>
         } @else {
           <!-- CV3 — región viva para anunciar el resultado del arrastre a lectores de pantalla. -->
           <span class="sr-only" aria-live="polite">{{ liveRegionMsg() }}</span>
@@ -48,7 +48,7 @@
             }
 
             @if (lista().length === 0 && !grupoEditando()) {
-              <p class="dev-notes__empty">Sin notas todavía. Crea una con “Nueva”.</p>
+              <p class="dev-notes__empty">{{ 'Sin notas todavía. Crea una con “Nueva”.' | t }}</p>
             }
 
             @for (g of agrupada(); track g.label + (g.grupo?.id ?? '')) {
@@ -78,8 +78,8 @@
                     </button>
                     @if (tab() === 'mias') {
                       <div class="dev-notes__grupo-acciones">
-                        <button type="button" title="Nuevo subgrupo" [disabled]="!puedeAgregarSubgrupo(g.grupo!)" (click)="abrirCrearGrupo(g.grupo!.id)"><app-icon name="plus" [size]="13" /></button>
-                        <button type="button" class="dn-menu-trigger" title="Más acciones" aria-haspopup="true"
+                        <button type="button" title="{{ 'Nuevo subgrupo' | t }}" [disabled]="!puedeAgregarSubgrupo(g.grupo!)" (click)="abrirCrearGrupo(g.grupo!.id)"><app-icon name="plus" [size]="13" /></button>
+                        <button type="button" class="dn-menu-trigger" title="{{ 'Más acciones' | t }}" aria-haspopup="true"
                           [attr.data-menu-grupo]="g.grupo!.id"
                           [attr.aria-expanded]="menuGrupoAbierto() === g.grupo!.id" (click)="toggleMenuGrupo(g.grupo!.id, $event)">
                           <app-icon name="more-horizontal" [size]="14" />
@@ -87,15 +87,15 @@
                       </div>
                       @if (menuGrupoAbierto() === g.grupo!.id) {
                         <div class="dn-menu dn-menu--grupo" role="menu">
-                          <button type="button" role="menuitem" [disabled]="!puedeAgregarSubgrupo(g.grupo!)" (click)="abrirCrearGrupo(g.grupo!.id); menuGrupoAbierto.set(null)">Nuevo subgrupo</button>
-                          <button type="button" role="menuitem" (click)="abrirRenombrarGrupo(g.grupo!)">Renombrar</button>
+                          <button type="button" role="menuitem" [disabled]="!puedeAgregarSubgrupo(g.grupo!)" (click)="abrirCrearGrupo(g.grupo!.id); menuGrupoAbierto.set(null)">{{ 'Nuevo subgrupo' | t }}</button>
+                          <button type="button" role="menuitem" (click)="abrirRenombrarGrupo(g.grupo!)">{{ 'Renombrar' | t }}</button>
                           <span class="dn-menu__sep"></span>
-                          <span class="dn-menu__label">Mover a…</span>
+                          <span class="dn-menu__label">{{ 'Mover a…' | t }}</span>
                           @for (o of opcionesMoverGrupoValidas(g.grupo!); track o.id) {
                             <button type="button" role="menuitem" (click)="moverGrupoDesdeMenu(g.grupo!, o.id)">{{ o.label }}</button>
                           }
                           <span class="dn-menu__sep"></span>
-                          <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarGrupo(g.grupo!)">Eliminar</button>
+                          <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarGrupo(g.grupo!)">{{ 'Eliminar' | t }}</button>
                         </div>
                       }
                     }
@@ -138,7 +138,7 @@
                       </span>
                     </button>
                     @if (tab() === 'mias') {
-                      <button type="button" class="dn-menu-trigger note-card__menu-btn" title="Más acciones" aria-haspopup="true"
+                      <button type="button" class="dn-menu-trigger note-card__menu-btn" title="{{ 'Más acciones' | t }}" aria-haspopup="true"
                         [attr.data-menu-nota]="n.id"
                         [attr.aria-expanded]="menuNotaAbierto() === n.id" (click)="toggleMenuNota(n.id, $event)">
                         <app-icon name="more-horizontal" [size]="14" />
@@ -147,7 +147,7 @@
                     @if (menuNotaAbierto() === n.id) {
                       @if (submenuMoverA() === n.id) {
                         <div class="dn-menu dn-menu--nota" role="menu">
-                          <span class="dn-menu__label">Mover a…</span>
+                          <span class="dn-menu__label">{{ 'Mover a…' | t }}</span>
                           @for (o of opcionesMoverA(); track o.id) {
                             @if (o.id !== (n.grupo_id ?? '')) {
                               <button type="button" role="menuitem" (click)="moverNotaDesdeMenu(n, o.id); cerrarMenus()">{{ o.label }}</button>
@@ -156,9 +156,9 @@
                         </div>
                       } @else {
                         <div class="dn-menu dn-menu--nota" role="menu">
-                          <button type="button" role="menuitem" (click)="abrirSubmenuMoverA(n.id)">Mover a…</button>
-                          <button type="button" role="menuitem" (click)="toggleFijarDesdeMenu(n)">{{ n.pinned ? 'Quitar de fijadas' : 'Fijar' }}</button>
-                          <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarNotaDesdeMenu(n)">Eliminar</button>
+                          <button type="button" role="menuitem" (click)="abrirSubmenuMoverA(n.id)">{{ 'Mover a…' | t }}</button>
+                          <button type="button" role="menuitem" (click)="toggleFijarDesdeMenu(n)">{{ (n.pinned ? 'Quitar de fijadas' : 'Fijar') | t }}</button>
+                          <button type="button" role="menuitem" class="dn-menu__danger" (click)="pedirEliminarNotaDesdeMenu(n)">{{ 'Eliminar' | t }}</button>
                         </div>
                       }
                     }
@@ -169,7 +169,7 @@
                     [class.dn-dropzone-vacia--hover]="destinoHover() === g.grupo!.id"
                     (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter(g.grupo!.id, $event)"
                     (dragleave)="onZoneDragLeave(g.grupo!.id)" (drop)="onZoneDrop(g.grupo!.id, $event)">
-                    Arrastra notas aquí para guardarlas en este grupo
+                    {{ 'Arrastra notas aquí para guardarlas en este grupo' | t }}
                   </div>
                 }
               }
@@ -181,13 +181,13 @@
                 <div class="dn-dropzone dn-dropzone--neutra" [class.dn-dropzone--hover]="destinoHover() === 'sin-grupo'"
                   (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter('sin-grupo', $event)"
                   (dragleave)="onZoneDragLeave('sin-grupo')" (drop)="onZoneDrop('sin-grupo', $event)">
-                  Soltar aquí para dejarla sin grupo
+                  {{ 'Soltar aquí para dejarla sin grupo' | t }}
                 </div>
                 @if (d.tipo === 'nota') {
                   <div class="dn-dropzone dn-dropzone--nueva" [class.dn-dropzone--hover]="destinoHover() === 'nuevo-grupo'"
                     (dragover)="onZoneDragOver($event)" (dragenter)="onZoneDragEnter('nuevo-grupo', $event)"
                     (dragleave)="onZoneDragLeave('nuevo-grupo')" (drop)="onZoneDrop('nuevo-grupo', $event)">
-                    Soltar aquí para crear un grupo nuevo con esta nota
+                    {{ 'Soltar aquí para crear un grupo nuevo con esta nota' | t }}
                   </div>
                 }
               </div>
@@ -203,16 +203,16 @@
       <app-icon name="folder" [size]="16" />
       <input type="text" [value]="ed.valor" (input)="onGrupoEditandoInput($any($event.target).value)"
         (keydown)="onGrupoEditandoKeydown($event)" (blur)="onGrupoEditandoBlur()"
-        aria-label="Nombre del grupo" placeholder="Nombre del grupo" maxlength="60" />
+        aria-label="{{ 'Nombre del grupo' | t }}" placeholder="{{ 'Nombre del grupo' | t }}" maxlength="60" />
     </div>
     @if (ed.error) {
       <span class="field-error">{{ ed.error }}</span>
     } @else {
       <div class="dn-grupo-edit__foot">
-        <span class="dn-grupo-edit__hint">Enter para crear · Esc para cancelar</span>
+        <span class="dn-grupo-edit__hint">{{ 'Enter para crear · Esc para cancelar' | t }}</span>
         <div class="dn-grupo-edit__btns">
-          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="cancelarGrupoEditando()">Cancelar</button>
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ ed.modo === 'crear' ? 'Crear' : 'Guardar' }}</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="cancelarGrupoEditando()">{{ 'Cancelar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!ed.valor.trim()" (click)="confirmarGrupoEditando()">{{ (ed.modo === 'crear' ? 'Crear' : 'Guardar') | t }}</button>
         </div>
       </div>
     }
@@ -222,15 +222,15 @@
 @if (!activa()) {
   <div class="dev-notes">
     <header class="dev-notes__head">
-      <h1><app-icon name="code" [size]="20" /> Dev notes</h1>
+      <h1><app-icon name="code" [size]="20" /> {{ 'Dev notes' | t }}</h1>
       <div class="dev-notes__head-actions">
-        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="Importar .md/.txt">
-          <app-icon name="upload" [size]="16" /> Importar
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" title="{{ 'Importar .md/.txt' | t }}">
+          <app-icon name="upload" [size]="16" /> {{ 'Importar' | t }}
           <input type="file" accept=".md,.txt,text/markdown,text/plain" hidden
             (change)="importarMd($any($event.target))" />
         </label>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="nueva()">
-          <app-icon name="plus" [size]="16" /> Nueva <span class="dev-notes__kbd">Ctrl+N</span>
+          <app-icon name="plus" [size]="16" /> {{ 'Nueva' | t }} <span class="dev-notes__kbd">{{ 'Ctrl+N' | t }}</span>
         </button>
       </div>
     </header>
@@ -242,18 +242,18 @@
       </aside>
 
       <!-- CV2/CV3 — confirmaciones (reemplazan confirm() nativo). -->
-      <app-confirm-dialog [open]="!!grupoAEliminar()" title="¿Eliminar grupo?"
-        [message]="'¿Eliminar el grupo «' + (grupoAEliminar()?.nombre ?? '') + '»? Sus subgrupos y notas suben al nivel de arriba.'"
-        confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminarGrupo()" (cancelled)="cancelarEliminarGrupo()" />
-      <app-confirm-dialog [open]="!!notaAEliminar()" title="¿Eliminar nota?"
-        [message]="'¿Eliminar «' + (notaAEliminar()?.titulo || '(sin título)') + '»? No se puede deshacer.'"
-        confirmLabel="Eliminar" tone="danger" (confirmed)="confirmarEliminarNotaDesdeMenu()" (cancelled)="cancelarEliminarNota()" />
+      <app-confirm-dialog [open]="!!grupoAEliminar()" title="{{ '¿Eliminar grupo?' | t }}"
+        [message]="i18n.t('¿Eliminar el grupo «{nombre}»? Sus subgrupos y notas suben al nivel de arriba.', { nombre: grupoAEliminar()?.nombre ?? '' })"
+        [confirmLabel]="'Eliminar' | t" tone="danger" (confirmed)="confirmarEliminarGrupo()" (cancelled)="cancelarEliminarGrupo()" />
+      <app-confirm-dialog [open]="!!notaAEliminar()" title="{{ '¿Eliminar nota?' | t }}"
+        [message]="i18n.t('¿Eliminar «{titulo}»? No se puede deshacer.', { titulo: notaAEliminar()?.titulo || i18n.t('(sin título)') })"
+        [confirmLabel]="'Eliminar' | t" tone="danger" (confirmed)="confirmarEliminarNotaDesdeMenu()" (cancelled)="cancelarEliminarNota()" />
 
       <!-- Placeholder (sin nota abierta) -->
       <section class="dev-notes__editor">
         <div class="dev-notes__placeholder">
           <app-icon name="file-text" [size]="32" />
-          <p>Selecciona una nota o crea una nueva.</p>
+          <p>{{ 'Selecciona una nota o crea una nueva.' | t }}</p>
         </div>
       </section>
     </div>
@@ -263,28 +263,28 @@
   <div class="dn-shell" [class.dn-shell--lista-plegada]="listaPlegada()">
     <!-- DG7 — confirmación antes de quitar una imagen (botón, atajo, Supr/Retroceso con selección). -->
     <app-confirm-dialog [open]="!!imagenAQuitar()" [title]="'¿Quitar esta imagen de la nota?' | t"
-      confirmLabel="Quitar" tone="danger" (confirmed)="onImagenAQuitarConfirmada()" (cancelled)="onImagenAQuitarCancelada()" />
+      [confirmLabel]="'Quitar' | t" tone="danger" (confirmed)="onImagenAQuitarConfirmada()" (cancelled)="onImagenAQuitarCancelada()" />
     <aside class="dn-list" [class.dn-list--plegada]="listaPlegada()">
       <div class="dn-list__top">
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm dn-list__nueva" (click)="nueva()">
-          <app-icon name="plus" [size]="15" /> Nota nueva <span class="dev-notes__kbd">Ctrl+N</span>
+          <app-icon name="plus" [size]="15" /> {{ 'Nota nueva' | t }} <span class="dev-notes__kbd">{{ 'Ctrl+N' | t }}</span>
         </button>
       </div>
 
       <!-- CW3 — misma barra que la vista de lista: Sin grupo, menú ⋯, renombrar, Deshacer. -->
       <ng-container [ngTemplateOutlet]="listaCompleta" />
 
-      <span class="dn-list__hint">Ocultar lista: Ctrl+\</span>
+      <span class="dn-list__hint">{{ 'Ocultar lista: Ctrl+\' | t }}</span>
     </aside>
 
     <button type="button" class="dn-list-toggle" (click)="toggleListaPlegada()"
-      [attr.aria-label]="listaPlegada() ? 'Mostrar lista' : 'Ocultar lista'" [attr.title]="listaPlegada() ? 'Mostrar lista' : 'Ocultar lista'">
+      [attr.aria-label]="listaPlegada() ? i18n.t('Mostrar lista') : i18n.t('Ocultar lista')" [attr.title]="listaPlegada() ? i18n.t('Mostrar lista') : i18n.t('Ocultar lista')">
       <app-icon [name]="listaPlegada() ? 'chevron-right' : 'chevron-left'" [size]="14" />
     </button>
 
     <section class="dn-editor">
       <div class="dn-editor__head">
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarEditor()" title="Cerrar nota" aria-label="Cerrar nota">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarEditor()" title="{{ 'Cerrar nota' | t }}" aria-label="{{ 'Cerrar nota' | t }}">
           <app-icon name="arrow-left" [size]="16" />
         </button>
         <span class="dn-editor__guardado" [class.dn-editor__guardado--error]="!!errorGuardado()">
@@ -324,48 +324,48 @@
           </label>
         }
         @if (!soloLectura()) {
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="togglePin()" title="Fijar">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="togglePin()" title="{{ 'Fijar' | t }}">
             <app-icon name="star" [size]="16" />
           </button>
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleModoSimple()">
-            {{ modoSimple() ? 'Con formato' : 'Texto simple' }}
+            {{ (modoSimple() ? 'Con formato' : 'Texto simple') | t }}
           </button>
         }
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ciclarAncho()">
-          Ancho: {{ ancho() === 'completo' ? 'completo' : 'cómodo' }}
+          {{ 'Ancho:' | t }} {{ (ancho() === 'completo' ? 'completo' : 'cómodo') | t }}
         </button>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mandarARonda()" title="Copiar como texto plano para pegar en la ronda">
-          Mandar a ronda
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mandarARonda()" title="{{ 'Copiar como texto plano para pegar en la ronda' | t }}">
+          {{ 'Mandar a ronda' | t }}
         </button>
         @if (!soloLectura()) {
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="insertarPlantilla()" title="Plantilla HANDOFF">HANDOFF</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="insertarPlantilla()" title="{{ 'Plantilla HANDOFF' | t }}">{{ 'HANDOFF' | t }}</button>
           @if (puedeCompartir()) {
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="moverANotas()" [disabled]="guardando()" title="Mover a Notas (ámbito general)">
-              Mover a Notas
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="moverANotas()" [disabled]="guardando()" title="{{ 'Mover a Notas (ámbito general)' | t }}">
+              {{ 'Mover a Notas' | t }}
             </button>
           }
         }
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarMd()" title="Exportar .md">
-          <app-icon name="download" [size]="16" /> .md
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarMd()" title="{{ 'Exportar .md' | t }}">
+          <app-icon name="download" [size]="16" /> {{ '.md' | t }}
         </button>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarTxt()" title="Exportar .txt">
-          <app-icon name="download" [size]="16" /> .txt
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarTxt()" title="{{ 'Exportar .txt' | t }}">
+          <app-icon name="download" [size]="16" /> {{ '.txt' | t }}
         </button>
         @if (!soloLectura()) {
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardar()" [disabled]="guardando()">Guardar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardar()" [disabled]="guardando()">{{ 'Guardar' | t }}</button>
         }
       </div>
 
       <div class="dn-editor__canvas" [class.dn-editor__canvas--comodo]="ancho() === 'comodo'">
-        <input class="dn-titulo" type="text" placeholder="Título" [value]="titulo()"
+        <input class="dn-titulo" type="text" placeholder="{{ 'Título' | t }}" [value]="titulo()"
           [disabled]="soloLectura()" (input)="titulo.set($any($event.target).value)" />
 
         @if (!soloLectura()) {
           <div class="dev-notes__tags-edit">
             @for (t of tags(); track t) {
-              <span class="tag-chip">#{{ t }} <button type="button" (click)="quitarTag(t)" aria-label="Quitar">×</button></span>
+              <span class="tag-chip">#{{ t }} <button type="button" (click)="quitarTag(t)" aria-label="{{ 'Quitar' | t }}">×</button></span>
             }
-            <input type="text" placeholder="+ etiqueta" [value]="nuevoTag()"
+            <input type="text" placeholder="{{ '+ etiqueta' | t }}" [value]="nuevoTag()"
               (input)="nuevoTag.set($any($event.target).value)"
               (keydown.enter)="addTag(); $event.preventDefault()" />
           </div>
@@ -383,19 +383,19 @@
              nota visible solo para Tecnología, aunque se comparta. -->
         @if (puedeCompartir()) {
           <section class="dev-notes__share">
-            <h3><app-icon name="users" [size]="16" /> Compartir con…</h3>
+            <h3><app-icon name="users" [size]="16" /> {{ 'Compartir con…' | t }}</h3>
             <div class="dev-notes__share-add">
               <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
-                <option [value]="''">Elige una persona…</option>
+                <option [value]="''">{{ 'Elige una persona…' | t }}</option>
                 @for (u of directorio(); track u.id) {
                   <option [value]="u.id">{{ u.nombre }}</option>
                 }
               </select>
-              <div class="dev-notes__seg" role="group" aria-label="Permiso al compartir">
-                <button type="button" [class.active]="compartirPermiso() === 'ver'" (click)="compartirPermiso.set('ver')">Solo ver</button>
-                <button type="button" [class.active]="compartirPermiso() === 'editar'" (click)="compartirPermiso.set('editar')">Editar</button>
+              <div class="dev-notes__seg" role="group" aria-label="{{ 'Permiso al compartir' | t }}">
+                <button type="button" [class.active]="compartirPermiso() === 'ver'" (click)="compartirPermiso.set('ver')">{{ 'Solo ver' | t }}</button>
+                <button type="button" [class.active]="compartirPermiso() === 'editar'" (click)="compartirPermiso.set('editar')">{{ 'Editar' | t }}</button>
               </div>
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="agregarCompartido()" [disabled]="!compartirUsuario()">Compartir</button>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="agregarCompartido()" [disabled]="!compartirUsuario()">{{ 'Compartir' | t }}</button>
             </div>
 
             @if (compartidos().length) {
@@ -403,14 +403,14 @@
                 @for (c of compartidos(); track c.id) {
                   <li>
                     <span class="dev-notes__share-who">
-                      <span>{{ c.nombre ?? 'Usuario' }}</span>
+                      <span>{{ (c.nombre ?? 'Usuario') | t }}</span>
                       @if (c.rol || c.email) { <small>{{ c.rol || c.email }}</small> }
                     </span>
                     <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
-                      <option value="ver">Puede ver</option>
-                      <option value="editar">Puede editar</option>
+                      <option value="ver">{{ 'Puede ver' | t }}</option>
+                      <option value="editar">{{ 'Puede editar' | t }}</option>
                     </select>
-                    <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso"><app-icon name="x" [size]="14" /></button>
+                    <button type="button" (click)="quitarCompartido(c)" aria-label="{{ 'Quitar acceso' | t }}"><app-icon name="x" [size]="14" /></button>
                   </li>
                 }
               </ul>
@@ -453,16 +453,16 @@
         @if (!soloLectura()) {
           <div class="dev-notes__editor-foot">
             <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="eliminar()">
-              <app-icon name="trash" [size]="16" /> Eliminar
+              <app-icon name="trash" [size]="16" /> {{ 'Eliminar' | t }}
             </button>
           </div>
         }
       </div>
 
       <div class="dn-editor__status">
-        <span>{{ palabras() }} palabras</span>
+        <span>{{ palabras() }} {{ 'palabras' | t }}</span>
         <span class="dn-editor__status-sep">·</span>
-        <span>Markdown: **negrita**, # título, - lista funcionan al escribir</span>
+        <span>{{ 'Markdown: **negrita**, # título, - lista funcionan al escribir' | t }}</span>
       </div>
     </section>
   </div>

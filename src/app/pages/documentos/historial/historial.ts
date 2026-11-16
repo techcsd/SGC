@@ -6,15 +6,18 @@ import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/u
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 @Component({
   selector: 'app-documentos-historial',
-  imports: [RouterLink, Skeleton, StaggerDirective],
+  imports: [RouterLink, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Historial implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
+  protected i18n = inject(I18nService);
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
   formatFecha = formatFechaDisplay;

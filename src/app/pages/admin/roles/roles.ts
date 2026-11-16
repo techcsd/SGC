@@ -30,6 +30,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { RolePermisosEditor } from './role-permisos-editor';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 /** Fila de la vista "accesos efectivos" ya resuelta a etiquetas legibles. */
 interface AccesoModuloVista {
   key: string;
@@ -56,7 +58,7 @@ interface DiffPermisos {
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, FormDrawer, Skeleton, Paginator, RolePermisosEditor],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, FormDrawer, Skeleton, Paginator, RolePermisosEditor, TranslatePipe],
   templateUrl: './roles.html',
   styleUrl: './roles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +68,7 @@ export class AdminRoles implements OnInit {
   private adminService = inject(AdminService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  protected i18n = inject(I18nService);
 
   // ── Data ─────────────────────────────────────────────────
   roles = signal<Rol[]>([]);
@@ -148,7 +151,7 @@ export class AdminRoles implements OnInit {
   // ── Computed ─────────────────────────────────────────────
   drawerTitle = computed(() => {
     const r = this.editingRol();
-    return r ? `Editar rol: ${r.nombre}` : 'Editar rol';
+    return r ? this.i18n.t('Editar rol: {nombre}', { nombre: r.nombre }) : this.i18n.t('Editar rol');
   });
 
   async ngOnInit() {
@@ -172,7 +175,7 @@ export class AdminRoles implements OnInit {
       const data = await this.rolesService.getAll();
       this.roles.set(data);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar roles.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar roles.'));
     } finally {
       this.loading.set(false);
     }
@@ -218,7 +221,7 @@ export class AdminRoles implements OnInit {
     if (this.createForm.invalid || this.creating()) return;
 
     if (this.createSelectedModulos().length === 0 && Object.keys(this.createSelectedPermisos()).length === 0) {
-      this.createError.set('Selecciona al menos un módulo o un permiso de submódulo para el rol.');
+      this.createError.set(this.i18n.t('Selecciona al menos un módulo o un permiso de submódulo para el rol.'));
       return;
     }
 
@@ -237,14 +240,14 @@ export class AdminRoles implements OnInit {
       this.roles.set(updated);
       this.createDrawerOpen.set(false);
     } catch (e: unknown) {
-      this.createError.set(e instanceof Error ? e.message : 'Error al crear el rol.');
+      this.createError.set(e instanceof Error ? e.message : this.i18n.t('Error al crear el rol.'));
     } finally {
       this.creating.set(false);
     }
   }
 
   async deleteRol(rol: Rol) {
-    if (!confirm(`¿Eliminar el rol "${rol.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar el rol "{nombre}"? Esta acción no se puede deshacer.', { nombre: rol.nombre }))) return;
 
     this.deletingId.set(rol.id);
     this.deleteError.set('');
@@ -252,7 +255,7 @@ export class AdminRoles implements OnInit {
       await this.rolesService.delete(rol.id);
       this.roles.update((list) => list.filter((r) => r.id !== rol.id));
     } catch (e: unknown) {
-      this.deleteError.set(e instanceof Error ? e.message : 'Error al eliminar el rol.');
+      this.deleteError.set(e instanceof Error ? e.message : this.i18n.t('Error al eliminar el rol.'));
     } finally {
       this.deletingId.set(null);
     }
@@ -263,11 +266,11 @@ export class AdminRoles implements OnInit {
   }
 
   getModuloLabel(key: string): string {
-    return this.modulos.find((m) => m.key === key)?.label ?? key;
+    return this.i18n.t(this.modulos.find((m) => m.key === key)?.label ?? key);
   }
 
   getModuloDesc(key: string): string {
-    return this.modulos.find((m) => m.key === key)?.desc ?? '';
+    return this.i18n.t(this.modulos.find((m) => m.key === key)?.desc ?? '');
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -367,7 +370,7 @@ export class AdminRoles implements OnInit {
   pendingDiff = signal<DiffPermisos | null>(null);
 
   private nivelLabel(n?: NivelPermiso): string {
-    return n === 'operar' ? 'Operar' : 'Ver';
+    return n === 'operar' ? 'Operar' : 'Ver'; // DP-13: texto de bitácora/auditoría persistida, no se traduce (dato histórico).
   }
 
   /** Botón "Ver accesos actuales de este rol" — reutiliza accesos_efectivos_rol (AN4). */
@@ -436,9 +439,9 @@ export class AdminRoles implements OnInit {
       this.confirmOpen.set(false);
       this.pendingDiff.set(null);
       this.drawerOpen.set(false);
-      this.toast.success('Permisos guardados');
+      this.toast.success(this.i18n.t('Permisos guardados'));
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      this.saveError.set(e instanceof Error ? e.message : this.i18n.t('Error al guardar.'));
       this.confirmOpen.set(false);
     } finally {
       this.saving.set(false);
@@ -457,7 +460,7 @@ export class AdminRoles implements OnInit {
     try {
       this.historial.set(await this.rolesService.historialCambiosPermisos(30));
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar el historial', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el historial'), e instanceof Error ? e.message : undefined);
     } finally {
       this.historialLoading.set(false);
     }
@@ -480,7 +483,7 @@ export class AdminRoles implements OnInit {
   /** Etiqueta de un módulo o, si es "modulo.submodulo", del submódulo. */
   private labelSubmodulo(key: string): string {
     const sub = (SUBMODULOS[key.split('.')[0]] ?? []).find((s) => s.key === key);
-    return sub?.label ?? key;
+    return this.i18n.t(sub?.label ?? key);
   }
 
   /** Convierte un JSONB de accesos efectivos en filas legibles por módulo. */
@@ -541,7 +544,7 @@ export class AdminRoles implements OnInit {
       this.auditAccesos.set(vista);
       this.auditVacio.set(vista.length === 0);
     } catch (e: unknown) {
-      this.toast.error('No se pudieron cargar los accesos', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los accesos'), e instanceof Error ? e.message : undefined);
       this.auditAccesos.set(null);
     } finally {
       this.auditLoading.set(false);
@@ -556,7 +559,7 @@ export class AdminRoles implements OnInit {
       this.auditAccesos.set(vista);
       this.auditVacio.set(vista.length === 0);
     } catch (e: unknown) {
-      this.toast.error('No se pudieron cargar los accesos', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudieron cargar los accesos'), e instanceof Error ? e.message : undefined);
       this.auditAccesos.set(null);
     } finally {
       this.auditLoading.set(false);
@@ -573,13 +576,14 @@ export class AdminRoles implements OnInit {
     try {
       this.multiRol.set(await this.rolesService.usuariosMultiRol());
     } catch (e: unknown) {
-      this.toast.error('No se pudo cargar el reporte', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo cargar el reporte'), e instanceof Error ? e.message : undefined);
     } finally {
       this.multiRolLoading.set(false);
     }
   }
 
   modulosLabels(keys: string[]): string {
+    // getModuloLabel() ya traduce internamente (DP-13).
     return keys.map((k) => this.getModuloLabel(k)).join(', ');
   }
 
@@ -658,7 +662,7 @@ export class AdminRoles implements OnInit {
       }
       this.diffResultado.set({ modulosPierde, modulosGana, subsPierde, subsGana, subsCambia });
     } catch (e: unknown) {
-      this.toast.error('No se pudo calcular el impacto', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo calcular el impacto'), e instanceof Error ? e.message : undefined);
     } finally {
       this.diffLoading.set(false);
     }
@@ -685,7 +689,7 @@ export class AdminRoles implements OnInit {
     if (!rol) return;
 
     if (this.selectedModulos().length === 0 && Object.keys(this.selectedPermisos()).length === 0) {
-      this.saveError.set('El rol debe tener al menos un módulo o un permiso de submódulo.');
+      this.saveError.set(this.i18n.t('El rol debe tener al menos un módulo o un permiso de submódulo.'));
       return;
     }
 

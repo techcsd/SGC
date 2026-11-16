@@ -12,7 +12,7 @@
         <div class="filter-select__search">
           <app-icon name="search" [size]="14" />
           <input type="text" [value]="query()" (input)="query.set($any($event.target).value)"
-            [placeholder]="'Buscar ' + label().toLowerCase() + '…'" (click)="$event.stopPropagation()" />
+            [placeholder]="i18n.t('Buscar') + ' ' + label().toLowerCase() + '…'" (click)="$event.stopPropagation()" />
         </div>
       }
       <div class="filter-select__opts">
@@ -23,11 +23,11 @@
               <label class="filter-select__opt">
                 <input [type]="multiple() ? 'checkbox' : 'radio'" [checked]="isChecked(o.value)"
                   (change)="pick(o.value)" (click)="$event.stopPropagation()" />
-                <span>{{ o.label }}</span>
+                <span>{{ o.label | t }}</span>
               </label>
             }
           } @empty {
-            <p class="filter-select__empty">Sin opciones</p>
+            <p class="filter-select__empty">{{ 'Sin opciones' | t }}</p>
           }
         } @else {
           @for (o of filtered(); track o.value) {
@@ -37,12 +37,12 @@
               <span>{{ o.label }}</span>
             </label>
           } @empty {
-            <p class="filter-select__empty">Sin opciones</p>
+            <p class="filter-select__empty">{{ 'Sin opciones' | t }}</p>
           }
         }
       </div>
       @if (activa()) {
-        <button type="button" class="filter-select__clear" (click)="limpiar($event)">Quitar filtro</button>
+        <button type="button" class="filter-select__clear" (click)="limpiar($event)">{{ 'Quitar filtro' | t }}</button>
       }
     </div>
   }

@@ -21,6 +21,8 @@ import {
 import { FaseProyecto } from '../../../../shared/models/proyecto.model';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 /** AA24 — conector real de una dependencia (predecesora → esta tarea). */
 interface DepConn {
@@ -67,7 +69,7 @@ const GANTT_LABEL_W = 220;
 
 @Component({
   selector: 'app-proyecto-cronograma',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe, Icon],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe, Icon, TranslatePipe],
   templateUrl: './cronograma.html',
   styleUrl: './cronograma.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,6 +80,7 @@ export class Cronograma implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly tipos = CRONOGRAMA_TIPOS;
   readonly motivos = CRONOGRAMA_MOTIVOS;
@@ -396,9 +399,9 @@ export class Cronograma implements OnInit {
       }
       this.panelTareaAbierto.set(false);
       await this.cargar();
-      this.toast.success('Tarea guardada.');
+      this.toast.success(this.i18n.t('Tarea guardada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo guardar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo guardar.'));
     } finally {
       this.guardando.set(false);
     }
@@ -433,9 +436,9 @@ export class Cronograma implements OnInit {
       this.nuevaDepTipo.set('FS');
       this.nuevaDepLag.set(0);
       await this.cargar();
-      this.toast.success('Dependencia agregada.');
+      this.toast.success(this.i18n.t('Dependencia agregada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo agregar la dependencia.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo agregar la dependencia.'));
     } finally {
       this.guardandoDep.set(false);
     }
@@ -445,9 +448,9 @@ export class Cronograma implements OnInit {
     try {
       await this.service.quitarDependencia(depId);
       await this.cargar();
-      this.toast.success('Dependencia eliminada.');
+      this.toast.success(this.i18n.t('Dependencia eliminada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo quitar la dependencia.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo quitar la dependencia.'));
     }
   }
 
@@ -456,13 +459,13 @@ export class Cronograma implements OnInit {
   }
 
   async eliminar(t: CronogramaTarea) {
-    if (!confirm(`¿Eliminar la tarea «${t.nombre}»?`)) return;
+    if (!confirm(this.i18n.t('¿Eliminar la tarea «{nombre}»?', { nombre: t.nombre }))) return;
     try {
       await this.service.eliminarTarea(t.id, this.proyectoId());
       await this.cargar();
-      this.toast.success('Tarea eliminada.');
+      this.toast.success(this.i18n.t('Tarea eliminada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo eliminar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo eliminar.'));
     }
   }
 
@@ -470,9 +473,9 @@ export class Cronograma implements OnInit {
     try {
       await this.service.iniciar(t.id);
       await this.cargar();
-      this.toast.success('Tarea iniciada.');
+      this.toast.success(this.i18n.t('Tarea iniciada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo iniciar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo iniciar.'));
     }
   }
 
@@ -494,11 +497,11 @@ export class Cronograma implements OnInit {
 
   async confirmarCompletar(t: CronogramaTarea) {
     if (!this.completarFile) {
-      this.toast.error('Adjunta una foto de evidencia.');
+      this.toast.error(this.i18n.t('Adjunta una foto de evidencia.'));
       return;
     }
     if (this.requiereJustificacion(t) && !this.completarJustificacion().trim()) {
-      this.toast.error('La tarea está atrasada: escribe una justificación.');
+      this.toast.error(this.i18n.t('La tarea está atrasada: escribe una justificación.'));
       return;
     }
     this.guardando.set(true);
@@ -507,9 +510,9 @@ export class Cronograma implements OnInit {
       await this.service.completar(t.id, path, this.completarJustificacion().trim() || null);
       this.completandoId.set(null);
       await this.cargar();
-      this.toast.success('Tarea completada.');
+      this.toast.success(this.i18n.t('Tarea completada.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo completar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo completar.'));
     } finally {
       this.guardando.set(false);
     }
@@ -534,7 +537,7 @@ export class Cronograma implements OnInit {
   async confirmarJustificar(t: CronogramaTarea) {
     const texto = this.justificacionTexto().trim();
     if (!texto) {
-      this.toast.error('Escribe la justificación del retraso.');
+      this.toast.error(this.i18n.t('Escribe la justificación del retraso.'));
       return;
     }
     this.guardando.set(true);
@@ -543,9 +546,9 @@ export class Cronograma implements OnInit {
       this.justificandoId.set(null);
       this.justificacionTexto.set('');
       await this.cargar();
-      this.toast.success('Retraso justificado.');
+      this.toast.success(this.i18n.t('Retraso justificado.'));
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo justificar.');
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo justificar.'));
     } finally {
       this.guardando.set(false);
     }

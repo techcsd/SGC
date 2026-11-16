@@ -1,14 +1,12 @@
 <div class="oba">
   <header class="oba-head">
     <div>
-      <h1>Outbox atascado</h1>
+      <h1>{{ 'Outbox atascado' | t }}</h1>
       <p class="oba-sub">
-        Registros que la app no pudo enviar por errores del sistema (permiso, constraint, servidor).
-        Es data real de obra atascada en el teléfono — no debe perderse. Al publicar el fix,
-        el usuario reintenta y aquí lo marcas resuelto.
+        {{ 'Registros que la app no pudo enviar por errores del sistema (permiso, constraint, servidor). Es data real de obra atascada en el teléfono — no debe perderse. Al publicar el fix, el usuario reintenta y aquí lo marcas resuelto.' | t }}
       </p>
     </div>
-    <button class="oba-btn" (click)="load()" [disabled]="loading()">Actualizar</button>
+    <button class="oba-btn" (click)="load()" [disabled]="loading()">{{ 'Actualizar' | t }}</button>
   </header>
 
   @if (error()) {
@@ -20,55 +18,55 @@
     <div class="oba-kpis">
       <div class="oba-kpi oba-kpi--warn">
         <span class="oba-kpi-n">{{ c.sistema }}</span>
-        <span class="oba-kpi-l">Errores de sistema</span>
+        <span class="oba-kpi-l">{{ 'Errores de sistema' | t }}</span>
       </div>
       <div class="oba-kpi">
         <span class="oba-kpi-n">{{ c.pendientes }}</span>
-        <span class="oba-kpi-l">Pendientes</span>
+        <span class="oba-kpi-l">{{ 'Pendientes' | t }}</span>
       </div>
       <div class="oba-kpi">
         <span class="oba-kpi-n">{{ c.usuarios_afectados }}</span>
-        <span class="oba-kpi-l">Usuarios afectados</span>
+        <span class="oba-kpi-l">{{ 'Usuarios afectados' | t }}</span>
       </div>
       <div class="oba-kpi">
         <span class="oba-kpi-n">{{ c.fotos_en_riesgo }}</span>
-        <span class="oba-kpi-l">Fotos en riesgo</span>
+        <span class="oba-kpi-l">{{ 'Fotos en riesgo' | t }}</span>
       </div>
       <div class="oba-kpi">
         <span class="oba-kpi-n">{{ c.mas_viejo_horas }}h</span>
-        <span class="oba-kpi-l">El más viejo</span>
+        <span class="oba-kpi-l">{{ 'El más viejo' | t }}</span>
       </div>
       <div class="oba-kpi">
         <span class="oba-kpi-n">{{ c.ultimos_7d }}</span>
-        <span class="oba-kpi-l">Últimos 7 días</span>
+        <span class="oba-kpi-l">{{ 'Últimos 7 días' | t }}</span>
       </div>
     </div>
   }
 
   <!-- Filtros -->
   <div class="oba-filtros">
-    <button class="oba-chip" [class.active]="filtroCategoria() === 'todas'" (click)="setCategoria('todas')">Todas</button>
-    <button class="oba-chip" [class.active]="filtroCategoria() === 'sistema'" (click)="setCategoria('sistema')">Sistema</button>
-    <button class="oba-chip" [class.active]="filtroCategoria() === 'dato'" (click)="setCategoria('dato')">Dato</button>
-    <button class="oba-chip" [class.active]="filtroCategoria() === 'transitorio'" (click)="setCategoria('transitorio')">Transitorio</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'todas'" (click)="setCategoria('todas')">{{ 'Todas' | t }}</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'sistema'" (click)="setCategoria('sistema')">{{ 'Sistema' | t }}</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'dato'" (click)="setCategoria('dato')">{{ 'Dato' | t }}</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'transitorio'" (click)="setCategoria('transitorio')">{{ 'Transitorio' | t }}</button>
     <span class="oba-sep"></span>
-    <button class="oba-chip" [class.active]="soloPendientes()" (click)="togglePendientes()">Solo pendientes</button>
+    <button class="oba-chip" [class.active]="soloPendientes()" (click)="togglePendientes()">{{ 'Solo pendientes' | t }}</button>
   </div>
 
   @if (loading()) {
-    <p class="oba-empty">Cargando…</p>
+    <p class="oba-empty">{{ 'Cargando…' | t }}</p>
   } @else if (filasVisibles().length === 0) {
-    <p class="oba-empty">No hay registros atascados con este filtro. 🎉</p>
+    <p class="oba-empty">{{ 'No hay registros atascados con este filtro. 🎉' | t }}</p>
   } @else {
     <div class="oba-list">
       @for (f of filasVisibles(); track f.id) {
         <article class="oba-item" [class.resuelto]="f.resuelto">
           <div class="oba-item-top">
             <span class="oba-badge oba-badge--{{ f.categoria }}">{{ categoriaLabel(f.categoria) }}</span>
-            <span class="oba-tipo">{{ tipoLabel(f.tipo_op) }}</span>
+            <span class="oba-tipo">{{ tipoLabel(f.tipo_op) | t }}</span>
             @if (f.error_code) { <span class="oba-code">{{ f.error_code }}</span> }
             @if (f.fotos_count) {
-              <span class="oba-fotos" title="Fotos atascadas con este registro">
+              <span class="oba-fotos" title="{{ 'Fotos atascadas con este registro' | t }}">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                   <circle cx="12" cy="13" r="4"></circle>
@@ -80,20 +78,20 @@
           <div class="oba-meta">
             @if (f.usuario_nombre) { <span>{{ f.usuario_nombre }}</span> }
             @if (f.roles_snapshot) { <span class="oba-roles">{{ f.roles_snapshot }}</span> }
-            <span>Intentos: {{ f.intentos }}</span>
-            @if (f.edad_horas != null) { <span>Edad: {{ f.edad_horas }}h</span> }
+            <span>{{ 'Intentos:' | t }} {{ f.intentos }}</span>
+            @if (f.edad_horas != null) { <span>{{ 'Edad:' | t }} {{ f.edad_horas }}{{ 'h' | t }}</span> }
           </div>
           @if (resumenTexto(f.payload_resumen); as res) {
             @if (res) { <p class="oba-resumen">{{ res }}</p> }
           }
           @if (f.error_msg) { <p class="oba-detalle">{{ f.error_msg }}</p> }
           <div class="oba-actions">
-            <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="abrirDetalle(f)">Ver conduce y foto</button>
+            <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="abrirDetalle(f)">{{ 'Ver conduce y foto' | t }}</button>
             @if (!f.resuelto) {
-              <button class="oba-btn oba-btn--sm" (click)="resolver(f, true)">Marcar resuelto</button>
+              <button class="oba-btn oba-btn--sm" (click)="resolver(f, true)">{{ 'Marcar resuelto' | t }}</button>
             } @else {
-              <span class="oba-resuelto-tag">Resuelto</span>
-              <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="resolver(f, false)">Reabrir</button>
+              <span class="oba-resuelto-tag">{{ 'Resuelto' | t }}</span>
+              <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="resolver(f, false)">{{ 'Reabrir' | t }}</button>
             }
           </div>
         </article>
@@ -105,14 +103,14 @@
 <!-- CC7 — Ficha del atascado: conduce completo + payload legible + foto -->
 @if (detalleOpen()) {
   <div class="oba-drawer-backdrop" (click)="cerrarDetalle()"></div>
-  <aside class="oba-drawer" role="dialog" aria-label="Detalle del envío atascado">
+  <aside class="oba-drawer" role="dialog" aria-label="{{ 'Detalle del envío atascado' | t }}">
     <header class="oba-drawer-head">
-      <h2>Envío atascado</h2>
-      <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="cerrarDetalle()" aria-label="Cerrar">✕</button>
+      <h2>{{ 'Envío atascado' | t }}</h2>
+      <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="cerrarDetalle()" aria-label="{{ 'Cerrar' | t }}">✕</button>
     </header>
 
     @if (detalleLoading()) {
-      <p class="oba-empty">Cargando…</p>
+      <p class="oba-empty">{{ 'Cargando…' | t }}</p>
     } @else if (detalleError()) {
       <div class="oba-error">{{ detalleError() }}</div>
     } @else if (detalle(); as d) {
@@ -120,9 +118,9 @@
       <section class="oba-drawer-sec">
         <div class="oba-meta">
           <span class="oba-badge oba-badge--{{ d.atascado.categoria }}">{{ categoriaLabel(d.atascado.categoria) }}</span>
-          <span class="oba-tipo">{{ tipoLabel(d.atascado.tipo_op) }}</span>
+          <span class="oba-tipo">{{ tipoLabel(d.atascado.tipo_op) | t }}</span>
           @if (d.atascado.error_code) { <span class="oba-code">{{ d.atascado.error_code }}</span> }
-          <span>Intentos: {{ d.atascado.intentos }}</span>
+          <span>{{ 'Intentos:' | t }} {{ d.atascado.intentos }}</span>
         </div>
         @if (d.atascado.error_msg) { <p class="oba-detalle">{{ d.atascado.error_msg }}</p> }
       </section>
@@ -131,21 +129,21 @@
       @if (d.conduce; as c) {
         <section class="oba-drawer-sec">
           <div class="oba-drawer-sec-title">
-            Conduce {{ c.codigo }}
+            {{ 'Conduce' | t }} {{ c.codigo }}
             @if (c.estado) { <span class="sgc-status-pill">{{ c.estado }}</span> }
-            @if (c.anulado) { <span class="oba-chip-anulado">Anulado</span> }
+            @if (c.anulado) { <span class="oba-chip-anulado">{{ 'Anulado' | t }}</span> }
           </div>
           <dl class="oba-kv">
-            @if (c.fecha) { <div><dt>Fecha</dt><dd>{{ c.fecha | date: 'dd/MM/yyyy' }}</dd></div> }
-            <div><dt>Origen → Destino</dt><dd>{{ c.origen || '—' }} → {{ c.destino || '—' }}</dd></div>
-            @if (c.chofer) { <div><dt>Chofer</dt><dd>{{ c.chofer }}</dd></div> }
-            @if (c.vehiculo) { <div><dt>Vehículo</dt><dd>{{ c.vehiculo }}</dd></div> }
-            @if (c.receptor) { <div><dt>Receptor</dt><dd>{{ c.receptor }}</dd></div> }
-            @if (c.proyecto) { <div><dt>Obra</dt><dd>{{ c.proyecto }}</dd></div> }
+            @if (c.fecha) { <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ c.fecha | date: 'dd/MM/yyyy' }}</dd></div> }
+            <div><dt>{{ 'Origen → Destino' | t }}</dt><dd>{{ c.origen || '—' }} → {{ c.destino || '—' }}</dd></div>
+            @if (c.chofer) { <div><dt>{{ 'Chofer' | t }}</dt><dd>{{ c.chofer }}</dd></div> }
+            @if (c.vehiculo) { <div><dt>{{ 'Vehículo' | t }}</dt><dd>{{ c.vehiculo }}</dd></div> }
+            @if (c.receptor) { <div><dt>{{ 'Receptor' | t }}</dt><dd>{{ c.receptor }}</dd></div> }
+            @if (c.proyecto) { <div><dt>{{ 'Obra' | t }}</dt><dd>{{ c.proyecto }}</dd></div> }
           </dl>
           @if (c.renglones?.length) {
             <table class="oba-renglones">
-              <thead><tr><th>Artículo</th><th>Enviado</th><th>Recibido</th><th>Unidad</th></tr></thead>
+              <thead><tr><th>{{ 'Artículo' | t }}</th><th>{{ 'Enviado' | t }}</th><th>{{ 'Recibido' | t }}</th><th>{{ 'Unidad' | t }}</th></tr></thead>
               <tbody>
                 @for (r of c.renglones; track $index) {
                   <tr><td>{{ r.articulo || '—' }}</td><td>{{ r.enviado }}</td><td>{{ r.recibido ?? '—' }}</td><td>{{ r.unidad || '' }}</td></tr>
@@ -159,12 +157,12 @@
       <!-- Payload legible -->
       @if (payloadPares().length) {
         <section class="oba-drawer-sec">
-          <div class="oba-drawer-sec-title">Datos del envío</div>
+          <div class="oba-drawer-sec-title">{{ 'Datos del envío' | t }}</div>
           <dl class="oba-kv">
             @for (p of payloadPares(); track p.k) { <div><dt>{{ p.k }}</dt><dd>{{ p.v }}</dd></div> }
           </dl>
           <details class="oba-tecnico">
-            <summary>Detalle técnico</summary>
+            <summary>{{ 'Detalle técnico' | t }}</summary>
             <pre>{{ d.payload | json }}</pre>
           </details>
         </section>
@@ -172,17 +170,17 @@
 
       <!-- Foto / evidencia -->
       <section class="oba-drawer-sec">
-        <div class="oba-drawer-sec-title">Foto</div>
+        <div class="oba-drawer-sec-title">{{ 'Foto' | t }}</div>
         @if (fotoUrls().length) {
           <div class="oba-fotos-grid">
-            @for (u of fotoUrls(); track u) { <img [src]="u" alt="Evidencia" loading="lazy" /> }
+            @for (u of fotoUrls(); track u) { <img [src]="u" alt="{{ 'Evidencia' | t }}" loading="lazy" /> }
           </div>
         } @else {
-          <p class="oba-detalle">La foto está solo en el teléfono de {{ d.atascado.usuario_nombre || 'el usuario' }}.</p>
+          <p class="oba-detalle">{{ 'La foto está solo en el teléfono de' | t }} {{ d.atascado.usuario_nombre || 'el usuario' }}.</p>
           @if (minutosDesde(d.atascado.evidencia_solicitada_en); as m) {
-            <span class="oba-resuelto-tag">Evidencia solicitada · hace {{ m }} min</span>
+            <span class="oba-resuelto-tag">{{ 'Evidencia solicitada · hace' | t }} {{ m }} {{ 'min' | t }}</span>
           } @else {
-            <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirEvidencia()">Pedir que se suba</button>
+            <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirEvidencia()">{{ 'Pedir que se suba' | t }}</button>
           }
         }
       </section>
@@ -190,12 +188,12 @@
       <!-- Acciones -->
       <section class="oba-drawer-actions">
         @if (minutosDesde(d.atascado.reintento_solicitado_en); as m) {
-          <span class="oba-resuelto-tag">Reintento solicitado · hace {{ m }} min</span>
+          <span class="oba-resuelto-tag">{{ 'Reintento solicitado · hace' | t }} {{ m }} {{ 'min' | t }}</span>
         } @else {
-          <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirReintento()">Reintentar ahora</button>
+          <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirReintento()">{{ 'Reintentar ahora' | t }}</button>
         }
         @if (!d.atascado.resuelto) {
-          <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="resolver(d.atascado, true); cerrarDetalle()">Marcar resuelto</button>
+          <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="resolver(d.atascado, true); cerrarDetalle()">{{ 'Marcar resuelto' | t }}</button>
         }
       </section>
     }

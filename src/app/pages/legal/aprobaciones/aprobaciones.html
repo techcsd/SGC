@@ -1,18 +1,18 @@
 <!-- ── Page header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Aprobaciones legales</h1>
-    <span class="page-count">{{ pendientes().length }} pendiente{{ pendientes().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Aprobaciones legales' | t }}</h1>
+    <span class="page-count">{{ pendientes().length }} {{ 'pendiente' | t }}{{ pendientes().length !== 1 ? 's' : '' }}</span>
   </div>
 </div>
 
 <!-- ── Tabs ── -->
 <div class="tabs-bar">
   <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'pendientes'" (click)="setTab('pendientes')">
-    Pendientes ({{ pendientes().length }})
+    {{ 'Pendientes' | t }} ({{ pendientes().length }})
   </button>
   <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todas'" (click)="setTab('todas')">
-    Todas
+    {{ 'Todas' | t }}
   </button>
 </div>
 
@@ -35,16 +35,16 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Solicitudes de aprobación legal">
+      <table class="data-table" aria-label="{{ 'Solicitudes de aprobación legal' | t }}">
         <thead>
           <tr>
-            <th>Módulo</th>
-            <th>Título</th>
-            <th>Solicitado por</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Comentario del revisor</th>
-            <th class="text-center">Acción</th>
+            <th>{{ 'Módulo' | t }}</th>
+            <th>{{ 'Título' | t }}</th>
+            <th>{{ 'Solicitado por' | t }}</th>
+            <th>{{ 'Fecha' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th>{{ 'Comentario del revisor' | t }}</th>
+            <th class="text-center">{{ 'Acción' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
@@ -65,7 +65,7 @@
                   <span class="apr-comentario">“{{ a.comentario_revisor }}”</span>
                   <span class="apr-revisor">— {{ a.revisor?.nombre ?? '—' }}</span>
                 } @else if (a.estado !== 'pendiente') {
-                  <span class="text-muted">Sin comentario</span>
+                  <span class="text-muted">{{ 'Sin comentario' | t }}</span>
                 } @else {
                   <span class="text-muted">—</span>
                 }
@@ -73,11 +73,11 @@
               <td class="text-center">
                 @if (a.estado === 'pendiente') {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolver(a)">
-                    Revisar
+                    {{ 'Revisar' | t }}
                   </button>
                 } @else {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolver(a)">
-                    Ver
+                    {{ 'Ver' | t }}
                   </button>
                 }
               </td>
@@ -91,25 +91,25 @@
 </div>
 
 <!-- ── Resolve / View Drawer ── -->
-<app-form-drawer [title]="drawerAprobacion()?.estado === 'pendiente' ? 'Revisar solicitud' : 'Detalle de la solicitud'" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer [title]="drawerAprobacion()?.estado === 'pendiente' ? i18n.t('Revisar solicitud') : i18n.t('Detalle de la solicitud')" [open]="drawerOpen()" (closed)="closeDrawer()">
   @if (drawerAprobacion(); as a) {
     <div class="detail-body">
       <div class="detail-grid">
         <div class="detail-field detail-field--full">
-          <span class="detail-field__label">Título</span>
+          <span class="detail-field__label">{{ 'Título' | t }}</span>
           <span>{{ a.titulo }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Módulo origen</span>
+          <span class="detail-field__label">{{ 'Módulo origen' | t }}</span>
           <span>{{ moduloLabel(a.modulo_origen) }}</span>
         </div>
         <div class="detail-field">
-          <span class="detail-field__label">Solicitado por</span>
+          <span class="detail-field__label">{{ 'Solicitado por' | t }}</span>
           <span>{{ a.solicitante?.nombre ?? '—' }}</span>
         </div>
         @if (a.descripcion) {
           <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Descripción</span>
+            <span class="detail-field__label">{{ 'Descripción' | t }}</span>
             <span>{{ a.descripcion }}</span>
           </div>
         }
@@ -118,31 +118,31 @@
       <!-- AZ4 — vista previa del documento: no se aprueba lo que no se ve -->
       <div class="apro-doc">
         <div class="apro-doc__head">
-          <span class="detail-field__label">Documento</span>
+          <span class="detail-field__label">{{ 'Documento' | t }}</span>
           @if (docPreview(); as doc) {
-            <span class="text-muted">{{ doc.nombre }} · v. {{ doc.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="text-muted">{{ doc.nombre }} {{ '· v.' | t }} {{ doc.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
           }
         </div>
         @if (docLoading()) {
-          <p class="text-muted">Cargando documento…</p>
+          <p class="text-muted">{{ 'Cargando documento…' | t }}</p>
         } @else if (docError()) {
           <div class="save-error" role="alert">{{ docError() }}</div>
         } @else if (docPreview(); as doc) {
           <div class="apro-doc__body" [innerHTML]="doc.contenido_html_final"></div>
         } @else if (docEliminado()) {
-          <p class="text-muted">El documento de esta solicitud fue eliminado — rechaza o archiva la solicitud.</p>
+          <p class="text-muted">{{ 'El documento de esta solicitud fue eliminado — rechaza o archiva la solicitud.' | t }}</p>
         } @else if (a.referencia_tipo === 'documento_generado') {
-          <p class="text-muted">No se encontró el documento referenciado.</p>
+          <p class="text-muted">{{ 'No se encontró el documento referenciado.' | t }}</p>
         } @else {
-          <p class="text-muted">Esta solicitud no tiene un documento adjunto para previsualizar.</p>
+          <p class="text-muted">{{ 'Esta solicitud no tiene un documento adjunto para previsualizar.' | t }}</p>
         }
       </div>
 
       @if (a.estado === 'pendiente') {
         <!-- Solicitud pendiente: capturar comentario y resolver -->
         <div class="sgc-field">
-          <label for="comentario">Comentario (opcional)</label>
-          <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="Motivo de la decisión…"></textarea>
+          <label for="comentario">{{ 'Comentario (opcional)' | t }}</label>
+          <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="{{ 'Motivo de la decisión…' | t }}"></textarea>
         </div>
 
         @if (resolveError()) {
@@ -151,7 +151,7 @@
 
         <div class="drawer-actions">
           <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazado')">
-            Rechazar
+            {{ 'Rechazar' | t }}
           </button>
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolving()" (click)="resolver('aprobado')">
             @if (resolving()) {
@@ -165,25 +165,25 @@
         <!-- Solicitud ya resuelta: mostrar decisión y comentario del revisor -->
         <div class="detail-grid">
           <div class="detail-field">
-            <span class="detail-field__label">Estado</span>
+            <span class="detail-field__label">{{ 'Estado' | t }}</span>
             <span [class]="estadoBadgeClass(a.estado)">{{ estadoLabel(a.estado) }}</span>
           </div>
           <div class="detail-field">
-            <span class="detail-field__label">Revisado por</span>
+            <span class="detail-field__label">{{ 'Revisado por' | t }}</span>
             <span>{{ a.revisor?.nombre ?? '—' }}</span>
           </div>
           <div class="detail-field">
-            <span class="detail-field__label">Fecha de resolución</span>
+            <span class="detail-field__label">{{ 'Fecha de resolución' | t }}</span>
             <span>{{ a.fecha_resolucion ? (a.fecha_resolucion | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
           </div>
           <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Comentario del revisor</span>
+            <span class="detail-field__label">{{ 'Comentario del revisor' | t }}</span>
             <span>{{ a.comentario_revisor ?? 'Sin comentario' }}</span>
           </div>
         </div>
 
         <div class="drawer-actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cerrar</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cerrar' | t }}</button>
         </div>
       }
     </div>

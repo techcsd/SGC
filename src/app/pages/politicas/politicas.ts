@@ -4,6 +4,8 @@ import { Title, Meta } from '@angular/platform-browser';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 /** CI2 — Documento legal público (markdown). Front-matter mínimo. */
 interface DocMeta {
   titulo: string;
@@ -35,7 +37,7 @@ const DOCS: Record<string, { file: string; desc: string }> = {
  */
 @Component({
   selector: 'app-politicas',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './politicas.html',
   styleUrl: './politicas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +46,7 @@ export class Politicas implements OnInit {
   private route = inject(ActivatedRoute);
   private title = inject(Title);
   private metaTag = inject(Meta);
+  protected i18n = inject(I18nService);
 
   loading = signal(true);
   notFound = signal(false);
@@ -56,7 +59,7 @@ export class Politicas implements OnInit {
     if (!entry) {
       this.notFound.set(true);
       this.loading.set(false);
-      this.title.setTitle('Documento no encontrado · Constructora SD');
+      this.title.setTitle(`${this.i18n.t('Documento no encontrado')} · Constructora SD`);
       return;
     }
     try {
@@ -79,7 +82,7 @@ export class Politicas implements OnInit {
 
   /** Parser mínimo de front-matter `---\nclave: valor\n---`. Sin dependencias. */
   private parseFrontMatter(raw: string): { meta: DocMeta; body: string } {
-    const meta: DocMeta = { titulo: 'Documento' };
+    const meta: DocMeta = { titulo: this.i18n.t('Documento') };
     const m = raw.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?/);
     if (!m) return { meta, body: raw };
     for (const line of m[1].split(/\r?\n/)) {

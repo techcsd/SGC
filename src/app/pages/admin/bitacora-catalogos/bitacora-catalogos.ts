@@ -7,6 +7,7 @@ import {
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 type Tipo =
   | 'estructura'
   | 'actividad'
@@ -19,7 +20,7 @@ type Tipo =
 /** Admin management of the bitácora catalogs (estructuras/actividades/restricciones). */
 @Component({
   selector: 'app-admin-bitacora-catalogos',
-  imports: [FormsModule, Skeleton, Icon],
+  imports: [FormsModule, Skeleton, Icon, TranslatePipe],
   templateUrl: './bitacora-catalogos.html',
   styleUrl: './bitacora-catalogos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,13 +1,13 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Historial de tareas</h1>
+    <h1 class="page-title">{{ 'Historial de tareas' | t }}</h1>
     <span class="page-count">
-      {{ esGestor ? 'Todas las tareas del sistema' : 'Tus tareas' }} · {{ completadas() }} completada{{ completadas() !== 1 ? 's' : '' }}
+      {{ (esGestor ? 'Todas las tareas del sistema' : 'Tus tareas') | t }} · {{ completadas() }} {{ 'completada' | t }}{{ completadas() !== 1 ? 's' : '' }}
     </span>
   </div>
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelHistorial()"
-            [disabled]="filtered().length === 0" title="Exportar el historial filtrado a Excel">
+            [disabled]="filtered().length === 0" title="{{ 'Exportar el historial filtrado a Excel' | t }}">
       <app-icon name="download" [size]="16" /> Excel
     </button>
   </div>
@@ -38,17 +38,17 @@
   <!-- Filters -->
   <div class="filters-bar">
     <div class="sgc-field filters-bar__search">
-      <input type="search" placeholder="Buscar por título o responsable…" [value]="searchQuery()" (input)="onSearch($any($event.target).value)" aria-label="Buscar" />
+      <input type="search" placeholder="{{ 'Buscar por título o responsable…' | t }}" [value]="searchQuery()" (input)="onSearch($any($event.target).value)" aria-label="{{ 'Buscar' | t }}" />
     </div>
     <div class="sgc-field filters-bar__select">
-      <select [value]="selectedEstado()" (change)="onEstado($any($event.target).value)" aria-label="Estado">
-        <option value="all">Todos los estados</option>
+      <select [value]="selectedEstado()" (change)="onEstado($any($event.target).value)" aria-label="{{ 'Estado' | t }}">
+        <option value="all">{{ 'Todos los estados' | t }}</option>
         @for (e of ESTADOS; track e.value) { <option [value]="e.value">{{ e.label }}</option> }
       </select>
     </div>
     <div class="sgc-field filters-bar__select">
-      <select [value]="selectedPrioridad()" (change)="onPrioridad($any($event.target).value)" aria-label="Prioridad">
-        <option value="all">Todas las prioridades</option>
+      <select [value]="selectedPrioridad()" (change)="onPrioridad($any($event.target).value)" aria-label="{{ 'Prioridad' | t }}">
+        <option value="all">{{ 'Todas las prioridades' | t }}</option>
         @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
       </select>
     </div>
@@ -57,25 +57,25 @@
   <!-- Table -->
   <div class="table-wrapper sgc-card">
     @if (filtered().length === 0) {
-      <div class="table-empty"><p>No hay tareas con los filtros aplicados.</p></div>
+      <div class="table-empty"><p>{{ 'No hay tareas con los filtros aplicados.' | t }}</p></div>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Historial de tareas">
+        <table class="data-table" aria-label="{{ 'Historial de tareas' | t }}">
           <thead>
             <tr>
-              <th>Título</th>
-              @if (esGestor) { <th>Responsable</th> }
-              <th>Prioridad</th>
-              <th>Creada</th>
-              <th>Completada</th>
-              <th>Estado</th>
-              <th class="text-center">Ver</th>
+              <th>{{ 'Título' | t }}</th>
+              @if (esGestor) { <th>{{ 'Responsable' | t }}</th> }
+              <th>{{ 'Prioridad' | t }}</th>
+              <th>{{ 'Creada' | t }}</th>
+              <th>{{ 'Completada' | t }}</th>
+              <th>{{ 'Estado' | t }}</th>
+              <th class="text-center">{{ 'Ver' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (t of filtered(); track t.id) {
               <tr class="row--link" (click)="openDetail(t)" role="button" tabindex="0"
-                  (keydown.enter)="openDetail(t)" aria-label="Ver detalle de la tarea">
+                  (keydown.enter)="openDetail(t)" aria-label="{{ 'Ver detalle de la tarea' | t }}">
                 <td>{{ t.titulo }}</td>
                 @if (esGestor) { <td>{{ t.asignado?.nombre ?? '—' }}</td> }
                 <td>{{ prioridadLabel(t.prioridad) }}</td>
@@ -83,7 +83,7 @@
                 <td>{{ t.fecha_completada ? (t.fecha_completada | date:'dd/MM/yyyy') : '—' }}</td>
                 <td><span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span></td>
                 <td class="text-center">
-                  <button type="button" class="action-btn" (click)="$event.stopPropagation(); openDetail(t)" aria-label="Ver" title="Ver detalle">
+                  <button type="button" class="action-btn" (click)="$event.stopPropagation(); openDetail(t)" aria-label="{{ 'Ver' | t }}" title="{{ 'Ver detalle' | t }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -94,7 +94,7 @@
           </tbody>
         </table>
       </div>
-      <div class="table-footer">{{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}</div>
+      <div class="table-footer">{{ filtered().length }} {{ 'tarea' | t }}{{ filtered().length !== 1 ? 's' : '' }}</div>
     }
   </div>
 }

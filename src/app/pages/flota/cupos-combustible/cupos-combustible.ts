@@ -11,6 +11,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { Paginador } from '../../../../shared/components/paginador/paginador';
 import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { DecimalPipe } from '@angular/common';
 
 const MOTIVO_LABEL: Record<MotivoSolicitudCupo, string> = {
@@ -41,6 +42,7 @@ const ESTADO_LABEL: Record<EstadoSolicitudCupo, string> = {
 export class CuposCombustible implements OnInit {
   private service = inject(CupoTarjetaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   motivoLabel = MOTIVO_LABEL;
   estadoLabel = ESTADO_LABEL;
@@ -151,11 +153,11 @@ export class CuposCombustible implements OnInit {
     this.guardandoAtencion.set(true);
     try {
       await this.service.atender(s.id, 'ampliada', this.respuesta() || null, this.nuevoCupoGal(), this.nuevoCupoMonto());
-      this.toast.success('Cupo ampliado', `${s.solicitante_nombre ?? 'El chofer'} ya puede seguir cargando.`);
+      this.toast.success(this.i18n.t('Cupo ampliado'), `${s.solicitante_nombre ?? 'El chofer'} ya puede seguir cargando.`);
       this.atendiendo.set(null);
       await Promise.all([this.cargarSolicitudes(), this.cargarTarjetas()]);
     } catch (e: unknown) {
-      this.toast.error('No se pudo ampliar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo ampliar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.guardandoAtencion.set(false);
     }
@@ -165,7 +167,7 @@ export class CuposCombustible implements OnInit {
     const s = this.atendiendo();
     if (!s) return;
     if (!this.respuesta().trim()) {
-      this.toast.error('Falta el motivo', 'Escribe por qué se rechaza la solicitud.');
+      this.toast.error(this.i18n.t('Falta el motivo'), 'Escribe por qué se rechaza la solicitud.');
       return;
     }
     this.confirmarRechazo.set(s);
@@ -177,12 +179,12 @@ export class CuposCombustible implements OnInit {
     this.guardandoAtencion.set(true);
     try {
       await this.service.atender(s.id, 'rechazada', this.respuesta(), null, null);
-      this.toast.success('Solicitud rechazada', '');
+      this.toast.success(this.i18n.t('Solicitud rechazada'), '');
       this.confirmarRechazo.set(null);
       this.atendiendo.set(null);
       await this.cargarSolicitudes();
     } catch (e: unknown) {
-      this.toast.error('No se pudo rechazar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo rechazar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.guardandoAtencion.set(false);
     }
@@ -206,11 +208,11 @@ export class CuposCombustible implements OnInit {
     this.guardandoEdicion.set(true);
     try {
       await this.service.editarCupo(t.codigo_tarjeta, this.editCupoGal(), this.editCupoMonto(), this.editCupoDiaCorte());
-      this.toast.success('Cupo actualizado', '');
+      this.toast.success(this.i18n.t('Cupo actualizado'), '');
       this.editando.set(null);
       await this.cargarTarjetas();
     } catch (e: unknown) {
-      this.toast.error('No se pudo guardar', e instanceof Error ? humanizeError(e).mensaje : undefined);
+      this.toast.error(this.i18n.t('No se pudo guardar'), e instanceof Error ? humanizeError(e).mensaje : undefined);
     } finally {
       this.guardandoEdicion.set(false);
     }

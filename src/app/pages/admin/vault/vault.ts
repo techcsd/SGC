@@ -13,6 +13,7 @@ import {
   generarPassword, generarPassphrase, generarLlaveApi, generarSemilla2fa, etiquetaFortaleza,
 } from '../../../../shared/utils/boveda-generador.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 type FiltroTipo = 'all' | BovedaTipo;
 type GeneradorModo = 'password' | 'passphrase' | 'api' | '2fa';
@@ -41,6 +42,7 @@ function estadoRotacion(e: BovedaEntrada): BovedaEstadoRotacion {
 export class AdminVault implements OnInit, OnDestroy {
   private boveda = inject(BovedaService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   formatTimestamp = formatTimestampDisplay;
   TIPO_LABEL = TIPO_LABEL;
@@ -180,7 +182,7 @@ export class AdminVault implements OnInit, OnDestroy {
     try {
       this.entradas.set(await this.boveda.listar());
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo cargar el Vault');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo cargar el Vault'));
     } finally {
       this.loading.set(false);
     }
@@ -220,7 +222,7 @@ export class AdminVault implements OnInit, OnDestroy {
 
   async guardar() {
     const v = this.form.getRawValue();
-    if (!v.nombre.trim()) { this.toast.error('El nombre es obligatorio'); return; }
+    if (!v.nombre.trim()) { this.toast.error(this.i18n.t('El nombre es obligatorio')); return; }
     this.guardando.set(true);
     try {
       const etiquetas = v.etiquetasTexto.split(',').map((s) => s.trim()).filter(Boolean);
@@ -239,11 +241,11 @@ export class AdminVault implements OnInit, OnDestroy {
           valor: v.valor || null, etiquetas, rotar_cada_dias: v.rotar_cada_dias, notas: v.notas,
         });
       }
-      this.toast.success('Guardado');
+      this.toast.success(this.i18n.t('Guardado'));
       this.drawerOpen.set(false);
       await this.cargar();
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo guardar');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo guardar'));
     } finally {
       this.guardando.set(false);
     }
@@ -293,7 +295,7 @@ export class AdminVault implements OnInit, OnDestroy {
       const { valor, visible_segundos } = await this.boveda.revelar(e.id);
       this.mostrarTemporal(valor, visible_segundos);
     } catch (err: unknown) {
-      this.toast.errorFrom(err, 'No se pudo revelar');
+      this.toast.errorFrom(err, this.i18n.t('No se pudo revelar'));
     }
   }
   async mostrarSemilla() {
@@ -303,7 +305,7 @@ export class AdminVault implements OnInit, OnDestroy {
       const { valor, visible_segundos } = await this.boveda.mostrarSemilla(e.id);
       this.mostrarTemporal(valor, visible_segundos);
     } catch (err: unknown) {
-      this.toast.errorFrom(err, 'No se pudo mostrar la semilla');
+      this.toast.errorFrom(err, this.i18n.t('No se pudo mostrar la semilla'));
     }
   }
   private mostrarTemporal(valor: string, segundos: number) {
@@ -334,7 +336,7 @@ export class AdminVault implements OnInit, OnDestroy {
         else this.segundos2fa.set(n);
       }, 1000);
     } catch (err: unknown) {
-      this.toast.errorFrom(err, 'No se pudo calcular el código');
+      this.toast.errorFrom(err, this.i18n.t('No se pudo calcular el código'));
     }
   }
 
@@ -343,12 +345,12 @@ export class AdminVault implements OnInit, OnDestroy {
       await navigator.clipboard.writeText(valor);
       const e = this.detalle();
       if (e) await this.boveda.registrarCopia(e.id);
-      this.toast.success('Copiado — se borra del portapapeles en 30 s');
+      this.toast.success(this.i18n.t('Copiado — se borra del portapapeles en 30 s'));
       setTimeout(() => {
         navigator.clipboard.writeText('').catch(() => undefined);
       }, 30_000);
     } catch {
-      this.toast.error('No se pudo copiar');
+      this.toast.error(this.i18n.t('No se pudo copiar'));
     }
   }
 
@@ -365,7 +367,7 @@ export class AdminVault implements OnInit, OnDestroy {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err: unknown) {
-      this.toast.errorFrom(err, 'No se pudo descargar');
+      this.toast.errorFrom(err, this.i18n.t('No se pudo descargar'));
     }
   }
 
@@ -374,9 +376,9 @@ export class AdminVault implements OnInit, OnDestroy {
       await this.boveda.eliminar(e.id);
       this.detailOpen.set(false);
       await this.cargar();
-      this.toast.success('Eliminado');
+      this.toast.success(this.i18n.t('Eliminado'));
     } catch (err: unknown) {
-      this.toast.errorFrom(err, 'No se pudo eliminar');
+      this.toast.errorFrom(err, this.i18n.t('No se pudo eliminar'));
     }
   }
 
@@ -386,7 +388,7 @@ export class AdminVault implements OnInit, OnDestroy {
     try {
       this.accesos.set(await this.boveda.listarAccesos());
     } catch (e: unknown) {
-      this.toast.errorFrom(e, 'No se pudo cargar el registro');
+      this.toast.errorFrom(e, this.i18n.t('No se pudo cargar el registro'));
     }
   }
   cerrarAccesos() {

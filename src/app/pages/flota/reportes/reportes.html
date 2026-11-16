@@ -1,11 +1,11 @@
 <!-- Header -->
 <div class="flota-reportes__header">
   <div class="flota-reportes__header-info">
-    <h1>Reportes de Flota</h1>
-    <p>Resumen del estado de vehículos, mantenimientos y combustible</p>
+    <h1>{{ 'Reportes de Flota' | t }}</h1>
+    <p>{{ 'Resumen del estado de vehículos, mantenimientos y combustible' | t }}</p>
   </div>
   <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-          [disabled]="loading()" title="Exportar el reporte a Excel">
+          [disabled]="loading()" title="{{ 'Exportar el reporte a Excel' | t }}">
     <app-icon name="download" [size]="16" /> Excel
   </button>
 </div>
@@ -25,52 +25,52 @@
   <div class="flota-reportes__summary">
     <div class="flota-reportes__card flota-reportes__card--success flota-reportes__card--link"
          role="button" tabindex="0" (click)="irAVehiculos()" (keydown.enter)="irAVehiculos()"
-         aria-label="Ver vehículos">
+         aria-label="{{ 'Ver vehículos' | t }}">
       <div class="flota-reportes__card-value">{{ totalActivos() }}</div>
-      <div class="flota-reportes__card-label">Vehículos activos</div>
+      <div class="flota-reportes__card-label">{{ 'Vehículos activos' | t }}</div>
     </div>
     <div class="flota-reportes__card flota-reportes__card--warning flota-reportes__card--link"
          role="button" tabindex="0" (click)="irAMantenimientos()" (keydown.enter)="irAMantenimientos()"
-         aria-label="Ver mantenimientos">
+         aria-label="{{ 'Ver mantenimientos' | t }}">
       <div class="flota-reportes__card-value">{{ enMantenimiento() }}</div>
-      <div class="flota-reportes__card-label">En mantenimiento</div>
+      <div class="flota-reportes__card-label">{{ 'En mantenimiento' | t }}</div>
     </div>
     <div class="flota-reportes__card flota-reportes__card--info flota-reportes__card--link"
          role="button" tabindex="0" (click)="irAMantenimientos()" (keydown.enter)="irAMantenimientos()"
-         aria-label="Ver mantenimientos">
+         aria-label="{{ 'Ver mantenimientos' | t }}">
       <div class="flota-reportes__card-value">{{ mantenimientosEsteMes() }}</div>
-      <div class="flota-reportes__card-label">Mantenimientos este mes</div>
+      <div class="flota-reportes__card-label">{{ 'Mantenimientos este mes' | t }}</div>
     </div>
     <div class="flota-reportes__card flota-reportes__card--primary flota-reportes__card--link"
          role="button" tabindex="0" (click)="irACombustible()" (keydown.enter)="irACombustible()"
-         aria-label="Ver registros de combustible">
+         aria-label="{{ 'Ver registros de combustible' | t }}">
       <div class="flota-reportes__card-value">RD$ {{ gastoCombustibleMes() | number:'1.0-0' }}</div>
-      <div class="flota-reportes__card-label">Combustible este mes</div>
+      <div class="flota-reportes__card-label">{{ 'Combustible este mes' | t }}</div>
     </div>
   </div>
 
   <!-- Section 1: Estado de la flota -->
   <section class="flota-reportes__section" aria-labelledby="flota-estado-title">
-    <h2 id="flota-estado-title" class="flota-reportes__section-title">Estado de la Flota</h2>
+    <h2 id="flota-estado-title" class="flota-reportes__section-title">{{ 'Estado de la Flota' | t }}</h2>
     @if (flotaOrdenada().length === 0) {
-      <p class="flota-reportes__empty">No hay vehículos registrados.</p>
+      <p class="flota-reportes__empty">{{ 'No hay vehículos registrados.' | t }}</p>
     } @else {
       <div class="flota-reportes__table-wrap">
-        <table class="flota-reportes__table" aria-label="Estado de vehículos">
+        <table class="flota-reportes__table" aria-label="{{ 'Estado de vehículos' | t }}">
           <thead>
             <tr>
-              <th scope="col">Placa</th>
-              <th scope="col">Marca / Modelo</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Estado</th>
-              <th scope="col" class="flota-reportes__km">Kilometraje</th>
+              <th scope="col">{{ 'Placa' | t }}</th>
+              <th scope="col">{{ 'Marca / Modelo' | t }}</th>
+              <th scope="col">{{ 'Tipo' | t }}</th>
+              <th scope="col">{{ 'Estado' | t }}</th>
+              <th scope="col" class="flota-reportes__km">{{ 'Kilometraje' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (v of flotaOrdenada(); track v.id) {
               <tr class="flota-reportes__row--link" [class.flota-reportes__row--inactive]="!v.activo"
                   (click)="irAVehiculo(v.id)" role="button" tabindex="0" (keydown.enter)="irAVehiculo(v.id)"
-                  [attr.aria-label]="'Ver perfil de ' + v.placa">
+                  [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + v.placa">
                 <td class="flota-reportes__placa">{{ v.placa }}</td>
                 <td>{{ v.marca }} {{ v.modelo }} {{ v.anio }}</td>
                 <td>{{ getTipoLabel(v.tipo) }}</td>
@@ -90,27 +90,27 @@
 
   <!-- Section 2: Mantenimientos recientes -->
   <section class="flota-reportes__section" aria-labelledby="mant-recientes-title">
-    <h2 id="mant-recientes-title" class="flota-reportes__section-title">Mantenimientos Recientes</h2>
+    <h2 id="mant-recientes-title" class="flota-reportes__section-title">{{ 'Mantenimientos Recientes' | t }}</h2>
     @if (mantenimientosRecientes().length === 0) {
-      <p class="flota-reportes__empty">No hay mantenimientos registrados.</p>
+      <p class="flota-reportes__empty">{{ 'No hay mantenimientos registrados.' | t }}</p>
     } @else {
       <div class="flota-reportes__table-wrap">
-        <table class="flota-reportes__table" aria-label="Mantenimientos recientes">
+        <table class="flota-reportes__table" aria-label="{{ 'Mantenimientos recientes' | t }}">
           <thead>
             <tr>
-              <th scope="col">Fecha</th>
-              <th scope="col">Vehículo</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Descripción</th>
-              <th scope="col">Costo</th>
-              <th scope="col">Estado</th>
+              <th scope="col">{{ 'Fecha' | t }}</th>
+              <th scope="col">{{ 'Vehículo' | t }}</th>
+              <th scope="col">{{ 'Tipo' | t }}</th>
+              <th scope="col">{{ 'Descripción' | t }}</th>
+              <th scope="col">{{ 'Costo' | t }}</th>
+              <th scope="col">{{ 'Estado' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (m of mantenimientosRecientes(); track m.id) {
               <tr class="flota-reportes__row--link" (click)="irAMantenimientosDe(m.vehiculo_id)"
                   role="button" tabindex="0" (keydown.enter)="irAMantenimientosDe(m.vehiculo_id)"
-                  aria-label="Ver mantenimientos de este vehículo">
+                  aria-label="{{ 'Ver mantenimientos de este vehículo' | t }}">
                 <td>{{ formatFecha(m.fecha) }}</td>
                 <td class="flota-reportes__placa">
                   {{ resolverPlaca(m.vehiculo_id, m.vehiculo?.placa) }}
@@ -138,24 +138,24 @@
 
   <!-- Section 3: Combustible últimos 30 días -->
   <section class="flota-reportes__section" aria-labelledby="combustible-title">
-    <h2 id="combustible-title" class="flota-reportes__section-title">Combustible — Últimos 30 días</h2>
+    <h2 id="combustible-title" class="flota-reportes__section-title">{{ 'Combustible — Últimos 30 días' | t }}</h2>
     @if (combustiblePorVehiculo().length === 0) {
-      <p class="flota-reportes__empty">No hay registros de combustible en los últimos 30 días.</p>
+      <p class="flota-reportes__empty">{{ 'No hay registros de combustible en los últimos 30 días.' | t }}</p>
     } @else {
       <div class="flota-reportes__table-wrap">
-        <table class="flota-reportes__table" aria-label="Consumo de combustible por vehículo">
+        <table class="flota-reportes__table" aria-label="{{ 'Consumo de combustible por vehículo' | t }}">
           <thead>
             <tr>
-              <th scope="col">Vehículo</th>
-              <th scope="col">Litros totales</th>
-              <th scope="col">Gasto total</th>
+              <th scope="col">{{ 'Vehículo' | t }}</th>
+              <th scope="col">{{ 'Litros totales' | t }}</th>
+              <th scope="col">{{ 'Gasto total' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (r of combustiblePorVehiculo(); track r.vehiculo_id) {
               <tr class="flota-reportes__row--link" (click)="irAVehiculo(r.vehiculo_id)"
                   role="button" tabindex="0" (keydown.enter)="irAVehiculo(r.vehiculo_id)"
-                  [attr.aria-label]="'Ver perfil de ' + r.placa">
+                  [attr.aria-label]="i18n.t('Ver perfil de') + ' ' + r.placa">
                 <td class="flota-reportes__placa">{{ r.placa }} <span class="flota-reportes__sub">{{ r.marca }}</span></td>
                 <td>{{ r.litros | number:'1.1-1' }} L</td>
                 <td>RD$ {{ r.gasto | number:'1.0-0' }}</td>
@@ -164,7 +164,7 @@
           </tbody>
           <tfoot>
             <tr class="flota-reportes__total-row">
-              <td><strong>Total</strong></td>
+              <td><strong>{{ 'Total' | t }}</strong></td>
               <td><strong>{{ totalCombustibleLitros() | number:'1.1-1' }} L</strong></td>
               <td><strong>RD$ {{ totalCombustibleGasto() | number:'1.0-0' }}</strong></td>
             </tr>
@@ -176,25 +176,25 @@
 
   <!-- Section 4: Pendientes -->
   <section class="flota-reportes__section" aria-labelledby="pendientes-title">
-    <h2 id="pendientes-title" class="flota-reportes__section-title">Mantenimientos Pendientes</h2>
+    <h2 id="pendientes-title" class="flota-reportes__section-title">{{ 'Mantenimientos Pendientes' | t }}</h2>
     @if (mantenimientosPendientes().length === 0) {
-      <p class="flota-reportes__empty">No hay mantenimientos pendientes.</p>
+      <p class="flota-reportes__empty">{{ 'No hay mantenimientos pendientes.' | t }}</p>
     } @else {
       <div class="flota-reportes__table-wrap">
-        <table class="flota-reportes__table" aria-label="Mantenimientos pendientes">
+        <table class="flota-reportes__table" aria-label="{{ 'Mantenimientos pendientes' | t }}">
           <thead>
             <tr>
-              <th scope="col">Vehículo</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Descripción</th>
-              <th scope="col">Fecha programada</th>
+              <th scope="col">{{ 'Vehículo' | t }}</th>
+              <th scope="col">{{ 'Tipo' | t }}</th>
+              <th scope="col">{{ 'Descripción' | t }}</th>
+              <th scope="col">{{ 'Fecha programada' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (m of mantenimientosPendientes(); track m.id) {
               <tr class="flota-reportes__row--link" (click)="irAMantenimientosDe(m.vehiculo_id)"
                   role="button" tabindex="0" (keydown.enter)="irAMantenimientosDe(m.vehiculo_id)"
-                  aria-label="Ver mantenimientos de este vehículo">
+                  aria-label="{{ 'Ver mantenimientos de este vehículo' | t }}">
                 <td class="flota-reportes__placa">
                   {{ resolverPlaca(m.vehiculo_id, m.vehiculo?.placa) }}
                   <span class="flota-reportes__sub">{{ resolverMarca(m.vehiculo_id, m.vehiculo?.marca) }} {{ m.vehiculo?.modelo }} {{ resolverAnio(m.vehiculo_id, m.vehiculo?.anio) }}</span>

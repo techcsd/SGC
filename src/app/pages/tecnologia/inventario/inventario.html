@@ -1,11 +1,11 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Inventario tecnológico</h1>
-    <span class="page-count">{{ filtered().length }} equipo{{ filtered().length !== 1 ? 's' : '' }}</span>
+    <h1 class="page-title">{{ 'Inventario tecnológico' | t }}</h1>
+    <span class="page-count">{{ equiposLabel() }}</span>
     @if (garantiasPorVencerCount() > 0) {
-      <span class="status-pill status-pill--warning" title="Garantía por vencer o vencida">
-        {{ garantiasPorVencerCount() }} con garantía por vencer
+      <span class="status-pill status-pill--warning" title="{{ 'Garantía por vencer o vencida' | t }}">
+        {{ i18n.t('{n} con garantía por vencer', { n: garantiasPorVencerCount() }) }}
       </span>
     }
   </div>
@@ -15,7 +15,7 @@
       type="button"
       (click)="exportar()"
       [disabled]="filtered().length === 0"
-      title="Exportar el listado filtrado a Excel"
+      title="{{ 'Exportar el listado filtrado a Excel' | t }}"
     >
       <app-icon name="download" [size]="16" /> Excel
     </button>
@@ -23,7 +23,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo equipo
+      {{ 'Nuevo equipo' | t }}
     </button>
   </div>
 </div>
@@ -33,10 +33,10 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre, código o serie…"
+      placeholder="{{ 'Buscar por nombre, código o serie…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar equipos"
+      aria-label="{{ 'Buscar equipos' | t }}"
     />
   </div>
 
@@ -44,11 +44,11 @@
     <select
       [value]="selectedEstado()"
       (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
+      aria-label="{{ 'Filtrar por estado' | t }}"
     >
-      <option value="">Todas las situaciones</option>
+      <option value="">{{ 'Todas las situaciones' | t }}</option>
       @for (e of estados(); track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+        <option [value]="e.value">{{ e.label | t }}</option>
       }
     </select>
   </div>
@@ -56,20 +56,20 @@
   <!-- DA-11/DA-12/DA-14 (nota 7) — filtros de datos de dueño/costo/garantía -->
   <label class="filters-bar__toggle">
     <input type="checkbox" [checked]="soloResponsableExterno()" (change)="toggleResponsableExterno()" />
-    Responsable externo
+    {{ 'Responsable externo' | t }}
   </label>
   <label class="filters-bar__toggle">
     <input type="checkbox" [checked]="soloSinCompra()" (change)="toggleSinCompra()" />
-    Sin datos de compra
+    {{ 'Sin datos de compra' | t }}
   </label>
   <label class="filters-bar__toggle">
     <input type="checkbox" [checked]="soloSinGarantia()" (change)="toggleSinGarantia()" />
-    Sin garantía
+    {{ 'Sin garantía' | t }}
   </label>
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 </div>
@@ -100,18 +100,18 @@
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Inventario de equipos tecnológicos">
+      <table class="data-table" aria-label="{{ 'Inventario de equipos tecnológicos' | t }}">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Marca / Modelo</th>
-            <th>Situación</th>
-            <th>Condición</th>
-            <th>Asignado a</th>
-            <th>Costo</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Código' | t }}</th>
+            <th>{{ 'Nombre' | t }}</th>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Marca / Modelo' | t }}</th>
+            <th>{{ 'Situación' | t }}</th>
+            <th>{{ 'Condición' | t }}</th>
+            <th>{{ 'Asignado a' | t }}</th>
+            <th>{{ 'Costo' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -139,14 +139,14 @@
               </td>
               <td>
                 <span class="status-pill" [class]="'status-pill--' + getCondicionTono(e.condicion ?? 'funciona')">
-                  {{ getCondicionLabel(e.condicion ?? 'funciona') }}
+                  {{ getCondicionLabel(e.condicion ?? 'funciona') | t }}
                 </span>
               </td>
               <td class="text-muted">{{ getQuienLoTiene(e) }}</td>
               <td class="text-muted">
                 {{ formatCosto(e.costo, e.moneda) }}
                 @if (garantiaPorVencer(e)) {
-                  <span class="status-pill status-pill--warning" title="Garantía por vencer o vencida">Garantía</span>
+                  <span class="status-pill status-pill--warning" title="{{ 'Garantía por vencer o vencida' | t }}">{{ 'Garantía' | t }}</span>
                 }
               </td>
               <td>
@@ -155,8 +155,8 @@
                     type="button"
                     class="action-btn"
                     (click)="openDetail(e)"
-                    [attr.aria-label]="'Ver historial de ' + e.nombre"
-                    title="Ver detalle e historial"
+                    [attr.aria-label]="i18n.t('Ver historial de') + ' ' + e.nombre"
+                    title="{{ 'Ver detalle e historial' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="12" cy="12" r="3"/>
@@ -167,8 +167,8 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(e)"
-                    [attr.aria-label]="'Editar ' + e.nombre"
-                    title="Editar"
+                    [attr.aria-label]="i18n.t('Editar') + ' ' + e.nombre"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -179,8 +179,8 @@
                     type="button"
                     class="action-btn action-btn--delete"
                     (click)="remove(e)"
-                    [attr.aria-label]="'Eliminar ' + e.nombre"
-                    title="Eliminar"
+                    [attr.aria-label]="i18n.t('Eliminar') + ' ' + e.nombre"
+                    title="{{ 'Eliminar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"/>
@@ -202,26 +202,26 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     @if (kitPadreIdParaCrear() && !editingId()) {
-      <p class="field-hint">Este equipo nacerá como componente del kit — tendrá su propio subcódigo (ej. TEC-0016-01).</p>
+      <p class="field-hint">{{ 'Este equipo nacerá como componente del kit — tendrá su propio subcódigo (ej. TEC-0016-01).' | t }}</p>
     }
 
     <div class="sgc-field">
-      <label for="nombre">Nombre <span class="required">*</span></label>
+      <label for="nombre">{{ 'Nombre' | t }} <span class="required">*</span></label>
       <input
         id="nombre"
         type="text"
         formControlName="nombre"
-        placeholder="Ej: Laptop Dell Latitude"
+        placeholder="{{ 'Ej: Laptop Dell Latitude' | t }}"
         [class.invalid]="f.nombre.invalid && f.nombre.touched"
       />
       @if (f.nombre.invalid && f.nombre.touched) {
-        <span class="field-error">El nombre es obligatorio.</span>
+        <span class="field-error">{{ 'El nombre es obligatorio.' | t }}</span>
       }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="tipo_id">Tipo <span class="required">*</span></label>
+        <label for="tipo_id">{{ 'Tipo' | t }} <span class="required">*</span></label>
         @if (!addingTipo()) {
           <select
             id="tipo_id"
@@ -229,31 +229,31 @@
             [class.invalid]="f.tipo_id.invalid && f.tipo_id.touched"
             (change)="onTipoIdChange($any($event.target).value)"
           >
-            <option [ngValue]="null">Seleccionar tipo…</option>
+            <option [ngValue]="null">{{ 'Seleccionar tipo…' | t }}</option>
             @for (t of tipos(); track t.value) {
               <option [value]="t.value">{{ t.label }}</option>
             }
           </select>
-          <button type="button" class="tec-addtipo-link" (click)="addingTipo.set(true)">+ Agregar tipo</button>
+          <button type="button" class="tec-addtipo-link" (click)="addingTipo.set(true)">{{ '+ Agregar tipo' | t }}</button>
           @if (f.tipo_id.invalid && f.tipo_id.touched) {
-            <span class="field-error">El tipo es obligatorio.</span>
+            <span class="field-error">{{ 'El tipo es obligatorio.' | t }}</span>
           }
         } @else {
           <div class="tec-addtipo">
             <input
               type="text"
-              placeholder="Nuevo tipo (ej: Walkie-talkie)"
+              placeholder="{{ 'Nuevo tipo (ej: Walkie-talkie)' | t }}"
               [value]="newTipoLabel()"
               (input)="newTipoLabel.set($any($event.target).value)"
             />
-            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarTipoNuevo()">Guardar</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingTipo.set(false); newTipoLabel.set('')">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarTipoNuevo()">{{ 'Guardar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingTipo.set(false); newTipoLabel.set('')">{{ 'Cancelar' | t }}</button>
           </div>
         }
       </div>
 
       <div class="sgc-field">
-        <label for="estado">Situación <span class="required">*</span></label>
+        <label for="estado">{{ 'Situación' | t }} <span class="required">*</span></label>
         @if (!addingEstado()) {
           <select
             id="estado"
@@ -264,17 +264,17 @@
               <option [value]="es.value">{{ es.label }}</option>
             }
           </select>
-          <button type="button" class="tec-addtipo-link" (click)="addingEstado.set(true)">+ Agregar situación</button>
+          <button type="button" class="tec-addtipo-link" (click)="addingEstado.set(true)">{{ '+ Agregar situación' | t }}</button>
         } @else {
           <div class="tec-addtipo">
             <input
               type="text"
-              placeholder="Nueva situación (ej: En préstamo)"
+              placeholder="{{ 'Nueva situación (ej: En préstamo)' | t }}"
               [value]="newEstadoLabel()"
               (input)="newEstadoLabel.set($any($event.target).value)"
             />
-            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarEstadoNuevo()">Guardar</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingEstado.set(false); newEstadoLabel.set('')">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarEstadoNuevo()">{{ 'Guardar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingEstado.set(false); newEstadoLabel.set('')">{{ 'Cancelar' | t }}</button>
           </div>
         }
       </div>
@@ -282,7 +282,7 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="condicion">Condición <span class="required">*</span></label>
+        <label for="condicion">{{ 'Condición' | t }} <span class="required">*</span></label>
         @if (!addingCondicion()) {
           <select
             id="condicion"
@@ -293,18 +293,18 @@
               <option [value]="c.value">{{ c.label }}</option>
             }
           </select>
-          <button type="button" class="tec-addtipo-link" (click)="addingCondicion.set(true)">+ Agregar condición</button>
-          <span class="field-hint">Independiente de la situación: un equipo puede estar "en stock" y "averiado" a la vez.</span>
+          <button type="button" class="tec-addtipo-link" (click)="addingCondicion.set(true)">{{ '+ Agregar condición' | t }}</button>
+          <span class="field-hint">{{ 'Independiente de la situación: un equipo puede estar "en stock" y "averiado" a la vez.' | t }}</span>
         } @else {
           <div class="tec-addtipo">
             <input
               type="text"
-              placeholder="Nueva condición (ej: Por diagnosticar)"
+              placeholder="{{ 'Nueva condición (ej: Por diagnosticar)' | t }}"
               [value]="newCondicionLabel()"
               (input)="newCondicionLabel.set($any($event.target).value)"
             />
-            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarCondicionNueva()">Guardar</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingCondicion.set(false); newCondicionLabel.set('')">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarCondicionNueva()">{{ 'Guardar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingCondicion.set(false); newCondicionLabel.set('')">{{ 'Cancelar' | t }}</button>
           </div>
         }
       </div>
@@ -312,162 +312,162 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="marca">Marca</label>
-        <input id="marca" type="text" formControlName="marca" placeholder="Ej: Dell" />
+        <label for="marca">{{ 'Marca' | t }}</label>
+        <input id="marca" type="text" formControlName="marca" placeholder="{{ 'Ej: Dell' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="modelo">Modelo</label>
-        <input id="modelo" type="text" formControlName="modelo" placeholder="Ej: Latitude 5420" />
+        <label for="modelo">{{ 'Modelo' | t }}</label>
+        <input id="modelo" type="text" formControlName="modelo" placeholder="{{ 'Ej: Latitude 5420' | t }}" />
       </div>
     </div>
 
     <div class="sgc-field">
-      <label for="serie">Número de serie</label>
-      <input id="serie" type="text" formControlName="serie" placeholder="Ej: SN-123456" />
+      <label for="serie">{{ 'Número de serie' | t }}</label>
+      <input id="serie" type="text" formControlName="serie" placeholder="{{ 'Ej: SN-123456' | t }}" />
     </div>
 
     <!-- DA2/DA-02 — Identificación -->
-    <h3 class="drawer-section-title">Identificación</h3>
+    <h3 class="drawer-section-title">{{ 'Identificación' | t }}</h3>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="service_tag">Service Tag / código de servicio</label>
-        <input id="service_tag" type="text" formControlName="service_tag" placeholder="Ej: ABC1234 (Dell), wmic bios get serialnumber" />
+        <label for="service_tag">{{ 'Service Tag / código de servicio' | t }}</label>
+        <input id="service_tag" type="text" formControlName="service_tag" placeholder="{{ 'Ej: ABC1234 (Dell), wmic bios get serialnumber' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="codigo_servicio">Plan ID / Unit ID / Express Service Code</label>
+        <label for="codigo_servicio">{{ 'Plan ID / Unit ID / Express Service Code' | t }}</label>
         <input id="codigo_servicio" type="text" formControlName="codigo_servicio" />
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="numero_parte">Número de parte (DP/N)</label>
+        <label for="numero_parte">{{ 'Número de parte (DP/N)' | t }}</label>
         <input id="numero_parte" type="text" formControlName="numero_parte" />
       </div>
       <div class="sgc-field">
-        <label for="modelo_regulatorio">Modelo regulatorio (Reg Model)</label>
+        <label for="modelo_regulatorio">{{ 'Modelo regulatorio (Reg Model)' | t }}</label>
         <input id="modelo_regulatorio" type="text" formControlName="modelo_regulatorio" />
       </div>
       <div class="sgc-field">
-        <label for="anio_fabricacion">Año de fabricación</label>
+        <label for="anio_fabricacion">{{ 'Año de fabricación' | t }}</label>
         <input id="anio_fabricacion" type="number" min="1990" max="2100" formControlName="anio_fabricacion" />
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="codigo_anterior">Código de activo anterior</label>
-        <input id="codigo_anterior" type="text" formControlName="codigo_anterior" placeholder="Ej: 001-1843267-3" />
+        <label for="codigo_anterior">{{ 'Código de activo anterior' | t }}</label>
+        <input id="codigo_anterior" type="text" formControlName="codigo_anterior" placeholder="{{ 'Ej: 001-1843267-3' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="imei">IMEI</label>
+        <label for="imei">{{ 'IMEI' | t }}</label>
         <input id="imei" type="text" formControlName="imei" />
       </div>
       <div class="sgc-field">
-        <label for="etiqueta_taller">Etiqueta de taller/servicio</label>
-        <input id="etiqueta_taller" type="text" formControlName="etiqueta_taller" placeholder="Ej: orden 122052" />
+        <label for="etiqueta_taller">{{ 'Etiqueta de taller/servicio' | t }}</label>
+        <input id="etiqueta_taller" type="text" formControlName="etiqueta_taller" placeholder="{{ 'Ej: orden 122052' | t }}" />
       </div>
     </div>
 
     <!-- DA2/DA-03 — Especificaciones (solo el bloque que aplica al tipo elegido) -->
     @if (currentGruposCampos().length || specsForm.controls.accesoriosTexto.value) {
-      <h3 class="drawer-section-title">Especificaciones</h3>
+      <h3 class="drawer-section-title">{{ 'Especificaciones' | t }}</h3>
     }
     <div [formGroup]="specsForm">
       @if (currentGruposCampos().includes('computadora')) {
         <div class="sgc-field">
           <label class="sgc-btn sgc-btn--secondary sgc-btn--sm" [class.is-disabled]="leyendoCaptura()">
-            @if (leyendoCaptura()) { Leyendo… } @else { Leer captura de Windows }
+            @if (leyendoCaptura()) { {{ 'Leyendo…' | t }} } @else { {{ 'Leer captura de Windows' | t }} }
             <input type="file" accept="image/*" multiple hidden [disabled]="leyendoCaptura()" (change)="onCapturaWindowsPicked($event)" />
           </label>
           <span class="field-hint">
-            Sube hasta 3 fotos de "Información del sistema"/"Acerca de" (Windows). Precarga los campos para que los revises — nunca guarda sola.
-            En Dell/Lenovo el Service Tag/serie también se ve con <code>wmic bios get serialnumber</code>.
+            {{ 'Sube hasta 3 fotos de "Información del sistema"/"Acerca de" (Windows). Precarga los campos para que los revises — nunca guarda sola. En Dell/Lenovo el Service Tag/serie también se ve con' | t }}
+            <code>{{ 'wmic bios get serialnumber' | t }}</code>.
           </span>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="procesador">Procesador</label>
-            <input id="procesador" type="text" formControlName="procesador" placeholder="Ej: Intel Core i7-1165G7" />
+            <label for="procesador">{{ 'Procesador' | t }}</label>
+            <input id="procesador" type="text" formControlName="procesador" placeholder="{{ 'Ej: Intel Core i7-1165G7' | t }}" />
           </div>
           <div class="sgc-field">
-            <label for="so">Sistema operativo</label>
-            <input id="so" type="text" formControlName="so" placeholder="Ej: Windows 11 Pro" />
+            <label for="so">{{ 'Sistema operativo' | t }}</label>
+            <input id="so" type="text" formControlName="so" placeholder="{{ 'Ej: Windows 11 Pro' | t }}" />
           </div>
           <div class="sgc-field">
-            <label for="so_version">Versión</label>
+            <label for="so_version">{{ 'Versión' | t }}</label>
             <input id="so_version" type="text" formControlName="so_version" />
           </div>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="ram_gb">RAM (GB)</label>
+            <label for="ram_gb">{{ 'RAM (GB)' | t }}</label>
             <input id="ram_gb" type="number" min="0" formControlName="ram_gb" />
           </div>
           <div class="sgc-field">
-            <label for="ram_velocidad">Velocidad de RAM</label>
-            <input id="ram_velocidad" type="text" formControlName="ram_velocidad" placeholder="Ej: 3200 MHz" />
+            <label for="ram_velocidad">{{ 'Velocidad de RAM' | t }}</label>
+            <input id="ram_velocidad" type="text" formControlName="ram_velocidad" placeholder="{{ 'Ej: 3200 MHz' | t }}" />
           </div>
           <div class="sgc-field">
-            <label for="almacenamiento_tipo">Almacenamiento</label>
+            <label for="almacenamiento_tipo">{{ 'Almacenamiento' | t }}</label>
             <select id="almacenamiento_tipo" formControlName="almacenamiento_tipo">
               <option [ngValue]="null">—</option>
-              <option value="SSD">SSD</option>
-              <option value="HDD">HDD</option>
-              <option value="NVMe">NVMe</option>
+              <option value="SSD">{{ 'SSD' | t }}</option>
+              <option value="HDD">{{ 'HDD' | t }}</option>
+              <option value="NVMe">{{ 'NVMe' | t }}</option>
             </select>
           </div>
           <div class="sgc-field">
-            <label for="almacenamiento_gb">Capacidad (GB)</label>
+            <label for="almacenamiento_gb">{{ 'Capacidad (GB)' | t }}</label>
             <input id="almacenamiento_gb" type="number" min="0" formControlName="almacenamiento_gb" />
           </div>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="gpu_integrada">Tarjeta gráfica integrada</label>
+            <label for="gpu_integrada">{{ 'Tarjeta gráfica integrada' | t }}</label>
             <input id="gpu_integrada" type="text" formControlName="gpu_integrada" />
           </div>
           <div class="sgc-field">
-            <label for="gpu_dedicada">Tarjeta gráfica dedicada</label>
+            <label for="gpu_dedicada">{{ 'Tarjeta gráfica dedicada' | t }}</label>
             <input id="gpu_dedicada" type="text" formControlName="gpu_dedicada" />
           </div>
           <div class="sgc-field">
-            <label for="gpu_memoria_gb">Memoria de video (GB)</label>
+            <label for="gpu_memoria_gb">{{ 'Memoria de video (GB)' | t }}</label>
             <input id="gpu_memoria_gb" type="number" min="0" formControlName="gpu_memoria_gb" />
           </div>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="pantalla_pulgadas">Pantalla (pulgadas)</label>
+            <label for="pantalla_pulgadas">{{ 'Pantalla (pulgadas)' | t }}</label>
             <input id="pantalla_pulgadas" type="number" min="0" step="0.1" formControlName="pantalla_pulgadas" />
           </div>
           <div class="sgc-field">
-            <label for="resolucion">Resolución</label>
-            <input id="resolucion" type="text" formControlName="resolucion" placeholder="Ej: 1920x1080" />
+            <label for="resolucion">{{ 'Resolución' | t }}</label>
+            <input id="resolucion" type="text" formControlName="resolucion" placeholder="{{ 'Ej: 1920x1080' | t }}" />
           </div>
           <div class="sgc-field sgc-field--check">
             <label>
               <input type="checkbox" formControlName="tactil" />
-              Pantalla táctil
+              {{ 'Pantalla táctil' | t }}
             </label>
           </div>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="nombre_windows">Nombre del equipo en Windows</label>
-            <input id="nombre_windows" type="text" formControlName="nombre_windows" placeholder="Ej: CSD-CONT" />
+            <label for="nombre_windows">{{ 'Nombre del equipo en Windows' | t }}</label>
+            <input id="nombre_windows" type="text" formControlName="nombre_windows" placeholder="{{ 'Ej: CSD-CONT' | t }}" />
           </div>
           <div class="sgc-field">
-            <label for="usuario_windows">Cuenta de Windows con sesión iniciada</label>
-            <input id="usuario_windows" type="text" formControlName="usuario_windows" placeholder="Puede ser distinta al empleado asignado" />
+            <label for="usuario_windows">{{ 'Cuenta de Windows con sesión iniciada' | t }}</label>
+            <input id="usuario_windows" type="text" formControlName="usuario_windows" placeholder="{{ 'Puede ser distinta al empleado asignado' | t }}" />
           </div>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="cargador_voltaje">Cargador — voltaje</label>
-            <input id="cargador_voltaje" type="text" formControlName="cargador_voltaje" placeholder="Ej: 19.5V" />
+            <label for="cargador_voltaje">{{ 'Cargador — voltaje' | t }}</label>
+            <input id="cargador_voltaje" type="text" formControlName="cargador_voltaje" placeholder="{{ 'Ej: 19.5V' | t }}" />
           </div>
           <div class="sgc-field">
-            <label for="cargador_amperaje">Cargador — amperaje</label>
-            <input id="cargador_amperaje" type="text" formControlName="cargador_amperaje" placeholder="Ej: 3.34A" />
+            <label for="cargador_amperaje">{{ 'Cargador — amperaje' | t }}</label>
+            <input id="cargador_amperaje" type="text" formControlName="cargador_amperaje" placeholder="{{ 'Ej: 3.34A' | t }}" />
           </div>
         </div>
       }
@@ -475,29 +475,29 @@
       @if (currentGruposCampos().includes('radio')) {
         <div class="form-row">
           <div class="sgc-field">
-            <label for="frecuencia">Frecuencia</label>
-            <input id="frecuencia" type="text" formControlName="frecuencia" placeholder="Ej: 400-470 MHz" />
+            <label for="frecuencia">{{ 'Frecuencia' | t }}</label>
+            <input id="frecuencia" type="text" formControlName="frecuencia" placeholder="{{ 'Ej: 400-470 MHz' | t }}" />
           </div>
           <div class="sgc-field">
-            <label for="potencia_w">Potencia de salida (W)</label>
+            <label for="potencia_w">{{ 'Potencia de salida (W)' | t }}</label>
             <input id="potencia_w" type="number" min="0" step="0.1" formControlName="potencia_w" />
           </div>
           <div class="sgc-field">
-            <label for="tipo_radio">Tipo de radio</label>
+            <label for="tipo_radio">{{ 'Tipo de radio' | t }}</label>
             <select id="tipo_radio" formControlName="tipo_radio">
               <option [ngValue]="null">—</option>
-              <option value="frecuencia">Radio de frecuencia</option>
-              <option value="celular_ptt">Radio por red celular (PTT)</option>
+              <option value="frecuencia">{{ 'Radio de frecuencia' | t }}</option>
+              <option value="celular_ptt">{{ 'Radio por red celular (PTT)' | t }}</option>
             </select>
           </div>
         </div>
         <div class="form-row">
           <div class="sgc-field">
-            <label for="sello_telserdom_radio">Sello Telserdom — radio</label>
+            <label for="sello_telserdom_radio">{{ 'Sello Telserdom — radio' | t }}</label>
             <input id="sello_telserdom_radio" type="text" formControlName="sello_telserdom_radio" />
           </div>
           <div class="sgc-field">
-            <label for="sello_telserdom_bateria">Sello Telserdom — batería</label>
+            <label for="sello_telserdom_bateria">{{ 'Sello Telserdom — batería' | t }}</label>
             <input id="sello_telserdom_bateria" type="text" formControlName="sello_telserdom_bateria" />
           </div>
         </div>
@@ -505,133 +505,133 @@
 
       @if (currentGruposCampos().includes('dron')) {
         <div class="sgc-field">
-          <label for="camara_specs">Cámara / especificaciones del dron</label>
-          <input id="camara_specs" type="text" formControlName="camara_specs" placeholder="Ej: 4K, sensor 1 pulgada" />
+          <label for="camara_specs">{{ 'Cámara / especificaciones del dron' | t }}</label>
+          <input id="camara_specs" type="text" formControlName="camara_specs" placeholder="{{ 'Ej: 4K, sensor 1 pulgada' | t }}" />
         </div>
       }
 
       @if (currentGruposCampos().includes('bateria')) {
         <div class="form-row">
           <div class="sgc-field">
-            <label for="bateria_modelo">Batería — modelo</label>
+            <label for="bateria_modelo">{{ 'Batería — modelo' | t }}</label>
             <input id="bateria_modelo" type="text" formControlName="bateria_modelo" />
           </div>
           <div class="sgc-field">
-            <label for="bateria_capacidad">Capacidad</label>
+            <label for="bateria_capacidad">{{ 'Capacidad' | t }}</label>
             <input id="bateria_capacidad" type="number" min="0" formControlName="bateria_capacidad" />
           </div>
           <div class="sgc-field">
-            <label for="bateria_unidad">Unidad</label>
+            <label for="bateria_unidad">{{ 'Unidad' | t }}</label>
             <select id="bateria_unidad" formControlName="bateria_unidad">
               <option [ngValue]="null">—</option>
-              <option value="mAh">mAh</option>
-              <option value="Wh">Wh</option>
+              <option value="mAh">{{ 'mAh' | t }}</option>
+              <option value="Wh">{{ 'Wh' | t }}</option>
             </select>
           </div>
           <div class="sgc-field">
-            <label for="bateria_voltaje">Voltaje</label>
+            <label for="bateria_voltaje">{{ 'Voltaje' | t }}</label>
             <input id="bateria_voltaje" type="text" formControlName="bateria_voltaje" />
           </div>
         </div>
         <div class="sgc-field">
-          <label for="bateria_sello">Sello de la batería</label>
+          <label for="bateria_sello">{{ 'Sello de la batería' | t }}</label>
           <input id="bateria_sello" type="text" formControlName="bateria_sello" />
         </div>
       }
 
       <div class="sgc-field">
-        <label for="accesoriosTexto">Accesorios incluidos</label>
-        <input id="accesoriosTexto" type="text" formControlName="accesoriosTexto" placeholder="Ej: cargador, base, micrófono, clip, antena, estuche (separados por coma)" />
+        <label for="accesoriosTexto">{{ 'Accesorios incluidos' | t }}</label>
+        <input id="accesoriosTexto" type="text" formControlName="accesoriosTexto" placeholder="{{ 'Ej: cargador, base, micrófono, clip, antena, estuche (separados por coma)' | t }}" />
       </div>
     </div>
 
     <!-- DA-07/DA-11 — Quién lo tiene -->
-    <h3 class="drawer-section-title">Quién lo tiene</h3>
+    <h3 class="drawer-section-title">{{ 'Quién lo tiene' | t }}</h3>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="empleado_id">Empleado asignado</label>
+        <label for="empleado_id">{{ 'Empleado asignado' | t }}</label>
         <select id="empleado_id" formControlName="empleado_id">
-          <option [ngValue]="null">Sin asignar</option>
+          <option [ngValue]="null">{{ 'Sin asignar' | t }}</option>
           @for (emp of empleados(); track emp.id) {
             <option [value]="emp.id">{{ emp.nombre }} {{ emp.apellido }}</option>
           }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="asignado_en">Fecha de asignación</label>
+        <label for="asignado_en">{{ 'Fecha de asignación' | t }}</label>
         <input id="asignado_en" type="date" formControlName="asignado_en" />
       </div>
     </div>
     <div class="sgc-field">
-      <label for="responsable_externo">Responsable sin usuario en el SGC</label>
-      <input id="responsable_externo" type="text" formControlName="responsable_externo" placeholder="Ej: Cristofer (Contabilidad)" />
-      <span class="field-hint">Para quien usa el equipo pero no tiene usuario/empleado en el SGC. No reemplaza el empleado asignado.</span>
+      <label for="responsable_externo">{{ 'Responsable sin usuario en el SGC' | t }}</label>
+      <input id="responsable_externo" type="text" formControlName="responsable_externo" placeholder="{{ 'Ej: Cristofer (Contabilidad)' | t }}" />
+      <span class="field-hint">{{ 'Para quien usa el equipo pero no tiene usuario/empleado en el SGC. No reemplaza el empleado asignado.' | t }}</span>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="bodega_id">Ubicación (almacén)</label>
+        <label for="bodega_id">{{ 'Ubicación (almacén)' | t }}</label>
         <select id="bodega_id" formControlName="bodega_id">
-          <option [ngValue]="null">Seleccionar almacén…</option>
+          <option [ngValue]="null">{{ 'Seleccionar almacén…' | t }}</option>
           @for (b of bodegas(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
         </select>
       </div>
       <div class="sgc-field">
-        <label for="ubicacion">Detalle de ubicación</label>
-        <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Ej: piso 2, gaveta 3" />
+        <label for="ubicacion">{{ 'Detalle de ubicación' | t }}</label>
+        <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="{{ 'Ej: piso 2, gaveta 3' | t }}" />
       </div>
     </div>
 
     <!-- QA-071 / AL1 / DA-12 — datos de compra / garantía + moneda -->
-    <h3 class="drawer-section-title">Compra y garantía</h3>
+    <h3 class="drawer-section-title">{{ 'Compra y garantía' | t }}</h3>
     <div class="form-row">
       <div class="sgc-field">
-        <label for="costo">Costo</label>
-        <input id="costo" type="number" min="0" step="0.01" formControlName="costo" placeholder="Ej: 45000" />
+        <label for="costo">{{ 'Costo' | t }}</label>
+        <input id="costo" type="number" min="0" step="0.01" formControlName="costo" placeholder="{{ 'Ej: 45000' | t }}" />
       </div>
       <div class="sgc-field">
-        <label for="moneda">Moneda</label>
+        <label for="moneda">{{ 'Moneda' | t }}</label>
         <select id="moneda" formControlName="moneda">
-          <option value="DOP">RD$ (DOP)</option>
-          <option value="USD">US$ (USD)</option>
+          <option value="DOP">{{ 'RD$ (DOP)' | t }}</option>
+          <option value="USD">{{ 'US$ (USD)' | t }}</option>
         </select>
       </div>
       <div class="sgc-field">
-        <label for="costo_origen">El costo es</label>
+        <label for="costo_origen">{{ 'El costo es' | t }}</label>
         <select id="costo_origen" formControlName="costo_origen">
-          <option value="compra">Precio real de compra</option>
-          <option value="estimado">Estimado (precio referencial)</option>
-          <option value="donado">Donado</option>
+          <option value="compra">{{ 'Precio real de compra' | t }}</option>
+          <option value="estimado">{{ 'Estimado (precio referencial)' | t }}</option>
+          <option value="donado">{{ 'Donado' | t }}</option>
         </select>
       </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="fecha_compra">Fecha de compra</label>
+        <label for="fecha_compra">{{ 'Fecha de compra' | t }}</label>
         <input id="fecha_compra" type="date" formControlName="fecha_compra" [attr.disabled]="f.fecha_compra_desconocida.value ? true : null" />
         <label class="field-hint-check">
           <input type="checkbox" formControlName="fecha_compra_desconocida" />
-          Desconocida
+          {{ 'Desconocida' | t }}
         </label>
       </div>
       <div class="sgc-field">
-        <label for="garantia_hasta">Garantía hasta</label>
+        <label for="garantia_hasta">{{ 'Garantía hasta' | t }}</label>
         <input id="garantia_hasta" type="date" formControlName="garantia_hasta" [attr.disabled]="f.garantia_desconocida.value ? true : null" />
         <label class="field-hint-check">
           <input type="checkbox" formControlName="garantia_desconocida" />
-          Desconocida
+          {{ 'Desconocida' | t }}
         </label>
       </div>
     </div>
 
     <!-- QA-070 — origen: compra tecnológica -->
     <div class="sgc-field">
-      <label for="origen_solicitud_compra_id">Origen: compra tecnológica</label>
+      <label for="origen_solicitud_compra_id">{{ 'Origen: compra tecnológica' | t }}</label>
       <select id="origen_solicitud_compra_id" formControlName="origen_solicitud_compra_id">
-        <option [ngValue]="null">Sin origen de compra</option>
+        <option [ngValue]="null">{{ 'Sin origen de compra' | t }}</option>
         @for (c of comprasOpciones(); track c.id) {
           <option [value]="c.id">{{ c.label }}</option>
         }
@@ -639,36 +639,36 @@
     </div>
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" formControlName="notas" rows="2" placeholder="Observaciones (opcional)…"></textarea>
+      <label for="notas">{{ 'Notas' | t }}</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="{{ 'Observaciones (opcional)…' | t }}"></textarea>
     </div>
 
     <!-- AL1 — galería multi-foto con portada -->
     <div class="sgc-field">
-      <label>Fotos del equipo</label>
+      <label>{{ 'Fotos del equipo' | t }}</label>
       @if (fotos().length) {
         <div class="tec-galeria">
           @for (foto of fotos(); track foto.key) {
             <div class="tec-galeria__item" [class.tec-galeria__item--portada]="esPortada(foto)">
-              <img class="tec-galeria__img" [src]="foto.url" alt="Foto del equipo" (click)="abrirLightbox(foto.url)" />
+              <img class="tec-galeria__img" [src]="foto.url" alt="{{ 'Foto del equipo' | t }}" (click)="abrirLightbox(foto.url)" />
               @if (esPortada(foto)) {
-                <span class="tec-galeria__badge">Portada</span>
+                <span class="tec-galeria__badge">{{ 'Portada' | t }}</span>
               }
               <div class="tec-galeria__actions">
                 @if (!esPortada(foto)) {
-                  <button type="button" title="Marcar como portada" (click)="marcarPortada(foto)"><app-icon name="star" [size]="16" /></button>
+                  <button type="button" title="{{ 'Marcar como portada' | t }}" (click)="marcarPortada(foto)"><app-icon name="star" [size]="16" /></button>
                 }
-                <button type="button" title="Quitar" (click)="quitarFoto(foto)"><app-icon name="x" [size]="16" /></button>
+                <button type="button" title="{{ 'Quitar' | t }}" (click)="quitarFoto(foto)"><app-icon name="x" [size]="16" /></button>
               </div>
             </div>
           }
         </div>
       }
       <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
-        + Agregar fotos
+        {{ '+ Agregar fotos' | t }}
         <input type="file" accept="image/*" multiple hidden (change)="onFotosPicked($event)" />
       </label>
-      <span class="field-hint">La primera es la portada; toca ★ para cambiarla. Toca una foto para verla en grande.</span>
+      <span class="field-hint">{{ 'La primera es la portada; toca ★ para cambiarla. Toca una foto para verla en grande.' | t }}</span>
     </div>
 
     @if (saveError()) {
@@ -681,13 +681,13 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">{{ 'Cancelar' | t }}</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Registrar equipo' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Registrar equipo') | t }}
         }
       </button>
     </div>
@@ -696,7 +696,7 @@
 </app-form-drawer>
 
 <!-- ── Detail / History Drawer ── -->
-<app-form-drawer title="Detalle del equipo" [open]="detailOpen()" (closed)="closeDetail()">
+<app-form-drawer title="{{ 'Detalle del equipo' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailEquipo(); as eq) {
     <div class="detail">
       @if (detalleFotos().length) {
@@ -708,70 +708,70 @@
       }
       <div class="detail__qr-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimirEtiqueta(eq)">
-          <app-icon name="printer" [size]="15" /> Imprimir etiqueta
+          <app-icon name="printer" [size]="15" /> {{ 'Imprimir etiqueta' | t }}
         </button>
       </div>
       <dl class="detail__grid">
-        <div><dt>Código</dt><dd>{{ eq.codigo ?? '—' }}</dd></div>
-        <div><dt>Nombre</dt><dd>{{ eq.nombre }}</dd></div>
-        <div><dt>Tipo</dt><dd>{{ getTipoLabel(eq) }}</dd></div>
+        <div><dt>{{ 'Código' | t }}</dt><dd>{{ eq.codigo ?? '—' }}</dd></div>
+        <div><dt>{{ 'Nombre' | t }}</dt><dd>{{ eq.nombre }}</dd></div>
+        <div><dt>{{ 'Tipo' | t }}</dt><dd>{{ getTipoLabel(eq) }}</dd></div>
         <div>
-          <dt>Situación</dt>
+          <dt>{{ 'Situación' | t }}</dt>
           <dd>
             <span class="status-pill" [class]="'status-pill--' + getEstadoTono(eq.estado)">
-              {{ getEstadoLabel(eq.estado) }}
+              {{ getEstadoLabel(eq.estado) | t }}
             </span>
           </dd>
         </div>
         <div>
-          <dt>Condición</dt>
+          <dt>{{ 'Condición' | t }}</dt>
           <dd>
             <span class="status-pill" [class]="'status-pill--' + getCondicionTono(eq.condicion ?? 'funciona')">
-              {{ getCondicionLabel(eq.condicion ?? 'funciona') }}
+              {{ getCondicionLabel(eq.condicion ?? 'funciona') | t }}
             </span>
           </dd>
         </div>
-        <div><dt>Marca / Modelo</dt><dd>{{ eq.marca || '—' }}@if (eq.modelo) { / {{ eq.modelo }} }</dd></div>
-        <div><dt>Serie</dt><dd>{{ eq.serie ?? '—' }}</dd></div>
-        <div><dt>Quién lo tiene</dt><dd>{{ getQuienLoTiene(eq) }}</dd></div>
-        <div><dt>Fecha de asignación</dt><dd>{{ formatFecha(eq.asignado_en) }}</dd></div>
-        <div><dt>Ubicación</dt><dd>{{ getUbicacionLabel(eq) }}@if (eq.ubicacion && eq.bodega_id) { · {{ eq.ubicacion }} }</dd></div>
+        <div><dt>{{ 'Marca / Modelo' | t }}</dt><dd>{{ eq.marca || '—' }}@if (eq.modelo) { / {{ eq.modelo }} }</dd></div>
+        <div><dt>{{ 'Serie' | t }}</dt><dd>{{ eq.serie ?? '—' }}</dd></div>
+        <div><dt>{{ 'Quién lo tiene' | t }}</dt><dd>{{ getQuienLoTiene(eq) }}</dd></div>
+        <div><dt>{{ 'Fecha de asignación' | t }}</dt><dd>{{ formatFecha(eq.asignado_en) }}</dd></div>
+        <div><dt>{{ 'Ubicación' | t }}</dt><dd>{{ getUbicacionLabel(eq) }}@if (eq.ubicacion && eq.bodega_id) { · {{ eq.ubicacion }} }</dd></div>
         <!-- DA2/DA-02 — identificación -->
-        @if (eq.service_tag) { <div><dt>Service Tag</dt><dd>{{ eq.service_tag }}</dd></div> }
-        @if (eq.imei) { <div><dt>IMEI</dt><dd>{{ eq.imei }}</dd></div> }
-        @if (eq.codigo_anterior) { <div><dt>Código anterior</dt><dd>{{ eq.codigo_anterior }}</dd></div> }
-        @if (eq.etiqueta_taller) { <div><dt>Etiqueta de taller</dt><dd>{{ eq.etiqueta_taller }}</dd></div> }
+        @if (eq.service_tag) { <div><dt>{{ 'Service Tag' | t }}</dt><dd>{{ eq.service_tag }}</dd></div> }
+        @if (eq.imei) { <div><dt>{{ 'IMEI' | t }}</dt><dd>{{ eq.imei }}</dd></div> }
+        @if (eq.codigo_anterior) { <div><dt>{{ 'Código anterior' | t }}</dt><dd>{{ eq.codigo_anterior }}</dd></div> }
+        @if (eq.etiqueta_taller) { <div><dt>{{ 'Etiqueta de taller' | t }}</dt><dd>{{ eq.etiqueta_taller }}</dd></div> }
         <!-- DA2 — specs (solo si hay fila) -->
         @if (eq.specs?.procesador || eq.specs?.so) {
-          <div><dt>Equipo</dt><dd>{{ eq.specs?.procesador || '—' }}@if (eq.specs?.ram_gb) { · {{ eq.specs?.ram_gb }} GB RAM }@if (eq.specs?.so) { · {{ eq.specs?.so }} }</dd></div>
+          <div><dt>{{ 'Equipo' | t }}</dt><dd>{{ eq.specs?.procesador || '—' }}@if (eq.specs?.ram_gb) { · {{ eq.specs?.ram_gb }} GB RAM }@if (eq.specs?.so) { · {{ eq.specs?.so }} }</dd></div>
         }
         @if (eq.specs?.nombre_windows || eq.specs?.usuario_windows) {
-          <div><dt>Windows</dt><dd>{{ eq.specs?.nombre_windows || '—' }}@if (eq.specs?.usuario_windows) { · sesión: {{ eq.specs?.usuario_windows }} }</dd></div>
+          <div><dt>{{ 'Windows' | t }}</dt><dd>{{ eq.specs?.nombre_windows || '—' }}@if (eq.specs?.usuario_windows) { · {{ 'sesión:' | t }} {{ eq.specs?.usuario_windows }} }</dd></div>
         }
-        @if (eq.specs?.frecuencia) { <div><dt>Frecuencia</dt><dd>{{ eq.specs?.frecuencia }}@if (eq.specs?.potencia_w) { · {{ eq.specs?.potencia_w }} W }</dd></div> }
+        @if (eq.specs?.frecuencia) { <div><dt>{{ 'Frecuencia' | t }}</dt><dd>{{ eq.specs?.frecuencia }}@if (eq.specs?.potencia_w) { · {{ eq.specs?.potencia_w }} W }</dd></div> }
         @if (eq.specs?.bateria_modelo || eq.specs?.bateria_capacidad) {
-          <div><dt>Batería</dt><dd>{{ eq.specs?.bateria_modelo || '—' }}@if (eq.specs?.bateria_capacidad) { · {{ eq.specs?.bateria_capacidad }} {{ eq.specs?.bateria_unidad }} }</dd></div>
+          <div><dt>{{ 'Batería' | t }}</dt><dd>{{ eq.specs?.bateria_modelo || '—' }}@if (eq.specs?.bateria_capacidad) { · {{ eq.specs?.bateria_capacidad }} {{ eq.specs?.bateria_unidad }} }</dd></div>
         }
-        @if (eq.specs?.accesorios?.length) { <div><dt>Accesorios</dt><dd>{{ eq.specs?.accesorios?.join(', ') }}</dd></div> }
+        @if (eq.specs?.accesorios?.length) { <div><dt>{{ 'Accesorios' | t }}</dt><dd>{{ eq.specs?.accesorios?.join(', ') }}</dd></div> }
         <!-- QA-071 / AL1 / DA-12 -->
-        <div><dt>Costo</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}@if (eq.costo_origen && eq.costo_origen !== 'compra') { · {{ eq.costo_origen === 'estimado' ? 'estimado' : 'donado' }} }</dd></div>
-        <div><dt>Fecha de compra</dt><dd>{{ eq.fecha_compra_desconocida ? 'Desconocida' : formatFecha(eq.fecha_compra) }}</dd></div>
+        <div><dt>{{ 'Costo' | t }}</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}@if (eq.costo_origen && eq.costo_origen !== 'compra') { · {{ (eq.costo_origen === 'estimado' ? 'estimado' : 'donado') | t }} }</dd></div>
+        <div><dt>{{ 'Fecha de compra' | t }}</dt><dd>{{ (eq.fecha_compra_desconocida ? 'Desconocida' : formatFecha(eq.fecha_compra)) | t }}</dd></div>
         <div>
-          <dt>Garantía hasta</dt>
+          <dt>{{ 'Garantía hasta' | t }}</dt>
           <dd>
-            {{ eq.garantia_desconocida ? 'Desconocida' : formatFecha(eq.garantia_hasta) }}
+            {{ (eq.garantia_desconocida ? 'Desconocida' : formatFecha(eq.garantia_hasta)) | t }}
             @if (garantiaPorVencer(eq)) {
-              <span class="status-pill status-pill--warning">Por vencer / vencida</span>
+              <span class="status-pill status-pill--warning">{{ 'Por vencer / vencida' | t }}</span>
             }
           </dd>
         </div>
         <!-- QA-070 — trazabilidad compra → equipo -->
         @if (eq.origen_solicitud_compra_id) {
           <div>
-            <dt>Origen</dt>
+            <dt>{{ 'Origen' | t }}</dt>
             <dd>
               <span class="sgc-badge sgc-badge--info" title="{{ compraLabel(eq.origen_solicitud_compra_id) }}">
-                Registrado desde compra
+                {{ 'Registrado desde compra' | t }}
               </span>
             </dd>
           </div>
@@ -779,10 +779,10 @@
         <!-- DZ-06 (CZ2) — cotización de origen: directa, o si no hay, la usada de la compra -->
         @if (cotizacionDeEquipo(); as cot) {
           <div>
-            <dt>Cotización de origen</dt>
+            <dt>{{ 'Cotización de origen' | t }}</dt>
             <dd>
               <a class="sgc-badge sgc-badge--neutral" [routerLink]="['/tecnologia/cotizaciones']" [queryParams]="{ id: cot.cotizacion_id }" [title]="cot.titulo">
-                {{ cot.directa ? 'Ver cotización' : 'Ver cotización (de la compra)' }}
+                {{ (cot.directa ? 'Ver cotización' : 'Ver cotización (de la compra)') | t }}
               </a>
             </dd>
           </div>
@@ -796,19 +796,19 @@
       @if (!eq.kit_padre_id && kitComponentes().length > 0) {
         <div class="kit-section">
           <div class="kit-section__head">
-            <h3 class="detail__hist-title">Componentes del kit</h3>
+            <h3 class="detail__hist-title">{{ 'Componentes del kit' | t }}</h3>
             @if (kitEstado(); as k) {
               @if (k.completo) {
-                <span class="status-pill status-pill--success">Completo</span>
+                <span class="status-pill status-pill--success">{{ 'Completo' | t }}</span>
               } @else {
-                <span class="status-pill status-pill--warning">Kit incompleto: falta {{ k.faltantes }}</span>
+                <span class="status-pill status-pill--warning">{{ 'Kit incompleto: falta' | t }} {{ k.faltantes }}</span>
               }
             }
           </div>
           <div class="table-wrapper sgc-card">
-            <table class="data-table" aria-label="Componentes del kit">
+            <table class="data-table" aria-label="{{ 'Componentes del kit' | t }}">
               <thead>
-                <tr><th>Código</th><th>Nombre</th><th>Situación</th><th>En el kit</th><th class="text-center">Acciones</th></tr>
+                <tr><th>{{ 'Código' | t }}</th><th>{{ 'Nombre' | t }}</th><th>{{ 'Situación' | t }}</th><th>{{ 'En el kit' | t }}</th><th class="text-center">{{ 'Acciones' | t }}</th></tr>
               </thead>
               <tbody>
                 @for (c of kitComponentes(); track c.id) {
@@ -816,16 +816,16 @@
                     <td class="equipo-codigo">{{ c.codigo ?? '—' }}</td>
                     <td>{{ c.nombre }}</td>
                     <td>
-                      <span class="status-pill" [class]="'status-pill--' + getEstadoTono(c.estado)">{{ getEstadoLabel(c.estado) }}</span>
+                      <span class="status-pill" [class]="'status-pill--' + getEstadoTono(c.estado)">{{ getEstadoLabel(c.estado) | t }}</span>
                     </td>
                     <td>
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleComponentePresente(c)">
-                        {{ c.presente ? 'Presente' : 'Falta' }}
+                        {{ (c.presente ? 'Presente' : 'Falta') | t }}
                       </button>
                     </td>
                     <td class="text-center">
-                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openEdit(c)">Editar</button>
-                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarComponenteDelKit(c)">Quitar del kit</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openEdit(c)">{{ 'Editar' | t }}</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarComponenteDelKit(c)">{{ 'Quitar del kit' | t }}</button>
                     </td>
                   </tr>
                 }
@@ -833,83 +833,83 @@
             </table>
           </div>
           <div class="kit-section__actions">
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirAgregarComponente(eq)">+ Agregar componente</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirAgregarComponente(eq)">{{ '+ Agregar componente' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="aplicarAlKitCompleto(eq)">
-              Aplicar ubicación/responsable a todo el kit
+              {{ 'Aplicar ubicación/responsable a todo el kit' | t }}
             </button>
           </div>
         </div>
       } @else if (!eq.kit_padre_id) {
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm kit-section__start" (click)="abrirAgregarComponente(eq)">
-          + Agregar componente (convertir en kit)
+          {{ '+ Agregar componente (convertir en kit)' | t }}
         </button>
       }
 
       <!-- DA-06 — Clave del equipo: solo quien tiene el permiso granular ve este bloque -->
       @if (puedeVerClaves()) {
         <div class="clave-section">
-          <h3 class="detail__hist-title">Clave del equipo</h3>
+          <h3 class="detail__hist-title">{{ 'Clave del equipo' | t }}</h3>
           @if (!claveEditando()) {
             @if (eq.tiene_clave) {
               @if (claveValor()) {
                 <div class="clave-section__valor">
                   <code>{{ claveValor() }}</code>
-                  <span class="clave-section__cuenta">se oculta en {{ claveSegundosRestantes() }} s</span>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ocultarClave()">Ocultar</button>
+                  <span class="clave-section__cuenta">{{ 'se oculta en' | t }} {{ claveSegundosRestantes() }} {{ 's' | t }}</span>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ocultarClave()">{{ 'Ocultar' | t }}</button>
                 </div>
               } @else {
                 <div class="clave-section__actions">
-                  <span class="field-hint">{{ claveTipo() === 'personal' ? 'Personal' : 'Compartida' }} — guardada cifrada.</span>
+                  <span class="field-hint">{{ (claveTipo() === 'personal' ? 'Personal' : 'Compartida') | t }} {{ '— guardada cifrada.' | t }}</span>
                   <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="claveCargando()" (click)="mostrarClave(eq.id)">
-                    Mostrar 30 s
+                    {{ 'Mostrar 30 s' | t }}
                   </button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarClave()">Cambiar</button>
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarClave(eq.id)">Quitar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarClave()">{{ 'Cambiar' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarClave(eq.id)">{{ 'Quitar' | t }}</button>
                 </div>
               }
             } @else {
               <div class="clave-section__actions">
-                <span class="field-hint">Sin clave guardada.</span>
-                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirEditarClave()">+ Guardar clave</button>
+                <span class="field-hint">{{ 'Sin clave guardada.' | t }}</span>
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirEditarClave()">{{ '+ Guardar clave' | t }}</button>
               </div>
             }
           } @else {
             <div class="clave-section__form">
               <label class="field-hint-check">
                 <input type="radio" name="clave_tipo" [checked]="claveNuevoTipo() === 'compartida'" (change)="claveNuevoTipo.set('compartida')" />
-                Compartida
+                {{ 'Compartida' | t }}
               </label>
               <label class="field-hint-check">
                 <input type="radio" name="clave_tipo" [checked]="claveNuevoTipo() === 'personal'" (change)="claveNuevoTipo.set('personal')" />
-                Personal
+                {{ 'Personal' | t }}
               </label>
               <input
                 type="text"
-                placeholder="Escribe la clave…"
+                placeholder="{{ 'Escribe la clave…' | t }}"
                 [value]="claveNuevoValor()"
                 (input)="claveNuevoValor.set($any($event.target).value)"
               />
               <div class="clave-section__actions">
-                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="claveCargando()" (click)="guardarClave(eq.id)">Guardar</button>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="claveEditando.set(false)">Cancelar</button>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="claveCargando()" (click)="guardarClave(eq.id)">{{ 'Guardar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="claveEditando.set(false)">{{ 'Cancelar' | t }}</button>
               </div>
             </div>
           }
-          <p class="field-hint clave-section__aviso">Se guarda cifrada. Cada vez que alguien la ve o la cambia queda en el historial (sin el valor).</p>
+          <p class="field-hint clave-section__aviso">{{ 'Se guarda cifrada. Cada vez que alguien la ve o la cambia queda en el historial (sin el valor).' | t }}</p>
         </div>
       }
 
-      <h3 class="detail__hist-title">Historial</h3>
+      <h3 class="detail__hist-title">{{ 'Historial' | t }}</h3>
       @if (historialLoading()) {
         <app-skeleton variant="list" [rows]="3" />
       } @else if (historial().length === 0) {
-        <p class="detail__hist-empty">Sin movimientos registrados.</p>
+        <p class="detail__hist-empty">{{ 'Sin movimientos registrados.' | t }}</p>
       } @else {
         <ul class="hist-list">
           @for (h of historial(); track h.id) {
             <li class="hist-item">
               <div class="hist-item__head">
-                <span class="hist-item__tipo">{{ histTipoLabel(h.tipo_cambio) }}</span>
+                <span class="hist-item__tipo">{{ histTipoLabel(h.tipo_cambio) | t }}</span>
                 <span class="hist-item__fecha">{{ formatTimestamp(h.created_at) }}</span>
               </div>
               @if (h.descripcion) {
@@ -925,5 +925,5 @@
 
 <!-- AL1 — lightbox para ver las fotos en grande -->
 @if (lightboxUrl(); as u) {
-  <app-lightbox [src]="u" alt="Foto del equipo" (closed)="lightboxUrl.set(null)" />
+  <app-lightbox [src]="u" alt="{{ 'Foto del equipo' | t }}" (closed)="lightboxUrl.set(null)" />
 }

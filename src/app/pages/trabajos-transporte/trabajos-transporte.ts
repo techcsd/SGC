@@ -7,6 +7,8 @@ import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../shared/utils/fecha.util';
 import { esUuid } from '../../../shared/utils/uuid.util';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 interface Columna { key: string; label: string; estados: string[]; }
 
@@ -20,7 +22,7 @@ const COLUMNAS: Columna[] = [
 
 @Component({
   selector: 'app-trabajos-transporte',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, TranslatePipe],
   templateUrl: './trabajos-transporte.html',
   styleUrl: './trabajos-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +31,7 @@ export class TrabajosTransporte implements OnInit {
   private svc = inject(TrabajosTransporteService);
   private proyectosSvc = inject(ProyectosService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly COLUMNAS = COLUMNAS;
   readonly fFecha = formatFechaDisplay;
@@ -98,15 +101,15 @@ export class TrabajosTransporte implements OnInit {
     const row = this.asignarRow();
     const chofer = this.selChofer();
     if (!row || this.asignarBusy()) return;
-    if (!esUuid(chofer)) { this.toast.error('Elige un chofer de la lista'); return; }
+    if (!esUuid(chofer)) { this.toast.error(this.i18n.t('Elige un chofer de la lista')); return; }
     this.asignarBusy.set(true);
     try {
       await this.svc.asignar(row.origen as TrabajoOrigen, row.origen_id, chofer!, null, row.dia);
-      this.toast.success('Asignado', 'Se avisó al chofer.');
+      this.toast.success(this.i18n.t('Asignado'), 'Se avisó al chofer.');
       this.asignarOpen.set(false);
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo asignar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo asignar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.asignarBusy.set(false);
     }
@@ -124,11 +127,11 @@ export class TrabajosTransporte implements OnInit {
     try {
       const v = this.actForm.getRawValue();
       await this.svc.crearActividad(v.descripcion.trim(), v.proyecto_id, v.dia, v.conductor_id);
-      this.toast.success('Actividad creada');
+      this.toast.success(this.i18n.t('Actividad creada'));
       this.actividadOpen.set(false);
       await this.recargar();
     } catch (e: unknown) {
-      this.toast.error('No se pudo crear', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo crear'), e instanceof Error ? e.message : undefined);
     } finally {
       this.actividadBusy.set(false);
     }

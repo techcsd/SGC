@@ -2,19 +2,19 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Conductores</h1>
-    <span class="page-count">{{ filtered().length }} conductor{{ filtered().length !== 1 ? 'es' : '' }}</span>
+    <h1 class="page-title">{{ 'Conductores' | t }}</h1>
+    <span class="page-count">{{ filtered().length }} {{ (filtered().length !== 1 ? 'conductores' : 'conductor') | t }}</span>
   </div>
   <div class="page-header__actions">
     <app-export-excel filenameBase="conductores" [rows]="filtered()" [allRows]="conductores()"
       [columns]="exportCols" [sections]="exportSecciones" />
     <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/conductores/importar"
-       title="Importar choferes desde una plantilla de Excel">Importar</a>
+       title="{{ 'Importar choferes desde una plantilla de Excel' | t }}">{{ 'Importar' | t }}</a>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nuevo conductor
+      {{ 'Nuevo conductor' | t }}
     </button>
   </div>
 </div>
@@ -24,16 +24,16 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre o cédula…"
+      placeholder="{{ 'Buscar por nombre o cédula…' | t }}"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar conductores"
+      aria-label="{{ 'Buscar conductores' | t }}"
     />
   </div>
 
   <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
   <app-filter-select
-    label="Estado"
+    [label]="'Estado' | t"
     [options]="estadoOpt"
     [value]="selectedActivo() === 'all' ? '' : selectedActivo()"
     (valueChange)="onActivoChange($event || 'all')"
@@ -48,14 +48,14 @@
     [class.sgc-btn--ghost]="!soloIncompletos()"
     (click)="toggleIncompletos()"
     [attr.aria-pressed]="soloIncompletos()"
-    title="Mostrar solo conductores con cédula o licencia sin subir"
+    title="{{ 'Mostrar solo conductores con cédula o licencia sin subir' | t }}"
   >
-    <app-icon name="alert-triangle" [size]="16" /> Documentos incompletos
+    <app-icon name="alert-triangle" [size]="16" /> {{ 'Documentos incompletos' | t }}
   </button>
 
   @if (searchQuery() || selectedActivo() !== 'all' || soloIncompletos()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
-      Limpiar filtros
+      {{ 'Limpiar filtros' | t }}
     </button>
   }
 
@@ -67,7 +67,7 @@
         [checked]="mostrarPrueba()"
         (change)="mostrarPrueba.set($any($event.target).checked)"
       />
-      Mostrar datos de prueba
+      {{ 'Mostrar datos de prueba' | t }}
     </label>
   }
 </div>
@@ -94,36 +94,36 @@
       </svg>
       <p>
         @if (searchQuery() || selectedActivo() !== 'all') {
-          No se encontraron conductores con los filtros aplicados.
+          {{ 'No se encontraron conductores con los filtros aplicados.' | t }}
         } @else {
-          No hay conductores registrados. Crea el primero.
+          {{ 'No hay conductores registrados. Crea el primero.' | t }}
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Lista de conductores">
+      <table class="data-table" aria-label="{{ 'Lista de conductores' | t }}">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Cédula</th>
-            <th>Teléfono</th>
-            <th>Licencia tipo</th>
-            <th>Nº Licencia</th>
-            <th>Vencimiento</th>
-            <th>Vehículo en uso</th>
-            <th>Dispositivo</th>
-            <th>Estado</th>
-            <th class="text-center">Acciones</th>
+            <th>{{ 'Nombre' | t }}</th>
+            <th>{{ 'Cédula' | t }}</th>
+            <th>{{ 'Teléfono' | t }}</th>
+            <th>{{ 'Licencia tipo' | t }}</th>
+            <th>{{ 'Nº Licencia' | t }}</th>
+            <th>{{ 'Vencimiento' | t }}</th>
+            <th>{{ 'Vehículo en uso' | t }}</th>
+            <th>{{ 'Dispositivo' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th class="text-center">{{ 'Acciones' | t }}</th>
           </tr>
         </thead>
         <tbody appStagger>
           @for (c of paginated(); track c.id) {
-            <tr class="row--link" [class.row--inactive]="!c.activo" [routerLink]="['/flota/conductores', c.id]" role="button" tabindex="0" [attr.aria-label]="'Ver perfil de ' + c.nombre">
+            <tr class="row--link" [class.row--inactive]="!c.activo" [routerLink]="['/flota/conductores', c.id]" role="button" tabindex="0" [attr.aria-label]="i18n.t('Ver perfil de {nombre}', { nombre: c.nombre })">
               <td>
                 <span class="conductores__nombre">{{ c.nombre }}</span>
                 @if (c.es_prueba) {
-                  <span class="sgc-badge sgc-badge--neutral conductores__badge-inline">PRUEBA</span>
+                  <span class="sgc-badge sgc-badge--neutral conductores__badge-inline">{{ 'PRUEBA' | t }}</span>
                 }
                 @if (c.tags && c.tags.length > 0) {
                   <div class="conductores__tags">
@@ -137,7 +137,7 @@
                 }
                 @if (docsIncompletos(c.id)) {
                   <span class="sgc-badge sgc-badge--warning conductores__badge-docs"
-                    title="Falta cédula o licencia por subir"><app-icon name="alert-triangle" [size]="14" /> Documentos incompletos</span>
+                    title="{{ 'Falta cédula o licencia por subir' | t }}"><app-icon name="alert-triangle" [size]="14" /> {{ 'Documentos incompletos' | t }}</span>
                 }
               </td>
               <td>
@@ -145,7 +145,7 @@
               </td>
               <td>{{ c.telefono ? formatTelefono(c.telefono) : '—' }}</td>
               <td>
-                <span class="conductores__licencia-tipo" [title]="categoriaLabel(c.licencia_tipo)">Cat. {{ c.licencia_tipo }}</span>
+                <span class="conductores__licencia-tipo" [title]="categoriaLabel(c.licencia_tipo)">{{ 'Cat.' | t }} {{ c.licencia_tipo }}</span>
               </td>
               <td>{{ c.licencia_numero ?? '—' }}</td>
               <td>
@@ -153,9 +153,9 @@
                   <span [class]="getLicenciaClass(c.licencia_vencimiento)">
                     {{ formatFecha(c.licencia_vencimiento) }}
                     @if (isLicenciaExpired(c.licencia_vencimiento)) {
-                      <span class="sgc-badge sgc-badge--danger conductores__badge-inline">Vencida</span>
+                      <span class="sgc-badge sgc-badge--danger conductores__badge-inline">{{ 'Vencida' | t }}</span>
                     } @else if (isLicenciaExpiringSoon(c.licencia_vencimiento)) {
-                      <span class="sgc-badge sgc-badge--warning conductores__badge-inline">Por vencer</span>
+                      <span class="sgc-badge sgc-badge--warning conductores__badge-inline">{{ 'Por vencer' | t }}</span>
                     }
                   </span>
                 } @else {
@@ -166,7 +166,7 @@
                 <!-- AY8 — vehículo EN USO ahora (sesión activa AK20), no la asignación estática. -->
                 @if (vehiculoEnUso(c); as veh) {
                   @if (veh === 'Libre / —') {
-                    <span class="text-muted">Libre / —</span>
+                    <span class="text-muted">{{ 'Libre / —' | t }}</span>
                   } @else {
                     <span class="conductores__vehiculo">{{ veh }}</span>
                   }
@@ -185,9 +185,9 @@
               </td>
               <td>
                 @if (c.activo) {
-                  <span class="sgc-badge sgc-badge--success">Activo</span>
+                  <span class="sgc-badge sgc-badge--success">{{ 'Activo' | t }}</span>
                 } @else {
-                  <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+                  <span class="sgc-badge sgc-badge--neutral">{{ 'Inactivo' | t }}</span>
                 }
               </td>
               <td>
@@ -196,8 +196,8 @@
                     class="action-btn"
                     [routerLink]="['/flota/conductores', c.id]"
                     (click)="$event.stopPropagation()"
-                    [attr.aria-label]="'Ver perfil de ' + c.nombre"
-                    title="Ver perfil"
+                    [attr.aria-label]="i18n.t('Ver perfil de {nombre}', { nombre: c.nombre })"
+                    title="{{ 'Ver perfil' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
@@ -207,8 +207,8 @@
                     type="button"
                     class="action-btn action-btn--edit"
                     (click)="$event.stopPropagation(); openEdit(c)"
-                    [attr.aria-label]="'Editar ' + c.nombre"
-                    title="Editar"
+                    [attr.aria-label]="i18n.t('Editar {nombre}', { nombre: c.nombre })"
+                    title="{{ 'Editar' | t }}"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -221,8 +221,8 @@
                       class="action-btn"
                       [class.action-btn--access]="c.usuario_id"
                       (click)="$event.stopPropagation(); openAcceso(c)"
-                      [attr.aria-label]="(c.usuario_id ? 'Restablecer PIN de ' : 'Generar acceso para ') + c.nombre"
-                      [title]="c.usuario_id ? 'Restablecer PIN' : 'Generar acceso (cédula + PIN)'"
+                      [attr.aria-label]="i18n.t(c.usuario_id ? 'Restablecer PIN de {nombre}' : 'Generar acceso para {nombre}', { nombre: c.nombre })"
+                      [title]="i18n.t(c.usuario_id ? 'Restablecer PIN' : 'Generar acceso (cédula + PIN)')"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
@@ -235,8 +235,8 @@
                     [class.action-btn--deactivate]="c.activo"
                     [class.action-btn--activate]="!c.activo"
                     (click)="$event.stopPropagation(); toggleActivo(c)"
-                    [attr.aria-label]="(c.activo ? 'Desactivar' : 'Activar') + ' ' + c.nombre"
-                    [title]="c.activo ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="i18n.t(c.activo ? 'Desactivar {nombre}' : 'Activar {nombre}', { nombre: c.nombre })"
+                    [title]="i18n.t(c.activo ? 'Desactivar' : 'Activar')"
                   >
                     @if (c.activo) {
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -255,8 +255,8 @@
                       type="button"
                       class="action-btn"
                       (click)="$event.stopPropagation(); marcarPrueba(c, !c.es_prueba)"
-                      [attr.aria-label]="(c.es_prueba ? 'Quitar de prueba ' : 'Marcar como prueba ') + c.nombre"
-                      [title]="c.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                      [attr.aria-label]="i18n.t(c.es_prueba ? 'Quitar de prueba {nombre}' : 'Marcar como prueba {nombre}', { nombre: c.nombre })"
+                      [title]="i18n.t(c.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba')"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6L12 2z"/>
@@ -267,8 +267,8 @@
                         type="button"
                         class="action-btn action-btn--deactivate"
                         (click)="$event.stopPropagation(); eliminarPrueba(c)"
-                        [attr.aria-label]="'Eliminar dato de prueba ' + c.nombre"
-                        title="Eliminar (dato de prueba)"
+                        [attr.aria-label]="i18n.t('Eliminar dato de prueba {nombre}', { nombre: c.nombre })"
+                        title="{{ 'Eliminar (dato de prueba)' | t }}"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <polyline points="3 6 5 6 21 6"/>
@@ -290,7 +290,7 @@
       <div class="pagination">
         <span class="pagination__info">
           {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
-          de {{ filtered().length }}
+          {{ 'de' | t }} {{ filtered().length }}
         </span>
         <div class="pagination__controls">
           <button
@@ -298,7 +298,7 @@
             type="button"
             (click)="goToPage(currentPage() - 1)"
             [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
+            aria-label="{{ 'Página anterior' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 18 9 12 15 6"/>
@@ -319,7 +319,7 @@
             type="button"
             (click)="goToPage(currentPage() + 1)"
             [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
+            aria-label="{{ 'Página siguiente' | t }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
@@ -341,44 +341,42 @@
 
     <!-- CG9/CG11 — Usuario de la app PRIMERO: al vincular, autocompleta el resto. -->
     <div class="sgc-field">
-      <label>Usuario de la app (CSD App)</label>
+      <label>{{ 'Usuario de la app (CSD App)' | t }}</label>
       <app-user-picker
         [items]="pickerUsuarios()"
         [value]="f.usuario_id.value"
         [allowOtro]="false"
-        placeholder="Buscar por nombre, correo o cédula…"
+        placeholder="{{ 'Buscar por nombre, correo o cédula…' | t }}"
         (selected)="onPickerSelect($event)"
       />
       <small class="sgc-field__hint">
-        Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo.
-        Al vincular, se autocompletan nombre, cédula y teléfono desde su perfil (puedes editarlos).
-        Sin vincular, llena los datos a mano.
+        {{ 'Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo. Al vincular, se autocompletan nombre, cédula y teléfono desde su perfil (puedes editarlos). Sin vincular, llena los datos a mano.' | t }}
       </small>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
         <label for="nombre" class="cond-label">
-          <span>Nombre completo <span class="required">*</span></span>
-          @if (camposDelPerfil().has('nombre')) { <span class="cond-del-perfil">del perfil</span> }
+          <span>{{ 'Nombre completo' | t }} <span class="required">*</span></span>
+          @if (camposDelPerfil().has('nombre')) { <span class="cond-del-perfil">{{ 'del perfil' | t }}</span> }
         </label>
         <input
           id="nombre"
           type="text"
           formControlName="nombre"
           (input)="marcarManual('nombre')"
-          placeholder="Nombre del conductor"
+          placeholder="{{ 'Nombre del conductor' | t }}"
           [class.invalid]="f.nombre.invalid && f.nombre.touched"
         />
         @if (f.nombre.invalid && f.nombre.touched) {
-          <span class="field-error">El nombre es obligatorio.</span>
+          <span class="field-error">{{ 'El nombre es obligatorio.' | t }}</span>
         }
       </div>
 
       <div class="sgc-field">
         <label for="cedula" class="cond-label">
-          <span>Cédula <span class="required">*</span></span>
-          @if (camposDelPerfil().has('cedula')) { <span class="cond-del-perfil">del perfil</span> }
+          <span>{{ 'Cédula' | t }} <span class="required">*</span></span>
+          @if (camposDelPerfil().has('cedula')) { <span class="cond-del-perfil">{{ 'del perfil' | t }}</span> }
         </label>
         <input
           id="cedula"
@@ -392,8 +390,8 @@
         />
         @if (f.cedula.invalid && f.cedula.touched) {
           <span class="field-error">
-            @if (f.cedula.errors?.['required']) { La cédula es obligatoria. }
-            @else { Formato inválido. Usa 000-0000000-0. }
+            @if (f.cedula.errors?.['required']) { {{ 'La cédula es obligatoria.' | t }} }
+            @else { {{ 'Formato inválido. Usa 000-0000000-0.' | t }} }
           </span>
         }
       </div>
@@ -401,30 +399,30 @@
 
     <div class="sgc-field">
       <label for="telefono" class="cond-label">
-        <span>Teléfono</span>
-        @if (camposDelPerfil().has('telefono')) { <span class="cond-del-perfil">del perfil</span> }
+        <span>{{ 'Teléfono' | t }}</span>
+        @if (camposDelPerfil().has('telefono')) { <span class="cond-del-perfil">{{ 'del perfil' | t }}</span> }
       </label>
       <input id="telefono" type="tel" appTelefono formControlName="telefono" (input)="marcarManual('telefono')" placeholder="(809) 000-0000" />
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="licencia_tipo">Tipo de licencia <span class="required">*</span></label>
+        <label for="licencia_tipo">{{ 'Tipo de licencia' | t }} <span class="required">*</span></label>
         <select id="licencia_tipo" formControlName="licencia_tipo">
           @for (cat of categorias(); track cat.codigo) {
-            <option [value]="cat.codigo">Categoría {{ cat.codigo }} — {{ cat.nombre }}</option>
+            <option [value]="cat.codigo">{{ 'Categoría' | t }} {{ cat.codigo }} — {{ cat.nombre }}</option>
           }
         </select>
       </div>
 
       <div class="sgc-field">
-        <label for="licencia_numero">Nº de licencia</label>
-        <input id="licencia_numero" type="text" formControlName="licencia_numero" placeholder="Número" />
+        <label for="licencia_numero">{{ 'Nº de licencia' | t }}</label>
+        <input id="licencia_numero" type="text" formControlName="licencia_numero" placeholder="{{ 'Número' | t }}" />
       </div>
     </div>
 
     <div class="sgc-field">
-      <label for="licencia_vencimiento">Vencimiento de licencia</label>
+      <label for="licencia_vencimiento">{{ 'Vencimiento de licencia' | t }}</label>
       <input id="licencia_vencimiento" type="date" formControlName="licencia_vencimiento" />
       @if (f.licencia_vencimiento.value && isLicenciaExpiringSoon(f.licencia_vencimiento.value)) {
         <span class="field-warning">
@@ -432,58 +430,58 @@
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
-          La licencia está por vencer o ya venció.
+          {{ 'La licencia está por vencer o ya venció.' | t }}
         </span>
       }
     </div>
 
     <div class="sgc-field">
-      <label for="tipo_vehiculo_autorizado">Tipo de vehículo autorizado <span class="required">*</span></label>
+      <label for="tipo_vehiculo_autorizado">{{ 'Tipo de vehículo autorizado' | t }} <span class="required">*</span></label>
       <select id="tipo_vehiculo_autorizado" formControlName="tipo_vehiculo_autorizado">
-        @for (t of TIPOS_AUTORIZADOS; track t) { <option [value]="t">{{ t }}</option> }
+        @for (tipo of TIPOS_AUTORIZADOS; track tipo) { <option [value]="tipo">{{ tipo | t }}</option> }
       </select>
     </div>
 
     <!-- U2 — vehículos que este usuario ya usa (asignaciones activas) -->
     @if (asignacionesUsuario().length > 0) {
       <div class="sgc-field">
-        <label>Vehículos que ya usa</label>
+        <label>{{ 'Vehículos que ya usa' | t }}</label>
         <div class="cond-asig-chips">
           @for (a of asignacionesUsuario(); track a.id) {
             <span class="sgc-badge sgc-badge--info">{{ a.vehiculo?.placa }} — {{ a.vehiculo?.marca }} {{ a.vehiculo?.modelo }}</span>
           }
         </div>
-        <small class="sgc-field__hint">Registro de uso (los vehículos son un pool compartido; no es exclusivo).</small>
+        <small class="sgc-field__hint">{{ 'Registro de uso (los vehículos son un pool compartido; no es exclusivo).' | t }}</small>
       </div>
     }
 
     <div class="sgc-field">
-      <label for="vehiculo_id">Vehículo principal (opcional)</label>
+      <label for="vehiculo_id">{{ 'Vehículo principal (opcional)' | t }}</label>
       <select id="vehiculo_id" formControlName="vehiculo_id">
-        <option [ngValue]="null">Sin vehículo principal</option>
+        <option [ngValue]="null">{{ 'Sin vehículo principal' | t }}</option>
         @for (v of availableVehiculos(); track v.id) {
           <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} {{ v.anio }}</option>
         }
       </select>
-      <small class="sgc-field__hint">Los vehículos son un pool: cualquiera puede usar cualquiera disponible.</small>
+      <small class="sgc-field__hint">{{ 'Los vehículos son un pool: cualquiera puede usar cualquiera disponible.' | t }}</small>
     </div>
 
     <!-- C3 — Nota / comentario -->
     <div class="sgc-field">
-      <label for="nota">Nota / comentario</label>
+      <label for="nota">{{ 'Nota / comentario' | t }}</label>
       <textarea id="nota" formControlName="nota" rows="2"
-        placeholder="Comentario sobre el conductor (ej. disponibilidad, observaciones)…"></textarea>
+        placeholder="{{ 'Comentario sobre el conductor (ej. disponibilidad, observaciones)…' | t }}"></textarea>
     </div>
 
     <!-- C3 — Tags / rol descriptivo -->
     <div class="sgc-field">
-      <label for="tags">Tags / rol</label>
+      <label for="tags">{{ 'Tags / rol' | t }}</label>
       @if (tags().length > 0) {
         <div class="cond-tags">
           @for (t of tags(); track t) {
             <span class="cond-tag-chip">
               {{ t }}
-              <button type="button" (click)="removeTag(t)" [attr.aria-label]="'Quitar ' + t"><app-icon name="x" [size]="14" /></button>
+              <button type="button" (click)="removeTag(t)" [attr.aria-label]="i18n.t('Quitar {tag}', { tag: t })"><app-icon name="x" [size]="14" /></button>
             </span>
           }
         </div>
@@ -491,19 +489,19 @@
       <input id="tags" type="text" [value]="tagInput()"
         (input)="tagInput.set($any($event.target).value)"
         (keydown)="onTagKeydown($event)"
-        placeholder="Escribe y presiona Enter (ej. Chofer)" list="cond-tags-sugeridos" />
+        placeholder="{{ 'Escribe y presiona Enter (ej. Chofer)' | t }}" list="cond-tags-sugeridos" />
       <datalist id="cond-tags-sugeridos">
         @for (s of TAGS_SUGERIDOS; track s) { <option [value]="s"></option> }
       </datalist>
-      <small class="sgc-field__hint">Ej. Chofer, Encargado de Logística, Chofer Telehandler.</small>
+      <small class="sgc-field__hint">{{ 'Ej. Chofer, Encargado de Logística, Chofer Telehandler.' | t }}</small>
     </div>
 
     <!-- C4/CG10 — Documentos opcionales (cédula / licencia): arrastrar, pegar o adjuntar -->
     <div class="sgc-field">
-      <label>Documentos (opcional)</label>
+      <label>{{ 'Documentos (opcional)' | t }}</label>
       <div class="cond-docs-alta">
         <div class="cond-doc-slot">
-          <span class="cond-doc-slot__label">Cédula</span>
+          <span class="cond-doc-slot__label">{{ 'Cédula' | t }}</span>
           <app-file-upload
             [files]="cedulaFiles()"
             [max]="1"
@@ -514,7 +512,7 @@
           />
         </div>
         <div class="cond-doc-slot">
-          <span class="cond-doc-slot__label">Licencia (frente y dorso)</span>
+          <span class="cond-doc-slot__label">{{ 'Licencia (frente y dorso)' | t }}</span>
           <app-file-upload
             [files]="licenciaFiles()"
             [max]="2"
@@ -525,14 +523,14 @@
           />
         </div>
       </div>
-      <small class="sgc-field__hint">Se suben al guardar. No es obligatorio; también puedes agregarlos luego desde el perfil.</small>
+      <small class="sgc-field__hint">{{ 'Se suben al guardar. No es obligatorio; también puedes agregarlos luego desde el perfil.' | t }}</small>
     </div>
 
     <div class="form-toggle">
       <label class="toggle-label" for="activo">
         <input id="activo" type="checkbox" formControlName="activo" class="toggle-input" />
         <span class="toggle-switch" aria-hidden="true"></span>
-        Conductor activo
+        {{ 'Conductor activo' | t }}
       </label>
     </div>
 
@@ -547,14 +545,14 @@
 
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
+        {{ 'Cancelar' | t }}
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Guardando…
+          {{ 'Guardando…' | t }}
         } @else {
-          {{ editingId() ? 'Guardar cambios' : 'Crear conductor' }}
+          {{ (editingId() ? 'Guardar cambios' : 'Crear conductor') | t }}
         }
       </button>
     </div>
@@ -567,17 +565,17 @@
   <div class="acceso-backdrop" (click)="closeAcceso()">
     <div class="acceso-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="acceso-title">
       <div class="acceso-modal__header">
-        <h2 id="acceso-title">{{ c.usuario_id ? 'Restablecer PIN' : 'Generar acceso' }}</h2>
-        <button type="button" class="acceso-modal__close" (click)="closeAcceso()" aria-label="Cerrar"><app-icon name="x" [size]="14" /></button>
+        <h2 id="acceso-title">{{ (c.usuario_id ? 'Restablecer PIN' : 'Generar acceso') | t }}</h2>
+        <button type="button" class="acceso-modal__close" (click)="closeAcceso()" aria-label="{{ 'Cerrar' | t }}"><app-icon name="x" [size]="14" /></button>
       </div>
 
       <p class="acceso-modal__intro">
-        {{ c.nombre }} entrará a la app con su <strong>cédula ({{ c.cedula }})</strong> y este PIN.
-        Nunca se envía por correo; comunícaselo directamente.
+        {{ c.nombre }} {{ 'entrará a la app con su' | t }} <strong>{{ 'cédula' | t }} ({{ c.cedula }})</strong> {{ 'y este PIN.' | t }}
+        {{ 'Nunca se envía por correo; comunícaselo directamente.' | t }}
       </p>
 
       <div class="sgc-field">
-        <label for="acceso-pin">PIN de 6 dígitos <span class="required">*</span></label>
+        <label for="acceso-pin">{{ 'PIN de 6 dígitos' | t }} <span class="required">*</span></label>
         <input
           id="acceso-pin"
           type="text"
@@ -585,7 +583,7 @@
           maxlength="6"
           [value]="accesoPin()"
           (input)="accesoPin.set($any($event.target).value)"
-          placeholder="Ej. 482913"
+          placeholder="{{ 'Ej. 482913' | t }}"
           autocomplete="off"
         />
       </div>
@@ -598,12 +596,12 @@
       }
 
       <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAcceso()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAcceso()">{{ 'Cerrar' | t }}</button>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="accesoSaving()" (click)="guardarAcceso()">
           @if (accesoSaving()) {
-            <span class="spinner" aria-hidden="true"></span> Guardando…
+            <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }}
           } @else {
-            {{ c.usuario_id ? 'Restablecer PIN' : 'Generar acceso' }}
+            {{ (c.usuario_id ? 'Restablecer PIN' : 'Generar acceso') | t }}
           }
         </button>
       </div>
