@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 89%** (8951/10095 literales de 192 pantallas en alcance). **`ht`: 94%**.
+**Alcance `en`: 89%** (8959/10095 literales de 192 pantallas en alcance). **`ht`: 94%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -27,7 +27,6 @@
 | app-movil | scope | 42 | 8 | 34 | 19% |
 | auth | scope | 42 | 15 | 27 | 36% |
 | admin/jira | scope | 56 | 24 | 32 | 43% |
-| admin/conduces-huerfanos | scope | 15 | 7 | 8 | 47% |
 | admin/usuarios | scope | 141 | 74 | 67 | 52% |
 | admin/parametros | scope | 11 | 6 | 5 | 55% |
 | admin/animaciones | scope | 34 | 19 | 15 | 56% |
@@ -52,6 +51,7 @@
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/bitacora-catalogos | enforce | 7 | 7 | 0 | 100% |
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
+| admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
 | admin/importar | scope | 2 | 2 | 0 | 100% |
 | admin/pulso-sistema | scope | 3 | 3 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
@@ -202,7 +202,7 @@
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**168 literal(es) sin t()** en 23 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**167 literal(es) sin t()** en 22 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -224,7 +224,6 @@
 | src/app/pages/admin/usuarios/usuarios.ts | 2 | ¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior. · ¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer. |
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
-| src/app/pages/admin/conduces-huerfanos/conduces-huerfanos.ts | 1 | Conduce anulado |
 | src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
 | src/app/pages/admin/usuarios-test/usuarios-test.ts | 1 | ¿Eliminar el usuario de prueba "${u.nombre}" y toda su actividad de prueba? Esta acción no se puede deshacer. |

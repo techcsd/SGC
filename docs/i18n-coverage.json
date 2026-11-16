@@ -1084,25 +1084,6 @@
       ]
     },
     {
-      "pantalla": "admin/conduces-huerfanos",
-      "total": 15,
-      "cubiertos": 7,
-      "sin": 8,
-      "pct": 47,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "conduce",
-        "Conduces que se quedaron en \"despachado\" sin que nadie confirmara la entrega. Puede ser que el chofer entregó y su teléfono nunca pudo avisarle al servidor, o que quedó un duplicado de un reintento. Esta lista es de solo lectura; «Anular» pide un motivo y queda registrado.",
-        "días",
-        "Creado:",
-        "días atascado",
-        "Anular con motivo",
-        "Tiene confirmaciones",
-        "Conduce anulado"
-      ]
-    },
-    {
       "pantalla": "admin/usuarios",
       "total": 141,
       "cubiertos": 74,
@@ -1632,6 +1613,16 @@
       "pantalla": "admin/claude",
       "total": 27,
       "cubiertos": 27,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "admin/conduces-huerfanos",
+      "total": 15,
+      "cubiertos": 15,
       "sin": 0,
       "pct": 100,
       "enScope": true,

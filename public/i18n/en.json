@@ -6896,5 +6896,16 @@
   "Procesar": "Process",
   "¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible.": "Process the deletion? The profile will be anonymized and the user's access closed. This is irreversible.",
   "Solicitudes de eliminación de cuenta": "Account deletion requests",
-  "No hay solicitudes.": "There are no requests."
+  "No hay solicitudes.": "There are no requests.",
+  "Conduces que se quedaron en \"despachado\" sin que nadie confirmara la entrega. Puede ser que el chofer entregó y su teléfono nunca pudo avisarle al servidor, o que quedó un duplicado de un reintento. Esta lista es de solo lectura; «Anular» pide un motivo y queda registrado.": "Delivery notes that stayed in \"dispatched\" with no one confirming the delivery. It could be that the driver delivered but their phone never managed to notify the server, or that a duplicate was left over from a retry. This list is read-only; \"Void\" asks for a reason and it gets logged.",
+  "Creado:": "Created:",
+  "días atascado": "days stuck",
+  "Anular con motivo": "Void with reason",
+  "Tiene confirmaciones": "Has confirmations",
+  "despachado": "dispatched",
+  "Conduce anulado": "Delivery note voided",
+  "Atascados hace al menos:": "Stuck for at least:",
+  "No hay conduces huérfanos con ese filtro.": "There are no orphan delivery notes with that filter.",
+  "Tiene confirmaciones de entrega — no se puede anular desde aquí": "Has delivery confirmations — it cannot be voided from here",
+  "Creado por:": "Created by:"
 }

@@ -1,15 +1,12 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Conduces huérfanos' | t }}</h1>
-    <span class="page-count">{{ filas().length }} conduce{{ filas().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ filas().length }} {{ 'conduce' | t }}{{ filas().length !== 1 ? 's' : '' }}</span>
   </div>
 </div>
 
 <p class="ch-intro">
-  Conduces que se quedaron en "despachado" sin que nadie confirmara la entrega. Puede ser
-  que el chofer entregó y su teléfono nunca pudo avisarle al servidor, o que quedó un
-  duplicado de un reintento. Esta lista es de solo lectura; «Anular» pide un motivo y
-  queda registrado.
+  {{ 'Conduces que se quedaron en "despachado" sin que nadie confirmara la entrega. Puede ser que el chofer entregó y su teléfono nunca pudo avisarle al servidor, o que quedó un duplicado de un reintento. Esta lista es de solo lectura; «Anular» pide un motivo y queda registrado.' | t }}
 </p>
 
 <div class="ch-filtros">
@@ -17,7 +14,7 @@
   @for (d of [3, 7, 14, 30]; track d) {
     <button type="button" class="sgc-btn sgc-btn--sm"
             [class.sgc-btn--primary]="diasMin() === d" [class.sgc-btn--ghost]="diasMin() !== d"
-            (click)="cambiarDias(d)">{{ d }} días</button>
+            (click)="cambiarDias(d)">{{ d }} {{ 'días' | t }}</button>
   }
 </div>
 
@@ -33,18 +30,18 @@
           <div>
             <h3 class="ch-card__codigo">{{ f.codigo }}</h3>
             <div class="ch-card__meta">
-              <span>Creado: {{ f.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
-              <span class="ch-badge ch-badge--atascado">{{ f.dias_atascado }} días atascado</span>
+              <span>{{ 'Creado:' | t }} {{ f.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span class="ch-badge ch-badge--atascado">{{ f.dias_atascado }} {{ 'días atascado' | t }}</span>
             </div>
           </div>
           @if (f.anulable) {
             <button class="sgc-btn sgc-btn--sm sgc-btn--danger" type="button"
                     [disabled]="anulando() === f.id" (click)="anular(f)">
-              <app-icon name="trash" [size]="14" /> Anular con motivo
+              <app-icon name="trash" [size]="14" /> {{ 'Anular con motivo' | t }}
             </button>
           } @else {
             <span class="ch-badge ch-badge--bloqueado" title="{{ 'Tiene confirmaciones de entrega — no se puede anular desde aquí' | t }}">
-              Tiene confirmaciones
+              {{ 'Tiene confirmaciones' | t }}
             </span>
           }
         </div>
@@ -52,7 +49,7 @@
           <span><strong>{{ 'Chofer:' | t }}</strong> {{ f.chofer_nombre ?? '—' }}</span>
           <span><strong>{{ 'Creado por:' | t }}</strong> {{ f.creado_por_nombre ?? '—' }}</span>
           <span><strong>{{ 'Destino:' | t }}</strong> {{ f.destino_texto ?? '—' }}</span>
-          <span><strong>{{ 'Estado:' | t }}</strong> {{ f.estado }}</span>
+          <span><strong>{{ 'Estado:' | t }}</strong> {{ f.estado | t }}</span>
         </div>
       </div>
     }

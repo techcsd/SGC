@@ -6503,5 +6503,16 @@
   "Procesar": "Trete",
   "¿Procesar la eliminación? Se anonimiza el perfil y se cierra el acceso del usuario. Es irreversible.": "Trete efasman an? Pwofil la ap anonimize epi aksè itilizatè a ap fèmen. Sa a pa ka defèt.",
   "Solicitudes de eliminación de cuenta": "Demann efasman kont",
-  "No hay solicitudes.": "Pa gen demann."
+  "No hay solicitudes.": "Pa gen demann.",
+  "Conduces que se quedaron en \"despachado\" sin que nadie confirmara la entrega. Puede ser que el chofer entregó y su teléfono nunca pudo avisarle al servidor, o que quedó un duplicado de un reintento. Esta lista es de solo lectura; «Anular» pide un motivo y queda registrado.": "Bòdwo ki rete nan eta \"anvwaye\" san pèsonn pa konfime livrezon an. Li ka paske chofè a te livre men telefòn li pa t janm rive avèti sèvè a, oswa ki te rete yon duplika yon tantativ. Lis sa a se sèlman pou li; \"Anile\" mande yon rezon epi li anrejistre.",
+  "Creado:": "Kreye:",
+  "días atascado": "jou bloke",
+  "Anular con motivo": "Anile ak rezon",
+  "Tiene confirmaciones": "Gen konfimasyon",
+  "despachado": "anvwaye",
+  "Conduce anulado": "Bòdwo anile",
+  "Atascados hace al menos:": "Bloke pou pi piti:",
+  "No hay conduces huérfanos con ese filtro.": "Pa gen bòdwo òfelen ak filtè sa a.",
+  "Tiene confirmaciones de entrega — no se puede anular desde aquí": "Gen konfimasyon livrezon — pa ka anile apati isit la",
+  "Creado por:": "Kreye pa:"
 }
