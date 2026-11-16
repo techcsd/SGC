@@ -1,13 +1,12 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Sincronización con Odoo' | t }}</h1>
-    <span class="page-count">{{ filasVisibles().length }} evento{{ filasVisibles().length !== 1 ? 's' : '' }}</span>
+    <span class="page-count">{{ i18n.t('{n} evento{plural}', { n: filasVisibles().length, plural: filasVisibles().length !== 1 ? 's' : '' }) }}</span>
   </div>
 </div>
 
 <p class="os-lead">
-  Outbox de eventos hacia Odoo (maestros y documentos). Hoy la publicación está apagada por política
-  y el adaptador de escritura es un simulador (MOCK) — nada de esto llegó al Odoo real todavía.
+  {{ 'Outbox de eventos hacia Odoo (maestros y documentos). Hoy la publicación está apagada por política y el adaptador de escritura es un simulador (MOCK) — nada de esto llegó al Odoo real todavía.' | t }}
 </p>
 
 @if (error()) {
@@ -17,7 +16,7 @@
 <div class="os-resumen">
   @for (estado of estadosOrden; track estado) {
     @if (totalPorEstado()[estado]) {
-      <span [class]="estadoBadgeClass(estado)">{{ estadoLabel[estado] }}: {{ totalPorEstado()[estado] }}</span>
+      <span [class]="estadoBadgeClass(estado)">{{ estadoLabel[estado] | t }}: {{ totalPorEstado()[estado] }}</span>
     }
   }
 </div>
@@ -26,18 +25,18 @@
   <div class="sgc-field filters-bar__select">
     <label for="os-tipo">{{ 'Tipo' | t }}</label>
     <select id="os-tipo" [value]="filtroTipo() ?? ''" (change)="setFiltroTipo($any($event.target).value)">
-      <option value="">Todos los tipos</option>
+      <option value="">{{ 'Todos los tipos' | t }}</option>
       @for (t of tiposPresentes(); track t) {
-        <option [value]="t">{{ agregadoLabel[t] }}</option>
+        <option [value]="t">{{ agregadoLabel[t] | t }}</option>
       }
     </select>
   </div>
   <div class="sgc-field filters-bar__select">
     <label for="os-estado">{{ 'Estado' | t }}</label>
     <select id="os-estado" [value]="filtroEstado() ?? ''" (change)="setFiltroEstado($any($event.target).value)">
-      <option value="">Todos los estados</option>
+      <option value="">{{ 'Todos los estados' | t }}</option>
       @for (e of estadosPresentes(); track e) {
-        <option [value]="e">{{ estadoLabel[e] }}</option>
+        <option [value]="e">{{ estadoLabel[e] | t }}</option>
       }
     </select>
   </div>
@@ -68,12 +67,12 @@
         <tbody>
           @for (f of filasVisibles(); track f.id) {
             <tr>
-              <td>{{ agregadoLabel[f.agregado_tipo] }}</td>
+              <td>{{ agregadoLabel[f.agregado_tipo] | t }}</td>
               <td class="os-id">{{ f.agregado_id }}</td>
               <td class="text-muted">{{ f.accion }}</td>
               <td class="text-right">{{ f.revision }}</td>
               <td>
-                <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] }}</span>
+                <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] | t }}</span>
                 @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'Prueba' | t }}</span> }
               </td>
               <td class="text-right">{{ f.intentos }}</td>
@@ -96,11 +95,11 @@
       <div class="detail-grid">
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Tipo' | t }}</span>
-          <span>{{ agregadoLabel[f.agregado_tipo] }}</span>
+          <span>{{ agregadoLabel[f.agregado_tipo] | t }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'Estado' | t }}</span>
-          <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] }}</span>
+          <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] | t }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">{{ 'ID del agregado' | t }}</span>
@@ -141,7 +140,7 @@
             <ul class="os-intentos__lista">
               @for (i of d.intentos; track $index) {
                 <li>
-                  <span [class]="estadoBadgeClass(i.estado_resultado)">{{ estadoLabel[i.estado_resultado] }}</span>
+                  <span [class]="estadoBadgeClass(i.estado_resultado)">{{ estadoLabel[i.estado_resultado] | t }}</span>
                   <span class="text-muted">{{ i.procesador }} — {{ i.finalizado_en | date:'dd/MM/yyyy HH:mm' }}</span>
                   @if (i.error) { <span class="os-intento-error">{{ i.error }}</span> }
                 </li>
@@ -155,7 +154,7 @@
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDetalle()">{{ 'Cerrar' | t }}</button>
         @if (esReintentable(f.estado)) {
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="reintentando()" (click)="confirmarReintentar()">
-            {{ reintentando() ? 'Reencolando…' : 'Reintentar' }}
+            {{ (reintentando() ? 'Reencolando…' : 'Reintentar') | t }}
           </button>
         }
       </div>

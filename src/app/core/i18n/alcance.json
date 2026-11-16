@@ -163,9 +163,6 @@
     "tecnologia/reportes-errores": {
       "enforce": false
     },
-    "tecnologia/odoo-sync": {
-      "enforce": false
-    },
     "tecnologia/resumen-operaciones": {
       "enforce": false
     },
@@ -569,6 +566,9 @@
       "enforce": true
     },
     "tecnologia/estadisticas": {
+      "enforce": true
+    },
+    "tecnologia/odoo-sync": {
       "enforce": true
     },
     "tecnologia/whatsapp": {

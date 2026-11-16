@@ -15,6 +15,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 const REINTENTABLES: OdooEventoEstado[] = ['error', 'incierto', 'bloqueado'];
 const ESTADOS_ORDEN: OdooEventoEstado[] = ['pendiente', 'procesando', 'completado', 'reintento', 'error', 'incierto', 'bloqueado', 'cancelado'];
 
@@ -41,6 +42,7 @@ const ESTADOS_ORDEN: OdooEventoEstado[] = ['pendiente', 'procesando', 'completad
 export class TecOdooSync implements OnInit {
   private svc = inject(OdooSyncService);
   private toast = inject(ToastService);
+  protected i18n = inject(I18nService);
 
   readonly agregadoLabel = ODOO_AGREGADO_LABEL;
   readonly estadoLabel = ODOO_ESTADO_LABEL;
@@ -81,7 +83,7 @@ export class TecOdooSync implements OnInit {
       this.filas.set(filas);
       this.resumen.set(resumen);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar la bandeja de sincronización.');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar la bandeja de sincronización.'));
     } finally {
       this.loading.set(false);
     }
@@ -128,7 +130,7 @@ export class TecOdooSync implements OnInit {
     try {
       this.detalle.set(await this.svc.detalle(fila.id));
     } catch (e: unknown) {
-      this.detalleError.set(e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
+      this.detalleError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar el detalle.'));
     } finally {
       this.detalleLoading.set(false);
     }
@@ -146,11 +148,11 @@ export class TecOdooSync implements OnInit {
     this.reintentando.set(true);
     try {
       await this.svc.reintentar(fila.id);
-      this.toast.success('Reencolado', 'El procesador lo recogerá en su próxima pasada.');
+      this.toast.success(this.i18n.t('Reencolado'), this.i18n.t('El procesador lo recogerá en su próxima pasada.'));
       this.cerrarDetalle();
       await this.load();
     } catch (e: unknown) {
-      this.toast.error('No se pudo reencolar', e instanceof Error ? e.message : undefined);
+      this.toast.error(this.i18n.t('No se pudo reencolar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.reintentando.set(false);
     }

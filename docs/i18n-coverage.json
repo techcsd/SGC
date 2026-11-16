@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 79,
+  "pctScopeEn": 80,
   "pctHt": 92,
   "filas": [
     {
@@ -2636,23 +2636,6 @@
       ]
     },
     {
-      "pantalla": "tecnologia/odoo-sync",
-      "total": 31,
-      "cubiertos": 25,
-      "sin": 6,
-      "pct": 81,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "evento",
-        "Outbox de eventos hacia Odoo (maestros y documentos). Hoy la publicación está apagada por política y el adaptador de escritura es un simulador (MOCK) — nada de esto llegó al Odoo real todavía.",
-        "Todos los tipos",
-        "Todos los estados",
-        "Reencolado",
-        "No se pudo reencolar"
-      ]
-    },
-    {
       "pantalla": "tecnologia/resumen-operaciones",
       "total": 70,
       "cubiertos": 58,
@@ -4052,6 +4035,16 @@
       "pantalla": "tecnologia/estadisticas",
       "total": 37,
       "cubiertos": 37,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/odoo-sync",
+      "total": 30,
+      "cubiertos": 30,
       "sin": 0,
       "pct": 100,
       "enScope": true,

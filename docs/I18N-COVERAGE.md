@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 79%** (8090/10183 literales de 192 pantallas en alcance). **`ht`: 92%**.
+**Alcance `en`: 80%** (8095/10182 literales de 192 pantallas en alcance). **`ht`: 92%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -61,7 +61,6 @@
 | admin/compa-conversaciones | scope | 26 | 20 | 6 | 77% |
 | tecnologia/qa | scope | 73 | 56 | 17 | 77% |
 | tecnologia/reportes-errores | scope | 59 | 46 | 13 | 78% |
-| tecnologia/odoo-sync | scope | 31 | 25 | 6 | 81% |
 | tecnologia/resumen-operaciones | scope | 70 | 58 | 12 | 83% |
 | tecnologia/cotizaciones | scope | 79 | 67 | 12 | 85% |
 | tecnologia/monitoreo | scope | 68 | 59 | 9 | 87% |
@@ -197,12 +196,13 @@
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/estadisticas | enforce | 37 | 37 | 0 | 100% |
+| tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 
 ## Literales en `.ts` sin `t()` (DP-07c — toasts/confirm/alert/placeholder/label/titulo/mensaje)
 
-**282 literal(es) sin t()** en 41 archivo(s) (de 136 archivo(s) .ts con algo detectado).
+**280 literal(es) sin t()** en 40 archivo(s) (de 136 archivo(s) .ts con algo detectado).
 
 | Archivo | sin t() | ejemplos |
 |---|---:|---|
@@ -241,7 +241,6 @@
 | src/app/pages/asistente/asistente.ts | 2 | Conversación compartida · No se pudo compartir |
 | src/app/pages/borrador-claude/borrador-claude.ts | 2 | Lote procesado · Borrador descartado. |
 | src/app/pages/tecnologia/matriz/matriz.ts | 2 | Herramienta asignada al puesto · ¿Quitar "${nombre}" del puesto "${entry.puesto}"? |
-| src/app/pages/tecnologia/odoo-sync/odoo-sync.ts | 2 | Reencolado · No se pudo reencolar |
 | src/app/pages/admin/conduces-huerfanos/conduces-huerfanos.ts | 1 | Conduce anulado |
 | src/app/pages/admin/orden-modulos/orden-modulos.ts | 1 | Orden guardado |
 | src/app/pages/admin/usuarios-duplicados/usuarios-duplicados.ts | 1 | ¿Fusionar "${nombreDup}" dentro de "${nombreCanon}"?\n\n |
