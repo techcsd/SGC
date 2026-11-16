@@ -207,9 +207,18 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
     "stock.quant": ["read_group"],
     "res.partner": ["search_read"],
     "purchase.order": ["search_read"],
-    "stock.picking": ["search_read"],
+    "stock.picking": ["search_read", "read"],
+    // DS-08: traslados A/B (lectura de movimientos, tipos de operacion, autores del chatter)
+    "stock.move": ["read", "search_read"],
+    "stock.picking.type": ["search_read"],
+    "stock.warehouse": ["search_read"],
+    "res.users": ["search_read"],
+    "hr.employee": ["search_read"],
   },
   escritura: {
+    // DS-08: traslados. Sin unlink: un movimiento nunca se borra, se cancela o se devuelve.
+    "stock.picking": ["create", "write", "action_confirm", "action_assign", "button_validate", "action_cancel", "message_post"],
+    "stock.move": ["write"],
     "purchase.order": ["create", "button_confirm", "button_cancel"],
     // Proveedores directos en Odoo: alta y edición/archivado. Sin unlink: nunca se borra un partner.
     "res.partner": ["create", "write"],
