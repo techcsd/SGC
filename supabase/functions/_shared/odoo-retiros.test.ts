@@ -65,3 +65,26 @@ Deno.test("material sin articulo vinculado, obra sin almacen en Odoo o prueba: n
   assertEquals((await publicarRetiro(deps(f, { esPrueba: true }).d, "r1", 1)).resultado?.omitido, "es_prueba");
   assertEquals(f.pickings.length, 0);
 });
+
+Deno.test("W3: real -> prueba DESPUES de publicar compensa disposicion y recepcion a cuarentena (idempotente)", async () => {
+  const f = odooFake(); const a = deps(f, { estado: "dispuesta", disposicion: "descarte" });
+  await publicarRetiro(a.d, "r1", 1);
+  assertEquals(f.pickings.length, 2); // IN y DISP
+  const d2 = deps(f, { estado: "dispuesta", disposicion: "descarte", esPrueba: true });
+  const r = await publicarRetiro(d2.d, "r1", 2);
+  assertEquals(r.estado, "completado"); assertEquals(r.resultado?.revertido, true);
+  const orig = f.pickings.map((p) => p.origin);
+  assertEquals(orig.includes(`${originRetiro("r1", "DISP")}-D1`), true); assertEquals(orig.includes(`${originRetiro("r1", "IN")}-D1`), true);
+  const dispD = f.pickings.find((p) => p.origin === `${originRetiro("r1", "DISP")}-D1`)!;
+  assertEquals([dispD.location_id[0], dispD.location_dest_id[0]], [5, 9]); // scrap -> cuarentena
+  const inD = f.pickings.find((p) => p.origin === `${originRetiro("r1", "IN")}-D1`)!;
+  assertEquals([inD.location_id[0], inD.location_dest_id[0]], [9, 10]); // cuarentena -> obra
+  await publicarRetiro(d2.d, "r1", 3);
+  assertEquals(f.pickings.length, 4); // reintento: no duplica la reversa
+});
+
+Deno.test("W3: una prueba que nunca se publico sigue sin tocar Odoo", async () => {
+  const f = odooFake();
+  assertEquals((await publicarRetiro(deps(f, { esPrueba: true, estado: "dispuesta", disposicion: "descarte" }).d, "r1", 1)).resultado?.omitido, "es_prueba");
+  assertEquals(f.pickings.length, 0);
+});

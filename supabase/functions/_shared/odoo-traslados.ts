@@ -194,12 +194,12 @@ export async function cancelarTraslado(c: LlamadorOdoo, pickingId: number): Prom
 
 /** Devolucion = traslado inverso (destino -> origen) del picking ya validado, con su propio `origin` -D<n>. */
 export async function devolverTraslado(
-  c: LlamadorOdoo, pickingId: number, opts: { salidaId: string; paso: PasoTraslado; secuencia?: number; items?: ItemTraslado[]; companyId: number },
+  c: LlamadorOdoo, pickingId: number, opts: { salidaId: string; paso: PasoTraslado; secuencia?: number; items?: ItemTraslado[]; companyId: number; origin?: string },
 ): Promise<ResultadoTraslado> {
   try {
     const [p] = await c.call("stock.picking", "read", [[pickingId]], { fields: ["state", "location_id", "location_dest_id", "picking_type_id", "move_ids"] });
     if (!p || p.state !== "done") throw new TrasladoError("estado_invalido", "Solo se puede devolver un movimiento ya validado.");
-    const origin = `${originTraslado(opts.salidaId, opts.paso)}-D${opts.secuencia ?? 1}`;
+    const origin = opts.origin ?? `${originTraslado(opts.salidaId, opts.paso)}-D${opts.secuencia ?? 1}`;
     const previo = await buscarPickingPorOrigin(c, origin);
     if (previo) return { pickingId: previo.id, nombre: previo.name, estado: previo.state, reutilizado: true };
     let items = opts.items;

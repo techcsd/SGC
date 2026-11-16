@@ -22,6 +22,7 @@ import { publicarConduceExterno } from "../_shared/odoo-externos.ts";
 import { publicarAjusteFaltante } from "../_shared/odoo-faltantes.ts";
 import { aplicarAperturaBodega } from "../_shared/odoo-corte.ts";
 import { TrasladoError } from "../_shared/odoo-traslados.ts";
+import { autorizadoWorker } from "../_shared/odoo-sync-auth.ts";
 
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = envRequerido("SUPABASE_SERVICE_ROLE_KEY");
@@ -36,7 +37,11 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido." }, 405);
 
-  if (SYNC_SECRET && req.headers.get("x-sync-secret") !== SYNC_SECRET) {
+  // W3: falla cerrado (verify_jwt=false para que el cron entre con x-sync-secret; sin secreto ni service_role no entra nadie).
+  if (!autorizadoWorker({
+    secretHeader: req.headers.get("x-sync-secret"), authHeader: req.headers.get("Authorization"),
+    syncSecret: SYNC_SECRET, infraSecret: Deno.env.get("INFRA_SYNC_SECRET"), serviceKey: SUPABASE_SERVICE_ROLE_KEY,
+  })) {
     return json({ error: "No autorizado." }, 401);
   }
 

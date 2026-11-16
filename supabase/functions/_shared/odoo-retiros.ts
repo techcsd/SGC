@@ -17,7 +17,7 @@
 // Contrapartida de origen: la obra debe TENER esas existencias en Odoo (Odoo de CSD permite negativos, por eso se verifica); si no, no se
 // inventa material nuevo: el retiro queda en error explicado hasta que se corrija el origen.
 import type { LlamadorOdoo } from "./odoo-traslados.ts";
-import { crearTraslado, TrasladoError, validarTraslado, buscarPickingPorOrigin } from "./odoo-traslados.ts";
+import { crearTraslado, devolverTraslado, TrasladoError, validarTraslado, buscarPickingPorOrigin } from "./odoo-traslados.ts";
 import { clasificarFallo, exito, type Marcar, omitido, type ResultadoEvento } from "./odoo-evento.ts";
 
 export const originRetiro = (id: string, fase: "IN" | "DISP") => `SGC-RET-${id}-${fase}`;
@@ -74,7 +74,17 @@ export async function publicarRetiro(d: DepsRetiro, retiroId: string, intentos: 
   const id = r.id;
   let picking: number | undefined;
   try {
-    if (r.esPrueba) return { estado: "completado", resultado: { omitido: "es_prueba" } };
+    if (r.esPrueba) {
+      // W3 / DS-19: real -> prueba DESPUES de publicar: el efecto en Odoo no puede quedar activo mientras SGC lo revierte -> se compensa
+      // (disposicion primero, luego la recepcion a cuarentena; cada devolucion es idempotente por su origin). Nunca publicado: no hay nada que hacer.
+      const disp = await buscarPickingPorOrigin(d.c, originRetiro(id, "DISP")); const rec = await buscarPickingPorOrigin(d.c, originRetiro(id, "IN"));
+      const hechos = [disp, rec].filter((p) => p?.state === "done");
+      if (!hechos.length) return { estado: "completado", resultado: { omitido: "es_prueba" } };
+      for (const [pk, suf] of [[disp, "DISP"], [rec, "IN"]] as const) {
+        if (pk?.state === "done") await devolverTraslado(d.c, pk.id, { salidaId: id, paso: "A", companyId: r.companyId, origin: `${originRetiro(id, suf)}-D1` });
+      }
+      return await exito(d.marcar, id, rec?.id ?? disp!.id, { revertido: true, por: "es_prueba" });
+    }
     // Sin hecho fisico (solicitud/aprobacion/conduce de transporte) no se inventa entrada ni ajuste.
     if (!["en_cuarentena", "dispuesta"].includes(r.estado)) return await omitido(d.marcar, id, "sin_hecho_fisico", "El retiro aún no se ha recibido físicamente: no se publica en Odoo.", null);
     if (r.items.some((i) => !i.odooProductId)) {

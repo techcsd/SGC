@@ -15,6 +15,8 @@ export interface DatosSalida {
   id: string; folio?: string; estado: string; esPrueba: boolean; paradaEntregada: boolean;
   /** DS-17/DS-19: hay una ENTRADA confirmada ligada a esta salida (recepcion en obra / devolucion de obra con descuento): completa el paso B. */
   entradaConfirmada?: boolean;
+  /** W3: faltante YA resuelto en Odoo (aprobado = dado de baja desde transito; rechazado = devuelto a origen). Al compensar A no se vuelve a devolver. */
+  faltanteResuelto?: Array<{ productId: number; cantidad: number }>;
   lineas: LineaSalida[];
   origenLocationId: number | null; origenWarehouseId: number | null;
   destinoLocationId: number | null;
@@ -25,7 +27,7 @@ export interface Biblioteca {
   crear(e: { salidaId: string; paso: PasoTraslado; origin?: string; origenLocationId: number; destinoLocationId: number; pickingTypeId: number; companyId: number; items: ItemTraslado[]; folio?: string }): Promise<{ pickingId: number }>;
   validar(pickingId: number): Promise<{ estado: string }>;
   cancelar(pickingId: number): Promise<unknown>;
-  devolver(pickingId: number, paso: PasoTraslado, salidaId: string, companyId: number, secuencia?: number): Promise<unknown>;
+  devolver(pickingId: number, paso: PasoTraslado, salidaId: string, companyId: number, secuencia?: number, items?: ItemTraslado[]): Promise<unknown>;
   transitoLocationId(): Promise<number>;
   tipoInterno(warehouseId: number): Promise<number>;
   /** DS-20: cantidad ya publicada por producto en los pickings cuyo origin empieza por `prefijo` (sin cancelados ni devoluciones). */
@@ -68,6 +70,14 @@ export function huellaComplemento(extras: ItemTraslado[]): string {
   return h.toString(36);
 }
 
+/** W3: descuenta del paso A lo que ya salio de transito por un faltante resuelto. */
+export function restarFaltante(items: ItemTraslado[], resuelto?: Array<{ productId: number; cantidad: number }>): ItemTraslado[] {
+  if (!resuelto?.length) return items;
+  const m = new Map<number, number>();
+  for (const r of resuelto) m.set(r.productId, (m.get(r.productId) ?? 0) + r.cantidad);
+  return items.map((i) => ({ ...i, cantidad: i.cantidad - (m.get(i.productId) ?? 0) })).filter((i) => i.cantidad > EPS);
+}
+
 function itemsDe(s: DatosSalida, paso: PasoTraslado): ItemTraslado[] {
   return s.lineas
     .map((l) => ({ productId: l.odooProductId ?? 0, cantidad: paso === "A" ? l.cantidad : (l.cantidadRecibida ?? l.cantidad), uomId: l.odooUomId ?? undefined, nombre: l.nombre }))
@@ -94,7 +104,12 @@ export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: 
       ];
       for (const [p, pk, esComp] of orden) {
         if (!pk || pk.state === "cancel") continue;
-        if (pk.state === "done") await d.lib.devolver(pk.id, p, s.id, s.companyId, esComp ? pk.id : undefined); else await d.lib.cancelar(pk.id);
+        if (pk.state === "done") {
+          // W3: el faltante ya resuelto (baja o devuelto a origen) no esta en transito: devolver el A completo lo duplicaria (stock fantasma).
+          const items = p === "A" && !esComp ? restarFaltante(itemsDe(s, "A"), s.faltanteResuelto) : undefined;
+          if (items && !items.length) continue;
+          await d.lib.devolver(pk.id, p, s.id, s.companyId, esComp ? pk.id : undefined, items && s.faltanteResuelto?.length ? items : undefined);
+        } else await d.lib.cancelar(pk.id);
       }
       await d.marcar(s.id, { a: A?.id, b: B?.id, estado: "sincronizado" });
       return { estado: "completado", resultado: { revertido: true, por: s.esPrueba ? "es_prueba" : s.estado, picking_a: A?.id ?? null, picking_b: B?.id ?? null } };

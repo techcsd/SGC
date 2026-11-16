@@ -127,6 +127,10 @@ verify_jwt = true
 [functions.claude-conexiones]
 verify_jwt = true
 
+# W3 — worker del outbox Odoo: server-to-server. El cron entra con x-sync-secret; la funcion falla cerrado (odoo-sync-auth.ts).
+[functions.odoo-sync]
+verify_jwt = false
+
 # PoC Odoo (lectura de stock) — exige JWT de usuario; el módulo `inventario` se valida en el servidor.
 [functions.odoo-api]
 verify_jwt = true

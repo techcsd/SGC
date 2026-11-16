@@ -8850,5 +8850,7 @@
   "Pasar un documento de prueba a real": "Pase yon dokiman tès an reyèl",
   "Cuando ese tipo de documento ya se publica en Odoo, pasarlo de prueba a real crea un movimiento real. Autorízalo aquí con el motivo (vale 2 horas y un solo uso).": "Lè kalite dokiman sa a deja pibliye nan Odoo, pase l de tès an reyèl kreye yon mouvman reyèl. Otorize l isit la ak rezon an (valab 2 è, yon sèl itilizasyon).",
   "Identificador del documento": "Idantifyan dokiman an",
-  "Odoo": "Odoo"
+  "Odoo": "Odoo",
+  "Ese borrador ya no está disponible. Llena el parte a mano.": "Bouyon sa a pa disponib ankò. Ranpli rapò a alamen.",
+  "No se pudo abrir el borrador. Llena el parte a mano.": "Nou pa t kapab louvri bouyon an. Ranpli rapò a alamen."
 }

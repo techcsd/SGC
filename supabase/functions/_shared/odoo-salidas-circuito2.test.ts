@@ -1,6 +1,6 @@
 // DS-17 / DS-19 / DS-20 sobre el publicador de salidas: entrada ligada completa B, real->prueba compensa, lineas anadidas publican complemento.
 import { assertEquals } from "jsr:@std/assert@1";
-import { type Biblioteca, calcularComplemento, type DatosSalida, huellaComplemento, publicarSalida } from "./odoo-salidas.ts";
+import { type Biblioteca, calcularComplemento, type DatosSalida, huellaComplemento, publicarSalida, restarFaltante } from "./odoo-salidas.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -16,7 +16,7 @@ function lib() {
     crear: (e) => { const id = pk.length + 1; pk.push({ id, origin: e.origin ?? `SGC-TRAS-${e.salidaId}-${e.paso}`, state: "draft", items: e.items }); log.push("crear:" + pk[id - 1].origin); return Promise.resolve({ pickingId: id }); },
     validar: (id) => { pk[id - 1].state = "done"; return Promise.resolve({ estado: "done" }); },
     cancelar: (id) => { pk[id - 1].state = "cancel"; return Promise.resolve({}); },
-    devolver: (id) => { pk[id - 1].state = "devuelto"; log.push("devolver:" + id); return Promise.resolve({}); },
+    devolver: (id, _p, _s, _c, _q, items) => { pk[id - 1].state = "devuelto"; pk[id - 1].devItems = items; log.push("devolver:" + id); return Promise.resolve({}); },
     transitoLocationId: () => Promise.resolve(13), tipoInterno: () => Promise.resolve(5),
     complementos: (prefijo) => Promise.resolve(pk.filter((x) => x.origin.startsWith(prefijo)).map((x) => ({ id: x.id, state: x.state }))),
     publicado: (prefijo) => {
@@ -86,4 +86,24 @@ Deno.test("DS-19: anulacion antes de validar cancela; despues de validar devuelv
   const q = run({});
   await q.publicar(); await q.publicar({ estado: "anulado" }); assertEquals(q.f.pk[0].state, "devuelto");
   const antes = q.f.log.length; await q.publicar({ estado: "anulado" }); assertEquals(q.f.log.length, antes);
+});
+
+Deno.test("W3: compensar una salida con faltante YA resuelto devuelve el A sin ese faltante (sin stock fantasma)", async () => {
+  // 5 salieron en A; se recibieron 3; el faltante (2) ya se dio de baja o se devolvio a origen en Odoo
+  const lineas = [{ nombre: "Cemento", cantidad: 5, cantidadRecibida: 3, odooProductId: 7 }];
+  const r = run({ estado: "entregado_incompleto", lineas });
+  await r.publicar();
+  const res = await r.publicar({ esPrueba: true, faltanteResuelto: [{ productId: 7, cantidad: 2 }] });
+  assertEquals(res.estado, "completado");
+  const a = r.f.pk.find((p) => p.origin === "SGC-TRAS-s1-A"); const b = r.f.pk.find((p) => p.origin === "SGC-TRAS-s1-B");
+  assertEquals(a.devItems.map((i: Any) => [i.productId, i.cantidad]), [[7, 3]]); // 5 - 2
+  assertEquals(b.devItems, undefined); // B se devuelve completo (lo recibido)
+});
+
+Deno.test("W3: sin faltante resuelto el A se devuelve completo (sin items explicitos); faltante total = no se devuelve nada", async () => {
+  const r = run({ estado: "entregado" });
+  await r.publicar(); await r.publicar({ esPrueba: true });
+  assertEquals(r.f.pk[0].devItems, undefined);
+  assertEquals(restarFaltante([{ productId: 7, cantidad: 2 }], [{ productId: 7, cantidad: 2 }]), []);
+  assertEquals(restarFaltante([{ productId: 7, cantidad: 2 }], undefined), [{ productId: 7, cantidad: 2 }]);
 });

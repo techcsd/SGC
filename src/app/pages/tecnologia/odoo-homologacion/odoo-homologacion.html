@@ -37,7 +37,7 @@
           @for (c of cuentas(); track c.id) {
             <tr>
               <td>{{ c.proyectos?.codigo }} · {{ c.proyectos?.nombre }}</td>
-              <td class="text-right">{{ c.odoo_analytic_id }}</td>
+              <td class="text-right">{{ c.odoo_analytic_nombre || ('#' + c.odoo_analytic_id) }}</td>
               <td>{{ (c.rol === 'principal' ? 'Principal' : 'Adicional') | t }}</td>
               <td class="text-right">{{ usoLineas(c) ?? '—' }}</td>
               <td>

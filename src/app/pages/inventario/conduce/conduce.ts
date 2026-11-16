@@ -29,6 +29,7 @@ import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-pick
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
+import { ConducePdfService } from '../../../../shared/services/conduce-pdf.service';
 
 interface ItemCierre {
   detalle_id: string;
@@ -58,6 +59,7 @@ export class Conduce implements OnInit {
   private location = inject(Location);
   private salidasService = inject(SalidasService);
   private conduceQr = inject(ConduceQrService);
+  private conducePdf = inject(ConducePdfService);
   /** DS-34/#74 — QR para recibir/firmar/cerrar (solo si el flag conduce_qr_activo está encendido). */
   qrDataUrl = signal<string | null>(null);
   private supabase = inject(SupabaseService);
@@ -756,6 +758,7 @@ export class Conduce implements OnInit {
       const fresca = await this.salidasService.getById(s.id);
       this.salida.set(fresca);
       await this.loadEvidencia(fresca);
+      void this.guardarPdfFirmado(fresca); // DS-28 — no bloquea el cierre
       this.mostrarCierre.set(false);
       this.toast.success(this.i18n.t('Conduce entregado'), 'Se registró la entrega con su evidencia.');
     } catch (e: unknown) {
@@ -767,6 +770,17 @@ export class Conduce implements OnInit {
 
   imprimir() {
     window.print();
+    // DS-28 — conduces ya cerrados sin PDF guardado: se genera al imprimir.
+    const s = this.salida();
+    if (s && !s.pdf_firmado_path) void this.guardarPdfFirmado(s);
+  }
+
+  /** DS-28 — genera el PDF firmado y lo guarda en el servidor (solo conduces cerrados; best-effort). */
+  private async guardarPdfFirmado(s: SalidaInventario) {
+    if (s.estado !== 'entregado' && s.estado !== 'entregado_incompleto') return;
+    const firmas = [this.firmaEmisor(), this.firmaReceptor()].filter((f): f is FirmaConUrl => !!f);
+    const path = await this.conducePdf.guardarFirmado(s, firmas);
+    if (path) this.salida.update((x) => (x ? { ...x, pdf_firmado_path: path } : x));
   }
 
   /** AT10 — marca/desmarca este conduce como dato de prueba (solo admin). Usa el

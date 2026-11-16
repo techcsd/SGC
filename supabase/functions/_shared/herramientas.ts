@@ -45,6 +45,8 @@ export interface ToolDef {
   // BE2 — "gap": no consulta ni actúa; registra que a Compa le FALTA una capacidad
   // (motivo sin_tool) para el backlog de Tecnología. Se resuelve en el loop.
   gap?: boolean;
+  // DS-41/#76 — parte diario por voz: arma una PROPUESTA con la edge bitacora-ia (nunca crea la bitácora). Apagada por parámetro.
+  parteIa?: boolean;
   // Lectura:
   rpc?: string;
   map?: (i: Any) => Record<string, unknown>;
@@ -1083,6 +1085,17 @@ export const TOOLS: ToolDef[] = [
     }, required: ["proyecto_id", "fecha", "tipo"], additionalProperties: false },
     write: { tipo: "bitacora", execRpc: "crear_bitacora_app",
       execMap: (p) => ({ p_id: p.__idem_id ?? crypto.randomUUID(), p_proyecto_id: p.proyecto_id, p_fecha: p.fecha, p_tipo: p.tipo, p_comentarios: p.comentarios ?? null }) },
+  },
+  {
+    // DS-41/#76 — solo Compa (WhatsApp/voz) y SOLO si el parámetro parte_voz_whatsapp_activo está en 'true' (el assistant la quita si no).
+    // No crea nada: guarda una propuesta (edge bitacora-ia, con la sesión del usuario) y devuelve un enlace para revisarla y confirmarla.
+    name: "preparar_parte_diario",
+    description: "Arma el BORRADOR de un parte diario de obra a partir de lo que la persona DIJO (nota de voz ya transcrita o texto): extrae personal, actividades, lluvia y comentarios. NO crea la bitácora: devuelve un enlace para que la persona revise y confirme en SGC. Úsala cuando alguien dicte o describa cómo fue el día en obra. Resuelve proyecto_id con 'mis_proyectos'. Requiere módulo bitácora y el consentimiento de IA de la persona.",
+    modulos: ["bitacora"], canales: ["compa"], parteIa: true,
+    input_schema: { type: "object", properties: {
+      proyecto_id: { type: "string" }, fecha: { type: "string", description: "YYYY-MM-DD (por defecto hoy)" },
+      transcripcion: { type: "string", description: "Lo que dijo la persona, tal cual (mínimo 10 caracteres)" },
+    }, required: ["proyecto_id", "transcripcion"], additionalProperties: false },
   },
   {
     name: "proponer_decision_legal",

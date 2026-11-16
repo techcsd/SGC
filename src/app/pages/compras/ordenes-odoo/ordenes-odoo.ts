@@ -10,6 +10,7 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { OdooOrdenesCompraService, OdooOrdenCompraPayload } from '../../../../shared/services/odoo-ordenes-compra.service';
+import { OrdenesCompraService, CuentaAnaliticaOc } from '../../../../shared/services/ordenes-compra.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -88,6 +89,7 @@ interface ReconciliacionRow {
 })
 export class OrdenesOdoo implements OnInit {
   private ordenesService = inject(OdooOrdenesCompraService);
+  private ordenesCompraService = inject(OrdenesCompraService);
   private motion = inject(MotionService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
@@ -107,6 +109,9 @@ export class OrdenesOdoo implements OnInit {
 
   // ── Z6 — destino, ITBIS y dato de prueba (signals para reactividad OnPush) ──
   destino = signal<'proyecto' | 'oficina'>('proyecto');
+  // W3 (DS-06) — cuenta analítica de Odoo: selector cuando la obra tiene más de una (también al aprobar una solicitud)
+  cuentasAnaliticas = signal<CuentaAnaliticaOc[]>([]);
+  cuentaAnaliticaElegida = signal<number | null>(null);
   aplicaImpuesto = signal(true);
   esPruebaOrden = signal(false);
   /** Id de la OC que se está publicando en Odoo (deshabilita su botón). */
@@ -442,6 +447,8 @@ export class OrdenesOdoo implements OnInit {
   openCreate() {
     this.saveError.set('');
     this.solicitudEnAtencion.set(null);
+    this.cuentasAnaliticas.set([]);
+    this.cuentaAnaliticaElegida.set(null);
     this.form.reset();
     this.formItems.set([NUEVO_OC_ITEM()]);
     this.destino.set('proyecto');
@@ -494,6 +501,7 @@ export class OrdenesOdoo implements OnInit {
       proyecto_id: s.proyecto_id,
       notas: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}${s.notas ? ' — ' + s.notas : ''}`,
     });
+    void this.onProyectoCambiado();
     // BH7 — si el faltante conserva su articulo_id (requisición resuelta), la orden
     // nace ligada al catálogo en vez de como "Otro". Las filas viejas sin articulo_id
     // siguen entrando como texto libre (retrocompatible).
@@ -618,6 +626,29 @@ export class OrdenesOdoo implements OnInit {
    * de todas formas (misma descripción/cantidad/precio). Falla de vinculación
    * = aviso, nunca revierte la OC ya creada (ya existe, ya es válida sin esto).
    */
+  /** W3 (DS-06) — guarda la cuenta analítica elegida ANTES de publicar en Odoo; un fallo no bloquea (queda la principal). */
+  private async guardarCuentaAnaliticaElegida(created: OdooOrdenCompra): Promise<void> {
+    const elegida = this.cuentaAnaliticaElegida();
+    if (elegida == null || this.cuentasAnaliticas().length < 2) return;
+    try {
+      await this.ordenesCompraService.elegirCuentaAnalitica(created.id, elegida);
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo guardar la cuenta analítica elegida'), e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  async onProyectoCambiado() {
+    this.cuentaAnaliticaElegida.set(null);
+    this.cuentasAnaliticas.set([]);
+    const id = this.form.value.proyecto_id;
+    if (!id) return;
+    try {
+      this.cuentasAnaliticas.set(await this.ordenesCompraService.cuentasAnaliticasProyecto(id));
+    } catch {
+      this.cuentasAnaliticas.set([]);
+    }
+  }
+
   private async vincularProductosOdooTrasCrear(validItems: ItemRow[], created: OdooOrdenCompra): Promise<void> {
     const pendientes = validItems.filter((i) => i.odoo_product);
     if (pendientes.length === 0) return;
@@ -781,6 +812,7 @@ export class OrdenesOdoo implements OnInit {
         created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }
       await this.vincularProductosOdooTrasCrear(validItems, created);
+      await this.guardarCuentaAnaliticaElegida(created);
       created = await this.publicarTrasCrear(created, validItems);
       this.ordenes.update((list) => [created, ...list]);
       this.motion.momento('documento');

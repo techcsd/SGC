@@ -6,6 +6,8 @@ export interface CuentaAnaliticaFila {
   id: string;
   proyecto_id: string;
   odoo_analytic_id: number;
+  /** W3 — nombre de la cuenta en Odoo (se llena en la homologación). */
+  odoo_analytic_nombre: string | null;
   rol: 'principal' | 'adicional';
   confirmado: boolean;
   confirmado_en: string | null;
@@ -62,7 +64,7 @@ export class OdooHomologacionService {
   async cuentasAnaliticas(): Promise<CuentaAnaliticaFila[]> {
     const { data, error } = await this.supabase.client
       .from('proyecto_odoo_analiticas')
-      .select('id, proyecto_id, odoo_analytic_id, rol, confirmado, confirmado_en, evidencia, proyectos(codigo, nombre)')
+      .select('id, proyecto_id, odoo_analytic_id, odoo_analytic_nombre, rol, confirmado, confirmado_en, evidencia, proyectos(codigo, nombre)')
       .order('confirmado', { ascending: true })
       .order('odoo_analytic_id');
     if (error) throw new Error(error.message);

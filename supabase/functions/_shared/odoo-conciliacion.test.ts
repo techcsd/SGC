@@ -67,3 +67,12 @@ Deno.test("claves estables, conteo y marca de agua", () => {
 Deno.test("pickings de prueba de contrato (SGC-TRAS-TEST-*) no cuentan como huerfanos", () => {
   assertEquals(conciliarSalidas([], [pick("SGC-TRAS-TEST-abc-A")], ahora), []);
 });
+Deno.test("W3: pickings de una salida anulada/de prueba (A, devolucion -D1, complemento -C, faltante -F) NO son huerfanos; los de una salida desconocida si", () => {
+  const uuid = "0ce4f1a2-0b1c-4d3e-8f50-123456789abc";
+  const salidas = [salida({ id: uuid, estado: "anulado" })];
+  const picks = [pick(`SGC-TRAS-${uuid}-A`), pick(`SGC-TRAS-${uuid}-A-D1`), pick(`SGC-TRAS-${uuid}-A-Cab12`), pick(`SGC-TRAS-${uuid}-B-Cab12-D1`), pick(`SGC-TRAS-${uuid}-F7`)];
+  assertEquals(conciliarSalidas(salidas, picks, ahora), []);
+  assertEquals(tipos(conciliarSalidas(salidas, [pick("SGC-TRAS-9999f1a2-0b1c-4d3e-8f50-123456789abc-A-D1")], ahora)), ["picking_huerfano"]);
+  const prueba = [salida({ id: uuid, esPrueba: true })];
+  assertEquals(conciliarSalidas(prueba, picks.slice(0, 2), ahora), []);
+});

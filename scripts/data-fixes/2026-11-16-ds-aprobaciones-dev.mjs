@@ -22,3 +22,15 @@ const q = [`select set_config('request.jwt.claims','{"role":"service_role"}',tru
 await consulta(env, `begin;\n${q};\ncommit;`);
 const r = await consulta(env, "select (select count(*) from sgc.articulos where odoo_product_id is not null) vinculados, (select count(*) from sgc.odoo_homologacion_propuestas where estado='propuesta') pendientes, (select count(*) from sgc.proyecto_odoo_analiticas where confirmado) confirmadas");
 console.log(r[0]);
+
+// Segunda decision (delegada por Xaviel a Claude, 16-nov): de las dudosas se aprueba solo el dispensador de cinta (mismo
+// producto con nombre abreviado); el resto cambia medida, marca o propiedad y se RECHAZA. Maestros: aprobar score >= 0.85.
+if (apply) {
+  const pend = await consulta(env, "select p.id, a.nombre as sgc from sgc.odoo_homologacion_propuestas p join sgc.articulos a on a.id=p.articulo_id where p.estado='propuesta'");
+  const maest = await consulta(env, "select id, score from sgc.odoo_homologacion_maestros where estado='propuesta'");
+  const q2 = [`select set_config('request.jwt.claims','{"role":"service_role"}',true)`,
+    ...pend.map((p) => `select sgc.odoo_propuesta_decidir('${p.id}', ${/^DISPENSADOR/i.test(p.sgc)})`),
+    ...maest.map((m) => `select sgc.odoo_maestro_propuesta_decidir('${m.id}', ${Number(m.score) >= 0.85})`)].join(';\n');
+  if (pend.length || maest.length) await consulta(env, `begin;\n${q2};\ncommit;`);
+  console.log(await consulta(env, "select (select count(*) from sgc.odoo_homologacion_propuestas where estado='propuesta') prop_pend, (select count(*) from sgc.odoo_homologacion_maestros where estado='propuesta') maest_pend, (select count(*) from sgc.articulos where odoo_product_id is not null) vinculados"));
+}

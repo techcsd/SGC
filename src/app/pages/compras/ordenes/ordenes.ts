@@ -9,7 +9,7 @@ import {
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
+import { OrdenesCompraService, OrdenCompraPayload, CuentaAnaliticaOc } from '../../../../shared/services/ordenes-compra.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -107,7 +107,7 @@ export class Ordenes implements OnInit {
   // ── Z6 — destino, ITBIS y dato de prueba (signals para reactividad OnPush) ──
   destino = signal<'proyecto' | 'oficina'>('proyecto');
   // W2 (DS-06) — cuentas analíticas de la obra elegida; el selector solo aparece si hay más de una.
-  cuentasAnaliticas = signal<{ odoo_analytic_id: number; rol: string; confirmado: boolean }[]>([]);
+  cuentasAnaliticas = signal<CuentaAnaliticaOc[]>([]);
   cuentaAnaliticaElegida = signal<number | null>(null);
   aplicaImpuesto = signal(true);
   esPruebaOrden = signal(false);
@@ -499,6 +499,7 @@ export class Ordenes implements OnInit {
       proyecto_id: s.proyecto_id,
       notas: this.i18n.t('Solicitud de {nombre}', { nombre: s.solicitante?.nombre ?? this.i18n.t('ingeniero') }) + (s.notas ? ' — ' + s.notas : ''),
     });
+    void this.onProyectoCambiado(); // W3 — selector de cuenta analítica también al aprobar una solicitud de compra
     // BH7 — si el faltante conserva su articulo_id (requisición resuelta), la orden
     // nace ligada al catálogo en vez de como "Otro". Las filas viejas sin articulo_id
     // siguen entrando como texto libre (retrocompatible).

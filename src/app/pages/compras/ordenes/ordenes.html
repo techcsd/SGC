@@ -256,7 +256,7 @@
           <select id="cuenta_analitica" [value]="cuentaAnaliticaElegida() ?? ''" (change)="cuentaAnaliticaElegida.set($any($event.target).value ? +$any($event.target).value : null)">
             <option value="">{{ 'Usar la principal de la obra' | t }}</option>
             @for (c of cuentasAnaliticas(); track c.odoo_analytic_id) {
-              <option [value]="c.odoo_analytic_id">#{{ c.odoo_analytic_id }} — {{ (c.rol === 'principal' ? 'Principal' : 'Adicional') | t }}{{ c.confirmado ? '' : ' (' + i18n.t('sin confirmar') + ')' }}</option>
+              <option [value]="c.odoo_analytic_id">{{ c.nombre || ('#' + c.odoo_analytic_id) }} — {{ (c.rol === 'principal' ? 'Principal' : 'Adicional') | t }}{{ c.confirmado ? '' : ' (' + i18n.t('sin confirmar') + ')' }}</option>
             }
           </select>
         }

@@ -486,8 +486,8 @@
     },
     {
       "pantalla": "compras/ordenes-odoo",
-      "total": 118,
-      "cubiertos": 118,
+      "total": 121,
+      "cubiertos": 121,
       "sin": 0,
       "pct": 100,
       "enScope": true,

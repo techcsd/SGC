@@ -8850,5 +8850,7 @@
   "Pasar un documento de prueba a real": "Switch a test document to real",
   "Cuando ese tipo de documento ya se publica en Odoo, pasarlo de prueba a real crea un movimiento real. Autorízalo aquí con el motivo (vale 2 horas y un solo uso).": "Once this type of document is published to Odoo, switching it from test to real creates a real movement. Authorize it here with the reason (valid for 2 hours, single use).",
   "Identificador del documento": "Document identifier",
-  "Odoo": "Odoo"
+  "Odoo": "Odoo",
+  "Ese borrador ya no está disponible. Llena el parte a mano.": "That draft is no longer available. Fill in the report by hand.",
+  "No se pudo abrir el borrador. Llena el parte a mano.": "The draft could not be opened. Fill in the report by hand."
 }

@@ -22,7 +22,7 @@ export function bibliotecaReal(c: LlamadorOdoo): Biblioteca {
     crear: (e) => crearTraslado(c, e),
     validar: (id) => validarTraslado(c, id),
     cancelar: (id) => cancelarTraslado(c, id),
-    devolver: (id, paso, salidaId, companyId, secuencia) => devolverTraslado(c, id, { salidaId, paso, companyId, secuencia }),
+    devolver: (id, paso, salidaId, companyId, secuencia, items) => devolverTraslado(c, id, { salidaId, paso, companyId, secuencia, items }),
     complementos: async (prefijo) => (await c.call("stock.picking", "search_read", [[["origin", "=like", `${prefijo}%`]]], { fields: ["state"], limit: 20, order: "id asc" }) ?? []).map((x: Any) => ({ id: x.id, state: x.state })),
     // DS-20: cantidades ya publicadas (pickings con ese prefijo de origin; sin cancelados ni devoluciones -D<n>)
     async publicado(prefijo) {
@@ -77,7 +77,11 @@ export function depsReales(admin: SupabaseClient, odoo: OdooClient, instanciaId:
         const { data } = await admin.from("bodegas").select("odoo_location_id").eq("id", entradaOk.bodega_id).maybeSingle();
         destinoId = data?.odoo_location_id ?? null;
       }
+      // W3: faltantes ya resueltos EN ODOO (aprobado/rechazado y sincronizado): al compensar el paso A no se devuelven de nuevo.
+      const { data: sol } = await admin.from("odoo_solicitudes_ajuste").select("faltante, articulos(odoo_product_id)").eq("salida_id", id).in("estado", ["aprobada", "rechazada"]).eq("odoo_sync_estado", "sincronizado");
+      const faltanteResuelto = (sol ?? []).filter((x: Any) => x.articulos?.odoo_product_id).map((x: Any) => ({ productId: Number(x.articulos.odoo_product_id), cantidad: Number(x.faltante) }));
       return {
+        faltanteResuelto,
         entradaConfirmada: !!entradaOk,
         id, folio: s.folio ?? s.codigo ?? undefined, estado: s.estado, esPrueba: !!s.es_prueba, paradaEntregada,
         lineas: (det ?? []).map((d: Any) => ({ nombre: d.articulos?.nombre ?? "artículo", cantidad: Number(d.cantidad), cantidadRecibida: d.cantidad_recibida == null ? null : Number(d.cantidad_recibida), odooProductId: d.articulos?.odoo_product_id ?? null })),

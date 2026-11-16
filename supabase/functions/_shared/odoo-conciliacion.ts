@@ -51,6 +51,10 @@ export function conciliarSalidas(salidas: SalidaConciliable[], pickings: Picking
   const out: Discrepancia[] = [];
   const porOrigin = new Map(pickings.map((p) => [p.origin, p]));
   const conocidas = new Set<string>();
+  // W3: un picking es huerfano solo si NINGUNA salida de SGC lo reclama, en cualquier estado (anulada, rechazada o pasada a prueba tambien:
+  // sus pickings devueltos/complementos/de faltante son legitimos y no son deriva).
+  const idsSgc = new Set(salidas.map((s) => s.id));
+  const salidaDe = (origin: string): string | null => origin.match(/^SGC-TRAS-(.+?)-(?:A|B|F[^-]*)(?:-C[^-]*)?(?:-D\d+)?$/)?.[1] ?? null;
   for (const s of salidas) {
     if (s.esPrueba || s.estado === "anulado" || s.estado === "rechazada") continue;
     conocidas.add(`${PREFIJO_ORIGIN}${s.id}-A`); conocidas.add(`${PREFIJO_ORIGIN}${s.id}-B`);
@@ -76,7 +80,8 @@ export function conciliarSalidas(salidas: SalidaConciliable[], pickings: Picking
     if (p.state === "cancel" || p.origin.startsWith(`${PREFIJO_ORIGIN}TEST-`)) continue; // pruebas de contrato (SGC-TRAS-TEST-*) no son deriva
     // (cancelado) // un borrador cancelado (p.ej. despacho sin stock) no es deriva
     const base = p.origin.replace(/-D\d+$/, "");
-    if (!conocidas.has(base)) out.push({ tipo: "picking_huerfano", pickingId: p.id, detalle: `El picking ${p.origin} no corresponde a ninguna salida activa de SGC.` });
+    const duena = salidaDe(p.origin);
+    if (!conocidas.has(base) && !(duena && idsSgc.has(duena))) out.push({ tipo: "picking_huerfano", pickingId: p.id, detalle: `El picking ${p.origin} no corresponde a ninguna salida de SGC.` });
   }
   return out;
 }
