@@ -55,9 +55,6 @@
     "app-movil": {
       "enforce": false
     },
-    "admin/almacenes-duplicados": {
-      "enforce": false
-    },
     "auth": {
       "enforce": false
     },
@@ -135,6 +132,9 @@
     },
     "admin/auditoria": {
       "enforce": false
+    },
+    "admin/almacenes-duplicados": {
+      "enforce": true
     },
     "admin/claude": {
       "enforce": true

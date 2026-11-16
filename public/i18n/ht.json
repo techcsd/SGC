@@ -6463,5 +6463,16 @@
   "¿Quitar la clave guardada de este equipo?": "Retire modpas sove ekipman sa a?",
   "Clave eliminada": "Modpas efase",
   "El navegador bloqueó la ventana de impresión.": "Navigatè a bloke fenèt enpresyon an.",
-  "Garantía": "Garanti"
+  "Garantía": "Garanti",
+  "Pares de almacenes de la": "Pè antrepo ki soti nan",
+  "misma obra": "menm pwojè a",
+  "con nombre muy parecido — posibles duplicados del mismo almacén físico. Revisa cada par antes de fusionar.": "ak yon non ki sanble anpil — posib duplika menm antrepo fizik la. Verifye chak pè anvan ou fusyone.",
+  "Fusionar mueve stock, aperturas y movimientos al almacén canónico y desactiva el duplicado. Es difícil de revertir: confirma con el equipo antes.": "Fusyone deplase stòk, ouvèti ak mouvman yo nan antrepo kanonik la epi li dezaktive duplika a. Li difisil pou defèt: konfime ak ekip la anvan.",
+  "% similar": "% ki sanble",
+  "ítems con stock": "atik ak stòk",
+  "movimientos": "mouvman",
+  "Conservar este · fusionar el otro": "Kenbe sila a · fusyone lòt la",
+  "Almacenes fusionados": "Antrepo yo fusyone",
+  "Vas a FUSIONAR \"{duplicado}\" dentro de \"{canonico}\".\\n\\nSe moverá todo el stock, aperturas y movimientos al canónico y el duplicado quedará desactivado. Esta acción es difícil de revertir.\\n\\n¿Continuar?": "Ou pral FUSYONE \"{duplicado}\" nan \"{canonico}\".\\n\\nTout stòk, ouvèti ak mouvman yo pral deplase nan antrepo kanonik la epi duplika a ap dezaktive. Aksyon sa a difisil pou defèt.\\n\\nKontinye?",
+  "No se detectaron almacenes duplicados. 👍": "Pa gen antrepo duplike detekte. 👍"
 }

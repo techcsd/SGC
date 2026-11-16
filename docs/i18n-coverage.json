@@ -1,5 +1,5 @@
 {
-  "pctScopeEn": 88,
+  "pctScopeEn": 89,
   "pctHt": 94,
   "filas": [
     {
@@ -1003,27 +1003,6 @@
       ]
     },
     {
-      "pantalla": "admin/almacenes-duplicados",
-      "total": 14,
-      "cubiertos": 4,
-      "sin": 10,
-      "pct": 29,
-      "enScope": true,
-      "enforce": false,
-      "faltantes": [
-        "Pares de almacenes de la",
-        "con nombre muy parecido — posibles duplicados del mismo almacén físico. Revisa cada par antes de fusionar.",
-        "Fusionar mueve stock, aperturas y movimientos al almacén canónico y desactiva el duplicado. Es difícil de revertir: confirma con el equipo antes.",
-        "% similar",
-        "ítems con stock · movimientos ·",
-        "Conservar este · fusionar el otro",
-        "ítems con stock · movimientos ·",
-        "Conservar este · fusionar el otro",
-        "Almacenes fusionados",
-        "Vas a FUSIONAR \"${duplicadoNombre}\" dentro de \"${canonicoNombre}\".\\n\\n"
-      ]
-    },
-    {
       "pantalla": "auth",
       "total": 42,
       "cubiertos": 15,
@@ -1658,6 +1637,16 @@
       "faltantes": [
         "Excel }"
       ]
+    },
+    {
+      "pantalla": "admin/almacenes-duplicados",
+      "total": 15,
+      "cubiertos": 15,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": true,
+      "faltantes": []
     },
     {
       "pantalla": "admin/claude",

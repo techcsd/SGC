@@ -6856,5 +6856,16 @@
   "Clave guardada": "Password saved",
   "¿Quitar la clave guardada de este equipo?": "Remove this equipment's saved password?",
   "Clave eliminada": "Password deleted",
-  "El navegador bloqueó la ventana de impresión.": "The browser blocked the print window."
+  "El navegador bloqueó la ventana de impresión.": "The browser blocked the print window.",
+  "Pares de almacenes de la": "Pairs of warehouses from the",
+  "misma obra": "same project",
+  "con nombre muy parecido — posibles duplicados del mismo almacén físico. Revisa cada par antes de fusionar.": "with a very similar name — possible duplicates of the same physical warehouse. Review each pair before merging.",
+  "Fusionar mueve stock, aperturas y movimientos al almacén canónico y desactiva el duplicado. Es difícil de revertir: confirma con el equipo antes.": "Merging moves stock, openings, and movements to the canonical warehouse and deactivates the duplicate. It is hard to undo: confirm with the team first.",
+  "% similar": "% similar",
+  "ítems con stock": "items with stock",
+  "movimientos": "movements",
+  "Conservar este · fusionar el otro": "Keep this one · merge the other",
+  "Almacenes fusionados": "Warehouses merged",
+  "Vas a FUSIONAR \"{duplicado}\" dentro de \"{canonico}\".\\n\\nSe moverá todo el stock, aperturas y movimientos al canónico y el duplicado quedará desactivado. Esta acción es difícil de revertir.\\n\\n¿Continuar?": "You are about to MERGE \"{duplicado}\" into \"{canonico}\".\\n\\nAll stock, openings, and movements will move to the canonical warehouse and the duplicate will be deactivated. This action is hard to undo.\\n\\nContinue?",
+  "No se detectaron almacenes duplicados. 👍": "No duplicate warehouses detected. 👍"
 }
