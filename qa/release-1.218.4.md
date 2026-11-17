@@ -6,3 +6,5 @@
 - Fecha: 2026-11-17
 - Autorización: Xaviel pidió (17-nov-2026) las pruebas de Ajustes/Desechar, el cruce de pendientes y el reabastecimiento, y cerrar todos los issues; si se publica por --hotfix, lo autoriza él por nombre.
 - Prueba humana: Xaviel probó la web él mismo en prod (declarado por él el 17-nov-2026, sin detalle de casos). Completa la nota «no es una prueba humana independiente» de arriba.
+- [x] Web 1.218.4 probada en producción por Xaviel (declarado por él; sin detalle de casos).
+Probado por: Xaviel Terrero · 2026-11-17
