@@ -1,7 +1,9 @@
-// odoo-conciliar/index.ts -- DS-13: conciliador SGC <-> Odoo (SOLO LECTURA sobre Odoo).
+// odoo-conciliar/index.ts -- DS-13: conciliador SGC <-> Odoo (SOLO LECTURA sobre Odoo, salvo la tarea de reglas de reabastecimiento de la diaria).
 // Tareas (POST {tarea, instancia_id}):
 //   diaria  -> cada salida publicada contra sus pickings A/B, pickings huerfanos, transito vencido, saldos de bodegas piloto.
-//   sondeo  -> Odoo->SGC cada 5 min: pickings SGC con write_date >= marca de agua (editados a mano) + pickings fuera de canal en bodegas piloto.
+//   sondeo  -> Odoo->SGC cada 5 min: pickings SGC con write_date >= marca de agua (editados a mano) + pickings fuera de canal en bodegas piloto
+//              + foto de «Pendientes en Odoo» (recepciones/entregas/internos por procesar y atrasados, cruzados con OC y conduces de SGC).
+//   diaria  -> ademas sincroniza los minimos de SGC como reglas de reabastecimiento de Odoo (disparador manual, almacen central).
 // Invocada por pg_cron (x-sync-secret = INFRA_SYNC_SECRET) o a mano por Tecnologia (JWT de usuario con es_tecnologia).
 // Los hallazgos se guardan en sgc.odoo_discrepancias (visibles en Tecnologia > Conciliacion con Odoo, AT11).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -13,6 +15,8 @@ import {
   avanzarMarca, claveDiscrepancia, conciliarSaldos, conciliarSalidas, contarPorTipo, fueraDeCanal, HORAS_TRANSITO_MAX,
   leerPickingsFueraDeCanal, leerQuants, leerTrasladosSgc, type Discrepancia, type PickingOdoo, type SalidaConciliable,
 } from "../_shared/odoo-conciliacion.ts";
+import { leerPendientes } from "../_shared/odoo-pendientes.ts";
+import { aplicarReglas, planificarReglas } from "../_shared/odoo-reabastecimiento.ts";
 
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
 const SERVICE_KEY = envRequerido("SUPABASE_SERVICE_ROLE_KEY");
@@ -35,6 +39,24 @@ async function proyectarStock(admin: Any, odoo: OdooClient, instancia: string): 
     n++;
   }
   return n;
+}
+
+/** Minimos de SGC -> reglas de reabastecimiento del almacen central de Odoo. Solo si la instancia permite entradas y salidas. */
+async function sincronizarReglas(admin: Any, odoo: OdooClient, instancia: string): Promise<Record<string, unknown>> {
+  const { data: inst } = await admin.from("odoo_instancias").select("permitir_entrada, permitir_salida").eq("id", instancia).maybeSingle();
+  if (!inst?.permitir_entrada || !inst?.permitir_salida) return { omitido: "instancia_sin_escritura" };
+  const { data: par } = await admin.from("parametros").select("valor").eq("clave", "odoo_reabastecimiento_almacen").maybeSingle();
+  const codigo = String(par?.valor ?? "WH");
+  const { data: b } = await admin.from("bodegas").select("odoo_warehouse_id, odoo_location_id").eq("odoo_instancia_id", instancia).eq("codigo_odoo", codigo).maybeSingle();
+  if (!b?.odoo_warehouse_id || !b?.odoo_location_id) return { omitido: "almacen_sin_vincular" };
+  const { data: cargado, error } = await admin.rpc("odoo_reabastecimiento_cargar", { p_instancia: instancia });
+  if (error) throw new Error(error.message);
+  const articulos = ((cargado?.articulos ?? []) as Any[]).map((a) => ({ articuloId: a.articulo_id, productId: Number(a.odoo_product_id), minimo: Number(a.minimo), maximo: Number(a.maximo) }));
+  const reglas = ((cargado?.reglas ?? []) as Any[]).map((r) => ({ articuloId: r.articulo_id, orderpointId: Number(r.orderpoint_id), productId: Number(r.odoo_product_id), minimo: Number(r.minimo), maximo: Number(r.maximo), activa: !!r.activa }));
+  const plan = planificarReglas(articulos, reglas);
+  const hechas = await aplicarReglas(odoo, { warehouseId: Number(b.odoo_warehouse_id), locationId: Number(b.odoo_location_id) }, plan);
+  for (const h of hechas) await admin.rpc("odoo_reabastecimiento_registrar", { p_instancia: instancia, p_articulo: h.articuloId, p_orderpoint: h.orderpointId, p_minimo: h.minimo, p_maximo: h.maximo, p_activa: h.activa });
+  return { reglas_vigentes: articulos.length, cambios: hechas.length };
 }
 
 Deno.serve(async (req: Request) => {
@@ -105,7 +127,14 @@ Deno.serve(async (req: Request) => {
       const nuevaMarca = avanzarMarca([...sgc, ...ajenos], desde) ?? desde;
       // DS-29: proyección del stock desde Odoo para las bodegas con fuente_odoo (no hace nada si ninguna).
       const proyectadas = await proyectarStock(admin, odoo, instancia);
-      const { data: r } = await registrar("sondeo", ds, [], { pickings_sgc: sgc.length, fuera_de_canal: ds.length, bodegas_piloto: codigos.length, bodegas_proyectadas: proyectadas }, nuevaMarca);
+      // «Pendientes en Odoo»: foto de lo que el tablero de Inventario cuenta como por procesar / atrasado (best-effort: no tumba el sondeo).
+      let pendientes: Record<string, unknown> = {};
+      try {
+        const filas = await leerPendientes(odoo);
+        const { data: pr } = await admin.rpc("odoo_pendientes_sincronizar", { p_instancia: instancia, p_filas: filas });
+        pendientes = (pr ?? {}) as Record<string, unknown>;
+      } catch (e) { console.error("[odoo-conciliar] pendientes", e instanceof Error ? e.message : e); }
+      const { data: r } = await registrar("sondeo", ds, [], { pickings_sgc: sgc.length, fuera_de_canal: ds.length, bodegas_piloto: codigos.length, bodegas_proyectadas: proyectadas, pendientes_odoo: pendientes.pendientes ?? null, pendientes_conocidos: pendientes.conocidos ?? null }, nuevaMarca);
       return json({ tarea, ...r });
     }
 
@@ -128,8 +157,11 @@ Deno.serve(async (req: Request) => {
       saldosComparados = sgcSaldos.length;
       ds.push(...conciliarSaldos(sgcSaldos, quants));
     }
+    // Reglas de reabastecimiento (best-effort: no tumba la conciliacion).
+    let reglas: Record<string, unknown> = {};
+    try { reglas = await sincronizarReglas(admin, odoo, instancia); } catch (e) { reglas = { error: e instanceof Error ? e.message.slice(0, 200) : "error" }; console.error("[odoo-conciliar] reglas", reglas); }
     const alcance = ["sin_picking_a", "picking_a_no_validado", "cantidad_distinta", "sin_picking_b", "picking_b_no_validado", "picking_huerfano", "transito_vencido", "saldo_distinto"];
-    const { data: r, error: eReg } = await registrar("diaria", ds, alcance, { salidas: salidas.length, pickings: pickings.length, saldos_comparados: saldosComparados, por_tipo: contarPorTipo(ds) });
+    const { data: r, error: eReg } = await registrar("diaria", ds, alcance, { salidas: salidas.length, pickings: pickings.length, saldos_comparados: saldosComparados, por_tipo: contarPorTipo(ds), reabastecimiento: reglas });
     if (eReg) throw new Error(eReg.message);
     await admin.rpc("odoo_slo_evaluar"); // DS-28: alerta si la expansión está encendida y el SLO de publicación no se cumple
     return json({ tarea, ...r });

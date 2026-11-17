@@ -40,6 +40,11 @@ export interface CriteriosCanary {
   ratificaciones: number[];
 }
 
+/** «Pendientes en Odoo»: lo que el tablero de Inventario de Odoo cuenta como por procesar / atrasado, cruzado con SGC. */
+export interface PendienteAlmacen { almacen: string; tipo: 'recepcion' | 'entrega' | 'interno' | 'otro'; por_procesar: number; atrasados: number; conocidos_sgc: number }
+export interface PendienteOdoo { picking_id: number; nombre: string; origin: string | null; tipo: string; estado: string; programada: string | null; almacen: string | null; conocido: boolean; oc_sgc: boolean; conduce_sgc: boolean }
+export interface ResumenPendientes { actualizado_en: string | null; por_almacen: PendienteAlmacen[]; lista: PendienteOdoo[]; reglas: { activas: number; ultima: string | null } }
+
 /** Conciliador SGC ↔ Odoo (solo lectura para Tecnología). La corrida la hace la edge `odoo-conciliar` (cron). */
 @Injectable({ providedIn: 'root' })
 export class OdooConciliacionService {
@@ -49,6 +54,12 @@ export class OdooConciliacionService {
     const { data, error } = await this.supabase.client.rpc('odoo_conciliacion_estado');
     if (error) throw new Error(error.message);
     return data as EstadoConciliacion;
+  }
+
+  async pendientes(): Promise<ResumenPendientes> {
+    const { data, error } = await this.supabase.client.rpc('odoo_pendientes_resumen');
+    if (error) throw new Error(error.message);
+    return data as ResumenPendientes;
   }
 
   async criteriosCanary(): Promise<CriteriosCanary> {

@@ -6308,21 +6308,41 @@
     "1.218.3": {
       "titulo": "Compras: la lista de proveedores ya muestra todos",
       "cambios": [
-        { "t": "arreglo", "m": "Compras", "d": "Los selectores de proveedor dejaban fuera a los últimos de la lista (se cortaba en 1000 de 1577). Ahora aparecen todos." },
-        { "t": "mejora", "m": "Odoo", "d": "Sincronización con Odoo: los maestros (artículos, categorías, unidades y proveedores) se verifican contra Odoo y quedan como sincronizados." }
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "Los selectores de proveedor dejaban fuera a los últimos de la lista (se cortaba en 1000 de 1577). Ahora aparecen todos."
+        },
+        {
+          "t": "mejora",
+          "m": "Odoo",
+          "d": "Sincronización con Odoo: los maestros (artículos, categorías, unidades y proveedores) se verifican contra Odoo y quedan como sincronizados."
+        }
       ]
     },
     "1.218.2": {
       "titulo": "Odoo: sus pantallas ahora están en Tecnología",
       "cambios": [
-        { "t": "arreglo", "m": "Odoo", "d": "Sincronización, Conciliación y Homologación con Odoo ahora aparecen dentro del menú Tecnología (antes estaban escondidas en Developer)." },
-        { "t": "arreglo", "m": "Odoo", "d": "La pantalla de Sincronización con Odoo ya no dice que la publicación está apagada ni en simulador: ahora refleja que los conduces, entradas y ajustes se publican al Odoo real." }
+        {
+          "t": "arreglo",
+          "m": "Odoo",
+          "d": "Sincronización, Conciliación y Homologación con Odoo ahora aparecen dentro del menú Tecnología (antes estaban escondidas en Developer)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Odoo",
+          "d": "La pantalla de Sincronización con Odoo ya no dice que la publicación está apagada ni en simulador: ahora refleja que los conduces, entradas y ajustes se publican al Odoo real."
+        }
       ]
     },
     "1.218.1": {
       "titulo": "Odoo: la fecha de corte la puede cambiar Compras",
       "cambios": [
-        { "t": "mejora", "m": "Odoo", "d": "En Inventario › Ajustes Odoo › Corte, Compras y Tecnología pueden cambiar la fecha de corte de cada bodega; aplicar la apertura y encender Odoo como fuente sigue siendo solo de administración." }
+        {
+          "t": "mejora",
+          "m": "Odoo",
+          "d": "En Inventario › Ajustes Odoo › Corte, Compras y Tecnología pueden cambiar la fecha de corte de cada bodega; aplicar la apertura y encender Odoo como fuente sigue siendo solo de administración."
+        }
       ]
     },
     "1.218.0": {
@@ -6377,6 +6397,26 @@
           "t": "seguridad",
           "m": "Odoo",
           "d": "Escritura a Odoo protegida por lista de hosts permitidos; producción no se escribe sin autorización explícita."
+        }
+      ]
+    },
+    "1.218.4": {
+      "titulo": "Odoo: pendientes y reabastecimiento",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Odoo",
+          "d": "Conciliación con Odoo: nueva sección «Pendientes en Odoo» con las recepciones, entregas y traslados internos por procesar y atrasados (como el tablero de Inventario de Odoo), indicando cuáles conoce SGC."
+        },
+        {
+          "t": "nuevo",
+          "m": "Odoo",
+          "d": "Reabastecimiento: el mínimo y máximo de un artículo en SGC se sincroniza como regla de reabastecimiento de Odoo en el almacén central (solo sugiere, no compra solo)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Conteo físico y ajustes de existencia en almacenes cuyo stock lo gobierna Odoo: ya se pueden aplicar (antes los rechazaba el bloqueo de stock)."
         }
       ]
     }
