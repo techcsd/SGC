@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.218.3';
-export const APP_VERSION_TITULO: string | null = "Compras: la lista de proveedores ya muestra todos";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Compras","d":"Los selectores de proveedor dejaban fuera a los últimos de la lista (se cortaba en 1000 de 1577). Ahora aparecen todos."},{"t":"mejora","m":"Odoo","d":"Sincronización con Odoo: los maestros (artículos, categorías, unidades y proveedores) se verifican contra Odoo y quedan como sincronizados."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/a19556c";
+export const APP_VERSION = '1.218.4';
+export const APP_VERSION_TITULO: string | null = "Odoo: pendientes y reabastecimiento";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Odoo","d":"Conciliación con Odoo: nueva sección «Pendientes en Odoo» con las recepciones, entregas y traslados internos por procesar y atrasados (como el tablero de Inventario de Odoo), indicando cuáles conoce SGC."},{"t":"nuevo","m":"Odoo","d":"Reabastecimiento: el mínimo y máximo de un artículo en SGC se sincroniza como regla de reabastecimiento de Odoo en el almacén central (solo sugiere, no compra solo)."},{"t":"arreglo","m":"Inventario","d":"Conteo físico y ajustes de existencia en almacenes cuyo stock lo gobierna Odoo: ya se pueden aplicar (antes los rechazaba el bloqueo de stock)."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/ebf974c";
