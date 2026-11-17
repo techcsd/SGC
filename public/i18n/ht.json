@@ -6075,7 +6075,7 @@
   "No se pudo cargar el detalle.": "Pa t kapab chaje detay la.",
   "No se pudo cargar la bandeja de sincronización.": "Pa t kapab chaje bwat sinkronizasyon an.",
   "No se pudo reencolar": "Pa t kapab remete nan liy",
-  "Outbox de eventos hacia Odoo (maestros y documentos). Hoy la publicación está apagada por política y el adaptador de escritura es un simulador (MOCK) — nada de esto llegó al Odoo real todavía.": "Outbox evènman pou Odoo (mèt done ak dokiman). Jodi a piblikasyon an etenn pa politik e adaptatè ekriti a se yon simulatè (MOCK) — anyen nan sa a poko rive nan Odoo reyèl la.",
+  "Outbox de eventos hacia Odoo. Conduces, entradas, retiros, conteos y ajustes se publican al Odoo real según la política de cada tipo; los maestros (artículos) no se publican.": "Outbox evènman pou Odoo. Konduit, antre, retrè, konte ak ajisteman piblye nan Odoo reyèl la dapre politik chak kalite; mèt done yo (atik) pa piblye.",
   "Payload enviado": "Payload voye",
   "Prueba": "Tès",
   "Reencolado": "Remete nan liy",

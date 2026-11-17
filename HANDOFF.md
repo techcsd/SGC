@@ -1,6 +1,12 @@
 # HANDOFF — SGC
 
-## 🧪 Ronda DS (16-nov-2026) — PROMPT 148: integración Odoo hasta staging — EN `feature/ds-odoo-ronda-16nov`, NO dev/main, nada en prod
+## ✅ Ronda DS (16-17-nov-2026) — PROMPT 148: integración Odoo EN PROD (web 1.218.1)
+
+**Estado final (17-nov, autorizado por Xaviel; cuenta Tecnología CSD):** canary validado con conduce real (traslados A+B, reversa), expansión y corte encendidos, **16/16 bodegas con Odoo como fuente del stock** (opción A: Odoo manda; SGC se alineó, 0 diferencias en 3136 filas; respaldo en `sgc.odoo_corte_respaldo_stock`), OC reales (`ODOO_ESCRITURA_HABILITADA=true`), catálogo 230/230 vinculado (179 productos creados en Odoo), 7 categorías y 18 unidades vinculadas, contracción parte B (`odoo_vinculos_stock*` retiradas; `odoo_comandos_oc` se conserva: idempotencia de OC). Scripts versionados en `scripts/data-fixes/2026-11-17-ds-*-prod.mjs`; runbook en `docs/ODOO-PASO-A-PROD.md`.
+**Apagar/revertir:** `ds-expansion-prod.mjs --apagar`, `ds-corte-central-prod.mjs --paso apagar`, `ds-corte-resto-prod.mjs --apagar`, `ds-encender-prod.mjs --apagar`.
+**Pendiente/observación:** 1.218.0 y 1.218.1 salieron por `--hotfix` (sin prueba humana de pantallas: probar Inventario › Ajustes Odoo › Corte y Tecnología › Conciliación); alerta `fuera_de_canal` del picking de prueba de Miranda se cierra sola en la corrida diaria; DS-28 (subida de PDF con sesión real), app csd-app (PROMPT-149); lotes RLS `ds46` y `dj1-dj3` NO aplicados a prod; issues abiertos: #2, #7, #18, #24, #78, #86, #115 (ver comentarios).
+
+### (histórico) Ronda DS hasta staging
 
 **Estado:** 41 hechos · 6 parciales · 0 sin empezar (47 DS). Detalle: `docs/ODOO-INTEGRACION-AVANCE.md`, lotes en `docs/avance-lotes/`, circuito 2 en `docs/ODOO-CIRCUITO2.md`, medidas de staging en `docs/ODOO-STAGING-VERIFICACION.md`, reversa en `docs/ODOO-RUNBOOK-REVERSA.md`. Versión 1.218.0 (notas Y1 hechas).
 - **Hecho y verificado contra staging (con datos reales, limpiado):** host guard DS-02; traslados A/B con tránsito, publicación por outbox, soak de 12 conduces (0 deriva, 0 inciertos); OC real con analytic_distribution; circuito 2 (contrato 27/28, la restante era aserción corregida); conciliador (143 pickings, 0 discrepancias).
