@@ -56,10 +56,8 @@
     flex-direction: column;
     gap: 4px;
     padding: 12px 14px;
-    border-left: 4px solid var(--sgc-border, #d0d5dd);
-
     &--atraso {
-      border-left-color: var(--sgc-warning, #b54708);
+      outline: 1px solid var(--sgc-warning, #b54708);
     }
   }
 
