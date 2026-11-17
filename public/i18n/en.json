@@ -6075,7 +6075,7 @@
   "No se pudo cargar el detalle.": "Could not load the detail.",
   "No se pudo cargar la bandeja de sincronización.": "Could not load the sync inbox.",
   "No se pudo reencolar": "Could not requeue",
-  "Outbox de eventos hacia Odoo. Conduces, entradas, retiros, conteos y ajustes se publican al Odoo real según la política de cada tipo; los maestros (artículos) no se publican.": "Outbox of events toward Odoo. Delivery notes, receipts, withdrawals, counts and adjustments are published to the real Odoo according to each type's policy; masters (items) are not published.",
+  "Outbox de eventos hacia Odoo. Conduces, entradas, retiros, conteos y ajustes se publican al Odoo real según la política de cada tipo; los maestros (artículos, categorías, unidades, proveedores) se verifican contra Odoo, que es su autoridad.": "Outbox of events toward Odoo. Delivery notes, receipts, withdrawals, counts and adjustments are published to the real Odoo according to each type's policy; masters (items, categories, units, suppliers) are verified against Odoo, which is their authority.",
   "Payload enviado": "Payload sent",
   "Prueba": "Test",
   "Reencolado": "Requeued",
