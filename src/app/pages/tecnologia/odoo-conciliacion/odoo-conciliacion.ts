@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CriteriosCanary, CorridaConciliacion, DiscrepanciaOdoo, OdooConciliacionService } from '../../../../shared/services/odoo-conciliacion.service';
+import { CriteriosCanary, CorridaConciliacion, DiscrepanciaOdoo, OdooConciliacionService, ResumenPendientes } from '../../../../shared/services/odoo-conciliacion.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
@@ -18,6 +18,8 @@ const ETIQUETAS: Record<string, string> = {
   fuera_de_canal: 'Movimiento fuera de SGC',
   saldo_distinto: 'Saldo distinto',
 };
+
+const TIPOS_PENDIENTE: Record<string, string> = { recepcion: 'Recepciones', entrega: 'Órdenes de entrega', interno: 'Traslados internos', otro: 'Otros' };
 
 /** DS-13 — Conciliación SGC ↔ Odoo: hallazgos abiertos, últimas corridas y métricas del outbox. */
 @Component({
@@ -38,6 +40,7 @@ export class TecOdooConciliacion implements OnInit {
   inciertos = signal(0);
   hayInstancia = signal(true);
   criterios = signal<CriteriosCanary | null>(null);
+  pendientes = signal<ResumenPendientes | null>(null);
   loading = signal(true);
   corriendo = signal(false);
   error = signal('');
@@ -53,6 +56,10 @@ export class TecOdooConciliacion implements OnInit {
     return this.i18n.t(ETIQUETAS[tipo] ?? tipo);
   }
 
+  etiquetaTipo(tipo: string): string {
+    return this.i18n.t(TIPOS_PENDIENTE[tipo] ?? 'Otros');
+  }
+
   async cargar() {
     this.loading.set(true);
     this.error.set('');
@@ -64,6 +71,7 @@ export class TecOdooConciliacion implements OnInit {
       this.retrasoOutbox.set(e.retraso_outbox_min ?? 0);
       this.inciertos.set(e.inciertos_abiertos ?? 0);
       this.criterios.set(await this.svc.criteriosCanary().catch(() => null));
+      this.pendientes.set(await this.svc.pendientes().catch(() => null));
     } catch (e) {
       this.error.set(presentarError(e, { pantalla: 'la conciliación con Odoo' }).mensajeUsuario);
     } finally {
