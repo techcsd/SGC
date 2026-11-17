@@ -10,7 +10,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
-import { publicarMock } from "../_shared/odoo-inventario.ts";
+import { verificarMaestro } from "../_shared/odoo-maestros.ts";
+import { clienteMaestros, depsMaestros } from "./maestros.ts";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
 import { publicarSalida } from "../_shared/odoo-salidas.ts";
 import { depsReales } from "./salidas.ts";
@@ -88,6 +89,7 @@ Deno.serve(async (req: Request) => {
   // DS-10: las salidas (conduces) se publican de verdad como traslados A/B, solo si la instancia permite salida.
   const { data: inst } = await admin.from("odoo_instancias").select("permitir_salida, permitir_entrada").eq("id", instanciaId).maybeSingle();
   let odooCliente: OdooClient | null = null;
+  let maestrosCliente: OdooClient | null = null;
   const resultados: Array<{ id: string; estado: string }> = [];
   for (const evento of eventos ?? []) {
     try {
@@ -122,7 +124,11 @@ Deno.serve(async (req: Request) => {
           }
         }
       } else {
-        r = await publicarMock(evento);
+        // Maestros (articulo, categoria, unidad, proveedor): sin simulador. Se verifica el vinculo contra el Odoo real (Odoo es la autoridad).
+        try {
+          maestrosCliente ??= clienteMaestros();
+          r = await verificarMaestro(depsMaestros(admin, maestrosCliente), evento);
+        } catch (e) { r = { estado: "error" as const, error: e instanceof Error ? e.message : "No se pudo verificar el maestro en Odoo." }; }
       }
       const { data: ok, error: errFinalizar } = await admin.rpc("odoo_v1_finalizar_evento", {
         p_evento: evento.id,
@@ -140,5 +146,5 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return json({ procesados: resultados.length, resultados, modo: inst?.permitir_salida ? "salidas_real" : "mock" });
+  return json({ procesados: resultados.length, resultados, modo: inst?.permitir_salida ? "real" : "sin_permiso" });
 });
