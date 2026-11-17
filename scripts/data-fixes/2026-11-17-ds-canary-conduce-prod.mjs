@@ -35,7 +35,14 @@ console.log('conduce creado:', id);
 const picks = async () => kw('stock.picking', 'search_read', [[['origin', 'like', `SGC-TRAS-${id}`]]], { fields: ['origin', 'state'], context: { active_test: false } });
 const esperar = async (cond, etiqueta) => { for (let i = 0; i < 24; i++) { await dormir(10000); const p = await picks(); const e = (await sql(`select odoo_sync_estado e, odoo_sync_error er from sgc.salidas_inventario where id=${lit(id)}`))[0]; if (cond(p, e)) { console.log(etiqueta, JSON.stringify({ p, e })); return true; } } console.log('TIMEOUT', etiqueta, JSON.stringify(await picks())); return false; };
 let ok = await esperar((p, e) => p.some((x) => x.origin.endsWith('-A') && x.state === 'done') && e.e === 'sincronizado', 'A validado');
-// El paso B (entregar) exige foto de evidencia real: no se fabrica; se valida solo A y se revierte.
+if (ok && argv.includes('--con-b')) {
+  // Xaviel (17-nov) autorizo hacer la entrega de validacion en su nombre; la evidencia es un marcador rotulado
+  // 'validacion canary' (no es evidencia real de entrega) y el conduce se anula al final.
+  const det = await sql(`select id, cantidad::float c from sgc.detalle_salidas where salida_id=${lit(id)}`);
+  const ent = JSON.stringify(det.map((d) => ({ detalle_id: d.id, cantidad_recibida: d.c })));
+  await as(`select sgc.entregar_conduce(${lit(id)}, ${lit(ent)}::jsonb, 'Tecnologia (validacion canary)', 'canary/validacion-firma.png', 'canary/validacion-foto.png', 'Validacion canary: NO es una entrega real')`);
+  ok = await esperar((p) => p.some((x) => x.origin.endsWith('-B') && x.state === 'done'), 'B validado');
+}
 console.log('--- anulando para dejar el Odoo neto en cero');
 await as(`select sgc.anular_conduce(${lit(id)}, 'Validacion canary: se revierte')`).catch((e) => console.log('anular:', e.message));
 await esperar((p) => p.some((x) => /-D\d+$/.test(x.origin) && x.state === 'done'), 'devoluciones');
