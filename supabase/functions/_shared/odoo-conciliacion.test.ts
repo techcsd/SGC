@@ -76,3 +76,7 @@ Deno.test("W3: pickings de una salida anulada/de prueba (A, devolucion -D1, comp
   const prueba = [salida({ id: uuid, esPrueba: true })];
   assertEquals(conciliarSalidas(prueba, picks.slice(0, 2), ahora), []);
 });
+
+Deno.test("fuera de canal ignora pickings de prueba y cancelados", () => {
+  assertEquals(fueraDeCanal([pick("SGC-TRAS-prueba-d08-x", { writeUid: 99, state: "cancel" }), pick("SGC-TRAS-TEST-1-A", { writeUid: 99 }), pick("WH/INT/9", { state: "cancel" })], 1), []);
+});
