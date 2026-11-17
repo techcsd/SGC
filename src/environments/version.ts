@@ -2,4 +2,4 @@
 export const APP_VERSION = '1.218.4';
 export const APP_VERSION_TITULO: string | null = "Odoo: pendientes y reabastecimiento";
 export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Odoo","d":"Conciliación con Odoo: nueva sección «Pendientes en Odoo» con las recepciones, entregas y traslados internos por procesar y atrasados (como el tablero de Inventario de Odoo), indicando cuáles conoce SGC."},{"t":"nuevo","m":"Odoo","d":"Reabastecimiento: el mínimo y máximo de un artículo en SGC se sincroniza como regla de reabastecimiento de Odoo en el almacén central (solo sugiere, no compra solo)."},{"t":"arreglo","m":"Inventario","d":"Conteo físico y ajustes de existencia en almacenes cuyo stock lo gobierna Odoo: ya se pueden aplicar (antes los rechazaba el bloqueo de stock)."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/ebf974c";
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/dbb4524";
