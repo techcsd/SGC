@@ -6305,6 +6305,13 @@
         }
       ]
     },
+    "1.218.2": {
+      "titulo": "Odoo: sus pantallas ahora están en Tecnología",
+      "cambios": [
+        { "t": "arreglo", "m": "Odoo", "d": "Sincronización, Conciliación y Homologación con Odoo ahora aparecen dentro del menú Tecnología (antes estaban escondidas en Developer)." },
+        { "t": "arreglo", "m": "Odoo", "d": "La pantalla de Sincronización con Odoo ya no dice que la publicación está apagada ni en simulador: ahora refleja que los conduces, entradas y ajustes se publican al Odoo real." }
+      ]
+    },
     "1.218.1": {
       "titulo": "Odoo: la fecha de corte la puede cambiar Compras",
       "cambios": [
