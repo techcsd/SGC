@@ -5,6 +5,7 @@ import { moduleGuard } from './core/guards/module.guard';
 import { moduloOSubmoduloGuard } from './core/guards/modulo-o-submodulo.guard';
 import { submoduloGuard } from './core/guards/submodulo.guard';
 import { noChoferGuard } from './core/guards/no-chofer.guard';
+import { movimientoLegadoGuard } from './core/guards/movimiento-legado.guard';
 import { rolesGuard } from './core/guards/roles.guard';
 
 export const routes: Routes = [
@@ -155,6 +156,19 @@ export const routes: Routes = [
         path: 'transporte/por-firmar',
         redirectTo: 'por-firmar',
         pathMatch: 'full',
+      },
+      {
+        // DS-34/#74 — destino del QR del conduce: valida el token y abre la pantalla de recibir/firmar/cerrar.
+        // Sin gate de módulo (el receptor suele ser ingeniero de obra); la RLS y conduce_confirmar_receptor deciden.
+        path: 'conduce-qr/:token',
+        title: 'Conduce',
+        loadComponent: () => import('./pages/conduce-qr/conduce-qr').then((m) => m.ConduceQr),
+      },
+      {
+        // DS-34 — pantalla del conduce (recibir, firmar, cerrar) alcanzable por QR sin el gate del módulo Inventario.
+        path: 'conduce-recibir/:id',
+        title: 'Conduce',
+        loadComponent: () => import('./pages/inventario/conduce/conduce').then((m) => m.Conduce),
       },
       {
         path: 'por-firmar',
@@ -310,6 +324,7 @@ export const routes: Routes = [
         // autenticado; RLS + es_referente_movimiento gobiernan el resto).
         path: 'transporte/apoyo',
         title: 'Apoyo de transporte',
+        canActivate: [movimientoLegadoGuard],
         loadComponent: () =>
           import('./pages/apoyo-transporte/apoyo-transporte').then((m) => m.ApoyoTransporte),
       },

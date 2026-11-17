@@ -81,4 +81,18 @@ export const comprasRoutes: Routes = [
       import('./productos-por-dar-de-alta/productos-por-dar-de-alta').then((m) => m.ProductosPorDarDeAlta),
     title: 'Productos por dar de alta — Compras',
   },
+  {
+    // DS-24 — solicitudes pendientes vencidas: cierre masivo con motivo + métrica «entradas con OC».
+    path: 'solicitudes-vencidas',
+    canActivate: [moduleGuard('compras')],
+    loadComponent: () => import('./solicitudes-vencidas/solicitudes-vencidas').then((m) => m.SolicitudesVencidas),
+    title: 'Solicitudes vencidas — Compras',
+  },
+  {
+    // DS-25 — curación de proveedores: duplicados, movimiento real, ratificación en lote.
+    path: 'proveedores-curacion',
+    canActivate: [moduleGuard('compras')],
+    loadComponent: () => import('./proveedores-curacion/proveedores-curacion').then((m) => m.ProveedoresCuracion),
+    title: 'Curación de proveedores — Compras',
+  },
 ];

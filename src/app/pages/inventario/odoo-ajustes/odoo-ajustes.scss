@@ -1,0 +1,39 @@
+.oa-lead {
+  font-size: 13px;
+  color: var(--sgc-text-muted, #666);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.oa-h2 {
+  font-size: 16px;
+  margin: 22px 0 10px;
+}
+
+.oa-nota {
+  font-size: 12px;
+  color: var(--sgc-text-muted, #666);
+  margin-top: 2px;
+}
+
+.oa-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.oa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  max-width: 520px;
+}
+
+.oa-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}

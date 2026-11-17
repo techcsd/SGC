@@ -61,3 +61,23 @@ describe('bitacora-ia.util', () => {
     expect(contarDudosos(campos)).toBe(1);
   });
 });
+
+describe('propuestaDesdeFila (DS-41 #76)', () => {
+  it('normaliza una fila guardada de voz/WhatsApp', async () => {
+    const { propuestaDesdeFila } = await import('./bitacora-ia.util');
+    const p = propuestaDesdeFila({
+      id: 'a', proyecto_id: 'p', fecha: '2026-11-16', estado: 'propuesta', confianza_media: '0.8',
+      propuesta_json: { campos: { comentarios: { valor: 'x', confianza: 0.9, fuente: 'voz' } }, actividades: [], transcripcion: 'hola' },
+    });
+    expect(p?.propuesta_id).toBe('a');
+    expect(p?.confianza_media).toBe(0.8);
+    expect(p?.transcripcion).toBe('hola');
+    expect(p?.restricciones).toEqual([]);
+  });
+  it('rechaza filas inválidas y tolera json vacío', async () => {
+    const { propuestaDesdeFila } = await import('./bitacora-ia.util');
+    expect(propuestaDesdeFila(null)).toBeNull();
+    expect(propuestaDesdeFila({ id: 1 })).toBeNull();
+    expect(propuestaDesdeFila({ id: 'a', proyecto_id: 'p', fecha: 'f', propuesta_json: null })?.campos).toEqual({});
+  });
+});

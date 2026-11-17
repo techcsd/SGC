@@ -76,6 +76,16 @@ const SELECT_QUERY =
   ' origen_requisicion:solicitudes_material!salidas_inventario_origen_requisicion_id_fkey(id, folio),' +
   ' detalle_salidas(*, articulo:articulos(nombre, codigo, unidad))';
 
+/** DS-12 — estado del traspaso del conduce hacia Odoo. */
+export interface OdooSyncSalida {
+  odoo_sync_estado: 'pendiente' | 'sincronizado' | 'incierto' | 'error';
+  odoo_sync_error: string | null;
+  odoo_sync_intentos: number;
+  odoo_sync_en: string | null;
+  odoo_picking_salida_id: number | null;
+  odoo_picking_entrada_id: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SalidasService {
   private supabase = inject(SupabaseService);
@@ -200,6 +210,24 @@ export class SalidasService {
       tiene_foto: r.tiene_foto,
       tiene_firma: r.tiene_firma,
     }));
+  }
+
+  /** DS-12 — estado de sincronización del conduce con Odoo (traslado A/B). null si nunca se publicó. */
+  async getOdooSync(id: string): Promise<OdooSyncSalida | null> {
+    const { data, error } = await this.supabase.client
+      .from('salidas_inventario')
+      .select('odoo_sync_estado, odoo_sync_error, odoo_sync_intentos, odoo_sync_en, odoo_picking_salida_id, odoo_picking_entrada_id')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data?.odoo_sync_estado ? (data as OdooSyncSalida) : null;
+  }
+
+  /** DS-12 — «Reintentar»: devuelve a pendiente los eventos en error/incierto de este conduce (Tecnología/admin). */
+  async reintentarOdooSync(id: string): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('odoo_reintentar_salida', { p_salida: id });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
   }
 
   /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la salida.
@@ -669,6 +697,13 @@ export class SalidasService {
     });
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
+  }
+
+  /** DS-20 — explica si el vínculo es posible (unidades incompatibles / coincidencia ambigua) sin escribir nada. */
+  async evaluarVinculoLibre(itemLibreId: string, articuloId: string | null): Promise<{ ok: boolean; codigo: string; mensaje: string | null }> {
+    const { data, error } = await this.supabase.client.rpc('odoo_vinculo_libre_evaluar', { p_item_libre_id: itemLibreId, p_articulo_id: articuloId });
+    if (error) throw new Error(error.message);
+    return data as { ok: boolean; codigo: string; mensaje: string | null };
   }
 
   /** BW2 — crea el artículo del catálogo desde el material libre y lo vincula en una

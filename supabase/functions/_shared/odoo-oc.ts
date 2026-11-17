@@ -133,6 +133,27 @@ const resultadoOc = (oc: OcOdoo, extra: Record<string, unknown> = {}): Resultado
   resultado: { modelo: "purchase.order", odoo_id: oc.id, nombre: oc.nombre, estado_odoo: oc.estado, total: r2(oc.total), moneda: oc.moneda, ...extra },
 });
 
+/**
+ * DS-06: cuenta analítica a imputar. Con >1 cuenta manda la elegida en la OC (si no, la principal). En el Odoo de
+ * producción solo se usa una cuenta CONFIRMADA (un admin la confirmó en «Homologación»); fuera de prod se permite
+ * una no confirmada para poder probar. Sin cuenta vinculada = error explícito.
+ */
+export function resolverCuentaAnalitica(p: Record<string, unknown>): { id: number } | { error: string } {
+  const cuentas = (Array.isArray(p.cuentas_analiticas) ? p.cuentas_analiticas : []) as Array<Record<string, unknown>>;
+  const lista = cuentas.length
+    ? cuentas
+    : esId(p.odoo_analytic_id) ? [{ odoo_analytic_id: p.odoo_analytic_id, rol: "principal", confirmado: p.odoo_analytic_confirmado === true }] : [];
+  if (lista.length === 0) return { error: "La obra de esta orden no está vinculada a una cuenta analítica de Odoo; no se puede imputar el costo." };
+  let elegida = esId(p.odoo_analytic_elegida) ? lista.find((c) => c.odoo_analytic_id === p.odoo_analytic_elegida) : undefined;
+  if (esId(p.odoo_analytic_elegida) && !elegida) return { error: "La cuenta analítica elegida no pertenece a la obra de esta orden." };
+  elegida ??= lista.find((c) => c.rol === "principal") ?? (lista.length === 1 ? lista[0] : undefined);
+  if (!elegida || !esId(elegida.odoo_analytic_id)) return { error: "La obra tiene varias cuentas analíticas: elige una al crear la orden." };
+  if (p.odoo_entorno === "prod" && elegida.confirmado !== true) {
+    return { error: "La cuenta analítica de esta obra aún no ha sido confirmada por un administrador (Homologación)." };
+  }
+  return { id: elegida.odoo_analytic_id };
+}
+
 /** Crea la OC (borrador + líneas en UNA transacción de Odoo). Idempotente por `origin`. */
 export function crearOcReal(odoo: () => OdooClient): AdaptadorOc {
   return (p) => conRechazoComoError(async () => {
@@ -146,6 +167,9 @@ export function crearOcReal(odoo: () => OdooClient): AdaptadorOc {
       if (!esNum(l.precio_unitario) || l.precio_unitario < 0) return error("Hay líneas con precio no válido.");
       if (l.odoo_uom_id !== undefined && l.odoo_uom_id !== null && !esId(l.odoo_uom_id)) return error("Hay líneas con unidad no válida.");
     }
+    // DS-06 / #51: cada línea se imputa a la cuenta analítica de la obra. Nunca se adivina por nombre.
+    const cuenta = resolverCuentaAnalitica(p);
+    if ("error" in cuenta) return error(cuenta.error);
     const c = odoo();
     const origin = `SGC:${p.numero}:${p.orden_id}`;
 
@@ -177,6 +201,7 @@ export function crearOcReal(odoo: () => OdooClient): AdaptadorOc {
         product_qty: l.cantidad,
         price_unit: l.precio_unitario,
         ...(esId(l.odoo_uom_id) ? { product_uom: l.odoo_uom_id } : {}),
+        analytic_distribution: { [String(cuenta.id)]: 100 },
         ...(entrega ? { date_planned: `${entrega} 12:00:00` } : {}),
       }]),
     };
@@ -218,7 +243,13 @@ function cambiarEstadoReal(odoo: () => OdooClient, accion: AccionBoton): Adaptad
         (accion === "confirmar" ? "confirmar" : "cancelar") + " desde SGC.", CODIGO_YA_RECIBIDA);
     }
 
-    await c.call("purchase.order", accion === "confirmar" ? "button_confirm" : "button_cancel", [[oc.id]]);
+    try {
+      await c.call("purchase.order", accion === "confirmar" ? "button_confirm" : "button_cancel", [[oc.id]]);
+    } catch (e) {
+      // DS-15 (medido en staging): button_cancel devuelve None y XML-RPC lo reporta como fault «cannot marshal None»
+      // aunque la OC SÍ quedó cancelada. No es un rechazo: se relee el estado y se decide por lo que Odoo dejó.
+      if (!(e instanceof OdooError && e.fault && /cannot marshal None/i.test(e.message))) throw e;
+    }
 
     const despues = await leerOc(c, [["id", "=", oc.id]]);
     if (!despues) return error("Odoo no devolvió la orden tras la operación; requiere conciliación.", CODIGO_ESTADO_INVALIDO);

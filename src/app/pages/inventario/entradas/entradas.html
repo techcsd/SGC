@@ -625,6 +625,8 @@
 <app-form-drawer title="{{ 'Detalle de la entrada' | t }}" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailEntrada(); as e) {
     <div class="entrada-detalle">
+      <!-- W2 — sincronización con Odoo -->
+      <app-odoo-sync-estado tipo="entrada_inventario" [documentoId]="e.id" />
       <dl class="entrada-detalle__meta">
         <div><dt>{{ 'Fecha' | t }}</dt><dd>{{ formatFecha(e.fecha) }}</dd></div>
         <div><dt>{{ 'Almacén' | t }}</dt><dd>{{ e.bodega?.nombre ?? '—' }}</dd></div>

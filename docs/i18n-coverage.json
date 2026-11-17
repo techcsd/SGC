@@ -3,6 +3,28 @@
   "pctHt": 100,
   "filas": [
     {
+      "pantalla": "tecnologia/odoo-conciliacion",
+      "total": 30,
+      "cubiertos": 29,
+      "sin": 1,
+      "pct": 97,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": [
+        "min"
+      ]
+    },
+    {
+      "pantalla": "admin/adopcion",
+      "total": 14,
+      "cubiertos": 14,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "admin/almacenes-duplicados",
       "total": 15,
       "cubiertos": 15,
@@ -264,8 +286,8 @@
     },
     {
       "pantalla": "apoyo-transporte",
-      "total": 51,
-      "cubiertos": 51,
+      "total": 53,
+      "cubiertos": 53,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -454,8 +476,8 @@
     },
     {
       "pantalla": "compras/ordenes",
-      "total": 111,
-      "cubiertos": 111,
+      "total": 114,
+      "cubiertos": 114,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -464,8 +486,8 @@
     },
     {
       "pantalla": "compras/ordenes-odoo",
-      "total": 118,
-      "cubiertos": 118,
+      "total": 121,
+      "cubiertos": 121,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -490,6 +512,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "compras/proveedores-curacion",
+      "total": 18,
+      "cubiertos": 18,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {
@@ -523,6 +555,26 @@
       "faltantes": []
     },
     {
+      "pantalla": "compras/solicitudes-vencidas",
+      "total": 14,
+      "cubiertos": 14,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "conduce-qr",
+      "total": 3,
+      "cubiertos": 3,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "configuracion/claude",
       "total": 32,
       "cubiertos": 32,
@@ -544,8 +596,8 @@
     },
     {
       "pantalla": "dashboard",
-      "total": 70,
-      "cubiertos": 70,
+      "total": 71,
+      "cubiertos": 71,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -644,8 +696,8 @@
     },
     {
       "pantalla": "flota/avisos",
-      "total": 52,
-      "cubiertos": 52,
+      "total": 53,
+      "cubiertos": 53,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -674,8 +726,8 @@
     },
     {
       "pantalla": "flota/combustible",
-      "total": 209,
-      "cubiertos": 209,
+      "total": 213,
+      "cubiertos": 213,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -964,8 +1016,8 @@
     },
     {
       "pantalla": "inventario/conduce",
-      "total": 151,
-      "cubiertos": 151,
+      "total": 159,
+      "cubiertos": 159,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1090,6 +1142,26 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/odoo-ajustes",
+      "total": 49,
+      "cubiertos": 49,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
+      "pantalla": "inventario/pendientes-cierre",
+      "total": 19,
+      "cubiertos": 19,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {
@@ -1830,6 +1902,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/odoo-homologacion",
+      "total": 52,
+      "cubiertos": 52,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

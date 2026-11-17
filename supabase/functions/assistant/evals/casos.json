@@ -114,6 +114,27 @@
       "rol_codigo": "admin",
       "secuencia": ["Hola, ¿cómo estás?", "nuevo"],
       "expect": { "confirma_reinicio": true, "conversacion_distinta_de_la_primera": true }
+    },
+    {
+      "id": "ds-solicitudes-atascadas",
+      "descripcion": "DS-33/#56: cola de solicitudes de material sin aprobar, más antiguas primero.",
+      "rol_codigo": "logistica",
+      "mensaje": "¿Qué solicitudes de material llevan más tiempo sin aprobarse?",
+      "expect": { "tool_llamada": "solicitudes_material_atascadas", "sin_gap_falso": true, "sin_contradiccion": true }
+    },
+    {
+      "id": "ds-conduces-por-cerrar",
+      "descripcion": "DS-34/#58: conduces despachados sin cierre.",
+      "rol_codigo": "logistica",
+      "mensaje": "¿Qué conduces llevan más de una semana sin cerrarse?",
+      "expect": { "tool_llamada": "conduces_por_cerrar", "sin_gap_falso": true, "sin_contradiccion": true }
+    },
+    {
+      "id": "ds-adopcion-por-rol",
+      "descripcion": "DS-38/#62: adopción por rol (admin).",
+      "rol_codigo": "admin",
+      "mensaje": "¿Qué roles nunca han entrado al sistema?",
+      "expect": { "tool_llamada": "adopcion_por_rol", "sin_gap_falso": true, "sin_contradiccion": true }
     }
   ]
 }

@@ -244,12 +244,22 @@
     @if (destino() === 'proyecto') {
       <div class="sgc-field">
         <label for="proyecto_id">{{ 'Proyecto' | t }} <span class="required">*</span></label>
-        <select id="proyecto_id" formControlName="proyecto_id">
+        <select id="proyecto_id" formControlName="proyecto_id" (change)="onProyectoCambiado()">
           <option [ngValue]="null">{{ 'Seleccionar proyecto…' | t }}</option>
           @for (proy of proyectos(); track proy.id) {
             <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
           }
         </select>
+        @if (cuentasAnaliticas().length > 1) {
+          <!-- W2 (DS-06) — la obra tiene varias cuentas analíticas en Odoo -->
+          <label for="cuenta_analitica">{{ 'Cuenta analítica de Odoo' | t }}</label>
+          <select id="cuenta_analitica" [value]="cuentaAnaliticaElegida() ?? ''" (change)="cuentaAnaliticaElegida.set($any($event.target).value ? +$any($event.target).value : null)">
+            <option value="">{{ 'Usar la principal de la obra' | t }}</option>
+            @for (c of cuentasAnaliticas(); track c.odoo_analytic_id) {
+              <option [value]="c.odoo_analytic_id">{{ c.nombre || ('#' + c.odoo_analytic_id) }} — {{ (c.rol === 'principal' ? 'Principal' : 'Adicional') | t }}{{ c.confirmado ? '' : ' (' + i18n.t('sin confirmar') + ')' }}</option>
+            }
+          </select>
+        }
         @if (!proyectos().length) {
           <p class="sgc-field__hint text-muted">{{ 'No hay obras activas disponibles. Si esperabas ver alguna, pide que te asignen a la obra.' | t }}</p>
         }

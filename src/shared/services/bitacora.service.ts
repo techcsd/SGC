@@ -4,7 +4,7 @@ import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { invokeEdge } from '../utils/edge.util';
 import { Bitacora, BitacoraArchivo, BitacoraFormData, BitacoraDanoInput, BitacoraMoldeInput } from '../models/bitacora.model';
-import { CampoPropuesto, ActividadPropuesta } from '../utils/bitacora-ia.util';
+import { CampoPropuesto, ActividadPropuesta, PropuestaGuardada, propuestaDesdeFila } from '../utils/bitacora-ia.util';
 
 // DF1-A — restricción propuesta por el "Modo rápido" de bitácora (misma forma
 // que usa el formulario manual: tipo_restriccion + descripcion_otro).
@@ -174,6 +174,17 @@ export class BitacoraService {
       fotos,
       audio,
     });
+  }
+
+  /** DS-41/#76 — carga una propuesta ya armada (p. ej. desde una nota de voz por WhatsApp) para revisarla; RLS: solo la del dueño/permitidos. */
+  async cargarPropuestaIA(id: string): Promise<PropuestaGuardada | null> {
+    const { data, error } = await this.supabase.client
+      .from('bitacora_ia_propuestas')
+      .select('id, proyecto_id, fecha, estado, confianza_media, propuesta_json')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return propuestaDesdeFila(data);
   }
 
   /** Marca la propuesta de IA como aceptada (se usó para llenar la bitácora creada) o descartada. */

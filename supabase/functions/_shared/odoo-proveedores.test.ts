@@ -26,7 +26,7 @@ function cliente(responder: (body: string) => string | Promise<string>, calls: s
     calls.push(body);
     return new Response(body.includes("authenticate") ? xmlInt(2) : await responder(body), { status: 200 });
   }) as typeof fetch;
-  return () => new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn });
+  return () => new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn });
 }
 const metodos = (calls: string[], m: string) => calls.filter((c) => c.includes(`<string>${m}</string>`));
 
@@ -147,7 +147,7 @@ Deno.test("real: fault de negocio saneado (sin traza); timeout/caída se relanza
 
   const calls: string[] = [];
   const caido = () => new OdooClient({
-    url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1,
+    url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined,
     fetchFn: (async (_u: unknown, init?: RequestInit) => {
       calls.push(String(init?.body));
       if (String(init?.body).includes("authenticate")) return new Response(xmlInt(2));

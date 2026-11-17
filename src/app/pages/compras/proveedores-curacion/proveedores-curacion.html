@@ -1,0 +1,98 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Curación de proveedores' | t }}</h1>
+    <span class="page-count">{{ i18n.t('{a} con movimiento real, {b} por ratificar', { a: conMovimiento(), b: sinRatificar().length }) }}</span>
+  </div>
+</div>
+
+<p class="pc-lead">
+  {{ 'Odoo es el origen de verdad de los proveedores. Aquí se detectan duplicados, se marcan los que tienen movimiento real y se ratifican en lote; cuando el parámetro de selectores esté activo, solo los ratificados o con movimiento aparecen al elegir un proveedor.' | t }}
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- Posibles duplicados -->
+<h2 class="pc-h2">{{ 'Posibles duplicados' | t }}</h2>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (duplicados().length === 0) {
+    <div class="table-empty"><p>{{ 'No se encontraron posibles duplicados.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Posibles duplicados' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Proveedor A' | t }}</th>
+            <th>{{ 'Proveedor B' | t }}</th>
+            <th class="text-right">{{ 'Similitud' | t }}</th>
+            <th>{{ 'Motivo' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of duplicados(); track d.a_id + d.b_id) {
+            <tr>
+              <td>{{ d.a_nombre }}<br /><small>{{ i18n.t('{n} movimiento(s)', { n: d.a_mov }) }}</small></td>
+              <td>{{ d.b_nombre }}<br /><small>{{ i18n.t('{n} movimiento(s)', { n: d.b_mov }) }}</small></td>
+              <td class="text-right">{{ d.similitud * 100 | number: '1.0-0' }}%</td>
+              <td>{{ (d.mismo_rnc ? 'Mismo RNC' : 'Nombre parecido') | t }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Ratificación en lote -->
+<h2 class="pc-h2">{{ 'Ratificación en lote' | t }}</h2>
+<div class="pc-acciones">
+  <button type="button" class="sgc-btn sgc-btn--secondary" (click)="seleccionarConMovimiento()">{{ 'Marcar los que tienen movimiento' | t }}</button>
+  <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="seleccion().size === 0 || trabajando()" (click)="ratificar()">
+    {{ trabajando() ? i18n.t('Ratificando…') : i18n.t('Ratificar seleccionados ({n})', { n: seleccion().size }) }}
+  </button>
+</div>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="6" />
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Ratificación en lote' | t }}">
+        <thead>
+          <tr>
+            <th></th>
+            <th>{{ 'Proveedor' | t }}</th>
+            <th>{{ 'RNC' | t }}</th>
+            <th class="text-right">{{ 'Movimientos' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.id) {
+            <tr>
+              <td>
+                @if (!f.ratificado_en) {
+                  <input type="checkbox" [checked]="seleccion().has(f.id)" (change)="alternar(f.id)" [attr.aria-label]="f.nombre" />
+                }
+              </td>
+              <td>{{ f.nombre }}</td>
+              <td>{{ f.rnc ?? '—' }}</td>
+              <td class="text-right">{{ f.movimientos }}</td>
+              <td>
+                @if (f.ratificado_en) {
+                  <span class="badge badge--success">{{ 'Ratificado' | t }}</span>
+                } @else if (f.movimientos > 0) {
+                  <span class="badge badge--warning">{{ 'Con movimiento, sin ratificar' | t }}</span>
+                } @else {
+                  <span class="badge">{{ 'Sin movimiento' | t }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

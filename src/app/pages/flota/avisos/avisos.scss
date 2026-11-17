@@ -92,3 +92,13 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
   border: 1px solid var(--sgc-border);
   background: #000;
 }
+
+// DS-36 — resumen de informativos
+.av-informativos {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--secondary);
+  border: 1px solid var(--main-ultra-light);
+  color: var(--main-ultra-light);
+}

@@ -127,6 +127,10 @@ verify_jwt = true
 [functions.claude-conexiones]
 verify_jwt = true
 
+# W3 — worker del outbox Odoo: server-to-server. El cron entra con x-sync-secret; la funcion falla cerrado (odoo-sync-auth.ts).
+[functions.odoo-sync]
+verify_jwt = false
+
 # PoC Odoo (lectura de stock) — exige JWT de usuario; el módulo `inventario` se valida en el servidor.
 [functions.odoo-api]
 verify_jwt = true
@@ -203,3 +207,10 @@ verify_jwt = false
 # DO-06 — server-to-server (pg_net + x-sync-secret, mismo patrón que leer-documento-flota).
 [functions.rrhh-leer-cv]
 verify_jwt = false
+
+# DS-13 — conciliador Odoo: cron (x-sync-secret) o Tecnologia (JWT validado dentro con es_tecnologia). Solo lectura sobre Odoo.
+[functions.odoo-conciliar]
+verify_jwt = false
+# DS-34 — QR del conduce (token HMAC). Sesion validada dentro.
+[functions.conduce-qr]
+verify_jwt = true

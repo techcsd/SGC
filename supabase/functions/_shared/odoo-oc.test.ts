@@ -25,7 +25,7 @@ function odooSimulado(responder: (c: Llamada) => Valor | { fault: string } | Pro
     if (r && typeof r === "object" && "fault" in r) return new Response(fault((r as { fault: string }).fault), { status: 200 });
     return new Response(respuesta(r), { status: 200 });
   }) as typeof fetch;
-  const cliente = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn });
+  const cliente = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn });
   return { cliente, llamadas, adaptadores: crearAdaptadoresOcReales(() => cliente) };
 }
 
@@ -33,7 +33,7 @@ const ESCRITURAS = new Set(["create", "write", "button_confirm", "button_cancel"
 const escrituras = (ll: Llamada[]) => ll.filter((c) => ESCRITURAS.has(c.method));
 
 const PUBLICAR = {
-  orden_id: "11111111-1111-1111-1111-111111111111", numero: "OC-0042", odoo_proveedor_id: 55,
+  orden_id: "11111111-1111-1111-1111-111111111111", numero: "OC-0042", odoo_proveedor_id: 55, odoo_analytic_id: 23,
   fecha: "2026-11-01", fecha_entrega_esperada: "2026-11-10", notas: "Entregar <temprano>",
   lineas: [
     { odoo_product_id: 4821, odoo_uom_id: 1, cantidad: 10, precio_unitario: 250.5, descripcion: "Cemento" },
@@ -178,7 +178,7 @@ Deno.test("escritura: timeout -> OdooError odoo_timeout y UN solo intento (sin r
     envios++;
     return await new Promise<Response>((_, rej) => init?.signal?.addEventListener("abort", () => rej(new DOMException("abort", "AbortError"))));
   }) as typeof fetch;
-  const c = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn, timeoutMs: 20 });
+  const c = new OdooClient({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn, timeoutMs: 20 });
   const e = await c.call("purchase.order", "create", [{ partner_id: 1 }]).catch((x) => x);
   assert(e instanceof OdooError);
   assertEquals(e.codigo, "odoo_timeout");
@@ -189,7 +189,7 @@ Deno.test("escritura: caída (red) y respuesta ilegible -> odoo_no_disponible, u
   let envios = 0;
   const mk = (resp: () => Promise<Response>) =>
     new OdooClient({
-      url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1,
+      url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined,
       fetchFn: (async (_u: unknown, init?: RequestInit) => {
         if (String(init?.body).includes("authenticate")) return new Response(respuesta(7));
         envios++;
@@ -239,7 +239,7 @@ Deno.test("política inyectada: la escritura se detecta por la política, no por
   }) as typeof fetch;
   // "refrescar_x" declarado como escritura: ilegible => odoo_no_disponible (trato de escritura); como lectura sería odoo_error.
   const c = new OdooClient({
-    url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn,
+    url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined, fetchFn,
     politica: { lectura: { "m": ["leer"] }, escritura: { "m": ["refrescar_x"] } },
   });
   assertEquals((await c.call("m", "refrescar_x", []).catch((x) => x)).codigo, "odoo_no_disponible");
@@ -250,7 +250,7 @@ Deno.test("política inyectada: la escritura se detecta por la política, no por
 Deno.test("transporte inyectable: OdooClient delega en TransporteOdoo (listo para JSON-2)", async () => {
   const vistas: unknown[][] = [];
   const c = new OdooClient({
-    url: "https://x", db: "d", user: "u", apiKey: "k", companyId: 1,
+    url: "https://x", db: "d", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test,x" : undefined,
     transporte: { call: (...a) => { vistas.push(a); return Promise.resolve(42); }, version: () => Promise.resolve({ server_version: "17.0" }) },
   });
   assertEquals(await c.call("purchase.order", "button_cancel", [[3]]), 42);
@@ -290,4 +290,34 @@ Deno.test("selección: mock salvo ODOO_ESCRITURA_HABILITADA=true", async () => {
   const r = await mock.crear(PUBLICAR);
   assertEquals(r.estado, "completado");
   assert(String(r.resultado?.nota).includes("MOCK"));
+});
+
+// ── DS-06: cuenta analitica por linea ──────────────────────────────────────
+import { resolverCuentaAnalitica } from "./odoo-oc.ts";
+Deno.test("DS-06 cuenta analitica: una sola, varias (principal/elegida), prod exige confirmada, sin cuenta = error", () => {
+  assertEquals(resolverCuentaAnalitica({ odoo_analytic_id: 23 }), { id: 23 });
+  const dos = { cuentas_analiticas: [{ odoo_analytic_id: 29, rol: "principal", confirmado: false }, { odoo_analytic_id: 37, rol: "adicional", confirmado: false }] };
+  assertEquals(resolverCuentaAnalitica(dos), { id: 29 });
+  assertEquals(resolverCuentaAnalitica({ ...dos, odoo_analytic_elegida: 37 }), { id: 37 });
+  assertEquals("error" in resolverCuentaAnalitica({ ...dos, odoo_analytic_elegida: 99 }), true);
+  assertEquals("error" in resolverCuentaAnalitica({ ...dos, odoo_entorno: "prod" }), true); // no confirmada en prod
+  assertEquals(resolverCuentaAnalitica({ cuentas_analiticas: [{ odoo_analytic_id: 29, rol: "principal", confirmado: true }], odoo_entorno: "prod" }), { id: 29 });
+  assertEquals("error" in resolverCuentaAnalitica({}), true);
+});
+
+Deno.test("DS-15 cancelar: Odoo aplica button_cancel pero XML-RPC falla con «cannot marshal None» -> se relee y es éxito", async () => {
+  let cancelada = false;
+  const { adaptadores } = odooSimulado((c) => {
+    if (c.method === "button_cancel") { cancelada = true; return { fault: "Traceback\nTypeError: cannot marshal None unless allow_none is enabled" }; }
+    return oc(cancelada ? "cancel" : "purchase");
+  });
+  const r = await adaptadores.cancelar({ odoo_id: 900 });
+  assertEquals([r.estado, r.resultado?.estado_odoo], ["completado", "cancel"]);
+});
+
+Deno.test("DS-15 cancelar: «cannot marshal None» pero Odoo NO la canceló -> error (no se da por buena)", async () => {
+  const { adaptadores } = odooSimulado((c) =>
+    c.method === "button_cancel" ? { fault: "TypeError: cannot marshal None unless allow_none is enabled" } : oc("purchase")
+  );
+  assertEquals((await adaptadores.cancelar({ odoo_id: 900 })).estado, "error");
 });

@@ -44,6 +44,24 @@
   </div>
 </div>
 
+<!-- W2 (DS-37) — salud de combustible -->
+@if (salud(); as s) {
+  <section class="combustible__salud sgc-card" [class.combustible__salud--alerta]="s.importacion_caida" aria-label="{{ 'Salud de combustible' | t }}">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </svg>
+    <div class="combustible__salud-body">
+      <strong>{{ (s.importacion_caida ? 'La importación de la estación parece caída' : 'Importación de la estación al día') | t }}</strong>
+      <span class="combustible__salud-meta">
+        {{ 'Última echada importada' | t }}: {{ s.ultima_importada ?? '—' }}
+        @if (s.dias_sin_importar != null) { ({{ s.dias_sin_importar }} {{ 'días' | t }}) }
+        · {{ 'Km pendientes' | t }}: {{ s.km_pendiente_pct }}%
+        · {{ 'Registros (30 días)' | t }}: {{ s.registros_ultimos_30d }}
+      </span>
+    </div>
+  </section>
+}
+
 <!-- ── AD7/CE13 · Umbrales de rendimiento (admin o flota elevado = Raykler) ── -->
 @if (esFlotaElevado() && configPanelOpen()) {
   <form class="combustible__config-panel sgc-card" [formGroup]="configForm" (ngSubmit)="saveConfig()">

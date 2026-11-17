@@ -3,10 +3,12 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10023/10023 literales de 192 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10243/10244 literales de 200 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
+| tecnologia/odoo-conciliacion | scope | 30 | 29 | 1 | 97% |
+| admin/adopcion | scope | 14 | 14 | 0 | 100% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |
 | admin/app-versiones | enforce | 131 | 131 | 0 | 100% |
@@ -33,7 +35,7 @@
 | admin/usuarios-test | enforce | 32 | 32 | 0 | 100% |
 | admin/vault | enforce | 72 | 72 | 0 | 100% |
 | ajustes-notificaciones | enforce | 16 | 16 | 0 | 100% |
-| apoyo-transporte | enforce | 51 | 51 | 0 | 100% |
+| apoyo-transporte | enforce | 53 | 53 | 0 | 100% |
 | app-movil | enforce | 36 | 36 | 0 | 100% |
 | asistente | enforce | 35 | 35 | 0 | 100% |
 | auth | enforce | 43 | 43 | 0 | 100% |
@@ -52,16 +54,19 @@
 | borrador-claude | enforce | 25 | 25 | 0 | 100% |
 | claude | enforce | 117 | 117 | 0 | 100% |
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
-| compras/ordenes | enforce | 111 | 111 | 0 | 100% |
-| compras/ordenes-odoo | enforce | 118 | 118 | 0 | 100% |
+| compras/ordenes | enforce | 114 | 114 | 0 | 100% |
+| compras/ordenes-odoo | enforce | 121 | 121 | 0 | 100% |
 | compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
 | compras/proveedores | enforce | 77 | 77 | 0 | 100% |
+| compras/proveedores-curacion | scope | 18 | 18 | 0 | 100% |
 | compras/proveedores-odoo | enforce | 44 | 44 | 0 | 100% |
 | compras/reportes | enforce | 19 | 19 | 0 | 100% |
 | compras/solicitar-odoo | enforce | 30 | 30 | 0 | 100% |
+| compras/solicitudes-vencidas | scope | 14 | 14 | 0 | 100% |
+| conduce-qr | scope | 3 | 3 | 0 | 100% |
 | configuracion/claude | enforce | 32 | 32 | 0 | 100% |
 | configuracion | enforce | 58 | 58 | 0 | 100% |
-| dashboard | enforce | 70 | 70 | 0 | 100% |
+| dashboard | enforce | 71 | 71 | 0 | 100% |
 | demo/escenarios | enforce | 14 | 14 | 0 | 100% |
 | demo/progreso | enforce | 9 | 9 | 0 | 100% |
 | direccion | enforce | 16 | 16 | 0 | 100% |
@@ -71,10 +76,10 @@
 | documentos/ver | enforce | 9 | 9 | 0 | 100% |
 | dudas | enforce | 13 | 13 | 0 | 100% |
 | flota/accidentes | enforce | 45 | 45 | 0 | 100% |
-| flota/avisos | enforce | 52 | 52 | 0 | 100% |
+| flota/avisos | enforce | 53 | 53 | 0 | 100% |
 | flota/checklists | enforce | 104 | 104 | 0 | 100% |
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
-| flota/combustible | enforce | 209 | 209 | 0 | 100% |
+| flota/combustible | enforce | 213 | 213 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
 | flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
 | flota/conciliacion-combustible | enforce | 161 | 161 | 0 | 100% |
@@ -103,7 +108,7 @@
 | inventario/articulos | enforce | 93 | 93 | 0 | 100% |
 | inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
-| inventario/conduce | enforce | 151 | 151 | 0 | 100% |
+| inventario/conduce | enforce | 159 | 159 | 0 | 100% |
 | inventario/conduce-externo-ficha | enforce | 36 | 36 | 0 | 100% |
 | inventario/conduce-externo-form | enforce | 63 | 63 | 0 | 100% |
 | inventario/conduces | enforce | 34 | 34 | 0 | 100% |
@@ -116,6 +121,8 @@
 | inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
 | inventario/material-no-catalogado | enforce | 39 | 39 | 0 | 100% |
 | inventario/movimientos | enforce | 18 | 18 | 0 | 100% |
+| inventario/odoo-ajustes | scope | 49 | 49 | 0 | 100% |
+| inventario/pendientes-cierre | scope | 19 | 19 | 0 | 100% |
 | inventario/por-firmar | enforce | 25 | 25 | 0 | 100% |
 | inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
@@ -190,6 +197,7 @@
 | tecnologia/inventario | enforce | 195 | 195 | 0 | 100% |
 | tecnologia/matriz | enforce | 23 | 23 | 0 | 100% |
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
+| tecnologia/odoo-homologacion | scope | 52 | 52 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 30 | 30 | 0 | 100% |
 | tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
 | tecnologia/outbox-atascados | enforce | 55 | 55 | 0 | 100% |
