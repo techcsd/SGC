@@ -1,6 +1,6 @@
-# Runbook: pasar la integración SGC ↔ Odoo a producción (PREPARADO, NO EJECUTADO)
+# Runbook: pasar la integración SGC ↔ Odoo a producción (EJECUTADO EN CANARY, 17-nov-2026)
 
-Estado: **nada de esto se ha ejecutado en prod ni contra el Odoo real.** Cada paso con efecto necesita el OK explícito y nombrado de Xaviel (una aprobación genérica no autoriza ningún paso). Repo público: sin hosts, usuarios, claves, UUID ni refs; los valores van en secrets/variables, nunca aquí. Todo lo que se escribe en prod vive versionado en `sql/` o `scripts/data-fixes/` y en el ledger (regla 19 / CD10); nada desde el scratchpad.
+Estado (17-nov-2026): **ejecutado en prod y contra el Odoo real, en modo canary.** Migraciones DS/Odoo aplicadas por ledger (excepto los lotes RLS `ds46` y `dj1-dj3`, sin aplicar por decisión), 9 edges, secrets, homologación (`scripts/data-fixes/2026-11-16-ds-homologacion-prod.mjs`), 16 ubicaciones de cuarentena creadas con la cuenta Tecnología CSD (`...-ds-cuarentena-prod.mjs`) y canary encendido (`...-ds-encender-prod.mjs`, con `--apagar` para revertir). Expansión, corte y contracción siguen apagados. Pendiente: primer conduce real del canary y release del front (gate `release-check`). Cada paso siguiente necesita OK nombrado de Xaviel. Repo público: sin hosts, usuarios, claves, UUID ni refs; los valores van en secrets/variables, nunca aquí. Todo lo que se escribe en prod vive versionado en `sql/` o `scripts/data-fixes/` y en el ledger (regla 19 / CD10).
 
 Evidencia previa: [`docs/avance-lotes/W3-e2e.md`](./avance-lotes/W3-e2e.md) (E2E real en dev contra staging) y [`docs/ODOO-RUNBOOK-REVERSA.md`](./ODOO-RUNBOOK-REVERSA.md).
 
