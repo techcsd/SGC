@@ -9,7 +9,7 @@ import {
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
+import { OrdenesCompraService, OrdenCompraPayload, CuentaAnaliticaOc } from '../../../../shared/services/ordenes-compra.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -106,6 +106,9 @@ export class Ordenes implements OnInit {
 
   // ── Z6 — destino, ITBIS y dato de prueba (signals para reactividad OnPush) ──
   destino = signal<'proyecto' | 'oficina'>('proyecto');
+  // W2 (DS-06) — cuentas analíticas de la obra elegida; el selector solo aparece si hay más de una.
+  cuentasAnaliticas = signal<CuentaAnaliticaOc[]>([]);
+  cuentaAnaliticaElegida = signal<number | null>(null);
   aplicaImpuesto = signal(true);
   esPruebaOrden = signal(false);
 
@@ -127,6 +130,8 @@ export class Ordenes implements OnInit {
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OrdenCompra[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  // DS-25: ids que ofrecen los selectores (null = sin restricción). Ratificados o con movimiento real.
+  proveedoresSelectorIds = signal<Set<string> | null>(null);
   articuloNombres = signal<string[]>([]);
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
@@ -193,7 +198,10 @@ export class Ordenes implements OnInit {
 
   total = computed(() => this.subtotal() + this.impuesto());
 
-  activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
+  activeProveedores = computed(() => {
+    const permitidos = this.proveedoresSelectorIds();
+    return this.proveedores().filter((p) => p.activo && (!permitidos || permitidos.has(p.id)));
+  });
 
   // ── Z6.4b — el picker de ítems filtra por el destino de la OC ──────────────
   // `articulos.ambito` (obra | oficina | ambos, default 'ambos') distingue material
@@ -388,6 +396,7 @@ export class Ordenes implements OnInit {
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
+      void this.proveedoresService.idsSelector().then((ids) => this.proveedoresSelectorIds.set(ids)).catch(() => undefined);
       this.proyectos.set(proyectos);
       this.odooPilotoHabilitado.set(odooPiloto);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
@@ -439,6 +448,8 @@ export class Ordenes implements OnInit {
     this.form.reset();
     this.formItems.set([NUEVO_OC_ITEM()]);
     this.destino.set('proyecto');
+    this.cuentasAnaliticas.set([]);
+    this.cuentaAnaliticaElegida.set(null);
     this.aplicaImpuesto.set(true);
     this.esPruebaOrden.set(false);
     this.showNuevoProveedor.set(false);
@@ -469,6 +480,7 @@ export class Ordenes implements OnInit {
         activo: true,
       });
       this.proveedores.update((list) => [prov, ...list]);
+      this.proveedoresSelectorIds.update((s) => (s ? new Set(s).add(prov.id) : s)); // el recién creado siempre se ofrece
       this.form.controls.proveedor_id.setValue(prov.id);
       this.showNuevoProveedor.set(false);
       this.toast.success(this.i18n.t('Proveedor creado'), prov.nombre);
@@ -487,6 +499,7 @@ export class Ordenes implements OnInit {
       proyecto_id: s.proyecto_id,
       notas: this.i18n.t('Solicitud de {nombre}', { nombre: s.solicitante?.nombre ?? this.i18n.t('ingeniero') }) + (s.notas ? ' — ' + s.notas : ''),
     });
+    void this.onProyectoCambiado(); // W3 — selector de cuenta analítica también al aprobar una solicitud de compra
     // BH7 — si el faltante conserva su articulo_id (requisición resuelta), la orden
     // nace ligada al catálogo en vez de como "Otro". Las filas viejas sin articulo_id
     // siguen entrando como texto libre (retrocompatible).
@@ -611,6 +624,17 @@ export class Ordenes implements OnInit {
    * de todas formas (misma descripción/cantidad/precio). Falla de vinculación
    * = aviso, nunca revierte la OC ya creada (ya existe, ya es válida sin esto).
    */
+  /** W2 (DS-06) — si la obra tiene varias cuentas analíticas, guarda la elegida; un fallo no bloquea la OC (queda la principal). */
+  private async guardarCuentaAnaliticaElegida(created: OrdenCompra): Promise<void> {
+    const elegida = this.cuentaAnaliticaElegida();
+    if (elegida == null || this.cuentasAnaliticas().length < 2) return;
+    try {
+      await this.ordenesService.elegirCuentaAnalitica(created.id, elegida);
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo guardar la cuenta analítica elegida'), e instanceof Error ? e.message : undefined);
+    }
+  }
+
   private async vincularProductosOdooTrasCrear(validItems: ItemRow[], created: OrdenCompra): Promise<void> {
     const pendientes = validItems.filter((i) => i.odoo_product);
     if (pendientes.length === 0) return;
@@ -628,6 +652,18 @@ export class Ordenes implements OnInit {
     const fallos = resultados.filter((r) => r.status === 'rejected').length;
     if (fallos > 0) {
       this.toast.error(this.i18n.t('Algunos renglones no quedaron vinculados a Odoo'), 'La orden se creó igual; vincúlalos de nuevo desde el detalle.');
+    }
+  }
+
+  async onProyectoCambiado() {
+    this.cuentaAnaliticaElegida.set(null);
+    this.cuentasAnaliticas.set([]);
+    const id = this.form.value.proyecto_id;
+    if (!id) return;
+    try {
+      this.cuentasAnaliticas.set(await this.ordenesService.cuentasAnaliticasProyecto(id));
+    } catch {
+      this.cuentasAnaliticas.set([]);
     }
   }
 
@@ -716,6 +752,7 @@ export class Ordenes implements OnInit {
         created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }
       await this.vincularProductosOdooTrasCrear(validItems, created);
+      await this.guardarCuentaAnaliticaElegida(created);
       this.ordenes.update((list) => [created, ...list]);
       this.motion.momento('documento');
 

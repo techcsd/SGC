@@ -1,6 +1,12 @@
 {
   "_doc": "DP-07d/DP-13 (CONTEXTO-72) — TODAS las pantallas medidas por scripts/i18n-coverage.mjs están en alcance. `enforce:true` rompe el build (guard verify-i18n.mjs) si la pantalla tiene literales (HTML o .ts) sin t(). Generado por el escáner en cada corrida — no editar a mano salvo el campo `enforce` (se activa por lote a medida que el módulo llega a 100%, ver docs/I18N-AVANCE.md).",
   "pantallas": {
+    "tecnologia/odoo-conciliacion": {
+      "enforce": false
+    },
+    "admin/adopcion": {
+      "enforce": false
+    },
     "admin/almacenes-duplicados": {
       "enforce": true
     },
@@ -148,6 +154,9 @@
     "compras/proveedores": {
       "enforce": true
     },
+    "compras/proveedores-curacion": {
+      "enforce": false
+    },
     "compras/proveedores-odoo": {
       "enforce": true
     },
@@ -156,6 +165,12 @@
     },
     "compras/solicitar-odoo": {
       "enforce": true
+    },
+    "compras/solicitudes-vencidas": {
+      "enforce": false
+    },
+    "conduce-qr": {
+      "enforce": false
     },
     "configuracion/claude": {
       "enforce": true
@@ -327,6 +342,12 @@
     },
     "inventario/movimientos": {
       "enforce": true
+    },
+    "inventario/odoo-ajustes": {
+      "enforce": false
+    },
+    "inventario/pendientes-cierre": {
+      "enforce": false
     },
     "inventario/por-firmar": {
       "enforce": true
@@ -549,6 +570,9 @@
     },
     "tecnologia/monitoreo": {
       "enforce": true
+    },
+    "tecnologia/odoo-homologacion": {
+      "enforce": false
     },
     "tecnologia/odoo-sync": {
       "enforce": true

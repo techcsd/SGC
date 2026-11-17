@@ -9,6 +9,7 @@ import {
   type Cap, type ToolDef, TOOLS, toolsParaUsuario, claveIdem, idemUuid, ejecutarHerramientaLectura,
 } from "../_shared/herramientas.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { PARAM_PARTE_VOZ, enlacePropuestaParte, filtrarToolsParteVoz, parteVozActivo, validarArgsParte } from "../_shared/parte-voz.ts";
 import { envRequerido } from "../_shared/env.ts";
 
 // ============================================================================
@@ -794,7 +795,14 @@ Deno.serve(async (req: Request) => {
   const messages: Any[] = (previos ?? []).filter((m: Any) => m.contenido).map((m: Any) => ({ role: m.rol === "assistant" ? "assistant" : "user", content: m.contenido }));
   messages.push({ role: "user", content: mensaje });
 
-  const disponibles = toolsParaUsuario(capObj);
+  // DS-41/#76 — el parte diario por voz está APAGADO salvo parámetro explícito (se lee con service role: la tabla es de admin).
+  let parteVozOn = false;
+  try {
+    const svc = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" }, auth: { persistSession: false } });
+    const { data: pv } = await svc.from("parametros").select("valor").eq("clave", PARAM_PARTE_VOZ).maybeSingle();
+    parteVozOn = parteVozActivo(pv?.valor);
+  } catch { parteVozOn = false; }
+  const disponibles = filtrarToolsParteVoz(toolsParaUsuario(capObj), parteVozOn);
   // BB4(3) — schemas estrictos: additionalProperties:false en cada tool (Anthropic no
   // tiene flag `strict`, pero esto fuerza la forma exacta y evita parámetros basura).
   const tools: Any[] = disponibles.map((t, idx) => ({
@@ -935,6 +943,29 @@ Deno.serve(async (req: Request) => {
                 ok = true; resumen = `gap: ${String(inp.tema ?? "").slice(0, 60)}`;
               } catch (e) { out = { error: "No pude registrar el gap." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
             }
+          } else if (cfg.parteIa) {
+            // DS-41/#76 — parte diario por voz: propuesta con la sesión del usuario (consentimiento de IA, límites y RLS los aplica bitacora-ia).
+            try {
+              const v = validarArgsParte(block.input ?? {}, new Date().toISOString().slice(0, 10));
+              if (!v.ok) { out = { error: v.error }; resumen = v.error; }
+              else {
+                const r = await fetch(`${SUPABASE_URL}/functions/v1/bitacora-ia`, {
+                  method: "POST",
+                  headers: { "content-type": "application/json", Authorization: authHeader ?? "", apikey: SUPABASE_ANON_KEY },
+                  body: JSON.stringify({ proyecto_id: v.proyecto_id, fecha: v.fecha, transcripcion: v.transcripcion }),
+                });
+                const j = await r.json().catch(() => null);
+                const link = j?.propuesta_id ? enlacePropuestaParte(WEB_URL, String(j.propuesta_id)) : null;
+                if (!r.ok || !j?.ok || !link) {
+                  out = { error: String(j?.error ?? "No pude armar el parte ahora.").slice(0, 200), instruccion: "Dile al usuario con honestidad qué pasó y que puede llenar el parte a mano en SGC." };
+                  resumen = `parte voz falló (${r.status})`;
+                } else {
+                  out = { preparado: true, link, instruccion: `Dile EN UNA FRASE que dejaste un borrador del parte, que TODAVÍA NO está registrado, y manda este enlace EXACTO para que lo revise y confirme en SGC: ${link}` };
+                  ok = true; resumen = "propuesta parte diario por voz";
+                  huboAccionEjecutable = true;
+                }
+              }
+            } catch (e) { out = { error: "No pude armar el parte." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
           } else if (cfg.memoria) {
             // AY C4 — guarda una preferencia del propio usuario (escritura benigna, sin tarjeta).
             try {

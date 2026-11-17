@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
+import { configDesdeEntorno, OdooClient, OdooError, verificarHostEscritura } from "../_shared/odoo-client.ts";
 import { escrituraOdooHabilitada, seleccionarAdaptadoresOc } from "../_shared/odoo-oc.ts";
 import { seleccionarAdaptadoresProveedores } from "../_shared/odoo-proveedores.ts";
 import { CacheOdoo, ttlDesdeEntorno } from "../_shared/odoo-cache.ts";
@@ -57,6 +57,15 @@ const deps: Deps = {
   adaptadorOc: {
     ...seleccionarAdaptadoresOc(escrituraOdooHabilitada(), obtenerOdoo),
     ...seleccionarAdaptadoresProveedores(escrituraOdooHabilitada(), obtenerOdoo),
+  },
+  // DS-08: traslados.crear/validar/cancelar/devolver solo si ODOO_ESCRITURA_HABILITADA y el host pasa la guardia DS-02.
+  bloqueoEscrituraTraslados() {
+    if (!escrituraOdooHabilitada()) return "La escritura hacia Odoo está deshabilitada en este entorno.";
+    try { verificarHostEscritura(configDesdeEntorno().url); } catch (e) {
+      if (e instanceof OdooError) return "El servidor Odoo configurado no está autorizado para escritura.";
+      throw e;
+    }
+    return null;
   },
   admin: () => (adminCliente ??= createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" } })),
   caches,

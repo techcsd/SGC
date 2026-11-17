@@ -21,6 +21,9 @@
 | buscar_articulos | buscar_articulos | catálogo (ref), es_prueba=false | catálogo | catálogo | catálogo | catálogo | catálogo (tool sin gate) |
 | mis_conduces_por_firmar | mis_conduces_por_firmar | despachante = uid | solo suyos | solo suyos | solo suyos | solo suyos | solo suyos |
 | mis_conduces_pendientes_entrega | ídem | conductor/creador = uid | solo suyos | solo suyos | solo suyos | solo suyos | solo suyos |
+| solicitudes_material_atascadas | solicitudes_material_pendientes_reporte | módulo inventario (RPC valida admin/inventario) | ✔ | tool oculto | tool oculto | si inv. | oculto |
+| conduces_por_cerrar | conduces_por_cerrar | módulo inventario (RPC valida), es_prueba=false | ✔ | tool oculto | tool oculto | si inv. | oculto |
+| adopcion_por_rol | adopcion_por_rol | admin/dirección (RPC valida), excluye usuarios de prueba | ✔ | oculto | oculto | oculto | oculto |
 | **mis_tareas** | **mis_tareas_asistente** | **asignado_a/por = uid (ESTRICTO)** | **solo suyas** | solo suyas | solo suyas | solo suyas | solo suyas |
 | mis_proyectos | mis_proyectos | encargado = uid (admin: param) | los suyos | los suyos | los suyos | los suyos | los suyos |
 | mis_rutas_hoy | mis_rutas_hoy | conductor(uid) hoy | suyas | suyas | suyas | suyas | suyas |

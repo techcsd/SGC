@@ -23,7 +23,7 @@ function fakeFetch(handler: (body: string) => string | Promise<string>, calls: s
 
 // Política de tests: la de producción + un modelo genérico "m" para probar el transporte sin acoplarse a un modelo real.
 const POLITICA_TEST = { lectura: { ...POLITICA_POR_DEFECTO.lectura, m: ["x", "y", "z"] }, escritura: POLITICA_POR_DEFECTO.escritura };
-const cfg = (fetchFn: typeof fetch, extra = {}) => ({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, fetchFn, politica: POLITICA_TEST, ...extra });
+const cfg = (fetchFn: typeof fetch, extra = {}) => ({ url: "https://odoo.test", db: "db", user: "u", apiKey: "k", companyId: 1, entorno: (k: string) => k === "ODOO_HOSTS_ESCRITURA" ? "odoo.test" : undefined, fetchFn, politica: POLITICA_TEST, ...extra });
 
 Deno.test("parseResponse: struct/array/int/bool/nil/many2one", () => {
   const xml = xmlStruct(`<value><struct>

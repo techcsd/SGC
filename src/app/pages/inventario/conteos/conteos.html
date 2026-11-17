@@ -99,6 +99,8 @@
             <span class="cn-detail-head__meta"><app-icon name="user" [size]="14" /> {{ c.creado?.nombre ?? '—' }}</span>
             <span class="cn-detail-head__meta"><app-icon name="calendar" [size]="14" /> {{ formatFechaHora(c.created_at) }}</span>
           </div>
+          <!-- W2 — sincronización con Odoo -->
+          <app-odoo-sync-estado tipo="conteo_inventario" [documentoId]="c.id" />
           @if (c.motivo) { <p class="cn-motivo"><strong>{{ 'Motivo:' | t }}</strong> {{ c.motivo }}</p> }
           @if (c.observaciones) { <p class="cn-motivo">{{ c.observaciones }}</p> }
           <!-- R9 — totales del conteo -->

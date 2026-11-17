@@ -362,6 +362,13 @@
       <div class="conduce__meta">
         <p><strong>{{ 'No. Conduce:' | t }}</strong> {{ numeroConduce }}</p>
         <p><strong>{{ 'Fecha de emisión:' | t }}</strong> {{ formatFecha(hoy) }}</p>
+        <!-- DS-34 — QR para recibir, firmar y cerrar la entrega -->
+        @if (qrDataUrl(); as qr) {
+          <figure class="conduce__qr">
+            <img [src]="qr" width="96" height="96" alt="{{ 'QR del conduce' | t }}" />
+            <figcaption>{{ 'Escanea para recibir y firmar' | t }}</figcaption>
+          </figure>
+        }
       </div>
     </header>
 
@@ -548,6 +555,25 @@
     }
     @if (s.notas_recepcion) {
       <p class="conduce__obs"><strong>{{ 'Notas de recepción:' | t }}</strong> {{ s.notas_recepcion }}</p>
+    }
+
+    <!-- DS-12 — sincronización con Odoo -->
+    @if (odooSync(); as o) {
+      <section class="conduce__odoo no-print" aria-label="{{ 'Sincronización con Odoo' | t }}">
+        <h2 class="conduce__evidencia-title">{{ 'Sincronización con Odoo' | t }}</h2>
+        <p>
+          <span class="badge" [class.badge--success]="o.odoo_sync_estado === 'sincronizado'" [class.badge--warning]="o.odoo_sync_estado !== 'sincronizado'">{{ odooSyncEtiqueta[o.odoo_sync_estado] | t }}</span>
+          @if (o.odoo_sync_error) { <span class="conduce__odoo-msg">{{ o.odoo_sync_error | t }}</span> }
+        </p>
+        @if (puedeReintentarOdoo()) {
+          <p class="conduce__odoo-ids">
+            {{ 'Salida (A)' | t }}: {{ o.odoo_picking_salida_id ?? '—' }} · {{ 'Entrada (B)' | t }}: {{ o.odoo_picking_entrada_id ?? '—' }} · {{ 'Intentos' | t }}: {{ o.odoo_sync_intentos }}
+          </p>
+          @if (o.odoo_sync_estado === 'error' || o.odoo_sync_estado === 'incierto') {
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="reintentandoOdoo()" (click)="reintentarOdoo()">{{ 'Reintentar' | t }}</button>
+          }
+        }
+      </section>
     }
 
     @if (entregaFotoUrl() || salidaFotoUrl() || recepcionFotoUrl()) {

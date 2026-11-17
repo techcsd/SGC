@@ -62,6 +62,7 @@
 
 .mnc-src { margin: 0; color: var(--text-2); }
 .mnc-note { margin: 0; font-size: 0.82rem; color: var(--text-2); }
+.mnc-note--warn { color: var(--warning, #b54708); }
 
 // AY13 — toggle "generar movimiento"
 .mnc-mov {

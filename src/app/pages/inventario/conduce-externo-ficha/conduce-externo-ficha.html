@@ -26,6 +26,8 @@
     <div class="page-error" role="alert">{{ error() }}</div>
   } @else if (detalle(); as d) {
     <article class="sgc-card ce-doc">
+      <!-- W2 — sincronización con Odoo -->
+      <app-odoo-sync-estado class="no-print" tipo="conduce_externo" [documentoId]="d.id" />
       <div class="ce-doc__head">
         <div>
           <div class="ce-doc__label">{{ 'Conduce externo' | t }}</div>

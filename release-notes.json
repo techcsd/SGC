@@ -6304,6 +6304,61 @@
           "d": "El sistema ya puede leer la foto del tablero para sugerir el kilometraje y el nivel de combustible (disponible primero en la app)."
         }
       ]
+    },
+    "1.218.0": {
+      "titulo": "Odoo: traslados con tránsito, conciliación y homologación; cierre de despachos, QR en el conduce y adopción",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Odoo",
+          "d": "Los conduces se publican en Odoo como traslados con tránsito (salida y recepción), con estado de sincronización y botón «Reintentar» en el detalle. Apagado hasta que Tecnología lo encienda."
+        },
+        {
+          "t": "nuevo",
+          "m": "Odoo",
+          "d": "Pantallas de Tecnología: Homologación con Odoo (cuentas analíticas, almacenes, catálogo) y Conciliación (discrepancias, tránsito vencido)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Conduces",
+          "d": "QR en el conduce impreso para recibir, firmar y cerrar desde el celular (apagado por defecto)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "Panel de solicitudes vencidas con cierre masivo con motivo y curación de proveedores duplicados."
+        },
+        {
+          "t": "mejora",
+          "m": "Solicitudes",
+          "d": "Rechazar una solicitud de material exige un motivo de al menos 10 caracteres."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Un conduce entregado sin cantidad recibida se cuenta como recibido completo; vista de conduces por cerrar."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Tablero de adopción por rol y usuarios que nunca entraron."
+        },
+        {
+          "t": "mejora",
+          "m": "Rendimiento",
+          "d": "Políticas de acceso optimizadas en 10 tablas, sin cambiar quién ve qué."
+        },
+        {
+          "t": "arreglo",
+          "m": "Reportes",
+          "d": "Siete indicadores dejan de sumar datos de prueba."
+        },
+        {
+          "t": "seguridad",
+          "m": "Odoo",
+          "d": "Escritura a Odoo protegida por lista de hosts permitidos; producción no se escribe sin autorización explícita."
+        }
+      ]
     }
   }
 }

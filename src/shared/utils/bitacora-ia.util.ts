@@ -87,3 +87,35 @@ export function filtrarActividadesContraCatalogo(
 export function contarDudosos(campos: Record<string, CampoPropuesto>): number {
   return Object.values(campos).filter((c) => clasificarConfianza(c.valor, c.confianza) === 'dudosa').length;
 }
+
+/** DS-41/#76 — fila de `bitacora_ia_propuestas` (propuesta armada por voz/WhatsApp) ya en la forma que pinta la revisión. */
+export interface PropuestaGuardada {
+  propuesta_id: string;
+  proyecto_id: string;
+  fecha: string;
+  estado: string;
+  campos: Record<string, CampoPropuesto>;
+  actividades: ActividadPropuesta[];
+  restricciones: { tipo_restriccion: string; descripcion_otro: string | null; confianza: number; fuente: FuenteCampo }[];
+  confianza_media: number;
+  transcripcion: string;
+}
+
+/** Normaliza (defensivo) la fila guardada; devuelve null si no es una propuesta usable. */
+export function propuestaDesdeFila(fila: unknown): PropuestaGuardada | null {
+  const f = fila as { id?: unknown; proyecto_id?: unknown; fecha?: unknown; estado?: unknown; confianza_media?: unknown; propuesta_json?: unknown } | null;
+  if (!f || typeof f.id !== 'string' || typeof f.proyecto_id !== 'string' || typeof f.fecha !== 'string') return null;
+  const j = (f.propuesta_json ?? {}) as { campos?: unknown; actividades?: unknown; restricciones?: unknown; transcripcion?: unknown };
+  const campos = j.campos && typeof j.campos === 'object' ? (j.campos as Record<string, CampoPropuesto>) : {};
+  return {
+    propuesta_id: f.id,
+    proyecto_id: f.proyecto_id,
+    fecha: f.fecha,
+    estado: typeof f.estado === 'string' ? f.estado : 'propuesta',
+    campos,
+    actividades: Array.isArray(j.actividades) ? (j.actividades as ActividadPropuesta[]) : [],
+    restricciones: Array.isArray(j.restricciones) ? (j.restricciones as PropuestaGuardada['restricciones']) : [],
+    confianza_media: Number(f.confianza_media ?? 0) || 0,
+    transcripcion: typeof j.transcripcion === 'string' ? j.transcripcion : '',
+  };
+}

@@ -24,6 +24,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { UiFlagsService } from '../../../../shared/services/ui-flags.service';
 
 @Component({
   selector: 'app-flota-avisos',
@@ -39,6 +40,7 @@ export class Avisos implements OnInit {
   private notificaciones = inject(NotificacionesService);
   private flotaConfig = inject(FlotaConfigService);
   private user = inject(UserService);
+  private uiFlags = inject(UiFlagsService);
   private toast = inject(ToastService);
   private router = inject(Router);
   protected i18n = inject(I18nService);
@@ -80,6 +82,17 @@ export class Avisos implements OnInit {
 
   filtroTipo = signal('');
   filtroVehiculo = signal('');
+  // DS-36/#61 — por defecto solo accionables; los informativos (p. ej. reporte_semanal) se resumen en una línea.
+  verInformativos = signal(false);
+  informativos = computed(() => this.uiFlags.avisosInformativos());
+  private esInformativo = (a: AvisoFlota) => this.informativos().includes(a.tipo);
+  informativosPendientes = computed(
+    () => this.avisos().filter((a) => a.estado === 'pendiente' && this.esInformativo(a)).length,
+  );
+  toggleInformativos() {
+    this.verInformativos.update((v) => !v);
+    this.page.set(1);
+  }
   // X2 — Avisos activos (pendientes) vs Historial (atendidos + resueltos auto).
   vista = signal<'activos' | 'historial'>('activos');
   setVista(v: 'activos' | 'historial') {
@@ -103,6 +116,8 @@ export class Avisos implements OnInit {
           ? a.estado === 'pendiente'
           : a.estado === 'atendido' || a.estado === 'resuelto_auto';
       if (!enVista) return false;
+      // Un tipo elegido explícitamente siempre se muestra; si no, los informativos quedan ocultos en «activos».
+      if (vista === 'activos' && !tipo && !this.verInformativos() && this.esInformativo(a)) return false;
       if (tipo && a.tipo !== tipo) return false;
       if (veh && a.vehiculo_id !== veh) return false;
       return true;
@@ -120,7 +135,9 @@ export class Avisos implements OnInit {
     return this.filtered().slice(start, start + this.PAGE_SIZE);
   });
 
-  pendientes = computed(() => this.avisos().filter((a) => a.estado === 'pendiente').length);
+  pendientes = computed(
+    () => this.avisos().filter((a) => a.estado === 'pendiente' && !this.esInformativo(a)).length,
+  );
 
   vehiculosConAviso = computed(() => {
     const seen = new Map<string, string>();
@@ -246,9 +263,9 @@ export class Avisos implements OnInit {
     if (!confirm(this.i18n.t('¿Marcar {n} aviso(s) como atendidos?', { n }))) return;
     this.atendiendoTodos.set(true);
     try {
+      // Por ids: lo que se ve es lo que se atiende (los informativos ocultos no se tocan).
       const tocados = await this.avisosService.atenderMasivo({
-        tipo: this.filtroTipo() || null,
-        vehiculoId: this.filtroVehiculo() || null,
+        ids: this.filtered().map((a) => a.id),
         nota: 'Atendido en lote',
       });
       await this.load(false);

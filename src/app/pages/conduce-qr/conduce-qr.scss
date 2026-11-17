@@ -1,0 +1,11 @@
+// DS-34 — landing del QR del conduce
+.conduce-qr {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 24px;
+  text-align: center;
+  background: var(--secondary);
+  border: 1px solid var(--main-ultra-light);
+  border-radius: 14px;
+  h1 { font-family: var(--font-heading); margin: 0 0 12px; }
+}

@@ -1,0 +1,78 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Pendientes de cierre' | t }}</h1>
+  </div>
+</div>
+
+<p class="pc-intro">
+  {{ 'Solicitudes de material sin aprobar y conduces despachados sin recepción, de más antiguos a más recientes. Es solo lectura: nada se cierra solo.' | t }}
+</p>
+
+@if (loading()) {
+  <app-skeleton variant="list" [rows]="5" />
+} @else {
+  <!-- Solicitudes de material atascadas (#56) -->
+  <h2 class="pc-h2">{{ 'Solicitudes de material pendientes' | t }} ({{ solicitudes().length }})</h2>
+  @if (!solicitudes().length) {
+    <p class="pc-vacio">{{ 'No hay solicitudes pendientes.' | t }}</p>
+  } @else {
+    <div class="pc-tabla">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'Folio' | t }}</th><th>{{ 'Obra' | t }}</th><th>{{ 'Solicitante' | t }}</th>
+            <th>{{ 'Urgencia' | t }}</th><th>{{ 'Antigüedad' | t }}</th><th>{{ 'Escalada' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of solicitudes(); track s.id) {
+            <tr>
+              <td><a routerLink="/inventario/requisiciones">{{ s.folio ?? '—' }}</a></td>
+              <td>{{ s.obra ?? '—' }}</td>
+              <td>{{ s.solicitante ?? '—' }}</td>
+              <td>{{ s.urgencia ?? '—' }}</td>
+              <td>{{ edadLegible(s.edad_horas) }}</td>
+              <td>{{ (s.escalada ? 'Sí' : 'No') | t }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Conduces por cerrar (#58) -->
+  <h2 class="pc-h2">{{ 'Conduces por cerrar' | t }} ({{ conduces().length }})</h2>
+  <div class="pc-filtros">
+    <span class="pc-muted">{{ 'Abiertos hace al menos:' | t }}</span>
+    @for (d of [0, 1, 7, 14]; track d) {
+      <button type="button" class="sgc-btn sgc-btn--sm"
+              [class.sgc-btn--primary]="diasMin() === d" [class.sgc-btn--ghost]="diasMin() !== d"
+              (click)="cambiarDias(d)">{{ d }} {{ 'días' | t }}</button>
+    }
+  </div>
+  @if (!conduces().length) {
+    <p class="pc-vacio">{{ 'No hay conduces por cerrar con ese filtro.' | t }}</p>
+  } @else {
+    <div class="pc-tabla">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'Conduce' | t }}</th><th>{{ 'Días abierto' | t }}</th><th>{{ 'Despachante' | t }}</th>
+            <th>{{ 'Destino' | t }}</th><th>{{ 'Estado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of conduces(); track c.id) {
+            <tr>
+              <td><a [routerLink]="['/inventario/salidas', c.id, 'conduce']">{{ c.codigo }}</a></td>
+              <td>{{ c.dias_abierto }}</td>
+              <td>{{ c.despachante ?? '—' }}</td>
+              <td>{{ c.destino_texto ?? '—' }}</td>
+              <td>{{ c.estado }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

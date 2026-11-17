@@ -108,6 +108,17 @@ export class Dashboard implements OnInit {
 
   profile = this.userService.profile;
 
+  /** W2 (DS-33/#56) — KPI de solicitudes de material atascadas (la RPC devuelve {} a quien no tiene acceso). */
+  private async cargarSolicitudesAtascadas(): Promise<void> {
+    try {
+      const { data, error } = await this.supabase.client.rpc('solicitudes_material_kpi');
+      if (error || !data || typeof (data as { pendientes?: number }).pendientes !== 'number') { this.solicitudesAtascadas.set(null); return; }
+      this.solicitudesAtascadas.set(data as { pendientes: number; mayores_n_dias: number; mas_antigua_dias: number });
+    } catch {
+      this.solicitudesAtascadas.set(null);
+    }
+  }
+
   /** El dashboard varía por rol: cada usuario solo ve las áreas de sus módulos. */
   canSee(modulo: string): boolean {
     return this.userService.hasRole('admin') || this.userService.hasModulo(modulo);
@@ -263,6 +274,8 @@ export class Dashboard implements OnInit {
   flotaDocsPorVencer = signal(0);
   checklistsHoy = signal(0);
   erroresApp7d = signal(0);
+  // W2 (DS-33/#56) — solicitudes de material pendientes y las que superan el umbral de días. null = sin acceso.
+  solicitudesAtascadas = signal<{ pendientes: number; mayores_n_dias: number; mas_antigua_dias: number } | null>(null);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -705,6 +718,7 @@ export class Dashboard implements OnInit {
       this.flotaDocsPorVencer.set(flotaDocsPorVencerRes.count ?? 0);
       this.checklistsHoy.set(checklistsHoyRes.count ?? 0);
       this.erroresApp7d.set(erroresApp7dRes.count ?? 0);
+      void this.cargarSolicitudesAtascadas();
 
       const materialItems = (
         (solicitudesMaterialRes.data ?? []) as unknown as {
