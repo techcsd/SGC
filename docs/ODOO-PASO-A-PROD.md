@@ -73,5 +73,12 @@ Ojo: el script `scripts/odoo-cuarentena-staging.mjs` **no debe usarse en prod** 
 ## 9. Reversa (resumen; detalle en ODOO-RUNBOOK-REVERSA.md)
 Apagar política por tipo → `permitir_*=false` → quitar el host de `ODOO_HOSTS_ESCRITURA` (corta toda escritura). Los documentos en prueba se compensan en Odoo solos al pasarlos a «prueba»; una recepción de OC ya validada la revierte Compras en Odoo.
 
+## 9b. Pruebas reales de Ajustes, Desechar, pendientes y reabastecimiento (17-nov, neto cero)
+
+- **Conteo físico** (WH, +1 y deshacer) y **retiro de material** (TA: reparación y descarte; el descarte fue real en Odoo y se repuso con un conteo): todos con el quant del Odoo real verificado antes/después. Hallazgo: `_aplicar_apertura` escribía stock directo y el bloqueo de fuente Odoo lo rechazaba → `sql/2026-11-17-ds-apertura-bodega-fuente-odoo.sql` (proyección optimista). Scripts: `ds-ajustes-conteo-prod.mjs`, `ds-retiro-desecho-prod.mjs`.
+- **Pendientes en Odoo** (Tecnología › Conciliación): foto cada 5 min de recepciones/entregas/internos sin validar (por almacén, atrasados) cruzada con OC y conduces de SGC. Hoy los pendientes de Odoo son OC creadas en Odoo (SGC no las conoce).
+- **Reabastecimiento**: el mínimo/máximo del artículo en SGC → regla `stock.warehouse.orderpoint` del almacén central (parámetro `odoo_reabastecimiento_almacen`, disparador manual: solo sugiere). Se sincroniza en la corrida diaria; una regla cuyo mínimo se quita se archiva. SGC manda: una edición manual de la regla en Odoo se sobrescribe.
+- **Compras (#57), decisión sin entrevista**: Odoo es el sistema de compras real. La solicitud/OC de SGC se mantiene como origen (OC espejo en Odoo); la entrada de inventario **no exige OC**. Motivo de rechazo obligatorio y panel de solicitudes vencidas ya en prod (DS-24); las pendientes viejas se avisaron a Compras.
+
 ## 10. Datos y terceros (CI13)
 La integración envía a Odoo nombre/correo del autor en el chatter, cuentas, productos y el PDF firmado del conduce (firmas y fotos). Revisar `docs/DATOS-Y-TERCEROS.md`, la política de privacidad y los formularios de tienda **antes** de encender en prod.

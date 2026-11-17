@@ -8852,5 +8852,15 @@
   "Identificador del documento": "Idantifyan dokiman an",
   "Odoo": "Odoo",
   "Ese borrador ya no está disponible. Llena el parte a mano.": "Bouyon sa a pa disponib ankò. Ranpli rapò a alamen.",
-  "No se pudo abrir el borrador. Llena el parte a mano.": "Nou pa t kapab louvri bouyon an. Ranpli rapò a alamen."
+  "No se pudo abrir el borrador. Llena el parte a mano.": "Nou pa t kapab louvri bouyon an. Ranpli rapò a alamen.",
+  "Pendientes en Odoo": "Annatant nan Odoo",
+  "Recepciones, entregas y traslados internos que siguen sin validar en Odoo, igual que el tablero de Inventario. «SGC lo conoce» significa que viene de una OC o un conduce de SGC; lo demás se hizo solo en Odoo. Se actualiza cada 5 minutos.": "Resepsyon, livrezon ak transfè entèn ki poko valide nan Odoo, tankou tablo Envantè a. «SGC konnen li» vle di li soti nan yon OC oswa yon kondui SGC; rès la te fèt nan Odoo sèlman. Li mete ajou chak 5 minit.",
+  "Nada pendiente en Odoo.": "Pa gen anyen annatant nan Odoo.",
+  "{n} por procesar": "{n} pou trete",
+  "{n} atrasado(s)": "{n} an reta",
+  "SGC lo conoce: {n}": "SGC konnen li: {n}",
+  "Reglas de reabastecimiento sincronizadas con Odoo: {n}": "Règ apwovizyonman senkronize ak Odoo: {n}",
+  "Recepciones": "Resepsyon",
+  "Órdenes de entrega": "Lòd livrezon",
+  "Traslados internos": "Transfè entèn"
 }

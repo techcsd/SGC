@@ -3,11 +3,11 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10243/10244 literales de 200 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10246/10247 literales de 200 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| tecnologia/odoo-conciliacion | scope | 30 | 29 | 1 | 97% |
+| tecnologia/odoo-conciliacion | scope | 33 | 32 | 1 | 97% |
 | admin/adopcion | scope | 14 | 14 | 0 | 100% |
 | admin/almacenes-duplicados | enforce | 15 | 15 | 0 | 100% |
 | admin/animaciones | enforce | 33 | 33 | 0 | 100% |

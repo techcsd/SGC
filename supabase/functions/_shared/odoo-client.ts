@@ -212,6 +212,7 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
     "stock.move": ["read", "search_read"],
     "stock.picking.type": ["search_read"],
     "stock.warehouse": ["search_read"],
+    "stock.warehouse.orderpoint": ["search_read"], // Reabastecimiento: reglas de minimo/maximo
     "res.users": ["search_read"],
     "hr.employee": ["search_read"],
     "ir.attachment": ["search_read"], // DS-28: detectar adjunto duplicado (solo metadatos, sin `datas`)
@@ -227,6 +228,8 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
     "stock.quant": ["create", "write", "action_apply_inventory"],
     // Proveedores directos en Odoo: alta y edición/archivado. Sin unlink: nunca se borra un partner.
     "res.partner": ["create", "write"],
+    // Reabastecimiento: reglas de minimo/maximo con disparador manual. Sin unlink: una regla se archiva, nunca se borra.
+    "stock.warehouse.orderpoint": ["create", "write"],
   },
 };
 

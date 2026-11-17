@@ -8852,5 +8852,15 @@
   "Identificador del documento": "Document identifier",
   "Odoo": "Odoo",
   "Ese borrador ya no está disponible. Llena el parte a mano.": "That draft is no longer available. Fill in the report by hand.",
-  "No se pudo abrir el borrador. Llena el parte a mano.": "The draft could not be opened. Fill in the report by hand."
+  "No se pudo abrir el borrador. Llena el parte a mano.": "The draft could not be opened. Fill in the report by hand.",
+  "Pendientes en Odoo": "Pending in Odoo",
+  "Recepciones, entregas y traslados internos que siguen sin validar en Odoo, igual que el tablero de Inventario. «SGC lo conoce» significa que viene de una OC o un conduce de SGC; lo demás se hizo solo en Odoo. Se actualiza cada 5 minutos.": "Receipts, deliveries and internal transfers still not validated in Odoo, like the Inventory dashboard. \"SGC knows it\" means it comes from an SGC purchase order or conduce; the rest was done only in Odoo. Updated every 5 minutes.",
+  "Nada pendiente en Odoo.": "Nothing pending in Odoo.",
+  "{n} por procesar": "{n} to process",
+  "{n} atrasado(s)": "{n} late",
+  "SGC lo conoce: {n}": "SGC knows it: {n}",
+  "Reglas de reabastecimiento sincronizadas con Odoo: {n}": "Replenishment rules synced with Odoo: {n}",
+  "Recepciones": "Receipts",
+  "Órdenes de entrega": "Delivery orders",
+  "Traslados internos": "Internal transfers"
 }
