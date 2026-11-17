@@ -137,7 +137,9 @@ function check1() {
 
 // ── Check 2 — migraciones de esta ventana en el ledger del entorno auditado ──
 async function check2() {
-  const { archivos, referencia } = archivosCambiadosDesde('sql');
+  const { archivos: todos, referencia } = archivosCambiadosDesde('sql');
+  // Los scripts de reversa (sql/_reversa/) son rollback manual: nunca se aplican, no van al ledger.
+  const archivos = todos.filter((f) => !/(^|[\/])_reversa[\/]/.test(f));
   if (!archivos.length) {
     return reportar('ledger', `Migraciones sql/ en el ledger (${env.entorno})`, 'PASS', [`sin archivos sql/* tocados desde ${referencia}.`]);
   }
