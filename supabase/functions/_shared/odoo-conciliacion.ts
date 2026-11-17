@@ -89,6 +89,8 @@ export function conciliarSalidas(salidas: SalidaConciliable[], pickings: Picking
 /** Pickings editados a mano: `write_uid` distinto de la cuenta tecnica (solo los de origen SGC) o sin origen SGC en almacenes vigilados. */
 export function fueraDeCanal(pickings: PickingOdoo[], tecnicoUid: number): Discrepancia[] {
   return pickings
+    // Pruebas de contrato (SGC-TRAS-TEST-*, SGC-TRAS-prueba-*) y pickings cancelados no son deriva.
+    .filter((p) => p.state !== "cancel" && !/^SGC-TRAS-(TEST|prueba)-/.test(p.origin))
     .filter((p) => (p.origin.startsWith(PREFIJO_ORIGIN) && p.writeUid != null && p.writeUid !== tecnicoUid) || (!p.origin.startsWith(PREFIJO_ORIGIN) && p.state === "done"))
     .map((p) => ({ tipo: "fuera_de_canal" as const, pickingId: p.id, detalle: p.origin.startsWith(PREFIJO_ORIGIN) ? "Picking SGC modificado por otro usuario de Odoo." : "Movimiento validado fuera de SGC en un almacén vigilado." }));
 }
