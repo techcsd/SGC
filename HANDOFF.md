@@ -3406,3 +3406,10 @@ grep '"version"' package.json   # 1.95.0
 # ¿está la key de Compa puesta? (si Compa da 503, falta ANTHROPIC_API_KEY)
 npx supabase@latest secrets list --project-ref jeeqhgccqefbqilntcpu 2>/dev/null | grep -i anthropic || echo "FALTA ANTHROPIC_API_KEY"
 ```
+
+## Ronda DS — cierre de issues (17-nov-2026)
+- Todos los issues abiertos cerrados (#56–#87). Migraciones a prod: dk, dl, dm, dn, do, dp, dq, dr (QR conduce encendido), dt (`conduce_estado_sync`), du (parte por voz encendido). Edge `conduce-qr` v13 en prod.
+- Decisiones: Odoo es fuente de verdad de proveedores (1577 ratificados); poda de Realtime (7 tablas, reversible); inicio de viaje automático NO se implementa; "artículo aprobado" = activo = vinculado a Odoo (230/230).
+- App 2.71.0 en prod (incluye chip contable con `conduce_estado_sync`, asistente de GPS, mi_arranque). Sin probar en pantalla: asistente de GPS y rechazo con motivo.
+- Parte por voz probado con texto en dev; falta prueba con nota de voz real por WhatsApp.
+- Web 1.218.4 salió por hotfix sin prueba humana independiente; 2 conteos borrador viejos (25-sep, 12-oct) sin tocar.
