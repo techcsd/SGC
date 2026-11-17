@@ -6305,6 +6305,12 @@
         }
       ]
     },
+    "1.218.1": {
+      "titulo": "Odoo: la fecha de corte la puede cambiar Compras",
+      "cambios": [
+        { "t": "mejora", "m": "Odoo", "d": "En Inventario › Ajustes Odoo › Corte, Compras y Tecnología pueden cambiar la fecha de corte de cada bodega; aplicar la apertura y encender Odoo como fuente sigue siendo solo de administración." }
+      ]
+    },
     "1.218.0": {
       "titulo": "Odoo: traslados con tránsito, conciliación y homologación; cierre de despachos, QR en el conduce y adopción",
       "cambios": [

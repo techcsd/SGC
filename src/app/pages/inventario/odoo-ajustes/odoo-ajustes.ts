@@ -33,6 +33,8 @@ export class OdooAjustes implements OnInit {
   rechazando = signal<string | null>(null);
   motivo = signal('');
   esAdmin = computed(() => this.user.roles().includes('admin'));
+  // La fecha de corte la puede cambiar un admin o Compras (coord_compras); el resto del corte (apertura, fuente) sigue siendo solo admin.
+  puedeFecha = computed(() => this.user.roles().some((r) => r === 'admin' || r === 'coord_compras'));
   pendientes = computed(() => this.ajustes().filter((a) => a.estado === 'pendiente').length);
 
   // Autorización prueba → real

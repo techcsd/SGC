@@ -97,7 +97,7 @@
             <tr>
               <td>{{ b.bodega }} <span class="oa-nota">{{ b.codigo_odoo }}</span></td>
               <td>
-                @if (esAdmin()) {
+                @if (puedeFecha()) {
                   <input type="date" class="sgc-input" [value]="b.fecha_corte ?? ''" (change)="fijarCorte(b, valor($event))" [attr.aria-label]="'Fecha de corte' | t" />
                 } @else {
                   {{ b.fecha_corte ? (b.fecha_corte | fecha: 'dd/MM/yyyy') : '—' }}
