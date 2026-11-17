@@ -1,6 +1,6 @@
 // 2026-11-17 -- CORTE de Bodega Central (WH) en PROD: Odoo pasa a ser la fuente del stock de esa bodega. Autorizado por Xaviel (17-nov):
 // fecha de corte unica (hoy), cambiable despues desde SGC (Inventario > Ajustes Odoo > Corte, rol admin); solo Central primero.
-// Pasos (cada uno se corre aparte): preparar (fase corte + fecha) | plan (solo calcula) | aplicar (apertura en Odoo) | fuente (Odoo = fuente) | apagar (revierte fuente y fase).
+// Pasos (cada uno se corre aparte): preparar (fase corte + fecha) | plan (solo calcula) | aplicar (apertura en Odoo) | opcion-a (respaldo + sin apertura + fuente Odoo) | fuente (Odoo = fuente) | apagar (revierte fuente y fase).
 //   node scripts/data-fixes/2026-11-17-ds-corte-central-prod.mjs --env prod --yes --paso preparar|plan|aplicar|fuente|apagar [--tope 0.5]
 import { resolverEnv } from '../lib/entorno.mjs';
 import { consulta } from '../lib/dbq-dev.mjs';
@@ -27,5 +27,14 @@ if (paso === 'preparar') { await as(`select sgc.odoo_fase_set('corte', true); se
 else if (paso === 'plan') await edge('plan');
 else if (paso === 'aplicar') { await edge('aplicar'); await estado(); }
 else if (paso === 'fuente') { await as(`select sgc.odoo_corte_fuente_set(${lit(WH.id)}, true)`); await estado(); }
+else if (paso === 'opcion-a') {
+  // Opcion A (decision de Xaviel, 17-nov): Odoo es la verdad; NO se escribe la apertura en Odoo. Se respalda el stock SGC de la bodega,
+  // se marca la apertura como hecha (sin ajustes) y Odoo pasa a ser la fuente: la proyeccion (sondeo cada 5 min) alinea SGC a Odoo.
+  await sql(`insert into sgc.odoo_corte_respaldo_stock (bodega_id, articulo_id, cantidad, motivo) select bodega_id, articulo_id, cantidad, 'Corte Central opcion A 2026-11-17' from sgc.stock_por_bodega where bodega_id=${lit(WH.id)} and not exists (select 1 from sgc.odoo_corte_respaldo_stock r where r.bodega_id=${lit(WH.id)} and r.motivo='Corte Central opcion A 2026-11-17')`);
+  console.log('respaldo filas:', JSON.stringify(await sql(`select count(*) n from sgc.odoo_corte_respaldo_stock where bodega_id=${lit(WH.id)}`)));
+  await as(`select sgc.odoo_corte_configurar(${lit(WH.id)}, ${lit(hoy)}::date, true)`);
+  await sql(`update sgc.odoo_corte_bodega set apertura_en=now(), apertura_resultado='{"modo":"odoo_manda","ajustes":0,"nota":"Opcion A: SGC se alinea a Odoo; no se escribio apertura en Odoo"}'::jsonb where bodega_id=${lit(WH.id)}`);
+  await as(`select sgc.odoo_corte_fuente_set(${lit(WH.id)}, true)`); await estado();
+}
 else if (paso === 'apagar') { await as(`select sgc.odoo_corte_fuente_set(${lit(WH.id)}, false); select sgc.odoo_fase_set('corte', false)`); await estado(); }
 else { console.error('--paso preparar|plan|aplicar|fuente|apagar'); process.exit(1); }
