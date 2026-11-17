@@ -83,14 +83,23 @@ export class ProveedoresService {
   private supabase = inject(SupabaseService);
 
   async getAll(): Promise<Proveedor[]> {
-    const { data, error } = await this.supabase.client
-      .schema('sgc')
-      .from('proveedores')
-      .select('*')
-      .order('nombre');
-
-    if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as Proveedor[];
+    // PostgREST corta cada respuesta en 1000 filas: se pagina para no perder proveedores (había 1577 y los últimos no aparecían en los selectores).
+    const todos: Proveedor[] = [];
+    const PAGINA = 1000;
+    for (let desde = 0; ; desde += PAGINA) {
+      const { data, error } = await this.supabase.client
+        .schema('sgc')
+        .from('proveedores')
+        .select('*')
+        .order('nombre')
+        .order('id')
+        .range(desde, desde + PAGINA - 1);
+      if (error) throw new Error(error.message);
+      const fila = (data ?? []) as unknown as Proveedor[];
+      todos.push(...fila);
+      if (fila.length < PAGINA) break;
+    }
+    return todos;
   }
 
   /**
