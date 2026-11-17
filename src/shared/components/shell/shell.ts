@@ -430,6 +430,10 @@ export class Shell implements OnInit {
         // "Developer" entero (Odoo-sync, monitoreo, APIs, QA, Issues, Dev
         // notes) se le abra de paso.
         { label: 'Compa en WhatsApp', route: '/tecnologia/whatsapp', submodulo: 'tecnologia.wa_grupos', badgeKey: 'tecnologia.whatsapp' },
+        // Odoo (DS): sincronización, conciliación y homologación, en Tecnología (antes estaban en el grupo Developer).
+        { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
+        { label: 'Conciliación con Odoo', route: '/tecnologia/odoo-conciliacion', soloTecnologia: true }, // DS-13
+        { label: 'Homologación con Odoo', route: '/tecnologia/odoo-homologacion', soloTecnologia: true }, // DS-05/06
       ],
     },
     {
@@ -473,9 +477,6 @@ export class Shell implements OnInit {
         { label: 'Adopción por rol', route: '/admin/adopcion', soloAdmin: true }, // DS-38
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
         // CY16 (#16) — sincronización con Odoo (outbox distinto del de arriba).
-        { label: 'Sincronización con Odoo', route: '/tecnologia/odoo-sync', soloTecnologia: true },
-        { label: 'Conciliación con Odoo', route: '/tecnologia/odoo-conciliacion', soloTecnologia: true }, // DS-13
-        { label: 'Homologación con Odoo', route: '/tecnologia/odoo-homologacion', soloTecnologia: true }, // DS-05/06
         { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         // Diseño

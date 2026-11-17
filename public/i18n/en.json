@@ -6075,7 +6075,7 @@
   "No se pudo cargar el detalle.": "Could not load the detail.",
   "No se pudo cargar la bandeja de sincronización.": "Could not load the sync inbox.",
   "No se pudo reencolar": "Could not requeue",
-  "Outbox de eventos hacia Odoo (maestros y documentos). Hoy la publicación está apagada por política y el adaptador de escritura es un simulador (MOCK) — nada de esto llegó al Odoo real todavía.": "Outbox of events toward Odoo (masters and documents). Publishing is currently turned off by policy and the write adapter is a simulator (MOCK) — none of this has reached the real Odoo yet.",
+  "Outbox de eventos hacia Odoo. Conduces, entradas, retiros, conteos y ajustes se publican al Odoo real según la política de cada tipo; los maestros (artículos) no se publican.": "Outbox of events toward Odoo. Delivery notes, receipts, withdrawals, counts and adjustments are published to the real Odoo according to each type's policy; masters (items) are not published.",
   "Payload enviado": "Payload sent",
   "Prueba": "Test",
   "Reencolado": "Requeued",
