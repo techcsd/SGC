@@ -3413,3 +3413,10 @@ npx supabase@latest secrets list --project-ref jeeqhgccqefbqilntcpu 2>/dev/null 
 - App 2.71.0 en prod (incluye chip contable con `conduce_estado_sync`, asistente de GPS, mi_arranque). Sin probar en pantalla: asistente de GPS y rechazo con motivo.
 - Parte por voz probado con texto en dev; falta prueba con nota de voz real por WhatsApp.
 - Web 1.218.4 salió por hotfix sin prueba humana independiente; 2 conteos borrador viejos (25-sep, 12-oct) sin tocar.
+
+### Actualización 18-nov-2026 — todo en `main` y prod
+- `dev` y `main` alineados (PR #201, #154, #207, #208 mergeados; #93 cerrado sin mergear). Web 1.218.4 (probada por Xaviel en prod) y app 2.71.0 en prod. Migración `du` (parte por voz encendido, probado con texto en dev) y `dt`/`dr` en prod. Las dos reversas `dk` están en el ledger de dev como «rollback, NO ejecutado» (solo para pasar el check de la regla 18).
+- Política de Privacidad (§5) ya menciona Odoo; DATOS-Y-TERCEROS actualizado. Faltan los formularios de Google Play/App Store (humano).
+- Línea base de observación y decisiones de Compras: `docs/ODOO-PASO-A-PROD.md` §10–§11.
+- **Issues abiertos (todos dependen de personas o tiempo):** #202 (24 conduces del 18-nov en error por falta de existencias en Odoo; Raykler los revisa), #203 (usuario dedicado de integración en Odoo; administrador de Odoo), #204 (2 semanas de observación; fecha más temprana 2-dic-2026), #205 (formularios de tienda + cobertura de cédulas).
+- Auditoría del trabajo de Miranda (solo lectura, 17-nov): ADR 3–7, 13, 14, 16, 17, 19, OC (CY24/CY25) y fases 1, 4 y 5 hechos; faltan usuario dedicado, observación real, privacidad de tiendas, ADR 8 y 11, alerta de `incierto` > 1 h, rotación de claves y ejecutar la guía QA de la PoC.
