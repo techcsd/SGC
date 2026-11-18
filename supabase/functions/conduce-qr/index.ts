@@ -46,7 +46,13 @@ Deno.serve(async (req: Request) => {
       // Visibilidad con el JWT del usuario (RLS de salidas_inventario).
       const { data: fila, error } = await caller.schema("sgc").from("salidas_inventario")
         .select("id").eq("id", salidaId).maybeSingle();
-      if (error || !fila) return json({ error: "sin_acceso" }, 403);
+      // Un confirmador designado puede no ver la salida por RLS: se valida tambien con la matriz canonica (AK4).
+      let permitido = !error && !!fila;
+      if (!permitido) {
+        const { data: esConf } = await caller.schema("sgc").rpc("es_confirmador_de_conduce", { p_salida_id: salidaId });
+        permitido = esConf === true;
+      }
+      if (!permitido) return json({ error: "sin_acceso" }, 403);
       const dias = Math.min(Math.max(Number(p.conduce_qr_vigencia_dias) || 30, 1), 365);
       const exp = Math.floor(Date.now() / 1000) + dias * 86400;
       return json({ token: await firmarTokenConduce(secreto, salidaId, exp), exp });

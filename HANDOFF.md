@@ -4,7 +4,7 @@
 
 **Estado final (17-nov, autorizado por Xaviel; cuenta Tecnología CSD):** canary validado con conduce real (traslados A+B, reversa), expansión y corte encendidos, **16/16 bodegas con Odoo como fuente del stock** (opción A: Odoo manda; SGC se alineó, 0 diferencias en 3136 filas; respaldo en `sgc.odoo_corte_respaldo_stock`), OC reales (`ODOO_ESCRITURA_HABILITADA=true`), catálogo 230/230 vinculado (179 productos creados en Odoo), 7 categorías y 18 unidades vinculadas, contracción parte B (`odoo_vinculos_stock*` retiradas; `odoo_comandos_oc` se conserva: idempotencia de OC). Scripts versionados en `scripts/data-fixes/2026-11-17-ds-*-prod.mjs`; runbook en `docs/ODOO-PASO-A-PROD.md`.
 **Apagar/revertir:** `ds-expansion-prod.mjs --apagar`, `ds-corte-central-prod.mjs --paso apagar`, `ds-corte-resto-prod.mjs --apagar`, `ds-encender-prod.mjs --apagar`.
-**Cierre 17-nov (noche):** pruebas reales en prod de conteo y desecho (neto cero), «Pendientes en Odoo» y reglas de reabastecimiento (1 regla creada, OP/00001) — backend en prod; **web 1.218.4 (sección Pendientes en la Conciliación) lista en dev, falta promover a main con --hotfix (OK de Xaviel por nombre).** #57 decidido y cerrado (ver ODOO-PASO-A-PROD §9b).
+**Cierre 17-nov (noche):** pruebas reales en prod de conteo y desecho (neto cero), «Pendientes en Odoo» y reglas de reabastecimiento (1 regla creada, OP/00001) — backend en prod; **web 1.218.4 en main/prod (--hotfix autorizado por Xaviel; sección Pendientes verificada en prod con navegador visible).** #57 decidido y cerrado (ver ODOO-PASO-A-PROD §9b).
 **Cierre 17-nov (tarde):** maestros verificados contra Odoo (0 pendientes/0 errores en la cola), 1577/1577 proveedores vinculados, OC de prueba «Prueba XT» creada y cancelada contra Odoo real desde la UI (OC-202611-0008 / P01031), `ds46` completo, web 1.218.3 en main (selector de proveedores paginado: tenía tope de 1000 filas; ojo: otras listas con `.select('*')` sin paginar pueden tener el mismo tope). Issues cerrados salvo #57 (no es de Odoo). PDF firmado (DS-28) probado en prod con navegador: subida al bucket, registro en la salida y adjuntos A/B en los pickings de Odoo. **Pendiente/observación:** 1.218.0 y 1.218.1 salieron por `--hotfix` (sin prueba humana de pantallas: probar Inventario › Ajustes Odoo › Corte y Tecnología › Conciliación); alerta `fuera_de_canal` del picking de prueba de Miranda se cierra sola en la corrida diaria; DS-28 (subida de PDF con sesión real), app csd-app (PROMPT-149); `ds46` aplicado en prod (6 lotes de dev + 4 lotes `lote*p` regenerados con las políticas de prod por drift RRHH; smoke antes==después); `dj1-dj3` NO aplicados (sin archivo SQL); issues abiertos: #2, #7, #18, #24, #78, #86, #115 (ver comentarios).
 
 ### (histórico) Ronda DS hasta staging
@@ -3406,3 +3406,10 @@ grep '"version"' package.json   # 1.95.0
 # ¿está la key de Compa puesta? (si Compa da 503, falta ANTHROPIC_API_KEY)
 npx supabase@latest secrets list --project-ref jeeqhgccqefbqilntcpu 2>/dev/null | grep -i anthropic || echo "FALTA ANTHROPIC_API_KEY"
 ```
+
+## Ronda DS — cierre de issues (17-nov-2026)
+- Todos los issues abiertos cerrados (#56–#87). Migraciones a prod: dk, dl, dm, dn, do, dp, dq, dr (QR conduce encendido), dt (`conduce_estado_sync`), du (parte por voz encendido). Edge `conduce-qr` v13 en prod.
+- Decisiones: Odoo es fuente de verdad de proveedores (1577 ratificados); poda de Realtime (7 tablas, reversible); inicio de viaje automático NO se implementa; "artículo aprobado" = activo = vinculado a Odoo (230/230).
+- App 2.71.0 en prod (incluye chip contable con `conduce_estado_sync`, asistente de GPS, mi_arranque). Sin probar en pantalla: asistente de GPS y rechazo con motivo.
+- Parte por voz probado con texto en dev; falta prueba con nota de voz real por WhatsApp.
+- Web 1.218.4 salió por hotfix sin prueba humana independiente; 2 conteos borrador viejos (25-sep, 12-oct) sin tocar.
