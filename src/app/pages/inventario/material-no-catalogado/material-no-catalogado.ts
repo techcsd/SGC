@@ -130,6 +130,7 @@ export class MaterialNoCatalogado implements OnInit {
   abrirVincular(fila: MaterialNoCatalogadoRow) {
     this.activo.set(fila);
     this.modo.set('vincular');
+    this.avisoVinculo.set('');
     this.vincularArticuloId.set(null);
     this.generarMovimiento.set(false);
   }
@@ -150,6 +151,19 @@ export class MaterialNoCatalogado implements OnInit {
 
   onVincularSel(sel: ArticuloPickerSelection) {
     this.vincularArticuloId.set(sel.articuloId);
+    void this.evaluarVinculo(sel.articuloId);
+  }
+
+  // DS-20 — explicación del servidor (unidades incompatibles / coincidencia ambigua) antes de intentar vincular.
+  avisoVinculo = signal('');
+  private async evaluarVinculo(articuloId: string | null) {
+    const fila = this.activo();
+    this.avisoVinculo.set('');
+    if (!fila || !articuloId) return;
+    try {
+      const ev = await this.svc.evaluarVinculoLibre(fila.id, articuloId);
+      if (!ev.ok && ev.mensaje) this.avisoVinculo.set(ev.mensaje);
+    } catch { /* la explicación es informativa: el RPC de vincular repite la regla */ }
   }
 
   onDeclinarSel(sel: ArticuloPickerSelection) {

@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, inject, signal, viewChild
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { SalidasService, ConduceRutaInfo, ConduceItemLibre } from '../../../../shared/services/salidas.service';
+import { SalidasService, ConduceRutaInfo, ConduceItemLibre, OdooSyncSalida } from '../../../../shared/services/salidas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -28,6 +28,8 @@ import { esUuid } from '../../../../shared/utils/uuid.util';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
+import { ConducePdfService } from '../../../../shared/services/conduce-pdf.service';
 
 interface ItemCierre {
   detalle_id: string;
@@ -56,6 +58,10 @@ export class Conduce implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   private salidasService = inject(SalidasService);
+  private conduceQr = inject(ConduceQrService);
+  private conducePdf = inject(ConducePdfService);
+  /** DS-34/#74 — QR para recibir/firmar/cerrar (solo si el flag conduce_qr_activo está encendido). */
+  qrDataUrl = signal<string | null>(null);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
@@ -65,6 +71,11 @@ export class Conduce implements OnInit {
   // AT10 — solo admin puede marcar/desmarcar un conduce como dato de prueba.
   esAdmin = computed(() => this.userService.roles().includes('admin'));
   marcandoPrueba = signal(false);
+  // DS-12 — estado de sincronización con Odoo (traslado A/B) + «Reintentar» (Tecnología/admin).
+  odooSync = signal<OdooSyncSalida | null>(null);
+  reintentandoOdoo = signal(false);
+  puedeReintentarOdoo = computed(() => this.esAdmin() || this.userService.esTecnologia());
+  odooSyncEtiqueta: Record<string, string> = { pendiente: 'Pendiente', sincronizado: 'Sincronizado', incierto: 'Por verificar', error: 'Con error' };
 
   formatFecha = formatFechaDisplay;
   // AT22 — los hitos del conduce (recepción/entrega/firmas) son timestamptz: se
@@ -335,6 +346,8 @@ export class Conduce implements OnInit {
     try {
       const s = await this.salidasService.getById(id);
       this.salida.set(s);
+      this.salidasService.getOdooSync(id).then((o) => this.odooSync.set(o)).catch(() => {});
+      if (s.estado !== 'anulado') this.conduceQr.qrDataUrl(id).then((q) => this.qrDataUrl.set(q)).catch(() => {});
       void this.cargarTransferChk(id); // CM4 — estado real del botón transferir
       await this.loadEvidencia(s);
       // AU4 — items libres (no bloqueante).
@@ -411,6 +424,21 @@ export class Conduce implements OnInit {
     }
   }
 
+  async reintentarOdoo() {
+    const s = this.salida();
+    if (!s || this.reintentandoOdoo()) return;
+    this.reintentandoOdoo.set(true);
+    try {
+      await this.salidasService.reintentarOdooSync(s.id);
+      this.toast.success(this.i18n.t('Reintento programado'));
+      this.odooSync.set(await this.salidasService.getOdooSync(s.id));
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudo reintentar'), humanizeError(e).mensaje);
+    } finally {
+      this.reintentandoOdoo.set(false);
+    }
+  }
+
   // ── AY12 — Iniciar ruta / Transferir conduce (paridad web) ────────────────
   private async recargarSalida() {
     const s = this.salida();
@@ -418,6 +446,7 @@ export class Conduce implements OnInit {
     const fresca = await this.salidasService.getById(s.id);
     this.salida.set(fresca);
     await this.loadEvidencia(fresca);
+    this.salidasService.getOdooSync(s.id).then((o) => this.odooSync.set(o)).catch(() => {});
     this.salidasService.getFase(s.id).then((f) => this.fase.set(f)).catch(() => {});
     this.salidasService.getRutaInfo(s.id).then((r) => this.rutaInfo.set(r)).catch(() => {});
   }
@@ -729,6 +758,7 @@ export class Conduce implements OnInit {
       const fresca = await this.salidasService.getById(s.id);
       this.salida.set(fresca);
       await this.loadEvidencia(fresca);
+      void this.guardarPdfFirmado(fresca); // DS-28 — no bloquea el cierre
       this.mostrarCierre.set(false);
       this.toast.success(this.i18n.t('Conduce entregado'), 'Se registró la entrega con su evidencia.');
     } catch (e: unknown) {
@@ -740,6 +770,17 @@ export class Conduce implements OnInit {
 
   imprimir() {
     window.print();
+    // DS-28 — conduces ya cerrados sin PDF guardado: se genera al imprimir.
+    const s = this.salida();
+    if (s && !s.pdf_firmado_path) void this.guardarPdfFirmado(s);
+  }
+
+  /** DS-28 — genera el PDF firmado y lo guarda en el servidor (solo conduces cerrados; best-effort). */
+  private async guardarPdfFirmado(s: SalidaInventario) {
+    if (s.estado !== 'entregado' && s.estado !== 'entregado_incompleto') return;
+    const firmas = [this.firmaEmisor(), this.firmaReceptor()].filter((f): f is FirmaConUrl => !!f);
+    const path = await this.conducePdf.guardarFirmado(s, firmas);
+    if (path) this.salida.update((x) => (x ? { ...x, pdf_firmado_path: path } : x));
   }
 
   /** AT10 — marca/desmarca este conduce como dato de prueba (solo admin). Usa el

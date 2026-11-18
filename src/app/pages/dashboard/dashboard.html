@@ -172,6 +172,13 @@
         <span class="kpi-label">{{ 'Mis tareas pendientes' | t }}</span>
         <span class="kpi-value" [appCountUp]="misTareasPendientes()"></span>
       </a>
+      @if (solicitudesAtascadas(); as sa) {
+        <a class="kpi-card kpi-card--link" [class.kpi-card--danger]="sa.mayores_n_dias > 0" [class.kpi-card--info]="sa.mayores_n_dias === 0" routerLink="/inventario/pendientes-cierre">
+          <span class="kpi-label">{{ 'Solicitudes de material atascadas' | t }}</span>
+          <span class="kpi-value" [appCountUp]="sa.mayores_n_dias"></span>
+          <span class="kpi-label">{{ i18n.t('{n} pendientes · la más antigua {d} días', { n: sa.pendientes, d: sa.mas_antigua_dias }) }}</span>
+        </a>
+      }
       @if (esTecnologia()) {
         <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/tecnologia/reportes-errores">
           <span class="kpi-label">{{ 'Errores de app (7 días)' | t }}</span>

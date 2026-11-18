@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -27,6 +27,7 @@ import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -37,7 +38,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe, StaggerDirective, RouterLink],
+  imports: [ReactiveFormsModule, FormDrawer, FechaPipe, DecimalPipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe, StaggerDirective, RouterLink],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -9,6 +9,7 @@ import { UserService } from '../../../../app/core/services/user.service';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { localeActual } from '../../../../shared/i18n/locale.util';
 import { SignedUrlCache } from '../../../../shared/services/signed-url-cache.service';
 
 @Component({
@@ -198,7 +199,7 @@ export class ReunionFicha implements OnInit {
   async copiarInvitacion() {
     const d = this.detalle();
     if (!d) return;
-    const inicio = new Date(d.reunion.inicio).toLocaleString('es-DO', { dateStyle: 'full', timeStyle: 'short' });
+    const inicio = new Date(d.reunion.inicio).toLocaleString(localeActual(this.i18n.idioma()), { dateStyle: 'full', timeStyle: 'short' });
     const texto = [
       d.reunion.titulo,
       inicio,
@@ -214,10 +215,10 @@ export class ReunionFicha implements OnInit {
   }
 
   fechaLarga(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-DO', { day: 'numeric', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString(localeActual(this.i18n.idioma()), { day: 'numeric', month: 'short', year: 'numeric' });
   }
   horaRango(inicio: string, fin: string): string {
     const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
-    return `${new Date(inicio).toLocaleTimeString('es-DO', opts)}-${new Date(fin).toLocaleTimeString('es-DO', opts)}`;
+    return `${new Date(inicio).toLocaleTimeString(localeActual(this.i18n.idioma()), opts)}-${new Date(fin).toLocaleTimeString(localeActual(this.i18n.idioma()), opts)}`;
   }
 }

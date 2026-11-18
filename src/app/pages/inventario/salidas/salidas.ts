@@ -821,8 +821,14 @@ export class Salidas implements OnInit {
   }
 
   async rechazarSolicitud(s: SolicitudMaterial) {
+    // DS-24: motivo obligatorio (≥ 10 caracteres), igual que en compras.
+    const motivo = (window.prompt(this.i18n.t('Motivo del rechazo (obligatorio):')) ?? '').trim();
+    if (motivo.length < 10) {
+      if (motivo) this.error.set(this.i18n.t('El motivo del rechazo debe tener al menos 10 caracteres.'));
+      return;
+    }
     try {
-      await this.solicitudesMaterialService.rechazar(s.id);
+      await this.solicitudesMaterialService.rechazar(s.id, motivo);
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');

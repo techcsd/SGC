@@ -140,3 +140,14 @@
 .apoyo-timeline__estado { font-weight: 600; display: block; }
 .apoyo-timeline__nota { display: block; font-size: 0.85rem; }
 .apoyo-timeline__meta { display: block; font-size: 0.75rem; color: var(--text-2); }
+
+// DS-35 — aviso de legado
+.apoyo-legado {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--secondary);
+  border: 1px solid var(--Hub);
+  color: var(--main-ultra-light);
+  a { color: var(--Hub); margin-left: 6px; }
+}

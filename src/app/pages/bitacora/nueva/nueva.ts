@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
@@ -192,6 +192,7 @@ export class Nueva implements OnInit {
   private draftId: string = crypto.randomUUID();
   enProceso = signal<BorradorMeta[]>([]);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
   private contextService = inject(ContextService);
   private weatherService = inject(WeatherService);
@@ -773,6 +774,9 @@ export class Nueva implements OnInit {
     } catch {
       this.iaConsentimiento.set(false);
     }
+    // DS-41/#76 — enlace de revisión de un parte armado por voz/WhatsApp: ?propuesta=<id>
+    const propuestaId = this.route.snapshot.queryParamMap.get('propuesta');
+    if (propuestaId) await this.cargarPropuestaExterna(propuestaId);
     // T19 — si ya hay obra elegida, prioriza los equipos de esa obra.
     void this.loadEquiposDeObra(this.form.controls.proyecto_id.value ?? null);
 
@@ -794,6 +798,29 @@ export class Nueva implements OnInit {
       this.categoriasCat.set(cats);
     } catch {
       /* sin catálogo: el picker permite igualmente escribir "Otro" */
+    }
+  }
+
+  /** DS-41/#76 — abre la revisión con una propuesta guardada (nunca crea nada: la persona confirma como siempre). */
+  private async cargarPropuestaExterna(id: string) {
+    try {
+      const p = await this.bitacoraService.cargarPropuestaIA(id);
+      if (!p || p.estado !== 'propuesta') {
+        this.iaError.set(this.i18n.t('Ese borrador ya no está disponible. Llena el parte a mano.'));
+        return;
+      }
+      this.form.patchValue({ proyecto_id: p.proyecto_id, fecha: p.fecha });
+      this.iaPropuesta.set({
+        ok: true, propuesta_id: p.propuesta_id, campos: p.campos, actividades: p.actividades,
+        restricciones: p.restricciones, confianza_media: p.confianza_media, modelo: '', transcripcion: p.transcripcion,
+      });
+      const editables: Record<string, unknown> = {};
+      for (const { clave } of this.CAMPOS_PARTE) editables[clave] = p.campos[clave]?.valor ?? null;
+      this.iaCamposEditables.set(editables);
+      this.iaActividadesEditables.set(p.actividades.map((a) => ({ ...a, incluir: true })));
+      this.iaPantalla.set('revision');
+    } catch {
+      this.iaError.set(this.i18n.t('No se pudo abrir el borrador. Llena el parte a mano.'));
     }
   }
 

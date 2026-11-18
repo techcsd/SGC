@@ -19,6 +19,7 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
+import { OdooSyncEstado } from '../../../../shared/ui/odoo-sync-estado/odoo-sync-estado';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
 
@@ -31,7 +32,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker, TranslatePipe],
+  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker, TranslatePipe, OdooSyncEstado],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

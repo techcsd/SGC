@@ -163,6 +163,20 @@ export const tecnologiaRoutes: Routes = [
     title: 'Sincronización con Odoo — Tecnología',
   },
   {
+    // DS-13 — conciliación SGC ↔ Odoo (hallazgos del conciliador). Solo lectura. Gate: es_tecnologia.
+    path: 'odoo-conciliacion',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./odoo-conciliacion/odoo-conciliacion').then((m) => m.TecOdooConciliacion),
+    title: 'Conciliación con Odoo — Tecnología',
+  },
+  {
+    // DS-05/DS-06 — homologación de almacenes y cuentas analíticas con Odoo (confirmar = solo admin, lo exige el RPC).
+    path: 'odoo-homologacion',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./odoo-homologacion/odoo-homologacion').then((m) => m.TecOdooHomologacion),
+    title: 'Homologación con Odoo — Tecnología',
+  },
+  {
     // BD3 — Galería de componentes / design system (tokens + componentes base en
     // ambos temas). Interna: es_tecnologia. Contrato visual del rollout.
     path: 'design-system',

@@ -1,0 +1,167 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Conciliación con Odoo' | t }}</h1>
+    <span class="page-count">{{ i18n.t('{n} hallazgo(s) abierto(s)', { n: abiertas().length }) }}</span>
+  </div>
+  <div class="page-header__right">
+    <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="corriendo() || !hayInstancia()" (click)="conciliarAhora()">
+      {{ (corriendo() ? 'Conciliando…' : 'Conciliar ahora') | t }}
+    </button>
+  </div>
+</div>
+
+<p class="oc-lead">
+  {{ 'Compara cada conduce publicado con sus traslados en Odoo (estado y cantidades), detecta traslados sin conduce, material en tránsito vencido y movimientos hechos fuera de SGC. Solo lee Odoo; no corrige nada.' | t }}
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- Métricas -->
+<div class="oc-kpis">
+  <div class="sgc-card oc-kpi">
+    <span class="oc-kpi__n">{{ abiertas().length }}</span>
+    <span class="oc-kpi__l">{{ 'Hallazgos abiertos' | t }}</span>
+  </div>
+  <div class="sgc-card oc-kpi" [class.oc-kpi--alerta]="derivaMas24h() > 0">
+    <span class="oc-kpi__n">{{ derivaMas24h() }}</span>
+    <span class="oc-kpi__l">{{ 'Deriva de más de 24 h' | t }}</span>
+  </div>
+  <div class="sgc-card oc-kpi" [class.oc-kpi--alerta]="inciertos() > 0">
+    <span class="oc-kpi__n">{{ inciertos() }}</span>
+    <span class="oc-kpi__l">{{ 'Conduces inciertos' | t }}</span>
+  </div>
+  <div class="sgc-card oc-kpi" [class.oc-kpi--alerta]="retrasoOutbox() > 5">
+    <span class="oc-kpi__n">{{ retrasoOutbox() }} min</span>
+    <span class="oc-kpi__l">{{ 'Retraso de la cola a Odoo' | t }}</span>
+  </div>
+</div>
+
+<!-- Criterios de salida del canary (DS-27) -->
+@if (criterios(); as c) {
+  <h2 class="oc-h2">{{ 'Criterios de salida del canary' | t }}</h2>
+  <div class="sgc-card oc-criterios">
+    <p>
+      @if (c.cumple_p99) {
+        <span class="badge badge--success">{{ 'Publicación rápida' | t }}</span>
+      } @else {
+        <span class="badge badge--warning">{{ 'Publicación rápida' | t }}</span>
+      }
+      {{ i18n.t('Tiempo p99 de publicación: {s} s (meta: menos de 5 s, {n} muestra(s))', { s: c.p99_publicacion_s, n: c.muestras }) }}
+    </p>
+    <p>
+      @if (c.cumple_fuera_de_canal) {
+        <span class="badge badge--success">{{ 'Sin movimientos fuera de SGC' | t }}</span>
+      } @else {
+        <span class="badge badge--warning">{{ 'Sin movimientos fuera de SGC' | t }}</span>
+      }
+      {{ i18n.t('Movimientos fuera de SGC abiertos: {n}', { n: c.fuera_de_canal_abiertas }) }}
+    </p>
+    <p>{{ i18n.t('Decisiones ratificadas: {n} de 5', { n: c.ratificaciones.length }) }}</p>
+  </div>
+}
+
+<!-- Pendientes en Odoo (lo que el tablero de Inventario de Odoo cuenta como por procesar / atrasado) -->
+@if (pendientes(); as p) {
+  <h2 class="oc-h2">{{ 'Pendientes en Odoo' | t }}</h2>
+  <p class="oc-lead">
+    {{ 'Recepciones, entregas y traslados internos que siguen sin validar en Odoo, igual que el tablero de Inventario. «SGC lo conoce» significa que viene de una OC o un conduce de SGC; lo demás se hizo solo en Odoo. Se actualiza cada 5 minutos.' | t }}
+  </p>
+  @if (p.por_almacen.length === 0) {
+    <div class="sgc-card oc-criterios"><p>{{ 'Nada pendiente en Odoo.' | t }}</p></div>
+  } @else {
+    <div class="oc-pend">
+      @for (c of p.por_almacen; track c.almacen + c.tipo) {
+        <div class="sgc-card oc-pend__card" [class.oc-pend__card--atraso]="c.atrasados > 0">
+          <span class="oc-pend__tipo">{{ etiquetaTipo(c.tipo) }}</span>
+          <span class="oc-pend__almacen">{{ c.almacen }}</span>
+          <span class="oc-pend__n">{{ i18n.t('{n} por procesar', { n: c.por_procesar }) }}</span>
+          @if (c.atrasados > 0) {
+            <span class="badge badge--warning">{{ i18n.t('{n} atrasado(s)', { n: c.atrasados }) }}</span>
+          }
+          <span class="oc-pend__sgc">{{ i18n.t('SGC lo conoce: {n}', { n: c.conocidos_sgc }) }}</span>
+        </div>
+      }
+    </div>
+  }
+  <p class="oc-lead">{{ i18n.t('Reglas de reabastecimiento sincronizadas con Odoo: {n}', { n: p.reglas.activas }) }}</p>
+}
+
+<!-- Hallazgos -->
+<h2 class="oc-h2">{{ 'Hallazgos' | t }}</h2>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="5" />
+  } @else if (discrepancias().length === 0) {
+    <div class="table-empty"><p>{{ 'Sin diferencias entre SGC y Odoo.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Hallazgos' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Conduce' | t }}</th>
+            <th>{{ 'Detalle' | t }}</th>
+            <th>{{ 'Desde' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of discrepancias(); track d.id) {
+            <tr>
+              <td>{{ etiqueta(d.tipo) }}</td>
+              <td>{{ d.salida_folio ?? '—' }}</td>
+              <td>{{ d.detalle }}</td>
+              <td>{{ d.primera_vez | fecha: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                @if (d.resuelta_en) {
+                  <span class="badge badge--success">{{ 'Resuelto' | t }}</span>
+                } @else {
+                  <span class="badge badge--warning">{{ 'Abierto' | t }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Últimas corridas -->
+<h2 class="oc-h2">{{ 'Últimas corridas' | t }}</h2>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (corridas().length === 0) {
+    <div class="table-empty"><p>{{ 'Todavía no hay corridas.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="{{ 'Últimas corridas' | t }}">
+        <thead>
+          <tr>
+            <th>{{ 'Corrida' | t }}</th>
+            <th>{{ 'Hora' | t }}</th>
+            <th>{{ 'Resultado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of corridas(); track c.iniciada_en + c.tipo) {
+            <tr>
+              <td>{{ (c.tipo === 'diaria' ? 'Diaria' : 'Sondeo (5 min)') | t }}</td>
+              <td>{{ c.iniciada_en | fecha: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                @if (c.error) {
+                  <span class="badge badge--danger">{{ 'No se pudo conciliar' | t }}</span>
+                } @else {
+                  <span class="badge badge--success">{{ 'Correcta' | t }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

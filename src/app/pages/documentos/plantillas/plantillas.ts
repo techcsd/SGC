@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
@@ -13,9 +13,10 @@ import { ToastService } from '../../../../shared/services/toast.service';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, DatePipe, StaggerDirective, EditorPlantilla, TranslatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, FechaPipe, StaggerDirective, EditorPlantilla, TranslatePipe],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

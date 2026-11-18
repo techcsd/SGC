@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { SalidasService, ConduceHuerfano } from '../../../../shared/services/salidas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -7,6 +7,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 /**
  * CW1 — Conduces huérfanos: lista de solo lectura (ensayo en seco) de conduces que
  * se quedaron atascados en "despachado" sin confirmación ni recepción. Nace del
@@ -20,7 +21,7 @@ import { I18nService } from '../../../../shared/i18n/i18n.service';
  */
 @Component({
   selector: 'app-admin-conduces-huerfanos',
-  imports: [Skeleton, DatePipe, Icon, TranslatePipe],
+  imports: [Skeleton, FechaPipe, Icon, TranslatePipe],
   templateUrl: './conduces-huerfanos.html',
   styleUrl: './conduces-huerfanos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

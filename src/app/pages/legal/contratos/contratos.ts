@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
@@ -21,6 +21,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
   en_revision: ['firmado', 'borrador', 'cancelado'],
@@ -31,7 +32,7 @@ const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
 
 @Component({
   selector: 'app-contratos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DatePipe, RouterLink, Skeleton, Icon, StaggerDirective, TranslatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, FechaPipe, RouterLink, Skeleton, Icon, StaggerDirective, TranslatePipe],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +54,12 @@ export class Contratos implements OnInit {
   contratos = signal<Contrato[]>([]);
   proyectos = signal<Proyecto[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  // DS-25: el selector ofrece solo ratificados o con movimiento real cuando el parámetro está activo.
+  proveedoresSelectorIds = signal<Set<string> | null>(null);
+  proveedoresOpciones = computed(() => {
+    const permitidos = this.proveedoresSelectorIds();
+    return permitidos ? this.proveedores().filter((p) => permitidos.has(p.id)) : this.proveedores();
+  });
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -151,6 +158,7 @@ export class Contratos implements OnInit {
       this.contratos.set(contratos);
       this.proyectos.set(proyectos);
       this.proveedores.set(proveedores);
+      void this.proveedoresService.idsSelector().then((ids) => this.proveedoresSelectorIds.set(ids)).catch(() => undefined);
       this.documentosDisponibles.set(documentos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los contratos.'));

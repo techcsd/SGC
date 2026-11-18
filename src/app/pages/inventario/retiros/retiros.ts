@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import {
@@ -24,8 +24,10 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { OdooSyncEstado } from '../../../../shared/ui/odoo-sync-estado/odoo-sync-estado';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 interface FormItem {
   articulo_id: string;
@@ -68,7 +70,7 @@ const DISPOSICION_LABEL: Record<Disposicion, string> = {
 
 @Component({
   selector: 'app-inventario-retiros',
-  imports: [DatePipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper, StaggerDirective, TranslatePipe],
+  imports: [FechaPipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper, StaggerDirective, TranslatePipe, OdooSyncEstado],
   templateUrl: './retiros.html',
   styleUrl: './retiros.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

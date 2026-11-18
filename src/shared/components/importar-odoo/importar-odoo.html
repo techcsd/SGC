@@ -322,7 +322,7 @@
       <tbody>
         @for (h of historial(); track h.id) {
           <tr>
-            <td>{{ h.created_at | date:'dd/MM/yy HH:mm' }}</td>
+            <td>{{ h.created_at | fecha:'dd/MM/yy HH:mm' }}</td>
             <td>{{ h.entidad }}</td>
             <td>{{ h.nuevos }}</td>
             <td>{{ h.actualizados }}</td>

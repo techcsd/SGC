@@ -152,4 +152,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./pulso-sistema/pulso-sistema').then((m) => m.AdminPulsoSistema),
     title: 'Pulso del sistema — Administración',
   },
+  {
+    // DS-38 (#62/#83) - tablero de adopcion por rol; los RPC validan admin/direccion.
+    path: 'adopcion',
+    loadComponent: () => import('./adopcion/adopcion').then((m) => m.AdminAdopcion),
+    title: 'Adopción por rol — Administración',
+  },
 ];

@@ -973,3 +973,28 @@ Skills, Crear, Auditoría (4 sub-pestañas), claro/oscuro, 1440px/390px (28
 capturas por lote). Confirmado a ojo: tarjetas separadas, insignia
 «PUBLICADA» con ancho natural, viñetas dentro de la tarjeta, sin scroll
 horizontal a 390px.
+
+## Cierre (ronda DR, 16-nov-2026) — brechas de PROMPT 146 cerradas
+
+Medición final (`node scripts/i18n-coverage.mjs`): **alcance en=100 % · ht=100 % ·
+192/192 pantallas en alcance, todas `enforce:true`**. `verify-i18n.mjs`: 8.339
+claves usadas, `en.json` y `ht.json` cubren las 8.339 (0 faltantes).
+
+- **Kreyòl (`ht.json`)**: faltaban 252 claves y 156 estaban sin traducir (medía
+  97 %). Se tradujeron 261 + 409 claves usadas fuera de `src/app/pages` (catálogos
+  compartidos, onboarding/prácticas, unidades, tipos, errores amigables…) que
+  estaban en NINGÚN catálogo (también faltaban en `en.json`). Siglas, unidades y
+  marcas se dejan idénticas a propósito. **Traducción generada por Claude, sin
+  revisión humana** (ver `I18N-REVISAR-HT.md`).
+- **Guardia estricta (F7.2)**: `verify-i18n.mjs` ahora sale con código 1 si
+  alguna clave usada falta en `en` o `ht` (antes solo avisaba para el resto del
+  repo). `I18N_DUMP=ruta.json` vuelca la lista completa.
+- **Fechas (F6)**: los 55 `| date` de plantillas pasan a `| fecha` (32 pantallas,
+  `FechaPipe` impuro) y los `toLocale*String('es-DO')` de fecha/hora (tablero-vivo,
+  reportes, asistente, rutas, reunion-ficha, reuniones-lista) usan
+  `localeActual(i18n.idioma())`. Números/moneda siguen en `es-DO` (decisión DP-11).
+  Limitación: en `ht`, los nombres de mes dentro de `toLocale*String` caen a
+  español (Intl no tiene datos reales de `ht`); el pipe `fecha` sí usa la tabla
+  Kreyòl.
+- **Pendiente físico**: `npm run i18n:smoke` requiere iniciar sesión a mano
+  (`node qa/visual/login.mjs`) — no se corrió esta ronda.

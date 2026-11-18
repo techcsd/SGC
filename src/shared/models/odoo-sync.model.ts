@@ -19,7 +19,9 @@ export type OdooAgregadoTipo =
   | 'entrada_inventario'
   | 'salida_inventario'
   | 'retiro_material'
-  | 'solicitud_compra';
+  | 'solicitud_compra'
+  | 'conduce_externo'
+  | 'conteo_inventario';
 
 export interface OdooEventoFila {
   id: string;
@@ -64,6 +66,8 @@ export const ODOO_AGREGADO_LABEL: Record<OdooAgregadoTipo, string> = {
   salida_inventario: 'Salida de inventario',
   retiro_material: 'Retiro de material',
   solicitud_compra: 'Solicitud de compra',
+  conduce_externo: 'Conduce externo',
+  conteo_inventario: 'Conteo de inventario',
 };
 
 export const ODOO_ESTADO_LABEL: Record<OdooEventoEstado, string> = {
@@ -76,3 +80,16 @@ export const ODOO_ESTADO_LABEL: Record<OdooEventoEstado, string> = {
   bloqueado: 'Bloqueado',
   cancelado: 'Cancelado',
 };
+
+// W2 — estado de sync por documento (circuito 2)
+export type OdooDocumentoTipo = 'entrada_inventario' | 'retiro_material' | 'conduce_externo' | 'conteo_inventario';
+
+export interface OdooDocumentoSyncEstado {
+  tipo: OdooDocumentoTipo;
+  documento_id: string;
+  estado: 'pendiente' | 'sincronizado' | 'incierto' | 'error';
+  error: string | null;
+  picking_id: number | null;
+  intentos: number;
+  actualizado_en: string | null;
+}

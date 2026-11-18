@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { TransporteV3Service, ProveedorTransporte, ViajeProveedor } from '../../../../shared/services/transporte-v3.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -7,6 +7,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /**
  * BA / Transporte v3 — catálogo de proveedores de transporte + bandeja de
@@ -14,7 +15,7 @@ import { I18nService } from '../../../../shared/i18n/i18n.service';
  */
 @Component({
   selector: 'app-proveedores-transporte',
-  imports: [DatePipe, Skeleton, StaggerDirective, TranslatePipe],
+  imports: [FechaPipe, Skeleton, StaggerDirective, TranslatePipe],
   templateUrl: './proveedores-transporte.html',
   styleUrl: './proveedores-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

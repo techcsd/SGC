@@ -1,0 +1,9 @@
+<section class="conduce-qr">
+  @if (error()) {
+    <h1>{{ 'No se pudo abrir el conduce' | t }}</h1>
+    <p role="alert">{{ error() | t }}</p>
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/">{{ 'Ir al inicio' | t }}</a>
+  } @else {
+    <p>{{ 'Abriendo el conduce…' | t }}</p>
+  }
+</section>

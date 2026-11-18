@@ -6,7 +6,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
-import { DecimalPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { DecimalPipe, CurrencyPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { StockService } from '../../../../shared/services/stock.service';
@@ -18,6 +18,7 @@ import { Categoria } from '../../../../shared/models/categoria.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 interface EntradaRow {
   id: string;
@@ -77,7 +78,7 @@ interface TopArticulo {
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, DatePipe, CurrencyPipe, Skeleton, TranslatePipe],
+  imports: [DecimalPipe, FechaPipe, CurrencyPipe, Skeleton, TranslatePipe],
 })
 export class Reportes implements OnInit {
   protected i18n = inject(I18nService);

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 /**
  * CP2/CP3 — "Conversaciones de Compa": vista de admin para revisar lo que la
@@ -37,7 +38,7 @@ interface MensajeAdmin {
 
 @Component({
   selector: 'app-admin-compa-conversaciones',
-  imports: [DatePipe, FormsModule, TranslatePipe],
+  imports: [FechaPipe, FormsModule, TranslatePipe],
   templateUrl: './compa-conversaciones.html',
   styleUrl: './compa-conversaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

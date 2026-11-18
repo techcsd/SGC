@@ -1029,10 +1029,15 @@ export class Requisiciones implements OnInit {
   async confirmarRechazar() {
     const s = this.selected();
     if (!s || this.saving()) return;
+    // DS-24: motivo obligatorio (el servidor también lo exige).
+    if (this.rechazoNota().trim().length < 10) {
+      this.actionError.set(this.i18n.t('El motivo del rechazo debe tener al menos 10 caracteres.'));
+      return;
+    }
     this.saving.set(true);
     this.actionError.set('');
     try {
-      await this.service.rechazar(s.id, this.rechazoNota().trim() || null);
+      await this.service.rechazar(s.id, this.rechazoNota().trim());
       this.toast.info(this.i18n.t('Requisición rechazada'));
       this.drawerOpen.set(false);
       await this.loadAll();

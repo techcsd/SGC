@@ -185,6 +185,8 @@ export interface OdooConfig {
   companyId: number;
   timeoutMs?: number;
   fetchFn?: typeof fetch;
+  /** Lector de variables para la guardia de host (tests). Por defecto Deno.env. */
+  entorno?: (k: string) => string | undefined;
   /** Allowlist de llamadas. Por defecto POLITICA_POR_DEFECTO (lo que usa el gateway). */
   politica?: PoliticaOdoo;
   /** Transporte alternativo (p. ej. JSON-2 en Odoo >= 19). Por defecto XML-RPC. */
@@ -202,15 +204,32 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
   lectura: {
     "product.product": ["search_read"],
     "stock.location": ["search_read"],
-    "stock.quant": ["read_group"],
+    "stock.quant": ["read_group", "search_read"], // DS-22: saldo por articulo/ubicacion para ajustes
     "res.partner": ["search_read"],
     "purchase.order": ["search_read"],
-    "stock.picking": ["search_read"],
+    "stock.picking": ["search_read", "read"],
+    // DS-08: traslados A/B (lectura de movimientos, tipos de operacion, autores del chatter)
+    "stock.move": ["read", "search_read"],
+    "stock.picking.type": ["search_read"],
+    "stock.warehouse": ["search_read"],
+    "stock.warehouse.orderpoint": ["search_read"], // Reabastecimiento: reglas de minimo/maximo
+    "res.users": ["search_read"],
+    "hr.employee": ["search_read"],
+    "ir.attachment": ["search_read"], // DS-28: detectar adjunto duplicado (solo metadatos, sin `datas`)
   },
   escritura: {
+    // DS-08: traslados. Sin unlink: un movimiento nunca se borra, se cancela o se devuelve.
+    "stock.picking": ["create", "write", "action_confirm", "action_assign", "button_validate", "action_cancel", "message_post"],
+    "stock.move": ["write"],
+    // DS-28: PDF firmado del conduce como adjunto del picking (ADR 19). Solo alta; sin write/unlink.
+    "ir.attachment": ["create"],
     "purchase.order": ["create", "button_confirm", "button_cancel"],
+    // DS-22: ajustes de inventario por la accion de negocio de Odoo (inventory_quantity + action_apply_inventory). Nunca `quantity` directo.
+    "stock.quant": ["create", "write", "action_apply_inventory"],
     // Proveedores directos en Odoo: alta y edición/archivado. Sin unlink: nunca se borra un partner.
     "res.partner": ["create", "write"],
+    // Reabastecimiento: reglas de minimo/maximo con disparador manual. Sin unlink: una regla se archiva, nunca se borra.
+    "stock.warehouse.orderpoint": ["create", "write"],
   },
 };
 
@@ -230,6 +249,31 @@ export function validarUrl(raw: string): string {
     throw new OdooError("odoo_config", "ODOO_URL debe usar https.");
   }
   return raw.replace(/\/+$/, "");
+}
+
+// ── DS-02: guardia de host de escritura ────────────────────────────────────
+// Una ESCRITURA solo sale hacia un host de `ODOO_HOSTS_ESCRITURA` (lista separada
+// por comas, secret del servidor; nunca va escrita en el repo). Sin la variable no
+// se escribe a ningún host (falla cerrado). Si el host además está en
+// `ODOO_HOSTS_PROD`, exige `ODOO_PERMITIR_PROD=true` (OK explícito de Xaviel).
+// Las lecturas no pasan por aquí: leer del Odoo real sigue permitido.
+type LeerEnv = (k: string) => string | undefined;
+const envDeno: LeerEnv = (k) => {
+  try { return Deno.env.get(k); } catch { return undefined; }
+};
+const listaHosts = (v: string | undefined) =>
+  (v ?? "").split(",").map((h) => h.trim().toLowerCase()).filter(Boolean);
+
+export function verificarHostEscritura(url: string, env: LeerEnv = envDeno): void {
+  let host: string;
+  try { host = new URL(url).host.toLowerCase(); } catch { throw new OdooError("odoo_config", "ODOO_URL no es una URL válida."); }
+  const permitidos = listaHosts(env("ODOO_HOSTS_ESCRITURA"));
+  if (!permitidos.includes(host)) {
+    throw new OdooError("odoo_config", "Escritura bloqueada: el servidor Odoo configurado no está autorizado para escritura.");
+  }
+  if (listaHosts(env("ODOO_HOSTS_PROD")).includes(host) && env("ODOO_PERMITIR_PROD") !== "true") {
+    throw new OdooError("odoo_config", "Escritura bloqueada: el Odoo de producción exige autorización explícita.");
+  }
 }
 
 export function configDesdeEntorno(): OdooConfig {
@@ -332,6 +376,7 @@ export class TransporteXmlRpc implements TransporteOdoo {
    * Un fault de Odoo (fault=true) es un rechazo cierto.
    */
   private async escribir(model: string, method: string, args: XmlRpcValue[], kwargs: Record<string, XmlRpcValue>): Promise<XmlRpcValue> {
+    verificarHostEscritura(this.cfg.url, this.cfg.entorno); // DS-02: antes de autenticar o enviar nada
     const uid = await this.autenticar(); // si falla aquí, todavía no se envió nada
     try {
       return await this.rpc("object", "execute_kw", [this.cfg.db, uid, this.cfg.apiKey, model, method, args, kwargs]);

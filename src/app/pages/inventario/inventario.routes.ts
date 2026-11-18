@@ -63,6 +63,13 @@ export const inventarioRoutes: Routes = [
     title: 'Conduces — Inventario',
   },
   {
+    // DS-33/DS-34 - solicitudes de material y conduces que llevan demasiado tiempo abiertos (solo lectura).
+    path: 'pendientes-cierre',
+    canActivate: [submoduloGuard('inventario.salidas')],
+    loadComponent: () => import('./pendientes-cierre/pendientes-cierre').then((m) => m.PendientesCierre),
+    title: 'Pendientes de cierre — Inventario',
+  },
+  {
     path: 'confirmaciones',
     canActivate: [submoduloGuard('inventario.salidas')],
     loadComponent: () => import('./confirmaciones/confirmaciones').then((m) => m.Confirmaciones),
@@ -89,6 +96,12 @@ export const inventarioRoutes: Routes = [
   // AU8 — 'por-firmar' se movió a ruta top-level (/por-firmar, gateada por
   // noChoferGuard) porque es un inbox personal que no debe heredar el guard del
   // módulo Inventario. Ver app.routes.ts. /inventario/por-firmar redirige allí.
+  {
+    // DS-17/DS-28/DS-29 — faltantes en tránsito, corte por almacén y autorización prueba → real (gate real server-side).
+    path: 'ajustes-odoo',
+    loadComponent: () => import('./odoo-ajustes/odoo-ajustes').then((m) => m.OdooAjustes),
+    title: 'Faltantes y corte con Odoo — Inventario',
+  },
   {
     // AU4 — bandeja de material no catalogado (admin/inventario; gate real server-side).
     path: 'material-no-catalogado',

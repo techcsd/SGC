@@ -45,6 +45,8 @@ export interface ToolDef {
   // BE2 — "gap": no consulta ni actúa; registra que a Compa le FALTA una capacidad
   // (motivo sin_tool) para el backlog de Tecnología. Se resuelve en el loop.
   gap?: boolean;
+  // DS-41/#76 — parte diario por voz: arma una PROPUESTA con la edge bitacora-ia (nunca crea la bitácora). Apagada por parámetro.
+  parteIa?: boolean;
   // Lectura:
   rpc?: string;
   map?: (i: Any) => Record<string, unknown>;
@@ -220,6 +222,28 @@ export const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: { estado: { type: "string" }, urgencia: { type: "string" }, busqueda: { type: "string" } } },
     rpc: "requisiciones_bandeja",
     map: (i) => ({ p_estado: i.estado ?? "pendiente", p_proyecto_id: null, p_urgencia: i.urgencia ?? null, p_busqueda: i.busqueda ?? null, p_limite: 30 }),
+  },
+  {
+    // DS-33/#56 (ronda DS) - lectura de la cola de solicitudes de material sin aprobar (mas antiguas primero).
+    name: "solicitudes_material_atascadas",
+    description: "Solicitudes de material PENDIENTES DE APROBACION, de la más antigua a la más reciente, con su antigüedad y si ya se escalaron (para '¿qué solicitudes llevan más tiempo sin aprobarse?'). Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {} },
+    rpc: "solicitudes_material_pendientes_reporte", map: () => ({}),
+  },
+  {
+    // DS-34/#58 (ronda DS) - conduces despachados que nadie ha cerrado.
+    name: "conduces_por_cerrar",
+    description: "Conduces despachados SIN recepción (sin cerrar), más antiguos primero, con días abierto y despachante. 'dias_min' filtra por antigüedad mínima (para '¿qué conduces llevan más de una semana sin cerrarse?'). Requiere módulo inventario.",
+    modulos: ["inventario"], canales: ["compa", "mcp"],
+    input_schema: { type: "object", properties: { dias_min: { type: "integer" } }, additionalProperties: false },
+    rpc: "conduces_por_cerrar", map: (i) => ({ p_dias_min: Number.isFinite(Number(i.dias_min)) ? Number(i.dias_min) : 0 }),
+  },
+  {
+    // DS-38/#62 (ronda DS) - adopcion por rol (solo conteos; el detalle nominal es solo del admin en la pantalla).
+    name: "adopcion_por_rol",
+    description: "Adopción del sistema por rol: usuarios, cuántos nunca entraron y cuántos estuvieron activos recientemente (para '¿qué roles no usan el sistema?'). Requiere administración o dirección.",
+    modulos: ["admin", "direccion"], canales: ["compa", "mcp"], input_schema: { type: "object", properties: {} },
+    rpc: "adopcion_por_rol", map: () => ({}),
   },
   {
     name: "resumen_proyectos",
@@ -1061,6 +1085,17 @@ export const TOOLS: ToolDef[] = [
     }, required: ["proyecto_id", "fecha", "tipo"], additionalProperties: false },
     write: { tipo: "bitacora", execRpc: "crear_bitacora_app",
       execMap: (p) => ({ p_id: p.__idem_id ?? crypto.randomUUID(), p_proyecto_id: p.proyecto_id, p_fecha: p.fecha, p_tipo: p.tipo, p_comentarios: p.comentarios ?? null }) },
+  },
+  {
+    // DS-41/#76 — solo Compa (WhatsApp/voz) y SOLO si el parámetro parte_voz_whatsapp_activo está en 'true' (el assistant la quita si no).
+    // No crea nada: guarda una propuesta (edge bitacora-ia, con la sesión del usuario) y devuelve un enlace para revisarla y confirmarla.
+    name: "preparar_parte_diario",
+    description: "Arma el BORRADOR de un parte diario de obra a partir de lo que la persona DIJO (nota de voz ya transcrita o texto): extrae personal, actividades, lluvia y comentarios. NO crea la bitácora: devuelve un enlace para que la persona revise y confirme en SGC. Úsala cuando alguien dicte o describa cómo fue el día en obra. Resuelve proyecto_id con 'mis_proyectos'. Requiere módulo bitácora y el consentimiento de IA de la persona.",
+    modulos: ["bitacora"], canales: ["compa"], parteIa: true,
+    input_schema: { type: "object", properties: {
+      proyecto_id: { type: "string" }, fecha: { type: "string", description: "YYYY-MM-DD (por defecto hoy)" },
+      transcripcion: { type: "string", description: "Lo que dijo la persona, tal cual (mínimo 10 caracteres)" },
+    }, required: ["proyecto_id", "transcripcion"], additionalProperties: false },
   },
   {
     name: "proponer_decision_legal",

@@ -6,7 +6,7 @@
 </div>
 
 <p class="os-lead">
-  {{ 'Outbox de eventos hacia Odoo (maestros y documentos). Hoy la publicación está apagada por política y el adaptador de escritura es un simulador (MOCK) — nada de esto llegó al Odoo real todavía.' | t }}
+  {{ 'Outbox de eventos hacia Odoo. Conduces, entradas, retiros, conteos y ajustes se publican al Odoo real según la política de cada tipo; los maestros (artículos, categorías, unidades, proveedores) se verifican contra Odoo, que es su autoridad.' | t }}
 </p>
 
 @if (error()) {
@@ -76,7 +76,7 @@
                 @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'Prueba' | t }}</span> }
               </td>
               <td class="text-right">{{ f.intentos }}</td>
-              <td>{{ f.actualizado_en | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ f.actualizado_en | fecha:'dd/MM/yyyy HH:mm' }}</td>
               <td class="text-center">
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetalle(f)">{{ 'Ver' | t }}</button>
               </td>
@@ -141,7 +141,7 @@
               @for (i of d.intentos; track $index) {
                 <li>
                   <span [class]="estadoBadgeClass(i.estado_resultado)">{{ estadoLabel[i.estado_resultado] | t }}</span>
-                  <span class="text-muted">{{ i.procesador }} — {{ i.finalizado_en | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="text-muted">{{ i.procesador }} — {{ i.finalizado_en | fecha:'dd/MM/yyyy HH:mm' }}</span>
                   @if (i.error) { <span class="os-intento-error">{{ i.error }}</span> }
                 </li>
               }

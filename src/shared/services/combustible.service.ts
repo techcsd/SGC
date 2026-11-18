@@ -172,6 +172,14 @@ export class CombustibleService {
     return data as { ok: boolean; lectura?: LecturaRecibo; confianza?: Record<string, number>; modelo?: string };
   }
 
+  /** W2 (DS-37/#60) — salud de la importación de estación y calidad de km. {} si no hay acceso. */
+  async saludCombustible(): Promise<SaludCombustible | null> {
+    const { data, error } = await this.supabase.client.rpc('flota_salud_combustible');
+    if (error) throw new Error(error.message);
+    const d = data as Partial<SaludCombustible> | null;
+    return d && typeof d.registros_total === 'number' ? (d as SaludCombustible) : null;
+  }
+
   /** CW4 — rendimiento por vehículo en un período (RPC reporte_rendimiento_vehiculos). */
   async reporteRendimiento(desde: string, hasta: string, vehiculoId: string | null = null): Promise<RendimientoVehiculoRow[]> {
     const { data, error } = await this.supabase.client.rpc('reporte_rendimiento_vehiculos', {
@@ -511,4 +519,15 @@ export class CombustibleService {
     if (!path) return null;
     return this.cache.signed(BUCKET, path);
   }
+}
+
+/** W2 (DS-37) — resultado de flota_salud_combustible(). */
+export interface SaludCombustible {
+  registros_total: number;
+  km_pendiente_pct: number;
+  importadas_total: number;
+  ultima_importada: string | null;
+  dias_sin_importar: number | null;
+  importacion_caida: boolean;
+  registros_ultimos_30d: number;
 }

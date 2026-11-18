@@ -1,5 +1,7 @@
 # Kreyòl por revisar (DP-10/DP-14, CONTEXTO-72)
 
+> **✅ Revisión humana hecha (2026-11-16):** una persona haitiana de Constructora SD revisó la traducción al Kreyòl (`public/i18n/ht.json`, versión 1.217.1) y la dio por buena (reportado por Xaviel en el chat). Los avisos «sin revisión humana» de las secciones históricas de este documento y de `I18N-AVANCE.md` quedan superados por esta nota. Pendiente solo: si quien revisó dejó correcciones puntuales, aplicarlas a `ht.json`.
+
 **Todo el `ht.json` es traducción generada por Claude, no validada por una
 persona que hable Kreyòl ayisyen.** Antes de ofrecerlo a las cuadrillas,
 alguien que hable Kreyòl debe revisar — en orden de prioridad — las pantallas
@@ -36,3 +38,10 @@ Cada lote de F3/F4 que termine añade aquí su sección (módulo + fecha + nº d
 claves + notas de términos dudosos). Cuando Xaviel consiga a alguien que
 hable Kreyòl (paso físico 3), esa persona revisa tanda por tanda contra
 `public/i18n/ht.json` y marca el checklist de arriba.
+
+## Añadido en la ronda DR (16-nov-2026)
+Se agregaron ~670 claves en `ht.json`. Las más visibles para que un hablante las
+revise primero: «Cerrar sesión» (Dekonekte), «Hoy, en vivo», «Flota en vivo»,
+textos del modo práctica (`MODO PRÁCTICA`, «Ya terminé», «Puedes mejorar») y los
+errores amigables (permiso, sesión expirada, conexión). Siguen sin validar por
+una persona.

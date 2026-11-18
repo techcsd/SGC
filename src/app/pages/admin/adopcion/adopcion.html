@@ -1,0 +1,71 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Adopción por rol' | t }}</h1>
+  </div>
+</div>
+
+<p class="ad-intro">
+  {{ 'Cuántas personas de cada rol han entrado al sistema y cuántas lo usaron recientemente. La ventana de «reciente» se cambia en Parámetros (adopcion_dias_activo).' | t }}
+</p>
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else {
+  <!-- DS-35/DS-38 — entradas con OC -->
+  @if (entradasOc(); as eo) {
+    <section class="ad-metrica" aria-label="{{ 'Entradas con orden de compra' | t }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      <div>
+        <strong>{{ 'Entradas con orden de compra (30 días)' | t }}: {{ eo.pct }}%</strong>
+        <span class="ad-metrica__meta">{{ eo.con_oc }} {{ 'de' | t }} {{ eo.total }} {{ 'entradas nacieron de una orden de compra' | t }}</span>
+      </div>
+    </section>
+  }
+  <div class="ad-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'Rol' | t }}</th><th>{{ 'Usuarios' | t }}</th><th>{{ 'Nunca entraron' | t }}</th>
+          <th>{{ 'Activos recientes' | t }}</th><th>{{ 'Sin actividad reciente' | t }}</th><th>{{ '% activo' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of roles(); track r.rol_codigo) {
+          <tr>
+            <td>{{ r.rol }}</td>
+            <td>{{ r.total }}</td>
+            <td [class.ad-alerta]="r.nunca_entraron > 0">{{ r.nunca_entraron }}</td>
+            <td>{{ r.activos_n_dias }}</td>
+            <td>{{ r.sin_actividad_n_dias }}</td>
+            <td>{{ pct(r.activos_n_dias, r.total) }}%</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (inactivos().length || !soloNunca()) {
+    <h2 class="ad-h2">{{ (soloNunca() ? 'Personas que nunca entraron' : 'Personas sin actividad reciente') | t }} ({{ inactivos().length }})</h2>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleSoloNunca()">
+      {{ (soloNunca() ? 'Ver también quienes llevan días sin entrar' : 'Ver solo quienes nunca entraron') | t }}
+    </button>
+    <div class="ad-tabla">
+      <table>
+        <thead>
+          <tr><th>{{ 'Nombre' | t }}</th><th>{{ 'Rol' | t }}</th><th>{{ 'Última actividad' | t }}</th></tr>
+        </thead>
+        <tbody>
+          @for (u of inactivos(); track u.usuario_id) {
+            <tr>
+              <td>{{ u.nombre }}</td>
+              <td>{{ u.rol ?? '—' }}</td>
+              <td>{{ u.ultima_actividad ? (u.ultima_actividad | fecha) : ('Nunca' | t) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

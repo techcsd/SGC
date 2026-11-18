@@ -1,0 +1,17 @@
+// DS-33/34 — Pendientes de cierre
+.pc-intro { color: var(--main-ultra-light); margin: 0 0 16px; }
+.pc-h2 { font-family: var(--font-heading); font-size: 18px; margin: 24px 0 10px; }
+.pc-muted { color: var(--main-ultra-light); }
+.pc-vacio { color: var(--main-ultra-light); padding: 12px 0; }
+.pc-filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.pc-tabla {
+  overflow-x: auto;
+  background: var(--secondary);
+  border: 1px solid var(--main-ultra-light);
+  border-radius: 14px;
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 14px; white-space: nowrap; }
+  th { color: var(--main-ultra-light); font-weight: 600; }
+  tbody tr + tr td { border-top: 1px solid var(--main); }
+  a { color: var(--Hub); }
+}

@@ -2,6 +2,36 @@
 
 ## ✅ Ronda DP→DQ (13-16-nov-2026) — PROMPT 146+: barrido de idioma al 100% — EN PRODUCCIÓN — v1.217.0
 
+## ✅ Ronda DS (16-17-nov-2026) — PROMPT 148: integración Odoo EN PROD (web 1.218.1)
+
+**Estado final (17-nov, autorizado por Xaviel; cuenta Tecnología CSD):** canary validado con conduce real (traslados A+B, reversa), expansión y corte encendidos, **16/16 bodegas con Odoo como fuente del stock** (opción A: Odoo manda; SGC se alineó, 0 diferencias en 3136 filas; respaldo en `sgc.odoo_corte_respaldo_stock`), OC reales (`ODOO_ESCRITURA_HABILITADA=true`), catálogo 230/230 vinculado (179 productos creados en Odoo), 7 categorías y 18 unidades vinculadas, contracción parte B (`odoo_vinculos_stock*` retiradas; `odoo_comandos_oc` se conserva: idempotencia de OC). Scripts versionados en `scripts/data-fixes/2026-11-17-ds-*-prod.mjs`; runbook en `docs/ODOO-PASO-A-PROD.md`.
+**Apagar/revertir:** `ds-expansion-prod.mjs --apagar`, `ds-corte-central-prod.mjs --paso apagar`, `ds-corte-resto-prod.mjs --apagar`, `ds-encender-prod.mjs --apagar`.
+**Cierre 17-nov (noche):** pruebas reales en prod de conteo y desecho (neto cero), «Pendientes en Odoo» y reglas de reabastecimiento (1 regla creada, OP/00001) — backend en prod; **web 1.218.4 en main/prod (--hotfix autorizado por Xaviel; sección Pendientes verificada en prod con navegador visible).** #57 decidido y cerrado (ver ODOO-PASO-A-PROD §9b).
+**Cierre 17-nov (tarde):** maestros verificados contra Odoo (0 pendientes/0 errores en la cola), 1577/1577 proveedores vinculados, OC de prueba «Prueba XT» creada y cancelada contra Odoo real desde la UI (OC-202611-0008 / P01031), `ds46` completo, web 1.218.3 en main (selector de proveedores paginado: tenía tope de 1000 filas; ojo: otras listas con `.select('*')` sin paginar pueden tener el mismo tope). Issues cerrados salvo #57 (no es de Odoo). PDF firmado (DS-28) probado en prod con navegador: subida al bucket, registro en la salida y adjuntos A/B en los pickings de Odoo. **Pendiente/observación:** 1.218.0 y 1.218.1 salieron por `--hotfix` (sin prueba humana de pantallas: probar Inventario › Ajustes Odoo › Corte y Tecnología › Conciliación); alerta `fuera_de_canal` del picking de prueba de Miranda se cierra sola en la corrida diaria; DS-28 (subida de PDF con sesión real), app csd-app (PROMPT-149); `ds46` aplicado en prod (6 lotes de dev + 4 lotes `lote*p` regenerados con las políticas de prod por drift RRHH; smoke antes==después); `dj1-dj3` NO aplicados (sin archivo SQL); issues abiertos: #2, #7, #18, #24, #78, #86, #115 (ver comentarios).
+
+### (histórico) Ronda DS hasta staging
+
+**Estado:** 41 hechos · 6 parciales · 0 sin empezar (47 DS). Detalle: `docs/ODOO-INTEGRACION-AVANCE.md`, lotes en `docs/avance-lotes/`, circuito 2 en `docs/ODOO-CIRCUITO2.md`, medidas de staging en `docs/ODOO-STAGING-VERIFICACION.md`, reversa en `docs/ODOO-RUNBOOK-REVERSA.md`. Versión 1.218.0 (notas Y1 hechas).
+- **Hecho y verificado contra staging (con datos reales, limpiado):** host guard DS-02; traslados A/B con tránsito, publicación por outbox, soak de 12 conduces (0 deriva, 0 inciertos); OC real con analytic_distribution; circuito 2 (contrato 27/28, la restante era aserción corregida); conciliador (143 pickings, 0 discrepancias).
+- **Reconstruido de Miranda (no estaba en el repo):** `_shared/odoo-traslados.ts` y piezas del circuito.
+- **Hallazgos Odoo CSD:** permite stock negativo (SGC verifica antes); `button_cancel` de OC y `action_apply_inventory` devuelven None (fault falso; se relee estado); confirmar OC la deja bloqueada.
+- **Desviación:** publicación asíncrona por outbox, no write-through síncrono; sin stock se bloquea al publicar.
+- **En prod NO hay nada:** migraciones ds5…ds46 solo en dev + ledger dev; secrets de dev apuntan a staging. Para prod: OK explícito, ledger (CD10), `INFRA_SYNC_SECRET` para crons.
+- **Decisión de Xaviel (16-nov):** usar la cuenta «Tecnología CSD» como cuenta de integración (sin usuario dedicado); riesgo aceptado: permisos amplios y `fuera de canal` no distingue ediciones manuales de esa cuenta. Aprobó 21 de 33 propuestas de catálogo (12 dudosas pendientes) y confirmó las cuentas analíticas (aplicado en dev; prod = data-fix versionado + OK).
+- **Pasos físicos de Xaviel:** aprobar propuestas de catálogo; confirmar cuentas CSD-102/CSD-103/PROY-0002; crear cuarentena por almacén en Odoo y enlazarla; entrevistas (Compras, Logística, Flota) para flags apagados; correr dry-run de Realtime en prod; 2 semanas de sombra real; publicar textos de cierre en GitHub; PRs a `dev` y luego release-check.
+- **Residuo en staging:** una OC de prueba confirmada (no cancelable), pickings `SGC-TRAS-TEST-*` en historial, una ubicación de prueba archivada.
+
+## ✅ Ronda DP/DQ/DR (13–16-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — EN PROD v1.217.1
+
+**ESTADO FINAL 16-nov (1.217.1 EN PROD, `main`):**
+- **Hotfix Raykler** (ticket `addfd93e`, «al ajustar el conteo no se actualiza»): `sgc.kardex_articulo` contaba doble el conteo físico (BL4 rebasa apertura, no mueve kardex). Fix `sql/2026-11-16-hf-kardex-excluye-conteo-fisico.sql` (dev+prod, ledger). **Pendiente:** Raykler re-prueba un conteo físico y confirma el kardex; si la lista principal sigue sin cambiar, pedir pantalla+almacén (no está probado que sea exactamente su síntoma).
+- **Cierre i18n** (PR #156): Kreyòl 100 % (en=100 ht=100, 192/192), `verify-i18n` estricto (falla si falta clave en en/ht), `| fecha` en 55 usos, `localeActual()` en fechas `toLocale*`. **Kreyòl revisado por una persona haitiana de la empresa — OK** (PR #159).
+- Release: #157 bump, #158 dev→main. `release-check` 7/7. Test i18n del aviso dev ahora `skipIf(environment.production)`.
+- **Pendiente físico:** `node qa/visual/login.mjs` + `npm run i18n:smoke` (necesita login manual). Meses en Kreyòl dentro de `toLocale*String` salen en español (el pipe `fecha` sí usa su tabla).
+- Limpieza: worktrees SGC-dm/dn/do/hf eliminados. Se dejaron (con cambios sin commitear que NO son de esta sesión): SGC-cz, SGC-da, SGC-dj, SGC-dl, SGC-dl-merge; SGC-dp (commit de PR #154 sin mergear); SGC-graph. Stash `wip-not-mine-temp` en feature/cp-ronda sin tocar.
+
+**Estado al 16-nov:** DP/DQ ya están en `main` (1.217.0). La ronda DR cerró lo que faltaba: `ht` 97→100 % (+670 claves), guardia estricta en `verify-i18n`, `| date`→`| fecha` (55) y `toLocale*` de fecha con `localeActual`. Detalle en `docs/I18N-AVANCE.md` § Cierre. Pendiente físico: `qa/visual/login.mjs` + `npm run i18n:smoke`; revisión humana del Kreyòl. Lo de abajo es el histórico de mitad de ronda (14-nov), ya superado.
+
 **TL;DR:** El barrido completo de i18n (DP-07..DP-13, módulos 1-17) **terminó y está en producción**. **192/192 pantallas** de toda la app con `enforce:true`, `verify-i18n.mjs` en 0 fallos, build + 368/368 tests verdes en cada lote. Todos los módulos: Claude, Configuración/perfil/shell, Dashboard, Inventario, Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, Resto. Detalle lote-por-lote completo en `docs/I18N-AVANCE.md` (incluye TODOS los gotchas de escáner/codemod encontrados — 10 fixes de precisión en `i18n-coverage.mjs`/`verify-i18n.mjs`, 5 bugs reales del codemod `i18n-wrap-html.mjs` corregidos en el script).
 
 **Shipped 16-nov** (OK de Xaviel: "i reiew it, promote it to main"): PR #150 (`feature/dq-compras-i18n → dev`, Compras..Admin), PR #151 (`→ dev`, Resto — cierra 192/192), PR #152 (bump 1.217.0 `→ dev`), PR #153 (`dev → main`) — los 4 mergeados. `release-check.mjs --env dev --version 1.217.0` en 7/7 PASS antes del PR a `main`. `qa/release-1.217.0.md` con el OK.
@@ -3413,3 +3443,10 @@ grep '"version"' package.json   # 1.95.0
 # ¿está la key de Compa puesta? (si Compa da 503, falta ANTHROPIC_API_KEY)
 npx supabase@latest secrets list --project-ref jeeqhgccqefbqilntcpu 2>/dev/null | grep -i anthropic || echo "FALTA ANTHROPIC_API_KEY"
 ```
+
+## Ronda DS — cierre de issues (17-nov-2026)
+- Todos los issues abiertos cerrados (#56–#87). Migraciones a prod: dk, dl, dm, dn, do, dp, dq, dr (QR conduce encendido), dt (`conduce_estado_sync`), du (parte por voz encendido). Edge `conduce-qr` v13 en prod.
+- Decisiones: Odoo es fuente de verdad de proveedores (1577 ratificados); poda de Realtime (7 tablas, reversible); inicio de viaje automático NO se implementa; "artículo aprobado" = activo = vinculado a Odoo (230/230).
+- App 2.71.0 en prod (incluye chip contable con `conduce_estado_sync`, asistente de GPS, mi_arranque). Sin probar en pantalla: asistente de GPS y rechazo con motivo.
+- Parte por voz probado con texto en dev; falta prueba con nota de voz real por WhatsApp.
+- Web 1.218.4 salió por hotfix sin prueba humana independiente; 2 conteos borrador viejos (25-sep, 12-oct) sin tocar.

@@ -45,7 +45,7 @@
                   {{ 'desde bitácora' | t }}
                 </a>
               }
-              <span class="ret-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+              <span class="ret-fecha">{{ f.created_at | fecha: 'dd/MM/yy HH:mm' }}</span>
             </div>
             <div class="ret-item-body">
               <strong>{{ f.proyecto_nombre || '—' }}</strong>
@@ -80,7 +80,7 @@
                 <td>{{ c.articulo_nombre || '—' }}</td>
                 <td>{{ c.codigo || '—' }}</td>
                 <td class="num">{{ c.cantidad }}</td>
-                <td>{{ c.updated_at | date: 'dd/MM/yy' }}</td>
+                <td>{{ c.updated_at | fecha: 'dd/MM/yy' }}</td>
               </tr>
             }
           </tbody>
@@ -181,6 +181,8 @@
 <app-form-drawer [title]="i18n.t('Detalle del retiro')" [open]="detalleAbierto()" [wide]="true" (closed)="detalleAbierto.set(false)">
   @if (retiroActual; as r) {
     <div class="ret-detalle">
+      <!-- W2 — sincronización con Odoo -->
+      <app-odoo-sync-estado tipo="retiro_material" [documentoId]="$any(r['id'])" />
       <div class="ret-item-top">
         <span class="sgc-badge sgc-badge--{{ estadoBadge($any(r['estado'])) }}">{{ estadoLabel($any(r['estado'])) | t }}</span>
         <span class="ret-folio">{{ 'RET-' | t }}{{ ($any(r['folio']) ?? 0).toString().padStart(6, '0') }}</span>

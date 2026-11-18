@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
+
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -32,6 +32,7 @@ import { RolePermisosEditor } from './role-permisos-editor';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 /** Fila de la vista "accesos efectivos" ya resuelta a etiquetas legibles. */
 interface AccesoModuloVista {
   key: string;
@@ -58,7 +59,7 @@ interface DiffPermisos {
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, FormDrawer, Skeleton, Paginator, RolePermisosEditor, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, FechaPipe, FormDrawer, Skeleton, Paginator, RolePermisosEditor, TranslatePipe],
   templateUrl: './roles.html',
   styleUrl: './roles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

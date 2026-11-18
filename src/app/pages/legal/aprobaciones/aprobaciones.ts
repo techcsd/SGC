@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
 import { MotionService } from '../../../../shared/services/motion.service';
@@ -14,9 +14,10 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 @Component({
   selector: 'app-aprobaciones',
-  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator, StaggerDirective, TranslatePipe],
+  imports: [FormDrawer, FechaPipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator, StaggerDirective, TranslatePipe],
   templateUrl: './aprobaciones.html',
   styleUrl: './aprobaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

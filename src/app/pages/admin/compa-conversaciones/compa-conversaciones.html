@@ -48,7 +48,7 @@
               [class.ccv__item--problema]="c.contradicciones || c.promesas_sin_accion || c.errores_tool" (click)="abrir(c)">
               <span class="ccv__item-head">
                 <b>{{ c.usuario_nombre }}</b>
-                <span class="ccv__item-fecha">{{ c.updated_at | date: 'short' }}</span>
+                <span class="ccv__item-fecha">{{ c.updated_at | fecha: 'short' }}</span>
               </span>
               <span class="ccv__item-titulo">«{{ c.titulo || ('Conversación' | t) }}»</span>
               @if (c.contradicciones || c.promesas_sin_accion || c.errores_tool) {

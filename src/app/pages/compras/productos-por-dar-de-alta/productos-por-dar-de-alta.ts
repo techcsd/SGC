@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { OdooProductoSolicitudesService } from '../../../../shared/services/odoo-producto-solicitudes.service';
@@ -14,6 +14,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { FechaPipe } from '../../../../shared/i18n/fecha.pipe';
 
 type ModoResolucion = 'vincular' | 'crear' | 'rechazar' | null;
 
@@ -26,7 +27,7 @@ type ModoResolucion = 'vincular' | 'crear' | 'rechazar' | null;
  */
 @Component({
   selector: 'app-productos-por-dar-de-alta',
-  imports: [DatePipe, FormDrawer, Skeleton, Paginator, ArticuloPicker, TranslatePipe],
+  imports: [FechaPipe, FormDrawer, Skeleton, Paginator, ArticuloPicker, TranslatePipe],
   templateUrl: './productos-por-dar-de-alta.html',
   styleUrl: './productos-por-dar-de-alta.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -706,14 +706,14 @@
           @case ('rechazar') {
             <div class="req-detail__form">
               <div class="sgc-field">
-                <label class="filters-bar__label" for="req-nota">{{ 'Motivo del rechazo (opcional)' | t }}</label>
+                <label class="filters-bar__label" for="req-nota">{{ 'Motivo del rechazo (obligatorio, mínimo 10 caracteres)' | t }}</label>
                 <textarea id="req-nota" rows="3" [value]="rechazoNota()"
                           (input)="rechazoNota.set($any($event.target).value)"
                           placeholder="{{ 'Explica por qué se rechaza…' | t }}"></textarea>
               </div>
               <div class="req-detail__actions">
                 <button type="button" class="sgc-btn sgc-btn--danger"
-                        [disabled]="saving()" (click)="confirmarRechazar()">
+                        [disabled]="saving() || rechazoNota().trim().length < 10" (click)="confirmarRechazar()">
                   {{ (saving() ? 'Rechazando…' : 'Confirmar rechazo') | t }}
                 </button>
                 <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="volverVer()">

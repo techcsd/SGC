@@ -1,0 +1,28 @@
+// DS-38 — tablero de adopción
+.ad-intro { color: var(--main-ultra-light); margin: 0 0 16px; }
+.ad-h2 { font-family: var(--font-heading); font-size: 18px; margin: 24px 0 10px; }
+.ad-alerta { color: var(--primary); font-weight: 600; }
+.ad-tabla {
+  overflow-x: auto;
+  margin-top: 10px;
+  background: var(--secondary);
+  border: 1px solid var(--main-ultra-light);
+  border-radius: 14px;
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 14px; white-space: nowrap; }
+  th { color: var(--main-ultra-light); font-weight: 600; }
+  tbody tr + tr td { border-top: 1px solid var(--main); }
+}
+
+// DS-35/DS-38 — métrica «entradas con OC»
+.ad-metrica {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.ad-metrica__meta { display: block; font-size: 12px; color: var(--main-ultra-light); }

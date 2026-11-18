@@ -19,6 +19,14 @@ export interface OrdenCompraPayload {
   es_prueba?: boolean;
 }
 
+/** W3 (DS-06) — cuenta analítica de Odoo de una obra; `nombre` se llena en la homologación. */
+export interface CuentaAnaliticaOc {
+  odoo_analytic_id: number;
+  rol: string;
+  confirmado: boolean;
+  nombre: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrdenesCompraService {
   private supabase = inject(SupabaseService);
@@ -117,6 +125,18 @@ export class OrdenesCompraService {
       p_odoo_uom_id: producto.unidad_compra_id,
       p_odoo_snapshot: producto,
     });
+    if (error) throw new Error(error.message);
+  }
+  /** W2 (DS-06) — cuentas analíticas de Odoo de la obra (para elegir cuando hay más de una). */
+  async cuentasAnaliticasProyecto(proyectoId: string): Promise<CuentaAnaliticaOc[]> {
+    const { data, error } = await this.supabase.client.rpc('proyecto_cuentas_analiticas_para_oc', { p_proyecto_id: proyectoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as CuentaAnaliticaOc[];
+  }
+
+  /** W2 (DS-06) — guarda la cuenta analítica elegida en la OC (validada contra la obra en el servidor). */
+  async elegirCuentaAnalitica(ordenId: string, analyticId: number | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('oc_elegir_cuenta_analitica', { p_orden_id: ordenId, p_analytic_id: analyticId });
     if (error) throw new Error(error.message);
   }
 }

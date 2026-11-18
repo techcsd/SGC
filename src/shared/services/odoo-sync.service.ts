@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { OdooEventoDetalle, OdooEventoEstado, OdooEventoFila, OdooAgregadoTipo, OdooEventosResumenFila } from '../models/odoo-sync.model';
+import { OdooDocumentoSyncEstado, OdooDocumentoTipo, OdooEventoDetalle, OdooEventoEstado, OdooEventoFila, OdooAgregadoTipo, OdooEventosResumenFila } from '../models/odoo-sync.model';
 
 /**
  * CY16 (#16) — bandeja de sincronización con Odoo (Tecnología). Solo lectura
@@ -36,5 +36,20 @@ export class OdooSyncService {
   async reintentar(eventoId: string): Promise<void> {
     const { error } = await this.supabase.client.rpc('odoo_evento_reintentar', { p_evento_id: eventoId });
     if (error) throw new Error(error.message);
+  }
+
+  /** W2 — estado de sync de UN documento del circuito 2 (solo Tecnología/admin). null si nunca se encoló. */
+  async estadoDocumento(tipo: OdooDocumentoTipo, id: string): Promise<OdooDocumentoSyncEstado | null> {
+    const { data, error } = await this.supabase.client.rpc('odoo_documento_sync_estado', { p_tipo: tipo, p_id: id });
+    if (error) throw new Error(error.message);
+    const fila = ((data ?? []) as OdooDocumentoSyncEstado[])[0];
+    return fila && fila.estado ? fila : null;
+  }
+
+  /** W2 — re-encola los eventos en error/incierto del documento (mismo procesador). */
+  async reintentarDocumento(tipo: OdooDocumentoTipo, id: string): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('odoo_reintentar_documento', { p_tipo: tipo, p_id: id });
+    if (error) throw new Error(error.message);
+    return Number(data ?? 0);
   }
 }

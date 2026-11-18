@@ -25,6 +25,31 @@ export interface ProveedorPayload {
   es_prueba?: boolean;
 }
 
+/** DS-25 — fila de la lista de curación de proveedores. */
+export interface ProveedorCuracion {
+  id: string;
+  nombre: string;
+  rnc: string | null;
+  activo: boolean;
+  movimientos: number;
+  ratificado_en: string | null;
+  vinculado_odoo: boolean;
+}
+
+/** DS-25 — par de proveedores que podrían ser el mismo. */
+export interface ProveedorDuplicado {
+  a_id: string;
+  a_nombre: string;
+  a_mov: number;
+  a_ratificado: boolean;
+  b_id: string;
+  b_nombre: string;
+  b_mov: number;
+  b_ratificado: boolean;
+  similitud: number;
+  mismo_rnc: boolean;
+}
+
 /** AF32 — ferretería visible para choferes (RPC ferreterias_visibles). */
 export interface FerreteriaVisible {
   id: string;
@@ -58,14 +83,55 @@ export class ProveedoresService {
   private supabase = inject(SupabaseService);
 
   async getAll(): Promise<Proveedor[]> {
-    const { data, error } = await this.supabase.client
-      .schema('sgc')
-      .from('proveedores')
-      .select('*')
-      .order('nombre');
+    // PostgREST corta cada respuesta en 1000 filas: se pagina para no perder proveedores (había 1577 y los últimos no aparecían en los selectores).
+    const todos: Proveedor[] = [];
+    const PAGINA = 1000;
+    for (let desde = 0; ; desde += PAGINA) {
+      const { data, error } = await this.supabase.client
+        .schema('sgc')
+        .from('proveedores')
+        .select('*')
+        .order('nombre')
+        .order('id')
+        .range(desde, desde + PAGINA - 1);
+      if (error) throw new Error(error.message);
+      const fila = (data ?? []) as unknown as Proveedor[];
+      todos.push(...fila);
+      if (fila.length < PAGINA) break;
+    }
+    return todos;
+  }
 
+  /**
+   * DS-25 — ids que ofrecen los selectores de proveedor (ratificados o con movimiento real, máx. 300).
+   * `null` = sin restricción (parámetro apagado).
+   */
+  async idsSelector(): Promise<Set<string> | null> {
+    const { data, error } = await this.supabase.client.rpc('proveedores_ids_selector');
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as Proveedor[];
+    const r = data as { restringido: boolean; ids: string[] } | null;
+    return r?.restringido ? new Set(r.ids) : null;
+  }
+
+  /** DS-25 — lista de curación: movimiento real y ratificación por proveedor. */
+  async curacionListar(): Promise<ProveedorCuracion[]> {
+    const { data, error } = await this.supabase.client.rpc('proveedores_curacion_listar');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ProveedorCuracion[];
+  }
+
+  /** DS-25 — posibles duplicados (similitud de nombre o mismo RNC). */
+  async duplicados(): Promise<ProveedorDuplicado[]> {
+    const { data, error } = await this.supabase.client.rpc('proveedores_duplicados', { p_umbral: null });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ProveedorDuplicado[];
+  }
+
+  /** DS-25 — ratifica un lote (Compras/admin). Devuelve cuántos cambiaron. */
+  async ratificarLote(ids: string[]): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('proveedores_ratificar_lote', { p_ids: ids });
+    if (error) throw new Error(error.message);
+    return Number(data ?? 0);
   }
 
   /** AF32 — ferreterías visibles para choferes (origen de conduce en la app). */
