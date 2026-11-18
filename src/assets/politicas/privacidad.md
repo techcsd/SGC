@@ -64,6 +64,7 @@ Para operar, la Empresa usa proveedores de servicios ("procesadores") que tratan
 - **Google** (EE. UU./global) — notificaciones push (Firebase Cloud Messaging) y mapas (Google Maps Platform).
 - **Open-Meteo** (UE) — clima de las obras (solo coordenadas, sin datos personales).
 - **OpenStreetMap / Nominatim** (UE) — búsqueda de direcciones.
+- **Odoo** (sistema contable y de inventario de la empresa) — recibe de SGC los movimientos de inventario, las órdenes de compra y los ajustes. En el historial de cada movimiento puede aparecer el **nombre de la persona** que despachó o recibió (sin correo ni cédula) y, como adjunto, el PDF firmado del conduce.
 
 No vendemos tus datos ni los compartimos con terceros para fines distintos a los descritos.
 
