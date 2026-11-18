@@ -82,3 +82,13 @@ Apagar política por tipo → `permitir_*=false` → quitar el host de `ODOO_HOS
 
 ## 10. Datos y terceros (CI13)
 La integración envía a Odoo nombre/correo del autor en el chatter, cuentas, productos y el PDF firmado del conduce (firmas y fotos). Revisar `docs/DATOS-Y-TERCEROS.md`, la política de privacidad y los formularios de tienda **antes** de encender en prod.
+
+## §10 Observación de fases 2 y 3 — línea base (18-nov-2026, #204)
+- Medición en prod (solo lectura): 10 conduces publicados con éxito en 30 días, p99 de publicación ≈ 126 s, 0 inciertos, 0 «fuera de canal» abiertas. Además 24 conduces del 18-nov en error por falta de existencias en Odoo (#202).
+- El criterio `cumple_p99` de `odoo_canary_criterios()` exige p99 < 5 s, pero el SLO del plan para el outbox asíncrono es «99 % en menos de 2 min» (`odoo_slo_evaluar`). Con la publicación por outbox, 5 s no es realista: se toma el SLO de 2 min como criterio vigente.
+- Procedimiento: cada semana, desde Tecnología › Conciliación, revisar p99, inciertos, errores del outbox y «fuera de canal». La fase se da por cumplida tras 2 semanas seguidas con 0 inciertos, 0 «fuera de canal» y errores explicados (stock, no técnicos). Fecha más temprana de cierre: 2-dic-2026, si #202 se resuelve.
+
+## §11 Decisiones de Compras (18-nov-2026, #206)
+- Artículo-sombra (D2): no se construye. Odoo es el catálogo; un artículo que falta se da de alta por «Productos por dar de alta».
+- Alcance de piloto por proyecto (D6): no se construye. El control ya es por almacén/canary (`odoo_canary_permite`).
+- Selector de cuenta analítica: ya existe en `compras/ordenes` y `compras/ordenes-odoo`.
