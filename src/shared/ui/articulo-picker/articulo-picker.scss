@@ -153,3 +153,6 @@
   color: var(--accent-hover);
   font-style: italic;
 }
+
+// DT2 — artículo sin existencia en el almacén de origen: visible, atenuado, no elegible
+.apk__opt--sin-existencia { opacity: 0.55; cursor: not-allowed; }

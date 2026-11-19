@@ -236,10 +236,34 @@ export class CombustibleLog implements OnInit {
   async cargarPorAprobar() {
     if (!this.esFlotaElevado()) return;
     this.loadingAprobar.set(true);
-    try { this.porAprobar.set(await this.combustibleService.echadasPorAprobar()); }
+    try {
+      const lista = await this.combustibleService.echadasPorAprobar();
+      this.porAprobar.set(lista);
+      // DT4 — miniaturas de Recibo/Tablero/Bomba para revisar ANTES de aprobar.
+      for (const e of lista) {
+        for (const path of [e.foto_recibo_path, e.foto_tablero_path, e.foto_bomba_path]) {
+          if (path) void this.cargarFotoAprobar(path);
+        }
+      }
+    }
     catch { /* informativo */ }
     finally { this.loadingAprobar.set(false); }
   }
+
+  // DT4 — estado por foto (path → url firmada / error) para la tarjeta de "Por aprobar".
+  fotoUrls = signal<Record<string, string>>({});
+  fotoErrores = signal<Record<string, boolean>>({});
+  async cargarFotoAprobar(path: string) {
+    this.fotoErrores.update((m) => ({ ...m, [path]: false }));
+    try {
+      const url = await this.combustibleService.getFotoUrl(path);
+      if (!url) throw new Error('sin url');
+      this.fotoUrls.update((m) => ({ ...m, [path]: url }));
+    } catch {
+      this.fotoErrores.update((m) => ({ ...m, [path]: true }));
+    }
+  }
+  fotoFallo(path: string) { this.fotoErrores.update((m) => ({ ...m, [path]: true })); }
 
   revisionChip(rev: string | null | undefined): { label: string; badge: string } | null {
     switch (rev) {
@@ -296,13 +320,14 @@ export class CombustibleLog implements OnInit {
     this.fotoRecibo.set(null);
     this.fotoTablero.set(null);
     this.fotoBomba.set(null);
+    this.fotoDetalleError.set({ recibo: false, tablero: false, bomba: false });
     this.detailLoading.set(true);
     try {
       const r = await this.combustibleService.getById(id);
       this.detail.set(r);
-      if (r?.foto_recibo_path) this.combustibleService.getFotoUrl(r.foto_recibo_path).then((u) => this.fotoRecibo.set(u));
-      if (r?.foto_tablero_path) this.combustibleService.getFotoUrl(r.foto_tablero_path).then((u) => this.fotoTablero.set(u));
-      if (r?.foto_bomba_path) this.combustibleService.getFotoUrl(r.foto_bomba_path).then((u) => this.fotoBomba.set(u));
+      if (r?.foto_recibo_path) void this.cargarFotoDetalle('recibo', r.foto_recibo_path);
+      if (r?.foto_tablero_path) void this.cargarFotoDetalle('tablero', r.foto_tablero_path);
+      if (r?.foto_bomba_path) void this.cargarFotoDetalle('bomba', r.foto_bomba_path);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
       this.detailOpen.set(false);
@@ -312,6 +337,24 @@ export class CombustibleLog implements OnInit {
   }
 
   cerrarDetalle() { this.detailOpen.set(false); }
+  // DT4 — carga de foto del detalle con error visible + Reintentar (antes un fallo mostraba "Sin foto").
+  fotoDetalleError = signal<{ recibo: boolean; tablero: boolean; bomba: boolean }>({ recibo: false, tablero: false, bomba: false });
+  async cargarFotoDetalle(slot: 'recibo' | 'tablero' | 'bomba', path: string) {
+    this.fotoDetalleError.update((m) => ({ ...m, [slot]: false }));
+    try {
+      const u = await this.combustibleService.getFotoUrl(path);
+      if (!u) throw new Error('sin url');
+      (slot === 'recibo' ? this.fotoRecibo : slot === 'tablero' ? this.fotoTablero : this.fotoBomba).set(u);
+    } catch {
+      this.fotoDetalleError.update((m) => ({ ...m, [slot]: true }));
+    }
+  }
+  reintentarFotoDetalle(slot: 'recibo' | 'tablero' | 'bomba') {
+    const r = this.detail();
+    const path = slot === 'recibo' ? r?.foto_recibo_path : slot === 'tablero' ? r?.foto_tablero_path : r?.foto_bomba_path;
+    if (path) void this.cargarFotoDetalle(slot, path);
+  }
+
   verFoto(url: string | null) { if (url) this.lightbox.set(url); }
 
   rendimientoMeta(r: RegistroCombustible | null) {

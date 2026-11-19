@@ -18,6 +18,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
+import { ArticuloPicker } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
@@ -82,7 +83,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective, OrdenTh, TranslatePipe],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, ArticuloPicker, StaggerDirective, OrdenTh, TranslatePipe],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -841,6 +842,45 @@ export class Requisiciones implements OnInit {
       await this.loadAll();
     } catch (e) {
       this.actionError.set(e instanceof Error ? e.message : 'No se pudo quitar la línea.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  // DT3 — cambiar el artículo de un renglón ya aprobado (antes no había forma: "hice los cambios y no se reemplazaron").
+  cambiarArticuloPendiente = signal<RequisicionAvanceItem | null>(null);
+  cambiarArticuloId = signal<string | null>(null);
+  cambiarArticuloMotivo = signal('');
+
+  abrirCambiarArticulo(item: RequisicionAvanceItem) {
+    if (this.saving()) return;
+    this.cambiarArticuloId.set(null);
+    this.cambiarArticuloMotivo.set('');
+    this.cambiarArticuloPendiente.set(item);
+  }
+  cancelarCambiarArticulo() { this.cambiarArticuloPendiente.set(null); }
+
+  async confirmarCambiarArticulo() {
+    const item = this.cambiarArticuloPendiente();
+    const articuloId = this.cambiarArticuloId();
+    const s = this.selected();
+    if (!item || !articuloId || !s || this.saving()) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      const r = await this.service.reemplazarArticuloRenglon(item.item_id, articuloId, this.cambiarArticuloMotivo().trim() || null);
+      this.cambiarArticuloPendiente.set(null);
+      if (!r.cambiado) {
+        this.toast.info(this.i18n.t('Sin cambios'), this.i18n.t('Ese ya es el artículo del renglón.'));
+      } else if (r.compra_ya_avanzo) {
+        this.toast.warning(this.i18n.t('Artículo cambiado'), this.i18n.t('La compra de este faltante ya avanzó: avisa a Compras para que use el artículo nuevo.'));
+      } else {
+        this.toast.success(this.i18n.t('Artículo cambiado'), this.i18n.t('El renglón y su faltante en compra ya usan el artículo nuevo.'));
+      }
+      await this.cargarAvance(s.id);
+      await this.loadAll();
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cambiar el artículo.'));
     } finally {
       this.saving.set(false);
     }

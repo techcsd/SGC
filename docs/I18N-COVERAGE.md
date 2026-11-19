@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10246/10247 literales de 200 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10275/10276 literales de 200 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -81,7 +81,7 @@
 | flota/choferes-privados | enforce | 44 | 44 | 0 | 100% |
 | flota/combustible | enforce | 213 | 213 | 0 | 100% |
 | flota/combustible-dashboard | enforce | 41 | 41 | 0 | 100% |
-| flota/combustible-log | enforce | 120 | 120 | 0 | 100% |
+| flota/combustible-log | enforce | 142 | 142 | 0 | 100% |
 | flota/conciliacion-combustible | enforce | 161 | 161 | 0 | 100% |
 | flota/conductores | enforce | 165 | 165 | 0 | 100% |
 | flota/conductores-estado | enforce | 15 | 15 | 0 | 100% |
@@ -127,7 +127,7 @@
 | inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
 | inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
-| inventario/requisiciones | enforce | 143 | 143 | 0 | 100% |
+| inventario/requisiciones | enforce | 150 | 150 | 0 | 100% |
 | inventario/retiros | enforce | 100 | 100 | 0 | 100% |
 | inventario/salidas | enforce | 133 | 133 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |

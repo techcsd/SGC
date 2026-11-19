@@ -10,6 +10,7 @@ import { DecimalPipe, CurrencyPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { StockService } from '../../../../shared/services/stock.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Articulo } from '../../../../shared/models/articulo.model';
@@ -84,6 +85,7 @@ export class Reportes implements OnInit {
   protected i18n = inject(I18nService);
   private articulosService = inject(ArticulosService);
   private stockService = inject(StockService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private categoriasService = inject(CategoriasService);
   private supabase = inject(SupabaseService);
 
@@ -238,7 +240,7 @@ export class Reportes implements OnInit {
       ]);
 
       this.articulos.set(articulos);
-      this.stockMap.set(this.stockService.buildTotalMap(stock));
+      this.stockMap.set(this.stockService.buildTotalMap(this.stockService.soloReales(stock, this.datosPruebaViewSvc.verPrueba()))); // DT2
       this.categorias.set(categorias);
 
       const [entradasRes, salidasRes, allEntradasRes, allSalidasRes] = await Promise.all([

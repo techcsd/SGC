@@ -746,8 +746,8 @@
     },
     {
       "pantalla": "flota/combustible-log",
-      "total": 120,
-      "cubiertos": 120,
+      "total": 142,
+      "cubiertos": 142,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1206,8 +1206,8 @@
     },
     {
       "pantalla": "inventario/requisiciones",
-      "total": 143,
-      "cubiertos": 143,
+      "total": 150,
+      "cubiertos": 150,
       "sin": 0,
       "pct": 100,
       "enScope": true,

@@ -1,0 +1,11 @@
+# Release 1.218.5 (hotfix Raykler, PROMPT-150)
+- Equipo/tester: Claude Code (sesión asistida, navegador de Xaviel), usuario dev con los roles de Raykler (no admin)
+- Qué se probó (dev.sgcconstructorasd.com, versión 1.218.5 desplegada):
+  - DT4: Flota › Echadas (log) › Por aprobar muestra miniaturas Recibo/Tablero/Bomba, el lightbox abre al tocar, «Ver detalle» abre el detalle con las acciones de aprobación.
+  - DT3: Requisición REQ-009007 (datos de prueba creados y borrados en dev, renglón libre con faltante en compra): «Cambiar artículo» visible para el rol, cambió a PLYWOOD FENOLICO 122X244; el renglón y su renglón de compra quedaron con el artículo nuevo, sin duplicar la compra (1 renglón), con traza en auditoría.
+  - DT1 (solo servidor): registrar_conteo_app como Raykler con un artículo SIN fila previa de stock crea la fila (stock=7); transacción deshecha.
+  - RPC reemplazar_articulo_renglon_requisicion: rechaza requisición rechazada, rechaza usuario sin permiso, rechaza/ignora mismo artículo.
+- NO probado en navegador: pantalla de conteo de la app móvil (estados Enviando/Pendiente/Falló), auto-reparación de chunk (DT5), «Sin existencia aquí» en conduce, stock sin almacenes de prueba. Falta prueba humana de la app en dispositivo.
+- Versión de origen: 1.218.4
+- Resultado: OK (lo probado) · pendiente prueba humana de la app
+- Fecha: 2026-11-19
