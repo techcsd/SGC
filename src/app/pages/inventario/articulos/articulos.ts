@@ -93,7 +93,10 @@ export class Articulos implements OnInit {
     { key: 'unidad', label: 'Unidad', values: (r) => { const u = (r as Articulo).unidad; return u ? [u] : []; } },
   ];
   categories = signal<CategoriaFlat[]>([]);
-  stockMap = signal<Map<string, number>>(new Map());
+  // DT2 — el stock crudo se filtra por "Mostrar datos de prueba" (reactivo al interruptor).
+  private stockRaw = signal<StockPorBodega[]>([]);
+  stockMap = computed<Map<string, number>>(() =>
+    this.stockService.buildTotalMap(this.stockService.soloReales(this.stockRaw(), this.datosPruebaViewSvc.verPrueba())));
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -223,7 +226,7 @@ export class Articulos implements OnInit {
       ]);
       this.categories.set(this.categoriasService.buildFlatList(cats));
       this.articles.set(arts);
-      this.stockMap.set(this.stockService.buildTotalMap(stock));
+      this.stockRaw.set(stock);
       this.unidades.set(unidades);
       this.resolverThumbs();
     } catch (e: unknown) {
@@ -480,7 +483,7 @@ export class Articulos implements OnInit {
         this.articulosService.getUltimosMovimientos(a.id, 10),
         this.articulosService.listarApodos(a.id).catch(() => []),
       ]);
-      this.detalleStock.set(stock);
+      this.detalleStock.set(this.stockService.soloReales(stock, this.datosPruebaViewSvc.verPrueba()));
       this.detalleMovs.set(movs);
       this.apodos.set(apodos);
       if (a.imagen_url) {

@@ -19,16 +19,23 @@ export class StockService {
   async getAll(): Promise<StockPorBodega[]> {
     const { data, error } = await this.supabase.client
       .from('stock_por_bodega')
-      .select('*, bodega:bodegas(nombre)');
+      .select('*, bodega:bodegas(nombre, es_prueba)');
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as StockPorBodega[];
   }
 
+  /** DT2 — excluye el stock de almacenes de PRUEBA salvo que el admin haya activado
+   *  "Mostrar datos de prueba" (misma regla que el resto de la web). Evita que 3 obras
+   *  de prueba con 1,000 c/u inflen el "Stock actual" (web=3,000 vs app=0). */
+  soloReales(rows: StockPorBodega[], verPrueba: boolean): StockPorBodega[] {
+    return verPrueba ? rows : rows.filter((r) => !r.bodega?.es_prueba);
+  }
+
   async getByArticulo(articuloId: string): Promise<StockPorBodega[]> {
     const { data, error } = await this.supabase.client
       .from('stock_por_bodega')
-      .select('*, bodega:bodegas(nombre)')
+      .select('*, bodega:bodegas(nombre, es_prueba)')
       .eq('articulo_id', articuloId);
 
     if (error) throw new Error(error.message);

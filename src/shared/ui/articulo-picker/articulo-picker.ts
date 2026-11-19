@@ -95,10 +95,10 @@ export class ArticuloPicker {
   private grupos = computed<Grupo[]>(() => {
     const stockMap = this.stock();
     const ocultarCero = this.ocultarSinStock() && !!stockMap;
-    // AP3 — en selectores de salida ocultamos existencias en 0 (antes se deshabilitaban).
-    const arts = this.articulos()
-      .filter((a) => a.activo)
-      .filter((a) => !ocultarCero || (stockMap?.[a.id] ?? 0) > 0);
+    // DT2 — los artículos sin existencia YA NO se esconden (Raykler no encontraba "Plywood" al atender):
+    // se muestran deshabilitados con "Sin existencia aquí" (ver sinExistencia()).
+    void ocultarCero;
+    const arts = this.articulos().filter((a) => a.activo);
     const cats = this.categorias();
     const byCat = new Map<number, Articulo[]>();
     for (const a of arts) {
@@ -239,7 +239,14 @@ export class ArticuloPicker {
     return this.sugApodo()[id] ?? null;
   }
 
+  /** DT2 — en selectores de salida/conduce: sin existencia en el almacén de origen → visible pero no elegible. */
+  sinExistencia(a: Articulo): boolean {
+    const m = this.stock();
+    return this.ocultarSinStock() && !!m && (m[a.id] ?? 0) <= 0;
+  }
+
   elegir(a: Articulo) {
+    if (this.sinExistencia(a)) return;
     this.selectionChange.emit({ articuloId: a.id, esOtro: false });
     this.cerrar();
   }

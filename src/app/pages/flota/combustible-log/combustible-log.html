@@ -186,10 +186,46 @@
             <div><dt>{{ 'Km ant. → actual' | t }}</dt><dd>{{ e.km_anterior ?? '—' }} → {{ e.kilometraje ?? '—' }} @if (e.km_recorridos != null) { <span [class.cl-delta--alerta]="e.km_alerta">(Δ {{ e.km_recorridos | number }})</span> }</dd></div>
             <div><dt>{{ 'Galones / Monto' | t }}</dt><dd>{{ e.galones != null ? (e.galones | number:'1.0-2') : '—' }} {{ 'gal' | t }} · {{ e.monto != null ? ('RD$ ' + (e.monto | number:'1.0-2')) : '—' }}</dd></div>
           </dl>
+          <div class="cl-aprobar__fotos">
+            <div class="cl-aprobar__foto">
+              <span>{{ 'Recibo' | t }}</span>
+              @if (e.foto_recibo_path; as p) {
+                @if (fotoUrls()[p]; as u) {
+                  @if (!fotoErrores()[p]) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="{{ 'Recibo' | t }}" loading="lazy" (error)="fotoFallo(p)" /></button> }
+                }
+                @if (fotoErrores()[p]) {
+                  <span class="cl-aprobar__foto-error">{{ 'No se pudo cargar la foto' | t }} <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cargarFotoAprobar(p)">{{ 'Reintentar' | t }}</button></span>
+                } @else if (!fotoUrls()[p]) { <span class="cl-detalle__foto-vacia">{{ 'Cargando…' | t }}</span> }
+              } @else { <span class="cl-detalle__foto-vacia">{{ 'Sin foto' | t }}</span> }
+            </div>
+            <div class="cl-aprobar__foto">
+              <span>{{ 'Tablero' | t }}</span>
+              @if (e.foto_tablero_path; as p) {
+                @if (fotoUrls()[p]; as u) {
+                  @if (!fotoErrores()[p]) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="{{ 'Tablero' | t }}" loading="lazy" (error)="fotoFallo(p)" /></button> }
+                }
+                @if (fotoErrores()[p]) {
+                  <span class="cl-aprobar__foto-error">{{ 'No se pudo cargar la foto' | t }} <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cargarFotoAprobar(p)">{{ 'Reintentar' | t }}</button></span>
+                } @else if (!fotoUrls()[p]) { <span class="cl-detalle__foto-vacia">{{ 'Cargando…' | t }}</span> }
+              } @else { <span class="cl-detalle__foto-vacia">{{ 'Sin foto' | t }}</span> }
+            </div>
+            <div class="cl-aprobar__foto">
+              <span>{{ 'Bomba en 0' | t }}</span>
+              @if (e.foto_bomba_path; as p) {
+                @if (fotoUrls()[p]; as u) {
+                  @if (!fotoErrores()[p]) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="{{ 'Bomba en 0' | t }}" loading="lazy" (error)="fotoFallo(p)" /></button> }
+                }
+                @if (fotoErrores()[p]) {
+                  <span class="cl-aprobar__foto-error">{{ 'No se pudo cargar la foto' | t }} <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cargarFotoAprobar(p)">{{ 'Reintentar' | t }}</button></span>
+                } @else if (!fotoUrls()[p]) { <span class="cl-detalle__foto-vacia">{{ 'Cargando…' | t }}</span> }
+              } @else { <span class="cl-detalle__foto-vacia">{{ 'Sin foto' | t }}</span> }
+            </div>
+          </div>
           <div class="cl-aprobar__acciones">
             <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="aprobandoId() === e.id" (click)="aprobar(e.id)">
               {{ (aprobandoId() === e.id ? 'Aprobando…' : 'Aprobar') | t }}
             </button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetallePorId(e.id)">{{ 'Ver detalle' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetallePorId(e.id)">{{ 'Aprobar con corrección' | t }}</button>
             <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="abrirRechazo(e.id)">{{ 'Rechazar' | t }}</button>
           </div>
@@ -253,6 +289,8 @@
         <div class="cl-detalle__foto">
           <span>{{ 'Recibo' | t }}</span>
           @if (fotoRecibo(); as u) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="{{ 'Recibo' | t }}" loading="lazy" /></button> }
+          @else if (fotoDetalleError().recibo) { <span class="cl-aprobar__foto-error">{{ 'No se pudo cargar la foto' | t }} <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reintentarFotoDetalle('recibo')">{{ 'Reintentar' | t }}</button></span> }
+          @else if (fotoDetalleError().tablero) { <span class="cl-aprobar__foto-error">{{ 'No se pudo cargar la foto' | t }} <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reintentarFotoDetalle('tablero')">{{ 'Reintentar' | t }}</button></span> }
           @else { <span class="cl-detalle__foto-vacia">{{ 'Sin foto' | t }}</span> }
         </div>
         <div class="cl-detalle__foto">
@@ -263,6 +301,7 @@
         <div class="cl-detalle__foto">
           <span>{{ 'Bomba en 0' | t }}</span>
           @if (fotoBomba(); as u) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="{{ 'Bomba en 0' | t }}" loading="lazy" /></button> }
+          @else if (fotoDetalleError().bomba) { <span class="cl-aprobar__foto-error">{{ 'No se pudo cargar la foto' | t }} <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reintentarFotoDetalle('bomba')">{{ 'Reintentar' | t }}</button></span> }
           @else { <span class="cl-detalle__foto-vacia">{{ 'Sin foto (app móvil)' | t }}</span> }
         </div>
       </div>
