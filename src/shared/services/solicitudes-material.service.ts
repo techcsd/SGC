@@ -207,6 +207,17 @@ export class SolicitudesMaterialService {
 
   // ── BA / Transporte v3 — despachos ─────────────────────────────────────────
   /** Avance por renglón (solicitado vs despachado) de una requisición. */
+  /** DT3 — cambia el artículo de un renglón ya aprobado (solo si no tiene despacho). */
+  async reemplazarArticuloRenglon(
+    itemId: string, articuloId: string, motivo?: string | null,
+  ): Promise<{ cambiado: boolean; renglones_compra_actualizados?: number; compra_ya_avanzo?: boolean; motivo?: string }> {
+    const { data, error } = await this.supabase.client.rpc('reemplazar_articulo_renglon_requisicion', {
+      p_item_id: itemId, p_articulo_id: articuloId, p_motivo: motivo ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as { cambiado: boolean; renglones_compra_actualizados?: number; compra_ya_avanzo?: boolean; motivo?: string };
+  }
+
   async avance(id: string): Promise<RequisicionAvanceItem[]> {
     const { data, error } = await this.supabase.client.rpc('requisicion_avance', { p_solicitud_id: id });
     if (error) throw new Error(error.message);

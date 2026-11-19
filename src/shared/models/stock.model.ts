@@ -3,5 +3,5 @@ export interface StockPorBodega {
   bodega_id: string;
   cantidad: number;
   updated_at: string;
-  bodega?: { nombre: string };
+  bodega?: { nombre: string; es_prueba?: boolean };
 }

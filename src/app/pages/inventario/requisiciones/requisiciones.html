@@ -490,6 +490,12 @@
                       } @else { {{ a.pendiente }} }
                     </td>
                     <td>
+                      <!-- DT3 — cambiar el artículo del renglón (solo sin despacho). -->
+                      @if (puedeGestionarReq() && a.estado !== 'cancelada' && a.despachado === 0
+                           && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                                [disabled]="saving()" (click)="abrirCambiarArticulo(a)">{{ 'Cambiar artículo' | t }}</button>
+                      }
                       <!-- BJ4 — quitar esta línea (con motivo) y cerrar el resto. -->
                       @if (puedeGestionarReq() && a.estado === 'pendiente' && a.pendiente > 0
                            && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
@@ -502,6 +508,23 @@
               </tbody>
             </table>
           </div>
+
+          <!-- DT3 — cambiar artículo: panel inline con el catálogo COMPLETO (no oculta artículos sin existencia). -->
+          @if (cambiarArticuloPendiente(); as ca) {
+            <div class="req-detail__vincular">
+              <p class="req-detail__hint">{{ 'Nuevo artículo para el renglón' | t }} "{{ ca.descripcion }}":</p>
+              <app-articulo-picker [articulos]="articulos()" [categorias]="categorias()"
+                                   [value]="cambiarArticuloId()" [allowOtro]="false"
+                                   (selectionChange)="cambiarArticuloId.set($event.articuloId)" />
+              <textarea class="sgc-input" rows="2" [value]="cambiarArticuloMotivo()"
+                        (input)="cambiarArticuloMotivo.set($any($event.target).value)"
+                        placeholder="{{ 'Motivo (opcional)…' | t }}"></textarea>
+              <div class="form-row" style="margin-top:.5rem">
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarCambiarArticulo()">{{ 'Cancelar' | t }}</button>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="!cambiarArticuloId() || saving()" (click)="confirmarCambiarArticulo()">{{ 'Cambiar artículo' | t }}</button>
+              </div>
+            </div>
+          }
 
           <!-- DM-22 — quitar línea: panel inline con motivo, nunca prompt() nativo. -->
           @if (quitarLineaPendiente(); as ql) {

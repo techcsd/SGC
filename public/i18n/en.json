@@ -8862,5 +8862,15 @@
   "Reglas de reabastecimiento sincronizadas con Odoo: {n}": "Replenishment rules synced with Odoo: {n}",
   "Recepciones": "Receipts",
   "Órdenes de entrega": "Delivery orders",
-  "Traslados internos": "Internal transfers"
+  "Traslados internos": "Internal transfers",
+  "No se pudo cargar la foto": "Couldn't load the photo",
+  "Cambiar artículo": "Change item",
+  "Nuevo artículo para el renglón": "New item for the line",
+  "Motivo (opcional)…": "Reason (optional)…",
+  "Ese ya es el artículo del renglón.": "That is already the line's item.",
+  "Artículo cambiado": "Item changed",
+  "La compra de este faltante ya avanzó: avisa a Compras para que use el artículo nuevo.": "The purchase for this shortfall has already progressed: tell Purchasing to use the new item.",
+  "El renglón y su faltante en compra ya usan el artículo nuevo.": "The line and its purchase shortfall now use the new item.",
+  "No se pudo cambiar el artículo.": "Couldn't change the item.",
+  "Sin existencia aquí": "No stock here"
 }
