@@ -1,12 +1,16 @@
 # HANDOFF — SGC
 
-## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 en `feature/dt-cierre`, SIN push
+## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 a prod (autorizado por Xaviel, release-check con --hotfix)
 
 **Estado:** 1.218.5 (DT2/DT3/DT4) ya en main/prod; este cierre añade el filtro de stock de prueba al Dashboard (1.218.6) y la documentación. Detalle completo, hallazgo Odoo y pendientes: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
 **⚠️ Hallazgo:** Odoo es fuente del stock en las 16 bodegas desde el 17-nov; `adjust_stock`/`_aplicar_apertura` son proyección optimista y Odoo corrige en el sondeo → probable causa de «el conteo no se actualiza» y del plywood en 0. **Sin confirmar** (no hubo acceso de lectura a la base).
-**Pendiente Xaviel:** poner `SUPABASE_CSD_CONSTRUCTORA_TOKEN` en el entorno para el F0; prueba humana de la app; OK para dev→main de 1.218.6; confirmar `dt3` en el ledger de prod.
+**Verificado (20-nov, solo lectura):** `reemplazar_articulo_renglon_requisicion` existe en dev y prod; `odoo_corte_bodega` en prod = 16/16 con fuente Odoo (hallazgo confirmado). **Pendiente:** F0 completo (política `conteo_inventario`, `odoo_product_id` del plywood, vínculos/eventos de los conteos de Raykler) y prueba humana de la app.
 
 ---
+
+---
+
+## ✅ Ronda DP→DQ (13-16-nov-2026) — PROMPT 146+: barrido de idioma al 100% — EN PRODUCCIÓN — v1.217.0
 
 ## ✅ Ronda DS (16-17-nov-2026) — PROMPT 148: integración Odoo EN PROD (web 1.218.1)
 
@@ -38,7 +42,42 @@
 
 **Estado al 16-nov:** DP/DQ ya están en `main` (1.217.0). La ronda DR cerró lo que faltaba: `ht` 97→100 % (+670 claves), guardia estricta en `verify-i18n`, `| date`→`| fecha` (55) y `toLocale*` de fecha con `localeActual`. Detalle en `docs/I18N-AVANCE.md` § Cierre. Pendiente físico: `qa/visual/login.mjs` + `npm run i18n:smoke`; revisión humana del Kreyòl. Lo de abajo es el histórico de mitad de ronda (14-nov), ya superado.
 
-**TL;DR (actualizado 14-nov):** módulo Claude (CSS DP-01..DP-05) **100% hecho y verificado visualmente**. Idioma: infraestructura completa (DP-07..DP-13) + **lote 1 (Claude+shell) + lote 2 (Configuración/perfil) + lote 3 (Dashboard) + MÓDULO 4 (Inventario) COMPLETO (35/35 pantallas, lotes 4-14)** — los 4 primeros módulos de 17 están al 100% real, con `enforce:true` y verificados (`verify-i18n.mjs` 0 fallos, build + 368 tests verdes, smoke Playwright pasando en `en`/`ht`). Quedan **13 módulos** (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, resto) — ver tabla de lotes en `docs/I18N-AVANCE.md`. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 13112026\CONTEXTO-ACTUALIZACION-72.md`. Worktree `SGC-dp`, rama `feature/dp-ronda-13nov` desde `origin/main` (`056082b8`). **No se abrió PR todavía** — avisar a Xaviel antes de abrirlo/mergearlo a `dev`.
+**TL;DR:** El barrido completo de i18n (DP-07..DP-13, módulos 1-17) **terminó y está en producción**. **192/192 pantallas** de toda la app con `enforce:true`, `verify-i18n.mjs` en 0 fallos, build + 368/368 tests verdes en cada lote. Todos los módulos: Claude, Configuración/perfil/shell, Dashboard, Inventario, Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, Resto. Detalle lote-por-lote completo en `docs/I18N-AVANCE.md` (incluye TODOS los gotchas de escáner/codemod encontrados — 10 fixes de precisión en `i18n-coverage.mjs`/`verify-i18n.mjs`, 5 bugs reales del codemod `i18n-wrap-html.mjs` corregidos en el script).
+
+**Shipped 16-nov** (OK de Xaviel: "i reiew it, promote it to main"): PR #150 (`feature/dq-compras-i18n → dev`, Compras..Admin), PR #151 (`→ dev`, Resto — cierra 192/192), PR #152 (bump 1.217.0 `→ dev`), PR #153 (`dev → main`) — los 4 mergeados. `release-check.mjs --env dev --version 1.217.0` en 7/7 PASS antes del PR a `main`. `qa/release-1.217.0.md` con el OK.
+
+**Cómo se ejecutó esta ronda (nota de proceso, útil para la próxima ronda grande):** trabajo dividido en lotes por módulo, cada uno dispatchado a un agente (`Agent` tool) que ejecutaba el ciclo completo codemod→traducir→enforce→verify→build→test→commit por pantalla, SIEMPRE re-verificado independientemente antes de aceptar el resultado del agente (nunca se confió en el "listo" auto-reportado — varias veces un agente dejó trabajo a medias/sin commitear al quedarse sin presupuesto de turnos, detectado y terminado a mano cada vez). **Hallazgo de proceso real**: `subagent_type: "fork"` se rompió para el último tramo de Tecnología — dos dispatches consecutivos de fork devolvieron 0 usos de herramienta y una respuesta sin sentido (el fork describía estar "esperando a que termine" otro fork, como si fuera el orquestador y no el trabajador), consistente con que un fork hereda TODO el contexto de la conversación padre, y esa conversación ya estaba saturada de lenguaje de "despaché un fork, reviso su progreso" de rondas anteriores. Se resolvió cambiando a agentes `general-purpose` SIN herencia de contexto (con prompts completamente autocontenidos) — funcionó de forma confiable el resto de la ronda (más de 15 dispatches seguidos sin el problema).
+
+### Gotchas de esta ronda (para la próxima sesión)
+- **Un "corregido" en este documento o en `docs/I18N-AVANCE.md` para el CODEMOD DE ESCRITURA (`scripts/i18n-wrap-html.mjs`) debe verificarse releyendo el script, no solo la nota** — el fix documentado en el lote 20 (Flota) para `@if (d > 10 || d < -10)` resultó que NUNCA se había aplicado al script, solo se corrigió el archivo a mano esa vez; el bug se reprodujo exacto 40+ lotes después al correr el codemod sobre el módulo Resto. Ahora sí está en el script (commit `dcb7644`).
+- **El escáner (`i18n-coverage.mjs`) y el guard (`verify-i18n.mjs`) NUNCA detectan una etiqueta devuelta por un método/getter sin `| t`** (`estadoLabel(x)`, `tipoLabel()`, catálogos `Record<K,V>[x]`) — solo matchean literales de texto, nunca expresiones de propiedad/método. Esto fue, de lejos, el gotcha más caro y recurrente de toda la ronda — cada pantalla grande necesitó una revisión manual de plantilla buscando CADA llamada a un helper de etiqueta, incluso después de que el escáner reportara 100%.
+- `app-filter-select` (componente compartido usado en Flota/Compras/Bitácora/Proyectos/RRHH y más) **nunca había tenido `TranslatePipe`/`I18nService`** — invisible a ambos escáneres porque vive fuera de `src/app/pages/**`. Corregido una sola vez en el componente, beneficia retroactivamente a TODA pantalla que lo use. Si se agrega texto nuevo a un componente compartido fuera de `pages/`, revisar a mano que tenga `t()` — no hay guard automático para eso todavía.
+- `confirm()`/`alert()` con un template literal (backticks) que anida `${this.i18n.t(...)}` NUNCA calza con el escáner (captura el contenido crudo entre backticks) — usar `i18n.t('texto {ph}', {ph})` como argumento COMPLETO, nunca interpolación anidada. Mismo problema con un `\n\n` real (newline evaluado por JS) dentro de UNA sola clave traducida — partir en 2 llamadas `i18n.t()` sin newline, unidas por `'\n\n'` fuera de las partes traducidas.
+- Un carácter `©`/emoji/pictográfico crudo dentro de texto visible normal (no un ícono) puede disparar el guard `AW12` de emoji-icono (`©` cae en la categoría Unicode `Extended_Pictographic`) — usar la entidad HTML (`&copy;`) fuera de cualquier string traducido.
+- `public/i18n/ht.json` (Kreyòl ayisyen, ~7.800 claves) fue generado por Claude de principio a fin **sin revisión de un hablante nativo** — ver `docs/I18N-REVISAR-HT.md`. No bloqueó ningún release, pero es deuda real pendiente.
+
+### Pending — Claude puede hacer
+1. Nada pendiente del barrido de idioma en sí — está 100% completo y en prod (192/192).
+2. `scripts/i18n-smoke.mjs` (Playwright) solo corre sobre las pantallas `enforce:true` que existían cuando se escribió — correrlo de nuevo sobre TODAS las rutas ahora que son 192/192, por si queda algún hallazgo real de runtime (no solo de escáner estático).
+3. Extender `scripts/i18n-coverage.mjs` para recorrer también componentes compartidos fuera de `src/app/pages/**` (el bug de `app-filter-select` fue invisible al escáner por esto — puede haber otros componentes compartidos con el mismo problema sin descubrir).
+
+### Pending — Xaviel only
+1. **Conseguir a alguien que hable Kreyòl ayisyen** para revisar `public/i18n/ht.json` (lista de prioridad en `docs/I18N-REVISAR-HT.md`) — ahora son ~7.800 claves, no 370 como al inicio de la ronda.
+2. Nada más físico pendiente de esta ronda — ya está en prod y verificado.
+
+### Verify on resume
+```bash
+cd "C:/Users/xavie/Desktop/X Dev/dev/SGC"   # o cualquier worktree en main/dev
+git log --oneline -5             # main debe mostrar "Merge pull request #153" (a421b033)
+node scripts/verify-i18n.mjs     # debe decir "192 pantalla(s) enforce (0 fallos)" (o más, si se agregó una pantalla nueva)
+npm run build                    # debe compilar sin errores, version 1.217.0 (o más)
+npx ng test --watch=false        # debe decir 368/368 (o más)
+```
+
+
+## 🧪 Ronda DP (13/14-nov-2026) — PROMPT 146: módulo Claude (UI) + idioma al 100% — histórico, ver resumen de cierre arriba
+
+**TL;DR (actualizado 14-nov, histórico):** módulo Claude (CSS DP-01..DP-05) **100% hecho y verificado visualmente**. Idioma: infraestructura completa (DP-07..DP-13) + **lote 1 (Claude+shell) + lote 2 (Configuración/perfil) + lote 3 (Dashboard) + MÓDULO 4 (Inventario) COMPLETO (35/35 pantallas, lotes 4-14)** — los 4 primeros módulos de 17 están al 100% real, con `enforce:true` y verificados (`verify-i18n.mjs` 0 fallos, build + 368 tests verdes, smoke Playwright pasando en `en`/`ht`). Quedan **13 módulos** (Compras, Flota, Bitácora, Transporte/apoyo, Proyectos, RRHH, Legal, Documentos, Ingeniería, Reuniones/Tareas/Notas/Mensajes, Tecnología, Admin, resto) — ver tabla de lotes en `docs/I18N-AVANCE.md`. Contexto fuente: `C:\developer\improvements\noviembre 2026\imp 13112026\CONTEXTO-ACTUALIZACION-72.md`. Worktree `SGC-dp`, rama `feature/dp-ronda-13nov` desde `origin/main` (`056082b8`). **No se abrió PR todavía** — avisar a Xaviel antes de abrirlo/mergearlo a `dev`.
 
 ### Inventario (módulo 4) — cierre de ronda 14-nov
 11 lotes (4-14), cada uno con su propio commit en `feature/dp-ronda-13nov` (ver `git log` o `docs/I18N-AVANCE.md` sección "Inventario — 100% COMPLETO" para el detalle completo). Encontré y corregí **10 bugs de precisión distintos** en `scripts/i18n-coverage.mjs` (y a veces también en `scripts/verify-i18n.mjs`) durante el proceso — todos documentados en los mensajes de commit y en `docs/I18N-AVANCE.md`. Patrón recurrente: el escáner mide por heurística de texto-entre-tags + regex sobre `.ts`, y cada vez que apareció una construcción nueva (condición `@if` con paréntesis anidados, catálogo-mapa `Record<>`, `return [...]` en vez de `= [...]`, template literal con `${datos}`, entidad HTML cruda, etc.) hubo que enseñarle esa forma — **cada fix se verificó contra las pantallas `enforce:true` previas antes de seguir** (nunca rompió una ya cableada). `public/i18n/en.json`/`ht.json` crecieron de ~1.575/~700 a **2.705/1.799 claves** — **siguen sin revisión humana en `ht`** (ver `docs/I18N-REVISAR-HT.md`).
