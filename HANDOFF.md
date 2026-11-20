@@ -1,5 +1,11 @@
 # HANDOFF — SGC
 
+## ✅ 20-nov-2026 (noche) — Hotfix Raykler CERRADO del lado SGC; app 2.71.3/2.71.4 en prod
+
+**Decisión Xaviel:** Odoo manda el stock; `registrar_conteo_app` NO cambia (sigue sin publicar a Odoo). **En prod:** web 1.218.6; RPC `sgc.bodegas_fuente_stock()` (sql/2026-11-20-dt-bodegas-fuente-stock.sql, ledger dev y prod; prod = 29 almacenes, 16 con fuente_odoo). **App (csd-app):** 2.71.3 (envíos atascados visibles) y 2.71.4 (aviso Odoo + botón «Aplicar como conteo físico» vía conteo_fisico_abrir→guardar→cerrar→aplicar).
+**Verificado (solo lectura):** aplicar un conteo físico SÍ llega a Odoo: trigger `odoo_v1_capturar_evento_ds` en `conteos_inventario` encola el evento; los 2 conteos de prueba de la app (TORRE BOLIVAR, neto 0) quedaron `odoo_sync_estado=sincronizado`. No hay RPC para cancelar un `contado` (no hace falta). No existe paso «aprobar» separado: `conteo_fisico_aplicar` solo exige `puede_operar_conteo`.
+**Pendiente físico (Xaviel):** teléfono de Raykler (APK 2.66.2 → 2.71.4; revisar `/pendientes` y Acerca de ANTES de actualizar); confirmar en Odoo el saldo del artículo de prueba; probar el aviso/botón en un almacén Odoo real; update in-app 2.71.3→2.71.4, estado «Falló», barra `stale`.
+
 ## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 a prod (autorizado por Xaviel, release-check con --hotfix)
 
 **Estado:** 1.218.5 (DT2/DT3/DT4) ya en main/prod; este cierre añade el filtro de stock de prueba al Dashboard (1.218.6) y la documentación. Detalle completo, hallazgo Odoo y pendientes: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
