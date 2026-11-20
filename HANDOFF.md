@@ -10,7 +10,7 @@
 - La usuaria se creó con **service key** (script one-off, NO commiteado), porque `admin-create-user` exige sesión de admin. Replica la edge: invite + `usuarios` + `usuarios_roles` + `audit_log` (metadata `via: claude-code service key`). Para próximas altas, usar Administración › Usuarios.
 - El PR a `main` fue directo (sin pasar por `dev`) a propósito: `dev` tenía trabajo sin liberar. El SQL sí pasó por dev antes de prod (regla 18).
 - 👤 Pendiente: que Yonairy fije contraseña y entre; verificar que su menú muestre Compras, RRHH, Documentos y Tareas (no se probó el login).
-- Módulo RRHH completo concede `operar` en TODOS los submódulos no sensibles (organigrama, comunicados, dotación…), más de la lista explícita de arriba.
+- Corrección 20-nov: el módulo `rrhh` solo abre de más el submódulo no sensible **Organigrama** (y `operar` en Reportes en vez de `ver`). Contratos, onboarding, nómina, capacitación, evaluaciones, disciplina, beneficios, dotación, comunicados y tablero son sensibles y NO se abren por el módulo (solo por permiso explícito; el rol tiene `rrhh.tablero: ver`). Estrechar más requiere cambio de código (route guard `moduleGuard('rrhh')` → `moduloOSubmoduloGuard` + menú del shell con `submodulo` en Empleados/Asistencia/Ausencias) y quitar `rrhh` de `modulos` — no hecho, no vale una ronda.
 
 ## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 a prod (autorizado por Xaviel, release-check con --hotfix)
 
