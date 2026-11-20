@@ -26,3 +26,11 @@ El prompt asumía «Odoo no toca el inventario». Desde la ronda DS, **16/16 bod
 ## Qué decirle a Raykler
 - Ya puede ver Recibo/Tablero/Bomba antes de aprobar una echada, y cambiar el artículo de un renglón de requisición que aún no se despacha.
 - Para el plywood: contar físico y aplicar por conteo (ver procedimiento); si dice «Pendiente de sincronizar», conectarse y tocar Reintentar. Si el stock vuelve a su valor anterior a los minutos, avisar a Tecnología: no es culpa del conteo (probable diferencia con Odoo).
+
+## Resultado del F0 (20-nov-2026, solo lectura en prod)
+- **Política Odoo:** `conteo_inventario` y `ajuste_faltante` habilitadas; 16/16 bodegas con `fuente_odoo`.
+- **Plywood:** los 7 artículos CSD-02-014…020 tienen `odoo_product_id` (no es falta de vínculo). Stock real hoy: **CSD-02-014 = 125**, los otros 6 = 0.
+- **Conteos de los últimos 10 días:** solo 5 (todos `conteo_fisico` web de Xaviel, 17-nov, con evento Odoo `completado`; 7 eventos de conteo, 0 con error). **Ninguno desde la app y ninguno de Raykler** → los conteos de Raykler **nunca llegaron al servidor** (sin fila en `conteos_inventario`, sin ítems, sin outbox atascado registrado en `outbox_atascados`). Eso apunta a conteo atrapado en la cola del teléfono (bundle viejo / sync caído), que la pantalla anterior marcaba «guardado» al encolar — justo lo que corrige la 2.71.2.
+- **Dos mecanismos distintos, no confundir:** (1) `registrar_conteo_app` llama `adjust_stock` directo y **no publica nada a Odoo**: en una bodega con fuente Odoo, ese ajuste es solo proyección optimista y el sondeo de Odoo (≈5 min) lo revierte. (2) El conteo físico web aplicado sí publica a Odoo (`inventory_quantity`). Conclusión: **el conteo de la app no es un camino fiable para corregir stock en bodegas Odoo; el que persiste es el conteo físico web** (o el que se publique a Odoo).
+- **Pendiente de decisión (Xaviel):** que `registrar_conteo_app` cree un conteo físico aplicable/publicable a Odoo en bodegas con fuente Odoo (hoy no lo hace), o que la app dirija al conteo web. No se tocó nada.
+- No verificado: permiso `inventario.conteos` de los 4 roles de Raykler (la consulta de roles no se pudo armar con el esquema actual) y respuesta de `nivel_submodulo` por rol.
