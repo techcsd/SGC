@@ -1,5 +1,17 @@
 # HANDOFF — SGC
 
+## ✅ Hotfix 20-nov-2026 — Rol `asistente_administrativa` + alta de Yonairy Linarez (EN PROD)
+
+**Qué:** nuevo rol **Asistente administrativa** (id 39 en prod) para apoyo a Contabilidad/Compras/RRHH. Módulos: `compras`, `rrhh`, `documentos`, `tareas`. Permisos granulares `operar`: compras.{proveedores,ordenes,solicitudes}, rrhh.{empleados,asistencia,ausencias,tramites,gastos,proveedores,activos}; `ver`: rrhh.tablero, rrhh.reportes. **Sin** nómina/contratos/disciplina/evaluaciones/beneficios (sensibles: `puede_rrhh_sensible` no tiene bypass por módulo padre; se añaden a mano en Administración si hace falta). No existe módulo "contabilidad" — se cubre con Compras + gastos RRHH.
+
+**Hecho:** `sql/2026-11-20-rol-asistente-administrativa.sql` aplicado en dev y prod (ledger en ambos). PR #222 (hotfix → `main`, solo el SQL) y PR #223 (`main` → `dev` sync), ambos mergeados. Usuaria **Yonairy Linarez** creada en prod con ese rol (ver Administración › Usuarios); invitación enviada con redirect a `https://sgcconstructorasd.com/auth/set-password`.
+
+**Gotchas / pendiente:**
+- La usuaria se creó con **service key** (script one-off, NO commiteado), porque `admin-create-user` exige sesión de admin. Replica la edge: invite + `usuarios` + `usuarios_roles` + `audit_log` (metadata `via: claude-code service key`). Para próximas altas, usar Administración › Usuarios.
+- El PR a `main` fue directo (sin pasar por `dev`) a propósito: `dev` tenía trabajo sin liberar. El SQL sí pasó por dev antes de prod (regla 18).
+- 👤 Pendiente: que Yonairy fije contraseña y entre; verificar que su menú muestre Compras, RRHH, Documentos y Tareas (no se probó el login).
+- Módulo RRHH completo concede `operar` en TODOS los submódulos no sensibles (organigrama, comunicados, dotación…), más de la lista explícita de arriba.
+
 ## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 a prod (autorizado por Xaviel, release-check con --hotfix)
 
 **Estado:** 1.218.5 (DT2/DT3/DT4) ya en main/prod; este cierre añade el filtro de stock de prueba al Dashboard (1.218.6) y la documentación. Detalle completo, hallazgo Odoo y pendientes: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
