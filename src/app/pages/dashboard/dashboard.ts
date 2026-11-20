@@ -590,7 +590,7 @@ export class Dashboard implements OnInit {
         erroresApp7dRes,
       ] = await Promise.all([
         sinPrueba(this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, es_prueba, categoria:categorias_inventario(nombre)')),
-        this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
+        this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad, bodega:bodegas(es_prueba)'), // DT2 — se filtra el stock de almacenes de prueba más abajo
         sinPrueba(this.supabase.client
           .from('entradas_inventario')
           .select('fecha, detalle_entradas(cantidad)')
@@ -695,7 +695,9 @@ export class Dashboard implements OnInit {
           categoria?: { nombre: string };
         }[],
       );
-      this.stock.set((stockRes.data ?? []) as { articulo_id: string; cantidad: number }[]);
+      // DT2 — mismo criterio que Artículos/Reportes: sin 'Mostrar datos de prueba' no se suma el stock de almacenes de prueba.
+      const stockRows = (stockRes.data ?? []) as unknown as { articulo_id: string; cantidad: number; bodega?: { es_prueba?: boolean } | null }[];
+      this.stock.set(stockRows.filter((r) => !soloReales || !r.bodega?.es_prueba).map((r) => ({ articulo_id: r.articulo_id, cantidad: r.cantidad })));
       this.ordenes.set((ordenesRes.data ?? []) as { estado: string; fecha: string; total: number }[]);
       this.empleados.set((empleadosRes.data ?? []) as unknown as { activo: boolean; departamento: string | null }[]);
       this.asistenciaHoy.set((asistenciaRes.data ?? []) as { estado: string }[]);

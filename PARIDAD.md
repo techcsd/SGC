@@ -1405,3 +1405,9 @@ solo de escritorio — mismo patrón que Tecnología/Developer en rondas anterio
 `sgc.agente_pendientes_config`/edge `agente-pendientes` son 100% backend. La app no necesita saber
 que existe: la nota "Pendientes" se ve y se abre desde **Notas** (ya existente) y el aviso usa
 `notifAppRoute` como cualquier otra notificación — sin pantalla ni contrato nuevo.
+
+## Hotfix Raykler DT1–DT6 (20-nov-2026) — paridad
+- `reemplazar_articulo_renglon_requisicion` (web 1.218.5 / app 2.71.2): mismo RPC, botón «Cambiar artículo» en ambos.
+- «Sin existencia aquí» en pickers de web y app; stock de prueba excluido en web (Artículos, Reportes, Dashboard 1.218.6).
+- Conteo: estado real de envío solo en la app (la web aplica por el ciclo borrador→cerrar→aprobar→aplicar).
+- Detalle: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
