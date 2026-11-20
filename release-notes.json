@@ -6420,6 +6420,16 @@
         }
       ]
     },
+    "1.218.6": {
+      "titulo": "Cierre del hotfix Raykler: el Dashboard ya no suma stock de prueba",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Dashboard",
+          "d": "Los KPIs de inventario ya no suman el stock de almacenes de prueba cuando «Mostrar datos de prueba» está desmarcado (misma regla que Artículos y Reportes)."
+        }
+      ]
+    },
     "1.218.5": {
       "titulo": "Hotfix Raykler: cambiar artículo de un renglón, adjuntos antes de aprobar y stock sin pruebas",
       "cambios": [

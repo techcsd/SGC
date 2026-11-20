@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.218.5';
-export const APP_VERSION_TITULO: string | null = "Hotfix Raykler: cambiar artículo de un renglón, adjuntos antes de aprobar y stock sin pruebas";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Inventario","d":"Requisiciones: botón «Cambiar artículo» en cada renglón sin despacho (también los ya aprobados). Corrige el renglón y su faltante en compra sin duplicarla, y deja traza en auditoría."},{"t":"mejora","m":"Flota","d":"Echadas · Por aprobar: la tarjeta ahora muestra miniaturas de Recibo, Tablero y Bomba (se amplían al tocar) y un botón «Ver detalle», para revisar los adjuntos antes de aprobar. Si una foto no carga se avisa con «Reintentar»."},{"t":"arreglo","m":"Inventario","d":"Artículos y Reportes: el «Stock actual» ya no suma el stock de almacenes de prueba cuando «Mostrar datos de prueba» está desmarcado (la web mostraba 3,000 de plywood y la app 0)."},{"t":"arreglo","m":"Inventario","d":"Selectores de conduce/salida: los artículos sin existencia ya no desaparecen; se ven atenuados con «Sin existencia aquí»."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/9cfd649";
+export const APP_VERSION = '1.218.6';
+export const APP_VERSION_TITULO: string | null = "Cierre del hotfix Raykler: el Dashboard ya no suma stock de prueba";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Dashboard","d":"Los KPIs de inventario ya no suman el stock de almacenes de prueba cuando «Mostrar datos de prueba» está desmarcado (misma regla que Artículos y Reportes)."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/9b03d71";

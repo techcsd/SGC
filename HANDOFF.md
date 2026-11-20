@@ -1,5 +1,13 @@
 # HANDOFF — SGC
 
+## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 en `feature/dt-cierre`, SIN push
+
+**Estado:** 1.218.5 (DT2/DT3/DT4) ya en main/prod; este cierre añade el filtro de stock de prueba al Dashboard (1.218.6) y la documentación. Detalle completo, hallazgo Odoo y pendientes: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
+**⚠️ Hallazgo:** Odoo es fuente del stock en las 16 bodegas desde el 17-nov; `adjust_stock`/`_aplicar_apertura` son proyección optimista y Odoo corrige en el sondeo → probable causa de «el conteo no se actualiza» y del plywood en 0. **Sin confirmar** (no hubo acceso de lectura a la base).
+**Pendiente Xaviel:** poner `SUPABASE_CSD_CONSTRUCTORA_TOKEN` en el entorno para el F0; prueba humana de la app; OK para dev→main de 1.218.6; confirmar `dt3` en el ledger de prod.
+
+---
+
 ## ✅ Ronda DS (16-17-nov-2026) — PROMPT 148: integración Odoo EN PROD (web 1.218.1)
 
 **Estado final (17-nov, autorizado por Xaviel; cuenta Tecnología CSD):** canary validado con conduce real (traslados A+B, reversa), expansión y corte encendidos, **16/16 bodegas con Odoo como fuente del stock** (opción A: Odoo manda; SGC se alineó, 0 diferencias en 3136 filas; respaldo en `sgc.odoo_corte_respaldo_stock`), OC reales (`ODOO_ESCRITURA_HABILITADA=true`), catálogo 230/230 vinculado (179 productos creados en Odoo), 7 categorías y 18 unidades vinculadas, contracción parte B (`odoo_vinculos_stock*` retiradas; `odoo_comandos_oc` se conserva: idempotencia de OC). Scripts versionados en `scripts/data-fixes/2026-11-17-ds-*-prod.mjs`; runbook en `docs/ODOO-PASO-A-PROD.md`.
