@@ -1,5 +1,15 @@
 # HANDOFF — SGC
 
+## 🟡 20-nov-2026 — Cierre hotfix Raykler (PROMPT-150, DT1–DT6) — web 1.218.6 a prod (autorizado por Xaviel, release-check con --hotfix)
+
+**Estado:** 1.218.5 (DT2/DT3/DT4) ya en main/prod; este cierre añade el filtro de stock de prueba al Dashboard (1.218.6) y la documentación. Detalle completo, hallazgo Odoo y pendientes: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
+**⚠️ Hallazgo:** Odoo es fuente del stock en las 16 bodegas desde el 17-nov; `adjust_stock`/`_aplicar_apertura` son proyección optimista y Odoo corrige en el sondeo → probable causa de «el conteo no se actualiza» y del plywood en 0. **Sin confirmar** (no hubo acceso de lectura a la base).
+**Verificado (20-nov, solo lectura):** `reemplazar_articulo_renglon_requisicion` existe en dev y prod; `odoo_corte_bodega` en prod = 16/16 con fuente Odoo (hallazgo confirmado). **Pendiente:** F0 completo (política `conteo_inventario`, `odoo_product_id` del plywood, vínculos/eventos de los conteos de Raykler) y prueba humana de la app.
+
+---
+
+---
+
 ## ✅ Ronda DP→DQ (13-16-nov-2026) — PROMPT 146+: barrido de idioma al 100% — EN PRODUCCIÓN — v1.217.0
 
 ## ✅ Ronda DS (16-17-nov-2026) — PROMPT 148: integración Odoo EN PROD (web 1.218.1)
