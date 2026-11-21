@@ -40,6 +40,12 @@
       }
     </select>
   </div>
+  @if (visiblesReintentables().length) {
+    <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="!idsSeleccionados().length || reintentandoLote()" (click)="reintentarSeleccionados()">
+      {{ (reintentandoLote() ? 'Reencolando…' : 'Reintentar seleccionados') | t }}
+      @if (idsSeleccionados().length) { ({{ idsSeleccionados().length }}) }
+    </button>
+  }
 </div>
 
 <div class="table-wrapper sgc-card">
@@ -54,11 +60,17 @@
       <table class="data-table" aria-label="{{ 'Eventos de sincronización con Odoo' | t }}">
         <thead>
           <tr>
+            <th class="text-center">
+              @if (visiblesReintentables().length) {
+                <input type="checkbox" [checked]="todosVisiblesMarcados()" (change)="toggleTodosVisibles($any($event.target).checked)" [attr.aria-label]="'Seleccionar todos los reintentables' | t" />
+              }
+            </th>
             <th>{{ 'Tipo' | t }}</th>
-            <th>{{ 'ID del agregado' | t }}</th>
+            <th>{{ 'Folio' | t }}</th>
+            <th>{{ 'Almacén' | t }}</th>
             <th>{{ 'Acción' | t }}</th>
-            <th class="text-right">{{ 'Revisión' | t }}</th>
             <th>{{ 'Estado' | t }}</th>
+            <th>{{ 'Error' | t }}</th>
             <th class="text-right">{{ 'Intentos' | t }}</th>
             <th>{{ 'Actualizado' | t }}</th>
             <th class="text-center">{{ 'Acción' | t }}</th>
@@ -67,14 +79,20 @@
         <tbody>
           @for (f of filasVisibles(); track f.id) {
             <tr>
+              <td class="text-center">
+                @if (esReintentable(f.estado)) {
+                  <input type="checkbox" [checked]="!!seleccion()[f.id]" (change)="toggleSeleccion(f.id, $any($event.target).checked)" [attr.aria-label]="'Seleccionar' | t" />
+                }
+              </td>
               <td>{{ agregadoLabel[f.agregado_tipo] | t }}</td>
-              <td class="os-id">{{ f.agregado_id }}</td>
+              <td class="os-id">{{ folioDe(f) }}</td>
+              <td>{{ f.almacen || '—' }}</td>
               <td class="text-muted">{{ f.accion }}</td>
-              <td class="text-right">{{ f.revision }}</td>
               <td>
                 <span [class]="estadoBadgeClass(f.estado)">{{ estadoLabel[f.estado] | t }}</span>
                 @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'Prueba' | t }}</span> }
               </td>
+              <td class="os-error" [title]="f.error || ''">{{ f.error || '—' }}</td>
               <td class="text-right">{{ f.intentos }}</td>
               <td>{{ f.actualizado_en | fecha:'dd/MM/yyyy HH:mm' }}</td>
               <td class="text-center">

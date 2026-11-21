@@ -38,6 +38,13 @@ export class OdooSyncService {
     if (error) throw new Error(error.message);
   }
 
+  /** #202 — reencola hasta 50 eventos (error/incierto/bloqueado). No toca stock. */
+  async reintentarLote(ids: string[]): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('odoo_eventos_reintentar_lote', { p_ids: ids });
+    if (error) throw new Error(error.message);
+    return Number(data ?? 0);
+  }
+
   /** W2 — estado de sync de UN documento del circuito 2 (solo Tecnología/admin). null si nunca se encoló. */
   async estadoDocumento(tipo: OdooDocumentoTipo, id: string): Promise<OdooDocumentoSyncEstado | null> {
     const { data, error } = await this.supabase.client.rpc('odoo_documento_sync_estado', { p_tipo: tipo, p_id: id });

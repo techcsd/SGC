@@ -15,6 +15,8 @@ import {
   esErrorDeNegocioTraslado, type OdooTraslados,
 } from "./acciones-traslados.ts";
 import { ACCIONES_ESCRITURA, type AccionEscritura, type AdaptadoresEscritura, CODIGOS_REINTENTABLES, DEFINICIONES_ESCRITURA, MENSAJE_REINTENTAR } from "./acciones-escritura.ts";
+import { DEFINICIONES_CONDUCES, adminDesdeCliente, esAccionConduce } from "./acciones-conduces.ts";
+import { ConduceStockError } from "../_shared/odoo-stock-directo.ts";
 
 export const MODULO_REQUERIDO = "inventario";
 export const MODULO_REQUERIDO_ESCRITURA = "compras"; // CY24 Fase C
@@ -128,7 +130,8 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
   const esEscritura = typeof accion === "string" && (ACCIONES_ESCRITURA as readonly string[]).includes(accion);
   const esLectura = typeof accion === "string" && (ACCIONES as readonly string[]).includes(accion);
   const esTraslado = typeof accion === "string" && (esAccionTrasladoLectura(accion) || esAccionTrasladoEscritura(accion));
-  if (typeof accion !== "string" || !(esEscritura || esLectura || esTraslado)) {
+  const esConduce = typeof accion === "string" && esAccionConduce(accion);
+  if (typeof accion !== "string" || !(esEscritura || esLectura || esTraslado || esConduce)) {
     return json({ error: "Acción no permitida." }, 400);
   }
   // Las lecturas de OC (`compras.*`) las ve también quien trabaja en Compras, no solo Inventario.
@@ -177,6 +180,37 @@ export async function manejar(req: Request, deps: Deps): Promise<Response> {
         if (esAccionTrasladoEscritura(accion) && CODIGOS_REINTENTABLES.has(e.codigo)) {
           return json({ error: MENSAJE_REINTENTAR, error_code: CODIGO_REINTENTAR }, STATUS_ODOO[e.codigo] ?? 502);
         }
+        return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
+      }
+      console.error(`[odoo-api] ${accion}:`, e);
+      return json({ error: "Error interno del gateway.", error_code: "interno" }, 500);
+    }
+  }
+
+  // #202 — emisión/validación de conduces: módulo inventario, sin caché, lectura viva de Odoo.
+  // salidas.emitir escribe en SGC (no en Odoo); el outbox sigue publicando el traslado.
+  if (esConduce) {
+    try {
+      const def = DEFINICIONES_CONDUCES[accion as keyof typeof DEFINICIONES_CONDUCES] as unknown as {
+        normalizar(p: Record<string, unknown>): unknown;
+        ejecutar(ctx: { odoo: OdooClient; admin: ReturnType<typeof adminDesdeCliente>; usuarioId: string }, p: unknown): Promise<unknown>;
+      };
+      const norm = def.normalizar(params);
+      const data = await conResiliencia(
+        deps,
+        () => def.ejecutar({ odoo: deps.odoo(), admin: adminDesdeCliente(deps.admin()), usuarioId: cap.usuario_id }, norm),
+        { reintentar: accion !== "salidas.emitir" },
+      );
+      return json({ data, consultado_en: new Date().toISOString(), cache: "miss" });
+    } catch (e) {
+      if (e instanceof ParamError) return json({ error: e.message }, 400);
+      if (e instanceof ConduceStockError) {
+        console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
+        const status = e.codigo === "odoo_caido" ? 503 : 400;
+        return json({ error: e.message, error_code: e.codigo, faltantes: e.faltantes, ...e.extra }, status);
+      }
+      if (e instanceof OdooError) {
+        console.error(`[odoo-api] ${accion}: ${e.codigo} ${e.message}`);
         return json({ error: MENSAJE_ODOO[e.codigo] ?? MENSAJE_ODOO.odoo_error, error_code: e.codigo }, STATUS_ODOO[e.codigo] ?? 502);
       }
       console.error(`[odoo-api] ${accion}:`, e);

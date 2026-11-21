@@ -9,6 +9,8 @@ export class ParamError extends Error {}
 
 export const ACCIONES = [
   "productos.buscar", "ubicaciones.listar", "stock.consultar",
+  // #202 — almacenes y existencias en lote, leídos DIRECTO de Odoo (emisión de conduces).
+  "almacenes.listar", "stock.disponible",
   // CY24 Fase A — lectura para el piloto de OC (solo lectura; crear/confirmar es Fase C).
   "productos.buscar_compra", "productos.obtener", "proveedores.obtener", "compras.obtener",
   // Estado vivo de OCs (nada se espeja en SGC): lectura por lote, sin caché (ver ACCIONES_SIN_CACHE).
@@ -139,6 +141,63 @@ const stockConsultar: Def<{ producto_id: number | null; ubicacion_id: number | n
           cantidad_reservada: reservada,
           cantidad_disponible: r6(fisica - reservada),
         };
+      }),
+    };
+  },
+};
+
+
+const almacenesListar: Def<Record<string, never>> = {
+  normalizar: () => ({}),
+  async ejecutar(odoo) {
+    const filas = await odoo.call("stock.warehouse", "search_read", [[
+      ["active", "=", true],
+      "|", ["company_id", "=", false], ["company_id", "=", odoo.companyId],
+    ]], { fields: ["id", "code", "name", "lot_stock_id"], order: "name asc", limit: 200 }) as Record<string, unknown>[];
+    return {
+      almacenes: (filas ?? []).map((f) => ({
+        id: f.id as number,
+        codigo: String(f.code ?? ""),
+        nombre: String(f.name ?? ""),
+        location_id: Array.isArray(f.lot_stock_id) && typeof f.lot_stock_id[0] === "number" ? f.lot_stock_id[0] : null,
+      })),
+    };
+  },
+};
+
+const stockDisponible: Def<{ location_id: number; product_ids: number[] }> = {
+  normalizar(p) {
+    const location_id = idSeguro(p.location_id, "location_id");
+    if (!location_id) throw new ParamError("location_id es obligatorio.");
+    if (!Array.isArray(p.product_ids) || p.product_ids.length < 1 || p.product_ids.length > 500) {
+      throw new ParamError("product_ids debe ser una lista de 1 a 500 IDs.");
+    }
+    const product_ids = [...new Set(p.product_ids.map((v) => {
+      const id = idSeguro(v, "product_ids");
+      if (!id) throw new ParamError("product_ids no es un ID de Odoo válido.");
+      return id;
+    }))].sort((a, b) => a - b);
+    return { location_id, product_ids };
+  },
+  async ejecutar(odoo, { location_id, product_ids }) {
+    const grupos = await odoo.call("stock.quant", "read_group", [
+      [["location_id", "child_of", location_id], ["product_id", "in", product_ids]],
+      ["quantity:sum", "reserved_quantity:sum"],
+      ["product_id"],
+    ], { lazy: false }) as Record<string, unknown>[];
+    const porId = new Map<number, { fisica: number; reservada: number; disponible: number }>();
+    for (const g of grupos ?? []) {
+      const prod = m2o(g.product_id);
+      if (!prod) continue;
+      const fisica = r6(Number(g.quantity ?? 0));
+      const reservada = r6(Number(g.reserved_quantity ?? 0));
+      porId.set(prod.id, { fisica, reservada, disponible: r6(fisica - reservada) });
+    }
+    return {
+      location_id,
+      filas: product_ids.map((id) => {
+        const s = porId.get(id) ?? { fisica: 0, reservada: 0, disponible: 0 };
+        return { producto_id: id, ...s };
       }),
     };
   },
@@ -331,6 +390,8 @@ export const DEFINICIONES: { [A in Accion]: Def<never> } = {
   "productos.buscar": productosBuscar,
   "ubicaciones.listar": ubicacionesListar,
   "stock.consultar": stockConsultar,
+  "almacenes.listar": almacenesListar,
+  "stock.disponible": stockDisponible,
   "productos.buscar_compra": productosBuscarCompra,
   "productos.obtener": productosObtener,
   "proveedores.obtener": proveedoresObtener,

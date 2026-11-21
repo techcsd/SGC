@@ -350,11 +350,29 @@
         >
           <option [ngValue]="null">{{ 'Seleccionar almacén…' | t }}</option>
           @for (b of bodegasVisibles(); track b.id) {
-            <option [value]="b.id">{{ b.nombre }}</option>
+            <option [value]="b.id">{{ etiquetaBodega(b) }}</option>
           }
         </select>
         @if (f.bodega_id.invalid && f.bodega_id.touched) {
           <span class="field-error">{{ 'El almacén es obligatorio.' | t }}</span>
+        }
+        @if (bodegaOdoo(f.bodega_id.value)?.fuente_odoo) {
+          <p class="form-hint" role="status">
+            @if (stockOrigen() === 'cargando') {
+              {{ 'Consultando existencias en Odoo…' | t }}
+            } @else if (stockOrigen() === 'odoo') {
+              {{ 'Existencias según Odoo' | t }}
+              @if (horaConsultaOdoo(); as hora) {
+                · {{ hora }}
+              }
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="refrescarStockOdoo()">{{ 'Actualizar' | t }}</button>
+            } @else if (stockOrigen() === 'caido') {
+              <span class="field-error">{{ stockOdooError() || ('No se puede emitir el conduce porque Odoo no responde. Espera un momento e inténtalo de nuevo.' | t) }}</span>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="refrescarStockOdoo()">{{ 'Reintentar' | t }}</button>
+            } @else if (stockOdooError()) {
+              {{ stockOdooError() }}
+            }
+          </p>
         }
       </div>
 
@@ -581,6 +599,9 @@
                 [ariaLabel]="i18n.t('Cantidad')"
                 (valueChange)="updateItemCantidad($index, $event)"
               />
+              @if (item.articulo_id && stockItem(item.articulo_id) !== null && stockOrigen() === 'odoo') {
+                <span class="item-row__nota">{{ 'Disponible en Odoo:' | t }} {{ stockItem(item.articulo_id)! | number:'1.0-2' }}</span>
+              }
             </div>
             <button
               type="button"
