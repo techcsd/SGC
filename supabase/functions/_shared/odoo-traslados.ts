@@ -59,7 +59,7 @@ export function traducirErrorOdoo(e: unknown): TrasladoError {
 // ── Autor del chatter (ODOO-CHATTER-AUTOR) ─────────────────────────────────
 export interface AutorOdoo { partnerId: number; via: "usuario_interno" | "empleado" | "cuenta_tecnica"; nombre?: string; sinCorreo?: boolean }
 
-/** Usuario interno por correo/login -> empleado por cedula -> cuenta tecnica. `tecnicoPartnerId` = partner de la clave de integracion. */
+/** Usuario interno por correo/login -> empleado por cedula -> empleado por work_email -> cuenta tecnica. `tecnicoPartnerId` = partner de la clave de integracion. */
 export async function resolverAutorOdoo(
   c: LlamadorOdoo,
   datos: { correo?: string | null; cedula?: string | null; tecnicoPartnerId: number },
@@ -73,6 +73,12 @@ export async function resolverAutorOdoo(
   if (ced) {
     const emp = await c.call("hr.employee", "search_read", [[["identification_id", "ilike", ced]]], { fields: ["work_contact_id", "user_id", "name"], limit: 2 });
     if (Array.isArray(emp) && emp.length === 1 && emp[0].work_contact_id) return { partnerId: emp[0].work_contact_id[0], via: "empleado", nombre: emp[0].name };
+  }
+  if (correo) {
+    const empMail = await c.call("hr.employee", "search_read", [[["work_email", "=ilike", correo]]], { fields: ["work_contact_id", "user_id", "name"], limit: 2 });
+    if (Array.isArray(empMail) && empMail.length === 1 && empMail[0].work_contact_id) {
+      return { partnerId: empMail[0].work_contact_id[0], via: "empleado", nombre: empMail[0].name };
+    }
   }
   return { partnerId: datos.tecnicoPartnerId, via: "cuenta_tecnica" };
 }
