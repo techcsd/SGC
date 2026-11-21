@@ -960,3 +960,97 @@ Deno.test("proveedores.actualizar (real contra fetch simulado): partner inexiste
   assertEquals(ok.status, 200);
   assertEquals(calls.filter((c) => c.includes("<string>write</string>")).length, 1);
 });
+
+Deno.test("productos.listar: permite término vacío y pagina, y no filtra por purchase_ok", async () => {
+  const calls: string[] = [];
+  const xml = xmlStruct(`<value><struct>
+    <member><name>id</name><value><int>7</int></value></member>
+    <member><name>display_name</name><value><string>Cemento</string></value></member>
+    <member><name>default_code</name><value><string>CEM</string></value></member>
+    <member><name>uom_id</name><value><array><data><value><int>1</int></value><value><string>Unidad</string></value></data></array></value></member>
+    <member><name>categ_id</name><value><array><data><value><int>3</int></value><value><string>Obra</string></value></data></array></value></member>
+  </struct></value>`);
+  const r = await manejar(req({ accion: "productos.listar", params: { pagina: 1, tamano: 20 } }), deps({ calls, respuesta: xml }));
+  assertEquals(r.status, 200);
+  const body = await r.json();
+  assertEquals(body.data.productos[0].id, 7);
+  assertEquals(body.data.productos[0].unidad_id, 1);
+  assertEquals(body.data.productos[0].categoria_id, 3);
+  assertEquals(calls.some((c) => c.includes("purchase_ok")), false);
+  assertEquals(calls.some((c) => c.includes("<string>product</string>")), true);
+});
+
+Deno.test("categorias.listar y unidades.listar: leen product.category y uom.uom", async () => {
+  const calls: string[] = [];
+  const r1 = await manejar(req({ accion: "categorias.listar", params: {} }), deps({ calls }));
+  const r2 = await manejar(req({ accion: "unidades.listar", params: {} }), deps({ calls }));
+  assertEquals(r1.status, 200);
+  assertEquals(r2.status, 200);
+  assertEquals(calls.some((c) => c.includes("product.category")), true);
+  assertEquals(calls.some((c) => c.includes("uom.uom")), true);
+});
+
+Deno.test("productos.crear: usuario sin módulo compras → 403, no llama a la solicitud ni al adaptador", async () => {
+  let llamado = false;
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["inventario"] }),
+    admin: () => fakeAdmin(() => { llamado = true; return { data: null }; }),
+    adaptadorOc: { crearProducto: () => { llamado = true; return Promise.resolve({ id: 1, nombre: "X", codigo: null, unidad: "Unidad", unidadId: 1, templateId: 1, categoriaId: 1, categoria: "C", yaExistia: false }); } },
+  });
+  const r = await manejar(req({ accion: "productos.crear", params: { solicitud_id: UUID } }), d);
+  assertEquals(r.status, 403);
+  assertEquals(llamado, false);
+});
+
+Deno.test("productos.crear: solicitud_id inválido → 400", async () => {
+  const d = deps({ autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }) });
+  const r = await manejar(req({ accion: "productos.crear", params: { solicitud_id: "no-es-uuid" } }), d);
+  assertEquals(r.status, 400);
+});
+
+Deno.test("productos.crear: solo acepta solicitud_id — ignora un nombre mandado por el cliente", async () => {
+  const llamadas: { nombre: string; args: Record<string, unknown> }[] = [];
+  let valsRecibidos: Record<string, unknown> | null = null;
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre, args) => {
+      llamadas.push({ nombre, args });
+      if (nombre === "solicitud_producto_para_crear") {
+        return { data: { nombre: "Cemento gris", codigo: "CEM", odoo_categ_id: 3, odoo_uom_id: 1 } };
+      }
+      if (nombre === "upsert_articulo_proyeccion_odoo") return { data: { id: UUID } };
+      if (nombre === "solicitud_producto_marcar_creado") return { data: { repetido: false } };
+      return { data: null };
+    }),
+    adaptadorOc: {
+      crearProducto: (vals) => {
+        valsRecibidos = vals as unknown as Record<string, unknown>;
+        return Promise.resolve({ id: 88, nombre: "Cemento gris", codigo: "CEM", unidad: "Unidad", unidadId: 1, templateId: 88, categoriaId: 3, categoria: "Obra", yaExistia: false });
+      },
+    },
+  });
+  const r = await manejar(req({ accion: "productos.crear", params: { solicitud_id: UUID, nombre: "NO USAR ESTE" } }), d);
+  assertEquals(r.status, 200);
+  const data = (await r.json()).data;
+  assertEquals(data.articulo_id, UUID);
+  assertEquals(data.producto.id, 88);
+  assertEquals(data.repetido, false);
+  assertEquals(valsRecibidos?.nombre, "Cemento gris");
+  assertEquals(llamadas.map((l) => l.nombre), ["solicitud_producto_para_crear", "upsert_articulo_proyeccion_odoo", "solicitud_producto_marcar_creado"]);
+});
+
+Deno.test("productos.crear: solicitud no aprobada → 400 y no crea en Odoo", async () => {
+  let creo = false;
+  const d = deps({
+    autenticar: () => Promise.resolve({ usuario_id: "u1", es_admin: false, modulos: ["compras"] }),
+    admin: () => fakeAdmin((nombre) =>
+      nombre === "solicitud_producto_para_crear"
+        ? { data: null, error: { message: "La solicitud debe estar aprobada por Contabilidad antes de crearla en Odoo." } }
+        : { data: null }),
+    adaptadorOc: { crearProducto: () => { creo = true; return Promise.resolve({ id: 1, nombre: "X", codigo: null, unidad: "Unidad", unidadId: 1, templateId: 1, categoriaId: 1, categoria: "C", yaExistia: false }); } },
+  });
+  const r = await manejar(req({ accion: "productos.crear", params: { solicitud_id: UUID } }), d);
+  assertEquals(r.status, 400);
+  assertEquals((await r.json()).error, "La solicitud debe estar aprobada por Contabilidad antes de crearla en Odoo.");
+  assertEquals(creo, false);
+});

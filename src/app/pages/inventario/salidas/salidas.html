@@ -568,16 +568,30 @@
 
         @for (item of formItems(); track $index) {
           <div class="item-row">
-            <app-articulo-picker
-              class="item-row__articulo"
-              [articulos]="articulos()"
-              [categorias]="categorias()"
-              [value]="item.articulo_id || null"
-              [allowOtro]="false"
-              [stock]="stockMap()"
-              [ocultarSinStock]="true"
-              (selectionChange)="onArticuloSelect($index, $event)"
-            />
+            @if (bodegaOdoo(f.bodega_id.value)?.fuente_odoo) {
+              <app-odoo-producto-picker
+                class="item-row__articulo"
+                modo="inventario"
+                [bodegaId]="f.bodega_id.value"
+                [bloqueado]="stockOrigen() === 'caido'"
+                [bloqueadoMotivo]="stockOdooError()"
+                [value]="odooValue(item.articulo_id)"
+                (inventarioElegido)="onOdooArticuloSelect($index, $event)"
+                (selectionChange)="!$event && onOdooLimpiar($index)"
+                (solicitarAlta)="onSolicitarAltaArticulo($event)"
+              />
+            } @else {
+              <app-articulo-picker
+                class="item-row__articulo"
+                [articulos]="articulos()"
+                [categorias]="categorias()"
+                [value]="item.articulo_id || null"
+                [allowOtro]="false"
+                [stock]="stockMap()"
+                [ocultarSinStock]="true"
+                (selectionChange)="onArticuloSelect($index, $event)"
+              />
+            }
             <div class="item-row__qtywrap">
               @if (item.articulo_id && itemFactor(item.articulo_id); as factor) {
                 <!-- BM5 — el artículo se puede pedir por unidad o por empaque (atado/paquete). -->

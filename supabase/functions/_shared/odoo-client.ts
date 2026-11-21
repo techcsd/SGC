@@ -203,6 +203,8 @@ export interface PoliticaOdoo {
 export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
   lectura: {
     "product.product": ["search_read"],
+    "product.category": ["search_read"],
+    "uom.uom": ["search_read"],
     "stock.location": ["search_read"],
     "stock.quant": ["read_group", "search_read"], // DS-22: saldo por articulo/ubicacion para ajustes
     "res.partner": ["search_read"],
@@ -228,6 +230,8 @@ export const POLITICA_POR_DEFECTO: PoliticaOdoo = {
     "stock.quant": ["create", "write", "action_apply_inventory"],
     // Proveedores directos en Odoo: alta y edición/archivado. Sin unlink: nunca se borra un partner.
     "res.partner": ["create", "write"],
+    // Alta de catálogo (ADR 15): solo create de product.product, después de aprobación de Contabilidad. Sin unlink.
+    "product.product": ["create"],
     // Reabastecimiento: reglas de minimo/maximo con disparador manual. Sin unlink: una regla se archiva, nunca se borra.
     "stock.warehouse.orderpoint": ["create", "write"],
   },
