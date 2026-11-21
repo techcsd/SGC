@@ -8872,5 +8872,18 @@
   "La compra de este faltante ya avanzó: avisa a Compras para que use el artículo nuevo.": "The purchase for this shortfall has already progressed: tell Purchasing to use the new item.",
   "El renglón y su faltante en compra ya usan el artículo nuevo.": "The line and its purchase shortfall now use the new item.",
   "No se pudo cambiar el artículo.": "Couldn't change the item.",
-  "Sin existencia aquí": "No stock here"
+  "Sin existencia aquí": "No stock here",
+  "SLO: 99 % en menos de 2 min": "SLO: 99% under 2 min",
+  "Errores del outbox": "Outbox errors",
+  "SLO de publicación a Odoo": "Odoo publishing SLO",
+  "Dentro del SLO": "Within SLO",
+  "Fuera del SLO": "Outside SLO",
+  "Sin muestras en los últimos 7 días": "No samples in the last 7 days",
+  "{pct} % en menos de 2 min (meta: 99 %, {n} muestra(s) en 7 días)": "{pct}% under 2 min (target: 99%, {n} sample(s) in 7 days)",
+  "p99 informativo: {s} s": "Informational p99: {s} s",
+  "Inciertos abiertos: {n}": "Open uncertain items: {n}",
+  "Errores del outbox (salidas): {n}": "Outbox errors (deliveries): {n}",
+  "Eventos de conduce en error o bloqueados en la cola a Odoo. El detalle y el reintento están en Sincronización.": "Delivery events in error or blocked in the Odoo queue. Details and retry are in Synchronization.",
+  "Ver en Sincronización": "View in Synchronization",
+  "Sin errores en la cola a Odoo.": "No errors in the Odoo queue."
 }

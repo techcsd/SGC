@@ -30,13 +30,18 @@ export interface EstadoConciliacion {
   inciertos_abiertos: number;
 }
 
-/** DS-27 — criterios de salida del canary (medidos en el outbox y el conciliador). */
+/** #204 / DS-27 — criterios de observación del canary (SLO 99 % < 2 min, outbox y conciliador). */
 export interface CriteriosCanary {
   muestras: number;
   p99_publicacion_s: number;
-  fuera_de_canal_abiertas: number;
+  pct_en_2min: number | null;
+  cumple_slo: boolean;
+  /** Alias de cumple_slo (ya no significa p99 < 5 s). */
   cumple_p99: boolean;
+  fuera_de_canal_abiertas: number;
   cumple_fuera_de_canal: boolean;
+  inciertos_abiertos: number;
+  outbox_errores: number;
   ratificaciones: number[];
 }
 
