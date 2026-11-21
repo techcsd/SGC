@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { OdooApiService } from './odoo-api.service';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { SalidaInventario, SalidaFormData, SalidaFirma, ConduceListadoRow } from '../models/salida.model';
@@ -89,6 +90,7 @@ export interface OdooSyncSalida {
 @Injectable({ providedIn: 'root' })
 export class SalidasService {
   private supabase = inject(SupabaseService);
+  private odooApi = inject(OdooApiService);
   private cache = inject(SignedUrlCache);
   private notificaciones = inject(NotificacionesService);
 
@@ -456,23 +458,40 @@ export class SalidasService {
     if (error) throw new Error(error.message);
   }
 
-  /** Atomic insert (header + items) with server-side stock validation, via RPC. */
+  /** Almacenes con vínculo/fuente Odoo, para emitir el conduce contra existencias vivas. */
+  async bodegasConduceOdoo(): Promise<{
+    bodega_id: string; nombre: string; odoo_warehouse_id: number | null; odoo_location_id: number | null;
+    codigo_odoo: string | null; fuente_odoo: boolean; homologada: boolean; contingencia: boolean;
+  }[]> {
+    const { data, error } = await this.supabase.client.rpc('bodegas_conduce_odoo');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as {
+      bodega_id: string; nombre: string; odoo_warehouse_id: number | null; odoo_location_id: number | null;
+      codigo_odoo: string | null; fuente_odoo: boolean; homologada: boolean; contingencia: boolean;
+    }[];
+  }
+
+  /** Atomic insert (header + items). En almacenes con fuente Odoo valida existencias en vivo vía odoo-api. */
   async create(payload: SalidaFormData, userId: string | null): Promise<SalidaInventario> {
+    void userId; // el gateway toma el autor de la sesión; no se confía en el cliente
     const { items, conductor_id, vehiculo_id, ...header } = payload;
 
-    const { data: salidaId, error } = await this.supabase.client.rpc('registrar_salida_inventario', {
-      p_fecha: header.fecha,
-      p_bodega_id: header.bodega_id,
-      p_proyecto_id: header.proyecto_id,
-      p_motivo: header.motivo,
-      p_responsable: header.responsable,
-      p_responsable_id: header.responsable_id ?? null,
-      p_observaciones: header.observaciones,
-      p_creado_por: userId,
-      p_items: items,
-    });
-
-    if (error) throw new Error(error.message);
+    let salidaId: string;
+    try {
+      const emitida = await this.odooApi.emitirSalida({
+        fecha: header.fecha,
+        bodega_id: header.bodega_id,
+        proyecto_id: header.proyecto_id,
+        motivo: header.motivo,
+        responsable: header.responsable,
+        responsable_id: header.responsable_id ?? null,
+        observaciones: header.observaciones,
+        items,
+      });
+      salidaId = emitida.salida_id;
+    } catch (e) {
+      throw e instanceof Error ? e : new Error('No se pudo registrar el conduce.');
+    }
 
     // Transporte is optional and recorded separately — registrar_salida_inventario
     // only handles the header + items RPC signature already in use elsewhere.

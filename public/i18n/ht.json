@@ -8872,5 +8872,15 @@
   "La compra de este faltante ya avanzó: avisa a Compras para que use el artículo nuevo.": "Acha pou mank sa a deja avanse: di Acha pou yo itilize nouvo atik la.",
   "El renglón y su faltante en compra ya usan el artículo nuevo.": "Liy lan ak mank li nan acha a ap itilize nouvo atik la kounye a.",
   "No se pudo cambiar el artículo.": "Pa t kapab chanje atik la.",
-  "Sin existencia aquí": "Pa gen stòk isit la"
+  "Sin existencia aquí": "Pa gen stòk isit la",
+  "Consultando existencias en Odoo…": "N ap gade stock nan Odoo…",
+  "Existencias según Odoo": "Stock dapre Odoo",
+  "Disponible en Odoo:": "Disponib nan Odoo:",
+  "No se puede emitir el conduce porque Odoo no responde. Espera un momento e inténtalo de nuevo.": "Ou pa ka emèt kondwi a paske Odoo pa reponn. Tann yon ti moman epi eseye ankò.",
+  "Odoo no responde. Se muestra el stock local porque hay una contingencia vigente.": "Odoo pa reponn. N ap montre stock lokal la paske gen yon kontinjans aktif.",
+  "No se pudo consultar las existencias en Odoo.": "Nou pa t ka tcheke stock nan Odoo.",
+  "Reintentar seleccionados": "Eseye ankò sa ki seleksyone",
+  "Reencolados": "Remete nan fil",
+  "{n} evento{plural} volverán a publicarse en la próxima pasada.": "{n} evènman{plural} pral pibliye ankò nan pwochen pasaj la.",
+  "Seleccionar todos los reintentables": "Chwazi tout sa ou ka eseye ankò"
 }

@@ -35,6 +35,9 @@ export interface OdooEventoFila {
   error: string | null;
   creado_en: string;
   actualizado_en: string;
+  /** #202 — folio visible (CND-…) y almacén, cuando el evento es una salida. */
+  folio?: string | null;
+  almacen?: string | null;
 }
 
 export interface OdooIntentoRegistro {
