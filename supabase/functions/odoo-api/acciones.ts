@@ -8,7 +8,8 @@ import { CAMPOS_PROVEEDOR, dominioCompaniaPartner, leerProveedores, proveedorDes
 export class ParamError extends Error {}
 
 export const ACCIONES = [
-  "productos.buscar", "ubicaciones.listar", "stock.consultar",
+  "productos.buscar", "productos.listar", "categorias.listar", "unidades.listar",
+  "ubicaciones.listar", "stock.consultar",
   // #202 — almacenes y existencias en lote, leídos DIRECTO de Odoo (emisión de conduces).
   "almacenes.listar", "stock.disponible",
   // CY24 Fase A — lectura para el piloto de OC (solo lectura; crear/confirmar es Fase C).
@@ -80,14 +81,97 @@ const productosBuscar: Def<{ termino: string; limite: number }> = {
       ["type", "=", "product"],
       ...dominioCompania(odoo.companyId),
       "|", ["name", "ilike", termino], ["default_code", "ilike", termino],
-    ]], { fields: ["id", "display_name", "default_code", "uom_id", "categ_id"], limit: limite, order: "display_name asc" });
+    ]], { fields: ["id", "display_name", "default_code", "uom_id", "categ_id", "product_tmpl_id"], limit: limite, order: "display_name asc" });
     return {
-      productos: (filas as Record<string, unknown>[]).map((f) => ({
+      productos: (filas as Record<string, unknown>[]).map((f) => mapProductoInventario(f)),
+    };
+  },
+};
+
+const mapProductoInventario = (f: Record<string, unknown>) => {
+  const unidad = m2o(f.uom_id);
+  const categoria = m2o(f.categ_id);
+  return {
+    id: f.id as number,
+    nombre: String(f.display_name ?? ""),
+    codigo: f.default_code ? String(f.default_code) : null,
+    unidad: unidad?.nombre ?? null,
+    unidad_id: unidad?.id ?? null,
+    categoria: categoria?.nombre ?? null,
+    categoria_id: categoria?.id ?? null,
+    plantilla_id: typeof f.product_tmpl_id === "number"
+      ? f.product_tmpl_id
+      : (m2o(f.product_tmpl_id)?.id ?? null),
+  };
+};
+
+const productosListar: Def<{ termino: string; categoria_id: number | null; pagina: number; tamano: number }> = {
+  normalizar(p) {
+    const termino = String(p.termino ?? "").replace(CONTROL, " ").replace(/\s+/g, " ").trim();
+    if (termino.length > 80) throw new ParamError("El término de búsqueda no puede pasar de 80 caracteres.");
+    return {
+      termino,
+      categoria_id: idSeguro(p.categoria_id, "categoria_id"),
+      pagina: entero(p.pagina, "pagina", 1, 1, MAX_PAGINA),
+      tamano: entero(p.tamano, "tamano", 50, 1, MAX_TAMANO),
+    };
+  },
+  async ejecutar(odoo, { termino: crudo, categoria_id, pagina, tamano }) {
+    const dominio: unknown[] = [
+      ["active", "=", true],
+      ["type", "=", "product"],
+      ...dominioCompania(odoo.companyId),
+    ];
+    if (crudo) {
+      const termino = escapaLike(crudo);
+      dominio.push("|", ["name", "ilike", termino], ["default_code", "ilike", termino]);
+    }
+    if (categoria_id) dominio.push(["categ_id", "child_of", categoria_id]);
+    const filas = await odoo.call("product.product", "search_read", [dominio], {
+      fields: ["id", "display_name", "default_code", "uom_id", "categ_id", "product_tmpl_id"],
+      limit: tamano + 1, offset: (pagina - 1) * tamano, order: "display_name asc",
+    }) as Record<string, unknown>[];
+    return {
+      productos: filas.slice(0, tamano).map(mapProductoInventario),
+      pagina, tamano, hay_mas: filas.length > tamano,
+    };
+  },
+};
+
+const categoriasListar: Def<Record<string, never>> = {
+  normalizar: () => ({}),
+  async ejecutar(odoo) {
+    const filas = await odoo.call("product.category", "search_read", [[]], {
+      fields: ["id", "name", "complete_name", "parent_id"],
+      limit: 500, order: "complete_name asc",
+    }) as Record<string, unknown>[];
+    return {
+      truncado: filas.length >= 500,
+      categorias: filas.map((f) => ({
         id: f.id as number,
-        nombre: String(f.display_name ?? ""),
-        codigo: f.default_code ? String(f.default_code) : null,
-        unidad: m2o(f.uom_id)?.nombre ?? null,
-        categoria: m2o(f.categ_id)?.nombre ?? null,
+        nombre: String(f.name ?? ""),
+        nombre_completo: String(f.complete_name ?? f.name ?? ""),
+        padre_id: m2o(f.parent_id)?.id ?? null,
+      })),
+    };
+  },
+};
+
+const unidadesListar: Def<Record<string, never>> = {
+  normalizar: () => ({}),
+  async ejecutar(odoo) {
+    const filas = await odoo.call("uom.uom", "search_read", [[["active", "=", true]]], {
+      fields: ["id", "name", "category_id", "factor", "uom_type"],
+      limit: 500, order: "name asc",
+    }) as Record<string, unknown>[];
+    return {
+      truncado: filas.length >= 500,
+      unidades: filas.map((f) => ({
+        id: f.id as number,
+        nombre: String(f.name ?? ""),
+        categoria: m2o(f.category_id)?.nombre ?? null,
+        factor: Number(f.factor ?? 1),
+        tipo: String(f.uom_type ?? ""),
       })),
     };
   },
@@ -242,17 +326,15 @@ const productosObtener: Def<{ producto_id: number }> = {
   async ejecutar(odoo, { producto_id }) {
     const filas = await odoo.call("product.product", "search_read", [
       [["id", "=", producto_id], ...dominioCompania(odoo.companyId)],
-    ], { fields: ["id", "display_name", "default_code", "uom_id", "uom_po_id", "categ_id", "active", "purchase_ok", "taxes_id"], limit: 1 }) as Record<string, unknown>[];
+    ], { fields: ["id", "display_name", "default_code", "uom_id", "uom_po_id", "categ_id", "product_tmpl_id", "active", "purchase_ok", "taxes_id"], limit: 1 }) as Record<string, unknown>[];
     const f = filas[0];
     if (!f) return { producto: null };
+    const base = mapProductoInventario(f);
     return {
       producto: {
-        id: f.id as number,
-        nombre: String(f.display_name ?? ""),
-        codigo: f.default_code ? String(f.default_code) : null,
-        unidad: m2o(f.uom_id)?.nombre ?? null,
+        ...base,
         unidad_compra: m2o(f.uom_po_id)?.nombre ?? null,
-        categoria: m2o(f.categ_id)?.nombre ?? null,
+        unidad_compra_id: m2o(f.uom_po_id)?.id ?? null,
         activo: !!f.active,
         comprable: !!f.purchase_ok,
         impuestos_ids: Array.isArray(f.taxes_id) ? f.taxes_id : [],
@@ -388,6 +470,9 @@ const comprasObtenerVarias: Def<{ orden_ids: number[] }> = {
 
 export const DEFINICIONES: { [A in Accion]: Def<never> } = {
   "productos.buscar": productosBuscar,
+  "productos.listar": productosListar,
+  "categorias.listar": categoriasListar,
+  "unidades.listar": unidadesListar,
   "ubicaciones.listar": ubicacionesListar,
   "stock.consultar": stockConsultar,
   "almacenes.listar": almacenesListar,

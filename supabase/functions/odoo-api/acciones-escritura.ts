@@ -15,18 +15,21 @@ import {
   type AdaptadoresProveedores, type ProveedorCambios, ProveedorError, proveedorActualizarMock, proveedorCrearMock,
   type ProveedorNuevo,
 } from "../_shared/odoo-proveedores.ts";
+import { type AdaptadorCrearProducto, crearProductoMock, type ProductoCreado } from "../_shared/odoo-productos.ts";
 
 export const ACCIONES_ESCRITURA = [
   "compras.crear", "compras.confirmar", "compras.cancelar",
   // Proveedores directo en Odoo: no usan sgc.odoo_comandos_oc ni escriben nada en SGC.
   "proveedores.crear", "proveedores.actualizar",
+  // ADR 15 — alta de product.product tras aprobación de Contabilidad.
+  "productos.crear",
 ] as const;
 export type AccionEscritura = typeof ACCIONES_ESCRITURA[number];
 
 /** Adaptador hacia Odoo por acción: mock o real, elegido en index.ts (seleccionarAdaptadoresOc). */
 export type { AdaptadorOc, AdaptadoresOc };
 /** Todos los adaptadores de escritura inyectables (OC + proveedores). */
-export type AdaptadoresEscritura = AdaptadoresOc & AdaptadoresProveedores;
+export type AdaptadoresEscritura = AdaptadoresOc & AdaptadoresProveedores & { crearProducto?: AdaptadorCrearProducto };
 
 export interface CtxEscritura {
   admin: SupabaseClient;
@@ -223,10 +226,54 @@ const proveedoresActualizar: DefEscritura<ProveedorCambios> = {
   ejecutar: (ctx, p) => conErrorDeNegocio(() => (ctx.adaptador?.proveedorActualizar ?? proveedorActualizarMock)(p)),
 };
 
+
+const productosCrear: DefEscritura<{ solicitud_id: string }> = {
+  normalizar(p) {
+    if (typeof p.solicitud_id !== "string" || !RX_UUID.test(p.solicitud_id)) {
+      throw new ParamError("solicitud_id es obligatorio y debe ser un UUID válido.");
+    }
+    return { solicitud_id: p.solicitud_id };
+  },
+  async ejecutar(ctx, { solicitud_id }) {
+    const { data: p0, error } = await ctx.admin.rpc("solicitud_producto_para_crear", { p_solicitud_id: solicitud_id });
+    if (error) throw new ParamError(error.message);
+    const p = p0 as Record<string, unknown>;
+    const nombre = String(p.nombre ?? "").trim();
+    if (!nombre) throw new ParamError("La solicitud no tiene un nombre de producto.");
+    const crear = ctx.adaptador?.crearProducto ?? crearProductoMock;
+    const r: ProductoCreado = await crear({
+      nombre,
+      codigo: p.codigo ? String(p.codigo) : null,
+      categId: typeof p.odoo_categ_id === "number" ? p.odoo_categ_id : null,
+      uomId: typeof p.odoo_uom_id === "number" ? p.odoo_uom_id : null,
+    });
+    const { data: art, error: errArt } = await ctx.admin.rpc("upsert_articulo_proyeccion_odoo", {
+      p_odoo_product_id: r.id,
+      p_nombre: r.nombre || nombre,
+      p_codigo: r.codigo,
+      p_unidad: r.unidad,
+      p_odoo_template_id: r.templateId,
+      p_odoo_uom_id: r.unidadId,
+      p_odoo_categ_id: r.categoriaId,
+      p_categoria_nombre: r.categoria,
+      p_snapshot: r,
+    });
+    if (errArt) throw new ParamError(errArt.message);
+    const articuloId = (art as { id?: string })?.id;
+    if (!articuloId) throw new ParamError("No se pudo guardar la proyección del producto en SGC.");
+    const { data: cierre, error: errCierre } = await ctx.admin.rpc("solicitud_producto_marcar_creado", {
+      p_solicitud_id: solicitud_id, p_articulo_id: articuloId, p_odoo_product_id: r.id,
+    });
+    if (errCierre) throw new ParamError(errCierre.message);
+    return { producto: r, articulo_id: articuloId, repetido: !!(cierre as { repetido?: boolean })?.repetido };
+  },
+};
+
 export const DEFINICIONES_ESCRITURA: { [A in AccionEscritura]: DefEscritura<never> } = {
   "compras.crear": comprasCrear,
   "compras.confirmar": comprasConfirmar,
   "compras.cancelar": comprasCancelar,
   "proveedores.crear": proveedoresCrear,
   "proveedores.actualizar": proveedoresActualizar,
+  "productos.crear": productosCrear,
 } as unknown as { [A in AccionEscritura]: DefEscritura<never> };

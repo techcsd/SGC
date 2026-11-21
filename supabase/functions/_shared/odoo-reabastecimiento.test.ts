@@ -3,7 +3,7 @@ import type { LlamadorOdoo } from "./odoo-traslados.ts";
 import { aplicarReglas, planificarReglas } from "./odoo-reabastecimiento.ts";
 
 const art = (id: string, min: number, max = min) => ({ articuloId: id, productId: 7, minimo: min, maximo: max });
-const regla = (id: string, o: Partial<{ minimo: number; maximo: number; activa: boolean }> = {}) => ({ articuloId: id, orderpointId: 50, productId: 7, minimo: 5, maximo: 5, activa: true, ...o });
+const regla = (id: string, o: Partial<{ minimo: number; maximo: number; activa: boolean; protegida: boolean }> = {}) => ({ articuloId: id, orderpointId: 50, productId: 7, minimo: 5, maximo: 5, activa: true, ...o });
 
 Deno.test("plan: crea las que faltan, actualiza las que cambiaron, reactiva y archiva", () => {
   const p = planificarReglas([art("a", 5), art("b", 8, 20), art("c", 3)], [regla("b"), regla("c", { activa: false, minimo: 3, maximo: 3 }), regla("z")]);
@@ -33,4 +33,12 @@ Deno.test("aplicar: crea con disparador manual, adopta una regla existente y arc
   assertEquals(r2[0].orderpointId, 99);
   const r3 = await aplicarReglas(c, destino, [{ op: "archivar", articuloId: "z", orderpointId: 50 }]);
   assertEquals([r3[0].activa, log.at(-1)?.includes('"active":false')], [false, true]);
+});
+
+Deno.test("plan: una regla protegida (editada en Odoo) no se actualiza ni se archiva", () => {
+  const p = planificarReglas(
+    [art("a", 9, 20), art("b", 3)],
+    [regla("a", { minimo: 5, maximo: 5, protegida: true }), regla("z", { protegida: true })],
+  );
+  assertEquals(p.map((x) => `${x.op}:${x.articuloId}`), ["crear:b"]);
 });

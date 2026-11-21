@@ -52,7 +52,22 @@ async function sincronizarReglas(admin: Any, odoo: OdooClient, instancia: string
   const { data: cargado, error } = await admin.rpc("odoo_reabastecimiento_cargar", { p_instancia: instancia });
   if (error) throw new Error(error.message);
   const articulos = ((cargado?.articulos ?? []) as Any[]).map((a) => ({ articuloId: a.articulo_id, productId: Number(a.odoo_product_id), minimo: Number(a.minimo), maximo: Number(a.maximo) }));
-  const reglas = ((cargado?.reglas ?? []) as Any[]).map((r) => ({ articuloId: r.articulo_id, orderpointId: Number(r.orderpoint_id), productId: Number(r.odoo_product_id), minimo: Number(r.minimo), maximo: Number(r.maximo), activa: !!r.activa }));
+  const reglasBase = ((cargado?.reglas ?? []) as Any[]).map((r) => ({ articuloId: r.articulo_id, orderpointId: Number(r.orderpoint_id), productId: Number(r.odoo_product_id), minimo: Number(r.minimo), maximo: Number(r.maximo), activa: !!r.activa, protegida: !!r.protegida }));
+  const ids = reglasBase.map((r) => r.orderpointId).filter((n) => Number.isFinite(n) && n > 0);
+  const live: Any[] = ids.length
+    ? await odoo.call("stock.warehouse.orderpoint", "search_read", [[["id", "in", ids]]], { fields: ["id", "product_min_qty", "product_max_qty"], context: { active_test: false } }) ?? []
+    : [];
+  const porId = new Map(live.map((f) => [Number(f.id), f]));
+  const reglas = [];
+  for (const r of reglasBase) {
+    const l = porId.get(r.orderpointId);
+    const editada = !!l && (Math.abs(Number(l.product_min_qty ?? 0) - r.minimo) > 1e-6 || Math.abs(Number(l.product_max_qty ?? 0) - r.maximo) > 1e-6);
+    const protegida = r.protegida || editada;
+    if (editada && !r.protegida) {
+      await admin.rpc("odoo_reabastecimiento_marcar_protegida", { p_articulo: r.articuloId, p_protegida: true });
+    }
+    reglas.push({ ...r, protegida });
+  }
   const plan = planificarReglas(articulos, reglas);
   const hechas = await aplicarReglas(odoo, { warehouseId: Number(b.odoo_warehouse_id), locationId: Number(b.odoo_location_id) }, plan);
   for (const h of hechas) await admin.rpc("odoo_reabastecimiento_registrar", { p_instancia: instancia, p_articulo: h.articuloId, p_orderpoint: h.orderpointId, p_minimo: h.minimo, p_maximo: h.maximo, p_activa: h.activa });

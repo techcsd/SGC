@@ -135,15 +135,15 @@
         }
       </div>
 
-      @if (s.estado === 'pendiente') {
-        @if (!modo()) {
+      @if (s.estado === 'pendiente' || s.estado === 'aprobado') {
+        @if (!modo() && s.estado === 'pendiente') {
           <!-- Elegir qué hacer -->
           <div class="pda-opciones">
             <button type="button" class="sgc-btn sgc-btn--secondary" (click)="elegirModo('vincular')">
               {{ 'Vincular a un artículo existente' | t }}
             </button>
             <button type="button" class="sgc-btn sgc-btn--secondary" (click)="elegirModo('crear')">
-              {{ 'Crear artículo nuevo' | t }}
+              {{ 'Crear producto en Odoo' | t }}
             </button>
             <button type="button" class="sgc-btn sgc-btn--danger" (click)="elegirModo('rechazar')">
               {{ 'Rechazar solicitud' | t }}
@@ -164,22 +164,26 @@
               <input id="nombre" type="text" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
             </div>
             <div class="sgc-field">
-              <label for="cat">{{ 'Categoría' | t }}</label>
-              <select id="cat" [value]="nuevaCategoria()" (change)="nuevaCategoria.set(+$any($event.target).value)">
-                @for (c of categorias(); track c.id) {
-                  <option [value]="c.id">{{ c.nombre }}</option>
+              <label for="cod">{{ 'Código en Odoo (opcional)' | t }}</label>
+              <input id="cod" type="text" [value]="nuevoCodigo()" (input)="nuevoCodigo.set($any($event.target).value)" />
+            </div>
+            <div class="sgc-field">
+              <label for="cat">{{ 'Categoría de Odoo' | t }}</label>
+              <select id="cat" [value]="odooCategId() ?? ''" (change)="odooCategId.set(+$any($event.target).value || null)">
+                @for (c of categoriasOdoo(); track c.id) {
+                  <option [value]="c.id">{{ c.nombre_completo }}</option>
                 }
               </select>
             </div>
             <div class="sgc-field">
-              <label for="uni">{{ 'Unidad' | t }}</label>
-              <select id="uni" [value]="nuevaUnidad()" (change)="nuevaUnidad.set($any($event.target).value)">
-                @for (u of unidades; track u.value) {
-                  <option [value]="u.value">{{ u.label | t }}</option>
+              <label for="uni">{{ 'Unidad de Odoo' | t }}</label>
+              <select id="uni" [value]="odooUomId() ?? ''" (change)="odooUomId.set(+$any($event.target).value || null)">
+                @for (u of unidadesOdoo(); track u.id) {
+                  <option [value]="u.id">{{ u.nombre }}</option>
                 }
               </select>
             </div>
-            <p class="pda-note">{{ 'Se creará con código automático y quedará marcado como puente a Odoo.' | t }}</p>
+            <p class="pda-note">{{ 'Contabilidad aprueba y entonces se crea el producto en Odoo. No se crea un artículo solo en SGC.' | t }}</p>
           } @else {
             <div class="sgc-field">
               <label for="rm">{{ 'Motivo del rechazo' | t }}</label>
@@ -198,8 +202,8 @@
                 {{ (resolviendo() ? 'Vinculando…' : 'Vincular') | t }}
               </button>
             } @else if (modo() === 'crear') {
-              <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolviendo()" (click)="confirmarCrearYResolver()">
-                {{ (resolviendo() ? 'Creando…' : 'Crear y resolver') | t }}
+              <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolviendo() || (drawerSolicitud()?.estado !== 'aprobado' && !puedeAprobar())" (click)="confirmarCrearYResolver()">
+                {{ (resolviendo() ? 'Creando en Odoo…' : (drawerSolicitud()?.estado === 'aprobado' ? 'Crear en Odoo' : 'Aprobar y crear en Odoo')) | t }}
               </button>
             } @else {
               <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolviendo()" (click)="confirmarRechazar()">

@@ -34,6 +34,13 @@ export interface Articulo {
   created_at: string;
   updated_at: string;
   categoria?: { nombre: string };
+  odoo_product_id?: number | null;
+  odoo_template_id?: number | null;
+  odoo_uom_id?: number | null;
+  odoo_categ_id?: number | null;
+  odoo_snapshot?: Record<string, unknown> | null;
+  odoo_snapshot_en?: string | null;
+  odoo_ultima_sync?: string | null;
 }
 
 export interface ArticuloFormData {

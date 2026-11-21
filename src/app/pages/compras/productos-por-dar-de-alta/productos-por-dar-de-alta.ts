@@ -8,6 +8,8 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { OdooProductoSolicitud } from '../../../../shared/models/odoo-producto-solicitud.model';
 import { Articulo, UNIDADES } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
+import { OdooApiService } from '../../../../shared/services/odoo-api.service';
+import { OdooCategoria, OdooUnidad } from '../../../../shared/models/odoo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
@@ -37,6 +39,7 @@ export class ProductosPorDarDeAlta implements OnInit {
   private articulosSvc = inject(ArticulosService);
   private categoriasSvc = inject(CategoriasService);
   private userService = inject(UserService);
+  private odooApi = inject(OdooApiService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
 
@@ -45,6 +48,12 @@ export class ProductosPorDarDeAlta implements OnInit {
   // D-09: el RPC lo exige igual, pero mejor no ofrecer "Resolver" a quien de todos
   // modos será rechazado por el servidor.
   puedeResolver = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('compras'));
+  puedeAprobar = computed(() =>
+    this.userService.hasRole('admin') ||
+    this.userService.hasRole('contabilidad') ||
+    this.userService.hasRole('direccion') ||
+    this.userService.hasRole('gerencia'),
+  );
 
   solicitudes = signal<OdooProductoSolicitud[]>([]);
   loading = signal(true);
@@ -53,8 +62,13 @@ export class ProductosPorDarDeAlta implements OnInit {
 
   catalogo = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
+  categoriasOdoo = signal<OdooCategoria[]>([]);
+  unidadesOdoo = signal<OdooUnidad[]>([]);
+  odooCategId = signal<number | null>(null);
+  odooUomId = signal<number | null>(null);
+  nuevoCodigo = signal('');
 
-  pendientes = computed(() => this.solicitudes().filter((s) => s.estado === 'pendiente'));
+  pendientes = computed(() => this.solicitudes().filter((s) => s.estado === 'pendiente' || s.estado === 'aprobado'));
   visible = computed(() => (this.tab() === 'pendientes' ? this.pendientes() : this.solicitudes()));
 
   page = signal(1);
@@ -92,6 +106,13 @@ export class ProductosPorDarDeAlta implements OnInit {
       this.categorias.set(cats);
     } catch {
       /* el picker queda vacío; no bloquea ver la bandeja */
+    }
+    try {
+      const [catsO, unsO] = await Promise.all([this.odooApi.listarCategorias(), this.odooApi.listarUnidades()]);
+      this.categoriasOdoo.set(catsO.data.categorias);
+      this.unidadesOdoo.set(unsO.data.unidades);
+    } catch {
+      /* si Odoo no responde, el alta no se puede completar aquí */
     }
   }
 
@@ -152,7 +173,11 @@ export class ProductosPorDarDeAlta implements OnInit {
     this.nuevoNombre.set(s.descripcion_libre);
     this.nuevaCategoria.set(this.categorias()[0]?.id ?? null);
     this.nuevaUnidad.set('unidad');
+    this.nuevoCodigo.set(s.codigo_propuesto ?? '');
+    this.odooCategId.set(s.odoo_categ_id ?? this.categoriasOdoo()[0]?.id ?? null);
+    this.odooUomId.set(s.odoo_uom_id ?? this.unidadesOdoo()[0]?.id ?? null);
     this.rechazarMotivo.set('');
+    if (s.estado === 'aprobado') this.modo.set('crear');
     this.drawerOpen.set(true);
   }
 
@@ -181,30 +206,33 @@ export class ProductosPorDarDeAlta implements OnInit {
   async confirmarCrearYResolver() {
     const s = this.drawerSolicitud();
     const nombre = this.nuevoNombre().trim();
-    const categoriaId = this.nuevaCategoria();
     if (!s || this.resolviendo()) return;
     if (!nombre) { this.resolverError.set(this.i18n.t('El nombre del artículo es obligatorio.')); return; }
-    if (categoriaId == null) { this.resolverError.set(this.i18n.t('Elige una categoría.')); return; }
     this.resolviendo.set(true);
     this.resolverError.set('');
     try {
-      const articulo = await this.articulosSvc.create({
-        nombre,
-        descripcion: null,
-        categoria_id: categoriaId,
-        unidad: this.nuevaUnidad(),
-        stock_minimo: 0,
-        stock_maximo: null,
-        precio_estimado: null,
-        activo: true,
-      });
-      await this.svc.resolver(s.id, 'creado', articulo.id, null);
-      this.catalogo.update((list) => [...list, articulo]);
-      this.toast.success(this.i18n.t('Artículo creado.'), 'Quedó marcado como puente a Odoo (D-10) y la línea de OC se actualizó.');
+      if (s.estado !== 'aprobado') {
+        if (!this.puedeAprobar()) {
+          throw new Error(this.i18n.t('Contabilidad debe aprobar el alta antes de crear el producto en Odoo.'));
+        }
+        await this.svc.aprobar(s.id, {
+          nombre,
+          codigo: this.nuevoCodigo().trim() || null,
+          odoo_categ_id: this.odooCategId(),
+          odoo_uom_id: this.odooUomId(),
+        });
+      }
+      const r = await this.odooApi.crearProductoDesdeSolicitud(s.id);
+      this.toast.success(
+        this.i18n.t('Producto creado en Odoo.'),
+        r.producto.yaExistia
+          ? this.i18n.t('Ya existía en Odoo; se vinculó a SGC.')
+          : this.i18n.t('Ya está en el catálogo de Odoo y en SGC como proyección.'),
+      );
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      this.resolverError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo crear el artículo.'));
+      this.resolverError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo crear el producto en Odoo.'));
     } finally {
       this.resolviendo.set(false);
     }
@@ -236,6 +264,7 @@ export class ProductosPorDarDeAlta implements OnInit {
   estadoBadgeClass(estado: string): string {
     switch (estado) {
       case 'pendiente': return 'sgc-badge sgc-badge--warning';
+      case 'aprobado': return 'sgc-badge sgc-badge--info';
       case 'creado':
       case 'vinculado_existente': return 'sgc-badge sgc-badge--success';
       case 'rechazado': return 'sgc-badge sgc-badge--danger';
@@ -246,6 +275,7 @@ export class ProductosPorDarDeAlta implements OnInit {
   estadoLabel(estado: string): string {
     switch (estado) {
       case 'pendiente': return 'Pendiente';
+      case 'aprobado': return 'Aprobado por Contabilidad';
       case 'creado': return 'Creado';
       case 'vinculado_existente': return 'Vinculado';
       case 'rechazado': return 'Rechazado';

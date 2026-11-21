@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10285/10286 literales de 200 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10289/10290 literales de 200 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -56,7 +56,7 @@
 | compras/gastos | enforce | 26 | 26 | 0 | 100% |
 | compras/ordenes | enforce | 114 | 114 | 0 | 100% |
 | compras/ordenes-odoo | enforce | 121 | 121 | 0 | 100% |
-| compras/productos-por-dar-de-alta | enforce | 43 | 43 | 0 | 100% |
+| compras/productos-por-dar-de-alta | enforce | 44 | 44 | 0 | 100% |
 | compras/proveedores | enforce | 77 | 77 | 0 | 100% |
 | compras/proveedores-curacion | scope | 18 | 18 | 0 | 100% |
 | compras/proveedores-odoo | enforce | 44 | 44 | 0 | 100% |
@@ -105,7 +105,7 @@
 | inventario/ajuste-real | enforce | 31 | 31 | 0 | 100% |
 | inventario/almacen-inventario | enforce | 50 | 50 | 0 | 100% |
 | inventario/apertura | enforce | 38 | 38 | 0 | 100% |
-| inventario/articulos | enforce | 93 | 93 | 0 | 100% |
+| inventario/articulos | enforce | 94 | 94 | 0 | 100% |
 | inventario/bodegas | enforce | 69 | 69 | 0 | 100% |
 | inventario/categorias | enforce | 23 | 23 | 0 | 100% |
 | inventario/conduce | enforce | 159 | 159 | 0 | 100% |
@@ -119,7 +119,7 @@
 | inventario/entradas | enforce | 114 | 114 | 0 | 100% |
 | inventario/kardex-modal | enforce | 25 | 25 | 0 | 100% |
 | inventario/lugares-por-registrar | enforce | 10 | 10 | 0 | 100% |
-| inventario/material-no-catalogado | enforce | 39 | 39 | 0 | 100% |
+| inventario/material-no-catalogado | enforce | 40 | 40 | 0 | 100% |
 | inventario/movimientos | enforce | 18 | 18 | 0 | 100% |
 | inventario/odoo-ajustes | scope | 49 | 49 | 0 | 100% |
 | inventario/pendientes-cierre | scope | 19 | 19 | 0 | 100% |
@@ -129,7 +129,7 @@
 | inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
 | inventario/requisiciones | enforce | 150 | 150 | 0 | 100% |
 | inventario/retiros | enforce | 100 | 100 | 0 | 100% |
-| inventario/salidas | enforce | 138 | 138 | 0 | 100% |
+| inventario/salidas | enforce | 139 | 139 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
 | legal/aprobaciones | enforce | 32 | 32 | 0 | 100% |
 | legal/configuracion | enforce | 17 | 17 | 0 | 100% |
