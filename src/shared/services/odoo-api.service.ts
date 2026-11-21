@@ -12,6 +12,8 @@ import {
   OdooProveedorEscritura,
   OdooProductoCompra,
   OdooRespuesta,
+  OdooSalidaEmitida,
+  OdooStockDisponibleBodega,
   OdooStockFiltro,
   OdooStockPagina,
   OdooUbicaciones,
@@ -46,6 +48,17 @@ export class OdooApiService {
 
   consultarStock(filtro: OdooStockFiltro): Promise<OdooRespuesta<OdooStockPagina>> {
     return this.invocar<OdooStockPagina>('stock.consultar', { ...filtro });
+  }
+
+  /** Existencias vivas de Odoo para los artículos de un almacén SGC homologado. */
+  async disponibleBodega(bodegaId: string, articuloIds: string[], refrescar = false): Promise<OdooRespuesta<OdooStockDisponibleBodega>> {
+    return this.invocar<OdooStockDisponibleBodega>('stock.disponible_bodega', {
+      bodega_id: bodegaId, articulo_ids: articuloIds, refrescar,
+    });
+  }
+
+  async emitirSalida(params: Record<string, unknown>): Promise<OdooSalidaEmitida> {
+    return (await this.invocar<OdooSalidaEmitida>('salidas.emitir', params)).data;
   }
 
   /** CY24 Fase C (D3/D5) — publica la OC en Odoo. Sin reintento automático: ante timeout la OC queda en `error` y el usuario pulsa Reintentar (es idempotente). */

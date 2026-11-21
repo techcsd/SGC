@@ -72,7 +72,7 @@ export interface OdooStockFiltro {
 }
 
 /** Acciones permitidas del gateway (espejo de la allowlist del servidor). */
-export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'productos.buscar_compra' | 'compras.obtener_varias' | 'proveedores.buscar' | 'proveedores.obtener_varios';
+export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'almacenes.listar' | 'stock.disponible' | 'stock.disponible_bodega' | 'stock.validar_salida' | 'salidas.emitir' | 'productos.buscar_compra' | 'compras.obtener_varias' | 'proveedores.buscar' | 'proveedores.obtener_varios';
 
 /** CY24 Fase C — acciones de ESCRITURA del gateway (módulo `compras`; el cliente solo manda `orden_id`, D5). */
 export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar' | 'proveedores.crear' | 'proveedores.actualizar';
@@ -133,4 +133,45 @@ export interface OdooOcVivo {
 /** ¿Es un ID de Odoo válido? (entero positivo seguro). */
 export function esOdooId(v: unknown): v is OdooId {
   return typeof v === 'number' && Number.isSafeInteger(v) && v > 0;
+}
+
+
+/** #202 — almacén de Odoo (stock.warehouse) con su ubicación de existencias. */
+export interface OdooAlmacen {
+  id: OdooId;
+  codigo: string;
+  nombre: string;
+  location_id: OdooId | null;
+}
+
+export interface OdooStockDisponibleFila {
+  articulo_id: string;
+  nombre: string;
+  odoo_product_id: OdooId | null;
+  disponible: number;
+}
+
+export interface OdooStockDisponibleBodega {
+  origen: 'odoo' | 'sgc';
+  fuente_odoo: boolean;
+  homologada: boolean;
+  contingencia: boolean;
+  consultado_en: string | null;
+  almacen?: { nombre: string; codigo_odoo: string | null; location_id: OdooId | null; warehouse_id: OdooId | null };
+  filas: OdooStockDisponibleFila[];
+}
+
+export interface OdooFaltanteStock {
+  productId: number;
+  pedido: number;
+  disponible: number;
+  nombre: string;
+  articulo_id?: string;
+}
+
+export interface OdooSalidaEmitida {
+  salida_id: string;
+  validacion: 'odoo' | 'sgc' | 'prueba';
+  aviso: string | null;
+  consultado_en: string | null;
 }

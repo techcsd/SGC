@@ -51,6 +51,8 @@ export const TTL_MS = {
   "productos.buscar": 60_000,
   "ubicaciones.listar": 600_000,
   "stock.consultar": 15_000,
+  "almacenes.listar": 600_000,
+  "stock.disponible": 15_000,
   // CY24 Fase A
   "productos.buscar_compra": 60_000,
   "productos.obtener": 60_000,

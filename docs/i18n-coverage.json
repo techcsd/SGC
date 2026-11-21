@@ -1226,8 +1226,8 @@
     },
     {
       "pantalla": "inventario/salidas",
-      "total": 133,
-      "cubiertos": 133,
+      "total": 138,
+      "cubiertos": 138,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1916,8 +1916,8 @@
     },
     {
       "pantalla": "tecnologia/odoo-sync",
-      "total": 30,
-      "cubiertos": 30,
+      "total": 35,
+      "cubiertos": 35,
       "sin": 0,
       "pct": 100,
       "enScope": true,

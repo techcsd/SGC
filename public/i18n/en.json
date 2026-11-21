@@ -8872,5 +8872,15 @@
   "La compra de este faltante ya avanzó: avisa a Compras para que use el artículo nuevo.": "The purchase for this shortfall has already progressed: tell Purchasing to use the new item.",
   "El renglón y su faltante en compra ya usan el artículo nuevo.": "The line and its purchase shortfall now use the new item.",
   "No se pudo cambiar el artículo.": "Couldn't change the item.",
-  "Sin existencia aquí": "No stock here"
+  "Sin existencia aquí": "No stock here",
+  "Consultando existencias en Odoo…": "Checking stock in Odoo…",
+  "Existencias según Odoo": "Stock according to Odoo",
+  "Disponible en Odoo:": "Available in Odoo:",
+  "No se puede emitir el conduce porque Odoo no responde. Espera un momento e inténtalo de nuevo.": "The delivery note can’t be issued because Odoo isn’t responding. Wait a moment and try again.",
+  "Odoo no responde. Se muestra el stock local porque hay una contingencia vigente.": "Odoo isn’t responding. Local stock is shown because a contingency is in effect.",
+  "No se pudo consultar las existencias en Odoo.": "Couldn’t look up stock in Odoo.",
+  "Reintentar seleccionados": "Retry selected",
+  "Reencolados": "Requeued",
+  "{n} evento{plural} volverán a publicarse en la próxima pasada.": "{n} event{plural} will be published again on the next run.",
+  "Seleccionar todos los reintentables": "Select all retryable"
 }

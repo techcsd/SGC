@@ -36,6 +36,7 @@ import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { StockService } from '../../../../shared/services/stock.service';
+import { OdooApiService } from '../../../../shared/services/odoo-api.service';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
@@ -78,6 +79,7 @@ export class Salidas implements OnInit {
   private solicitudesMaterialService = inject(SolicitudesMaterialService);
   private vehiculosService = inject(VehiculosService);
   private stockService = inject(StockService);
+  private odooApi = inject(OdooApiService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
   private motion = inject(MotionService);
@@ -149,8 +151,13 @@ export class Salidas implements OnInit {
   // AU4 — material NO catalogado (item libre): nombre + cantidad + unidad de texto.
   // No toca stock; viaja en el conduce y alerta al admin para crear el artículo.
   formItemsLibres = signal<{ nombre: string; cantidad: number; unidad: string }[]>([]);
-  /** T13b — stock disponible por artículo en la bodega elegida (para el picker). */
+  /** T13b / #202 — stock disponible por artículo en la bodega elegida (para el picker). */
   stockMap = signal<Record<string, number>>({});
+  /** Contexto Odoo por almacén (fuente, homologación, contingencia, código). */
+  bodegasOdoo = signal<Record<string, { fuente_odoo: boolean; homologada: boolean; contingencia: boolean; codigo_odoo: string | null }>>({});
+  stockOrigen = signal<'odoo' | 'sgc' | 'caido' | 'cargando'>('sgc');
+  stockConsultadoEn = signal<string | null>(null);
+  stockOdooError = signal('');
   // Foto de evidencia opcional (paridad con la app de campo).
   fotoFile = signal<File | null>(null);
   fotoPreview = signal<string | null>(null);
@@ -571,13 +578,79 @@ export class Salidas implements OnInit {
   private async loadStockForBodega(bodegaId: string | null) {
     if (!bodegaId) {
       this.stockMap.set({});
+      this.stockOrigen.set('sgc');
+      this.stockConsultadoEn.set(null);
+      this.stockOdooError.set('');
+      return;
+    }
+    const ctx = this.bodegasOdoo()[bodegaId];
+    if (ctx?.fuente_odoo) {
+      this.stockOrigen.set('cargando');
+      this.stockOdooError.set('');
+      try {
+        const ids = this.articulos().map((a) => a.id);
+        if (!ids.length) {
+          this.stockMap.set({});
+          this.stockOrigen.set('odoo');
+          return;
+        }
+        const r = await this.odooApi.disponibleBodega(bodegaId, ids, true);
+        const mapa: Record<string, number> = {};
+        for (const f of r.data.filas) mapa[f.articulo_id] = f.disponible;
+        this.stockMap.set(mapa);
+        this.stockOrigen.set('odoo');
+        this.stockConsultadoEn.set(r.data.consultado_en ?? r.consultado_en ?? null);
+      } catch (e: unknown) {
+        if (ctx.contingencia) {
+          try {
+            this.stockMap.set(await this.stockService.getMapByBodega(bodegaId));
+            this.stockOrigen.set('sgc');
+            this.stockOdooError.set(this.i18n.t('Odoo no responde. Se muestra el stock local porque hay una contingencia vigente.'));
+            return;
+          } catch { /* cae al bloqueo */ }
+        }
+        this.stockMap.set({});
+        this.stockOrigen.set('caido');
+        this.stockConsultadoEn.set(null);
+        this.stockOdooError.set(e instanceof Error ? e.message : this.i18n.t('No se pudo consultar las existencias en Odoo.'));
+      }
       return;
     }
     try {
       this.stockMap.set(await this.stockService.getMapByBodega(bodegaId));
+      this.stockOrigen.set('sgc');
+      this.stockConsultadoEn.set(null);
+      this.stockOdooError.set('');
     } catch {
       this.stockMap.set({});
     }
+  }
+
+  bodegaOdoo(id: string | null | undefined) {
+    return id ? this.bodegasOdoo()[id] ?? null : null;
+  }
+
+  etiquetaBodega(b: Bodega): string {
+    const cod = this.bodegasOdoo()[b.id]?.codigo_odoo;
+    return cod ? `${b.nombre} (${cod})` : b.nombre;
+  }
+
+  stockItem(articuloId: string | null | undefined): number | null {
+    if (!articuloId) return null;
+    const v = this.stockMap()[articuloId];
+    return typeof v === 'number' ? v : null;
+  }
+
+  refrescarStockOdoo() {
+    return this.loadStockForBodega(this.form.controls.bodega_id.value);
+  }
+
+  horaConsultaOdoo(): string | null {
+    const iso = this.stockConsultadoEn();
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Santo_Domingo' });
   }
 
   /** CJ10 — resuelve los nombres de "registrado por" que el embed dejó vacíos (RLS). */
@@ -627,6 +700,12 @@ export class Salidas implements OnInit {
       this.articulos.set(arts);
       this.categorias.set(cats);
       this.bodegas.set(bods.filter((b) => b.activo !== false)); // AR3 — sin almacenes inactivos
+      try {
+        const filas = await this.salidasService.bodegasConduceOdoo();
+        const mapa: Record<string, { fuente_odoo: boolean; homologada: boolean; contingencia: boolean; codigo_odoo: string | null }> = {};
+        for (const f of filas) mapa[f.bodega_id] = { fuente_odoo: f.fuente_odoo, homologada: f.homologada, contingencia: f.contingencia, codigo_odoo: f.codigo_odoo };
+        this.bodegasOdoo.set(mapa);
+      } catch { /* el formulario sigue; el stock local es el fallback visual */ }
       // AL10 — almacenes centrales (sin obra) como destino de traslado.
       this.almacenesDestino.set(
         (bods as { id: string; nombre: string; proyecto_id: string | null; activo?: boolean }[])
@@ -936,6 +1015,10 @@ export class Salidas implements OnInit {
   /** Valida la hoja del formulario y pasa a la hoja de resumen/review. */
   irAResumen() {
     this.form.markAllAsTouched();
+    if (this.stockOrigen() === 'caido') {
+      this.saveError.set(this.i18n.t('No se puede emitir el conduce porque Odoo no responde. Espera un momento e inténtalo de nuevo.'));
+      return;
+    }
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
     if (this.form.invalid || items.length === 0) {
       if (items.length === 0) {

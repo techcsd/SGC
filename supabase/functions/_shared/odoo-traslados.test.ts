@@ -40,6 +40,7 @@ function odooFalso(o: Opciones = {}) {
       if (model === "stock.picking" && method === "message_post") { notas.push(kw); return 1; }
       if (model === "stock.location") return [{ usage: o.usage ?? "internal" }];
       if (model === "stock.quant") return [{ product_id: [7, "p"], quantity: o.stock ?? 100, reserved_quantity: 0 }];
+      if (model === "product.product" && method === "search_read") return [{ id: 7, display_name: "Cemento" }];
       if (model === "res.users") return (kw.limit && args[0][0][2] === "uno@csd.com") ? [{ partner_id: [55, "Uno"] }] : [];
       if (model === "hr.employee") return args[0][0][2] === "00112345678" ? [{ work_contact_id: [66, "Emp"], name: "Emp" }] : [];
       throw new Error(`no simulado ${model}.${method}`);
