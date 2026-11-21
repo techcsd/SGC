@@ -41,7 +41,16 @@ function odooFalso(o: Opciones = {}) {
       if (model === "stock.location") return [{ usage: o.usage ?? "internal" }];
       if (model === "stock.quant") return [{ product_id: [7, "p"], quantity: o.stock ?? 100, reserved_quantity: 0 }];
       if (model === "res.users") return (kw.limit && args[0][0][2] === "uno@csd.com") ? [{ partner_id: [55, "Uno"] }] : [];
-      if (model === "hr.employee") return args[0][0][2] === "00112345678" ? [{ work_contact_id: [66, "Emp"], name: "Emp" }] : [];
+      if (model === "hr.employee") {
+        const campo = args[0]?.[0]?.[0];
+        const valor = args[0]?.[0]?.[2];
+        if (campo === "identification_id" && valor === "00112345678") return [{ work_contact_id: [66, "Emp"], name: "Emp" }];
+        if (campo === "work_email" && String(valor).toLowerCase() === "ana@csd.com") return [{ work_contact_id: [77, "Ana Emp"], name: "Ana Emp" }];
+        if (campo === "work_email" && String(valor).toLowerCase() === "dup@csd.com") {
+          return [{ work_contact_id: [88, "A"], name: "A" }, { work_contact_id: [89, "B"], name: "B" }];
+        }
+        return [];
+      }
       throw new Error(`no simulado ${model}.${method}`);
     },
   };
@@ -148,10 +157,16 @@ Deno.test("errores de Odoo (fault) se traducen sin traza; fallas de transporte s
   assertEquals((e2 as OdooError).codigo, "odoo_timeout");
 });
 
-Deno.test("resolverAutorOdoo: usuario interno -> empleado por cedula -> cuenta tecnica", async () => {
+Deno.test("resolverAutorOdoo: usuario interno -> empleado por cedula -> empleado por work_email -> cuenta tecnica", async () => {
   const { c } = odooFalso();
   assertEquals((await resolverAutorOdoo(c, { correo: "Uno@csd.com", tecnicoPartnerId: 1 })).via, "usuario_interno");
   assertEquals((await resolverAutorOdoo(c, { correo: "x@y.z", cedula: "001-1234567-8", tecnicoPartnerId: 1 })).via, "empleado");
+  assertEquals(await resolverAutorOdoo(c, { correo: "Ana@csd.com", cedula: null, tecnicoPartnerId: 1 }), { partnerId: 77, via: "empleado", nombre: "Ana Emp" });
+  // Si la cedula ya resolvio, no se busca por work_email (aunque el correo tambien casaria).
+  assertEquals((await resolverAutorOdoo(c, { correo: "Ana@csd.com", cedula: "001-1234567-8", tecnicoPartnerId: 1 })).partnerId, 66);
+  // work_email ambiguo (mas de un empleado) cae a la cuenta tecnica.
+  assertEquals(await resolverAutorOdoo(c, { correo: "dup@csd.com", cedula: null, tecnicoPartnerId: 1 }), { partnerId: 1, via: "cuenta_tecnica" });
+  assertEquals(await resolverAutorOdoo(c, { correo: "nadie@csd.com", cedula: null, tecnicoPartnerId: 1 }), { partnerId: 1, via: "cuenta_tecnica" });
   assertEquals(await resolverAutorOdoo(c, { correo: null, cedula: null, tecnicoPartnerId: 1 }), { partnerId: 1, via: "cuenta_tecnica" });
 });
 
