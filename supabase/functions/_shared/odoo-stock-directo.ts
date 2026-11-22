@@ -91,6 +91,9 @@ export const MENSAJE_ODOO_CAIDO =
 export const MENSAJE_FALLBACK_SGC =
   "Odoo no responde. Se usará el stock local de SGC porque hay una contingencia vigente o el interruptor de emergencia está encendido.";
 
+export const MENSAJE_DEGRADADO =
+  "Odoo no responde. El conduce se validó con el último stock conocido de SGC y quedó marcado para revisión cuando Odoo vuelva.";
+
 export interface ItemSalidaValidar {
   articulo_id: string;
   cantidad: number;
