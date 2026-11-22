@@ -13,6 +13,18 @@
   <div class="page-error" role="alert">{{ error() }}</div>
 }
 
+@if (degradados().length) {
+  <div class="os-degradado" role="status">
+    <strong>{{ i18n.t('Conduces emitidos sin Odoo: {n} en las últimas 24 h ({t} en 7 días)', { n: degradados24h(), t: degradados().length }) }}</strong>
+    <p class="text-muted">{{ 'Se validaron contra el último stock conocido de SGC porque Odoo no respondía. Revísalos cuando Odoo vuelva: el outbox los publica solo.' | t }}</p>
+    <ul class="os-degradado__lista">
+      @for (d of degradados().slice(0, 10); track d.salida_id) {
+        <li><span class="os-id">{{ folioSalida(d.salida_id) }}</span> <span class="text-muted">{{ d.creado_en | fecha:'dd/MM/yyyy HH:mm' }}@if (d.horas_sin_sondeo !== null) { · {{ i18n.t('{h} h sin sondeo', { h: d.horas_sin_sondeo }) }} }</span></li>
+      }
+    </ul>
+  </div>
+}
+
 <div class="os-resumen">
   @for (estado of estadosOrden; track estado) {
     @if (totalPorEstado()[estado]) {

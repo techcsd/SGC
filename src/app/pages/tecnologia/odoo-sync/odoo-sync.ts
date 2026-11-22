@@ -52,6 +52,8 @@ export class TecOdooSync implements OnInit {
   filas = signal<OdooEventoFila[]>([]);
   resumen = signal<OdooEventosResumenFila[]>([]);
   loading = signal(true);
+  degradados = signal<{ salida_id: string; horas_sin_sondeo: number | null; creado_en: string }[]>([]);
+  degradados24h = computed(() => this.degradados().filter((d) => Date.now() - new Date(d.creado_en).getTime() < 24 * 3600 * 1000).length);
   error = signal('');
 
   filtroTipo = signal<OdooAgregadoTipo | null>(null);
@@ -80,9 +82,14 @@ export class TecOdooSync implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [filas, resumen] = await Promise.all([this.svc.listar(null, null), this.svc.resumen()]);
+      const [filas, resumen, degradados] = await Promise.all([
+        this.svc.listar(null, null),
+        this.svc.resumen(),
+        this.svc.conducesDegradados().catch(() => []),
+      ]);
       this.filas.set(filas);
       this.resumen.set(resumen);
+      this.degradados.set(degradados);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar la bandeja de sincronización.'));
     } finally {
@@ -124,6 +131,10 @@ export class TecOdooSync implements OnInit {
 
   folioDe(f: OdooEventoFila): string {
     return f.folio || (f.agregado_tipo === 'salida_inventario' ? `CND-${f.agregado_id.replace(/-/g, '').slice(0, 8).toUpperCase()}` : f.agregado_id);
+  }
+
+  folioSalida(id: string): string {
+    return `CND-${id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
   }
 
   estadoBadgeClass(estado: OdooEventoEstado): string {

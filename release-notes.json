@@ -6420,6 +6420,16 @@
         }
       ]
     },
+    "1.220.3": {
+      "titulo": "Tecnología ve cuántos conduces se emitieron con Odoo caído",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "En Sincronización con Odoo aparece un aviso con los conduces emitidos en modo degradado (Odoo sin responder): cuántos en las últimas 24 horas y 7 días, y los últimos con su folio, hora y horas sin sondeo."
+        }
+      ]
+    },
     "1.220.2": {
       "titulo": "Los mensajes de Claude con archivo adjunto ya se envían bien",
       "cambios": [
