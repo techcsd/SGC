@@ -6,3 +6,7 @@
 - OK: Xaviel autorizó en el chat llevar esto a main 2026-11-22
 - Resultado: OK (autorizado por Xaviel) · pendiente prueba humana
 - Fecha: 2026-11-22
+- [x] Smoke en dev (transacción revertida): 6 sondeos fallidos simulados → 1 aviso a Tecnología; segunda llamada sin repetir
+- [x] Función en prod devuelve 0 avisos con sondeo sano
+- [ ] Notificación vista en la campana de un usuario de Tecnología (no probado)
+Probado por: Claude Code (sesión asistida, sin prueba humana) · 2026-11-22
