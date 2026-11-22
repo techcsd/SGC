@@ -28,7 +28,9 @@ function mensajeExito(tipo: string): string {
     : tipo === "cambio_estado_equipo" ? "Situación/condición del equipo actualizada."
     : tipo === "asignacion_equipo" ? "Equipo reasignado."
     : tipo === "tipo_equipo" ? "Tipo de equipo agregado al catálogo."
-    : "Tarea creada y asignada.";
+    : tipo === "mensaje" ? "Mensaje enviado."
+    : tipo === "tarea" ? "Tarea creada y asignada."
+    : "Listo. Quedó registrado en el SGC.";
 }
 
 // Resumen con nombres resueltos para la pantalla (lo no seguro no se marca
