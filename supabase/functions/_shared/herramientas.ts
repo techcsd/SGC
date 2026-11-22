@@ -496,20 +496,20 @@ export const TOOLS: ToolDef[] = [
   // ── ESCRITURA (v2: preparar → confirmar → ejecutar) ────────────────────────
   {
     name: "proponer_tarea",
-    description: "PREPARA (borrador, NO crea) una tarea para asignar a alguien en una obra. Resuelve el proyecto_id con 'mis_proyectos' y, si se asigna a otra persona, su usuario_id con 'buscar_usuarios'. Si falta el título o la obra, pregúntalos. Al llamarla el sistema muestra una tarjeta para CONFIRMAR; hasta entonces la tarea NO existe. Requiere módulo tareas.",
+    description: "PREPARA (borrador, NO crea) una tarea para asignar a alguien. La obra es OPCIONAL: solo pásala si la tarea es de una obra (resuelve el proyecto_id con 'mis_proyectos'); las tareas generales no llevan obra. Resuelve el usuario_id de a quién se asigna con 'buscar_usuarios'. Si falta el título o a quién asignarla, pregúntalos. Al llamarla el sistema muestra una tarjeta para CONFIRMAR; hasta entonces la tarea NO existe. Requiere módulo tareas.",
     modulos: ["tareas"], canales: ["compa", "mcp"],
     input_schema: {
       type: "object",
       properties: {
-        proyecto_id: { type: "string" }, titulo: { type: "string" }, descripcion: { type: "string" },
-        asignado_a: { type: "string", description: "usuario_id de a quién se asigna (opcional)" },
+        proyecto_id: { type: "string", description: "obra (opcional; omítelo si la tarea no es de una obra)" }, titulo: { type: "string" }, descripcion: { type: "string" },
+        asignado_a: { type: "string", description: "usuario_id de a quién se asigna" },
         prioridad: { type: "string", description: "alta | media | baja" },
         fecha_limite: { type: "string", description: "YYYY-MM-DD (opcional)" },
-      }, required: ["proyecto_id", "titulo"],
+      }, required: ["titulo"],
     },
     write: {
-      tipo: "tarea", execRpc: "asignar_tarea_obra",
-      execMap: (p) => ({ p_id: null, p_proyecto_id: p.proyecto_id, p_titulo: p.titulo, p_descripcion: p.descripcion ?? null, p_asignado_a: p.asignado_a ?? null, p_brigada: null, p_prioridad: p.prioridad ?? "media", p_fecha_limite: p.fecha_limite ?? null }),
+      tipo: "tarea", execRpc: "asignar_tarea",
+      execMap: (p) => ({ p_titulo: p.titulo, p_descripcion: p.descripcion ?? null, p_asignado_a: p.asignado_a ?? null, p_prioridad: p.prioridad ?? "media", p_fecha_limite: p.fecha_limite ?? null, p_proyecto_id: p.proyecto_id || null }),
     },
   },
   {
@@ -1117,9 +1117,9 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: "proponer_mensaje",
-    description: "PREPARA (borrador, NO envía) un mensaje directo a otro usuario (crea la conversación si no existe). Resuelve destinatario_usuario_id con 'buscar_usuarios'. Sin gate de módulo (como Mensajería en la web).",
+    description: "PREPARA (borrador, NO envía) un mensaje directo a otro usuario (crea la conversación si no existe). Resuelve destinatario_usuario_id con 'buscar_usuarios'. Puede llevar UN archivo adjunto (campo adjunto: nombre, mime y contenido_base64; máx. ~3 MB; pdf, word, excel, csv, txt o imagen). Sin gate de módulo (como Mensajería en la web).",
     modulos: null, canales: ["mcp"],
-    input_schema: { type: "object", properties: { destinatario_usuario_id: { type: "string" }, contenido: { type: "string" } }, required: ["destinatario_usuario_id", "contenido"], additionalProperties: false },
+    input_schema: { type: "object", properties: { destinatario_usuario_id: { type: "string" }, contenido: { type: "string" }, adjunto: { type: "object", description: "archivo opcional", properties: { nombre: { type: "string" }, mime: { type: "string" }, contenido_base64: { type: "string" } }, required: ["nombre", "mime", "contenido_base64"], additionalProperties: false } }, required: ["destinatario_usuario_id", "contenido"], additionalProperties: false },
     write: { tipo: "mensaje", execRpc: "enviar_mensaje_directo", execMap: (p) => ({ p_destinatario_usuario_id: p.destinatario_usuario_id, p_contenido: p.contenido }) },
   },
   {

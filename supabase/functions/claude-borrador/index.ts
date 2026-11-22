@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { AdjuntoError, validarAdjunto } from "../_shared/mensaje-adjunto.ts";
 import { TOOLS, type Cap, type Any } from "../_shared/herramientas.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
@@ -53,10 +54,14 @@ async function resolverDetalle(supabase: Any, tool: string, params: Any) {
 
   if (tool === "proponer_tarea") {
     lineas.push({ etiqueta: "Título", valor: params.titulo ?? "" });
-    lineas.push({ etiqueta: "Obra", valor: (await nombreObra(params.proyecto_id)) ?? "" });
+    if (params.proyecto_id) lineas.push({ etiqueta: "Obra", valor: (await nombreObra(params.proyecto_id)) ?? "" });
     if (params.asignado_a) lineas.push({ etiqueta: "Asignada a", valor: (await nombreUsuario(params.asignado_a)) ?? "" });
     lineas.push({ etiqueta: "Prioridad", valor: params.prioridad ?? "media" });
     if (params.fecha_limite) lineas.push({ etiqueta: "Fecha límite", valor: params.fecha_limite });
+  } else if (tool === "proponer_mensaje") {
+    lineas.push({ etiqueta: "Para", valor: (await nombreUsuario(params.destinatario_usuario_id)) ?? "" });
+    lineas.push({ etiqueta: "Mensaje", valor: String(params.contenido ?? "").slice(0, 400) });
+    if (params.adjunto?.nombre) lineas.push({ etiqueta: "Adjunto", valor: String(params.adjunto.nombre) });
   } else if (tool === "proponer_requisicion" || tool === "proponer_conduce") {
     const items: Any[] = params.items ?? [];
     const map = await nombresArticulos(items.map((i) => i.articulo_id));
@@ -101,6 +106,29 @@ async function resolverDetalle(supabase: Any, tool: string, params: Any) {
     lineas.push({ etiqueta: "Equipos en el lote", valor: String((params.equipos ?? []).length) });
   }
   return lineas;
+}
+
+// DU — mensaje directo con adjunto: misma ruta que la web (carpeta de la conversación en `sgc-mensajes`).
+// deno-lint-ignore no-explicit-any
+async function ejecutarMensajeConAdjunto(supabase: any, params: any): Promise<{ message: string } | null> {
+  let adj;
+  try { adj = validarAdjunto(params.adjunto); } catch (e) {
+    return { message: e instanceof AdjuntoError ? e.message : "El adjunto no es válido." };
+  }
+  const { data: conv, error: cErr } = await supabase.rpc("crear_conversacion_directa", { p_otro: params.destinatario_usuario_id });
+  if (cErr || !conv) return { message: cErr?.message ?? "No se pudo abrir la conversación." };
+  const path = `${conv}/${crypto.randomUUID()}-${adj.nombre}`;
+  const { error: upErr } = await supabase.storage.from("sgc-mensajes").upload(path, adj.bytes, { contentType: adj.mime });
+  if (upErr) return { message: `No se pudo subir el archivo: ${upErr.message}` };
+  const { error } = await supabase.rpc("enviar_mensaje_directo_adjunto", {
+    p_destinatario_usuario_id: params.destinatario_usuario_id, p_contenido: params.contenido ?? "",
+    p_archivo_path: path, p_archivo_nombre: adj.nombre, p_archivo_mime: adj.mime, p_archivo_size: adj.size,
+  });
+  if (error) {
+    await supabase.storage.from("sgc-mensajes").remove([path]).then(() => {}, () => {}); // no dejar el archivo huérfano
+    return { message: error.message };
+  }
+  return null;
 }
 
 Deno.serve(async (req: Request) => {
@@ -198,7 +226,9 @@ Deno.serve(async (req: Request) => {
 
     let ok = false; let mensaje = "";
     try {
-      const { error } = await supabase.rpc(cfg.write!.execRpc, cfg.write!.execMap(borrador.params, capObj));
+      const { error } = borrador.tool === "proponer_mensaje" && borrador.params?.adjunto
+        ? { error: await ejecutarMensajeConAdjunto(supabase, borrador.params) }
+        : await supabase.rpc(cfg.write!.execRpc, cfg.write!.execMap(borrador.params, capObj));
       if (error) mensaje = `No se pudo completar: ${error.message}`;
       else { ok = true; mensaje = mensajeExito(cfg.write!.tipo); }
     } catch (e) {
