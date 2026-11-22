@@ -28,8 +28,17 @@ export function nombreSeguro(nombre: string): string {
   return (limpio || "archivo").slice(0, 120);
 }
 
-export function validarAdjunto(a: AdjuntoEntrada | null | undefined): AdjuntoValido {
-  if (!a || typeof a !== "object") throw new AdjuntoError("Falta el archivo adjunto.");
+/** Algunos clientes MCP mandan el objeto como TEXTO JSON (su esquema local aún no lo describe): se acepta ambas formas. */
+export function normalizarAdjunto(a: unknown): AdjuntoEntrada | null {
+  if (typeof a === "string") {
+    try { const o = JSON.parse(a); return o && typeof o === "object" ? (o as AdjuntoEntrada) : null; } catch { return null; }
+  }
+  return a && typeof a === "object" ? (a as AdjuntoEntrada) : null;
+}
+
+export function validarAdjunto(entrada: unknown): AdjuntoValido {
+  const a = normalizarAdjunto(entrada);
+  if (!a) throw new AdjuntoError("Falta el archivo adjunto.");
   const nombre = typeof a.nombre === "string" ? nombreSeguro(a.nombre) : "";
   const mime = typeof a.mime === "string" ? a.mime.trim().toLowerCase() : "";
   const b64 = typeof a.contenido_base64 === "string" ? a.contenido_base64.replace(/^data:[^;]+;base64,/, "").replace(/\s+/g, "") : "";
