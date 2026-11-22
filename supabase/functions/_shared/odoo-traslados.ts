@@ -176,7 +176,15 @@ async function exigirStockSiEsInterna(c: LlamadorOdoo, locationId: number, moveI
   if (loc?.usage !== "internal") return;
   const moves = await c.call("stock.move", "read", [moveIds], { fields: ["product_id", "product_uom_qty"] });
   const falta = await faltantesDeStock(c, locationId, moves.map((m: Any) => ({ productId: m.product_id[0], cantidad: m.product_uom_qty })));
-  if (falta.length) throw new TrasladoError("sin_stock", "No hay existencias suficientes en el almacén de origen para este despacho.", JSON.stringify(falta));
+  if (falta.length) {
+    const ids = [...new Set(falta.map((f) => f.productId))];
+    const prods: Any[] = await c.call("product.product", "search_read", [[["id", "in", ids]]], { fields: ["display_name"], limit: ids.length });
+    const nombres = new Map<number, string>((prods ?? []).map((x: Any) => [x.id, String(x.display_name ?? "")]));
+    const r6 = (n: number) => Math.round(n * 1e6) / 1e6;
+    const trim = (n: number) => r6(n).toFixed(6).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+    const lineas = falta.map((f) => `${nombres.get(f.productId) || "producto " + f.productId}: solicitado ${trim(f.pedido)}, disponible ${trim(f.disponible)}`);
+    throw new TrasladoError("sin_stock", `No hay existencias suficientes en el almacén de origen. ${lineas.join("; ")}.`, JSON.stringify(falta));
+  }
 }
 
 export async function cancelarTraslado(c: LlamadorOdoo, pickingId: number): Promise<{ estado: string }> {

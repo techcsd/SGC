@@ -101,6 +101,31 @@ export class TecOdooSync implements OnInit {
     return REINTENTABLES.includes(estado);
   }
 
+  seleccion = signal<Record<string, boolean>>({});
+  reintentandoLote = signal(false);
+
+  visiblesReintentables = computed(() => this.filasVisibles().filter((f) => this.esReintentable(f.estado)));
+  idsSeleccionados = computed(() => this.visiblesReintentables().filter((f) => this.seleccion()[f.id]).map((f) => f.id));
+
+  toggleSeleccion(id: string, on: boolean) {
+    this.seleccion.update((s) => ({ ...s, [id]: on }));
+  }
+
+  toggleTodosVisibles(on: boolean) {
+    const next = { ...this.seleccion() };
+    for (const f of this.visiblesReintentables()) next[f.id] = on;
+    this.seleccion.set(next);
+  }
+
+  todosVisiblesMarcados(): boolean {
+    const vis = this.visiblesReintentables();
+    return vis.length > 0 && vis.every((f) => this.seleccion()[f.id]);
+  }
+
+  folioDe(f: OdooEventoFila): string {
+    return f.folio || (f.agregado_tipo === 'salida_inventario' ? `CND-${f.agregado_id.replace(/-/g, '').slice(0, 8).toUpperCase()}` : f.agregado_id);
+  }
+
   estadoBadgeClass(estado: OdooEventoEstado): string {
     switch (estado) {
       case 'completado': return 'sgc-badge sgc-badge--success';
@@ -156,6 +181,22 @@ export class TecOdooSync implements OnInit {
       this.toast.error(this.i18n.t('No se pudo reencolar'), e instanceof Error ? e.message : undefined);
     } finally {
       this.reintentando.set(false);
+    }
+  }
+
+  async reintentarSeleccionados() {
+    const ids = this.idsSeleccionados();
+    if (!ids.length || this.reintentandoLote()) return;
+    this.reintentandoLote.set(true);
+    try {
+      const n = await this.svc.reintentarLote(ids);
+      this.toast.success(this.i18n.t('Reencolados'), this.i18n.t('{n} evento{plural} volverán a publicarse en la próxima pasada.', { n, plural: n === 1 ? '' : 's' }));
+      this.seleccion.set({});
+      await this.load();
+    } catch (e: unknown) {
+      this.toast.error(this.i18n.t('No se pudo reencolar'), e instanceof Error ? e.message : undefined);
+    } finally {
+      this.reintentandoLote.set(false);
     }
   }
 }

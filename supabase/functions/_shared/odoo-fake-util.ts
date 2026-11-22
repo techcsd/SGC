@@ -105,6 +105,8 @@ export function odooFake(o: OpcionesFake = {}) {
           throw new OdooError("odoo_error", "TypeError: cannot marshal None unless allow_none is enabled", true); // asi responde Odoo de verdad
         }
       }
+      // #202: odoo-traslados consulta el nombre del producto para el mensaje de faltantes.
+      if (model === "product.product" && method === "search_read") return [{ id: 7, display_name: "Cemento" }];
       throw new Error(`no simulado ${model}.${method}`);
     },
   };

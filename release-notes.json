@@ -6464,6 +6464,31 @@
           "d": "Selectores de conduce/salida: los artículos sin existencia ya no desaparecen; se ven atenuados con «Sin existencia aquí»."
         }
       ]
+    },
+    "1.219.0": {
+      "titulo": "Conduces y conteos trabajan directo con Odoo",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Al crear un conduce, el almacén y las existencias se consultan en vivo en Odoo. Si no hay stock, se avisa con artículo, cantidad pedida y disponible, y el conduce no se emite."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "El conteo desde la app y el ajuste real, en almacenes gobernados por Odoo, se publican como conteo físico. Quedan en pendiente hasta que Odoo confirme; nunca se muestran como guardados si no quedaron publicados."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Sincronización con Odoo muestra folio, almacén y el error en la fila, y permite reintentar varios eventos a la vez (sin ajustar stock)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "En un almacén gobernado por Odoo, la apertura ya no cambia la existencia (eso lo revertía Odoo a los minutos). Para corregir stock hay que usar un conteo físico o un ajuste real."
+        }
+      ]
     }
   }
 }

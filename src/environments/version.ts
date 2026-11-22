@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.218.7';
-export const APP_VERSION_TITULO: string | null = "Aviso a Tecnología cuando Odoo deja de responder";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Tecnología","d":"Si el sondeo de Odoo falla 6 veces seguidas (30 min), Tecnología recibe una alerta con el motivo, máximo una cada 6 horas. Antes una caída de Odoo quedaba en silencio."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/0c913f4";
+export const APP_VERSION = '1.219.0';
+export const APP_VERSION_TITULO: string | null = "Conduces y conteos trabajan directo con Odoo";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Inventario","d":"Al crear un conduce, el almacén y las existencias se consultan en vivo en Odoo. Si no hay stock, se avisa con artículo, cantidad pedida y disponible, y el conduce no se emite."},{"t":"nuevo","m":"Inventario","d":"El conteo desde la app y el ajuste real, en almacenes gobernados por Odoo, se publican como conteo físico. Quedan en pendiente hasta que Odoo confirme; nunca se muestran como guardados si no quedaron publicados."},{"t":"mejora","m":"Tecnología","d":"Sincronización con Odoo muestra folio, almacén y el error en la fila, y permite reintentar varios eventos a la vez (sin ajustar stock)."},{"t":"arreglo","m":"Inventario","d":"En un almacén gobernado por Odoo, la apertura ya no cambia la existencia (eso lo revertía Odoo a los minutos). Para corregir stock hay que usar un conteo físico o un ajuste real."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/cbedcd6";
