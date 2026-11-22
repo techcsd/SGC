@@ -45,6 +45,19 @@ export class OdooSyncService {
     return Number(data ?? 0);
   }
 
+  /** DU — conduces emitidos en modo degradado (Odoo caído) de los últimos 7 días. Solo Tecnología (RLS). */
+  async conducesDegradados(): Promise<{ salida_id: string; horas_sin_sondeo: number | null; creado_en: string }[]> {
+    const desde = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+    const { data, error } = await this.supabase.client
+      .from('odoo_conduces_degradados')
+      .select('salida_id,horas_sin_sondeo,creado_en')
+      .gte('creado_en', desde)
+      .order('creado_en', { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { salida_id: string; horas_sin_sondeo: number | null; creado_en: string }[];
+  }
+
   /** W2 — estado de sync de UN documento del circuito 2 (solo Tecnología/admin). null si nunca se encoló. */
   async estadoDocumento(tipo: OdooDocumentoTipo, id: string): Promise<OdooDocumentoSyncEstado | null> {
     const { data, error } = await this.supabase.client.rpc('odoo_documento_sync_estado', { p_tipo: tipo, p_id: id });
