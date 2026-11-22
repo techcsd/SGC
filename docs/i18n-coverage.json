@@ -1916,8 +1916,8 @@
     },
     {
       "pantalla": "tecnologia/odoo-sync",
-      "total": 35,
-      "cubiertos": 35,
+      "total": 36,
+      "cubiertos": 36,
       "sin": 0,
       "pct": 100,
       "enScope": true,
