@@ -8882,5 +8882,6 @@
   "Reintentar seleccionados": "Retry selected",
   "Reencolados": "Requeued",
   "{n} evento{plural} volverán a publicarse en la próxima pasada.": "{n} event{plural} will be published again on the next run.",
-  "Seleccionar todos los reintentables": "Select all retryable"
+  "Seleccionar todos los reintentables": "Select all retryable",
+  "Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.": "Odoo is not responding. Showing SGC's last known stock; the delivery note will be flagged for review when Odoo is back."
 }

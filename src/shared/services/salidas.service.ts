@@ -471,6 +471,13 @@ export class SalidasService {
     }[];
   }
 
+  /** DU — ¿se permite emitir con el último stock conocido cuando Odoo no responde? (el servidor decide igual al emitir) */
+  async degradadoPermitido(): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('odoo_degradado_permitido');
+    if (error) return false;
+    return !!(data as { permitido?: boolean } | null)?.permitido;
+  }
+
   /** Atomic insert (header + items). En almacenes con fuente Odoo valida existencias en vivo vía odoo-api. */
   async create(payload: SalidaFormData, userId: string | null): Promise<SalidaInventario> {
     void userId; // el gateway toma el autor de la sesión; no se confía en el cliente

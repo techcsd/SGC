@@ -7,7 +7,7 @@ import type { OdooClient } from "../_shared/odoo-client.ts";
 import { ParamError } from "./acciones.ts";
 import {
   ConduceStockError, fallbackSgcHabilitado, MAX_ARTICULOS_DISPONIBLE, MAX_ITEMS_VALIDAR,
-  MENSAJE_FALLBACK_SGC, MENSAJE_ODOO_CAIDO, esOdooCaido, mensajeFaltantes, validarStockOdoo,
+  MENSAJE_DEGRADADO, MENSAJE_FALLBACK_SGC, MENSAJE_ODOO_CAIDO, esOdooCaido, mensajeFaltantes, validarStockOdoo,
   type FaltanteEnriquecido, type ItemSalidaValidar,
 } from "../_shared/odoo-stock-directo.ts";
 import { disponibilidadPorProducto } from "../_shared/odoo-traslados.ts";
@@ -61,6 +61,10 @@ export interface ArticuloOdoo { id: string; nombre: string; odoo_product_id: num
 export interface AdminSgc {
   bodega(id: string): Promise<BodegaOdoo | null>;
   articulos(ids: string[]): Promise<ArticuloOdoo[]>;
+  /** DU — ¿se permite emitir validando contra el último stock conocido cuando Odoo no responde? */
+  degradadoPermitido(): Promise<boolean>;
+  /** DU — deja constancia del conduce emitido en modo degradado y avisa a Tecnología (best-effort). */
+  registrarDegradado(salidaId: string, bodegaId: string): Promise<void>;
   registrarSalida(args: {
     fecha: string; bodega_id: string; proyecto_id: string | null; motivo: string;
     responsable: string | null; observaciones: string | null; creado_por: string;
@@ -93,6 +97,14 @@ export function adminDesdeCliente(client: SupabaseClient): AdminSgc {
       const { data, error } = await client.from("articulos").select("id, nombre, odoo_product_id").in("id", ids);
       if (error) throw new Error(`articulos: ${error.message}`);
       return (data ?? []).map((a: Any) => ({ id: a.id, nombre: a.nombre, odoo_product_id: a.odoo_product_id ?? null }));
+    },
+    async degradadoPermitido() {
+      const { data, error } = await client.rpc("odoo_degradado_permitido");
+      if (error) return false; // ante la duda, se bloquea (comportamiento 1.219.0)
+      return !!(data as Any)?.permitido;
+    },
+    async registrarDegradado(salidaId, bodegaId) {
+      await client.rpc("odoo_degradado_registrar", { p_salida: salidaId, p_bodega: bodegaId });
     },
     async registrarSalida(args) {
       const { data, error } = await client.rpc("registrar_salida_conduce_odoo", {
@@ -138,6 +150,8 @@ function exigirHomologacion(bodega: BodegaOdoo, sinHomologar: string[]): void {
 export interface ResultadoValidacion {
   ok: boolean;
   origen: "odoo" | "sgc" | "prueba";
+  /** DU — true cuando se validó con stock local por caída de Odoo (modo degradado automático). */
+  degradado?: boolean;
   aviso?: string;
   consultado_en?: string;
   faltantes: FaltanteEnriquecido[];
@@ -145,7 +159,7 @@ export interface ResultadoValidacion {
 }
 
 async function validarContraOdoo(
-  odoo: OdooClient, bodega: BodegaOdoo, itemsOdoo: ItemSalidaValidar[], sinHomologar: string[],
+  odoo: OdooClient, admin: AdminSgc, bodega: BodegaOdoo, itemsOdoo: ItemSalidaValidar[], sinHomologar: string[],
 ): Promise<ResultadoValidacion> {
   exigirHomologacion(bodega, sinHomologar);
   try {
@@ -157,6 +171,10 @@ async function validarContraOdoo(
     if (esOdooCaido(e)) {
       if (bodega.contingencia || fallbackSgcHabilitado()) {
         return { ok: true, origen: "sgc", aviso: MENSAJE_FALLBACK_SGC, faltantes: [] };
+      }
+      // DU — degradación automática (solo caída de Odoo, nunca "sin stock"): último sondeo bueno reciente.
+      if (await admin.degradadoPermitido()) {
+        return { ok: true, origen: "sgc", degradado: true, aviso: MENSAJE_DEGRADADO, faltantes: [] };
       }
       throw new ConduceStockError("odoo_caido", MENSAJE_ODOO_CAIDO);
     }
@@ -210,7 +228,7 @@ const validarSalida = {
   async ejecutar(ctx: Ctx, p: { bodega_id: string; items: ItemIn[] }) {
     const { bodega, itemsOdoo, sinHomologar } = await preparar(ctx.admin, p.bodega_id, p.items);
     if (!bodega.fuente_odoo) return { ok: true, origen: "sgc" as const, faltantes: [] };
-    return await validarContraOdoo(ctx.odoo, bodega, itemsOdoo, sinHomologar);
+    return await validarContraOdoo(ctx.odoo, ctx.admin, bodega, itemsOdoo, sinHomologar);
   },
 };
 
@@ -236,7 +254,7 @@ const emitir = {
     let modo: "odoo" | "sgc" | "auto" = "auto";
     let validacion: ResultadoValidacion = { ok: true, origen: "sgc", faltantes: [] };
     if (bodega.fuente_odoo) {
-      validacion = await validarContraOdoo(ctx.odoo, bodega, itemsOdoo, sinHomologar);
+      validacion = await validarContraOdoo(ctx.odoo, ctx.admin, bodega, itemsOdoo, sinHomologar);
       modo = validacion.origen === "odoo" ? "odoo" : "sgc";
     }
     const salida_id = await ctx.admin.registrarSalida({
@@ -244,6 +262,9 @@ const emitir = {
       responsable: p.responsable, observaciones: p.observaciones, creado_por: ctx.usuarioId,
       items: p.items, responsable_id: p.responsable_id, modo,
     });
+    if (validacion.degradado) {
+      try { await ctx.admin.registrarDegradado(salida_id, p.bodega_id); } catch { /* best-effort: el conduce ya existe */ }
+    }
     return { salida_id, validacion: validacion.origen, aviso: validacion.aviso ?? null, consultado_en: validacion.consultado_en ?? null };
   },
 };
