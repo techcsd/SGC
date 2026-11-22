@@ -23,9 +23,11 @@ const odooConStock = (qty: number, reserved = 0) =>
 const BODEGA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const ART = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
-function adminFalso(over: Partial<{ fuente: boolean; contingencia: boolean; location: number | null; product: number | null; registrado?: string[] }> = {}): AdminSgc {
+function adminFalso(over: Partial<{ fuente: boolean; contingencia: boolean; location: number | null; product: number | null; registrado?: string[]; degradado: boolean; marcados: string[] }> = {}): AdminSgc {
   const registrado: string[] = over.registrado ?? [];
   return {
+    degradadoPermitido: () => Promise.resolve(over.degradado ?? false),
+    registrarDegradado: (salidaId) => { over.marcados?.push(salidaId); return Promise.resolve(); },
     bodega: (id) => Promise.resolve({
       id, nombre: "Bodega Central", odoo_location_id: over.location === undefined ? 11 : over.location,
       odoo_warehouse_id: 3, codigo_odoo: "BA", fuente_odoo: over.fuente ?? true, contingencia: over.contingencia ?? false,
@@ -103,3 +105,33 @@ Deno.test("stock.validar_salida: bodega sin fuente Odoo no consulta existencias"
   assertEquals(r, { ok: true, origen: "sgc", faltantes: [] });
 });
 
+
+const odooCaido = () => ({ call: () => { throw new OdooError("odoo_no_disponible", "down"); }, companyId: 1 }) as unknown as OdooClient;
+
+Deno.test("DU degradado: Odoo caído + sondeo reciente => emite en modo sgc, avisa y deja constancia", async () => {
+  const reg: string[] = []; const marcados: string[] = [];
+  const r = await DEFINICIONES_CONDUCES["salidas.emitir"].ejecutar(
+    { odoo: odooCaido(), admin: adminFalso({ degradado: true, registrado: reg, marcados }), usuarioId: "u1" },
+    DEFINICIONES_CONDUCES["salidas.emitir"].normalizar({ fecha: "2026-11-22", bodega_id: BODEGA, motivo: "uso_proyecto", items }),
+  );
+  assertEquals(reg, ["sgc"]); assertEquals(r.validacion, "sgc");
+  assertEquals(typeof r.aviso, "string"); assertEquals(marcados.length, 1);
+});
+
+Deno.test("DU degradado: Odoo caído + sondeo viejo/apagado => bloquea (odoo_caido) y no registra", async () => {
+  const reg: string[] = []; const marcados: string[] = [];
+  const e = await DEFINICIONES_CONDUCES["salidas.emitir"].ejecutar(
+    { odoo: odooCaido(), admin: adminFalso({ degradado: false, registrado: reg, marcados }), usuarioId: "u1" },
+    DEFINICIONES_CONDUCES["salidas.emitir"].normalizar({ fecha: "2026-11-22", bodega_id: BODEGA, motivo: "uso_proyecto", items }),
+  ).catch((x) => x);
+  assertEquals((e as ConduceStockError).codigo, "odoo_caido"); assertEquals(reg, []); assertEquals(marcados, []);
+});
+
+Deno.test("DU degradado: 'sin stock' en Odoo NUNCA se degrada, aunque el modo esté permitido", async () => {
+  const reg: string[] = []; const marcados: string[] = [];
+  const e = await DEFINICIONES_CONDUCES["salidas.emitir"].ejecutar(
+    { odoo: odooConStock(2), admin: adminFalso({ degradado: true, registrado: reg, marcados }), usuarioId: "u1" },
+    DEFINICIONES_CONDUCES["salidas.emitir"].normalizar({ fecha: "2026-11-22", bodega_id: BODEGA, motivo: "uso_proyecto", items }),
+  ).catch((x) => x);
+  assertEquals((e as ConduceStockError).codigo, "sin_stock"); assertEquals(reg, []); assertEquals(marcados, []);
+});

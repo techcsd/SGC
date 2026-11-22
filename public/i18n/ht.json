@@ -8882,5 +8882,6 @@
   "Reintentar seleccionados": "Eseye ankò sa ki seleksyone",
   "Reencolados": "Remete nan fil",
   "{n} evento{plural} volverán a publicarse en la próxima pasada.": "{n} evènman{plural} pral pibliye ankò nan pwochen pasaj la.",
-  "Seleccionar todos los reintentables": "Chwazi tout sa ou ka eseye ankò"
+  "Seleccionar todos los reintentables": "Chwazi tout sa ou ka eseye ankò",
+  "Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.": "Odoo pa reponn. Y ap montre dènye stòk SGC konnen an; konduit la ap make pou revizyon lè Odoo tounen."
 }

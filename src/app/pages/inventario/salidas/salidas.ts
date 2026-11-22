@@ -601,11 +601,14 @@ export class Salidas implements OnInit {
         this.stockOrigen.set('odoo');
         this.stockConsultadoEn.set(r.data.consultado_en ?? r.consultado_en ?? null);
       } catch (e: unknown) {
-        if (ctx.contingencia) {
+        const degradado = !ctx.contingencia && (await this.salidasService.degradadoPermitido().catch(() => false));
+        if (ctx.contingencia || degradado) {
           try {
             this.stockMap.set(await this.stockService.getMapByBodega(bodegaId));
             this.stockOrigen.set('sgc');
-            this.stockOdooError.set(this.i18n.t('Odoo no responde. Se muestra el stock local porque hay una contingencia vigente.'));
+            this.stockOdooError.set(this.i18n.t(degradado
+              ? 'Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.'
+              : 'Odoo no responde. Se muestra el stock local porque hay una contingencia vigente.'));
             return;
           } catch { /* cae al bloqueo */ }
         }
