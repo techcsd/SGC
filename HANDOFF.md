@@ -1,5 +1,38 @@
 # HANDOFF — SGC
 
+## ✅ 22-nov-2026 — PROMPT-151 ronda DU: iPhone en blanco + caída de Odoo + conduces degradados (web 1.220.3 y app 2.71.9 EN PROD)
+
+**TL;DR:** la app móvil 2.71.9 y la web 1.220.3 están en prod y verificadas. Quedan solo decisiones de Raykler/logística sobre 24 conduces atascados y 35 discrepancias de Odoo; nada técnico bloqueante.
+
+**Hecho esta sesión**
+- **App (csd-app):** 2.71.6 `outboxPorTipo` (el `where('tipo_op')` sin índice rompía el outbox), guard de arranque con pantalla de rescate (`/reparar.html`, probada en un iPhone real con iOS 18.7), sin lookbehind (iOS < 16.4). 2.71.7 logos a `public/`. 2.71.8 reparar sin caché. 2.71.9: service worker desactivado en la app NATIVA (`Capacitor.isNativePlatform()`) y desregistrado si ya existía: el SW fallaba al instalar (`/favicon.ico`) en cada actualización → «Reparando la app…» y segundo PIN. La PWA/iPhone no cambia.
+- **`release-apk.mjs` ahora también publica la versión** (`scripts/lib/publicar-version.mjs`; `--no-publicar` para omitirlo; `scripts/publicar-version.mjs --env … --version …` para corregir/rollback). Antes «registrar ≠ publicar»: los teléfonos seguían recibiendo la versión anterior porque `version_publicada('movil')` solo mira `publicada=true`.
+- **Odoo prod:** la base real es `4enfkfierou.cloudpepper.site` (secret `ODOO_DB` aplicado en prod; copia local `ODOO_DB_PROD` en `.env.local`, gitignored). Alerta `odoo_alertar_sondeo_caido` (6 sondeos fallidos → avisa a Tecnología).
+- **Conduces en modo degradado (1.219.0):** si Odoo no responde y el último sondeo bueno tiene < 2 h (`odoo_conduce_degradado_max_horas`), el conduce se valida contra el último stock conocido de SGC, con aviso, y queda en `odoo_conduces_degradados`; el outbox lo publica solo cuando Odoo vuelve. Apagar: `odoo_conduce_degradado_auto=false`.
+- **1.220.0–1.220.2:** Tareas ya no exigen obra; mensajes del conector Claude con adjunto (≤ 3 MB, `normalizarAdjunto` acepta objeto o texto JSON). Mensaje + tarea para Raykler (lunes 23-nov) creados en prod.
+- **1.220.3:** contador de conduces degradados en Tecnología › Sincronización con Odoo (24 h / 7 días + últimos 10; solo lectura, RLS `es_tecnologia`). Probado en dev (escritorio y móvil) con 2 filas de prueba ya borradas; en prod no se muestra mientras no haya filas.
+
+**Pendiente — Claude puede**
+1. Cuando Raykler decida: reintentar los 24 conduces del 18-nov desde Tecnología › Sincronización (solo tras confirmar el material físico) y cerrar las 24 discrepancias `picking_a_no_validado`. Las 11 `fuera_de_canal` se dejaron abiertas por decisión de Xaviel.
+2. Vigilar el primer conduce/conteo real con fuente Odoo en 1.220.x (freno de emergencia: `ODOO_CONDUCE_FALLBACK_SGC=true` o contingencia).
+3. Probar la PWA en el iPhone con 2.71.9 (su camino no cambió; no se probó).
+
+**Pendiente — solo Xaviel/otros**
+- Raykler: revisar el mensaje (archivo CSV adjunto), la tarea del lunes 23-nov y decidir sobre los conduces atascados y discrepancias (respondió «no lo sé» a Q1 y Q9; las demás preguntas quedaron en pausa).
+- Staging de Odoo (dev) responde 502: es del proveedor, no nuestro.
+
+**Gotchas**
+- `odoo_instancias.base_datos` es inmutable (trigger `odoo_v1_proteger_instancia`): no hacer UPDATE; el nombre real sale de `/web/session/get_session_info` en una sesión logueada.
+- `okLineaValida` rechaza líneas OK que contengan «pendiente», «falta», «no», «skip»: citar textualmente lo que dijo Xaviel.
+- Nombres de rama con barra (`rel/…`) chocan si ya existe una rama `rel`: usar nombres sin barra.
+- dev.sgcconstructorasd.com exige SSO de Vercel: para probar UI sin el Chrome de Xaviel, correr `npx ng serve` local (apunta a dev) con sesión del usuario `qa_tecnologia@…` vía `auth/v1/admin/generate_link` + `verify` (key service en `.env.local`, solo dev) e inyectarla en `localStorage` (`sb-<ref>-auth-token`). El modal de «Novedades» tapa la pantalla: cerrar «Entendido». Cuidado con servidores viejos en el mismo puerto (había la app móvil en 4300).
+- Para verificar un deploy de Vercel no basta el bundle `main-*.js`: el texto de pantallas lazy está en `chunk-*.js` (hay que recorrerlos).
+- Un `Monitor` con `grep "Local:"` sobre el log de `ng serve` no coincide por los códigos ANSI.
+
+**Verificar al retomar**
+- `node scripts/publicar-version.mjs --env prod --version 2.71.9` (idempotente; confirma `version_publicada = 2.71.9`; requiere `--yes`).
+- SELECT en prod: `select * from sgc.odoo_conduces_degradados order by creado_en desc limit 5;` y última fila de `odoo_conciliacion_corridas` (estado OK).
+
 ## ✅ 20-nov-2026 (noche) — Hotfix Raykler CERRADO del lado SGC; app 2.71.3/2.71.4 en prod
 
 **Decisión Xaviel:** Odoo manda el stock; `registrar_conteo_app` NO cambia (sigue sin publicar a Odoo). **En prod:** web 1.218.6; RPC `sgc.bodegas_fuente_stock()` (sql/2026-11-20-dt-bodegas-fuente-stock.sql, ledger dev y prod; prod = 29 almacenes, 16 con fuente_odoo). **App (csd-app):** 2.71.3 (envíos atascados visibles) y 2.71.4 (aviso Odoo + botón «Aplicar como conteo físico» vía conteo_fisico_abrir→guardar→cerrar→aplicar).
