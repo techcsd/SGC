@@ -6420,6 +6420,21 @@
         }
       ]
     },
+    "1.220.2": {
+      "titulo": "Los mensajes de Claude con archivo adjunto ya se envían bien",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Mensajería",
+          "d": "Un mensaje preparado desde Claude con archivo adjunto ahora muestra el archivo en la tarjeta de confirmación y se envía completo, aunque el cliente mande el adjunto en otro formato."
+        },
+        {
+          "t": "mejora",
+          "m": "Claude",
+          "d": "Al confirmar un borrador, el aviso de éxito ya no dice siempre «Tarea creada»: dice «Mensaje enviado» para mensajes y un texto neutro para el resto."
+        }
+      ]
+    },
     "1.220.1": {
       "titulo": "Las tareas ya no piden obra y los mensajes de Claude pueden llevar archivos",
       "cambios": [
