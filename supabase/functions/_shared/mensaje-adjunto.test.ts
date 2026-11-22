@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert@1";
-import { AdjuntoError, MAX_ADJUNTO_BYTES, nombreSeguro, validarAdjunto } from "./mensaje-adjunto.ts";
+import { AdjuntoError, MAX_ADJUNTO_BYTES, nombreSeguro, normalizarAdjunto, validarAdjunto } from "./mensaje-adjunto.ts";
 
 const b64 = (s: string) => btoa(s);
 
@@ -32,4 +32,12 @@ Deno.test("nombre seguro: sin carpetas ni caracteres raros", () => {
   assertEquals(nombreSeguro("../../etc/passwd"), "passwd");
   assertEquals(nombreSeguro("C:\\x\\Informe Año 2026?.pdf"), "Informe Ano 2026_.pdf");
   assertEquals(nombreSeguro("...."), "archivo");
+});
+
+Deno.test("adjunto: el objeto llega como TEXTO JSON (cliente MCP con esquema viejo) y se acepta igual", () => {
+  const txt = JSON.stringify({ nombre: "a.csv", mime: "text/csv", contenido_base64: b64("x,y;\n") });
+  assertEquals(normalizarAdjunto(txt)?.nombre, "a.csv");
+  assertEquals(validarAdjunto(txt).size, 5);
+  assertEquals(normalizarAdjunto("no es json"), null);
+  assertThrows(() => validarAdjunto("no es json"), AdjuntoError);
 });

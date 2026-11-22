@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { AdjuntoError, validarAdjunto } from "../_shared/mensaje-adjunto.ts";
+import { AdjuntoError, normalizarAdjunto, validarAdjunto } from "../_shared/mensaje-adjunto.ts";
 import { TOOLS, type Cap, type Any } from "../_shared/herramientas.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { envRequerido } from "../_shared/env.ts";
@@ -61,7 +61,8 @@ async function resolverDetalle(supabase: Any, tool: string, params: Any) {
   } else if (tool === "proponer_mensaje") {
     lineas.push({ etiqueta: "Para", valor: (await nombreUsuario(params.destinatario_usuario_id)) ?? "" });
     lineas.push({ etiqueta: "Mensaje", valor: String(params.contenido ?? "").slice(0, 400) });
-    if (params.adjunto?.nombre) lineas.push({ etiqueta: "Adjunto", valor: String(params.adjunto.nombre) });
+    const adj = normalizarAdjunto(params.adjunto);
+    if (adj?.nombre) lineas.push({ etiqueta: "Adjunto", valor: String(adj.nombre) });
   } else if (tool === "proponer_requisicion" || tool === "proponer_conduce") {
     const items: Any[] = params.items ?? [];
     const map = await nombresArticulos(items.map((i) => i.articulo_id));
@@ -226,7 +227,7 @@ Deno.serve(async (req: Request) => {
 
     let ok = false; let mensaje = "";
     try {
-      const { error } = borrador.tool === "proponer_mensaje" && borrador.params?.adjunto
+      const { error } = borrador.tool === "proponer_mensaje" && normalizarAdjunto(borrador.params?.adjunto)
         ? { error: await ejecutarMensajeConAdjunto(supabase, borrador.params) }
         : await supabase.rpc(cfg.write!.execRpc, cfg.write!.execMap(borrador.params, capObj));
       if (error) mensaje = `No se pudo completar: ${error.message}`;
