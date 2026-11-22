@@ -1,4 +1,5 @@
 // Setup type definitions for built-in Supabase Runtime APIs
+import { normalizarAdjunto } from "../_shared/mensaje-adjunto.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // ============================================================================
@@ -74,14 +75,14 @@ async function registrarLlamada(
     p_error: error,
     p_duracion_ms: duracionMs,
     p_filas: filas,
-    p_params_resumen: params ? { resumen: JSON.stringify({ ...params, adjunto: params.adjunto ? { nombre: params.adjunto.nombre, mime: params.adjunto.mime, contenido_base64: "[omitido]" } : undefined }).slice(0, 300) } : null,
+    p_params_resumen: params ? { resumen: JSON.stringify({ ...params, adjunto: params.adjunto ? { nombre: normalizarAdjunto(params.adjunto)?.nombre ?? "?", contenido_base64: "[omitido]" } : undefined }).slice(0, 300) } : null,
   }).then(() => {}, () => {});
 }
 
 // Resumen corto y legible del borrador (el detalle fino con nombres resueltos
 // vive en /borrador/:id, FASE 4 — aquí solo es la etiqueta de la llamada).
 function resumenBorrador(cfg: ToolDef, input: Any): string {
-  if (cfg.write!.tipo === "mensaje") return `Mensaje${input.adjunto?.nombre ? " con adjunto: " + String(input.adjunto.nombre).slice(0, 60) : ""}`;
+  if (cfg.write!.tipo === "mensaje") return `Mensaje${normalizarAdjunto(input.adjunto)?.nombre ? " con adjunto: " + String(normalizarAdjunto(input.adjunto)!.nombre).slice(0, 60) : ""}`;
   if (cfg.write!.tipo === "tarea") return `Tarea: ${String(input.titulo ?? "").slice(0, 80)}`;
   if (cfg.write!.tipo === "requisicion") return `Requisición: ${(input.items ?? []).length} artículo(s)`;
   if (cfg.write!.tipo === "conduce") return `Conduce: ${(input.items ?? []).length} artículo(s)`;
