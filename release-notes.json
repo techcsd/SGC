@@ -6594,6 +6594,26 @@
           "d": "En el historial de versiones la etiqueta (p. ej. IMPROVEMENT) ya no tapa el texto en inglés y kreyòl."
         }
       ]
+    },
+    "1.222.0": {
+      "titulo": "Odoo en vivo para Compa, página de instalación y más QR",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Compa",
+          "d": "Compa y el conector pueden consultar en Odoo, solo lectura: existencias de un artículo, estado de una orden de compra y la salud de la sincronización. Quedan apagadas hasta que Tecnología las active."
+        },
+        {
+          "t": "nuevo",
+          "m": "Configuración",
+          "d": "Página pública «Instalar la app» (/instalar) con botones y QR a las tiendas, configurables en Parámetros (vacías hasta que existan las cuentas). Enlaces cortos /privacidad y /soporte-app para las fichas de tienda."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "La solicitud de compra ya puede generar su QR (apagado hasta probar); lleva a su atención en Compras."
+        }
+      ]
     }
   }
 }

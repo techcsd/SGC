@@ -8903,5 +8903,11 @@
   "archivo vacío": "empty file",
   "El reporte se envió, pero estos documentos no se pudieron subir": "The report was sent, but these documents could not be uploaded",
   "Quitar documento": "Remove document",
-  "No se pudo descargar el documento": "The document could not be downloaded"
+  "No se pudo descargar el documento": "The document could not be downloaded",
+  "Instalar la app de Constructora SD": "Install the Constructora SD app",
+  "Instálala una vez: las actualizaciones llegan solas.": "Install it once: updates arrive on their own.",
+  "Descargar en": "Download on",
+  "La app de tienda aún no está publicada. Mientras tanto usa la versión web instalable:": "The store app is not published yet. Meanwhile use the installable web version:",
+  "Abrir la versión web (instalable)": "Open the web version (installable)",
+  "En el teléfono: abre el enlace y elige «Agregar a la pantalla de inicio».": "On your phone: open the link and choose “Add to Home Screen”."
 }

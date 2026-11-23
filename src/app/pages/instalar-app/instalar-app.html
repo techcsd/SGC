@@ -1,0 +1,21 @@
+<main class="ins">
+  <section class="ins__card">
+    <h1>{{ 'Instalar la app de Constructora SD' | t }}</h1>
+    <p>{{ 'Instálala una vez: las actualizaciones llegan solas.' | t }}</p>
+
+    @for (t of tiendas(); track t.clave) {
+      <div class="ins__item">
+        <a class="ins__btn" [href]="t.url" target="_blank" rel="noopener">{{ 'Descargar en' | t }} {{ t.nombre }}</a>
+        @if (t.qr) { <img [src]="t.qr" width="120" height="120" alt="QR {{ t.nombre }}" /> }
+      </div>
+    }
+    @if (cargado() && tiendas().length === 0) {
+      <p class="ins__nota">{{ 'La app de tienda aún no está publicada. Mientras tanto usa la versión web instalable:' | t }}</p>
+    }
+
+    <div class="ins__item">
+      <a class="ins__btn ins__btn--sec" [href]="pwaUrl" target="_blank" rel="noopener">{{ 'Abrir la versión web (instalable)' | t }}</a>
+    </div>
+    <p class="ins__nota">{{ 'En el teléfono: abre el enlace y elige «Agregar a la pantalla de inicio».' | t }}</p>
+  </section>
+</main>

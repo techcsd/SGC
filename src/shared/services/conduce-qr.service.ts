@@ -5,7 +5,7 @@ import { invokeEdge } from '../utils/edge.util';
 import { UiFlagsService } from './ui-flags.service';
 
 /** DS-34/#74 + DX7 — QR por tipo de documento (token HMAC con vencimiento emitido por la edge `conduce-qr`). */
-export type TipoDocQr = 'conduce' | 'requisicion';
+export type TipoDocQr = 'conduce' | 'requisicion' | 'solicitud_compra';
 
 @Injectable({ providedIn: 'root' })
 export class ConduceQrService {

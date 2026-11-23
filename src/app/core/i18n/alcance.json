@@ -283,6 +283,9 @@
     "ingenieria/pagos": {
       "enforce": true
     },
+    "instalar-app": {
+      "enforce": false
+    },
     "inventario/activos": {
       "enforce": true
     },
