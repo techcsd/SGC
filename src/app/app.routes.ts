@@ -160,6 +160,11 @@ export const routes: Routes = [
       {
         // DS-34/#74 — destino del QR del conduce: valida el token y abre la pantalla de recibir/firmar/cerrar.
         // Sin gate de módulo (el receptor suele ser ingeniero de obra); la RLS y conduce_confirmar_receptor deciden.
+        path: 'd/:token',
+        title: 'Documento',
+        loadComponent: () => import('./pages/conduce-qr/conduce-qr').then((m) => m.ConduceQr),
+      },
+      {
         path: 'conduce-qr/:token',
         title: 'Conduce',
         loadComponent: () => import('./pages/conduce-qr/conduce-qr').then((m) => m.ConduceQr),

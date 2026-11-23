@@ -105,6 +105,17 @@
           </label>
         </div>
         <p class="soporte__fotos-hint">{{ 'Pega con Ctrl+V o arrastra una captura aquí.' | t }}</p>
+        <!-- DX10 — documentos (PDF, Word, Excel, CSV, TXT): máx. 5 y 10 MB cada uno -->
+        <label class="sgc-btn sgc-btn--ghost">
+          {{ 'Adjuntar documento' | t }}
+          <input type="file" [attr.accept]="adjuntoAccept" multiple hidden (change)="onDocumentos($event)" />
+        </label>
+        @for (d of documentos(); track $index) {
+          <p class="soporte__fotos-hint">
+            {{ d.name }} · {{ tamanoLegible(d.size) }}
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="quitarDocumento($index)" aria-label="{{ 'Quitar documento' | t }}">×</button>
+          </p>
+        }
       </div>
 
       @if (saveError()) {

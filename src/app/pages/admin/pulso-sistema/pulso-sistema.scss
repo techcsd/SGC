@@ -52,7 +52,7 @@
 }
 
 // Sin actividad reciente = gris/neutral, nunca rojo (regla explícita del prompt).
-.linea--sin_actividad .linea__punto { background: var(--sgc-text-muted); }
+.linea--sin_actividad .linea__punto, .linea--desconocido .linea__punto { background: var(--sgc-text-muted); }
 .linea--activo .linea__punto { background: var(--sgc-success); }
 .linea--atencion .linea__punto { background: var(--sgc-warning); }
 .linea--error .linea__punto { background: var(--sgc-danger); }

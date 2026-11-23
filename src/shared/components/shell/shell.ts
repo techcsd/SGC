@@ -466,7 +466,7 @@ export class Shell implements OnInit {
         // DC7/DB2 — "Compa en WhatsApp" se movió al grupo "Tecnología" (arriba),
         // gateado por submódulo en vez de soloTecnologia — ver esa entrada.
         // F5 (ronda DF) — badge = propuestas del Escriba esperando tu OK.
-        { label: 'Agentes', route: '/tecnologia/agentes', soloTecnologia: true, badgeKey: 'tecnologia.agentes' },
+        { label: 'Agentes', route: '/tecnologia/agentes', soloAdmin: true, badgeKey: 'tecnologia.agentes' },
         // Infraestructura (AW9 — venían en Tecnología; F6c — Pulso venía en Administración)
         { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', modulo: 'tecnologia' },
         { label: 'APIs y consumo', route: '/tecnologia/apis-consumo', modulo: 'tecnologia' },

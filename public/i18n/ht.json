@@ -8886,5 +8886,22 @@
   "Reencolados": "Remete nan fil",
   "{n} evento{plural} volverán a publicarse en la próxima pasada.": "{n} evènman{plural} pral pibliye ankò nan pwochen pasaj la.",
   "Seleccionar todos los reintentables": "Chwazi tout sa ou ka eseye ankò",
-  "Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.": "Odoo pa reponn. Y ap montre dènye stòk SGC konnen an; konduit la ap make pou revizyon lè Odoo tounen."
+  "Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.": "Odoo pa reponn. Y ap montre dènye stòk SGC konnen an; konduit la ap make pou revizyon lè Odoo tounen.",
+  "El servicio de IA no está disponible ahora. Ya se avisó a Tecnología; inténtalo en unos minutos.": "Sèvis IA a pa disponib kounye a. Teknoloji deja avèti; tanpri eseye ankò nan kèk minit.",
+  "El servicio de IA está muy ocupado. Inténtalo de nuevo en unos segundos.": "Sèvis IA a okipe anpil. Tanpri eseye ankò nan kèk segonn.",
+  "La IA tardó demasiado en responder. Inténtalo de nuevo.": "IA a pran twòp tan pou reponn. Tanpri eseye ankò.",
+  "Ocurrió un error inesperado. Ya se avisó a Tecnología.": "Yon erè inatandi fèt. Teknoloji deja avèti.",
+  "No pude leer el catálogo de cargos/obras; avisa a Tecnología.": "Mwen pa t ka li katalòg pozisyon/pwojè yo; avèti Teknoloji.",
+  "No pude detectar la obra: elígela": "Mwen pa t ka detekte pwojè a: tanpri chwazi li.",
+  "hay varias parecidas": "gen plizyè ki sanble",
+  "Escribe al menos 10 caracteres para poder rechazar": "Ekri omwen 10 karaktè pou ka rejte",
+  "Este QR no es válido o ya venció. Pide a quien te lo compartió que lo genere de nuevo.": "QR sa a pa valid oswa li ekspire. Mande moun ki pataje l la pou li jenere l ankò.",
+  "QR de la requisición": "QR rekizisyon an",
+  "tipo no permitido (PDF, Word, Excel, CSV o TXT)": "tip fichye pa pèmèt (PDF, Word, Excel, CSV oswa TXT)",
+  "supera los 10 MB": "depase 10 MB",
+  "máximo 5 documentos": "maksimòm 5 dokiman",
+  "archivo vacío": "fichye vid",
+  "El reporte se envió, pero estos documentos no se pudieron subir": "Rapò a voye, men dokiman sa yo pa t ka telechaje",
+  "Quitar documento": "Retire dokiman",
+  "No se pudo descargar el documento": "Dokiman an pa t ka telechaje"
 }

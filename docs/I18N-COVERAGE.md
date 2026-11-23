@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10286/10287 literales de 200 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10289/10290 literales de 200 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -26,7 +26,7 @@
 | admin/otros-valores | enforce | 11 | 11 | 0 | 100% |
 | admin/parametros | enforce | 13 | 13 | 0 | 100% |
 | admin/pulso-sistema | enforce | 3 | 3 | 0 | 100% |
-| admin/reportes | enforce | 38 | 38 | 0 | 100% |
+| admin/reportes | enforce | 39 | 39 | 0 | 100% |
 | admin/roles | enforce | 167 | 167 | 0 | 100% |
 | admin/solicitudes-eliminacion | enforce | 7 | 7 | 0 | 100% |
 | admin/unidades | enforce | 10 | 10 | 0 | 100% |
@@ -127,7 +127,7 @@
 | inventario/proveedores-transporte | enforce | 22 | 22 | 0 | 100% |
 | inventario/reportes | enforce | 44 | 44 | 0 | 100% |
 | inventario/reposicion | enforce | 32 | 32 | 0 | 100% |
-| inventario/requisiciones | enforce | 150 | 150 | 0 | 100% |
+| inventario/requisiciones | enforce | 151 | 151 | 0 | 100% |
 | inventario/retiros | enforce | 100 | 100 | 0 | 100% |
 | inventario/salidas | enforce | 138 | 138 | 0 | 100% |
 | inventario/stock-odoo | enforce | 27 | 27 | 0 | 100% |
@@ -180,7 +180,7 @@
 | rrhh/reportes | enforce | 19 | 19 | 0 | 100% |
 | rrhh/tramites | enforce | 44 | 44 | 0 | 100% |
 | solicitudes-movimiento | enforce | 82 | 82 | 0 | 100% |
-| soporte | enforce | 38 | 38 | 0 | 100% |
+| soporte | enforce | 39 | 39 | 0 | 100% |
 | tareas/gestion | enforce | 30 | 30 | 0 | 100% |
 | tareas/historial | enforce | 13 | 13 | 0 | 100% |
 | tareas/mis-tareas | enforce | 6 | 6 | 0 | 100% |

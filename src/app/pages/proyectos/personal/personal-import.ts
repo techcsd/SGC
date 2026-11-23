@@ -8,6 +8,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { detectarObra, norm, resolverCargoTexto, valorDeEtiqueta } from './personal-import.util';
 
 /** Fila previsualizada del import (antes de confirmar). */
 interface FilaPrev {
@@ -25,10 +26,6 @@ interface FilaPrev {
   yaExiste: boolean;        // dedupe contra la obra elegida
 }
 
-// AT5 — normaliza texto sucio (mayúsculas, acentos, espacios al final).
-function norm(s: unknown): string {
-  return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
-}
 function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()).trim();
 }
@@ -39,8 +36,9 @@ function titleCase(s: string): string {
 const CARGO_DICT: Record<string, string> = {
   INGENIERO: 'ING', MAESTRO: 'MAE', CAPATAZ: 'CAP', 'CAPATAZ CSD': 'CAP',
   VARILLERO: 'VAR', FERRALLERO: 'FERR', CARPINTERO: 'CARP', ALBANIL: 'ALB',
-  AYUDANTE: 'AYU', 'AYUDANTE CSD': 'AYU', PLOMERO: 'PLOM', ELECTRICISTA: 'ELEC',
-  PINTOR: 'PINT', SOLDADOR: 'SOLD', VIGILANTE: 'VIG', OBRERO: 'AYU',
+  // DX9 — OBRERO CSD / AYUDANTE CSD ya NO se aplastan en AYU: tienen cargo propio (sql/2026-11-23-dx9-cargos-ocupaciones.sql).
+  AYUDANTE: 'AYU', PLOMERO: 'PLOM', ELECTRICISTA: 'ELEC',
+  PINTOR: 'PINT', SOLDADOR: 'SOLD', VIGILANTE: 'VIG',
 };
 
 // Formato de cédula dominicana 000-0000000-0.
@@ -106,6 +104,8 @@ export class PersonalImport implements OnInit {
   private aprendidos = new Set<string>();
 
   // Encabezado detectado del archivo.
+  /** DX9 — avisos EN VOZ ALTA (antes: try/catch mudo y obra «adivinada»). */
+  avisoObra = signal('');
   proyectoDetectado = signal<string>('');
   ubicacionDetectada = signal<string>('');
   encObra = signal<string>('');
@@ -129,12 +129,18 @@ export class PersonalImport implements OnInit {
   dupCount = computed(() => this.filas().filter((f) => f.yaExiste).length);
 
   async ngOnInit() {
-    try {
-      const [cargos, obras] = await Promise.all([this.svc.getCargos(), this.proyectosSvc.getDirectorio('personal')]);
-      this.cargos.set(cargos);
-      this.obras.set(obras);
-    } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar catálogos.');
+    // DX9 — cada catálogo carga por separado: antes un Promise.all dejaba AMBOS vacíos si uno fallaba
+    // (todo «Sin cargo», sin obra) y el error se perdía. Ahora un catálogo vacío/roto avisa en rojo.
+    const [rc, ro] = await Promise.allSettled([this.svc.getCargos(), this.proyectosSvc.getDirectorio('personal')]);
+    const fallos: string[] = [];
+    if (rc.status === 'fulfilled' && rc.value.length) this.cargos.set(rc.value);
+    else fallos.push('cargos');
+    if (ro.status === 'fulfilled' && ro.value.length) this.obras.set(ro.value);
+    else fallos.push('obras');
+    if (fallos.length) {
+      this.error.set(this.i18n.t('No pude leer el catálogo de cargos/obras; avisa a Tecnología.') + ' (' + fallos.join(', ') + ')');
+      const motivo = [rc, ro].find((r): r is PromiseRejectedResult => r.status === 'rejected')?.reason;
+      if (motivo) console.error('personal-import: catálogos', motivo);
     }
     // CG2 — los alias no bloquean la carga; si fallan, el diccionario base cubre.
     try {
@@ -143,10 +149,9 @@ export class PersonalImport implements OnInit {
   }
 
   /** CG2 — resuelve un texto crudo a cargo_id (alias → código → nombre → diccionario). */
-  private resolverCargo(raw: unknown): string | null {
-    const key = norm(raw);
-    if (!key) return null;
-    return this.resolverMap().get(key) ?? null;
+  private resolverCargo(raw: unknown): { id: string | null; sugerencia: string | null } {
+    const r = resolverCargoTexto(raw, this.resolverMap(), this.cargos());
+    return { id: r.id, sugerencia: r.sugerencia?.nombre ?? null };
   }
 
   async onFile(event: Event) {
@@ -169,13 +174,10 @@ export class PersonalImport implements OnInit {
   }
 
   private parsear(rows: unknown[][]) {
-    // Encabezado de obra (PROYECTO / UBICACIÓN / ENC. OBRA en la col B).
-    for (const r of rows) {
-      const label = norm(r[1]);
-      if (label === 'PROYECTO') this.proyectoDetectado.set(String(r[2] ?? '').trim());
-      if (label === 'UBICACION') this.ubicacionDetectada.set(String(r[2] ?? '').trim());
-      if (label.startsWith('ENC')) this.encObra.set(String(r[2] ?? '').trim());
-    }
+    // DX9 — encabezado de obra: PROYECTO / OBRA / UBICACIÓN / ENC. en CUALQUIER columna de las 20 primeras filas.
+    this.proyectoDetectado.set(valorDeEtiqueta(rows, ['PROYECTO', 'OBRA']));
+    this.ubicacionDetectada.set(valorDeEtiqueta(rows, ['UBICACION']));
+    this.encObra.set(valorDeEtiqueta(rows, ['ENC'], 20, true));
 
     // Fila de headers = donde aparece 'NOMBRE'.
     let headerIdx = -1;
@@ -216,9 +218,18 @@ export class PersonalImport implements OnInit {
       // CG2 — Cargo confiable: TECNICO primero, luego OCUPACION, vía mapa resolutor
       // (alias curados + catálogo + diccionario base). `cargo_origen` = texto que se
       // intentó resolver (para aprender un alias si el usuario lo corrige a mano).
-      let cargoId = this.resolverCargo(tecRaw);
+      const rTec = this.resolverCargo(tecRaw);
+      let cargoId = rTec.id;
       let origen = tecRaw;
-      if (!cargoId) { cargoId = this.resolverCargo(ocupRaw); if (cargoId) origen = ocupRaw; }
+      let sugerencia = rTec.sugerencia;
+      if (!cargoId) {
+        const rOc = this.resolverCargo(ocupRaw);
+        cargoId = rOc.id;
+        if (cargoId) origen = ocupRaw;
+        else sugerencia = rOc.sugerencia ?? sugerencia;
+      }
+      // Sin resolver el origen más útil para el aviso/alias es la OCUPACION (el TECNICO suele ser la cuadrilla).
+      if (!cargoId && ocupRaw) origen = ocupRaw;
       if (!origen) origen = ocupRaw || tecRaw;
 
       // CG2 — vencimiento del permiso de trabajo (parseado de OBSERVACION).
@@ -230,7 +241,7 @@ export class PersonalImport implements OnInit {
       // Estado de la fila.
       let estado: FilaPrev['estado'] = 'ok';
       const motivos: string[] = [];
-      if (!cargoId) { estado = 'warning'; motivos.push(`Cargo no reconocido («${origen || '—'}») — elige uno`); }
+      if (!cargoId) { estado = 'warning'; motivos.push(`Cargo no reconocido («${origen || '—'}»)${sugerencia ? ` — ¿${sugerencia}?` : ''} — elige uno`); }
       if (!doc) { estado = estado === 'ok' ? 'warning' : estado; motivos.push('Sin documento'); }
       if (doc && vistos.has(doc)) { estado = 'error'; motivos.push('Documento repetido en el archivo'); }
       if (doc) vistos.add(doc);
@@ -255,9 +266,10 @@ export class PersonalImport implements OnInit {
     this.filas.set(filas);
 
     // Proponer la obra por coincidencia de nombre.
-    const pd = norm(this.proyectoDetectado());
-    const match = this.obras().find((o) => norm(o.nombre).includes(pd) || pd.includes(norm(o.nombre)));
+    // DX9 — igualdad normalizada y luego contención SOLO si es única; si no, vacío + aviso (nunca «la primera obra»).
+    const { obra: match, motivo } = detectarObra(this.proyectoDetectado(), this.obras());
     this.obraSeleccionada.set(match?.id ?? null);
+    this.avisoObra.set(match ? '' : this.i18n.t('No pude detectar la obra: elígela') + (motivo === 'ambigua' ? ' (' + this.i18n.t('hay varias parecidas') + ')' : ''));
     if (match) this.marcarDuplicados(match.id);
 
     this.paso.set('previsualizar');
@@ -265,7 +277,7 @@ export class PersonalImport implements OnInit {
 
   async onObraChange(id: string) {
     this.obraSeleccionada.set(id || null);
-    if (id) await this.marcarDuplicados(id);
+    if (id) { this.avisoObra.set(''); await this.marcarDuplicados(id); }
   }
 
   /** Marca las filas cuyo documento ya existe en la obra elegida (dedupe). */
