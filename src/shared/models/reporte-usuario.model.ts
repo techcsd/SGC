@@ -24,9 +24,21 @@ export interface ReporteUsuario {
   updated_at: string;
   resuelto_en: string | null;
   fotos?: ReporteFoto[];
+  /** DX10 — documentos adjuntos (PDF/Word/Excel/CSV/TXT). */
+  adjuntos?: ReporteAdjunto[];
   // DB6 — resumen con IA guardado con el reporte (nota de ronda / prompt de hotfix).
   ia_resumen?: ReporteIaResumen | null;
   ia_resumen_at?: string | null;
+}
+
+export interface ReporteAdjunto {
+  id: string;
+  reporte_id: string;
+  storage_path: string;
+  nombre_original: string;
+  mime: string;
+  tamano_bytes: number;
+  created_at: string;
 }
 
 /** DB6 — salida de la edge `resumir-reporte`, persistida en `ia_resumen`. */

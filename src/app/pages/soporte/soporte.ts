@@ -1,3 +1,4 @@
+import { ADJUNTO_ACCEPT, tamanoLegible, validarAdjunto } from '../../../shared/utils/reporte-adjunto.util';
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -43,6 +44,10 @@ export class Soporte implements OnInit {
 
   // Fotos adjuntas al reporte (paridad con la app de campo).
   fotos = signal<{ file: File; preview: string }[]>([]);
+  /** DX10 — documentos adjuntos (PDF/Word/Excel/CSV/TXT), máx. 5 y 10 MB c/u. */
+  documentos = signal<File[]>([]);
+  readonly adjuntoAccept = ADJUNTO_ACCEPT;
+  readonly tamanoLegible = tamanoLegible;
 
   // ── Dashboard ────────────────────────────────────────────
   total = computed(() => this.reportes().length);
@@ -91,6 +96,26 @@ export class Soporte implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  onDocumentos(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    const rechazos: string[] = [];
+    for (const f of files) {
+      const motivo = validarAdjunto(f, this.documentos().length);
+      if (motivo) {
+        rechazos.push(`${f.name}: ${this.i18n.t(motivo === 'tipo' ? 'tipo no permitido (PDF, Word, Excel, CSV o TXT)' : motivo === 'tamano' ? 'supera los 10 MB' : motivo === 'cupo' ? 'máximo 5 documentos' : 'archivo vacío')}`);
+        continue;
+      }
+      this.documentos.update((l) => [...l, f]);
+    }
+    this.saveError.set(rechazos.join(' · '));
+  }
+
+  quitarDocumento(i: number) {
+    this.documentos.update((l) => l.filter((_, idx) => idx !== i));
   }
 
   async onFotos(event: Event) {
@@ -151,8 +176,13 @@ export class Soporte implements OnInit {
           descripcion: this.form.value.descripcion!.trim(),
         },
         this.fotos().map((f) => f.file),
+        this.documentos(),
       );
       this.reportes.update((list) => [created, ...list]);
+      this.documentos.set([]);
+      if (created.adjuntosFallidos?.length) {
+        this.saveError.set(this.i18n.t('El reporte se envió, pero estos documentos no se pudieron subir') + ': ' + created.adjuntosFallidos.join(', '));
+      }
       this.form.reset({ tipo: 'comentario', asunto: '', descripcion: '' });
       for (const f of this.fotos()) URL.revokeObjectURL(f.preview);
       this.fotos.set([]);

@@ -9,6 +9,7 @@ import {
   type Cap, type ToolDef, TOOLS, toolsParaUsuario, claveIdem, idemUuid, ejecutarHerramientaLectura,
 } from "../_shared/herramientas.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { cuerpoErrorIA, envolverServe, ErrorIA, fetchAnthropic, registrarFalloIA } from "../_shared/anthropic.ts";
 import { PARAM_PARTE_VOZ, enlacePropuestaParte, filtrarToolsParteVoz, parteVozActivo, validarArgsParte } from "../_shared/parte-voz.ts";
 import { envRequerido } from "../_shared/env.ts";
 
@@ -203,12 +204,8 @@ function ahoraRD(): string {
 async function callClaude(system: Any, tools: Any, messages: Any, toolChoice?: Any) {
   const body: Any = { model: MODEL, max_tokens: 4000, system, tools, messages }; // CP3/CP9 — era 1400, cortaba respuestas largas
   if (toolChoice) body.tool_choice = toolChoice;
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  // DX2 — timeout 45 s + un reintento + errores tipados (ErrorIA); antes: fetch sin límite.
+  const res = await fetchAnthropic(ANTHROPIC_API_KEY!, body);
   return await res.json();
 }
 
@@ -594,7 +591,7 @@ function componerExcel(titulo: string, cols: string[], rows: string[][]): Uint8A
   return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as Uint8Array;
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve(envolverServe("assistant", async (req: Request) => {
   const corsHeaders = construirCors(req);
   function json(body: unknown, status = 200) {
     return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -1212,7 +1209,13 @@ Deno.serve(async (req: Request) => {
       }
     }
   } catch (e) {
-    return json({ error: `El asistente tuvo un problema: ${e instanceof Error ? e.message : "desconocido"}` }, 502);
+    if (e instanceof ErrorIA) {
+      // DX1/DX2 — la causa real queda en app_error_reports (firma estable) y el front recibe un error_code humano.
+      const svcErr = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" }, auth: { persistSession: false } });
+      await registrarFalloIA(svcErr, userData.user.id, "assistant", e, MODEL);
+      return json(cuerpoErrorIA(e), 502);
+    }
+    return json({ error: `El asistente tuvo un problema: ${e instanceof Error ? e.message : "desconocido"}`, error_code: "error_interno" }, 502);
   }
   // BE2 — NUNCA una excusa vacía: si no hubo texto, el fallback lleva causa + salida.
   if (!respuestaFinal) {
@@ -1238,4 +1241,4 @@ Deno.serve(async (req: Request) => {
   await supabase.from("assistant_conversaciones").update({ updated_at: new Date().toISOString() }).eq("id", convId).then(() => {}, () => {});
 
   return json({ conversacion_id: convId, respuesta: respuestaFinal, herramientas: herramientasUsadas, propuesta, archivos, archivo: archivos[0] ?? null });
-});
+}, construirCors));

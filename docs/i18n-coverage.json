@@ -196,8 +196,8 @@
     },
     {
       "pantalla": "admin/reportes",
-      "total": 38,
-      "cubiertos": 38,
+      "total": 39,
+      "cubiertos": 39,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1206,8 +1206,8 @@
     },
     {
       "pantalla": "inventario/requisiciones",
-      "total": 150,
-      "cubiertos": 150,
+      "total": 151,
+      "cubiertos": 151,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1736,8 +1736,8 @@
     },
     {
       "pantalla": "soporte",
-      "total": 38,
-      "cubiertos": 38,
+      "total": 39,
+      "cubiertos": 39,
       "sin": 0,
       "pct": 100,
       "enScope": true,

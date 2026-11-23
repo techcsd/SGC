@@ -11,6 +11,7 @@ const ESTADO_LABEL: Record<PulsoSistemaEstado, string> = {
   sin_actividad: 'Sin actividad reciente',
   atencion: 'Necesita atención',
   error: 'Falló',
+  desconocido: 'Sin dato',
 };
 
 /**

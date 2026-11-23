@@ -1,3 +1,4 @@
+import { tamanoLegible } from '../../../../shared/utils/reporte-adjunto.util';
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReportesUsuarioService } from '../../../../shared/services/reportes-usuario.service';
@@ -7,6 +8,7 @@ import { LightboxService } from '../../../../shared/ui/lightbox/lightbox.service
 import {
   ReporteUsuario,
   ReporteFoto,
+  ReporteAdjunto,
   ReporteEstado,
   ReporteTipo,
   ReporteIaResumen,
@@ -253,6 +255,17 @@ export class AdminReportes implements OnInit {
     );
     this.fotoUrls.set(new Map(entries));
   }
+
+  /** DX10 — descarga un documento adjunto con su nombre original. */
+  async descargarAdjunto(a: ReporteAdjunto) {
+    try {
+      const url = await this.reportesService.getAdjuntoUrl(a.storage_path, a.nombre_original);
+      window.open(url, '_blank', 'noopener');
+    } catch (e) {
+      this.saveError.set(this.i18n.t('No se pudo descargar el documento') + (e instanceof Error ? ': ' + e.message : ''));
+    }
+  }
+  readonly tamanoLegible = tamanoLegible;
 
   getFotoUrl(f: ReporteFoto): string {
     return this.fotoUrls().get(f.id) ?? '';

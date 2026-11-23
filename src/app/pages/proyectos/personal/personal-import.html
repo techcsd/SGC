@@ -41,6 +41,8 @@
       </div>
     </div>
 
+    @if (avisoObra()) { <div class="save-error" role="alert">{{ avisoObra() }}</div> }
+
     <div class="pi-controls">
       <label class="pi-field">
         <span>{{ 'Importar a la obra' | t }} <b>*</b></span>

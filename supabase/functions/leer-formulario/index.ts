@@ -133,6 +133,7 @@ async function resolverConduceExterno(svc: Any, userClient: Any, fotos: Any[]): 
 
   const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+      signal: AbortSignal.timeout(45_000), // DX1: sin límite, Supabase cortaba sin CORS
     headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: MODEL, max_tokens: 1024, system, messages: [{ role: "user", content }] }),
   });
@@ -199,6 +200,7 @@ async function resolverMantenimiento(svc: Any, transcripcion: string): Promise<{
 
   const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+      signal: AbortSignal.timeout(45_000), // DX1: sin límite, Supabase cortaba sin CORS
     headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: MODEL, max_tokens: 512, system, messages: [{ role: "user", content }] }),
   });
@@ -277,6 +279,7 @@ async function resolverChecklistVehiculo(
 
   const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+      signal: AbortSignal.timeout(45_000), // DX1: sin límite, Supabase cortaba sin CORS
     headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: MODEL, max_tokens: 1024, system, messages: [{ role: "user", content }] }),
   });
@@ -338,6 +341,7 @@ async function resolverRequisicion(svc: Any, transcripcion: string): Promise<{ p
 
   const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+      signal: AbortSignal.timeout(45_000), // DX1: sin límite, Supabase cortaba sin CORS
     headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: MODEL, max_tokens: 1024, system, messages: [{ role: "user", content }] }),
   });
@@ -411,6 +415,7 @@ async function resolverUsoVehiculo(fotos: Any[]): Promise<{ propuesta: Any; cost
 
   const anthRes = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+      signal: AbortSignal.timeout(45_000), // DX1: sin límite, Supabase cortaba sin CORS
     headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: MODEL, max_tokens: 1024, system: SYSTEM_USO_VEHICULO, messages: [{ role: "user", content }] }),
   });

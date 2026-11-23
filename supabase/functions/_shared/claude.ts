@@ -43,6 +43,7 @@ export async function llamarClaude(opts: {
 }): Promise<LlamadaClaudeResultado> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
+    signal: AbortSignal.timeout(45_000), // DX1: sin límite, Supabase cortaba sin CORS
     headers: {
       "x-api-key": opts.apiKey,
       "anthropic-version": "2023-06-01",

@@ -78,16 +78,20 @@
 }
 
 // ── Cambios con etiqueta ─────────────────────────────────
-.hv-cambios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hv-cambios {
+  list-style: none; margin: 0; padding: 0;
+  //DX5: la columna de la etiqueta mide lo que mida la más larga (IMPROVEMENT/KREYÒL no caben en 84px fijos)
+  display: grid; grid-template-columns: minmax(84px, max-content) 1fr; gap: 8px 10px;
+}
 
 .hv-cambio {
-  display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: start;
+  display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start;
   &__txt { font-size: 14px; line-height: 1.45; color: var(--sgc-text); }
 }
 
 .hv-tag {
   justify-self: start; padding: 2px 9px; border-radius: 6px; font-size: 11px;
-  font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: #fff;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: #fff; white-space: nowrap;
   &--nuevo { background: #2d7d46; }
   &--mejora { background: #2e75b6; }
   &--arreglo { background: #b7791f; }
@@ -98,6 +102,7 @@
 
 @media (max-width: 560px) {
   .hv-item__fecha { margin-left: 0; width: 100%; }
+  .hv-cambios { grid-template-columns: 1fr; }
   .hv-cambio { grid-template-columns: 1fr; gap: 4px; }
 }
 
