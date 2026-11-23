@@ -603,6 +603,9 @@
     },
     "verificar": {
       "enforce": true
+    },
+    "admin/escaneos-qr": {
+      "enforce": false
     }
   }
 }

@@ -1,3 +1,4 @@
+import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -87,6 +88,9 @@ interface ReconciliacionRow {
 })
 export class Ordenes implements OnInit {
   private ordenesService = inject(OrdenesCompraService);
+  private docQr = inject(ConduceQrService);
+  /** DX7 — QR de la solicitud en atención (null si el interruptor `doc_qr_solicitud_compra_activo` está apagado). */
+  solicitudQr = signal<string | null>(null);
   private motion = inject(MotionService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
@@ -495,6 +499,8 @@ export class Ordenes implements OnInit {
   atenderSolicitud(s: SolicitudCompra) {
     this.saveError.set('');
     this.solicitudEnAtencion.set(s);
+    this.solicitudQr.set(null);
+    this.docQr.qrDocDataUrl('solicitud_compra', s.id).then((q) => { if (this.solicitudEnAtencion()?.id === s.id) this.solicitudQr.set(q); }).catch(() => {});
     this.form.reset({
       proyecto_id: s.proyecto_id,
       notas: this.i18n.t('Solicitud de {nombre}', { nombre: s.solicitante?.nombre ?? this.i18n.t('ingeniero') }) + (s.notas ? ' — ' + s.notas : ''),

@@ -475,6 +475,7 @@ export class Shell implements OnInit {
         // el idioma ya usado en este grupo para hojas admin-only como "Vault").
         { label: 'Pulso del sistema', route: '/admin/pulso-sistema', soloAdmin: true },
         { label: 'Adopción por rol', route: '/admin/adopcion', soloAdmin: true }, // DS-38
+        { label: 'Escaneos de QR', route: '/admin/escaneos-qr', soloAdmin: true }, // DX7 (AT11)
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
         // CY16 (#16) — sincronización con Odoo (outbox distinto del de arriba).
         { label: 'Envíos automáticos', route: '/tecnologia/envios-automaticos', soloTecnologia: true }, // CT10
