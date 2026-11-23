@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.222.0';
-export const APP_VERSION_TITULO: string | null = "Odoo en vivo para Compa, página de instalación y más QR";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Compa","d":"Compa y el conector pueden consultar en Odoo, solo lectura: existencias de un artículo, estado de una orden de compra y la salud de la sincronización. Quedan apagadas hasta que Tecnología las active."},{"t":"nuevo","m":"Configuración","d":"Página pública «Instalar la app» (/instalar) con botones y QR a las tiendas, configurables en Parámetros (vacías hasta que existan las cuentas). Enlaces cortos /privacidad y /soporte-app para las fichas de tienda."},{"t":"nuevo","m":"Compras","d":"La solicitud de compra ya puede generar su QR (apagado hasta probar); lleva a su atención en Compras."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/910ed72";
+export const APP_VERSION = '1.222.1';
+export const APP_VERSION_TITULO: string | null = "QR de solicitud de compra en pantalla y registro de escaneos visible";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Compras","d":"Al crear una orden desde una solicitud de compra se ve su QR; quien lo escanee llega a esa solicitud (el acceso lo decide su rol)."},{"t":"nuevo","m":"Administración","d":"Nueva pantalla «Escaneos de QR»: quién escaneó el QR de qué documento y cuándo (últimos 100)."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/48d9cb3";

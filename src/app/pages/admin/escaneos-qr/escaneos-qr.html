@@ -1,0 +1,30 @@
+<div class="sgc-page">
+  <header>
+    <h1>{{ 'Escaneos de QR' | t }}</h1>
+    <p>{{ 'Quién escaneó el QR de qué documento y cuándo (últimos 100).' | t }}</p>
+  </header>
+
+  @if (error()) {
+    <app-error-state [error]="error()" pantalla="los escaneos de QR" (retry)="cargar()" />
+  } @else if (loading()) {
+    <p>{{ 'Cargando…' | t }}</p>
+  } @else if (filas().length === 0) {
+    <p>{{ 'Aún no hay escaneos.' | t }}</p>
+  } @else {
+    <table class="sgc-table">
+      <thead>
+        <tr><th>{{ 'Documento' | t }}</th><th>{{ 'Escaneó' | t }}</th><th>{{ 'Resultado' | t }}</th><th>{{ 'Cuándo' | t }}</th></tr>
+      </thead>
+      <tbody>
+        @for (f of filas(); track f.id) {
+          <tr>
+            <td>{{ tipoLabel(f.tipo) | t }} · {{ f.doc_id.slice(0, 8) }}</td>
+            <td>{{ f.usuario?.nombre ?? '—' }}</td>
+            <td>{{ f.resultado }}</td>
+            <td>{{ relativo(f.creado_en) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

@@ -33,6 +33,12 @@ export const adminRoutes: Routes = [
     title: 'Usuarios de prueba — Administración',
   },
   {
+    // DX7 (AT11) — escaneos de QR (quién/cuándo); la RLS de la tabla ya limita a admin/tecnología.
+    path: 'escaneos-qr',
+    loadComponent: () => import('./escaneos-qr/escaneos-qr').then((m) => m.AdminEscaneosQr),
+    title: 'Escaneos de QR — Administración',
+  },
+  {
     path: 'reportes',
     loadComponent: () => import('./reportes/reportes').then((m) => m.AdminReportes),
     title: 'Comentarios y Reportes — Administración',

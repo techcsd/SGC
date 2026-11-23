@@ -8909,5 +8909,10 @@
   "Descargar en": "Download on",
   "La app de tienda aún no está publicada. Mientras tanto usa la versión web instalable:": "The store app is not published yet. Meanwhile use the installable web version:",
   "Abrir la versión web (instalable)": "Open the web version (installable)",
-  "En el teléfono: abre el enlace y elige «Agregar a la pantalla de inicio».": "On your phone: open the link and choose “Add to Home Screen”."
+  "En el teléfono: abre el enlace y elige «Agregar a la pantalla de inicio».": "On your phone: open the link and choose “Add to Home Screen”.",
+  "Escaneos de QR": "QR scans",
+  "Quién escaneó el QR de qué documento y cuándo (últimos 100).": "Who scanned which document's QR and when (last 100).",
+  "Aún no hay escaneos.": "No scans yet.",
+  "Escaneó": "Scanned by",
+  "QR de la solicitud de compra": "Purchase request QR"
 }
