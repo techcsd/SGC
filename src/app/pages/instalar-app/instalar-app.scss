@@ -1,0 +1,9 @@
+//DX6: página pública mínima, mismos tokens que /politicas
+.ins {
+  min-height: 100dvh; display: flex; justify-content: center; padding: 24px 16px; background: var(--main, #121212);
+  &__card { width: 100%; max-width: 560px; background: var(--surface, #161616); border: 1px solid var(--border, #2d2d2d); border-radius: 16px; padding: 28px; color: var(--text, #fff); }
+  &__item { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0; }
+  &__btn { display: inline-block; padding: 12px 18px; border-radius: 10px; background: var(--accent, #ff5f00); color: var(--text-on-accent, #fff); font-weight: 700; text-decoration: none; }
+  &__btn--sec { background: transparent; border: 1px solid var(--border, #2d2d2d); color: var(--text, #fff); }
+  &__nota { opacity: 0.8; font-size: 14px; }
+}

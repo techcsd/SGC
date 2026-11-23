@@ -39,6 +39,9 @@
 | resumen_flota | resumen_flota | módulo flota (raise 42501) | ✔ | oculto | oculto | ✔ | oculto |
 | mantenimientos_pendientes | mantenimientos_pendientes | módulo flota (raise 42501) | ✔ | oculto | oculto | ✔ | oculto |
 | stock_por_almacen | inventario_almacen | puede_ver_inventario_bodega (raise 42501) | ✔ | según bodega | oculto | según inv. | oculto |
+| consultar_stock_odoo | (edge odoo-api: accion productos.buscar + stock.consultar) | módulo inventario/compras o admin, validado en odoo-api; interruptor `odoo_herramientas_ia` (apagado); tope 50 filas; solo lectura | ✔ | inventario/compras | oculto | según módulo | oculto |
+| consultar_oc_odoo | (edge odoo-api: accion compras.obtener) | módulo compras/inventario o admin; interruptor `odoo_herramientas_ia`; solo estado de la OC (sin líneas de costo ni contabilidad) | ✔ | compras/inventario | oculto | según módulo | oculto |
+| estado_sincronizacion_odoo | (lecturas con RLS: odoo_intentos, odoo_conduces_degradados) | solo `tecnologia`/admin por RLS; interruptor `odoo_herramientas_ia` | ✔ | solo Tecnología | oculto | oculto | oculto |
 | articulos_bajo_minimo | articulos_bajo_minimo→inventario_almacen | ídem (hereda) | ✔ | según bodega | oculto | según inv. | oculto |
 | movimientos_recientes | ultimos_movimientos_articulo | módulo inventario ([] si no) | ✔ | si inv. | oculto | si inv. | oculto |
 | material_en_cuarentena (BG4) | material_en_cuarentena | módulo inventario; el RPC filtra POR BODEGA con puede_ver_inventario_bodega | ✔ | según bodega | oculto | según inv. | oculto |

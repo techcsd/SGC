@@ -43,3 +43,9 @@ Deno.test("cada tipo tiene tabla, ruta e interruptor propios", () => {
   assertEquals(TIPOS_DOC_QR.requisicion.claveActivo, "doc_qr_requisicion_activo");
   assertEquals(TIPOS_DOC_QR.conduce.ruta(ID), `/conduce-recibir/${ID}`);
 });
+
+Deno.test("solicitud_compra: emitir → verificar y ruta propia", async () => {
+  const t = await firmarTokenDoc(SEC, "solicitud_compra", ID, 2000);
+  assertEquals(await verificarTokenDoc(SEC, t, 1000), { ok: true, tipo: "solicitud_compra", id: ID, exp: 2000 });
+  assertEquals(TIPOS_DOC_QR.solicitud_compra.ruta(ID), `/compras/ordenes?solicitud=${ID}`);
+});
