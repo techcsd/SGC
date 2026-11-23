@@ -136,5 +136,13 @@
       "mensaje": "¿Qué roles nunca han entrado al sistema?",
       "expect": { "tool_llamada": "adopcion_por_rol", "sin_gap_falso": true, "sin_contradiccion": true }
     }
+    ,{
+      "id": "dx12-odoo-stock-apagado",
+      "descripcion": "DX12.3 — con el interruptor odoo_herramientas_ia apagado (default), Compa debe llamar consultar_stock_odoo y reportar que está desactivado, sin inventar existencias.",
+      "rol_codigo": "logistica",
+      "mensaje": "¿Cuánto stock hay de ties de 25cm en Odoo ahora mismo?",
+      "expect": { "tool_llamada": "consultar_stock_odoo", "sin_gap_falso": true, "sin_contradiccion": true }
+    }
+
   ]
 }

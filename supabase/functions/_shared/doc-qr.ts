@@ -7,7 +7,7 @@ import { firmarTokenConduce, verificarTokenConduce } from "./conduce-qr.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export type TipoDocQr = "conduce" | "requisicion";
+export type TipoDocQr = "conduce" | "requisicion" | "solicitud_compra";
 
 export interface ConfigTipoDocQr {
   /** tabla (schema sgc) donde debe existir el documento y desde la que se valida la visibilidad al emitir. */
@@ -24,6 +24,8 @@ export const TIPOS_DOC_QR: Record<TipoDocQr, ConfigTipoDocQr> = {
   conduce: { tabla: "salidas_inventario", ruta: (id) => `/conduce-recibir/${id}`, claveActivo: "conduce_qr_activo", vigenciaDias: 30 },
   // Requisición → su detalle (deep-link `?req=` que ya abre el drawer); ahí ven/aprueban según su rol.
   requisicion: { tabla: "solicitudes_material", ruta: (id) => `/inventario/requisiciones?req=${id}`, claveActivo: "doc_qr_requisicion_activo", vigenciaDias: 7 },
+  // Solicitud de compra → su atención en Compras › Órdenes (deep-link `?solicitud=`); el guard del submódulo decide el acceso.
+  solicitud_compra: { tabla: "solicitudes_compra", ruta: (id) => `/compras/ordenes?solicitud=${id}`, claveActivo: "doc_qr_solicitud_compra_activo", vigenciaDias: 7 },
 };
 
 export const esTipoDocQr = (t: unknown): t is TipoDocQr => typeof t === "string" && Object.hasOwn(TIPOS_DOC_QR, t);

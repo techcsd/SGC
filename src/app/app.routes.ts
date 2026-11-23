@@ -30,6 +30,14 @@ export const routes: Routes = [
       import('./pages/politicas/eliminar-cuenta/eliminar-cuenta').then((m) => m.EliminarCuenta),
     title: 'Eliminar cuenta · Constructora SD',
   },
+  // DX6 — URLs cortas y estables para las fichas de tienda (Play/App Store las piden) y página de instalación del personal.
+  { path: 'privacidad', redirectTo: 'politicas/privacidad', pathMatch: 'full' },
+  { path: 'soporte-app', redirectTo: 'politicas/soporte', pathMatch: 'full' },
+  {
+    path: 'instalar',
+    loadComponent: () => import('./pages/instalar-app/instalar-app').then((m) => m.InstalarApp),
+    title: 'Instalar la app · Constructora SD',
+  },
   {
     // CI2 — páginas legales públicas (sin login): privacidad, términos, soporte.
     // Renderizan assets/politicas/<doc>.md. Patrón: fuera del Shell (como verificar).

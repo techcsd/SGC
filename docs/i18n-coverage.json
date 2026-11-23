@@ -945,6 +945,16 @@
       "faltantes": []
     },
     {
+      "pantalla": "instalar-app",
+      "total": 6,
+      "cubiertos": 6,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
+      "faltantes": []
+    },
+    {
       "pantalla": "inventario/activos",
       "total": 70,
       "cubiertos": 70,

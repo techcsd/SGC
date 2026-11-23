@@ -23,6 +23,8 @@ export type Any = any;
 // que `capacidades_asistente()` se lo da al cliente web. Opcional porque
 // capObj se construye en 3 edges distintas — si algún caller viejo no lo
 // rellena, el fallback es "sin permisos granulares" (comportamiento anterior).
+import { DEFINICIONES_ODOO, ejecutarHerramientaOdoo } from "./herramientas-odoo.ts";
+
 export interface Cap { usuario_id: string; nombre: string; es_admin: boolean; modulos: string[]; roles: string[]; permisos?: Record<string, "ver" | "operar"> }
 
 export interface ToolDef {
@@ -47,6 +49,8 @@ export interface ToolDef {
   gap?: boolean;
   // DS-41/#76 — parte diario por voz: arma una PROPUESTA con la edge bitacora-ia (nunca crea la bitácora). Apagada por parámetro.
   parteIa?: boolean;
+  // DX12.3 — consulta de solo lectura a Odoo vía `odoo-api` (ver _shared/herramientas-odoo.ts).
+  odoo?: boolean;
   // Lectura:
   rpc?: string;
   map?: (i: Any) => Record<string, unknown>;
@@ -1373,6 +1377,8 @@ export const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"], additionalProperties: false },
     rpc: "leer_skill_claude", map: (i) => ({ p_slug: String(i.slug ?? "") }),
   },
+  // DX12.3 — Odoo en vivo (solo lectura; interruptor parametros.odoo_herramientas_ia, apagado).
+  ...(DEFINICIONES_ODOO as unknown as ToolDef[]),
 ];
 
 /** Herramientas visibles a este usuario (filtro por módulo/admin), opcionalmente
@@ -1466,6 +1472,7 @@ export function idemUuid(clave: string): string {
 // tiene una opción de schema por defecto como `createClient({db:{schema}})`
 // (Compa) — sin esto, el error es "Could not find the function public.<rpc>".
 export async function ejecutarHerramientaLectura(supabase: Any, cfg: ToolDef, input: Any) {
+  if (cfg.odoo) return await ejecutarHerramientaOdoo(supabase, cfg.name, input);
   // CX1 — Raykler chocó con "Could not find the function ... in the schema
   // cache" porque llamó stock_por_almacen/movimientos_recientes con nombres de
   // parámetro que no son los del esquema (p. ej. 'almacen'/'almacen_id' en vez
