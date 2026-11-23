@@ -303,6 +303,10 @@
 <app-form-drawer [open]="drawerOpen()" [title]="i18n.t('Requisición')" variant="modal" (closed)="cerrar()">
   @if (selected(); as s) {
     <div class="req-detail">
+      <!-- DX7 — QR de la requisición: quien lo escanee llega a su detalle (verla/aprobarla según su rol) -->
+      @if (reqQr(); as qr) {
+        <img [src]="qr" width="88" height="88" alt="{{ 'QR de la requisición' | t }}" />
+      }
       <!-- Cabecera -->
       <div class="req-detail__head">
         <span class="req-detail__codigo">{{ codigo(s) }}</span>
@@ -733,6 +737,14 @@
                 <textarea id="req-nota" rows="3" [value]="rechazoNota()"
                           (input)="rechazoNota.set($any($event.target).value)"
                           placeholder="{{ 'Explica por qué se rechaza…' | t }}"></textarea>
+                <!-- DX11a — el botón estaba apagado sin decir por qué («DUPLICADA» = 9 caracteres): contador visible -->
+                <p class="sgc-hint" role="status">
+                  @if (rechazoNota().trim().length < 10) {
+                    {{ 'Escribe al menos 10 caracteres para poder rechazar' | t }}: {{ rechazoNota().trim().length }}/10
+                  } @else {
+                    {{ rechazoNota().trim().length }}/10 ✓
+                  }
+                </p>
               </div>
               <div class="req-detail__actions">
                 <button type="button" class="sgc-btn sgc-btn--danger"

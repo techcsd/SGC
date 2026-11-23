@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
-export type PulsoSistemaEstado = 'activo' | 'sin_actividad' | 'atencion' | 'error';
+export type PulsoSistemaEstado = 'activo' | 'sin_actividad' | 'atencion' | 'error' | 'desconocido';
 
 export interface PulsoSistemaFila {
   sistema: string;

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { moduleGuard } from '../../core/guards/module.guard';
 import { submoduloGuard } from '../../core/guards/submodulo.guard';
+import { rolAdminGuard } from '../../core/guards/rol-admin.guard';
 import { tecnologiaGuard, desarrolladorGuard } from '../../core/guards/tecnologia.guard';
 
 export const tecnologiaRoutes: Routes = [
@@ -209,8 +210,9 @@ export const tecnologiaRoutes: Routes = [
     // Escriba/Cronista). Gate: tecnologiaGuard, igual que el resto de la
     // consola "Sistema" (no se creó un módulo `agentes` nuevo — ver nota en
     // sql/2026-11-01-df3-agentes-aprobaciones-cronista.sql).
+    // DX8 — solo administrador (ROL, no módulo); el servidor también lo exige (sql/2026-11-23-dx8-agentes-solo-admin.sql).
     path: 'agentes',
-    canActivate: [tecnologiaGuard],
+    canActivate: [tecnologiaGuard, rolAdminGuard],
     loadComponent: () => import('./oficina-agentes/oficina-agentes').then((m) => m.OficinaAgentes),
     title: 'Agentes — Tecnología',
   },

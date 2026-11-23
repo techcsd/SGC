@@ -2,12 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { invokeEdge } from '../utils/edge.util';
+import { nombreSeguro } from '../utils/reporte-adjunto.util';
 import { ReporteUsuario, ReporteEstado, ReporteTipo, ReporteIaResumen } from '../models/reporte-usuario.model';
 
 // usuarios is joined twice (usuario_id, asignado_a) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
 const SELECT_QUERY =
-  '*, usuario:usuarios!reportes_usuario_usuario_id_fkey(nombre, email), asignado:usuarios!reportes_usuario_asignado_a_fkey(nombre), fotos:reportes_usuario_fotos(*)';
+  '*, usuario:usuarios!reportes_usuario_usuario_id_fkey(nombre, email), asignado:usuarios!reportes_usuario_asignado_a_fkey(nombre), fotos:reportes_usuario_fotos(*), adjuntos:reportes_usuario_adjuntos(*)';
 
 @Injectable({ providedIn: 'root' })
 export class ReportesUsuarioService {
@@ -54,7 +55,45 @@ export class ReportesUsuarioService {
     return data.signedUrl;
   }
 
+  /** DX10 — sube los documentos y los registra (el servidor re-valida tipo, tamaño y cupo). Devuelve los que fallaron. */
+  private async subirDocumentos(usuarioId: string, reporteId: string, docs: File[]): Promise<string[]> {
+    const fallidos: string[] = [];
+    for (const file of docs) {
+      try {
+        const path = `${usuarioId}/${reporteId}/${crypto.randomUUID()}-${nombreSeguro(file.name)}`;
+        const { error: upErr } = await this.supabase.client.storage.from('reportes').upload(path, file, { contentType: file.type || 'application/octet-stream' });
+        if (upErr) throw new Error(upErr.message);
+        const { error } = await this.supabase.client.rpc('agregar_adjunto_reporte', {
+          p_reporte_id: reporteId, p_storage_path: path, p_nombre: file.name, p_mime: file.type || 'application/octet-stream', p_tamano: file.size,
+        });
+        if (error) throw new Error(error.message);
+      } catch {
+        fallidos.push(file.name);
+      }
+    }
+    return fallidos;
+  }
+
+  /** DX10 — URL firmada que descarga con el NOMBRE ORIGINAL del archivo (no el de storage). */
+  async getAdjuntoUrl(path: string, descargarComo: string): Promise<string> {
+    const { data, error } = await this.supabase.client.storage.from('reportes').createSignedUrl(path, 3600, { download: descargarComo });
+    if (error) throw new Error(error.message);
+    return data.signedUrl;
+  }
+
   async crear(
+    payload: { usuario_id: string; tipo: ReporteTipo; asunto: string; descripcion: string },
+    fotos: File[] = [],
+    documentos: File[] = [],
+  ): Promise<ReporteUsuario & { adjuntosFallidos?: string[] }> {
+    const creado = await this.crearConFotos(payload, fotos);
+    if (documentos.length === 0) return creado;
+    const fallidos = await this.subirDocumentos(payload.usuario_id, creado.id, documentos);
+    const { data } = await this.supabase.client.from('reportes_usuario').select(SELECT_QUERY).eq('id', creado.id).single();
+    return { ...((data as unknown as ReporteUsuario) ?? creado), adjuntosFallidos: fallidos };
+  }
+
+  private async crearConFotos(
     payload: { usuario_id: string; tipo: ReporteTipo; asunto: string; descripcion: string },
     fotos: File[] = [],
   ): Promise<ReporteUsuario> {

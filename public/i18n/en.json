@@ -8886,5 +8886,22 @@
   "Reencolados": "Requeued",
   "{n} evento{plural} volverán a publicarse en la próxima pasada.": "{n} event{plural} will be published again on the next run.",
   "Seleccionar todos los reintentables": "Select all retryable",
-  "Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.": "Odoo is not responding. Showing SGC's last known stock; the delivery note will be flagged for review when Odoo is back."
+  "Odoo no responde. Se muestra el último stock conocido de SGC; el conduce quedará marcado para revisión cuando Odoo vuelva.": "Odoo is not responding. Showing SGC's last known stock; the delivery note will be flagged for review when Odoo is back.",
+  "El servicio de IA no está disponible ahora. Ya se avisó a Tecnología; inténtalo en unos minutos.": "The AI service is not available right now. Technology has been notified; please try again in a few minutes.",
+  "El servicio de IA está muy ocupado. Inténtalo de nuevo en unos segundos.": "The AI service is very busy. Please try again in a few seconds.",
+  "La IA tardó demasiado en responder. Inténtalo de nuevo.": "The AI took too long to respond. Please try again.",
+  "Ocurrió un error inesperado. Ya se avisó a Tecnología.": "An unexpected error occurred. Technology has been notified.",
+  "No pude leer el catálogo de cargos/obras; avisa a Tecnología.": "I couldn't read the positions/projects catalog; let Technology know.",
+  "No pude detectar la obra: elígela": "I couldn't detect the project: please choose it.",
+  "hay varias parecidas": "several are similar",
+  "Escribe al menos 10 caracteres para poder rechazar": "Write at least 10 characters to be able to reject",
+  "Este QR no es válido o ya venció. Pide a quien te lo compartió que lo genere de nuevo.": "This QR is not valid or has expired. Ask whoever shared it to generate it again.",
+  "QR de la requisición": "Requisition QR",
+  "tipo no permitido (PDF, Word, Excel, CSV o TXT)": "file type not allowed (PDF, Word, Excel, CSV or TXT)",
+  "supera los 10 MB": "exceeds 10 MB",
+  "máximo 5 documentos": "maximum 5 documents",
+  "archivo vacío": "empty file",
+  "El reporte se envió, pero estos documentos no se pudieron subir": "The report was sent, but these documents could not be uploaded",
+  "Quitar documento": "Remove document",
+  "No se pudo descargar el documento": "The document could not be downloaded"
 }

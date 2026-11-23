@@ -46,6 +46,13 @@ const EDGE_ERROR_MESSAGES: Record<string, string> = {
   sin_consentimiento_ia: 'Para usar las funciones con inteligencia artificial, primero actívalas en Perfil › Privacidad.',
   // Transporte / servidor (sin respuesta con CORS, o 500 interno).
   transporte: 'No se pudo contactar el servicio (conexión o servidor ocupado). Inténtalo de nuevo en unos segundos.',
+  // DX1/DX2 — fallos del servicio de IA: mensaje PROPIO (antes caían en «transporte» y parecía que se cayó tu internet).
+  ia_sin_credito: 'El servicio de IA no está disponible ahora. Ya se avisó a Tecnología; inténtalo en unos minutos.',
+  ia_modelo_no_disponible: 'El servicio de IA no está disponible ahora. Ya se avisó a Tecnología; inténtalo en unos minutos.',
+  ia_error: 'El servicio de IA no está disponible ahora. Ya se avisó a Tecnología; inténtalo en unos minutos.',
+  ia_limite: 'El servicio de IA está muy ocupado. Inténtalo de nuevo en unos segundos.',
+  ia_tiempo_agotado: 'La IA tardó demasiado en responder. Inténtalo de nuevo.',
+  error_interno: 'Ocurrió un error inesperado. Ya se avisó a Tecnología.',
   interno: 'Ocurrió un error en el servidor. Si el problema persiste, avísale a Tecnología.',
 };
 

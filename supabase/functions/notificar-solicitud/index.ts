@@ -248,11 +248,31 @@ Deno.serve(async (req: Request) => {
       { db: { schema: "sgc" } },
     );
 
+    // DX4 — la traza en notif_entregas se escribe SIEMPRE (también en fallo/omisión), para que
+    // «¿llegó el correo de esta requisición?» tenga respuesta en Pulso/Tecnología. Nunca bloquea.
+    const trazarEvento = async (estado: "fallida" | "omitida", motivo: string, filas?: { usuario_id: string | null; email: string | null }[], titulo = "") => {
+      try {
+        const base = (filas && filas.length ? filas : [{ usuario_id: null, email: null }]);
+        await supabase.from("notif_entregas").insert(base.map((r) => ({
+          canal: "email", usuario_id: r.usuario_id, tipo: `solicitud_${tipo}`, titulo: titulo || `Solicitud ${evento} · ${solicitudId}`,
+          destino: r.email, estado, motivo,
+        })));
+      } catch (_) { /* trace must never block */ }
+    };
+
     const { data: resendApiKey } = await supabase.rpc("get_resend_api_key");
     if (!resendApiKey) {
-      return json({ skipped: true, reason: "Resend API key no configurada en Vault." });
+      await trazarEvento("fallida", "sin_clave_resend");
+      return json({ skipped: true, reason: "Resend API key no configurada en Vault.", error_code: "sin_clave_resend" });
     }
-    const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
+    // DX4 — sin NOTIFICATIONS_FROM_EMAIL en PROD no se cae en silencio a resend.dev (rebota/spam): error tipado.
+    // (En dev sí vale el remitente de pruebas: ahí NOTIF_REDIRECT_TO existe y todo va a Tecnología.)
+    const fromConfigurado = Deno.env.get("NOTIFICATIONS_FROM_EMAIL");
+    if (!fromConfigurado && !Deno.env.get("NOTIF_REDIRECT_TO")) {
+      await trazarEvento("fallida", "remitente_no_configurado");
+      return json({ error: "Remitente de correo no configurado (NOTIFICATIONS_FROM_EMAIL).", error_code: "remitente_no_configurado" }, 500);
+    }
+    const fromEmail = fromConfigurado ?? "notificaciones@resend.dev";
 
     const table = tipo === "material" ? "solicitudes_material" : "solicitudes_compra";
     const fkey =
@@ -424,7 +444,8 @@ Deno.serve(async (req: Request) => {
     }
 
     if (to.length === 0) {
-      return json({ skipped: true, reason: "Sin destinatarios." });
+      await trazarEvento("omitida", "sin_destinatarios", destRows.map((r) => ({ usuario_id: r.usuario_id, email: r.email })), String(subject ?? ""));
+      return json({ skipped: true, reason: "Sin destinatarios.", error_code: "sin_destinatarios" });
     }
 
     const res = await fetch("https://api.resend.com/emails", {
@@ -438,7 +459,10 @@ Deno.serve(async (req: Request) => {
 
     if (!res.ok) {
       const text = await res.text();
-      return json({ error: `Resend error: ${text}` }, 502);
+      // DX4 — cuota agotada de Resend (diaria/mensual): motivo propio para que Tecnología lo vea en Pulso al instante.
+      const cuota = /quota_exceeded|reached your (daily|monthly)/i.exec(text)?.[0] ? (/monthly/i.test(text) ? "cuota_mensual" : "cuota_diaria") : null;
+      await trazarEvento("fallida", cuota ? `resend:${cuota}` : `resend:${res.status}`, incluidos.map((r) => ({ usuario_id: r.usuario_id, email: r.email })), String(subject ?? ""));
+      return json({ error: `Resend error: ${text}`, error_code: cuota ? "resend_cuota" : "resend_error" }, 502);
     }
 
     // Traza de entrega (best-effort, nunca bloquea): incluidos + omitidos.
@@ -452,6 +476,6 @@ Deno.serve(async (req: Request) => {
 
     return json({ sent: true, to });
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
+    return json({ error: e instanceof Error ? e.message : "Error desconocido.", error_code: "error_interno" }, 500);
   }
 });

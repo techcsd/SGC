@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
+import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
 import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto, ConduceExternoSuelto, RequisicionCoberturaItem } from '../../../../shared/services/solicitudes-material.service';
 import { MotionService } from '../../../../shared/services/motion.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -100,6 +101,9 @@ export class Requisiciones implements OnInit {
   protected i18n = inject(I18nService);
   private route = inject(ActivatedRoute);
   private listaEstado = inject(ListaEstadoService);
+  private docQr = inject(ConduceQrService);
+  /** DX7 — QR de la requisición (null si el interruptor `doc_qr_requisicion_activo` está apagado). */
+  reqQr = signal<string | null>(null);
   // CX3.2 — clave de pantalla para recordar filtros mientras la persona siga en
   // Inventario (se limpia al cambiar de módulo o cerrar sesión).
   private readonly ESTADO_KEY = 'inventario.requisiciones';
@@ -696,6 +700,8 @@ export class Requisiciones implements OnInit {
   // ── Detalle ───────────────────────────────────────────────
   abrir(r: SolicitudMaterial) {
     this.selected.set(r);
+    this.reqQr.set(null);
+    this.docQr.qrDocDataUrl('requisicion', r.id).then((q) => { if (this.selected()?.id === r.id) this.reqQr.set(q); }).catch(() => {});
     this.mode.set('ver');
     this.actionError.set('');
     this.rechazoNota.set('');

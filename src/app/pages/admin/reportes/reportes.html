@@ -134,6 +134,16 @@
       </div>
       <p class="admin-reportes__detail-desc">{{ r.descripcion }}</p>
 
+      <!-- DX10 — documentos adjuntos: se descargan con su nombre original (sin previsualizar Office) -->
+      @if ((r.adjuntos ?? []).length > 0) {
+        <div class="admin-reportes__fotos">
+          <h4 class="admin-reportes__fotos-title">{{ 'Documentos' | t }} ({{ (r.adjuntos ?? []).length }})</h4>
+          @for (a of r.adjuntos; track a.id) {
+            <p><button type="button" class="sgc-btn sgc-btn--ghost" (click)="descargarAdjunto(a)">{{ a.nombre_original }} · {{ tamanoLegible(a.tamano_bytes) }}</button></p>
+          }
+        </div>
+      }
+
       @if ((r.fotos ?? []).length > 0) {
         <div class="admin-reportes__fotos">
           <h4 class="admin-reportes__fotos-title">{{ 'Fotos' | t }} ({{ (r.fotos ?? []).length }})</h4>
