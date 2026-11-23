@@ -49,3 +49,9 @@ Deno.test("solicitud_compra: emitir → verificar y ruta propia", async () => {
   assertEquals(await verificarTokenDoc(SEC, t, 1000), { ok: true, tipo: "solicitud_compra", id: ID, exp: 2000 });
   assertEquals(TIPOS_DOC_QR.solicitud_compra.ruta(ID), `/compras/ordenes?solicitud=${ID}`);
 });
+
+Deno.test("conduce_externo: token y ruta a su ficha", async () => {
+  const t = await firmarTokenDoc(SEC, "conduce_externo", ID, 2000);
+  assertEquals(await verificarTokenDoc(SEC, t, 1000), { ok: true, tipo: "conduce_externo", id: ID, exp: 2000 });
+  assertEquals(TIPOS_DOC_QR.conduce_externo.ruta(ID), `/inventario/conduces-externos/${ID}`);
+});

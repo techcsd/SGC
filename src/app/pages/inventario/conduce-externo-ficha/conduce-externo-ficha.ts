@@ -1,3 +1,4 @@
+import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -33,6 +34,9 @@ export class ConduceExternoFicha implements OnInit {
   protected i18n = inject(I18nService);
   private user = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
+  private docQr = inject(ConduceQrService);
+  /** DX7 — QR de la ficha (sale también al imprimir; null si el interruptor está apagado). */
+  qr = signal<string | null>(null);
 
   esAdmin = computed(() => this.user.hasRole('admin'));
   marcandoPrueba = signal(false);
@@ -53,6 +57,7 @@ export class ConduceExternoFicha implements OnInit {
     try {
       const d = await this.svc.conduceExternoDetalle(id);
       this.detalle.set(d);
+      this.docQr.qrDocDataUrl('conduce_externo', d.id).then((q) => this.qr.set(q)).catch(() => {});
       await this.cargarFotos(d);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('No se pudo cargar el conduce externo.'));

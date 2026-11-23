@@ -34,6 +34,9 @@
     "admin/empresa": {
       "enforce": true
     },
+    "admin/escaneos-qr": {
+      "enforce": false
+    },
     "admin/historial-versiones": {
       "enforce": true
     },
@@ -603,9 +606,6 @@
     },
     "verificar": {
       "enforce": true
-    },
-    "admin/escaneos-qr": {
-      "enforce": false
     }
   }
 }

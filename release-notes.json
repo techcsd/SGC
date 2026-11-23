@@ -6629,6 +6629,16 @@
           "d": "Nueva pantalla «Escaneos de QR»: quién escaneó el QR de qué documento y cuándo (últimos 100)."
         }
       ]
+    },
+    "1.222.2": {
+      "titulo": "QR en la ficha del conduce externo",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "La ficha del conduce externo muestra un QR (también al imprimir); quien lo escanee llega a esa ficha y su rol decide si puede verla."
+        }
+      ]
     }
   }
 }
