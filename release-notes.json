@@ -6614,6 +6614,21 @@
           "d": "La solicitud de compra ya puede generar su QR (apagado hasta probar); lleva a su atención en Compras."
         }
       ]
+    },
+    "1.222.1": {
+      "titulo": "QR de solicitud de compra en pantalla y registro de escaneos visible",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "Al crear una orden desde una solicitud de compra se ve su QR; quien lo escanee llega a esa solicitud (el acceso lo decide su rol)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nueva pantalla «Escaneos de QR»: quién escaneó el QR de qué documento y cuándo (últimos 100)."
+        }
+      ]
     }
   }
 }

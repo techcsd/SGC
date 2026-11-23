@@ -2013,6 +2013,16 @@
       "enScope": true,
       "enforce": true,
       "faltantes": []
+    },
+    {
+      "pantalla": "admin/escaneos-qr",
+      "total": 8,
+      "cubiertos": 8,
+      "sin": 0,
+      "pct": 100,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": []
     }
   ]
 }

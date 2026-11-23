@@ -188,6 +188,10 @@
   (closed)="closeCreate()"
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+    <!-- DX7 — QR de la solicitud: quien lo escanee llega a su atención en Compras (el acceso lo decide su rol) -->
+    @if (solicitudQr(); as qr) {
+      <img [src]="qr" width="88" height="88" alt="{{ 'QR de la solicitud de compra' | t }}" />
+    }
 
     <div class="sgc-field">
       <label for="proveedor_id">

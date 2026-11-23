@@ -208,3 +208,4 @@
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 | verificar | enforce | 9 | 9 | 0 | 100% |
+| admin/escaneos-qr | - | 8 | 8 | 0 | 100% |
