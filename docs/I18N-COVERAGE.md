@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10295/10296 literales de 201 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10303/10304 literales de 202 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -18,6 +18,7 @@
 | admin/compa-conversaciones | enforce | 25 | 25 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
 | admin/empresa | enforce | 41 | 41 | 0 | 100% |
+| admin/escaneos-qr | scope | 8 | 8 | 0 | 100% |
 | admin/historial-versiones | enforce | 23 | 23 | 0 | 100% |
 | admin/importar | enforce | 2 | 2 | 0 | 100% |
 | admin/jira | enforce | 54 | 54 | 0 | 100% |
@@ -208,4 +209,3 @@
 | tecnologia/whatsapp | enforce | 185 | 185 | 0 | 100% |
 | trabajos-transporte | enforce | 22 | 22 | 0 | 100% |
 | verificar | enforce | 9 | 9 | 0 | 100% |
-| admin/escaneos-qr | - | 8 | 8 | 0 | 100% |

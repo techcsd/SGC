@@ -8914,5 +8914,6 @@
   "Quién escaneó el QR de qué documento y cuándo (últimos 100).": "Who scanned which document's QR and when (last 100).",
   "Aún no hay escaneos.": "No scans yet.",
   "Escaneó": "Scanned by",
-  "QR de la solicitud de compra": "Purchase request QR"
+  "QR de la solicitud de compra": "Purchase request QR",
+  "QR del conduce externo": "External delivery note QR"
 }
