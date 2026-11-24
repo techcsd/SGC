@@ -6630,6 +6630,16 @@
         }
       ]
     },
+    "1.222.3": {
+      "titulo": "Pantalla Empresa: márgenes y espaciado",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Administración",
+          "d": "Empresa: el formulario ya no toca el borde de la tarjeta, los campos y sus ayudas tienen separación, y el botón Guardar queda alineado al pie."
+        }
+      ]
+    },
     "1.222.2": {
       "titulo": "QR en la ficha del conduce externo",
       "cambios": [
