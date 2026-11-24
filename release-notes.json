@@ -6630,6 +6630,16 @@
         }
       ]
     },
+    "1.222.4": {
+      "titulo": "Filtro de Rol ya no se corta",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Administración",
+          "d": "Usuarios: el panel del filtro de Rol (y de cualquier filtro con lista al borde derecho) se alinea hacia adentro y ya no queda cortado."
+        }
+      ]
+    },
     "1.222.3": {
       "titulo": "Pantalla Empresa: márgenes y espaciado",
       "cambios": [
