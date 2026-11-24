@@ -45,6 +45,8 @@
     border-radius: 12px;
     box-shadow: 0 8px 28px rgba(20, 25, 40, .14);
     padding: 8px;
+    max-width: calc(100vw - 16px);
+    &--right { left: auto; right: 0; }
   }
   &__search {
     display: flex;

@@ -7,7 +7,7 @@
   </button>
 
   @if (open()) {
-    <div class="filter-select__pop" role="listbox">
+    <div class="filter-select__pop" [class.filter-select__pop--right]="alignRight()" role="listbox">
       @if (searchable()) {
         <div class="filter-select__search">
           <app-icon name="search" [size]="14" />
