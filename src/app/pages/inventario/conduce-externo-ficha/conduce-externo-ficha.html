@@ -33,6 +33,7 @@
           <div class="ce-doc__label">{{ 'Conduce externo' | t }}</div>
           <h1 class="ce-doc__code">{{ d.codigo }}</h1>
         </div>
+        @if (qr(); as q) { <img [src]="q" width="88" height="88" alt="{{ 'QR del conduce externo' | t }}" /> }
         <div class="ce-doc__estado">
           <span class="sgc-status-pill" [appEstadoPulse]="d.estado">{{ estadoLabel(d.estado) | t }}</span>
           @if (d.anulado) { <span class="sgc-badge sgc-badge--danger">{{ 'Anulado' | t }}</span> }
