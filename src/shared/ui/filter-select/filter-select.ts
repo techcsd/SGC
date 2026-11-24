@@ -45,6 +45,8 @@ export class FilterSelect {
 
   private host = inject(ElementRef<HTMLElement>);
   open = signal(false);
+  /** HOTFIX: si el panel (240px) no cabe a la derecha del chip, se alinea a su borde derecho. */
+  alignRight = signal(false);
   query = signal('');
 
   activa = computed(() => (this.multiple() ? this.values().length > 0 : !!this.value()));
@@ -77,7 +79,11 @@ export class FilterSelect {
 
   toggle() {
     this.open.update((v) => !v);
-    if (this.open()) this.query.set('');
+    if (this.open()) {
+      this.query.set('');
+      const r = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
+      this.alignRight.set(r.left + 240 + 12 > window.innerWidth && r.right - 240 >= 8);
+    }
   }
 
   isChecked(v: string): boolean {
