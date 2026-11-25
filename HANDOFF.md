@@ -1,5 +1,29 @@
 # HANDOFF — SGC
 
+## ✅ 25-nov-2026 — Hotfix Odoo 19: el almacén en 0 (web 1.222.5 EN PROD; conector MCP y búsqueda Odoo 19 también EN PROD)
+
+**TL;DR:** Chai migró Odoo a 19.0+e (base `4enfkfierou.cloudpepper.site`). El almacén/requisiciones salían en 0 porque SGC solo conocía 47 de 417 productos con stock en Odoo y el sondeo descartaba el resto. Odoo manda el catálogo: ahora el sondeo importa los productos con stock. En prod: 368 artículos importados, WH 35 → 266 con stock.
+
+**Hecho (prod, con OK de Xaviel)**
+- `sql/2026-11-25-odoo-importar-catalogo-desde-odoo.sql` (RPC `odoo_articulos_importar`, solo service_role; `tg_articulo_apertura_automatica` ignora origen `odoo`) + edge `odoo-conciliar` v18 (`proyectarStock` importa antes de proyectar, tope 500/corrida, best-effort). `_shared/odoo-catalogo.ts` + tests.
+- `sql/2026-11-25-desactivar-apertura-nuevos-articulos.sql`: `apertura_nuevos_articulos` = 0 (era la apertura sintética de 1000 u. por almacén; no era stock real y NO se restaura el respaldo `odoo_corte_respaldo_stock`).
+- Mensajes a Raykler (`scripts/data-fixes/2026-11-25-odoo19-mensaje-raykler*.mjs`): clasificar los 368 artículos (categoría «(Revisión)…») y resolver 4 duplicados (BOTA #41, PINTURA #25, PATAS AJUSTABLES CSD, GUANTES NITRILO ONESIZE). No se tocaron. Los nombres de Odoo son los reales.
+- PR #271 (main, 1.222.5) y #272 (main→dev, conservando 1.223.0 de la ronda EA).
+
+**Pendiente — Claude puede**
+1. (HECHO) Conector MCP `consultar_stock_odoo` arreglado: PRs #273 (cliente `invoke`, filtro `is_storable`) y #274 (orden por `name`); edges `mcp` v33 y `odoo-api` desplegadas en prod y verificadas con el conector real (artículo «ties»).
+2. Tras la clasificación de Raykler, revisar si algún almacén sigue en 0 con stock en Odoo.
+
+**Pendiente — solo Xaviel/otros**
+- Raykler: clasificar 368 artículos y decidir los 4 duplicados; validar almacén y requisiciones en navegador/app.
+
+**Gotchas**
+- El gate «regla 18» exige que también las reversas (`sql/_reversa/*`) estén en el ledger de dev: registrarlas como «script de rollback: registrado, NO ejecutado» (precedente `dk-*_reversa`), nunca ejecutarlas.
+- No desplegar una edge desde un árbol basado en `dev` si `_shared/` difiere de `main` (la edge empaqueta `_shared`): basar el fix en `main`.
+- Credenciales de Odoo para diagnóstico en `.env.local` (`SGC_INTEGRATION_ODOO_*`, `ODOO_DB_PROD`): solo lectura. `SGC_INTEGRATION_ODOO_DB` apunta a staging; la base de prod es `ODOO_DB_PROD`.
+- Odoo 19: `read_group` sigue devolviendo la clave `quantity`; `product.product.type` pasó a `consu` + `is_storable` (`type='product'` ya no existe: `productos.buscar` en `acciones.ts` lo usa y devolverá vacío).
+- Odoo 19: no se puede `order` por `display_name` (no almacenado: ValueError «Cannot convert … to SQL»); usar `name`. Probar cada consulta nueva contra el Odoo real (solo lectura) antes de desplegar: los tests con fetch simulado no lo detectan.
+
 ## ✅ 22-nov-2026 — PROMPT-151 ronda DU: iPhone en blanco + caída de Odoo + conduces degradados (web 1.220.3 y app 2.71.9 EN PROD)
 
 **TL;DR:** la app móvil 2.71.9 y la web 1.220.3 están en prod y verificadas. Quedan solo decisiones de Raykler/logística sobre 24 conduces atascados y 35 discrepancias de Odoo; nada técnico bloqueante.
