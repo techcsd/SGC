@@ -77,7 +77,7 @@ const productosBuscar: Def<{ termino: string; limite: number }> = {
     const termino = escapaLike(crudo);
     const filas = await odoo.call("product.product", "search_read", [[
       ["active", "=", true],
-      ["type", "=", "product"],
+      ["is_storable", "=", true], // Odoo 19: type='product' ya no existe (ahora consu + is_storable)
       ...dominioCompania(odoo.companyId),
       "|", ["name", "ilike", termino], ["default_code", "ilike", termino],
     ]], { fields: ["id", "display_name", "default_code", "uom_id", "categ_id"], limit: limite, order: "display_name asc" });
