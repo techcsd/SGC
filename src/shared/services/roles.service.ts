@@ -250,6 +250,10 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
       descripcion: 'Solicitar y aprobar compras de equipos, software o servicios de TI.' },
     { key: 'tecnologia.cotizaciones', label: 'Cotizaciones', enforced: true,
       descripcion: 'Biblioteca de cotizaciones: subir, vincular a compras y a equipos.' },
+    // EA1 — directorio de proveedores de tecnología (contactos, trabajos, facturas). Tecnología opera;
+    // el rol Compras lo recibe solo en «ver» (sql/2026-11-24-ea1-tec-proveedores.sql).
+    { key: 'tecnologia.proveedores', label: 'Proveedores de tecnología', enforced: true,
+      descripcion: 'Directorio de proveedores de TI: contactos, trabajos realizados, facturas y cotizaciones. «Ver» consulta; «Operar» crea y edita.' },
     // DA-06 — a propósito FUERA del helper AG12 (puede_ver/operar_submodulo):
     // ese helper da 'operar' a quien tenga el módulo tecnologia completo
     // (compat), y esto NUNCA debe heredarse así — ni el Subadministrador lo

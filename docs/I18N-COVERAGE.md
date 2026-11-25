@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 100%** (10303/10304 literales de 202 pantallas en alcance). **`ht`: 100%**.
+**Alcance `en`: 100%** (10558/10559 literales de 203 pantallas en alcance). **`ht`: 100%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -17,7 +17,7 @@
 | admin/claude | enforce | 27 | 27 | 0 | 100% |
 | admin/compa-conversaciones | enforce | 25 | 25 | 0 | 100% |
 | admin/conduces-huerfanos | enforce | 15 | 15 | 0 | 100% |
-| admin/empresa | enforce | 41 | 41 | 0 | 100% |
+| admin/empresa | enforce | 42 | 42 | 0 | 100% |
 | admin/escaneos-qr | scope | 8 | 8 | 0 | 100% |
 | admin/historial-versiones | enforce | 23 | 23 | 0 | 100% |
 | admin/importar | enforce | 2 | 2 | 0 | 100% |
@@ -164,7 +164,7 @@
 | proyectos/historial | enforce | 15 | 15 | 0 | 100% |
 | proyectos/kpi | enforce | 27 | 27 | 0 | 100% |
 | proyectos/lista | enforce | 161 | 161 | 0 | 100% |
-| proyectos/personal | enforce | 252 | 252 | 0 | 100% |
+| proyectos/personal | enforce | 282 | 282 | 0 | 100% |
 | reuniones/reunion-ficha | enforce | 50 | 50 | 0 | 100% |
 | reuniones/reuniones-lista | enforce | 56 | 56 | 0 | 100% |
 | rrhh/activos | enforce | 41 | 41 | 0 | 100% |
@@ -189,7 +189,7 @@
 | tecnologia/apis-consumo | enforce | 35 | 35 | 0 | 100% |
 | tecnologia/compras | enforce | 81 | 81 | 0 | 100% |
 | tecnologia/consultas-compa | enforce | 23 | 23 | 0 | 100% |
-| tecnologia/cotizaciones | enforce | 79 | 79 | 0 | 100% |
+| tecnologia/cotizaciones | enforce | 82 | 82 | 0 | 100% |
 | tecnologia/design-system | enforce | 130 | 130 | 0 | 100% |
 | tecnologia/dev-notes | enforce | 76 | 76 | 0 | 100% |
 | tecnologia/envios-automaticos | enforce | 27 | 27 | 0 | 100% |
@@ -201,8 +201,9 @@
 | tecnologia/monitoreo | enforce | 65 | 65 | 0 | 100% |
 | tecnologia/odoo-homologacion | scope | 52 | 52 | 0 | 100% |
 | tecnologia/odoo-sync | enforce | 36 | 36 | 0 | 100% |
-| tecnologia/oficina-agentes | enforce | 31 | 31 | 0 | 100% |
+| tecnologia/oficina-agentes | enforce | 75 | 75 | 0 | 100% |
 | tecnologia/outbox-atascados | enforce | 55 | 55 | 0 | 100% |
+| tecnologia/proveedores | scope | 177 | 177 | 0 | 100% |
 | tecnologia/qa | enforce | 77 | 77 | 0 | 100% |
 | tecnologia/reportes-errores | enforce | 59 | 59 | 0 | 100% |
 | tecnologia/resumen-operaciones | enforce | 74 | 74 | 0 | 100% |

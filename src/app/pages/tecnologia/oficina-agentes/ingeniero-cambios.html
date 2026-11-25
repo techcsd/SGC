@@ -1,0 +1,142 @@
+<section aria-labelledby="ing-titulo">
+  <h2 id="ing-titulo">{{ 'Cambios del Ingeniero' | t }}</h2>
+  <p class="text-muted">
+    {{ 'El Ingeniero lee reportes y errores, hace el plan, escribe el cambio y lo lleva a producción con el Guardián revisando. Las sugerencias solo generan un plan para ti.' | t }}
+  </p>
+
+  @if (error()) {
+    <app-error-state [error]="error()" pantalla="los cambios del Ingeniero" (retry)="cargar()" />
+  } @else if (loading()) {
+    <p>{{ 'Cargando…' | t }}</p>
+  } @else {
+    <!-- Controles: auto-prod, freno de emergencia, topes y presupuesto -->
+    <div class="sgc-card">
+      <h3>{{ 'Controles' | t }}</h3>
+      @if (config().agentes_pausa_total) {
+        <p><span class="sgc-badge sgc-badge--danger">{{ 'Pausa total activa' | t }}</span> {{ 'Ningún agente avanza hasta que la desactives.' | t }}</p>
+      }
+      <div class="sgc-field">
+        <label>
+          <input type="checkbox" [checked]="config().agentes_pausa_total" [disabled]="ocupado() === 'agentes_pausa_total'"
+            (change)="cambiarBooleano('agentes_pausa_total', $any($event.target).checked)" />
+          {{ 'Pausa total (freno de emergencia)' | t }}
+        </label>
+      </div>
+      <div class="sgc-field">
+        <label>
+          <input type="checkbox" [checked]="config().agentes_auto_prod" [disabled]="ocupado() === 'agentes_auto_prod'"
+            (change)="cambiarBooleano('agentes_auto_prod', $any($event.target).checked)" />
+          {{ 'Auto-producción (si lo apagas, todo queda en dev)' | t }}
+        </label>
+      </div>
+      @for (c of camposNumericos; track c.clave) {
+        <div class="sgc-field">
+          <label [attr.for]="'ing-' + c.clave">{{ c.etiqueta | t }}</label>
+          <input class="sgc-input sgc-input--sm" type="number" [id]="'ing-' + c.clave" [value]="valorCampo(c.clave)"
+            [disabled]="ocupado() === c.clave" (change)="cambiarNumero(c.clave, $any($event.target).value)" />
+        </div>
+      }
+      <p>
+        {{ 'Hoy' | t }}: {{ prodHoy() }} / {{ config().max_prod_por_dia }} {{ 'a producción' | t }} ·
+        {{ 'IA' | t }}: ${{ costoHoy() | number: '1.2-2' }} / ${{ config().presupuesto_ia_dia_usd | number: '1.0-2' }} ({{ costoPct() }}%)
+      </p>
+    </div>
+
+    <!-- Bandeja de zona roja -->
+    <div class="sgc-card">
+      <h3>{{ 'Zona roja' | t }} ({{ zonaRoja().length }})</h3>
+      @if (!zonaRoja().length) {
+        <p class="text-muted">{{ 'Nada espera tu OK en zona roja.' | t }}</p>
+      }
+      <ul>
+        @for (z of zonaRoja(); track z.aprobacionId) {
+          <li>
+            <p>{{ z.propuesta }}</p>
+            @if (z.prUrl) {
+              <a [href]="z.prUrl" target="_blank" rel="noopener noreferrer">{{ 'Ver cambios' | t }}</a>
+            }
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="ocupado() === z.aprobacionId"
+              (click)="decidirZonaRoja(z.aprobacionId, z.tarea, 'aprobada')">{{ 'Aprobar' | t }}</button>
+            <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="ocupado() === z.aprobacionId"
+              (click)="decidirZonaRoja(z.aprobacionId, z.tarea, 'descartada')">{{ 'Rechazar' | t }}</button>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Lista de tareas -->
+    <div class="sgc-card">
+      <h3>{{ 'Tareas' | t }} ({{ tareasFiltradas().length }})</h3>
+      <div class="sgc-field">
+        <label for="ing-filtro">{{ 'Estado' | t }}</label>
+        <select id="ing-filtro" class="sgc-input sgc-input--sm" [value]="'todas'" (change)="setFiltro($any($event.target).value)">
+          <option value="todas">{{ 'Todas' | t }}</option>
+          @for (e of estadosFiltro; track e) {
+            <option [value]="e">{{ estadoLabel[e] | t }}</option>
+          }
+        </select>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cargar()">{{ 'Actualizar' | t }}</button>
+      </div>
+      @if (!tareasFiltradas().length) {
+        <p class="text-muted">{{ 'Sin tareas todavía.' | t }}</p>
+      }
+      <ul>
+        @for (t of tareasFiltradas(); track t.id) {
+          <li>
+            <details>
+              <summary>
+                <span class="sgc-badge" [class]="'sgc-badge sgc-badge--' + badge(t.estado)">{{ estadoLabel[t.estado] | t }}</span>
+                @if (t.zona_roja) { <span class="sgc-badge sgc-badge--danger">{{ 'Zona roja' | t }}</span> }
+                <strong>{{ t.titulo }}</strong>
+                <span class="text-muted"> — {{ origenLabel[t.origen] | t }} · {{ t.repo }} · {{ formatTs(t.creada_en) }}</span>
+              </summary>
+
+              @if (t.texto_origen) {
+                <h4>{{ 'Reporte origen' | t }}</h4>
+                <pre>{{ t.texto_origen }}</pre>
+              }
+              @if (t.plan) {
+                <h4>{{ 'Plan' | t }}</h4>
+                <pre>{{ t.plan }}</pre>
+              }
+              @if (archivos(t.archivos).length) {
+                <h4>{{ 'Archivos' | t }}</h4>
+                <ul>
+                  @for (a of archivos(t.archivos); track a) { <li><code>{{ a }}</code></li> }
+                </ul>
+              }
+              <p>
+                @for (v of veredictos(t.veredictos); track v.clave) {
+                  <span class="sgc-badge" [class]="'sgc-badge sgc-badge--' + v.badge">{{ v.clave }}: {{ v.texto | t }}</span>
+                }
+                <span class="text-muted"> {{ 'Intentos' | t }}: {{ t.intentos }} · {{ 'Costo de IA' | t }}: ${{ t.costo_ia | number: '1.2-4' }}</span>
+              </p>
+              @if (t.pr_url) {
+                <p><a [href]="t.pr_url" target="_blank" rel="noopener noreferrer">{{ 'Ver PR' | t }}{{ t.pr_numero ? ' #' + t.pr_numero : '' }}</a></p>
+              }
+              @if (t.motivo) {
+                <p class="text-muted">{{ t.motivo }}</p>
+              }
+              @if (t.borrador_respuesta) {
+                <h4>{{ 'Borrador de respuesta al usuario' | t }}</h4>
+                <pre>{{ t.borrador_respuesta }}</pre>
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="copiarBorrador(t)">{{ 'Copiar borrador' | t }}</button>
+                @if (t.respondida_en) {
+                  <span class="sgc-badge sgc-badge--success">{{ 'Respondida' | t }}</span>
+                } @else {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="ocupado() === t.id" (click)="accion(t, 'marcar_respondida')">{{ 'Marcar como respondida' | t }}</button>
+                }
+              }
+              @if (t.estado === 'propuesta' || t.estado === 'necesita_humano') {
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="ocupado() === t.id" (click)="accion(t, 'relanzar')">{{ 'Que el Ingeniero lo intente' | t }}</button>
+              }
+              @if (t.estado !== 'rechazada' && t.estado !== 'revertida' && t.estado !== 'en_prod') {
+                <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="ocupado() === t.id" (click)="accion(t, 'rechazar')">{{ 'Rechazar' | t }}</button>
+              }
+            </details>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</section>

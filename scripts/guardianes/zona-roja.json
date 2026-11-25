@@ -1,0 +1,47 @@
+{
+  "_doc": "Zona roja (EA-14): lo que SIEMPRE se detiene en dev y pide OK humano. rutas = RegExp sobre la ruta (minusculas); contenido = RegExp sobre lineas agregadas. Editar este archivo es zona protegida.",
+  "categorias": [
+    {
+      "id": "rls_permisos_roles",
+      "etiqueta": "RLS, permisos o roles",
+      "rutas": ["(^|/)roles\\.service\\.ts$", "(^|/)guards?/", "\\.guard\\.ts$", "(^|/)permisos?[^/]*\\.ts$"],
+      "contenido": []
+    },
+    {
+      "id": "auth_sesiones",
+      "etiqueta": "Auth y sesiones",
+      "rutas": ["(^|/)auth[^/]*\\.ts$", "(^|/)auth/", "session", "sesion", "(^|/)login", "supabase/functions/[^/]*(auth|login|session|impersonar|otp)[^/]*/"],
+      "contenido": ["supabase\\.auth\\.", "signInWith", "setSession", "refreshSession"]
+    },
+    {
+      "id": "secrets_env",
+      "etiqueta": "Secrets, entorno, dependencias o scripts de build",
+      "rutas": ["(^|/)package(-lock)?\\.json$", "(^|/)\\.env", "src/environments/", "scripts/(build-env|gen-environment|set-config-entorno|aplicar-secret|aplicar-hook-dev)", "vercel\\.json$", "\\.github/workflows/"],
+      "contenido": ["process\\.env\\.[A-Z_]*(KEY|SECRET|TOKEN)", "Deno\\.env\\.get\\(['\"][A-Z_]*(KEY|SECRET|TOKEN)"]
+    },
+    {
+      "id": "dinero",
+      "etiqueta": "Dinero, pagos, combustible o conciliacion",
+      "rutas": ["pago", "payment", "combustible", "conciliacion", "factura", "cobro", "presupuesto"],
+      "contenido": ["\\bmonto_total\\b", "\\bprecio_unitario\\b"]
+    },
+    {
+      "id": "inventario_odoo",
+      "etiqueta": "Inventario, stock, conduces u Odoo (escritura)",
+      "rutas": ["inventario", "stock", "conduce", "odoo", "almacen"],
+      "contenido": ["sgc\\.(stock|conduces?|movimientos?_inventario)", "odoo-api"]
+    },
+    {
+      "id": "notificaciones_envios",
+      "etiqueta": "Notificaciones o envios automaticos",
+      "rutas": ["notificacion", "notif[_-]", "envio", "resend", "(^|/)mail", "whatsapp", "cron"],
+      "contenido": ["resend\\.com", "pg_cron", "cron\\.schedule", "notificar_"]
+    },
+    {
+      "id": "nativo_tiendas",
+      "etiqueta": "Empaquetado nativo / APK / AAB / tiendas",
+      "rutas": ["(^|/)android/", "(^|/)ios/", "capacitor\\.config", "\\.(apk|aab|ipa)$", "testflight", "play-?store", "app-?store", "fastlane", "release-apk"],
+      "contenido": []
+    }
+  ]
+}

@@ -15,7 +15,7 @@
       <line x1="12" y1="3" x2="12" y2="15" />
     </svg>
     <span class="file-upload__text">{{ label() }}</span>
-    <span class="file-upload__count">{{ files().length }}/{{ max() }}</span>
+    @if (showCount()) { <span class="file-upload__count">{{ files().length }}/{{ max() }}</span> }
     <input type="file" multiple [accept]="accept()" [disabled]="lleno()" (change)="onSelected($event)" hidden />
   </label>
 

@@ -1411,3 +1411,14 @@ que existe: la nota "Pendientes" se ve y se abre desde **Notas** (ya existente) 
 - «Sin existencia aquí» en pickers de web y app; stock de prueba excluido en web (Artículos, Reportes, Dashboard 1.218.6).
 - Conteo: estado real de envío solo en la app (la web aplica por el ciclo borrador→cerrar→aprobar→aplicar).
 - Detalle: `docs/HOTFIX-RAYKLER-DT-CIERRE.md`.
+
+
+### EA1 — Proveedores de tecnología (24-nov-2026) — paridad web → app
+Web: directorio `/tecnologia/proveedores` (submódulo `tecnologia.proveedores`; tablas `tec_proveedores`, `_contactos`, `_trabajos`, `_facturas`, `_categorias`; RPC `buscar_tec_proveedores`). **App móvil: pendiente** — solo lectura + buscador + contacto con un toque (llamar/WhatsApp/correo) → PROMPT-157. Sin creación móvil-only.
+
+### EA3 (runner/guardianes) — excepción acotada a la regla 18 (24-nov-2026) — web + app
+- **Mismo carril en ambos repos.** `agente-ingeniero.yml` es un workflow reutilizable (`workflow_call`): csd-app lo invoca con un llamador mínimo (plantilla en `docs/AGENTES-INGENIERO-RUNNER.md`; se escribe en el repo de la app, no aquí). Los guardianes (`scripts/guardianes/**`) viven solo en SGC y se usan desde ahí (copia confiable de `main`); csd-app no los duplica.
+- **Excepción a la regla 18 (solo el carril de agentes):** un PR del Ingeniero puede ir a prod sin «probado por humano en dev» únicamente si no es zona roja, pasó G1+G2 (dos veces), humo en dev, tope diario, y `agentes_auto_prod=true`. Se apaga con `agentes_auto_prod` / `agentes_pausa_total`. Regla general intacta (ver `CLAUDE.md` regla 18).
+- **La app nativa NUNCA se publica sola:** APK/AAB/TestFlight/tiendas son zona roja (`nativo_tiendas`) en ambos repos; en csd-app el llamador no incluye ninguna promoción, solo el lado «PR a dev».
+- **Paridad en el Guardián:** G2 revisa explícitamente «¿web ↔ app quedan consistentes?»; si el arreglo exige tocar el otro repo, rechaza con ese motivo y el Ingeniero abre tarea para el otro repo en vez de fingir que quedó resuelto.
+- **Revisar en tiendas/política (CI13):** el Ingeniero envía texto de reportes a Anthropic (ya listado como procesador de IA); GitHub Actions y Vercel (lectura de estado) son terceros del proceso de desarrollo, no de datos de usuarios finales. Si se activa la verificación de errores (`ERRORES_CONTEO_URL`), solo viajan conteos.

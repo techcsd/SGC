@@ -9,6 +9,9 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
 import { detectarObra, norm, resolverCargoTexto, valorDeEtiqueta } from './personal-import.util';
+import { PersonalImportFotos, FotoPlan } from './personal-import-fotos';
+import { FotoSubida, ImagenLote, ItemSubida, PersonalImportFotosService } from './personal-import-fotos.service';
+import { FilaFoto, vincularFilasConPersonal } from './personal-import-fotos.util';
 
 /** Fila previsualizada del import (antes de confirmar). */
 interface FilaPrev {
@@ -24,6 +27,7 @@ interface FilaPrev {
   estado: 'ok' | 'warning' | 'error';
   motivo: string;           // por qué warning/error
   yaExiste: boolean;        // dedupe contra la obra elegida
+  filaExcel: number | null; // EA2 — fila (0-based) de la hoja: anclaje de imágenes incrustadas
 }
 
 function titleCase(s: string): string {
@@ -64,7 +68,7 @@ function parsePermiso(obs: string | null): string | null {
 
 @Component({
   selector: 'app-personal-import',
-  imports: [RouterLink, Icon, TranslatePipe],
+  imports: [RouterLink, Icon, TranslatePipe, PersonalImportFotos],
   templateUrl: './personal-import.html',
   styleUrl: './personal-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,9 +77,10 @@ export class PersonalImport implements OnInit {
   private svc = inject(PersonalObraService);
   private proyectosSvc = inject(ProyectosService);
   private toast = inject(ToastService);
+  private fotosSvc = inject(PersonalImportFotosService);
   protected i18n = inject(I18nService);
 
-  paso = signal<'subir' | 'previsualizar' | 'diff' | 'resultado'>('subir');
+  paso = signal<'subir' | 'previsualizar' | 'fotos' | 'diff' | 'resultado'>('subir');
   cargos = signal<Cargo[]>([]);
   aliasList = signal<CargoAlias[]>([]); // CG2 — alias aprendidos (texto sucio → cargo)
   obras = signal<ObraRef[]>([]);
@@ -124,6 +129,21 @@ export class PersonalImport implements OnInit {
   preview = signal<ImportPreview | null>(null);
   bajasChecked = signal<Set<string>>(new Set());
 
+  // EA2 — fotos por lote (paso «Fotos»): nada se sube hasta confirmar el import.
+  fotosIniciadas = signal(false);
+  imagenesXlsx = signal<ImagenLote[]>([]);
+  planFotos = signal<FotoPlan[]>([]);
+  avisoFotos = signal('');
+  subiendoFotos = signal(false);
+  fotosSubidas = signal<FotoSubida[]>([]);
+  resultadoFotos = signal<{ subidas: number; omitidas: number; fallidas: number; sinPersona: number } | null>(null);
+  /** Filas importables (sin error) para emparejar fotos; `indice` = posición en `filas()` (estable). */
+  filasFoto = computed<FilaFoto[]>(() =>
+    this.filas()
+      .map((f, indice) => ({ indice, nombre: f.nombre, documento: f.documento, filaExcel: f.filaExcel, error: f.estado === 'error' }))
+      .filter((f) => !f.error)
+      .map(({ indice, nombre, documento, filaExcel }) => ({ indice, nombre, documento, filaExcel })));
+
   okCount = computed(() => this.filas().filter((f) => f.estado !== 'error').length);
   errCount = computed(() => this.filas().filter((f) => f.estado === 'error').length);
   dupCount = computed(() => this.filas().filter((f) => f.yaExiste).length);
@@ -166,14 +186,18 @@ export class PersonalImport implements OnInit {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { cellDates: false });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null });
-      this.parsear(rows);
+      // EA2 — blankrows:true conserva la numeración real de la hoja (para anclar imágenes incrustadas a su fila).
+      const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: true, defval: null });
+      const offset = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).s.r : 0;
+      this.parsear(rows, offset);
+      // EA2 — imágenes incrustadas en el .xlsx (se tratan igual que las subidas; si falla, el import sigue sin ellas).
+      this.imagenesXlsx.set((await this.fotosSvc.desdeXlsx(buf)).imagenes);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo leer el archivo.');
     }
   }
 
-  private parsear(rows: unknown[][]) {
+  private parsear(rows: unknown[][], offset = 0) {
     // DX9 — encabezado de obra: PROYECTO / OBRA / UBICACIÓN / ENC. en CUALQUIER columna de las 20 primeras filas.
     this.proyectoDetectado.set(valorDeEtiqueta(rows, ['PROYECTO', 'OBRA']));
     this.ubicacionDetectada.set(valorDeEtiqueta(rows, ['UBICACION']));
@@ -259,6 +283,7 @@ export class PersonalImport implements OnInit {
         estado,
         motivo: motivos.join(' · '),
         yaExiste: false,
+        filaExcel: i + offset,
       });
     }
 
@@ -412,6 +437,24 @@ export class PersonalImport implements OnInit {
     }
   }
 
+  /** EA2 — «Continuar» de la vista previa: paso de fotos (si hay consentimiento de IA) o directo al diff. */
+  async siguienteDePrevia() {
+    if (!this.obraSeleccionada()) { this.toast.warning(this.i18n.t('Elige la obra'), 'Confirma a qué obra se importa el personal.'); return; }
+    if (!(await this.fotosSvc.tieneConsentimientoIa())) {
+      // Sin consentimiento de IA el paso de fotos se omite con aviso; el import sin fotos sigue igual.
+      this.planFotos.set([]);
+      this.avisoFotos.set(this.i18n.t('Se omitió el paso de fotos: para que la IA lea las cédulas, actívala en Perfil › Privacidad. Las fotos se pueden tomar luego en obra con la app.'));
+      await this.verDiff();
+      return;
+    }
+    this.avisoFotos.set('');
+    this.fotosIniciadas.set(true);
+    this.paso.set('fotos');
+  }
+
+  onPlanFotos(plan: FotoPlan[]) { this.planFotos.set(plan); }
+  volverDeFotos() { this.paso.set('previsualizar'); }
+
   /** AV4 — paso 1: calcula el diff contra el estado actual y muestra altas/actualizaciones/bajas. */
   async verDiff() {
     const obraId = this.obraSeleccionada();
@@ -465,10 +508,38 @@ export class PersonalImport implements OnInit {
       this.ultimoLote.set(lote);
       this.paso.set('resultado');
       this.toast.success(this.i18n.t('Import completado'), `${res.creados} altas, ${res.actualizados} actualizados, ${res.bajas ?? 0} bajas.`);
+      await this.subirFotosDelLote(obraId, lote);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo importar.');
     } finally {
       this.procesando.set(false);
+    }
+  }
+
+  /** EA2 — tras confirmar: guarda cada foto en el expediente de SU persona (bucket privado) y las deja dentro del lote para «Deshacer». */
+  private async subirFotosDelLote(obraId: string, lote: string) {
+    const plan = this.planFotos();
+    if (!plan.length) return;
+    this.subiendoFotos.set(true);
+    try {
+      const personal = await this.svc.listar(obraId);
+      const porFila = vincularFilasConPersonal(this.filasFoto(), personal, lote);
+      const porId = new Map(personal.map((p) => [p.id, p] as const));
+      let sinPersona = 0;
+      const items: ItemSubida[] = [];
+      for (const f of plan) {
+        const p = porId.get(porFila.get(f.filaIndice) ?? '');
+        if (!p) { sinPersona++; continue; }
+        items.push({ fotoId: f.fotoId, personal: p, tipo: f.tipo, file: f.file });
+      }
+      const r = await this.fotosSvc.subirAlExpediente(items);
+      this.fotosSubidas.set(r.subidas);
+      this.resultadoFotos.set({ subidas: r.subidas.length, omitidas: r.omitidas.length, fallidas: r.fallidas.length, sinPersona });
+      this.toast.success(this.i18n.t('Fotos guardadas'), this.i18n.t('{n} foto(s) asignadas al expediente.', { n: r.subidas.length }));
+    } catch (e) {
+      this.toast.error(this.i18n.t('No se pudieron guardar las fotos'), e instanceof Error ? e.message : undefined);
+    } finally {
+      this.subiendoFotos.set(false);
     }
   }
 
@@ -478,6 +549,9 @@ export class PersonalImport implements OnInit {
     if (!confirm(this.i18n.t('¿Deshacer este lote? Se eliminarán las personas creadas en esta importación (las actualizaciones no se revierten).'))) return;
     this.procesando.set(true);
     try {
+      // EA2 — primero las fotos que subió este import (bucket + filas), luego las personas creadas.
+      try { await this.fotosSvc.quitarSubidas(this.fotosSubidas()); this.fotosSubidas.set([]); this.resultadoFotos.set(null); }
+      catch (e) { this.toast.warning(this.i18n.t('No se pudieron quitar algunas fotos'), e instanceof Error ? e.message : undefined); }
       const n = await this.svc.deshacerLote(lote);
       this.toast.success(this.i18n.t('Lote deshecho'), `Se eliminaron ${n} registros.`);
       this.ultimoLote.set(null);
@@ -504,5 +578,12 @@ export class PersonalImport implements OnInit {
     this.bajasChecked.set(new Set());
     this.error.set('');
     this.proyectoDetectado.set('');
+    // EA2
+    this.fotosIniciadas.set(false);
+    this.imagenesXlsx.set([]);
+    this.planFotos.set([]);
+    this.avisoFotos.set('');
+    this.fotosSubidas.set([]);
+    this.resultadoFotos.set(null);
   }
 }

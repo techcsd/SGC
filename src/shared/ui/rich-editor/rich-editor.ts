@@ -40,6 +40,8 @@ export interface ImagenEditorConfig {
   /** DG7 — se llama tras confirmar Y quitar el nodo del documento. `deshacer()`
    *  reinserta la imagen en la misma posición (undo nativo del editor). */
   quitar: (src: string, deshacer: () => void) => void;
+  /** EA6 — aviso (toast) para el feedback de copiar/descargar sin tocar los botones de icono. */
+  notificar?: (tipo: 'ok' | 'error', titulo: string, detalle?: string) => void;
 }
 
 /**
@@ -228,6 +230,7 @@ export class RichEditor implements AfterViewInit, OnDestroy, OnChanges {
               descargar: img.descargar,
               confirmarQuitar: img.confirmarQuitar,
               onQuitar: img.quitar,
+              notificar: img.notificar ?? (() => {}),
             }
           : undefined,
       ),

@@ -1,0 +1,137 @@
+<section class="sgc-card" aria-labelledby="pif-titulo">
+  <h2 id="pif-titulo">{{ 'Fotos del personal (opcional)' | t }}</h2>
+  <p class="text-muted">{{ 'Arrastra las fotos de las cédulas o pasaportes (varias a la vez o un ZIP). La IA lee el número y el nombre de cada una y las asigna a su persona del Excel. Nada se guarda hasta que confirmes la importación.' | t }}</p>
+
+  <!-- Subida -->
+  <app-file-upload
+    [files]="archivosParaContar()"
+    [max]="maxImagenes"
+    accept="image/*,.zip,application/zip,application/x-zip-compressed"
+    [showList]="false"
+    [label]="i18n.t('Arrastra fotos o un ZIP, o toca para elegir')"
+    [hint]="i18n.t('Cédula (frente/reverso), pasaporte o persona con su documento. Máx. {n} imágenes.', { n: maxImagenes })"
+    (add)="onAgregar($event)" />
+
+  @if (extrayendo()) { <p class="text-muted" role="status">{{ 'Preparando las imágenes…' | t }}</p> }
+
+  @if (imagenesXlsx().length) {
+    <p><span class="sgc-badge sgc-badge--info">{{ imagenesXlsx().length }}</span> {{ 'imágenes incrustadas en el Excel (se tratan igual)' | t }}</p>
+  }
+  @if (identicas() > 0) {
+    <p class="text-muted">{{ i18n.t('{n} imagen(es) repetida(s) se ignoraron (mismo contenido).', { n: identicas() }) }}</p>
+  }
+  @if (omitidas().length) {
+    <details>
+      <summary class="text-muted">{{ i18n.t('{n} archivo(s) omitido(s)', { n: omitidas().length }) }}</summary>
+      <ul>
+        @for (o of omitidas(); track $index) { <li class="text-muted">{{ o.nombre }} — {{ o.motivo | t }}</li> }
+      </ul>
+    </details>
+  }
+
+  <!-- Antes de procesar: cuántas y cuánto cuesta -->
+  @if (porProcesar().length && estado() !== 'procesando') {
+    <p role="status"><strong>{{ costoTexto() }}</strong></p>
+    <p class="text-muted">{{ 'Cada imagen se envía a la IA (Anthropic) solo para leer número y nombre; no se guarda la lectura.' | t }}</p>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="procesar()">
+      <app-icon name="check" [size]="15" /> {{ 'Leer con IA y asignar' | t }}
+    </button>
+  }
+
+  @if (estado() === 'procesando') {
+    <p role="status">{{ i18n.t('Leyendo imágenes… {a} de {b}', { a: hechos(), b: imagenes().length }) }}</p>
+    <progress [value]="progreso()" max="100" [attr.aria-label]="i18n.t('Progreso de lectura')"></progress>
+  }
+
+  @if (aviso()) { <p class="save-error" role="alert">{{ aviso() }}</p> }
+  @if (sinProcesar().length) {
+    <p class="save-error" role="alert">{{ i18n.t('{n} imagen(es) no se procesaron. Quedan «Sin asignar»; puedes continuar sin ellas.', { n: sinProcesar().length }) }}</p>
+  }
+  @if (fallidas() > 0 && estado() === 'listo') {
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reintentarFallidas()">{{ i18n.t('Reintentar las {n} que fallaron', { n: fallidas() }) }}</button>
+  }
+
+  <!-- Resultado: fila con sus fotos -->
+  @if (asignaciones().length) {
+    <p>
+      <span class="sgc-badge sgc-badge--success">{{ resumen().asignadas }} {{ 'asignadas' | t }}</span>
+      @if (resumen().sinAsignar) { <span class="sgc-badge sgc-badge--warning">{{ resumen().sinAsignar }} {{ 'sin asignar' | t }}</span> }
+      @if (resumen().duplicadas) { <span class="sgc-badge sgc-badge--info">{{ resumen().duplicadas }} {{ 'duplicadas' | t }}</span> }
+      @if (resumen().conflictos) { <span class="sgc-badge sgc-badge--danger">{{ resumen().conflictos }} {{ 'por revisar' | t }}</span> }
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr><th>{{ 'Persona (Excel)' | t }}</th><th>{{ 'Fotos asignadas' | t }}</th></tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.indice) {
+            <tr>
+              <td>{{ f.nombre }} <small class="text-muted">{{ f.documento || '—' }}</small></td>
+              <td>
+                @for (a of (porFila().get(f.indice) ?? []); track a.fotoId) {
+                  <span>
+                    <img [src]="url(imagen(a.fotoId))" width="64" height="44" [alt]="tipo(a.tipoDestino)" />
+                    <small>{{ tipo(a.tipoDestino) }} · {{ viaTexto(a) }}</small>
+                    @if (a.duplicada) {
+                      <span class="sgc-badge sgc-badge--info">{{ 'Duplicada: no se subirá' | t }}</span>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarEsta(a.fotoId)">{{ 'Usar esta' | t }}</button>
+                    }
+                    @if (a.conflicto) { <span class="sgc-badge sgc-badge--danger">{{ 'Revisar: no coincide con el Excel' | t }}</span> }
+                    @if (a.via === 'manual') {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarAsignacion(a.fotoId)">{{ 'Quitar' | t }}</button>
+                    }
+                  </span>
+                } @empty { <span class="text-muted">—</span> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bandeja: Sin asignar -->
+    @if (sinAsignar().length) {
+      <h3>{{ i18n.t('Sin asignar ({n})', { n: sinAsignar().length }) }}</h3>
+      <p class="text-muted">{{ 'No se adivina: elige a quién pertenece cada foto o déjala fuera (no se subirá).' | t }}</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>{{ 'Foto' | t }}</th><th>{{ 'Motivo' | t }}</th><th>{{ 'Asignar a' | t }}</th></tr>
+          </thead>
+          <tbody>
+            @for (a of sinAsignar(); track a.fotoId) {
+              <tr>
+                <td>
+                  <img [src]="url(imagen(a.fotoId))" width="64" height="44" [alt]="imagen(a.fotoId)?.nombreArchivo ?? ''" />
+                  <small class="text-muted">{{ imagen(a.fotoId)?.nombreArchivo }}</small>
+                </td>
+                <td><span class="sgc-badge sgc-badge--warning">{{ motivo(a) }}</span></td>
+                <td>
+                  @if (a.sugerencias.length) {
+                    <small class="text-muted">{{ 'Sugerencias:' | t }}</small>
+                    @for (s of a.sugerencias; track s) {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="asignarManual(a.fotoId, '' + s)">{{ etiquetaFila(s) }}</button>
+                    }
+                  }
+                  <select class="sgc-select" [attr.aria-label]="i18n.t('Asignar a')" (change)="asignarManual(a.fotoId, $any($event.target).value)">
+                    <option value="">{{ 'Dejar sin asignar' | t }}</option>
+                    @for (f of filas(); track f.indice) { <option [value]="f.indice">{{ f.nombre }} {{ f.documento || '' }}</option> }
+                  </select>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <div>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver.emit()">{{ 'Volver' | t }}</button>
+    <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="estado() === 'procesando' || extrayendo()" (click)="continuar.emit()">
+      {{ plan().length ? i18n.t('Continuar con {n} foto(s)', { n: plan().length }) : i18n.t('Continuar sin fotos') }}
+    </button>
+  </div>
+</section>

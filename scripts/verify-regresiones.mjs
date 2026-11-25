@@ -395,6 +395,8 @@ const CITA_RE = /(?<![\w/])sql\/(\d{4}-\d{2}-\d{2}-[a-z0-9._-]+\.sql)/gi;
 function* archivosParaEscanear(dir) {
   for (const d of readdirSync(dir, { withFileTypes: true })) {
     if (d.name === 'node_modules' || d.name === '.git' || d.name === 'dist') continue;
+    // EA3: fixtures de los guardianes y su evidencia citan rutas sql/ ficticias a propósito
+    if (d.name === 'guardianes' || d.name === 'RONDA-EA-AVANCE.md') continue;
     const p = join(dir, d.name);
     if (d.isDirectory()) { yield* archivosParaEscanear(p); continue; }
     if (/\.(sql|md|mjs|ts)$/.test(d.name)) yield p;

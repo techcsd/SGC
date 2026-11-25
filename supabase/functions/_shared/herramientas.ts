@@ -1186,6 +1186,28 @@ export const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
     rpc: "tec_equipo_detalle_asistente", map: (i) => ({ p_id: i.id }),
   },
+  // ── EA1 (ronda EA, 24-nov-2026) — directorio de proveedores de tecnología (solo lectura).
+  // Gate real: sgc.puede_ver_submodulo('tecnologia.proveedores') dentro del RPC (Tecnología opera;
+  // Compras/admin ven). `submodulos` deja verla a quien tenga el permiso granular sin el módulo.
+  // El detalle NUNCA devuelve rutas de archivos de facturas (no se entrega storage a la IA).
+  {
+    name: "listar_proveedores_tecnologia",
+    description: "Busca proveedores de tecnología (cerraduras, redes, cámaras, internet…) por nombre, servicio, etiqueta, contacto, RNC o trabajo realizado (ej. 'cerradura inteligente'). Devuelve el contacto principal (teléfono/WhatsApp/correo). Sin texto lista todos los activos. Requiere módulo tecnología o el permiso 'tecnologia.proveedores' (Compras lo tiene en ver).",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.proveedores"], canales: ["mcp"],
+    input_schema: { type: "object", properties: {
+      buscar: { type: "string", description: "texto libre: nombre, servicio, contacto, RNC, trabajo" },
+      incluir_inactivos: { type: "boolean" },
+    }, additionalProperties: false },
+    rpc: "buscar_tec_proveedores",
+    map: (i) => ({ p_q: i.buscar ? String(i.buscar).slice(0, 120) : null, p_incluir_inactivos: i.incluir_inactivos === true }),
+  },
+  {
+    name: "detalle_proveedor_tecnologia",
+    description: "Ficha completa de un proveedor de tecnología: datos, contactos, trabajos realizados, facturas (resumen) y cotizaciones vinculadas. Resuelve el id con 'listar_proveedores_tecnologia'. Requiere módulo tecnología o el permiso 'tecnologia.proveedores'.",
+    modulos: ["tecnologia"], submodulos: ["tecnologia.proveedores"], canales: ["mcp"],
+    input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
+    rpc: "tec_proveedor_detalle_asistente", map: (i) => ({ p_id: i.id }),
+  },
   {
     name: "listar_tipos_equipo",
     description: "Catálogo de tipos de equipo tecnológico (Laptop, Walkie-talkie, Dron, …) con su id — necesario para 'proponer_equipo_tecnologico'/el lote. Requiere módulo tecnología (o el permiso granular del Subadministrador).",

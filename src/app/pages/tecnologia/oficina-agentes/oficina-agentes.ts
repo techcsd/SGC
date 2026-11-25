@@ -9,6 +9,8 @@ import {
   AgenteEstado,
   AgentesService,
 } from '../../../../shared/services/agentes.service';
+import { IngenieroService } from '../../../../shared/services/ingeniero.service';
+import { IngenieroCambios } from './ingeniero-cambios';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { presentarError } from '../../../../shared/utils/friendly-error.util';
@@ -39,6 +41,9 @@ const AGENTE_HORARIO: Record<AgenteClave, string | null> = {
   soporte: null,
   auditor: null,
   escriba: null,
+  // EA3 — el Ingeniero arma su cola cada 15 min y barre el código martes y viernes; el Guardián revisa a demanda.
+  ingeniero: 'Cada 15 minutos (+ barrido mar y vie)',
+  guardian: null,
 };
 
 /** Un vistazo rápido a qué hace cada agente, sin depender de leer su nombre. */
@@ -49,6 +54,8 @@ const ICONO_AGENTE: Record<AgenteClave, IconName> = {
   auditor: 'shield',
   escriba: 'code',
   cronista: 'file-text',
+  ingeniero: 'code',
+  guardian: 'shield',
 };
 
 /**
@@ -64,13 +71,14 @@ const ICONO_AGENTE: Record<AgenteClave, IconName> = {
  */
 @Component({
   selector: 'app-oficina-agentes',
-  imports: [TranslatePipe, Icon, ErrorState, EstadoPulseDirective, DecimalPipe, Paginador],
+  imports: [TranslatePipe, Icon, ErrorState, EstadoPulseDirective, DecimalPipe, Paginador, IngenieroCambios],
   templateUrl: './oficina-agentes.html',
   styleUrl: './oficina-agentes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OficinaAgentes implements OnInit, OnDestroy {
   private service = inject(AgentesService);
+  private ingeniero = inject(IngenieroService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
   private sanitizer = inject(DomSanitizer);
@@ -85,6 +93,8 @@ export class OficinaAgentes implements OnInit, OnDestroy {
   readonly iconoAgente = (clave: AgenteClave): IconName => ICONO_AGENTE[clave] ?? 'circle';
   readonly formatTs = formatTimestampDisplay;
 
+  /** EA3 — pestañas: la oficina de siempre o «Cambios del Ingeniero». */
+  pestana = signal<'oficina' | 'ingeniero'>('oficina');
   loading = signal(true);
   error = signal<unknown>(null);
   decidiendo = signal<string | null>(null);
@@ -128,6 +138,13 @@ export class OficinaAgentes implements OnInit, OnDestroy {
     return this.estadoLabel[estado];
   };
 
+  /** EA3 — contador junto al estado: tareas en curso del Ingeniero / en revisión del Guardián. */
+  contadorAgente = (clave: AgenteClave): string | null => {
+    if (clave === 'ingeniero') return `${this.ingeniero.activas()} ${this.i18n.t('tareas en curso')}`;
+    if (clave === 'guardian') return `${this.ingeniero.enRevision()} ${this.i18n.t('en revisión')}`;
+    return null;
+  };
+
   esperandoOk = (agente: Agente): AgenteAprobacion | undefined =>
     agente.nivel_max === 3
       ? this.aprobacionesPendientes().find((a) => a.agente_id === agente.id)
@@ -150,6 +167,8 @@ export class OficinaAgentes implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     await this.cargar();
+    // EA3 — alimenta los contadores de la oficina; si falla (p. ej. migración aún no aplicada) la oficina sigue igual.
+    void this.ingeniero.cargar().catch(() => undefined);
     this.service.escuchar(() => void this.service.cargar());
   }
 

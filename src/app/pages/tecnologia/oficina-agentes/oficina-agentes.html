@@ -6,7 +6,17 @@
     </p>
   </header>
 
-  @if (error()) {
+  <!-- EA3 — pestañas -->
+  <div role="tablist" [attr.aria-label]="'Secciones de agentes' | t">
+    <button type="button" role="tab" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="pestana() === 'oficina'" [class.sgc-btn--secondary]="pestana() !== 'oficina'"
+      [attr.aria-selected]="pestana() === 'oficina'" (click)="pestana.set('oficina')">{{ 'Oficina' | t }}</button>
+    <button type="button" role="tab" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="pestana() === 'ingeniero'" [class.sgc-btn--secondary]="pestana() !== 'ingeniero'"
+      [attr.aria-selected]="pestana() === 'ingeniero'" (click)="pestana.set('ingeniero')">{{ 'Cambios del Ingeniero' | t }}</button>
+  </div>
+
+  @if (pestana() === 'ingeniero') {
+    <app-ingeniero-cambios />
+  } @else if (error()) {
     <app-error-state [error]="error()" pantalla="los agentes" (retry)="cargar()" />
   } @else if (loading()) {
     <p class="oficina__cargando">{{ 'Cargando…' | t }}</p>
@@ -37,6 +47,9 @@
               <span class="estacion__estado-texto">{{ estadoLabelMostrar(agente) | t }}</span>
               <!-- DH16 — horario real, o "a demanda" si no tiene schedule. -->
               <span class="estacion__horario text-muted">{{ (horarioAgente(agente.clave) ?? 'A demanda (lo ejecutas tú)') | t }}</span>
+              @if (contadorAgente(agente.clave); as contador) {
+                <span class="estacion__horario text-muted">{{ contador }}</span>
+              }
               @if (esperandoOk(agente); as aprobacion) {
                 <span class="estacion__badge-ok">{{ 'Espera tu OK' | t }}</span>
               }
