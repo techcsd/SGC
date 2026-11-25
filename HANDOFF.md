@@ -1,6 +1,6 @@
 # HANDOFF — SGC
 
-## ✅ 25-nov-2026 — Hotfix Odoo 19: el almacén en 0 (web 1.222.5 EN PROD; fix del conector MCP en PR)
+## ✅ 25-nov-2026 — Hotfix Odoo 19: el almacén en 0 (web 1.222.5 EN PROD; conector MCP y búsqueda Odoo 19 también EN PROD)
 
 **TL;DR:** Chai migró Odoo a 19.0+e (base `4enfkfierou.cloudpepper.site`). El almacén/requisiciones salían en 0 porque SGC solo conocía 47 de 417 productos con stock en Odoo y el sondeo descartaba el resto. Odoo manda el catálogo: ahora el sondeo importa los productos con stock. En prod: 368 artículos importados, WH 35 → 266 con stock.
 
@@ -11,7 +11,7 @@
 - PR #271 (main, 1.222.5) y #272 (main→dev, conservando 1.223.0 de la ronda EA).
 
 **Pendiente — Claude puede**
-1. Mergear el PR del fix del conector MCP (`consultar_stock_odoo` fallaba con «reading 'invoke'»: `mcp` pasaba a las herramientas Odoo un cliente solo-PostgREST sin `.functions`) y desplegar la edge `mcp` a prod (`node scripts/deploy-edge.mjs --env prod --slug mcp --yes`; ya está en dev). Probar con el conector SGC real.
+1. (HECHO) Conector MCP `consultar_stock_odoo` arreglado: PRs #273 (cliente `invoke`, filtro `is_storable`) y #274 (orden por `name`); edges `mcp` v33 y `odoo-api` desplegadas en prod y verificadas con el conector real (artículo «ties»).
 2. Tras la clasificación de Raykler, revisar si algún almacén sigue en 0 con stock en Odoo.
 
 **Pendiente — solo Xaviel/otros**
@@ -21,7 +21,8 @@
 - El gate «regla 18» exige que también las reversas (`sql/_reversa/*`) estén en el ledger de dev: registrarlas como «script de rollback: registrado, NO ejecutado» (precedente `dk-*_reversa`), nunca ejecutarlas.
 - No desplegar una edge desde un árbol basado en `dev` si `_shared/` difiere de `main` (la edge empaqueta `_shared`): basar el fix en `main`.
 - Credenciales de Odoo para diagnóstico en `.env.local` (`SGC_INTEGRATION_ODOO_*`, `ODOO_DB_PROD`): solo lectura. `SGC_INTEGRATION_ODOO_DB` apunta a staging; la base de prod es `ODOO_DB_PROD`.
-- Odoo 19: `read_group` sigue devolviendo la clave `quantity`; `product.product.type` pasó a `consu` + `is_storable` (`type='product'` ya no existe: `productos.buscar` en `acciones.ts` lo usa y devolverá vacío — revisar si se usa).
+- Odoo 19: `read_group` sigue devolviendo la clave `quantity`; `product.product.type` pasó a `consu` + `is_storable` (`type='product'` ya no existe: `productos.buscar` en `acciones.ts` lo usa y devolverá vacío).
+- Odoo 19: no se puede `order` por `display_name` (no almacenado: ValueError «Cannot convert … to SQL»); usar `name`. Probar cada consulta nueva contra el Odoo real (solo lectura) antes de desplegar: los tests con fetch simulado no lo detectan.
 
 ## ✅ 22-nov-2026 — PROMPT-151 ronda DU: iPhone en blanco + caída de Odoo + conduces degradados (web 1.220.3 y app 2.71.9 EN PROD)
 
