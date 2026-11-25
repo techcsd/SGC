@@ -161,6 +161,8 @@ export interface TecCotizacion {
   lectura: Record<string, unknown> | null;
   lectura_costo_usd: number | null;
   adjunto_id: string | null;
+  /** EA1 — proveedor del directorio (null = solo texto libre en `proveedor`). */
+  proveedor_id?: string | null;
   notas: string | null;
   creado_por: string | null;
   created_at: string;

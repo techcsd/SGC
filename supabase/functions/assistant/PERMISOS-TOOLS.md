@@ -369,3 +369,13 @@ poblado por `claude-skill-validar` para archivos `.md`/`.txt` sueltos.
 Encender el conector: `update sgc.parametros set valor='true' where clave='claude_skills_conector'`
 en el entorno que corresponda (regla 18 — probar en dev primero). Es decisión
 de Xaviel, después de revisar la auditoría N1c (`docs/CLAUDE-AUDITORIA.md`).
+
+## EA1 (24-nov-2026) — proveedores de tecnología (solo lectura, canal MCP)
+
+| Tool | RPC | Mecanismo | Quién |
+|---|---|---|---|
+| `listar_proveedores_tecnologia` | `buscar_tec_proveedores` (nueva) | `security definer` + gate interno `puede_ver_submodulo('tecnologia.proveedores')` (42501 si no) | admin / módulo tecnología / permiso granular (Compras = «ver») |
+| `detalle_proveedor_tecnologia` | `tec_proveedor_detalle_asistente` (nueva) | igual; jsonb acotado (20 trabajos/facturas/cotizaciones), **sin rutas de archivos** | ídem |
+
+`que_puedo_consultar()` gana la fila `tecnologia_proveedores` (sql/2026-11-24-ea1b-conector-proveedores.sql).
+Escritura (crear/editar proveedor) NO está en el conector: solo desde la pantalla (Tecnología opera). Compa (canal `compa`) no consume este catálogo todavía.

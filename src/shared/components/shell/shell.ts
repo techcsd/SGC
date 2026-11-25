@@ -414,7 +414,7 @@ export class Shell implements OnInit {
       // CZ4 — "Tecnología de contenido" visible también con el permiso granular
       // suelto (Subadministrador), sin el módulo completo (que abriría plataforma).
       // DB2 — + wa_grupos, mismo motivo (ver nota en el hijo "Compa en WhatsApp").
-      submodulos: ['tecnologia.cotizaciones', 'tecnologia.inventario', 'tecnologia.compras', 'tecnologia.wa_grupos'],
+      submodulos: ['tecnologia.cotizaciones', 'tecnologia.inventario', 'tecnologia.compras', 'tecnologia.wa_grupos', 'tecnologia.proveedores'],
       children: [
         { label: 'Inventario tecnológico', route: '/tecnologia/inventario', submodulo: 'tecnologia.inventario' },
         // DH3/DH19 — movida al grupo «Sistema» (abajo), visible a TODO usuario
@@ -424,6 +424,8 @@ export class Shell implements OnInit {
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', submodulo: 'tecnologia.compras' },
         { label: 'Cotizaciones', route: '/tecnologia/cotizaciones', submodulo: 'tecnologia.cotizaciones' },
+        // EA1 — directorio de proveedores de tecnología (Tecnología opera; Compras/admin ven).
+        { label: 'Proveedores', route: '/tecnologia/proveedores', submodulo: 'tecnologia.proveedores' },
         // DB2 — movido aquí desde "Developer" (que es soloTecnologia, sin
         // escape por submódulo): así alguien con SOLO `tecnologia.wa_grupos`
         // (sin el módulo tecnologia completo) ve esta pantalla sin que el grupo

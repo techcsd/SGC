@@ -3,7 +3,7 @@
     <div>
       <a routerLink="/proyectos/personal" class="page__back">{{ '← Personal de obra' | t }}</a>
       <h1 class="page__title">{{ 'Importar personal desde Excel' | t }}</h1>
-      <p class="page__sub">{{ 'Sube el listado (formato de Sonia). Se detecta la obra, se mapean los cargos y verás una vista previa antes de confirmar. Las fotos se toman luego en obra con la app.' | t }}</p>
+      <p class="page__sub">{{ 'Sube el listado (formato de Sonia). Se detecta la obra, se mapean los cargos y verás una vista previa antes de confirmar. Opcionalmente sube las fotos de las cédulas (o un ZIP) y la IA las asigna a cada persona; las que falten se toman luego en obra con la app.' | t }}</p>
     </div>
   </header>
 
@@ -114,15 +114,30 @@
 
     <div class="pi-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">{{ 'Cambiar archivo' | t }}</button>
-      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="verDiff()">
-        {{ procesando() ? ('Calculando…' | t) : i18n.t('Revisar cambios ({n})', { n: okCount() }) }}
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="siguienteDePrevia()">
+        {{ procesando() ? ('Calculando…' | t) : i18n.t('Continuar ({n})', { n: okCount() }) }}
       </button>
     </div>
+  }
+
+  <!-- Paso 2a (EA2) — fotos por lote: el componente se conserva al ir y volver para no repetir lecturas -->
+  @if (fotosIniciadas()) {
+    <app-personal-import-fotos
+      [hidden]="paso() !== 'fotos'"
+      [filas]="filasFoto()"
+      [imagenesXlsx]="imagenesXlsx()"
+      (planChange)="onPlanFotos($event)"
+      (continuar)="verDiff()"
+      (volver)="volverDeFotos()" />
   }
 
   <!-- Paso 2b (AV4) — diff del ciclo: altas / actualizaciones / bajas -->
   @if (paso() === 'diff' && preview(); as pv) {
     <div class="pi-diff">
+      @if (avisoFotos()) { <div class="save-error" role="alert">{{ avisoFotos() }}</div> }
+      @if (planFotos().length) {
+        <p class="pi-diff__intro">{{ i18n.t('Al confirmar se guardarán {n} foto(s) en el expediente de cada persona (bucket privado). «Deshacer este lote» también las quita.', { n: planFotos().length }) }}</p>
+      }
       <p class="pi-diff__intro">
         {{ 'Comparación del listado con el personal actual de la obra. Confirma qué personas que ya no aparecen se dan de baja (no se inactivan solas).' | t }}
       </p>
@@ -194,6 +209,15 @@
       </div>
       @if (r.errores.length) {
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarErrores()">{{ 'Descargar reporte de errores' | t }}</button>
+      }
+      @if (subiendoFotos()) { <p role="status">{{ 'Guardando las fotos en el expediente…' | t }}</p> }
+      @if (resultadoFotos(); as rf) {
+        <p>
+          {{ i18n.t('Fotos: {a} guardadas', { a: rf.subidas }) }}
+          @if (rf.omitidas) { · {{ i18n.t('{n} ya tenían foto de ese tipo', { n: rf.omitidas }) }} }
+          @if (rf.sinPersona) { · {{ i18n.t('{n} sin persona creada (fila con error o sin documento)', { n: rf.sinPersona }) }} }
+          @if (rf.fallidas) { · {{ i18n.t('{n} fallaron al subir', { n: rf.fallidas }) }} }
+        </p>
       }
       <div class="pi-result__actions">
         @if (ultimoLote()) {

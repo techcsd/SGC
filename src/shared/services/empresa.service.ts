@@ -1,6 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
+/** EA4 — límites del bucket `sgc-avatars` (sql/2026-07-07-perfil-avatar.sql): png/jpeg/webp, 5 MB. */
+export const LOGO_MIME_PERMITIDOS = ['image/png', 'image/jpeg', 'image/webp'] as const;
+export const LOGO_MAX_BYTES = 5 * 1024 * 1024;
+export const LOGO_ERROR_FORMATO = 'Usa PNG, JPG o WebP de hasta 5 MB.';
+
+/** EA4 — valida el logo ANTES de subirlo; devuelve el mensaje en español o null si es válido. */
+export function validarLogo(file: { type: string; size: number }): string | null {
+  if (!(LOGO_MIME_PERMITIDOS as readonly string[]).includes(file.type)) return LOGO_ERROR_FORMATO;
+  if (file.size > LOGO_MAX_BYTES) return LOGO_ERROR_FORMATO;
+  return null;
+}
+
 /** AG13 — datos generales de la empresa (fila única). */
 export interface Empresa {
   id: number;
@@ -51,10 +63,23 @@ export class EmpresaService {
   /** DH10 — logo de la empresa: bucket público `sgc-avatars`, carpeta `empresa/`
    *  (política de storage solo-admin, no es un dato de un usuario). */
   async subirLogo(file: File): Promise<string> {
-    const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+    const invalido = validarLogo(file);
+    if (invalido) throw new Error(invalido);
+    const ext = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/webp' ? 'webp' : 'png';
+    // EA4 — upsert:false: el nombre ya es único (timestamp); con upsert:true Storage hace
+    // INSERT…ON CONFLICT DO UPDATE y exige poder LEER la fila (política select).
     const path = `empresa/logo-${Date.now()}.${ext}`;
-    const { error } = await this.supabase.client.storage.from('sgc-avatars').upload(path, file, { upsert: true });
-    if (error) throw new Error(error.message);
+    const { error } = await this.supabase.client.storage
+      .from('sgc-avatars')
+      .upload(path, file, { upsert: false, contentType: file.type });
+    if (error) {
+      const m = (error.message ?? '').toLowerCase();
+      throw new Error(
+        m.includes('row-level security') || m.includes('unauthorized') || m.includes('403')
+          ? 'Solo un administrador puede cambiar el logo de la empresa.'
+          : error.message,
+      );
+    }
     await this.update({ logo_path: path });
     return path;
   }

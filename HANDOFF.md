@@ -3517,3 +3517,7 @@ npx supabase@latest secrets list --project-ref jeeqhgccqefbqilntcpu 2>/dev/null 
 - Línea base de observación y decisiones de Compras: `docs/ODOO-PASO-A-PROD.md` §10–§11.
 - **Issues abiertos (todos dependen de personas o tiempo):** #202 (24 conduces del 18-nov en error por falta de existencias en Odoo; Raykler los revisa), #203 (usuario dedicado de integración en Odoo; administrador de Odoo), #204 (2 semanas de observación; fecha más temprana 2-dic-2026), #205 (formularios de tienda + cobertura de cédulas).
 - Auditoría del trabajo de Miranda (solo lectura, 17-nov): ADR 3–7, 13, 14, 16, 17, 19, OC (CY24/CY25) y fases 1, 4 y 5 hechos; faltan usuario dedicado, observación real, privacidad de tiendas, ADR 8 y 11, alerta de `incierto` > 1 h, rotación de claves y ejecutar la guía QA de la PoC.
+
+
+## EA1 — Proveedores de tecnología (24-nov-2026, ronda EA) — sin aplicar a dev/prod aún
+Código + SQL escritos, NO aplicados (sin token en la sesión): `sql/2026-11-24-ea1-tec-proveedores.sql`, `sql/2026-11-24-ea1b-conector-proveedores.sql` (+ reversas). Orden: dev primero (`--env dev`), probar con los casos de `docs/EA1-PROVEEDORES-TEC.md`, luego prod. Después de aplicar: revisar `tec_proveedores_por_revisar()` (backfill deja los dudosos como texto), fusionar claves i18n (`keys-ea1.json`) y subir versión + `release-notes.json`. Decisión abierta: hoy admin OPERA (helper AG12); si Xaviel quiere «admin solo ve», hay que excluir `is_admin()` para este submódulo. App móvil: PROMPT-157.

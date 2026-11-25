@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
-export type AgenteClave = 'vigia' | 'capataz' | 'soporte' | 'auditor' | 'escriba' | 'cronista';
+export type AgenteClave = 'vigia' | 'capataz' | 'soporte' | 'auditor' | 'escriba' | 'cronista' | 'ingeniero' | 'guardian';
 export type AgenteEstado = 'observando' | 'trabajando' | 'esperando_ok' | 'error' | 'inactivo';
 
 export interface Agente {

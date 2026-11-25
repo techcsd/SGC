@@ -107,6 +107,7 @@ módulo `tecnologia` — así que ni el hueco de arriba lo afecta. `esTecnologia
 | Inventario tecnológico | `submoduloGuard('tecnologia.inventario')` | `submodulo: 'tecnologia.inventario'` | `tec_equipos_all`/`tec_hist_all`: `is_admin() OR tiene_modulo('tecnologia') OR puede_ver/operar_submodulo('tecnologia.inventario')` |
 | Compras tecnológicas (+nueva/editar) | `submoduloGuard('tecnologia.compras')` | `submodulo: 'tecnologia.compras'` | `crear_solicitud_compra_tec`: + `puede_operar_submodulo('tecnologia.compras')` (el resto de sus RPC ya gatean por dueño/aprobador/admin, sin módulo) |
 | Cotizaciones (CZ1) | `submoduloGuard('tecnologia.cotizaciones')` | `submodulo: 'tecnologia.cotizaciones'` | `tec_cotizaciones`/RPCs: `puede_ver/operar_submodulo('tecnologia.cotizaciones')` |
+| Proveedores de tecnología (EA1) | `submoduloGuard('tecnologia.proveedores')` | `submodulo: 'tecnologia.proveedores'` | `tec_proveedores`+hijas/RPCs: `puede_ver/operar_submodulo('tecnologia.proveedores')`; Compras = `ver` vía `roles.permisos` (ver `docs/EA1-PROVEEDORES-TEC.md`) |
 | Guía de herramientas | Sin gate (pública, `tecnologia.routes.ts:8-13`) | **🔧 corregido**: antes tenía `modulo: 'tecnologia'` en el menú (ocultaba un ítem que la ruta ya dejaba navegar a cualquiera) — se quitó, el menú ahora coincide con la ruta | `tec_herramientas`: `for select using (true)` |
 
 **🔧 Hallazgo + fix en la MISMA fase (DZ-21):** el contenedor `/tecnologia`

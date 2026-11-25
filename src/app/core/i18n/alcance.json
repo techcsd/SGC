@@ -589,6 +589,9 @@
     "tecnologia/outbox-atascados": {
       "enforce": true
     },
+    "tecnologia/proveedores": {
+      "enforce": false
+    },
     "tecnologia/qa": {
       "enforce": true
     },

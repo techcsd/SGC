@@ -31,6 +31,8 @@ export class AdminEmpresa implements OnInit {
   // DH10 — logo: preview real en vez del placeholder "LOGO".
   logoPath = signal<string | null>(null);
   subiendoLogo = signal(false);
+  logoError = signal('');
+  private logoUltimo: File | null = null;
   logoUrl = computed(() => this.svc.logoUrl(this.logoPath()));
 
   form = this.fb.group({
@@ -116,15 +118,25 @@ export class AdminEmpresa implements OnInit {
     const file = files[0];
     if (!file || this.subiendoLogo()) return;
     this.subiendoLogo.set(true);
+    this.logoError.set('');
     try {
       const path = await this.svc.subirLogo(file);
       this.logoPath.set(path);
       this.toast.success(this.i18n.t('Logo actualizado'), 'Ya sale en la vista previa y en los documentos nuevos.');
     } catch (e: unknown) {
-      this.toast.error(this.i18n.t('No se pudo subir el logo'), e instanceof Error ? e.message : undefined);
+      // EA4 — error VISIBLE bajo la zona (no solo toast) + reintento
+      const msg = e instanceof Error ? e.message : 'No se pudo subir el logo.';
+      this.logoError.set(msg);
+      this.logoUltimo = file;
+      this.toast.error(this.i18n.t('No se pudo subir el logo'), msg);
     } finally {
       this.subiendoLogo.set(false);
     }
+  }
+
+  /** EA4 — reintenta el último archivo que falló. */
+  reintentarLogo() {
+    if (this.logoUltimo) void this.onLogoAdd([this.logoUltimo]);
   }
 
   get f() { return this.form.controls; }

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
+import { seccionIngeniero, type TareaInforme } from "../_shared/agente-ingeniero-lib.ts";
 
 // ============================================================================
 // F5 (ronda DF) — Agente Cronista (Nivel 1). Lo invoca pg_cron una vez al día,
@@ -68,11 +69,14 @@ Deno.serve(async (req) => {
   const desde = `${fecha}T00:00:00-04:00`;
   const hasta = `${fecha}T23:59:59-04:00`;
 
-  const [{ data: hallazgos }, { data: acciones }, { data: aprobaciones }, { data: erroresApp }] = await Promise.all([
+  const [{ data: hallazgos }, { data: acciones }, { data: aprobaciones }, { data: erroresApp }, { data: tareasIng }] = await Promise.all([
     svc.from("agente_hallazgos").select("severidad, titulo, origen, agente_id, agentes(nombre)").gte("creado_en", desde).lte("creado_en", hasta),
     svc.from("agente_acciones").select("que_hizo, resultado, reversible, agente_id, agentes(nombre)").gte("creado_en", desde).lte("creado_en", hasta),
     svc.from("agente_aprobaciones").select("propuesta, estado, pr_url").gte("creado_en", desde).lte("creado_en", hasta),
     svc.from("app_error_reports").select("error_type, message, platform").gte("created_at", desde).lte("created_at", hasta),
+    // EA3 -- tareas del Ingeniero con movimiento hoy (determinista, sin IA).
+    svc.from("agente_ingeniero_tareas").select("titulo, estado, repo, pr_url, costo_ia, motivo, zona_roja, prod_en, cerrada_en, updated_at")
+      .gte("updated_at", desde).lte("updated_at", hasta).order("updated_at", { ascending: false }).limit(100),
   ]);
 
   const lineas: string[] = [];
@@ -105,7 +109,14 @@ Deno.serve(async (req) => {
     lineas.push("Sin reportes de error nuevos desde la app hoy.");
   }
 
+  // EA3 -- seccion "Cambios del Ingeniero".
+  const ing = seccionIngeniero((tareasIng ?? []) as TareaInforme[]);
+  lineas.push("");
+  lineas.push(...ing.lineas);
+
   const contenidoMd = lineas.join("\n");
+
+  const { data: previo } = await svc.from("agente_informes_diarios").select("id").eq("fecha", fecha).maybeSingle();
 
   const { data: fila, error } = await svc
     .from("agente_informes_diarios")
@@ -118,5 +129,18 @@ Deno.serve(async (req) => {
     return json({ error: "No se pudo guardar el informe." }, 500);
   }
 
-  return json({ ok: true, informe_id: fila?.id, fecha });
+  // EA3 -- aviso a los administradores SOLO si hubo actividad del Ingeniero y el informe es nuevo
+  // (re-correr el cron no duplica el aviso). Es una notificacion interna; el informe en si
+  // sigue sin enviarse a nadie por su cuenta.
+  if (ing.hayActividad && !previo) {
+    const { error: errNotif } = await svc.rpc("notificar_rol", {
+      p_rol: "admin", p_tipo: "agente_ingeniero_informe",
+      p_titulo: "Cambios del Ingeniero hoy",
+      p_mensaje: "El Ingeniero tuvo actividad hoy. Revisa Tecnologia > Agentes > Cambios del Ingeniero.",
+      p_ruta: "/tecnologia/agentes",
+    });
+    if (errNotif) console.error("agente-cronista: no se pudo notificar", errNotif);
+  }
+
+  return json({ ok: true, informe_id: fila?.id, fecha, ingeniero_actividad: ing.hayActividad });
 });

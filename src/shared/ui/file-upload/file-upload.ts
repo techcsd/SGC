@@ -24,6 +24,8 @@ export class FileUpload {
   /** CH3 — ocultar la lista interna de miniaturas cuando el padre renderiza la
    *  suya (p. ej. fila por archivo con select de tipo). Sigue contando n/max. */
   showList = input<boolean>(true);
+  /** EA4 — ocultar el contador n/max cuando no refleja nada útil (p. ej. un solo logo). */
+  showCount = input<boolean>(true);
 
   add = output<File[]>();
   removeAt = output<number>();

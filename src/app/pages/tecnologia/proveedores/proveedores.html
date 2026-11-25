@@ -1,0 +1,229 @@
+<!-- Section header -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Proveedores de tecnología' | t }}</h1>
+    <span class="page-count">{{ resultados().length }} {{ (resultados().length === 1 ? 'proveedor' : 'proveedores') | t }}</span>
+  </div>
+  @if (puedeOperar()) {
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
+      <app-icon name="plus" [size]="16" />
+      {{ 'Nuevo proveedor' | t }}
+    </button>
+  }
+</div>
+
+<p class="page-lead">{{ 'Directorio de proveedores de tecnología: contactos, trabajos realizados, facturas, cotizaciones y compras. Busca por nombre, servicio (p. ej. «cerradura»), contacto o trabajo.' | t }}</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">
+    <app-icon name="info" [size]="16" />
+    {{ error() }}
+  </div>
+}
+
+<!-- Buscador único -->
+<div class="filters-bar">
+  <div class="filters-bar__search sgc-field">
+    <label for="prov-q">{{ 'Buscar' | t }}</label>
+    <input id="prov-q" type="search" class="sgc-input" [placeholder]="'Nombre, servicio, contacto, RNC, trabajo…' | t"
+      [value]="query()" (input)="onQuery($any($event.target).value)" />
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--secondary" [attr.aria-pressed]="incluirInactivos()" (click)="alternarInactivos()">
+    {{ (incluirInactivos() ? 'Ocultar inactivos' : 'Incluir inactivos') | t }}
+  </button>
+  <button type="button" class="sgc-btn sgc-btn--secondary" [attr.aria-pressed]="verPorRevisar()" (click)="alternarPorRevisar()">
+    <app-icon name="alert-circle" [size]="16" />
+    {{ 'Por revisar' | t }}
+  </button>
+</div>
+
+<!-- Por revisar: textos de proveedor que no se pudieron vincular solos -->
+@if (verPorRevisar()) {
+  <section class="sgc-card prov-panel" [attr.aria-label]="'Proveedores por revisar' | t">
+    <h2 class="page-title">{{ 'Por revisar' | t }}</h2>
+    <p class="text-muted">{{ 'Nombres escritos a mano en cotizaciones, compras o APIs que no se vincularon solos. Nada se borra: crea el proveedor o únelo a uno existente.' | t }}</p>
+    @if (porRevisar().length === 0) {
+      <p class="table-empty">{{ 'No hay nada por revisar.' | t }}</p>
+    } @else {
+      <div class="table-wrapper">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{{ 'Texto' | t }}</th>
+                <th>{{ 'Dónde aparece' | t }}</th>
+                <th class="text-right">{{ 'Veces' | t }}</th>
+                <th>{{ 'Motivo' | t }}</th>
+                <th>{{ 'Sugerencia' | t }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of porRevisar(); track r.texto) {
+                <tr>
+                  <td>{{ r.texto }}</td>
+                  <td>{{ r.fuente }}</td>
+                  <td class="text-right tnum">{{ r.usos }}</td>
+                  <td><span class="sgc-badge sgc-badge--warning">{{ etiquetaMotivo(r.motivo) | t }}</span></td>
+                  <td>
+                    @if (r.sugerencia_id) {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrir(r.sugerencia_id)">{{ r.sugerencia_nombre }}</button>
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td class="table-actions">
+                    @if (puedeOperar()) {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCrear(r.texto)">{{ 'Crear proveedor' | t }}</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+}
+
+<!-- Lista -->
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="3" />
+} @else if (resultados().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>{{ (query().trim() ? 'Ningún proveedor coincide con la búsqueda.' : 'Aún no hay proveedores registrados.') | t }}</p>
+  </div>
+} @else {
+  <div class="table-wrapper sgc-card">
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'Proveedor' | t }}</th>
+            <th>{{ 'Servicio' | t }}</th>
+            <th>{{ 'Contacto principal' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of resultados(); track p.id) {
+            <tr class="row--link" tabindex="0" (click)="abrir(p.id)" (keydown.enter)="abrir(p.id)">
+              <td>
+                <strong>{{ p.nombre }}</strong>
+                @if (p.nombre_comercial) { <div class="text-muted">{{ p.nombre_comercial }}</div> }
+                @if (query().trim() && p.coincidencia && p.coincidencia !== 'nombre') {
+                  <div class="text-muted">{{ 'Coincide en' | t }}: {{ etiquetaCoincidencia(p.coincidencia) | t }}</div>
+                }
+              </td>
+              <td>
+                {{ p.categoria || '—' }}
+                @if (p.servicio) { <div class="text-muted">{{ p.servicio }}</div> }
+                @if (p.etiquetas.length) {
+                  <div class="prov-chips">
+                    @for (e of p.etiquetas; track e) { <span class="sgc-badge sgc-badge--neutral">{{ e }}</span> }
+                  </div>
+                }
+              </td>
+              <td>
+                @if (p.contacto_nombre) {
+                  {{ p.contacto_nombre }}
+                  @if (p.contacto_telefono) { <div class="text-muted tnum">{{ p.contacto_telefono }}</div> }
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td>
+                <span class="sgc-badge" [class.sgc-badge--success]="p.estado === 'activo'" [class.sgc-badge--neutral]="p.estado !== 'activo'">
+                  {{ (p.estado === 'activo' ? 'Activo' : 'Inactivo') | t }}
+                </span>
+              </td>
+              <!-- Contacto con un toque: no abre la ficha -->
+              <td class="table-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+                <div class="prov-actions">
+                  @if (enlaceLlamar(p.contacto_telefono); as href) {
+                    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="href" [attr.aria-label]="('Llamar a' | t) + ' ' + p.nombre">
+                      <app-icon name="phone" [size]="15" />
+                    </a>
+                  }
+                  @if (enlaceWhatsapp(p.contacto_whatsapp || p.contacto_telefono); as href) {
+                    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="href" target="_blank" rel="noopener" [attr.aria-label]="('WhatsApp a' | t) + ' ' + p.nombre">
+                      <app-icon name="message-circle" [size]="15" />
+                    </a>
+                  }
+                  @if (enlaceCorreo(p.contacto_correo); as href) {
+                    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="href" [attr.aria-label]="('Escribir a' | t) + ' ' + p.nombre">
+                      <app-icon name="mail" [size]="15" />
+                    </a>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+<!-- Drawer: nuevo proveedor -->
+<app-form-drawer [title]="'Nuevo proveedor' | t" [open]="createOpen()" (closed)="cerrarCrear()">
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="sgc-field">
+      <label for="np-nombre">{{ 'Nombre' | t }} *</label>
+      <input id="np-nombre" type="text" formControlName="nombre" />
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="np-comercial">{{ 'Nombre comercial' | t }}</label>
+        <input id="np-comercial" type="text" formControlName="nombre_comercial" />
+      </div>
+      <div class="sgc-field">
+        <label for="np-rnc">{{ 'RNC' | t }}</label>
+        <input id="np-rnc" type="text" formControlName="rnc" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="np-cat">{{ 'Categoría' | t }}</label>
+        <select id="np-cat" formControlName="categoria_id">
+          <option [ngValue]="null">{{ 'Sin categoría' | t }}</option>
+          @for (c of categorias(); track c.id) {
+            <option [ngValue]="c.id">{{ c.nombre | t }}</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="np-ciudad">{{ 'Ciudad' | t }}</label>
+        <input id="np-ciudad" type="text" formControlName="ciudad" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="np-servicio">{{ 'Qué hace / servicio' | t }}</label>
+      <input id="np-servicio" type="text" formControlName="servicio" [placeholder]="'Ej.: cerraduras inteligentes y control de acceso' | t" />
+    </div>
+    <div class="sgc-field">
+      <label for="np-etiquetas">{{ 'Etiquetas (separadas por coma)' | t }}</label>
+      <input id="np-etiquetas" type="text" formControlName="etiquetas" [placeholder]="'puertas, cerradura, biometría' | t" />
+    </div>
+    <div class="sgc-field">
+      <label for="np-web">{{ 'Sitio web' | t }}</label>
+      <input id="np-web" type="url" formControlName="web" />
+    </div>
+    <div class="sgc-field">
+      <label for="np-notas">{{ 'Notas' | t }}</label>
+      <textarea id="np-notas" formControlName="notas" rows="3"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarCrear()">{{ 'Cancelar' | t }}</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
+        @if (guardando()) {
+          <span class="spinner" aria-hidden="true"></span> {{ 'Guardando…' | t }}
+        } @else {
+          {{ 'Guardar' | t }}
+        }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

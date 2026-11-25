@@ -1,0 +1,153 @@
+# EA3/F6 — Agente Ingeniero: lee una tarea (reporte), analiza, planea, escribe el cambio MÍNIMO con prueba,
+# abre PR a `dev` y corrige según el Guardián (máx. max_intentos). Patrón de agente-escriba.yml.
+#
+# INERTE sin secrets: si faltan, el job termina VERDE escribiendo «inerte: faltan secrets» (solo nombres).
+# Zona protegida: este archivo, scripts/guardianes/**, .claude/**, CLAUDE.md los hace cumplir G1 (el agente no puede editarlos).
+# Doc completa + pasos físicos + llamador para csd-app: docs/AGENTES-INGENIERO-RUNNER.md
+#
+# Disparo: repository_dispatch `agente-ingeniero` con client_payload {tarea_id, repo} (lo manda la edge
+# agente-ingeniero-despachar), workflow_dispatch manual, o workflow_call desde otro repo (csd-app).
+name: agente-ingeniero
+
+on:
+  repository_dispatch:
+    types: [agente-ingeniero]
+  workflow_dispatch:
+    inputs:
+      tarea_id:
+        description: "uuid de la tarea en sgc (ing_tareas)"
+        required: true
+  workflow_call:
+    inputs:
+      tarea_id:
+        type: string
+        required: true
+      repo_guardianes:
+        description: "repo que aloja scripts/guardianes (confianza). Por defecto, SGC."
+        type: string
+        default: "techcsd/SGC"
+      ref_guardianes:
+        description: "rama confiable de los guardianes (main = ya promovida)"
+        type: string
+        default: "main"
+      rama_base:
+        type: string
+        default: "dev"
+      build_cmd:
+        type: string
+        default: "npm run build"
+      test_cmd:
+        type: string
+        default: "npm run test:unit"
+    secrets:
+      ANTHROPIC_API_KEY: { required: false }
+      SUPABASE_URL_DEV: { required: false }
+      SUPABASE_SERVICE_ROLE_KEY_DEV: { required: false }
+      AGENTE_INGENIERO_GITHUB_TOKEN: { required: false }
+      SUPABASE_CSD_CONSTRUCTORA_TOKEN: { required: false }
+      SUPABASE_PROJECT_REF_DEV: { required: false }
+  # schedule: el barrido martes/viernes (EA-17) NO se agenda aquí: lo crea pg_cron en la edge
+  # agente-ingeniero-despachar y llega como repository_dispatch (así el tope y la pausa se aplican en un solo lugar).
+
+# Mínimo: el push y el PR los hace el PAT del Ingeniero (AGENTE_INGENIERO_GITHUB_TOKEN), no GITHUB_TOKEN.
+permissions:
+  contents: read
+
+jobs:
+  ingeniero:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: agentes-dev
+    concurrency:
+      group: agente-ingeniero-${{ inputs.tarea_id || github.event.inputs.tarea_id || github.event.client_payload.tarea_id || github.run_id }}
+      cancel-in-progress: false
+    env:
+      TAREA_ID: ${{ inputs.tarea_id || github.event.inputs.tarea_id || github.event.client_payload.tarea_id }}
+      PAYLOAD_REPO: ${{ github.event.client_payload.repo }}
+      CLAUDE_CODE_VERSION: "2.1.331" # fijado a propósito; subir de versión = PR revisado por humano
+    steps:
+      # Red permitida (documentada en docs/AGENTES-INGENIERO-RUNNER.md): github.com, api.github.com, registry.npmjs.org,
+      # api.anthropic.com, *.supabase.co / api.supabase.com (solo DEV), api.vercel.com (solo lectura).
+      # Empieza en `audit`; pasar a `block` tras una corrida limpia. Fijar por SHA al activarlo.
+      - name: Endurecer runner (red)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+          allowed-endpoints: >
+            github.com:443 api.github.com:443 codeload.github.com:443 objects.githubusercontent.com:443
+            registry.npmjs.org:443 api.anthropic.com:443 api.supabase.com:443 api.vercel.com:443
+            *.supabase.co:443 *.supabase.com:443
+
+      - name: Preflight (¿hay secrets? ¿tarea válida?)
+        id: pre
+        env:
+          S_ANTHROPIC: ${{ secrets.ANTHROPIC_API_KEY }}
+          S_URL: ${{ secrets.SUPABASE_URL_DEV }}
+          S_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+          S_GH: ${{ secrets.AGENTE_INGENIERO_GITHUB_TOKEN }}
+        run: |
+          faltan=""
+          [ -z "$S_ANTHROPIC" ] && faltan="$faltan ANTHROPIC_API_KEY"
+          [ -z "$S_URL" ] && faltan="$faltan SUPABASE_URL_DEV"
+          [ -z "$S_ROLE" ] && faltan="$faltan SUPABASE_SERVICE_ROLE_KEY_DEV"
+          [ -z "$S_GH" ] && faltan="$faltan AGENTE_INGENIERO_GITHUB_TOKEN"
+          if [ -n "$faltan" ]; then
+            echo "inerte: faltan secrets:$faltan"
+            echo "activo=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if ! echo "$TAREA_ID" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+            echo "inerte: tarea_id ausente o no es uuid"; echo "activo=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ -n "$PAYLOAD_REPO" ] && [ "$PAYLOAD_REPO" != "${{ github.repository }}" ]; then
+            echo "inerte: el despacho era para otro repo ($PAYLOAD_REPO)"; echo "activo=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "activo=true" >> "$GITHUB_OUTPUT"
+
+      - name: Código del repo (rama base)
+        if: steps.pre.outputs.activo == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.rama_base || 'dev' }}
+          persist-credentials: false
+
+      # Los guardianes, prompts y scripts se ejecutan SIEMPRE desde esta copia confiable (fuera del workspace),
+      # así el agente no puede cambiar su propia guardia ni sus instrucciones dentro de su rama.
+      - name: Guardianes confiables (copia fuera del workspace)
+        if: steps.pre.outputs.activo == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repo_guardianes || github.repository }}
+          ref: ${{ inputs.ref_guardianes || 'main' }}
+          token: ${{ secrets.AGENTE_INGENIERO_GITHUB_TOKEN }}
+          path: .guardianes-tmp
+          persist-credentials: false
+
+      - name: Aislar copia confiable
+        if: steps.pre.outputs.activo == 'true'
+        run: |
+          mv .guardianes-tmp "$RUNNER_TEMP/guardianes"
+          chmod -R a-w "$RUNNER_TEMP/guardianes" || true
+          test -f "$RUNNER_TEMP/guardianes/scripts/guardianes/ciclo.sh" || { echo "::error::la rama '${{ inputs.ref_guardianes || 'main' }}' aún no tiene scripts/guardianes (promover primero)"; exit 1; }
+
+      - uses: actions/setup-node@v4
+        if: steps.pre.outputs.activo == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Ciclo del Ingeniero
+        if: steps.pre.outputs.activo == 'true'
+        env:
+          REPO: ${{ github.repository }}
+          GUARDIANES_DIR: ${{ runner.temp }}/guardianes
+          BUILD_CMD: ${{ inputs.build_cmd || 'npm run build' }}
+          TEST_CMD: ${{ inputs.test_cmd || 'npm run test:unit' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL_DEV: ${{ secrets.SUPABASE_URL_DEV }}
+          SUPABASE_SERVICE_ROLE_KEY_DEV: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+          GH_TOKEN: ${{ secrets.AGENTE_INGENIERO_GITHUB_TOKEN }}
+          # opcionales (migraciones aditivas a DEV vía apply-migration --env dev)
+          SUPABASE_CSD_CONSTRUCTORA_TOKEN: ${{ secrets.SUPABASE_CSD_CONSTRUCTORA_TOKEN }}
+          SUPABASE_PROJECT_REF_DEV: ${{ secrets.SUPABASE_PROJECT_REF_DEV }}
+        run: bash "$RUNNER_TEMP/guardianes/scripts/guardianes/ciclo.sh"

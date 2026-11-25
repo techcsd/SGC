@@ -54,11 +54,21 @@ export async function copiarImagenAlPortapapeles(blob: Blob): Promise<void> {
 /** Descarga una URL (típicamente firmada) como archivo — fallback cuando copiar
  *  al portapapeles no está disponible. */
 export function descargarDesdeUrl(url: string, nombre: string): void {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nombre;
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  // EA6 — `download` se IGNORA en URLs de otro origen (la firmada de Storage): el navegador
+  // navegaba a la imagen y sacaba al usuario de la pantalla. Se baja como blob (mismo origen);
+  // si el fetch falla, se abre en pestaña nueva.
+  const clic = (href: string, extra?: () => void) => {
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = nombre;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    extra?.();
+  };
+  fetch(url)
+    .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+    .then((blob) => { const o = URL.createObjectURL(blob); clic(o, () => setTimeout(() => URL.revokeObjectURL(o), 10_000)); })
+    .catch(() => { window.open(url, '_blank', 'noopener'); });
 }

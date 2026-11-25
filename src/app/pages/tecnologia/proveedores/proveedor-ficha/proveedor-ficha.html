@@ -1,0 +1,449 @@
+<!-- Section header -->
+<div class="page-header">
+  <div class="page-header__left">
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="volver()">
+      <app-icon name="arrow-left" [size]="15" /> {{ 'Proveedores' | t }}
+    </button>
+    @if (proveedor(); as p) {
+      <h1 class="page-title">{{ p.nombre }}</h1>
+      <span class="sgc-badge" [class.sgc-badge--success]="p.estado === 'activo'" [class.sgc-badge--neutral]="p.estado !== 'activo'">
+        {{ (p.estado === 'activo' ? 'Activo' : 'Inactivo') | t }}
+      </span>
+    }
+  </div>
+  @if (proveedor() && puedeOperar()) {
+    <button type="button" class="sgc-btn sgc-btn--secondary" (click)="editarProveedor()">
+      <app-icon name="pen" [size]="15" /> {{ 'Editar proveedor' | t }}
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">
+    <app-icon name="info" [size]="16" />
+    {{ error() }}
+  </div>
+}
+
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="3" />
+} @else if (proveedor(); as p) {
+  <!-- Tabs -->
+  <div class="prov-tabs" role="tablist" [attr.aria-label]="'Secciones del proveedor' | t">
+    @for (t of tabs; track t.key) {
+      <button type="button" role="tab" class="sgc-btn" [class.sgc-btn--primary]="tab() === t.key" [class.sgc-btn--secondary]="tab() !== t.key"
+        [attr.aria-selected]="tab() === t.key" (click)="tab.set(t.key)">{{ t.label | t }}</button>
+    }
+  </div>
+
+  <!-- Resumen -->
+  @if (tab() === 'resumen') {
+    <section class="sgc-card prov-panel">
+      <dl class="prov-grid">
+        <div><dt>{{ 'Nombre comercial' | t }}</dt><dd>{{ p.nombre_comercial || '—' }}</dd></div>
+        <div><dt>{{ 'RNC' | t }}</dt><dd class="tnum">{{ p.rnc || '—' }}</dd></div>
+        <div><dt>{{ 'Categoría' | t }}</dt><dd>{{ p.categoria?.nombre ? (p.categoria?.nombre! | t) : '—' }}</dd></div>
+        <div><dt>{{ 'Servicio' | t }}</dt><dd>{{ p.servicio || '—' }}</dd></div>
+        <div><dt>{{ 'Ciudad' | t }}</dt><dd>{{ p.ciudad || '—' }}</dd></div>
+        <div><dt>{{ 'Dirección' | t }}</dt><dd>{{ p.direccion || '—' }}</dd></div>
+        <div>
+          <dt>{{ 'Sitio web' | t }}</dt>
+          <dd>
+            @if (p.web) { <a [href]="p.web" target="_blank" rel="noopener">{{ p.web }}</a> } @else { — }
+          </dd>
+        </div>
+        <div><dt>{{ 'Valoración' | t }}</dt><dd>{{ p.valoracion ? p.valoracion + ' / 5' : '—' }}</dd></div>
+        <div><dt>{{ 'Total facturado' | t }}</dt><dd class="tnum">RD$ {{ totalFacturado() | number:'1.2-2' }}</dd></div>
+        <div><dt>{{ 'Pendiente de pago' | t }}</dt><dd class="tnum">RD$ {{ pendienteDePago() | number:'1.2-2' }}</dd></div>
+        <div><dt>{{ 'Contactos' | t }}</dt><dd>{{ contactos().length }}</dd></div>
+        <div><dt>{{ 'Trabajos' | t }}</dt><dd>{{ trabajos().length }}</dd></div>
+      </dl>
+      @if (p.etiquetas.length) {
+        <div class="prov-chips">
+          @for (e of p.etiquetas; track e) { <span class="sgc-badge sgc-badge--neutral">{{ e }}</span> }
+        </div>
+      }
+      @if (p.origen === 'backfill') {
+        <p class="text-muted">{{ 'Creado automáticamente desde nombres escritos en cotizaciones y compras. Revisa y completa sus datos.' | t }}</p>
+      }
+    </section>
+  }
+
+  <!-- Contactos -->
+  @if (tab() === 'contactos') {
+    <section class="sgc-card prov-panel">
+      @if (puedeOperar()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevoContacto()">
+          <app-icon name="plus" [size]="16" /> {{ 'Nuevo contacto' | t }}
+        </button>
+      }
+      @if (contactos().length === 0) {
+        <p class="table-empty">{{ 'Sin contactos todavía.' | t }}</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{{ 'Nombre' | t }}</th><th>{{ 'Cargo' | t }}</th><th>{{ 'Teléfono' | t }}</th><th>{{ 'Correo' | t }}</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of contactos(); track c.id) {
+                <tr>
+                  <td>
+                    {{ c.nombre }}
+                    @if (c.principal) { <span class="sgc-badge sgc-badge--hub">{{ 'Principal' | t }}</span> }
+                  </td>
+                  <td>{{ c.cargo || '—' }}</td>
+                  <td class="tnum">{{ c.telefono || '—' }}@if (c.whatsapp && c.whatsapp !== c.telefono) { <div class="text-muted">WhatsApp {{ c.whatsapp }}</div> }</td>
+                  <td>{{ c.correo || '—' }}</td>
+                  <td class="table-actions">
+                    <div class="prov-actions">
+                      @if (enlaceLlamar(c.telefono); as href) {
+                        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="href" [attr.aria-label]="('Llamar a' | t) + ' ' + c.nombre"><app-icon name="phone" [size]="15" /></a>
+                      }
+                      @if (enlaceWhatsapp(c.whatsapp || c.telefono); as href) {
+                        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="href" target="_blank" rel="noopener" [attr.aria-label]="('WhatsApp a' | t) + ' ' + c.nombre"><app-icon name="message-circle" [size]="15" /></a>
+                      }
+                      @if (enlaceCorreo(c.correo); as href) {
+                        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="href" [attr.aria-label]="('Escribir a' | t) + ' ' + c.nombre"><app-icon name="mail" [size]="15" /></a>
+                      }
+                      @if (puedeOperar()) {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="nuevoContacto(c)">{{ 'Editar' | t }}</button>
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar('contacto', c.id)">{{ 'Eliminar' | t }}</button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Trabajos -->
+  @if (tab() === 'trabajos') {
+    <section class="sgc-card prov-panel">
+      @if (puedeOperar()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevoTrabajo()">
+          <app-icon name="plus" [size]="16" /> {{ 'Nuevo trabajo' | t }}
+        </button>
+      }
+      @if (trabajos().length === 0) {
+        <p class="table-empty">{{ 'Sin trabajos registrados.' | t }}</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Trabajo' | t }}</th><th>{{ 'Estado' | t }}</th><th class="text-right">{{ 'Costo' | t }}</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (t of trabajos(); track t.id) {
+                <tr>
+                  <td>{{ t.fecha ? formatFecha(t.fecha) : '—' }}</td>
+                  <td>
+                    <strong>{{ t.titulo }}</strong>
+                    @if (t.descripcion) { <div class="text-muted">{{ t.descripcion }}</div> }
+                  </td>
+                  <td><span class="sgc-badge sgc-badge--info">{{ etiquetaTrabajo(t.estado) | t }}</span></td>
+                  <td class="text-right tnum">{{ t.costo !== null ? moneda(t.moneda) + ' ' + (t.costo | number:'1.2-2') : '—' }}</td>
+                  <td class="table-actions">
+                    @if (puedeOperar()) {
+                      <div class="prov-actions">
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="nuevoTrabajo(t)">{{ 'Editar' | t }}</button>
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar('trabajo', t.id)">{{ 'Eliminar' | t }}</button>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Facturas -->
+  @if (tab() === 'facturas') {
+    <section class="sgc-card prov-panel">
+      @if (puedeOperar()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevaFactura()">
+          <app-icon name="plus" [size]="16" /> {{ 'Nueva factura' | t }}
+        </button>
+      }
+      @if (facturas().length === 0) {
+        <p class="table-empty">{{ 'Sin facturas registradas.' | t }}</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr><th>{{ 'Número' | t }}</th><th>{{ 'Fecha' | t }}</th><th class="text-right">{{ 'Monto' | t }}</th><th class="text-right">{{ 'ITBIS' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (f of facturas(); track f.id) {
+                <tr>
+                  <td>
+                    {{ f.numero }}
+                    @if (f.trabajo_id) { <div class="text-muted">{{ nombreTrabajo(f.trabajo_id) }}</div> }
+                  </td>
+                  <td>{{ f.fecha ? formatFecha(f.fecha) : '—' }}</td>
+                  <td class="text-right tnum">{{ f.monto !== null ? moneda(f.moneda) + ' ' + (f.monto | number:'1.2-2') : '—' }}</td>
+                  <td class="text-right tnum">{{ f.itbis !== null ? (f.itbis | number:'1.2-2') : '—' }}</td>
+                  <td><span class="sgc-badge" [class]="'sgc-badge sgc-badge--' + tonoFactura(f.estado)">{{ etiquetaFactura(f.estado) | t }}</span></td>
+                  <td class="table-actions">
+                    <div class="prov-actions">
+                      @if (f.archivo_path) {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirFactura(f)">
+                          <app-icon name="file" [size]="15" /> {{ 'Ver archivo' | t }}
+                        </button>
+                      }
+                      @if (puedeOperar()) {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="nuevaFactura(f)">{{ 'Editar' | t }}</button>
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar('factura', f.id)">{{ 'Eliminar' | t }}</button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Cotizaciones y compras vinculadas -->
+  @if (tab() === 'vinculados') {
+    <section class="sgc-card prov-panel">
+      <h2 class="page-title">{{ 'Cotizaciones' | t }}</h2>
+      @if (cotizaciones().length === 0) {
+        <p class="table-empty">{{ 'Sin cotizaciones vinculadas.' | t }}</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>{{ 'Título' | t }}</th><th>{{ 'Fecha' | t }}</th><th class="text-right">{{ 'Total' | t }}</th><th></th></tr></thead>
+            <tbody>
+              @for (c of cotizaciones(); track c.id) {
+                <tr>
+                  <td><a [routerLink]="['/tecnologia/cotizaciones']" [queryParams]="{ id: c.id }">{{ c.titulo }}</a></td>
+                  <td>{{ c.fecha ? formatFecha(c.fecha) : '—' }}</td>
+                  <td class="text-right tnum">{{ c.total !== null ? moneda(c.moneda) + ' ' + (c.total | number:'1.2-2') : '—' }}</td>
+                  <td class="table-actions">
+                    @if (puedeOperar()) {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="desvincular({ cotizacionId: c.id })">{{ 'Desvincular' | t }}</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+    <section class="sgc-card prov-panel">
+      <h2 class="page-title">{{ 'Compras tecnológicas' | t }}</h2>
+      @if (compras().length === 0) {
+        <p class="table-empty">{{ 'Sin compras vinculadas.' | t }}</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>{{ 'Fecha' | t }}</th><th>{{ 'Estado' | t }}</th><th>{{ 'Notas' | t }}</th><th></th></tr></thead>
+            <tbody>
+              @for (c of compras(); track c.id) {
+                <tr>
+                  <td><a [routerLink]="['/tecnologia/compras']" [queryParams]="{ id: c.id }">{{ formatFecha(c.created_at) }}</a></td>
+                  <td>{{ c.estado }}</td>
+                  <td>{{ c.notas || '—' }}</td>
+                  <td class="table-actions">
+                    @if (puedeOperar()) {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="desvincular({ solicitudCompraId: c.id })">{{ 'Desvincular' | t }}</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Notas -->
+  @if (tab() === 'notas') {
+    <section class="sgc-card prov-panel">
+      <div class="sgc-field">
+        <label for="prov-notas">{{ 'Notas' | t }}</label>
+        <textarea id="prov-notas" rows="8" [formControl]="notasForm" [readOnly]="!puedeOperar()"></textarea>
+      </div>
+      @if (puedeOperar()) {
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardando()" (click)="guardarNotas()">{{ 'Guardar notas' | t }}</button>
+        </div>
+      }
+    </section>
+  }
+}
+
+<!-- Drawer: proveedor -->
+<app-form-drawer [title]="'Editar proveedor' | t" [open]="drawer() === 'proveedor'" (closed)="cerrarDrawer()">
+  <form [formGroup]="formProveedor" (ngSubmit)="guardarProveedor()">
+    <div class="sgc-field">
+      <label for="fp-nombre">{{ 'Nombre' | t }} *</label>
+      <input id="fp-nombre" type="text" formControlName="nombre" />
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="fp-comercial">{{ 'Nombre comercial' | t }}</label><input id="fp-comercial" type="text" formControlName="nombre_comercial" /></div>
+      <div class="sgc-field"><label for="fp-rnc">{{ 'RNC' | t }}</label><input id="fp-rnc" type="text" formControlName="rnc" /></div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="fp-cat">{{ 'Categoría' | t }}</label>
+        <select id="fp-cat" formControlName="categoria_id">
+          <option [ngValue]="null">{{ 'Sin categoría' | t }}</option>
+          @for (c of categorias(); track c.id) { <option [ngValue]="c.id">{{ c.nombre | t }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="fp-estado">{{ 'Estado' | t }}</label>
+        <select id="fp-estado" formControlName="estado">
+          <option value="activo">{{ 'Activo' | t }}</option>
+          <option value="inactivo">{{ 'Inactivo' | t }}</option>
+        </select>
+      </div>
+      <div class="sgc-field"><label for="fp-val">{{ 'Valoración (1–5)' | t }}</label><input id="fp-val" type="number" min="1" max="5" step="1" formControlName="valoracion" /></div>
+    </div>
+    <div class="sgc-field"><label for="fp-serv">{{ 'Qué hace / servicio' | t }}</label><input id="fp-serv" type="text" formControlName="servicio" /></div>
+    <div class="sgc-field"><label for="fp-etq">{{ 'Etiquetas (separadas por coma)' | t }}</label><input id="fp-etq" type="text" formControlName="etiquetas" /></div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="fp-dir">{{ 'Dirección' | t }}</label><input id="fp-dir" type="text" formControlName="direccion" /></div>
+      <div class="sgc-field"><label for="fp-ciudad">{{ 'Ciudad' | t }}</label><input id="fp-ciudad" type="text" formControlName="ciudad" /></div>
+    </div>
+    <div class="sgc-field"><label for="fp-web">{{ 'Sitio web' | t }}</label><input id="fp-web" type="url" formControlName="web" /></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- Drawer: contacto -->
+<app-form-drawer [title]="(editandoId() ? 'Editar contacto' : 'Nuevo contacto') | t" [open]="drawer() === 'contacto'" (closed)="cerrarDrawer()">
+  <form [formGroup]="formContacto" (ngSubmit)="guardarContacto()">
+    <div class="sgc-field"><label for="fc-nombre">{{ 'Nombre' | t }} *</label><input id="fc-nombre" type="text" formControlName="nombre" /></div>
+    <div class="sgc-field"><label for="fc-cargo">{{ 'Cargo' | t }}</label><input id="fc-cargo" type="text" formControlName="cargo" /></div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="fc-tel">{{ 'Teléfono' | t }}</label><input id="fc-tel" type="tel" formControlName="telefono" /></div>
+      <div class="sgc-field"><label for="fc-wa">{{ 'WhatsApp' | t }}</label><input id="fc-wa" type="tel" formControlName="whatsapp" /></div>
+    </div>
+    <div class="sgc-field"><label for="fc-mail">{{ 'Correo' | t }}</label><input id="fc-mail" type="email" formControlName="correo" /></div>
+    <div class="sgc-field">
+      <label><input type="checkbox" formControlName="principal" /> {{ 'Contacto principal' | t }}</label>
+    </div>
+    <div class="sgc-field"><label for="fc-notas">{{ 'Notas' | t }}</label><textarea id="fc-notas" formControlName="notas" rows="2"></textarea></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- Drawer: trabajo -->
+<app-form-drawer [title]="(editandoId() ? 'Editar trabajo' : 'Nuevo trabajo') | t" [open]="drawer() === 'trabajo'" (closed)="cerrarDrawer()">
+  <form [formGroup]="formTrabajo" (ngSubmit)="guardarTrabajo()">
+    <div class="sgc-field"><label for="ft-titulo">{{ 'Título' | t }} *</label><input id="ft-titulo" type="text" formControlName="titulo" [placeholder]="'Ej.: Instalación de cerradura inteligente' | t" /></div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="ft-fecha">{{ 'Fecha' | t }}</label><input id="ft-fecha" type="date" formControlName="fecha" /></div>
+      <div class="sgc-field">
+        <label for="ft-estado">{{ 'Estado' | t }}</label>
+        <select id="ft-estado" formControlName="estado">
+          <option value="cotizado">{{ 'Cotizado' | t }}</option>
+          <option value="en_curso">{{ 'En curso' | t }}</option>
+          <option value="completado">{{ 'Completado' | t }}</option>
+          <option value="cancelado">{{ 'Cancelado' | t }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="ft-costo">{{ 'Costo' | t }}</label><input id="ft-costo" type="number" min="0" step="0.01" formControlName="costo" /></div>
+      <div class="sgc-field">
+        <label for="ft-moneda">{{ 'Moneda' | t }}</label>
+        <select id="ft-moneda" formControlName="moneda"><option value="DOP">{{ 'RD$ (DOP)' | t }}</option><option value="USD">{{ 'US$ (USD)' | t }}</option></select>
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="ft-cot">{{ 'Cotización vinculada' | t }}</label>
+      <select id="ft-cot" formControlName="cotizacion_id">
+        <option [ngValue]="null">{{ 'Ninguna' | t }}</option>
+        @for (c of cotizaciones(); track c.id) { <option [ngValue]="c.id">{{ c.titulo }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="ft-com">{{ 'Compra tecnológica vinculada' | t }}</label>
+      <select id="ft-com" formControlName="solicitud_compra_id">
+        <option [ngValue]="null">{{ 'Ninguna' | t }}</option>
+        @for (c of compras(); track c.id) { <option [ngValue]="c.id">{{ formatFecha(c.created_at) }} · {{ c.notas || c.estado }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field"><label for="ft-desc">{{ 'Descripción' | t }}</label><textarea id="ft-desc" formControlName="descripcion" rows="3"></textarea></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- Drawer: factura -->
+<app-form-drawer [title]="(editandoId() ? 'Editar factura' : 'Nueva factura') | t" [open]="drawer() === 'factura'" (closed)="cerrarDrawer()">
+  <form [formGroup]="formFactura" (ngSubmit)="guardarFactura()">
+    <div class="sgc-field"><label for="ff-num">{{ 'Número de factura' | t }} *</label><input id="ff-num" type="text" formControlName="numero" /></div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="ff-fecha">{{ 'Fecha' | t }}</label><input id="ff-fecha" type="date" formControlName="fecha" /></div>
+      <div class="sgc-field">
+        <label for="ff-estado">{{ 'Estado' | t }}</label>
+        <select id="ff-estado" formControlName="estado">
+          <option value="pendiente">{{ 'Pendiente' | t }}</option>
+          <option value="pagada">{{ 'Pagada' | t }}</option>
+          <option value="anulada">{{ 'Anulada' | t }}</option>
+        </select>
+      </div>
+      <div class="sgc-field"><label for="ff-pago">{{ 'Fecha de pago' | t }}</label><input id="ff-pago" type="date" formControlName="fecha_pago" /></div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="ff-monto">{{ 'Monto' | t }}</label><input id="ff-monto" type="number" min="0" step="0.01" formControlName="monto" /></div>
+      <div class="sgc-field"><label for="ff-itbis">{{ 'ITBIS' | t }}</label><input id="ff-itbis" type="number" min="0" step="0.01" formControlName="itbis" /></div>
+      <div class="sgc-field">
+        <label for="ff-moneda">{{ 'Moneda' | t }}</label>
+        <select id="ff-moneda" formControlName="moneda"><option value="DOP">{{ 'RD$ (DOP)' | t }}</option><option value="USD">{{ 'US$ (USD)' | t }}</option></select>
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="ff-trabajo">{{ 'Trabajo relacionado' | t }}</label>
+      <select id="ff-trabajo" formControlName="trabajo_id">
+        <option [ngValue]="null">{{ 'Ninguno' | t }}</option>
+        @for (t of trabajos(); track t.id) { <option [ngValue]="t.id">{{ t.titulo }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="ff-cot">{{ 'Cotización vinculada' | t }}</label>
+      <select id="ff-cot" formControlName="cotizacion_id">
+        <option [ngValue]="null">{{ 'Ninguna' | t }}</option>
+        @for (c of cotizaciones(); track c.id) { <option [ngValue]="c.id">{{ c.titulo }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label>{{ 'Archivo de la factura (PDF o foto)' | t }}</label>
+      @if (archivoPendiente(); as f) {
+        <span class="text-muted">{{ f.name }}</span>
+      }
+      <app-file-upload accept="application/pdf,image/*" [max]="1" [label]="'Arrastra o toca para subir la factura' | t" (add)="onArchivoAdd($event)" />
+    </div>
+    <div class="sgc-field"><label for="ff-notas">{{ 'Notas' | t }}</label><textarea id="ff-notas" formControlName="notas" rows="2"></textarea></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()">{{ 'Cancelar' | t }}</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ (guardando() ? 'Guardando…' : 'Guardar') | t }}</button>
+    </div>
+  </form>
+</app-form-drawer>

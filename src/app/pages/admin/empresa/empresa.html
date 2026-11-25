@@ -56,9 +56,14 @@
               } @else {
                 <div class="empresa-logo-actual empresa-logo-actual--vacio">{{ 'Sin logo' | t }}</div>
               }
-              <app-file-upload [max]="1" accept="image/*" (add)="onLogoAdd($event)" />
+              <app-file-upload [max]="1" accept="image/png,image/jpeg,image/webp" [showCount]="false" [hint]="'PNG, JPG o WebP de hasta 5 MB' | t" (add)="onLogoAdd($event)" />
             </div>
             @if (subiendoLogo()) { <span class="field-hint">{{ 'Subiendo…' | t }}</span> }
+            @if (logoError()) {
+              <span class="field-error" role="alert">{{ logoError() | t }}
+                <button type="button" class="btn btn-secondary btn-sm" (click)="reintentarLogo()">{{ 'Reintentar' | t }}</button>
+              </span>
+            }
           </div>
         </section>
 
