@@ -112,7 +112,7 @@ function resumenBorrador(cfg: ToolDef, input: Any): string {
   return cfg.write!.tipo;
 }
 
-async function ejecutarTool(sgc: Any, cfg: ToolDef, input: Any, cap: Cap): Promise<{ ok: boolean; out: Any }> {
+async function ejecutarTool(sgc: Any, cfg: ToolDef, input: Any, cap: Cap, cliente?: Any): Promise<{ ok: boolean; out: Any }> {
   if (cfg.escrituraDirecta) {
     // CX2 — tercer modo, además de lectura y borrador: ejecuta YA MISMO (nunca un
     // borrador), con el cliente del usuario — RLS/chequeos del RPC deciden, nunca
@@ -151,7 +151,9 @@ async function ejecutarTool(sgc: Any, cfg: ToolDef, input: Any, cap: Cap): Promi
     };
   }
   // Lectura — mismo camino que Compa (RPC + map del registro compartido).
-  const { data, error } = await ejecutarHerramientaLectura(sgc, cfg, input);
+  // Las herramientas Odoo invocan la edge `odoo-api` (supabase.functions.invoke): `sgc` es solo PostgREST y no tiene `.functions`
+  // (error «reading 'invoke'»), así que reciben el cliente completo del usuario.
+  const { data, error } = await ejecutarHerramientaLectura(cfg.odoo && cliente ? cliente : sgc, cfg, input);
   if (error) {
     const msg = error.message || "";
     const esPermiso = /42501|permission|no autorizado|autorizad/i.test(msg);
@@ -258,7 +260,7 @@ Deno.serve(
 
           try {
             const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error("tiempo máximo excedido")), MAX_MS));
-            const resultado = await Promise.race([ejecutarTool(sgc, cfgTool, args, capObj), timeout]);
+            const resultado = await Promise.race([ejecutarTool(sgc, cfgTool, args, capObj, supabase), timeout]);
             const { texto, truncado } = recortar(JSON.stringify(resultado.out));
             await registrarLlamada(
               sgc, nombre, resultado.ok, resultado.ok ? null : texto.slice(0, 300),
