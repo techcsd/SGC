@@ -60,7 +60,9 @@ async function proyectarStock(admin: Any, odoo: OdooClient, instancia: string): 
   } catch (e) { console.error("[odoo-conciliar] importar catalogo", e instanceof Error ? e.message : e); }
   let n = 0;
   for (const l of lecturas) {
-    await admin.rpc("odoo_stock_proyectar", { p_bodega: l.bodegaId, p_filas: l.quants.map((q) => ({ odoo_product_id: q.productId, cantidad: q.cantidad })) });
+    const { error } = await admin.rpc("odoo_stock_proyectar", { p_bodega: l.bodegaId, p_filas: l.quants.map((q) => ({ odoo_product_id: q.productId, cantidad: q.cantidad })) });
+    // Un error aquí dejaba un almacén desactualizado en silencio (saldo negativo de Odoo vs CHECK cantidad>=0): se registra.
+    if (error) { console.error("[odoo-conciliar] proyectar stock", l.bodegaId, error.message); continue; }
     n++;
   }
   return n;
