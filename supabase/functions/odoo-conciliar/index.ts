@@ -13,9 +13,10 @@ import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
 import {
   avanzarMarca, claveDiscrepancia, conciliarSaldos, conciliarSalidas, contarPorTipo, fueraDeCanal, HORAS_TRANSITO_MAX,
-  leerPickingsFueraDeCanal, leerQuants, leerTrasladosSgc, type Discrepancia, type PickingOdoo, type SalidaConciliable,
+  leerPickingsFueraDeCanal, leerQuants, leerTrasladosSgc, type Discrepancia, type PickingOdoo, type SalidaConciliable, type SaldoOdoo,
 } from "../_shared/odoo-conciliacion.ts";
 import { leerPendientes } from "../_shared/odoo-pendientes.ts";
+import { leerProductosParaImportar, productosDesconocidos } from "../_shared/odoo-catalogo.ts";
 import { aplicarReglas, planificarReglas } from "../_shared/odoo-reabastecimiento.ts";
 
 const SUPABASE_URL = envRequerido("SUPABASE_URL");
@@ -25,17 +26,41 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
+/** Tope de productos nuevos importados por corrida del sondeo (cada 5 min): evita una avalancha si Odoo trae miles de golpe. */
+const MAX_IMPORTAR_POR_CORRIDA = 500;
+
 const aFilaDb = (d: Discrepancia) => ({ clave: claveDiscrepancia(d), tipo: d.tipo, salida_id: d.salidaId ?? null, picking_id: d.pickingId ?? null, detalle: d.detalle });
 
-/** DS-29: stock_por_bodega como proyección de Odoo, solo para bodegas con fuente_odoo. Devuelve cuántas bodegas proyectó. */
+/** DS-29: stock_por_bodega como proyección de Odoo, solo para bodegas con fuente_odoo. Devuelve cuántas bodegas proyectó.
+ *  Hotfix Odoo 19: Odoo manda el catálogo — los productos con stock que SGC no conoce se importan como artículos antes de proyectar
+ *  (si no, su stock se descartaba en silencio y el almacén mostraba 0). La importación es best-effort: nunca tumba la proyección. */
 async function proyectarStock(admin: Any, odoo: OdooClient, instancia: string): Promise<number> {
   const { data: cortes } = await admin.from("odoo_corte_bodega").select("bodega_id").eq("fuente_odoo", true);
-  let n = 0;
+  const lecturas: { bodegaId: string; quants: SaldoOdoo[] }[] = [];
   for (const c of (cortes ?? []) as Any[]) {
     const { data: b } = await admin.from("bodegas").select("odoo_location_id").eq("id", c.bodega_id).eq("odoo_instancia_id", instancia).maybeSingle();
     if (!b?.odoo_location_id) continue;
-    const quants = await leerQuants(odoo, [Number(b.odoo_location_id)]);
-    await admin.rpc("odoo_stock_proyectar", { p_bodega: c.bodega_id, p_filas: quants.map((q) => ({ odoo_product_id: q.productId, cantidad: q.cantidad })) });
+    lecturas.push({ bodegaId: c.bodega_id, quants: await leerQuants(odoo, [Number(b.odoo_location_id)]) });
+  }
+  try {
+    const conStock = new Set(lecturas.flatMap((l) => l.quants.filter((q) => q.cantidad > 0).map((q) => q.productId)));
+    const conocidos = new Set<number>();
+    const ids = [...conStock];
+    for (let i = 0; i < ids.length; i += 500) {
+      const { data } = await admin.from("articulos").select("odoo_product_id").in("odoo_product_id", ids.slice(i, i + 500));
+      for (const r of (data ?? []) as Any[]) conocidos.add(Number(r.odoo_product_id));
+    }
+    const nuevos = productosDesconocidos(conStock, conocidos).slice(0, MAX_IMPORTAR_POR_CORRIDA);
+    if (nuevos.length) {
+      const filas = await leerProductosParaImportar(odoo, nuevos);
+      const { data: r, error } = await admin.rpc("odoo_articulos_importar", { p_instancia: instancia, p_filas: filas });
+      if (error) console.error("[odoo-conciliar] importar catalogo:", error.message);
+      else console.log("[odoo-conciliar] catalogo desde Odoo:", JSON.stringify(r));
+    }
+  } catch (e) { console.error("[odoo-conciliar] importar catalogo", e instanceof Error ? e.message : e); }
+  let n = 0;
+  for (const l of lecturas) {
+    await admin.rpc("odoo_stock_proyectar", { p_bodega: l.bodegaId, p_filas: l.quants.map((q) => ({ odoo_product_id: q.productId, cantidad: q.cantidad })) });
     n++;
   }
   return n;
