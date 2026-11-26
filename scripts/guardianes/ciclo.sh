@@ -44,7 +44,7 @@ GASTO_HOY="$(jq -r '.gasto_ia_hoy_usd // .gasto_hoy_usd // 0' "$W/tarea.json")"
 if awk "BEGIN{exit !($GASTO_HOY >= $PRESUPUESTO)}"; then evento presupuesto_agotado "$(jq -nc --argjson g "$GASTO_HOY" --argjson p "$PRESUPUESTO" '{gasto:$g,presupuesto:$p}')"; salir_limpio "presupuesto IA diario agotado"; fi
 ESTADO_ACTUAL="$(jq -r '.estado // "nueva"' "$W/tarea.json")"
 case "$ESTADO_ACTUAL" in nueva|analizando|plan_listo|en_codigo) ;; *) salir_limpio "la tarea está en estado '$ESTADO_ACTUAL': no corresponde correr el Ingeniero";; esac
-jq -r '.reporte // .descripcion // .texto // ""' "$W/tarea.json" > "$W/reporte.txt"
+jq -r '.texto_origen // .reporte // .descripcion // .texto // ""' "$W/tarea.json" > "$W/reporte.txt" # ing_tarea_leer entrega el texto en texto_origen (armar-prompt lo encapsula; no usar texto_origen_encapsulado)
 TIPO="$(jq -r '.tipo // "bug"' "$W/tarea.json")"
 INTENTOS="$(jq -r '.intentos // 0' "$W/tarea.json")"
 SLUG="$(jq -r '.titulo // "cambio"' "$W/tarea.json" | iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | cut -c1-30 | sed 's/^-//;s/-$//')"
