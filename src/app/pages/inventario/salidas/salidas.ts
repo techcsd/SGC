@@ -35,8 +35,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { OdooProductoPicker } from '../../../../shared/ui/odoo-producto-picker/odoo-producto-picker';
 import { StockService } from '../../../../shared/services/stock.service';
 import { OdooApiService } from '../../../../shared/services/odoo-api.service';
+import { OdooProductoSolicitudesService } from '../../../../shared/services/odoo-producto-solicitudes.service';
+import { OdooProducto, OdooProductoInventarioSeleccionado } from '../../../../shared/models/odoo.model';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
@@ -64,7 +67,7 @@ interface EstadoSalidas {
 
 @Component({
   selector: 'app-salidas',
-  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon, UserPicker, StaggerDirective, TranslatePipe],
+  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, OdooProductoPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon, UserPicker, StaggerDirective, TranslatePipe],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,6 +83,7 @@ export class Salidas implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private stockService = inject(StockService);
   private odooApi = inject(OdooApiService);
+  private odooSolicitudes = inject(OdooProductoSolicitudesService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
   private motion = inject(MotionService);
@@ -158,6 +162,8 @@ export class Salidas implements OnInit {
   stockOrigen = signal<'odoo' | 'sgc' | 'caido' | 'cargando'>('sgc');
   stockConsultadoEn = signal<string | null>(null);
   stockOdooError = signal('');
+  /** Productos de Odoo elegidos en el conduce, indexados por articulo_id (chip + existencia en resultados). */
+  odooElegidos = signal<Record<string, OdooProducto>>({});
   // Foto de evidencia opcional (paridad con la app de campo).
   fotoFile = signal<File | null>(null);
   fotoPreview = signal<string | null>(null);
@@ -941,6 +947,59 @@ export class Salidas implements OnInit {
   /** T13b — selección desde el picker compartido (salidas: sin "Otro"). */
   onArticuloSelect(index: number, sel: ArticuloPickerSelection) {
     this.updateItemArticulo(index, sel.articuloId ?? '');
+  }
+
+  /** Catálogo directo: el usuario eligió un product.product viendo la existencia viva de la bodega. */
+  onOdooArticuloSelect(index: number, sel: OdooProductoInventarioSeleccionado) {
+    const producto = { ...sel.producto };
+    this.odooElegidos.update((m) => ({ ...m, [sel.articuloId]: producto }));
+    if (typeof sel.producto.disponible === 'number') {
+      this.stockMap.update((m) => ({ ...m, [sel.articuloId]: sel.producto.disponible ?? 0 }));
+    }
+    this.updateItemArticulo(index, sel.articuloId);
+  }
+
+  odooValue(articuloId: string | null | undefined): OdooProducto | null {
+    if (!articuloId) return null;
+    const picked = this.odooElegidos()[articuloId];
+    if (picked) {
+      const disp = this.stockItem(articuloId);
+      return disp == null ? picked : { ...picked, disponible: disp };
+    }
+    const a = this.articuloById(articuloId);
+    if (!a) return null;
+    return {
+      id: a.odoo_product_id ?? 0,
+      nombre: a.nombre,
+      codigo: a.codigo,
+      unidad: a.unidad,
+      categoria: a.categoria?.nombre ?? null,
+      disponible: this.stockItem(articuloId),
+    };
+  }
+
+  onOdooLimpiar(index: number) {
+    const id = this.formItems()[index]?.articulo_id;
+    if (id) {
+      this.odooElegidos.update((m) => {
+        const next = { ...m };
+        delete next[id];
+        return next;
+      });
+    }
+    this.updateItemArticulo(index, '');
+  }
+
+  async onSolicitarAltaArticulo(termino: string) {
+    try {
+      await this.odooSolicitudes.crear(termino, termino);
+      this.toast.success(
+        this.i18n.t('Solicitud enviada.'),
+        this.i18n.t('Contabilidad debe aprobar el alta en Odoo antes de usar este material en un conduce.'),
+      );
+    } catch (e: unknown) {
+      this.toast.error(e instanceof Error ? e.message : this.i18n.t('No se pudo enviar la solicitud de alta.'));
+    }
   }
 
   // ── BM5 — empaque: `cantidad` SIEMPRE en unidad base; el usuario captura en la

@@ -506,8 +506,8 @@
     },
     {
       "pantalla": "compras/productos-por-dar-de-alta",
-      "total": 43,
-      "cubiertos": 43,
+      "total": 44,
+      "cubiertos": 44,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1006,8 +1006,8 @@
     },
     {
       "pantalla": "inventario/articulos",
-      "total": 93,
-      "cubiertos": 93,
+      "total": 94,
+      "cubiertos": 94,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1146,8 +1146,8 @@
     },
     {
       "pantalla": "inventario/material-no-catalogado",
-      "total": 39,
-      "cubiertos": 39,
+      "total": 40,
+      "cubiertos": 40,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1246,8 +1246,8 @@
     },
     {
       "pantalla": "inventario/salidas",
-      "total": 138,
-      "cubiertos": 138,
+      "total": 139,
+      "cubiertos": 139,
       "sin": 0,
       "pct": 100,
       "enScope": true,

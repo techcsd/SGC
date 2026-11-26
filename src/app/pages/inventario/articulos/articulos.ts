@@ -37,6 +37,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { OdooApiService } from '../../../../shared/services/odoo-api.service';
 
 @Component({
   selector: 'app-articulos',
@@ -53,6 +54,7 @@ export class Articulos implements OnInit {
   private userService = inject(UserService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
+  private odooApi = inject(OdooApiService);
   // Z5(d) — datos de prueba (marcar/ocultar/eliminar), patrón de vehículos.
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
@@ -67,6 +69,9 @@ export class Articulos implements OnInit {
 
   // ── Data state ──────────────────────────────────────────
   articles = signal<Articulo[]>([]);
+  catalogoOrigen = signal<'odoo' | 'snapshot' | 'cargando'>('cargando');
+  catalogoConsultadoEn = signal<string | null>(null);
+  catalogoAviso = signal('');
 
   // ── Export a Excel (con seccionado por categoría / propiedad / estado / stock) ──
   private stockStatusLabel(a: Articulo): string {
@@ -229,8 +234,21 @@ export class Articulos implements OnInit {
       this.stockRaw.set(stock);
       this.unidades.set(unidades);
       this.resolverThumbs();
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : this.i18n.t('Error al cargar los datos.'));
+      try {
+        const r = await this.odooApi.listarProductos({ tamano: 1, refrescar: true });
+        this.catalogoOrigen.set('odoo');
+        this.catalogoConsultadoEn.set(r.consultado_en);
+        this.catalogoAviso.set('');
+      } catch (e: unknown) {
+        this.catalogoOrigen.set('snapshot');
+        const masReciente = arts
+          .map((a) => a.odoo_snapshot_en)
+          .filter((x): x is string => !!x)
+          .sort()
+          .at(-1) ?? null;
+        this.catalogoConsultadoEn.set(masReciente);
+        this.catalogoAviso.set(e instanceof Error ? e.message : this.i18n.t('Odoo no responde. Se muestra la última proyección guardada. No se pueden dar de alta ni despachar artículos nuevos hasta que Odoo vuelva.'));
+      }
     } finally {
       this.loading.set(false);
     }

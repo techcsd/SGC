@@ -16,6 +16,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { OdooApiService } from '../../../../shared/services/odoo-api.service';
+import { OdooCategoria } from '../../../../shared/models/odoo.model';
 
 @Component({
   selector: 'app-inventario-categorias',
@@ -28,9 +30,13 @@ export class InventarioCategorias implements OnInit {
   private categoriasService = inject(CategoriasService);
   private toast = inject(ToastService);
   protected i18n = inject(I18nService);
+  private odooApi = inject(OdooApiService);
 
   // ── Data state ──────────────────────────────────────────
   categorias = signal<Categoria[]>([]);
+  categoriasOdoo = signal<OdooCategoria[]>([]);
+  origenOdoo = signal(false);
+  avisoOdoo = signal('');
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -65,11 +71,20 @@ export class InventarioCategorias implements OnInit {
   private async loadAll() {
     this.loading.set(true);
     this.error.set('');
+    this.avisoOdoo.set('');
     try {
-      const data = await this.categoriasService.getAllAdmin();
-      this.categorias.set(data);
+      const r = await this.odooApi.listarCategorias(true);
+      this.categoriasOdoo.set(r.data.categorias);
+      this.origenOdoo.set(true);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las categorías.');
+      this.origenOdoo.set(false);
+      this.avisoOdoo.set(e instanceof Error ? e.message : this.i18n.t('Odoo no responde. Se muestra la lista local, solo lectura.'));
+      try {
+        const data = await this.categoriasService.getAllAdmin();
+        this.categorias.set(data);
+      } catch (e2: unknown) {
+        this.error.set(e2 instanceof Error ? e2.message : 'Error al cargar las categorías.');
+      }
     } finally {
       this.loading.set(false);
     }

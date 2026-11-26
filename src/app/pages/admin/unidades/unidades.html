@@ -1,14 +1,17 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">{{ 'Unidades de medida' | t }}</h1>
-    <span class="page-count">{{ unidades().length }} {{ 'unidad' | t }}{{ unidades().length !== 1 ? 'es' : '' }}</span>
+    <span class="page-count">{{ (origenOdoo() ? unidadesOdoo().length : unidades().length) }} {{ 'unidad' | t }}{{ (origenOdoo() ? unidadesOdoo().length : unidades().length) !== 1 ? 'es' : '' }}</span>
   </div>
 </div>
 
 <p class="und-lead">
-  {{ 'Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra; desactiva las que no.' | t }}
+  {{ 'Las unidades de medida se leen de Odoo y no se editan en SGC.' | t }}
 </p>
-
+@if (avisoOdoo()) {
+  <div class="page-error" role="alert">{{ avisoOdoo() }}</div>
+}
+@if (!origenOdoo()) {
 <div class="und-add">
   <input
     class="und-add__input"
@@ -22,6 +25,7 @@
     {{ 'Agregar' | t }}
   </button>
 </div>
+}
 
 @if (error()) {
   <p class="und-error">{{ error() }}</p>
@@ -33,9 +37,22 @@
   <div class="table-scroll">
   <table class="und-table">
     <thead>
-      <tr><th>{{ 'Nombre' | t }}</th><th>{{ 'Código' | t }}</th><th>{{ 'Estado' | t }}</th><th></th></tr>
+      <tr>
+        <th>{{ 'Nombre' | t }}</th>
+        @if (!origenOdoo()) { <th>{{ 'Código' | t }}</th> }
+        <th>{{ 'Estado' | t }}</th>
+        @if (!origenOdoo()) { <th></th> }
+      </tr>
     </thead>
     <tbody>
+      @if (origenOdoo()) {
+        @for (u of unidadesOdoo(); track u.id) {
+          <tr>
+            <td>{{ u.nombre }}@if (u.categoria) { <span class="text-muted"> · {{ u.categoria }}</span> }</td>
+            <td><span class="und-badge und-badge--on">{{ 'Odoo' | t }}</span></td>
+          </tr>
+        }
+      } @else {
       @for (u of unidades(); track u.id) {
         <tr [class.und-row--off]="!u.activo">
           <td>
@@ -61,6 +78,7 @@
             }
           </td>
         </tr>
+      }
       }
     </tbody>
   </table>

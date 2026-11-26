@@ -76,9 +76,13 @@ export class ArticulosService {
       p_nota: formData.nota ?? null,
     });
     if (error) throw new Error(error.message);
-    const { id } = res as { id: string; codigo: string };
+    const r = res as { id?: string; codigo?: string; solicitud_id?: string; pendiente?: boolean; mensaje?: string };
+    if (r.pendiente || r.solicitud_id) {
+      throw new Error(r.mensaje ?? 'El artículo se pidió de alta en Odoo. Contabilidad debe aprobarlo antes de usarlo.');
+    }
+    if (!r.id) throw new Error('No se pudo crear el artículo.');
     // Completa los campos que el RPC no cubre (nunca copiamos código/imagen aquí).
-    return await this.update(id, {
+    return await this.update(r.id, {
       descripcion: formData.descripcion ?? null,
       stock_minimo: formData.stock_minimo,
       stock_maximo: formData.stock_maximo ?? null,
@@ -90,6 +94,35 @@ export class ArticulosService {
       unidad_paquete: formData.unidad_paquete ?? null, // BM5
       factor_paquete: formData.factor_paquete ?? null, // BM5
     });
+  }
+
+  /** Primera vez que se elige un producto de Odoo: upsert de la proyección en sgc.articulos. */
+  async upsertProyeccionOdoo(p: {
+    odoo_product_id: number;
+    nombre: string;
+    codigo?: string | null;
+    unidad?: string | null;
+    odoo_template_id?: number | null;
+    odoo_uom_id?: number | null;
+    odoo_categ_id?: number | null;
+    categoria_nombre?: string | null;
+    snapshot?: Record<string, unknown> | null;
+  }): Promise<{ id: string; creado: boolean; codigo: string }> {
+    const { data, error } = await this.supabase.client.rpc('upsert_articulo_proyeccion_odoo', {
+      p_odoo_product_id: p.odoo_product_id,
+      p_nombre: p.nombre,
+      p_codigo: p.codigo ?? null,
+      p_unidad: p.unidad ?? null,
+      p_odoo_template_id: p.odoo_template_id ?? null,
+      p_odoo_uom_id: p.odoo_uom_id ?? null,
+      p_odoo_categ_id: p.odoo_categ_id ?? null,
+      p_categoria_nombre: p.categoria_nombre ?? null,
+      p_snapshot: p.snapshot ?? null,
+    });
+    if (error) throw new Error(error.message);
+    const r = data as { id: string; creado: boolean; codigo: string };
+    if (!r?.id) throw new Error('No se pudo registrar el producto de Odoo en SGC.');
+    return r;
   }
 
   async update(id: string, formData: Partial<ArticuloFormData>): Promise<Articulo> {
