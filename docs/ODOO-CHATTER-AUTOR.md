@@ -20,9 +20,10 @@ Fecha: 8-nov-2026. Aplica a Odoo 17.0+e (Enterprise) de Constructora SD. Reutili
 
 ## 3. Cómo elegir el autor (orden de resolución)
 1. Usuario **interno y activo** de Odoo cuyo `login` = correo del usuario SGC → su contacto (7 de 7 resueltos en lectura real).
-2. Si no hay usuario: empleado (`hr.employee`) cuyo correo coincide → su `work_contact_id` (todos los 48 empleados lo tienen).
-3. Si no hay nada: publicar con la cuenta técnica y el nombre real en el cuerpo.
-Nunca usar un contacto cualquiera (proveedor/cliente) como autor. Siempre dejar "vía SGC" y el usuario real en el cuerpo: `create_uid` sigue siendo la cuenta técnica y la marca evita atribuir a alguien una acción que hizo el sistema.
+2. Si no hay usuario: empleado (`hr.employee`) cuya cédula (`identification_id`) coincide con la de SGC (con o sin guiones) → su `work_contact_id`.
+3. Si tampoco: empleado cuyo `work_email` coincide con el correo de SGC → su `work_contact_id` (todos los 48 empleados tienen contacto de trabajo; solo 17 tienen correo).
+4. Si no hay nada: publicar con la cuenta técnica y el nombre real en el cuerpo.
+Nunca usar un contacto cualquiera (proveedor/cliente) como autor. Siempre dejar "vía SGC" y el usuario real en el cuerpo: `create_uid` sigue siendo la cuenta técnica y la marca evita atribuir a alguien una acción que hizo el sistema. Si cédula o `work_email` devuelven más de un empleado, no se usa ese resultado y se sigue al siguiente paso.
 
 ## 4. ¿Hay que crear a todos los usuarios de SGC en Odoo?
 No. Datos medidos (solo lectura):
@@ -38,11 +39,11 @@ No. Datos medidos (solo lectura):
 Recomendación: reutilizar usuario → empleado → (opcional) contacto etiquetado; nunca crear usuarios. Mejorar la cobertura cruzando por cédula (`identification_id` del empleado contra la cédula de SGC) en lugar de solo por correo.
 **Verificado (8-nov-2026):** el contacto de trabajo de un empleado sin usuario funciona como `author_id`. Nota 99992 en el picking 871: autor "Edward Mota" (empleado, sin usuario en Odoo), `create_uid` = cuenta técnica, 0 correos y 0 notificaciones.
 **Cruce por cédula** (solo lectura): Odoo tiene 43 de 48 empleados con cédula válida (11 dígitos), pero en SGC solo 15 de 54 usuarios tienen cédula resoluble (14 en `usuarios.cedula` y 1 vía `empleados`; `empleados` tiene solo 4 filas). Resultado: **10 de 54 coinciden por cédula, los mismos 10 que por correo**. La cédula no sube la cobertura mientras SGC no la capture; con las 54 cédulas, hasta 43 empleados podrían casar.
-El código (`resolverAutorOdoo`) prueba en orden usuario interno por correo, empleado por cédula (con o sin guiones), empleado por correo, y cae a la cuenta técnica; si Odoo rechaza al autor reintenta una vez con la cuenta técnica y si no hay correo válido no manda `email_from`.
+El código (`resolverAutorOdoo`) prueba en orden usuario interno por correo, empleado por cédula (con o sin guiones), empleado por `work_email`, y cae a la cuenta técnica; si Odoo rechaza al autor reintenta una vez con la cuenta técnica y si no hay correo válido no manda `email_from`.
 Sin verificar: la regla de licencias por escrito con Odoo (las fuentes son foros y guías de terceros, ver abajo).
 
 ## 5. Código (SGC)
-`supabase/functions/_shared/odoo-traslados.ts`: `textoAuditoria` (texto plano), `remitenteAuditoria`, `resolverAutorOdoo`, `auditar`. `_shared/odoo-client.ts`: permiso de lectura `res.users.search_read`. Tests: 28 en `_shared/odoo-traslados.test.ts` (4 del autor).
+`supabase/functions/_shared/odoo-traslados.ts`: `textoChatter` (texto plano), `publicarNotaPicking`, `resolverAutorOdoo`. `_shared/odoo-client.ts`: permiso de lectura `res.users.search_read`. Tests en `_shared/odoo-traslados.test.ts` (autor: usuario interno, cédula, `work_email`, `work_email` ambiguo y cuenta técnica).
 
 ## 6. Fuentes
 - [How to post a message to chatter in Odoo 17 (Cybrosys)](https://cybrosys.com/blog/how-to-post-a-message-to-chatter-in-odoo-17)
