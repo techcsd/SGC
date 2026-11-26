@@ -61,4 +61,18 @@ export class OdooProductoSolicitudesService {
     if (!resultado.ok) throw new Error(resultado.motivo ?? 'No se pudo resolver la solicitud.');
     this.notificaciones.refresh();
   }
+
+  async aprobar(solicitudId: string, datos: { nombre?: string | null; codigo?: string | null; odoo_categ_id?: number | null; odoo_uom_id?: number | null } = {}): Promise<void> {
+    const { data, error } = await this.supabase.client.rpc('aprobar_solicitud_producto_odoo', {
+      p_solicitud_id: solicitudId,
+      p_nombre: datos.nombre ?? null,
+      p_codigo: datos.codigo ?? null,
+      p_odoo_categ_id: datos.odoo_categ_id ?? null,
+      p_odoo_uom_id: datos.odoo_uom_id ?? null,
+    });
+    if (error) throw new Error(error.message);
+    const r = data as { ok: boolean; motivo?: string };
+    if (r && r.ok === false) throw new Error(r.motivo ?? 'No se pudo aprobar la solicitud.');
+    this.notificaciones.refresh();
+  }
 }

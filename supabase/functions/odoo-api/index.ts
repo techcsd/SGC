@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { configDesdeEntorno, OdooClient, OdooError, verificarHostEscritura } from "../_shared/odoo-client.ts";
 import { escrituraOdooHabilitada, seleccionarAdaptadoresOc } from "../_shared/odoo-oc.ts";
 import { seleccionarAdaptadoresProveedores } from "../_shared/odoo-proveedores.ts";
+import { crearProductoMock, crearProductoReal } from "../_shared/odoo-productos.ts";
 import { CacheOdoo, ttlDesdeEntorno } from "../_shared/odoo-cache.ts";
 import { LimitePorUsuario } from "../_shared/odoo-limite.ts";
 import { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
@@ -57,6 +58,7 @@ const deps: Deps = {
   adaptadorOc: {
     ...seleccionarAdaptadoresOc(escrituraOdooHabilitada(), obtenerOdoo),
     ...seleccionarAdaptadoresProveedores(escrituraOdooHabilitada(), obtenerOdoo),
+    crearProducto: escrituraOdooHabilitada() ? crearProductoReal(obtenerOdoo) : crearProductoMock,
   },
   // DS-08: traslados.crear/validar/cancelar/devolver solo si ODOO_ESCRITURA_HABILITADA y el host pasa la guardia DS-02.
   bloqueoEscrituraTraslados() {

@@ -16,6 +16,11 @@ import {
   OdooStockDisponibleBodega,
   OdooStockFiltro,
   OdooStockPagina,
+  OdooStockProductosBodega,
+  OdooCatalogoPagina,
+  OdooCategoria,
+  OdooUnidad,
+  OdooProductoCreado,
   OdooUbicaciones,
 } from '../models/odoo.model';
 
@@ -33,6 +38,29 @@ export class OdooApiService {
   async buscarProductos(termino: string, limite = 20): Promise<OdooProducto[]> {
     const r = await this.invocar<{ productos: OdooProducto[] }>('productos.buscar', { termino, limite });
     return r.data.productos;
+  }
+
+  listarProductos(filtro: { termino?: string; categoria_id?: number | null; pagina?: number; tamano?: number; refrescar?: boolean } = {}): Promise<OdooRespuesta<OdooCatalogoPagina>> {
+    return this.invocar<OdooCatalogoPagina>('productos.listar', { ...filtro });
+  }
+
+  async listarCategorias(refrescar = false): Promise<OdooRespuesta<{ categorias: OdooCategoria[]; truncado: boolean }>> {
+    return this.invocar<{ categorias: OdooCategoria[]; truncado: boolean }>('categorias.listar', { refrescar });
+  }
+
+  async listarUnidades(refrescar = false): Promise<OdooRespuesta<{ unidades: OdooUnidad[]; truncado: boolean }>> {
+    return this.invocar<{ unidades: OdooUnidad[]; truncado: boolean }>('unidades.listar', { refrescar });
+  }
+
+  /** Existencia viva (stock.quant) de productos de Odoo en un almacén SGC homologado. */
+  async disponibleProductos(bodegaId: string, productIds: number[], refrescar = true): Promise<OdooRespuesta<OdooStockProductosBodega>> {
+    return this.invocar<OdooStockProductosBodega>('stock.disponible_productos', {
+      bodega_id: bodegaId, product_ids: productIds, refrescar,
+    });
+  }
+
+  async crearProductoDesdeSolicitud(solicitudId: string): Promise<OdooProductoCreado> {
+    return (await this.invocar<OdooProductoCreado>('productos.crear', { solicitud_id: solicitudId })).data;
   }
 
   /** CY24 (#24, D1) — selector de producto Odoo en "crear OC": filtra por

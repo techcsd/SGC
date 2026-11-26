@@ -5,6 +5,9 @@ import { Unidad } from '../../../../shared/models/unidad.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { OdooApiService } from '../../../../shared/services/odoo-api.service';
+import { OdooUnidad } from '../../../../shared/models/odoo.model';
 /** Admin management of the unidades de medida used by the artículo form. */
 @Component({
   selector: 'app-admin-unidades',
@@ -15,8 +18,13 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 })
 export class AdminUnidades implements OnInit {
   private service = inject(UnidadesService);
+  private odooApi = inject(OdooApiService);
+  protected i18n = inject(I18nService);
 
   unidades = signal<Unidad[]>([]);
+  unidadesOdoo = signal<OdooUnidad[]>([]);
+  origenOdoo = signal(false);
+  avisoOdoo = signal('');
   loading = signal(true);
   error = signal('');
   saving = signal(false);
@@ -33,9 +41,18 @@ export class AdminUnidades implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.unidades.set(await this.service.getAll());
+      const r = await this.odooApi.listarUnidades(true);
+      this.unidadesOdoo.set(r.data.unidades);
+      this.origenOdoo.set(true);
+      this.avisoOdoo.set('');
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las unidades.');
+      this.origenOdoo.set(false);
+      this.avisoOdoo.set(e instanceof Error ? e.message : this.i18n.t('Odoo no responde. Se muestra la lista local, solo lectura.'));
+      try {
+        this.unidades.set(await this.service.getAll());
+      } catch (e2: unknown) {
+        this.error.set(e2 instanceof Error ? e2.message : 'Error al cargar las unidades.');
+      }
     } finally {
       this.loading.set(false);
     }
