@@ -1,5 +1,15 @@
 # HANDOFF — SGC
 
+## ✅ 26-nov-2026 — Cierre Odoo 19 + release 1.224.0 EN PROD
+
+**En dev / En prod:** web 1.224.0 en ambos (PR #288 dev→main, `release-check` 7/7). PRs integrados: #229 (SLO 2 min), #230 (autor chatter por work_email), #232 (catálogo/unidades/categorías directo de Odoo), #233 (alerta sondeo; su SQL ya estaba en prod) y el hotfix `tg_homologar_nombre`. Edges `odoo-api`, `odoo-conciliar`, `odoo-sync` desplegadas dev→prod. OK de Xaviel («mandalo a prod, ya lo probe»).
+**Incidente propio (corregido):** `tg_homologar_nombre` (sql/2026-11-25-odoo-alinear-catalogo.sql) leía `new.odoo_product_id`, pero el trigger también cuelga de `bodegas`, `categorias_inventario` y `proyecto_partidas`: guardar ahí fallaba en prod desde el 25-nov. Arreglo: `sql/2026-11-26-odoo-homologar-nombre-sin-columna.sql` (lee la columna por `to_jsonb(new)`), aplicado dev y prod. Lección: una función de trigger compartida se prueba en TODAS las tablas donde cuelga, no solo en la que motivó el cambio.
+**Odoo 19 en #232:** al integrarlo se corrigió `order: display_name` → `name`, `type=product` → `is_storable`, y la creación de producto (`consu` + `is_storable`). Cualquier código nuevo contra Odoo debe seguir eso.
+**NO probado por Claude:** pantallas nuevas del catálogo directo y «dar de alta producto» contra el Odoo real de prod. Las notas de versión de #232 se reescribieron en 1.224.0 (las suyas eran de 1.220.0).
+**Pendiente humano:** Chai (saldo −12 en CITY/Existencias, duplicados reales en Odoo); Raykler (categorías de los ~371 reclasificados, validar almacén/conduce/requisición).
+
+---
+
 ## ✅ 25-nov-2026 — Hotfix Odoo 19: el almacén en 0 (web 1.222.5 EN PROD; conector MCP y búsqueda Odoo 19 también EN PROD)
 
 **TL;DR:** Chai migró Odoo a 19.0+e (base `4enfkfierou.cloudpepper.site`). El almacén/requisiciones salían en 0 porque SGC solo conocía 47 de 417 productos con stock en Odoo y el sondeo descartaba el resto. Odoo manda el catálogo: ahora el sondeo importa los productos con stock. En prod: 368 artículos importados, WH 35 → 266 con stock.
