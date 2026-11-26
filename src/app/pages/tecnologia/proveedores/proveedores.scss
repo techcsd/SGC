@@ -1,0 +1,51 @@
+// EA1 — solo layout mínimo (form en 2 columnas, acciones del drawer, tabs). Colores/tipografía: tokens globales.
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.prov-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.prov-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prov-panel {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.prov-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+
+  dt { font-size: 12px; color: var(--sgc-text-muted); }
+  dd { margin: 2px 0 0; }
+}
+
+.prov-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .prov-panel { padding: 12px; }
+}

@@ -1,0 +1,197 @@
+# EA3/F7 — Guardianes de los PR del Ingeniero (se aplican a PR con etiqueta `agente` o rama agente/** | agente-prod/**).
+#   ci-agente        build + tests de la rama (SIN secrets, permisos de solo lectura)
+#   g1-determinista  G1: zona protegida, secretos, SQL aditivo, service role en cliente, tamaño de diff, zona roja
+#   g2-guardian      G2: Guardián IA INDEPENDIENTE (otro prompt), SOLO LECTURA, veredicto JSON estructurado
+# Los tres son "required checks" propuestos en .github/branch-protection-*.json. Para PR que NO son del agente, los
+# jobs se saltan (skipped cuenta como verde en la protección de rama).
+#
+# SEGURIDAD: g1/g2 corren con `pull_request_target` => el código y los prompts salen de la rama BASE (confiable);
+# el PR se trae solo como DATOS (git diff), nunca se ejecuta con secrets. ci-agente usa `pull_request` sin secrets.
+# INERTE sin secrets: g2 sale verde con «inerte: faltan secrets» (el Ingeniero exige el veredicto con su sha igualmente).
+name: agente-guardian
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    branches: [dev, main]
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agente-guardian-${{ github.event.pull_request.number }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  ci-agente:
+    name: ci-agente
+    if: >-
+      github.event_name == 'pull_request' &&
+      (contains(github.event.pull_request.labels.*.name, 'agente') ||
+       startsWith(github.event.pull_request.head.ref, 'agente/') ||
+       startsWith(github.event.pull_request.head.ref, 'agente-prod/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build + tests (sin secrets)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          npm run test:unit
+
+  g1-determinista:
+    name: g1-determinista
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      (contains(github.event.pull_request.labels.*.name, 'agente') ||
+       startsWith(github.event.pull_request.head.ref, 'agente/') ||
+       startsWith(github.event.pull_request.head.ref, 'agente-prod/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4 # rama BASE (pull_request_target): guardianes confiables
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Traer el PR solo como datos
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: git fetch --no-tags origin "pull/${PR_NUMBER}/head:pr-head"
+      - name: Topes desde la config del Ingeniero (si hay secrets; si no, 8 archivos / 300 líneas)
+        id: topes
+        env:
+          SUPABASE_URL_DEV: ${{ secrets.SUPABASE_URL_DEV }}
+          SUPABASE_SERVICE_ROLE_KEY_DEV: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+        run: |
+          if node scripts/guardianes/rpc.mjs ing_config_leer '{}' > config.json 2> config.err; then
+            echo "G1_MAX_ARCHIVOS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('config.json','utf8')).max_archivos ?? 8)")" >> "$GITHUB_ENV"
+            echo "G1_MAX_LINEAS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('config.json','utf8')).max_lineas ?? 300)")" >> "$GITHUB_ENV"
+          else
+            echo "topes por defecto ($(head -c 120 config.err))"
+          fi
+      - name: G1
+        run: node scripts/guardianes/g1.mjs --base "origin/${{ github.event.pull_request.base.ref }}" --head pr-head --salida g1.json
+
+  g2-guardian:
+    name: g2-guardian
+    needs: g1-determinista
+    if: >-
+      always() && github.event_name == 'pull_request_target' &&
+      (contains(github.event.pull_request.labels.*.name, 'agente') ||
+       startsWith(github.event.pull_request.head.ref, 'agente/') ||
+       startsWith(github.event.pull_request.head.ref, 'agente-prod/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Guardián = SOLO LECTURA: sin push. pull-requests: write únicamente para comentar el veredicto.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Preflight (¿hay secrets?)
+        id: pre
+        env:
+          S_ANTHROPIC: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$S_ANTHROPIC" ]; then echo "inerte: faltan secrets: ANTHROPIC_API_KEY"; echo "activo=false" >> "$GITHUB_OUTPUT"; else echo "activo=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/checkout@v4 # rama BASE: scripts/guardianes confiables
+        if: steps.pre.outputs.activo == 'true'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        if: steps.pre.outputs.activo == 'true'
+        with:
+          node-version: 22
+
+      - name: Datos del PR (diff, cuerpo, reporte) — todo como archivos
+        if: steps.pre.outputs.activo == 'true'
+        id: datos
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          SUPABASE_URL_DEV: ${{ secrets.SUPABASE_URL_DEV }}
+          SUPABASE_SERVICE_ROLE_KEY_DEV: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+        run: |
+          git fetch --no-tags origin "pull/${PR_NUMBER}/head:pr-head"
+          git diff --no-color -M "origin/${BASE_REF}...pr-head" | head -c 150000 > diff.txt
+          printf '%s' "$PR_BODY" > pr-body.txt
+          TAREA=$(printf '%s' "$HEAD_REF" | sed -nE 's#^agente(-prod)?/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}).*#\2#p')
+          echo "tarea=$TAREA" >> "$GITHUB_OUTPUT"
+          if [ -n "$TAREA" ] && node scripts/guardianes/rpc.mjs ing_tarea_leer "{\"p_id\":\"$TAREA\"}" > tarea.json 2>/dev/null; then
+            node -e "const t=JSON.parse(require('fs').readFileSync('tarea.json','utf8'));console.log(t.reporte??t.descripcion??t.texto??'')" > reporte.txt
+          else
+            printf '%s' "$PR_TITLE" > reporte.txt
+          fi
+
+      - name: G1 (se recalcula aquí; es determinista)
+        if: steps.pre.outputs.activo == 'true'
+        id: g1
+        run: |
+          set +e
+          node scripts/guardianes/g1.mjs --base "origin/${{ github.event.pull_request.base.ref }}" --head pr-head --salida g1.json > /dev/null
+          echo "codigo=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      # Prompt DISTINTO al del Ingeniero. Solo lectura: Read/Glob/Grep sobre la rama base. Entorno mínimo (solo la API key).
+      - name: Guardián IA (solo si G1 no rechazó)
+        if: steps.pre.outputs.activo == 'true' && steps.g1.outputs.codigo == '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_VERSION: "2.1.331"
+        run: |
+          G1R=$(node -e "const g=JSON.parse(require('fs').readFileSync('g1.json','utf8'));console.log(g.veredicto+' | zona roja: '+g.zonaRoja.esZonaRoja+' | medida: '+JSON.stringify(g.medida))")
+          node scripts/guardianes/armar-prompt.mjs scripts/guardianes/prompts/guardian.md \
+            --dato REPORTE=reporte.txt --dato PR_CUERPO=pr-body.txt --dato DIFF=diff.txt --var "G1_RESUMEN=$G1R" > prompt.txt
+          set +e
+          env -i PATH="$PATH" HOME="$HOME" CI=true ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
+            npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" -p --output-format json --max-turns 12 \
+              --allowedTools "Read,Glob,Grep" --disallowedTools "Bash Write Edit WebFetch WebSearch" < prompt.txt > claude-out.json 2> claude.err
+          echo "claude_exit=$?"
+          exit 0
+
+      - name: Veredicto (G1 + G2) y registro en la tarea
+        if: steps.pre.outputs.activo == 'true'
+        id: veredicto
+        env:
+          SUPABASE_URL_DEV: ${{ secrets.SUPABASE_URL_DEV }}
+          SUPABASE_SERVICE_ROLE_KEY_DEV: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+          TAREA: ${{ steps.datos.outputs.tarea }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          COSTO=$(node scripts/guardianes/extraer.mjs claude-out.json costo 2>/dev/null || echo 0)
+          [ -f claude-out.json ] && node -e "const o=JSON.parse(require('fs').readFileSync('claude-out.json','utf8'));require('fs').writeFileSync('claude-text.txt',o.result??'')" 2>/dev/null
+          node scripts/guardianes/g2.mjs --claude-out claude-text.txt --g1 g1.json --pr "$PR_NUMBER" --sha "$HEAD_SHA" --tarea "$TAREA" --costo "$COSTO"
+          echo "codigo=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publicar veredicto como comentario
+        if: steps.pre.outputs.activo == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body-file comentario.md
+
+      - name: Resultado del check (falla si el veredicto es rechazado)
+        if: steps.pre.outputs.activo == 'true'
+        run: exit ${{ steps.veredicto.outputs.codigo }}

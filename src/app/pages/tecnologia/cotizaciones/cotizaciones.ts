@@ -1,7 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TecProveedoresService } from '../../../../shared/services/tec-proveedores.service';
+import { UserService } from '../../../core/services/user.service';
 import { TecnologiaService, LeerCotizacionResultado } from '../../../../shared/services/tecnologia.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { TecCotizacion, TecEquipo, TecCompraOpcion } from '../../../../shared/models/tecnologia.model';
@@ -18,7 +20,7 @@ type Filtro = 'all' | 'sin_vincular' | 'con_compra' | 'con_equipo';
 
 @Component({
   selector: 'app-tec-cotizaciones',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, FileUpload, DecimalPipe, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Icon, FileUpload, DecimalPipe, TranslatePipe],
   templateUrl: './cotizaciones.html',
   styleUrl: './cotizaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +29,9 @@ export class TecCotizaciones implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private proveedoresSvc = inject(TecProveedoresService);
+  private user = inject(UserService);
   protected i18n = inject(I18nService);
 
   formatTimestamp = formatTimestampDisplay;
@@ -205,6 +210,29 @@ export class TecCotizaciones implements OnInit {
       this.toast.errorFrom(e, this.i18n.t('No se pudo guardar la cotización'));
     } finally {
       this.guardando.set(false);
+    }
+  }
+
+  // ── EA1 — «¿Crear proveedor “X”?» ─────────────────────────────────────────
+  // Solo quien OPERA proveedores (server: tec_proveedor_crear_desde_cotizacion). Crea o reutiliza por nombre normalizado.
+  creandoProveedor = signal(false);
+  puedeCrearProveedor = computed(() => {
+    const c = this.detail();
+    return !!c && !c.proveedor_id && !!(c.proveedor ?? '').trim() && this.user.puedeOperarSubmodulo('tecnologia.proveedores');
+  });
+  async crearProveedorDesdeCotizacion() {
+    const c = this.detail();
+    if (!c) return;
+    this.creandoProveedor.set(true);
+    try {
+      const id = await this.proveedoresSvc.crearDesdeCotizacion(c.id);
+      this.toast.success(this.i18n.t('Proveedor vinculado'));
+      await this.refrescarDetalle(c.id);
+      void this.router.navigate(['/tecnologia/proveedores', id]);
+    } catch (e: unknown) {
+      this.toast.errorFrom(e, this.i18n.t('No se pudo crear el proveedor'));
+    } finally {
+      this.creandoProveedor.set(false);
     }
   }
 

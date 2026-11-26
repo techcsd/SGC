@@ -143,6 +143,8 @@ verify_jwt = true
 verify_jwt = false
 [functions.leer-documento-personal]
 verify_jwt = false
+[functions.leer-cedulas-lote]
+verify_jwt = false
 [functions.resumir-reporte]
 verify_jwt = false
 # DB4 — server-to-server (pg_net + x-sync-secret, patrón generar-informe-obra).
@@ -178,6 +180,14 @@ verify_jwt = false
 # DM2 — agente-pendientes: pg_cron (diario 7am RD, semanal lunes 7:15am RD) y
 # el botón "Probar ahora" (sgc.agente_pendientes_probar), ambos con x-sync-secret.
 [functions.agente-pendientes]
+verify_jwt = false
+
+# EA3 -- Agente Ingeniero: cola (cron 15 min + barrido mar/vie 6am RD) y despacho
+# (repository_dispatch a GitHub). Ambos x-sync-secret desde pg_cron, nunca un JWT.
+[functions.agente-ingeniero-cola]
+verify_jwt = false
+
+[functions.agente-ingeniero-despachar]
 verify_jwt = false
 
 # ── Ronda DB (05-nov-2026) — WhatsApp: memoria de grupos (PROMPT DB-2) ──

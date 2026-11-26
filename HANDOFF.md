@@ -1,6 +1,6 @@
 # HANDOFF — SGC
 
-## ✅ 25-nov-2026 — Hotfix Odoo 19: el almacén en 0 (web 1.222.5 EN PROD; fix del conector MCP en PR)
+## ✅ 25-nov-2026 — Hotfix Odoo 19: el almacén en 0 (web 1.222.5 EN PROD; conector MCP y búsqueda Odoo 19 también EN PROD)
 
 **TL;DR:** Chai migró Odoo a 19.0+e (base `4enfkfierou.cloudpepper.site`). El almacén/requisiciones salían en 0 porque SGC solo conocía 47 de 417 productos con stock en Odoo y el sondeo descartaba el resto. Odoo manda el catálogo: ahora el sondeo importa los productos con stock. En prod: 368 artículos importados, WH 35 → 266 con stock.
 
@@ -10,8 +10,13 @@
 - Mensajes a Raykler (`scripts/data-fixes/2026-11-25-odoo19-mensaje-raykler*.mjs`): clasificar los 368 artículos (categoría «(Revisión)…») y resolver 4 duplicados (BOTA #41, PINTURA #25, PATAS AJUSTABLES CSD, GUANTES NITRILO ONESIZE). No se tocaron. Los nombres de Odoo son los reales.
 - PR #271 (main, 1.222.5) y #272 (main→dev, conservando 1.223.0 de la ronda EA).
 
+**Catálogo = Odoo (segunda parte, mismo día, EN PROD):** PRs #276 y #278. `sql/2026-11-25-odoo-alinear-catalogo.sql` (trigger `tg_homologar_nombre` respeta el nombre exacto de Odoo en artículos vinculados; RPC `odoo_catalogo_alinear(instancia, filas, aplicar)`, simula con `aplicar=false`) + data-fix `scripts/data-fixes/2026-11-25-odoo-alinear-catalogo.mjs`: 96 renombrados (29 apodos), 371 sacados de «(Revisión)» (ya no queda nada ahí), 313 productos almacenables y activos creados, TIES 80 fusionado (`2026-11-25-odoo-fusionar-ties-80.sql`). Respaldo previo en `%TEMP%\sgc-odoo-alinear\`. No se crearon servicios/no almacenables/archivados. Los 4 duplicados (BOTA #41, PINTURA #25, PATAS AJUSTABLES, GUANTES NITRILO) son duplicados reales de Odoo (p. ej. «(copia)», «(ANTIGUO)»): la limpieza es en Odoo. Única colisión de nombre: «PATA CABRA 30"» (dos productos en Odoo) -> «(Odoo 494)».
+**Bug encontrado:** un saldo NEGATIVO en Odoo (-12 en CITY) rompía el CHECK `cantidad >= 0` y hacía fallar TODO el lote de ese almacén en `odoo_stock_proyectar`; la edge `odoo-conciliar` no revisa el error del rpc, así que City Place quedó desactualizado en silencio. Arreglado con `greatest(cantidad,0)` (`2026-11-25-odoo-stock-proyectar-negativos.sql`). Pendiente menor: que la edge registre el error de `odoo_stock_proyectar` (hoy lo ignora) y que Chai corrija los negativos en Odoo.
+
+**Decisión (Xaviel, 25-nov-2026): NO crear en SGC los productos de Odoo que no son almacenables+activos** (~90 servicios, ~180 archivados, ~100 bienes de consumo sin control de stock). No tienen inventario y mostrarían siempre 0. Solo reabrir si compras/logística piden esos bienes de consumo desde SGC: cambiar `crear` en `scripts/data-fixes/2026-11-25-odoo-alinear-catalogo.mjs` (simular antes) y crear solo ese grupo.
+
 **Pendiente — Claude puede**
-1. Mergear el PR del fix del conector MCP (`consultar_stock_odoo` fallaba con «reading 'invoke'»: `mcp` pasaba a las herramientas Odoo un cliente solo-PostgREST sin `.functions`) y desplegar la edge `mcp` a prod (`node scripts/deploy-edge.mjs --env prod --slug mcp --yes`; ya está en dev). Probar con el conector SGC real.
+1. (HECHO) Conector MCP `consultar_stock_odoo` arreglado: PRs #273 (cliente `invoke`, filtro `is_storable`) y #274 (orden por `name`); edges `mcp` v33 y `odoo-api` desplegadas en prod y verificadas con el conector real (artículo «ties»).
 2. Tras la clasificación de Raykler, revisar si algún almacén sigue en 0 con stock en Odoo.
 
 **Pendiente — solo Xaviel/otros**
@@ -21,7 +26,8 @@
 - El gate «regla 18» exige que también las reversas (`sql/_reversa/*`) estén en el ledger de dev: registrarlas como «script de rollback: registrado, NO ejecutado» (precedente `dk-*_reversa`), nunca ejecutarlas.
 - No desplegar una edge desde un árbol basado en `dev` si `_shared/` difiere de `main` (la edge empaqueta `_shared`): basar el fix en `main`.
 - Credenciales de Odoo para diagnóstico en `.env.local` (`SGC_INTEGRATION_ODOO_*`, `ODOO_DB_PROD`): solo lectura. `SGC_INTEGRATION_ODOO_DB` apunta a staging; la base de prod es `ODOO_DB_PROD`.
-- Odoo 19: `read_group` sigue devolviendo la clave `quantity`; `product.product.type` pasó a `consu` + `is_storable` (`type='product'` ya no existe: `productos.buscar` en `acciones.ts` lo usa y devolverá vacío — revisar si se usa).
+- Odoo 19: `read_group` sigue devolviendo la clave `quantity`; `product.product.type` pasó a `consu` + `is_storable` (`type='product'` ya no existe: `productos.buscar` en `acciones.ts` lo usa y devolverá vacío).
+- Odoo 19: no se puede `order` por `display_name` (no almacenado: ValueError «Cannot convert … to SQL»); usar `name`. Probar cada consulta nueva contra el Odoo real (solo lectura) antes de desplegar: los tests con fetch simulado no lo detectan.
 
 ## ✅ 22-nov-2026 — PROMPT-151 ronda DU: iPhone en blanco + caída de Odoo + conduces degradados (web 1.220.3 y app 2.71.9 EN PROD)
 
@@ -3540,3 +3546,7 @@ npx supabase@latest secrets list --project-ref jeeqhgccqefbqilntcpu 2>/dev/null 
 - Línea base de observación y decisiones de Compras: `docs/ODOO-PASO-A-PROD.md` §10–§11.
 - **Issues abiertos (todos dependen de personas o tiempo):** #202 (24 conduces del 18-nov en error por falta de existencias en Odoo; Raykler los revisa), #203 (usuario dedicado de integración en Odoo; administrador de Odoo), #204 (2 semanas de observación; fecha más temprana 2-dic-2026), #205 (formularios de tienda + cobertura de cédulas).
 - Auditoría del trabajo de Miranda (solo lectura, 17-nov): ADR 3–7, 13, 14, 16, 17, 19, OC (CY24/CY25) y fases 1, 4 y 5 hechos; faltan usuario dedicado, observación real, privacidad de tiendas, ADR 8 y 11, alerta de `incierto` > 1 h, rotación de claves y ejecutar la guía QA de la PoC.
+
+
+## EA1 — Proveedores de tecnología (24-nov-2026, ronda EA) — sin aplicar a dev/prod aún
+Código + SQL escritos, NO aplicados (sin token en la sesión): `sql/2026-11-24-ea1-tec-proveedores.sql`, `sql/2026-11-24-ea1b-conector-proveedores.sql` (+ reversas). Orden: dev primero (`--env dev`), probar con los casos de `docs/EA1-PROVEEDORES-TEC.md`, luego prod. Después de aplicar: revisar `tec_proveedores_por_revisar()` (backfill deja los dudosos como texto), fusionar claves i18n (`keys-ea1.json`) y subir versión + `release-notes.json`. Decisión abierta: hoy admin OPERA (helper AG12); si Xaviel quiere «admin solo ve», hay que excluir `is_admin()` para este submódulo. App móvil: PROMPT-157.

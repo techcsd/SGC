@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, ElementRef, inject, signal, compute
 import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { previewNota } from '../../../../shared/utils/nota-preview.util';
 import { RichEditor, ImagenEditorConfig } from '../../../../shared/ui/rich-editor/rich-editor';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotasService, DirectorioUsuario, NOTA_IMAGEN_PREFIJO } from '../../../../shared/services/notas.service';
@@ -235,6 +236,9 @@ export class DevNotes implements OnInit, OnDestroy {
   persistida = signal(false);
 
   // ── CS2/DG7 — imágenes pegadas/arrastradas en el editor ─────────────────────
+  /** EA8 — vista previa de la lista sin Markdown de imagen crudo. */
+  readonly previewNota = previewNota;
+
   readonly imagenesConfig: ImagenEditorConfig = {
     subir: (file) => this.subirImagenEnNotaActiva(file),
     resolverUrl: (src) => this.notasSvc.resolverImagenNota(src),
@@ -247,6 +251,9 @@ export class DevNotes implements OnInit, OnDestroy {
     descargar: (url, nombre) => descargarDesdeUrl(url, nombre),
     confirmarQuitar: (src) => this.confirmarQuitarImagen(src),
     quitar: (src, deshacer) => this.quitarImagenDeNotaActiva(src, deshacer),
+    // EA6 — feedback por toast (nunca se escribe texto sobre los botones de icono)
+    notificar: (tipo, titulo, detalle) =>
+      tipo === 'ok' ? this.toast.success(this.i18n.t(titulo), detalle) : this.toast.error(this.i18n.t(titulo), detalle),
   };
 
   // ── DG7 — confirmar «Quitar» (reusa <app-confirm-dialog>, igual que grupo/nota) ──

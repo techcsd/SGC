@@ -32,7 +32,7 @@ catch (e) { console.error('no pude obtener el diff vs ' + base, e.message); proc
 const faltan = [];
 
 // Migraciones tocadas.
-const sqls = changed.filter((f) => f.startsWith('sql/') && f.endsWith('.sql'));
+const sqls = changed.filter((f) => f.startsWith('sql/') && f.endsWith('.sql') && !f.includes('/_reversa/')); // _reversa = rollback manual, nunca se aplica (igual que release-check)
 for (const f of sqls) {
   const checksum = createHash('sha256').update(readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).digest('hex');
   const r = await devSql(`select 1 from sgc.migraciones_aplicadas where archivo='${f}' and checksum='${checksum}' limit 1`);

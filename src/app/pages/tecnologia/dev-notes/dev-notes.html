@@ -131,7 +131,7 @@
                           @if (n.pinned) { <app-icon name="star" [size]="13" /> }
                           {{ n.titulo || '(sin título)' }}
                         </span>
-                        <span class="note-card__preview">{{ n.contenido }}</span>
+                        <span class="note-card__preview">{{ previewNota(n.contenido) }}</span>
                         @if ((n.tags ?? []).length) {
                           <span class="note-card__tags">@for (t of n.tags; track t) { <span class="tag-chip tag-chip--sm">#{{ t }}</span> }</span>
                         }
@@ -274,7 +274,7 @@
       <!-- CW3 — misma barra que la vista de lista: Sin grupo, menú ⋯, renombrar, Deshacer. -->
       <ng-container [ngTemplateOutlet]="listaCompleta" />
 
-      <span class="dn-list__hint">{{ 'Ocultar lista: Ctrl+\' | t }}</span>
+      <span class="dn-list__hint">{{ 'Ocultar lista: Ctrl+\\' | t }}</span>
     </aside>
 
     <button type="button" class="dn-list-toggle" (click)="toggleListaPlegada()"

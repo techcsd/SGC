@@ -106,8 +106,8 @@
     },
     {
       "pantalla": "admin/empresa",
-      "total": 41,
-      "cubiertos": 41,
+      "total": 42,
+      "cubiertos": 42,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1576,8 +1576,8 @@
     },
     {
       "pantalla": "proyectos/personal",
-      "total": 252,
-      "cubiertos": 252,
+      "total": 282,
+      "cubiertos": 282,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1826,8 +1826,8 @@
     },
     {
       "pantalla": "tecnologia/cotizaciones",
-      "total": 79,
-      "cubiertos": 79,
+      "total": 82,
+      "cubiertos": 82,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1946,8 +1946,8 @@
     },
     {
       "pantalla": "tecnologia/oficina-agentes",
-      "total": 31,
-      "cubiertos": 31,
+      "total": 75,
+      "cubiertos": 75,
       "sin": 0,
       "pct": 100,
       "enScope": true,
@@ -1962,6 +1962,16 @@
       "pct": 100,
       "enScope": true,
       "enforce": true,
+      "faltantes": []
+    },
+    {
+      "pantalla": "tecnologia/proveedores",
+      "total": 177,
+      "cubiertos": 177,
+      "sin": 0,
+      "pct": 100,
+      "enScope": true,
+      "enforce": false,
       "faltantes": []
     },
     {

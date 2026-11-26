@@ -59,6 +59,20 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./cotizaciones/cotizaciones').then((m) => m.TecCotizaciones),
     title: 'Cotizaciones — Tecnología',
   },
+  // EA1 — Proveedores de tecnología. Gate: submódulo 'tecnologia.proveedores' (ver). Tecnología opera;
+  // Compras y admin solo ven (el modo lo decide la RLS/RPC, no la ruta).
+  {
+    path: 'proveedores',
+    canActivate: [submoduloGuard('tecnologia.proveedores')],
+    loadComponent: () => import('./proveedores/proveedores').then((m) => m.TecProveedores),
+    title: 'Proveedores — Tecnología',
+  },
+  {
+    path: 'proveedores/:id',
+    canActivate: [submoduloGuard('tecnologia.proveedores')],
+    loadComponent: () => import('./proveedores/proveedor-ficha/proveedor-ficha').then((m) => m.TecProveedorFicha),
+    title: 'Proveedor — Tecnología',
+  },
 
   // ── Y11 — Plataforma / sistema: reservado a admin | rol tecnologia ──────────
   // Reportes de errores (Y6), historial de versiones y versiones de la app.

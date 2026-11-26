@@ -29,6 +29,8 @@ export interface NotaImagenOptions {
   /** Se llama tras confirmar Y quitar el nodo del documento (ya no está en el
    *  editor). `deshacer()` reinserta la imagen en la MISMA posición. */
   onQuitar: (src: string, deshacer: () => void) => void;
+  /** EA6 — aviso al usuario (toast) sin tocar el DOM de los botones de icono. */
+  notificar: (tipo: 'ok' | 'error', titulo: string, detalle?: string) => void;
 }
 
 const MENSAJE_CONFIRMAR_QUITAR = '¿Quitar esta imagen de la nota?';
@@ -72,6 +74,7 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
       descargar: () => {},
       confirmarQuitar: async () => confirm(MENSAJE_CONFIRMAR_QUITAR),
       onQuitar: () => {},
+      notificar: () => {},
     };
   },
 
@@ -100,6 +103,11 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
       img.alt = (node.attrs['alt'] as string) ?? '';
       img.className = 'nota-img__img';
       img.title = 'Ver a pantalla completa';
+      // EA5 — accesible por teclado (Enter/Espacio abre) y con cursor de zoom.
+      img.tabIndex = 0;
+      img.setAttribute('role', 'button');
+      img.setAttribute('aria-label', 'Ver imagen a pantalla completa');
+      img.style.cursor = 'zoom-in';
       wrapper.appendChild(img);
 
       const estado = document.createElement('div');
@@ -133,6 +141,12 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
       const btnQuitar = mkBtn('quitar', 'Quitar', 'nota-img__btn--danger');
       barra.append(btnFull, btnCopiar, btnQuitar);
       wrapper.appendChild(barra);
+      // EA6 — región viva (lectores de pantalla) para el feedback de «Copiar»; los
+      // botones de icono NUNCA cambian su contenido (el SVG no se reemplaza).
+      const vivo = document.createElement('span');
+      vivo.setAttribute('aria-live', 'polite');
+      vivo.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;';
+      wrapper.appendChild(vivo);
 
       let urlActual = '';
       const rutaOriginal = (node.attrs['src'] as string) ?? '';
@@ -155,16 +169,31 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
           estado.textContent = 'No se pudo cargar la imagen.';
         });
 
-      const copiar = async (btn: HTMLButtonElement) => {
+      // EA6 — feedback sin tocar el SVG: título/clase temporales + aria-live. Solo un
+      // botón de TEXTO (el del visor, `esTexto`) puede cambiar su etiqueta.
+      const feedback = (btn: HTMLButtonElement, msg: string, esTexto: boolean) => {
+        vivo.textContent = msg;
+        const tituloOriginal = btn.title;
+        const etiquetaOriginal = esTexto ? btn.textContent : null;
+        btn.classList.add('nota-img__btn--ok');
+        btn.title = msg;
+        if (esTexto) btn.textContent = msg;
+        setTimeout(() => {
+          btn.classList.remove('nota-img__btn--ok');
+          btn.title = tituloOriginal;
+          if (esTexto && etiquetaOriginal !== null) btn.textContent = etiquetaOriginal;
+          vivo.textContent = '';
+        }, 1800);
+      };
+      const copiar = async (btn: HTMLButtonElement, esTexto = false) => {
         if (!urlActual) return;
         try {
           await this.options.copiarAlPortapapeles(urlActual);
-          const original = btn.textContent;
-          btn.textContent = 'Imagen copiada';
-          setTimeout(() => { btn.textContent = original; }, 1800);
+          feedback(btn, 'Imagen copiada', esTexto);
         } catch {
           this.options.descargar(urlActual, 'imagen.png');
-          btn.textContent = 'Descargar imagen';
+          this.options.notificar('error', 'No se pudo copiar la imagen', 'Tu navegador no dejó copiar la imagen; se descargó.');
+          feedback(btn, 'Se descargó la imagen', esTexto);
         }
       };
 
@@ -192,6 +221,12 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
 
         const overlay = document.createElement('div');
         overlay.className = 'nota-img-visor';
+        // EA5 — posición/z-index inline: el visor no depende de que la hoja global (::ng-deep) esté aplicada.
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;background:rgba(10,14,20,0.92);';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', 'Imagen a pantalla completa');
+        overlay.tabIndex = -1;
         const imgFull = document.createElement('img');
         imgFull.className = 'nota-img-visor__img';
         const contador = document.createElement('span');
@@ -238,10 +273,12 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
         overlay.append(imgFull, barra);
         if (todas.length > 1) overlay.append(mkFlecha('prev'), mkFlecha('next'));
         document.body.appendChild(overlay);
+        overlay.focus();
 
         const cerrar = () => {
           overlay.remove();
           document.removeEventListener('keydown', onKey);
+          img.focus({ preventScroll: true });
         };
         const onKey = (e: KeyboardEvent) => {
           if (e.key === 'Escape') cerrar();
@@ -251,17 +288,26 @@ export const NotaImagen = Image.extend<NotaImagenOptions>({
         document.addEventListener('keydown', onKey);
         overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrar(); });
         bCerrar.addEventListener('click', cerrar);
-        bCopiar.addEventListener('click', () => void copiar(bCopiar));
+        bCopiar.addEventListener('click', () => void copiar(bCopiar, true));
         bDescargar.addEventListener('click', () => this.options.descargar(imgFull.src, 'imagen.png'));
         bQuitar.addEventListener('click', () => { cerrar(); quitar(); });
       };
 
       img.addEventListener('click', abrirPantallaCompleta);
+      img.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirPantallaCompleta(); }
+      });
       btnFull.addEventListener('click', (e) => { e.preventDefault(); abrirPantallaCompleta(); });
       btnCopiar.addEventListener('click', (e) => { e.preventDefault(); void copiar(btnCopiar); });
       btnQuitar.addEventListener('click', (e) => { e.preventDefault(); quitar(); });
 
-      return { dom: wrapper };
+      // EA5 — ProseMirror NO debe interceptar clics/teclas dentro de la imagen y su barra
+      // (si no, el mousedown selecciona el nodo y el clic no llega al manejador).
+      return {
+        dom: wrapper,
+        stopEvent: (e: Event) => e.target instanceof Node && wrapper.contains(e.target),
+        ignoreMutation: () => true,
+      };
     };
   },
 });

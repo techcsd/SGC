@@ -260,6 +260,15 @@
         @if (c.notas) {
           <p class="text-muted">{{ c.notas }}</p>
         }
+        <!-- EA1 — proveedor del directorio -->
+        @if (c.proveedor_id) {
+          <p><a [routerLink]="['/tecnologia/proveedores', c.proveedor_id]">{{ 'Ver proveedor en el directorio' | t }}</a></p>
+        } @else if (puedeCrearProveedor()) {
+          <p class="text-muted">{{ '¿Crear proveedor' | t }} “{{ c.proveedor }}”?</p>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="creandoProveedor()" (click)="crearProveedorDesdeCotizacion()">
+            {{ (creandoProveedor() ? 'Creando…' : 'Crear y vincular proveedor') | t }}
+          </button>
+        }
       }
 
       <!-- DH20 — renglones leídos de la cotización (antes se descartaban). -->
