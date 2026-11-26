@@ -53,7 +53,7 @@ git config user.name "agente-ingeniero"; git config user.email "agente-ingeniero
 git remote remove origin-push 2>/dev/null || true
 
 # ---------- 1. analizar + plan (solo lectura) ----------
-estado analizando '{"inicio":"runner"}'; evento analisis_inicio
+estado analizando; evento analisis_inicio
 node "$G/armar-prompt.mjs" "$G/prompts/ingeniero-analisis.md" --dato "REPORTE=$W/reporte.txt" \
   --var "TAREA_ID=$TAREA_ID" --var "TIPO=$TIPO" --var "INTENTO=$((INTENTOS+1))" --var "MAX_INTENTOS=$MAX_INTENTOS" \
   --var "MAX_ARCHIVOS=$G1_MAX_ARCHIVOS" --var "MAX_LINEAS=$G1_MAX_LINEAS" > "$W/p1.txt"
@@ -63,7 +63,7 @@ PLAN=$(node "$G/extraer.mjs" "$W/o1.json" plan || true)
 BORRADOR=$(node "$G/extraer.mjs" "$W/o1.json" borrador_respuesta || true)
 EST_ARCH=$(node "$G/extraer.mjs" "$W/o1.json" archivos_estimados || echo 0); EST_LIN=$(node "$G/extraer.mjs" "$W/o1.json" lineas_estimadas || echo 0)
 evento analisis_fin "$(jq -nc --arg d "$DECISION" '{decision:$d}')" "$C1"
-PATCH1=$(jq -nc --arg plan "$PLAN" --arg b "$BORRADOR" --arg d "$DECISION" '{plan:$plan,borrador_respuesta:$b,decision_analisis:$d}')
+PATCH1=$(jq -nc --arg plan "$PLAN" --arg b "$BORRADOR" '{plan:$plan,borrador_respuesta:$b}') # la decisión ya queda en el evento analisis_fin (el RPC no admite decision_analisis)
 case "$DECISION" in
   no_reproduce|ya_arreglado|duplicado) estado rechazada "$PATCH1"; salir_limpio "analisis: $DECISION";;
   propuesta) estado propuesta "$PATCH1"; salir_limpio "analisis: queda como propuesta (no se escribe código)";;
@@ -114,7 +114,7 @@ while [ "$n" -lt "$MAX_INTENTOS" ]; do
     PR_URL=$(GH_TOKEN="$GH_TOKEN" gh pr create --base dev --head "$RAMA" --label agente --title "[agente] ${SLUG:-cambio}" --body-file "$W/pr-body.md") || { estado necesita_humano '{"motivo":"no se pudo abrir el PR"}'; salir_limpio "no se pudo abrir PR"; }
     PR="${PR_URL##*/}"
   fi
-  estado en_revision "$(jq -nc --arg u "${PR_URL:-}" --arg r "$RAMA" --argjson z "$ZR" '{pr_url:$u,rama:$r,zona_roja:$z}')"
+  estado en_revision "$(jq -nc --arg u "${PR_URL:-}" --argjson z "$ZR" '{pr_url:$u,zona_roja:$z}')"
   SHA=$(git rev-parse HEAD)
   # esperar al Guardián (job g2-guardian) hasta 30 min
   VER=""; for i in $(seq 1 90); do
