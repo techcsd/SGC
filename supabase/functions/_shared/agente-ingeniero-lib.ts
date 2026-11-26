@@ -333,8 +333,10 @@ export function seleccionarDespachos(
 }
 
 /** Cuerpo de repository_dispatch. El client_payload lleva SOLO tarea_id y repo: nunca texto de usuario. */
-export function payloadDispatch(t: Pick<TareaDespacho, "id" | "repo">): { event_type: string; client_payload: { tarea_id: string; repo: Repo } } {
-  return { event_type: "agente-ingeniero", client_payload: { tarea_id: t.id, repo: t.repo } };
+// `repoCompleto` = "owner/nombre" (repoGithub). Los workflows comparan client_payload.repo con github.repository
+// ("techcsd/SGC"), no con el alias corto de la tarea ("sgc"): sin esto el runner sale "inerte: despacho para otro repo".
+export function payloadDispatch(t: Pick<TareaDespacho, "id" | "repo">, repoCompleto?: string): { event_type: string; client_payload: { tarea_id: string; repo: string } } {
+  return { event_type: "agente-ingeniero", client_payload: { tarea_id: t.id, repo: repoCompleto ?? t.repo } };
 }
 
 export function repoGithub(repo: Repo, env: { sgc?: string; csdApp?: string } = {}): string {

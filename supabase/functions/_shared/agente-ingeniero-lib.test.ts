@@ -12,6 +12,7 @@ import {
   normalizarConfig,
   normalizarFirma,
   payloadDispatch,
+  repoGithub,
   refError,
   repoParaError,
   sanearTexto,
@@ -192,4 +193,9 @@ Deno.test("seccionIngeniero: sin tareas no hay actividad; con tareas agrupa por 
   assert(md.includes("Se revirtieron:** 1"));
   assert(md.includes("Zona roja esperando tu OK"));
   assert(md.includes("$1.50"));
+});
+
+Deno.test("payloadDispatch: con repo completo manda owner/nombre (lo que comparan los workflows)", () => {
+  assertEquals(payloadDispatch({ id: "abc", repo: "csd-app" }, "techcsd/csd-app").client_payload.repo, "techcsd/csd-app");
+  assertEquals(payloadDispatch({ id: "abc", repo: "sgc" }, repoGithub("sgc")).client_payload.repo, "techcsd/SGC");
 });
