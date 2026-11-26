@@ -224,8 +224,15 @@ export class MaterialNoCatalogado implements OnInit {
     this.guardando.set(true);
     try {
       // BW2 — un solo RPC atómico (crear + vincular + mov. opcional); mismo gate que la app.
-      await this.svc.crearArticuloDesdeLibre(fila.id, nombre, catId, this.nuevaUnidad(), this.generarMovimiento());
-      this.toast.success(this.i18n.t('Artículo creado y vinculado.'), this.i18n.t('Ya está en el catálogo para futuros conduces.'));
+      const r = await this.svc.crearArticuloDesdeLibre(fila.id, nombre, catId, this.nuevaUnidad(), this.generarMovimiento());
+      if (r.pendiente || r.solicitud_id) {
+        this.toast.success(
+          this.i18n.t('Solicitud de alta enviada.'),
+          r.mensaje ?? this.i18n.t('Contabilidad debe aprobar el producto en Odoo antes de vincular este material.'),
+        );
+      } else {
+        this.toast.success(this.i18n.t('Artículo creado y vinculado.'), this.i18n.t('Ya está en el catálogo para futuros conduces.'));
+      }
       this.cerrar();
       await this.cargar();
     } catch (e: unknown) {

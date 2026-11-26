@@ -6,7 +6,7 @@ import type { LlamadorOdoo } from "./odoo-traslados.ts";
 // deno-lint-ignore no-explicit-any
 type Any = any;
 export interface ArticuloMin { articuloId: string; productId: number; minimo: number; maximo: number }
-export interface ReglaSgc { articuloId: string; orderpointId: number; productId: number; minimo: number; maximo: number; activa: boolean }
+export interface ReglaSgc { articuloId: string; orderpointId: number; productId: number; minimo: number; maximo: number; activa: boolean; protegida?: boolean }
 export type Accion =
   | { op: "crear"; articuloId: string; productId: number; minimo: number; maximo: number }
   | { op: "actualizar"; articuloId: string; orderpointId: number; minimo: number; maximo: number }
@@ -24,10 +24,11 @@ export function planificarReglas(articulos: ArticuloMin[], reglas: ReglaSgc[]): 
     const maximo = Math.max(a.maximo, a.minimo);
     const r = porArt.get(a.articuloId);
     if (!r) out.push({ op: "crear", articuloId: a.articuloId, productId: a.productId, minimo: a.minimo, maximo });
+    else if (r.protegida) continue; // editada en Odoo: SGC no la pisa
     else if (!r.activa) out.push({ op: "reactivar", articuloId: a.articuloId, orderpointId: r.orderpointId, minimo: a.minimo, maximo });
     else if (Math.abs(r.minimo - a.minimo) > EPS || Math.abs(r.maximo - maximo) > EPS) out.push({ op: "actualizar", articuloId: a.articuloId, orderpointId: r.orderpointId, minimo: a.minimo, maximo });
   }
-  for (const r of reglas) if (r.activa && !vigentes.has(r.articuloId)) out.push({ op: "archivar", articuloId: r.articuloId, orderpointId: r.orderpointId });
+  for (const r of reglas) if (r.activa && !vigentes.has(r.articuloId) && !r.protegida) out.push({ op: "archivar", articuloId: r.articuloId, orderpointId: r.orderpointId });
   return out;
 }
 
@@ -44,10 +45,18 @@ export async function aplicarReglas(c: LlamadorOdoo, destino: { warehouseId: num
     }
     const vals = { product_min_qty: a.minimo, product_max_qty: a.maximo, trigger: "manual", active: true };
     if (a.op === "crear") {
-      const ya: Any[] = await c.call("stock.warehouse.orderpoint", "search_read", [[["product_id", "=", a.productId], ["warehouse_id", "=", destino.warehouseId]]], { fields: ["id"], limit: 1, context: { active_test: false } }) ?? [];
+      const ya: Any[] = await c.call("stock.warehouse.orderpoint", "search_read", [[["product_id", "=", a.productId], ["warehouse_id", "=", destino.warehouseId]]], { fields: ["id", "product_min_qty", "product_max_qty"], limit: 1, context: { active_test: false } }) ?? [];
       let id = ya[0]?.id as number | undefined;
-      if (id) await c.call("stock.warehouse.orderpoint", "write", [[id], vals]);
-      else id = await c.call("stock.warehouse.orderpoint", "create", [{ product_id: a.productId, warehouse_id: destino.warehouseId, location_id: destino.locationId, ...vals }]) as number;
+      if (id) {
+        const liveMin = Number(ya[0]?.product_min_qty ?? 0);
+        const liveMax = Number(ya[0]?.product_max_qty ?? 0);
+        // Si Odoo ya tiene otros mínimos, fue editada allá: no pisar.
+        if (Math.abs(liveMin - a.minimo) > EPS || Math.abs(liveMax - a.maximo) > EPS) {
+          out.push({ articuloId: a.articuloId, op: a.op, orderpointId: id, minimo: liveMin, maximo: liveMax, activa: true });
+          continue;
+        }
+        await c.call("stock.warehouse.orderpoint", "write", [[id], vals]);
+      } else id = await c.call("stock.warehouse.orderpoint", "create", [{ product_id: a.productId, warehouse_id: destino.warehouseId, location_id: destino.locationId, ...vals }]) as number;
       out.push({ articuloId: a.articuloId, op: a.op, orderpointId: id, minimo: a.minimo, maximo: a.maximo, activa: true });
     } else {
       await c.call("stock.warehouse.orderpoint", "write", [[a.orderpointId], vals]);

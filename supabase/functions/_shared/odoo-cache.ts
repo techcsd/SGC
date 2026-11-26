@@ -49,6 +49,9 @@ export class CacheOdoo {
 /** TTLs por tipo de dato (ms). Catálogo casi estático → largo; stock cambia → corto. */
 export const TTL_MS = {
   "productos.buscar": 60_000,
+  "productos.listar": 60_000,
+  "categorias.listar": 600_000,
+  "unidades.listar": 600_000,
   "ubicaciones.listar": 600_000,
   "stock.consultar": 15_000,
   "almacenes.listar": 600_000,

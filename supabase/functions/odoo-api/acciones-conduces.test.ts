@@ -135,3 +135,30 @@ Deno.test("DU degradado: 'sin stock' en Odoo NUNCA se degrada, aunque el modo es
   ).catch((x) => x);
   assertEquals((e as ConduceStockError).codigo, "sin_stock"); assertEquals(reg, []); assertEquals(marcados, []);
 });
+
+Deno.test("stock.disponible_productos: devuelve la existencia viva por producto de Odoo", async () => {
+  const r = await DEFINICIONES_CONDUCES["stock.disponible_productos"].ejecutar(
+    { odoo: odooConStock(12, 2), admin: adminFalso(), usuarioId: "u1" },
+    DEFINICIONES_CONDUCES["stock.disponible_productos"].normalizar({ bodega_id: BODEGA, product_ids: [7, 7] }),
+  );
+  assertEquals(r.origen, "odoo");
+  assertEquals(r.filas, [{ producto_id: 7, disponible: 10, fisica: 10, reservada: 0 }]);
+});
+
+Deno.test("stock.disponible_productos: producto sin quant aparece con 0", async () => {
+  const r = await DEFINICIONES_CONDUCES["stock.disponible_productos"].ejecutar(
+    { odoo: odooConStock(4, 0), admin: adminFalso(), usuarioId: "u1" },
+    DEFINICIONES_CONDUCES["stock.disponible_productos"].normalizar({ bodega_id: BODEGA, product_ids: [7, 99] }),
+  );
+  assertEquals(r.filas.find((f) => f.producto_id === 99)?.disponible, 0);
+  assertEquals(r.filas.find((f) => f.producto_id === 7)?.disponible, 4);
+});
+
+Deno.test("stock.disponible_productos: product_ids inválidos o vacíos → ParamError", () => {
+  const n = DEFINICIONES_CONDUCES["stock.disponible_productos"].normalizar;
+  let threw = 0;
+  for (const params of [{ bodega_id: BODEGA, product_ids: [] }, { bodega_id: BODEGA, product_ids: ["x"] }, { bodega_id: "no-uuid", product_ids: [7] }]) {
+    try { n(params); } catch { threw++; }
+  }
+  assertEquals(threw, 3);
+});

@@ -1,6 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { OdooApiService } from '../../services/odoo-api.service';
-import { OdooProductoCompra } from '../../models/odoo.model';
+import { ArticulosService } from '../../services/articulos.service';
+import {
+  OdooProducto,
+  OdooProductoCompra,
+  OdooProductoInventario,
+  OdooProductoInventarioSeleccionado,
+} from '../../models/odoo.model';
 import { Icon } from '../icon/icon';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 
@@ -8,50 +15,76 @@ const MIN_BUSQUEDA = 2;
 const DEBOUNCE_MS = 300;
 
 /**
- * CY24 (#24, D1/E1/E2/E8) — selector de producto de Odoo para una línea de OC.
- * Mismo patrón de búsqueda que el PoC "Stock en Odoo" (debounce + descarte de
- * respuestas viejas por secuencia), pero para elegir UN producto por renglón
- * en vez de filtrar una tabla. Sin resultados (E1): exige confirmar "ya busqué
- * y no existe" antes de habilitar "Solicitar alta" (anti-duplicado). Un error
- * de Odoo (E8) se muestra tal cual — sin fallback al catálogo de SGC.
+ * Selector de producto de Odoo.
+ * - modo `compra` (CY24): busca con purchase_ok y pide alta si no existe.
+ * - modo `inventario` (#catálogo directo): busca product.product (no purchase_ok)
+ *   y muestra la existencia viva de la bodega de origen en cada resultado.
+ *   Al elegir, hace upsert de la proyección en sgc.articulos. Sin fallback
+ *   silencioso al catálogo local si Odoo no responde.
  */
 @Component({
   selector: 'app-odoo-producto-picker',
-  imports: [Icon, TranslatePipe],
+  imports: [Icon, TranslatePipe, DecimalPipe],
   templateUrl: './odoo-producto-picker.html',
   styleUrl: './odoo-producto-picker.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OdooProductoPicker {
   private odoo = inject(OdooApiService);
+  private articulos = inject(ArticulosService);
 
-  value = input<OdooProductoCompra | null>(null);
+  modo = input<'compra' | 'inventario'>('compra');
+  value = input<OdooProductoCompra | OdooProducto | null>(null);
   disabled = input<boolean>(false);
+  /** Almacén SGC de origen: obligatorio en modo inventario para leer stock.quant. */
+  bodegaId = input<string | null>(null);
+  /** Si Odoo está caído (sin contingencia), se bloquea la búsqueda. */
+  bloqueado = input<boolean>(false);
+  bloqueadoMotivo = input<string | null>(null);
 
   selectionChange = output<OdooProductoCompra | null>();
   /** Emite el término ya buscado y confirmado "no existe" (criterio 7: anti-duplicado). */
   solicitarAlta = output<string>();
+  /** Modo inventario: producto elegido + articulo_id de la proyección. */
+  inventarioElegido = output<OdooProductoInventarioSeleccionado>();
 
   termino = signal('');
-  sugerencias = signal<OdooProductoCompra[]>([]);
+  sugerencias = signal<OdooProductoInventario[]>([]);
   buscando = signal(false);
   errorBusqueda = signal(false);
+  errorStock = signal(false);
+  errorUpsert = signal('');
+  consultadoEn = signal<string | null>(null);
   activo = signal(-1);
   confirmoNoExiste = signal(false);
 
   private seqBusqueda = 0;
   private temporizador: ReturnType<typeof setTimeout> | null = null;
 
+  get esInventario(): boolean {
+    return this.modo() === 'inventario';
+  }
+
+  get sinBodega(): boolean {
+    return this.esInventario && !this.bodegaId();
+  }
+
+  get inputDisabled(): boolean {
+    return this.disabled() || this.bloqueado() || this.sinBodega;
+  }
+
   onTexto(valor: string) {
     this.termino.set(valor);
     this.confirmoNoExiste.set(false);
     this.activo.set(-1);
+    this.errorUpsert.set('');
     if (this.temporizador) clearTimeout(this.temporizador);
-    if (valor.trim().length < MIN_BUSQUEDA) {
+    if (this.inputDisabled || valor.trim().length < MIN_BUSQUEDA) {
       this.seqBusqueda++;
       this.sugerencias.set([]);
       this.buscando.set(false);
       this.errorBusqueda.set(false);
+      this.errorStock.set(false);
       return;
     }
     this.buscando.set(true);
@@ -61,12 +94,33 @@ export class OdooProductoPicker {
   private async buscar(valor: string) {
     const id = ++this.seqBusqueda;
     this.errorBusqueda.set(false);
+    this.errorStock.set(false);
     try {
-      const encontrados = await this.odoo.buscarProductosCompra(valor);
+      const encontrados = this.esInventario
+        ? await this.odoo.buscarProductos(valor)
+        : await this.odoo.buscarProductosCompra(valor);
       if (id !== this.seqBusqueda) return;
-      this.sugerencias.set(encontrados);
+      let filas: OdooProductoInventario[] = encontrados.map((p) => ({ ...p, disponible: null }));
+      const bodega = this.bodegaId();
+      if (this.esInventario && bodega && filas.length) {
+        try {
+          const r = await this.odoo.disponibleProductos(bodega, filas.map((p) => p.id), true);
+          if (id !== this.seqBusqueda) return;
+          const mapa = new Map(r.data.filas.map((f) => [f.producto_id, f.disponible]));
+          filas = filas.map((p) => ({ ...p, disponible: mapa.get(p.id) ?? 0 }));
+          this.consultadoEn.set(r.data.consultado_en ?? r.consultado_en ?? null);
+          this.errorStock.set(r.data.origen !== 'odoo');
+        } catch {
+          if (id !== this.seqBusqueda) return;
+          // No hay fallback al stock local: se muestran los productos pero sin existencia.
+          this.errorStock.set(true);
+          this.consultadoEn.set(null);
+          filas = filas.map((p) => ({ ...p, disponible: null }));
+        }
+      }
+      this.sugerencias.set(filas);
     } catch {
-      // E8 — un fallo de Odoo no cae a un fallback de sgc.articulos; se avisa y punto.
+      // Un fallo de Odoo no cae a un fallback de sgc.articulos; se avisa y punto.
       if (id !== this.seqBusqueda) return;
       this.sugerencias.set([]);
       this.errorBusqueda.set(true);
@@ -88,17 +142,45 @@ export class OdooProductoPicker {
       this.activo.update((i) => (i <= 0 ? n - 1 : i - 1));
     } else if (ev.key === 'Enter' && this.activo() >= 0) {
       ev.preventDefault();
-      this.elegir(this.sugerencias()[this.activo()]);
+      void this.elegir(this.sugerencias()[this.activo()]);
     }
   }
 
-  elegir(p: OdooProductoCompra) {
-    this.seqBusqueda++; // cancela cualquier búsqueda en vuelo
+  async elegir(p: OdooProductoInventario) {
+    this.seqBusqueda++;
     if (this.temporizador) clearTimeout(this.temporizador);
+    this.errorUpsert.set('');
+    if (this.esInventario) {
+      try {
+        const r = await this.articulos.upsertProyeccionOdoo({
+          odoo_product_id: p.id,
+          nombre: p.nombre,
+          codigo: p.codigo,
+          unidad: p.unidad,
+          odoo_template_id: p.plantilla_id ?? null,
+          odoo_uom_id: p.unidad_id ?? null,
+          odoo_categ_id: p.categoria_id ?? null,
+          categoria_nombre: p.categoria,
+          snapshot: { ...p, consultado_en: this.consultadoEn() },
+        });
+        this.termino.set('');
+        this.sugerencias.set([]);
+        this.activo.set(-1);
+        this.inventarioElegido.emit({
+          articuloId: r.id,
+          creado: r.creado,
+          producto: p,
+        });
+        this.selectionChange.emit({ ...p, unidad_compra: null, unidad_compra_id: null });
+      } catch (e: unknown) {
+        this.errorUpsert.set(e instanceof Error ? e.message : 'No se pudo registrar el producto de Odoo.');
+      }
+      return;
+    }
     this.termino.set('');
     this.sugerencias.set([]);
     this.activo.set(-1);
-    this.selectionChange.emit(p);
+    this.selectionChange.emit(p as OdooProductoCompra);
   }
 
   limpiar() {
@@ -106,9 +188,9 @@ export class OdooProductoPicker {
     this.termino.set('');
     this.sugerencias.set([]);
     this.confirmoNoExiste.set(false);
+    this.errorUpsert.set('');
   }
 
-  /** E1 — "ya busqué y no existe" antes de habilitar Solicitar alta (anti-duplicado). */
   get sinResultados(): boolean {
     return this.termino().trim().length >= MIN_BUSQUEDA && !this.buscando() && !this.errorBusqueda() && this.sugerencias().length === 0;
   }

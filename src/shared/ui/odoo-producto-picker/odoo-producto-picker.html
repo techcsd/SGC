@@ -3,6 +3,11 @@
     <span class="sgc-badge sgc-badge--info">Odoo</span>
     <span class="opp-chip__nombre">{{ p.nombre }}</span>
     @if (p.codigo) { <span class="text-muted">({{ p.codigo }})</span> }
+    @if (esInventario && p.disponible != null) {
+      <span class="opp-chip__stock" [class.opp-chip__stock--cero]="p.disponible <= 0">
+        {{ 'Disponible:' | t }} {{ p.disponible | number:'1.0-2' }}
+      </span>
+    }
     @if (!disabled()) {
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiar()" [attr.aria-label]="'Quitar producto' | t">
         <app-icon name="x" [size]="14" />
@@ -20,10 +25,10 @@
         aria-autocomplete="list"
         [attr.aria-expanded]="sugerencias().length > 0"
         [value]="termino()"
-        [disabled]="disabled()"
+        [disabled]="inputDisabled"
         (input)="onTexto($any($event.target).value)"
         (keydown)="onTeclas($event)"
-        [placeholder]="'Buscar producto en Odoo…' | t"
+        [placeholder]="(esInventario ? 'Buscar artículo en Odoo…' : 'Buscar producto en Odoo…') | t"
       />
     </div>
     @if (sugerencias().length > 0) {
@@ -33,22 +38,43 @@
             role="option"
             [attr.aria-selected]="i === activo()"
             [class.opp-sugerencias__op--activa]="i === activo()"
+            [class.opp-sugerencias__op--cero]="esInventario && p.disponible != null && p.disponible <= 0"
             (click)="elegir(p)"
             (keydown.enter)="elegir(p)"
             tabindex="-1"
           >
-            <span>{{ p.nombre }}</span>
-            @if (p.codigo) { <span class="text-muted">{{ p.codigo }}</span> }
-            @if (p.unidad_compra) { <span class="text-muted">{{ p.unidad_compra }}</span> }
+            <span class="opp-sugerencias__info">
+              <span>{{ p.nombre }}</span>
+              @if (p.codigo) { <span class="text-muted">{{ p.codigo }}</span> }
+              @if (!esInventario && $any(p).unidad_compra) { <span class="text-muted">{{ $any(p).unidad_compra }}</span> }
+              @if (esInventario && p.unidad) { <span class="text-muted">{{ p.unidad }}</span> }
+            </span>
+            @if (esInventario) {
+              <span class="opp-sugerencias__stock" [class.opp-sugerencias__stock--cero]="p.disponible != null && p.disponible <= 0">
+                @if (p.disponible != null) {
+                  {{ 'Disponible:' | t }} {{ p.disponible | number:'1.0-2' }}
+                } @else {
+                  {{ 'Existencia no disponible' | t }}
+                }
+              </span>
+            }
           </li>
         }
       </ul>
     }
     <span class="text-muted opp-estado" role="status" aria-live="polite">
-      @if (buscando()) {
-        {{ 'Buscando en Odoo…' | t }}
+      @if (bloqueado()) {
+        <span class="field-error">{{ bloqueadoMotivo() || ('No se puede buscar porque Odoo no responde. Espera un momento e inténtalo de nuevo.' | t) }}</span>
+      } @else if (sinBodega) {
+        {{ 'Primero elige el almacén para ver las existencias de Odoo.' | t }}
+      } @else if (buscando()) {
+        {{ (esInventario ? 'Buscando en Odoo y consultando existencias…' : 'Buscando en Odoo…') | t }}
       } @else if (errorBusqueda()) {
         {{ 'No se pudo buscar en Odoo. Intenta de nuevo.' | t }}
+      } @else if (errorStock()) {
+        {{ 'Se encontraron productos, pero no se pudieron leer las existencias en Odoo.' | t }}
+      } @else if (errorUpsert()) {
+        <span class="field-error">{{ errorUpsert() }}</span>
       } @else if (sinResultados) {
         <span class="opp-sin-resultados">
           {{ 'No encontramos este producto en Odoo.' | t }}

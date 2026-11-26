@@ -15,7 +15,12 @@ export interface OdooProducto {
   nombre: string;
   codigo: string | null;
   unidad: string | null;
+  unidad_id?: OdooId | null;
   categoria: string | null;
+  categoria_id?: OdooId | null;
+  plantilla_id?: OdooId | null;
+  /** Existencia viva en la bodega elegida (solo modo inventario). */
+  disponible?: number | null;
 }
 
 /** CY24 (#24, D1) — variante "compras" de OdooProducto: filtra por purchase_ok
@@ -72,10 +77,10 @@ export interface OdooStockFiltro {
 }
 
 /** Acciones permitidas del gateway (espejo de la allowlist del servidor). */
-export type OdooAccion = 'productos.buscar' | 'ubicaciones.listar' | 'stock.consultar' | 'almacenes.listar' | 'stock.disponible' | 'stock.disponible_bodega' | 'stock.validar_salida' | 'salidas.emitir' | 'productos.buscar_compra' | 'compras.obtener_varias' | 'proveedores.buscar' | 'proveedores.obtener_varios';
+export type OdooAccion = 'productos.buscar' | 'productos.listar' | 'categorias.listar' | 'unidades.listar' | 'ubicaciones.listar' | 'stock.consultar' | 'almacenes.listar' | 'stock.disponible' | 'stock.disponible_bodega' | 'stock.disponible_productos' | 'stock.validar_salida' | 'salidas.emitir' | 'productos.buscar_compra' | 'compras.obtener_varias' | 'proveedores.buscar' | 'proveedores.obtener_varios';
 
 /** CY24 Fase C — acciones de ESCRITURA del gateway (módulo `compras`; el cliente solo manda `orden_id`, D5). */
-export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar' | 'proveedores.crear' | 'proveedores.actualizar';
+export type OdooAccionEscritura = 'compras.crear' | 'compras.confirmar' | 'compras.cancelar' | 'proveedores.crear' | 'proveedores.actualizar' | 'productos.crear';
 
 /** Resultado de una escritura de OC; `repetido` = el comando ya estaba completado (idempotencia, D3). */
 export interface OdooComandoOcResultado {
@@ -174,4 +179,59 @@ export interface OdooSalidaEmitida {
   validacion: 'odoo' | 'sgc' | 'prueba';
   aviso: string | null;
   consultado_en: string | null;
+}
+
+export interface OdooProductoInventario extends OdooProducto {
+  disponible: number | null;
+  consultado_en?: string | null;
+}
+
+export interface OdooProductoInventarioSeleccionado {
+  articuloId: string;
+  creado: boolean;
+  producto: OdooProductoInventario;
+}
+
+export interface OdooCatalogoPagina {
+  productos: OdooProducto[];
+  pagina: number;
+  tamano: number;
+  hay_mas: boolean;
+}
+
+export interface OdooCategoria {
+  id: OdooId;
+  nombre: string;
+  nombre_completo: string;
+  padre_id: OdooId | null;
+}
+
+export interface OdooUnidad {
+  id: OdooId;
+  nombre: string;
+  categoria: string | null;
+  factor: number;
+  tipo: string;
+}
+
+export interface OdooStockProductoFila {
+  producto_id: OdooId;
+  disponible: number;
+  fisica: number;
+  reservada: number;
+}
+
+export interface OdooStockProductosBodega {
+  origen: 'odoo' | 'sgc';
+  fuente_odoo: boolean;
+  homologada: boolean;
+  contingencia: boolean;
+  consultado_en: string | null;
+  filas: OdooStockProductoFila[];
+}
+
+export interface OdooProductoCreado {
+  producto: { id: OdooId; nombre: string; codigo: string | null; yaExistia?: boolean };
+  articulo_id: string;
+  repetido: boolean;
 }

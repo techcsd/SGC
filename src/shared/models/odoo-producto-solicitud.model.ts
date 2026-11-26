@@ -3,7 +3,7 @@
 // auth.users(id) (no sgc.usuarios), así que el nombre se resuelve aparte con
 // resolver_nombres_usuarios (patrón CJ10), no por embed de PostgREST.
 
-export type OdooProductoSolicitudEstado = 'pendiente' | 'creado' | 'vinculado_existente' | 'rechazado';
+export type OdooProductoSolicitudEstado = 'pendiente' | 'aprobado' | 'creado' | 'vinculado_existente' | 'rechazado';
 
 export interface OdooProductoSolicitud {
   id: string;
@@ -22,11 +22,19 @@ export interface OdooProductoSolicitud {
   resuelto_en: string | null;
   motivo_resolucion: string | null;
   es_prueba: boolean;
+  origen_item_libre_id?: string | null;
+  nombre_propuesto?: string | null;
+  codigo_propuesto?: string | null;
+  odoo_categ_id?: number | null;
+  odoo_uom_id?: number | null;
+  aprobado_por?: string | null;
+  aprobado_en?: string | null;
   orden?: { numero: string } | null;
 }
 
 export const ODOO_PRODUCTO_SOLICITUD_ESTADOS: { value: OdooProductoSolicitudEstado; label: string }[] = [
   { value: 'pendiente', label: 'Pendiente' },
+  { value: 'aprobado', label: 'Aprobado por Contabilidad' },
   { value: 'creado', label: 'Creado' },
   { value: 'vinculado_existente', label: 'Vinculado a existente' },
   { value: 'rechazado', label: 'Rechazado' },

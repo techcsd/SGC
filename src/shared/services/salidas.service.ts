@@ -740,7 +740,7 @@ export class SalidasService {
     categoriaId: number,
     unidad: string | null,
     generarMovimiento = false,
-  ): Promise<{ id: string; codigo: string }> {
+  ): Promise<{ id?: string; codigo?: string; solicitud_id?: string; pendiente?: boolean; mensaje?: string }> {
     const { data, error } = await this.supabase.client.rpc('crear_articulo_desde_libre', {
       p_item_libre_id: itemLibreId,
       p_nombre: nombre,
@@ -750,7 +750,7 @@ export class SalidasService {
     });
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
-    return data as { id: string; codigo: string };
+    return data as { id?: string; codigo?: string; solicitud_id?: string; pendiente?: boolean; mensaje?: string };
   }
 
   /** AT11 — declina un item libre (no se creará el artículo) → historial + notifica al

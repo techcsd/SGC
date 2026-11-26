@@ -36,20 +36,37 @@
     <span class="oc-kpi__n">{{ retrasoOutbox() }} min</span>
     <span class="oc-kpi__l">{{ 'Retraso de la cola a Odoo' | t }}</span>
   </div>
+  <div class="sgc-card oc-kpi" [class.oc-kpi--alerta]="sloFuera()">
+    <span class="oc-kpi__n">
+      @if (criterios(); as c) {
+        @if (c.pct_en_2min == null) { — } @else { {{ c.pct_en_2min }} % }
+      } @else { — }
+    </span>
+    <span class="oc-kpi__l">{{ 'SLO: 99 % en menos de 2 min' | t }}</span>
+  </div>
+  <div class="sgc-card oc-kpi" [class.oc-kpi--alerta]="erroresOutboxCount() > 0">
+    <span class="oc-kpi__n">{{ erroresOutboxCount() }}</span>
+    <span class="oc-kpi__l">{{ 'Errores del outbox' | t }}</span>
+  </div>
 </div>
 
-<!-- Criterios de salida del canary (DS-27) -->
+<!-- Criterios de observación (#204): SLO 99 % < 2 min, no p99 < 5 s -->
 @if (criterios(); as c) {
-  <h2 class="oc-h2">{{ 'Criterios de salida del canary' | t }}</h2>
+  <h2 class="oc-h2">{{ 'SLO de publicación a Odoo' | t }}</h2>
   <div class="sgc-card oc-criterios">
     <p>
-      @if (c.cumple_p99) {
-        <span class="badge badge--success">{{ 'Publicación rápida' | t }}</span>
+      @if (cumpleSlo(c)) {
+        <span class="badge badge--success">{{ 'Dentro del SLO' | t }}</span>
       } @else {
-        <span class="badge badge--warning">{{ 'Publicación rápida' | t }}</span>
+        <span class="badge badge--warning">{{ 'Fuera del SLO' | t }}</span>
       }
-      {{ i18n.t('Tiempo p99 de publicación: {s} s (meta: menos de 5 s, {n} muestra(s))', { s: c.p99_publicacion_s, n: c.muestras }) }}
+      @if (c.pct_en_2min == null) {
+        {{ 'Sin muestras en los últimos 7 días' | t }}
+      } @else {
+        {{ i18n.t('{pct} % en menos de 2 min (meta: 99 %, {n} muestra(s) en 7 días)', { pct: c.pct_en_2min, n: c.muestras }) }}
+      }
     </p>
+    <p>{{ i18n.t('p99 informativo: {s} s', { s: c.p99_publicacion_s }) }}</p>
     <p>
       @if (c.cumple_fuera_de_canal) {
         <span class="badge badge--success">{{ 'Sin movimientos fuera de SGC' | t }}</span>
@@ -58,9 +75,52 @@
       }
       {{ i18n.t('Movimientos fuera de SGC abiertos: {n}', { n: c.fuera_de_canal_abiertas }) }}
     </p>
+    <p>{{ i18n.t('Inciertos abiertos: {n}', { n: inciertosCriterio(c) }) }}</p>
+    <p>{{ i18n.t('Errores del outbox (salidas): {n}', { n: c.outbox_errores ?? erroresOutbox().length }) }}</p>
     <p>{{ i18n.t('Decisiones ratificadas: {n} de 5', { n: c.ratificaciones.length }) }}</p>
   </div>
 }
+
+<!-- Errores del outbox de salidas (revisión semanal #204) -->
+<h2 class="oc-h2">{{ 'Errores del outbox' | t }}</h2>
+<p class="oc-lead">
+  {{ 'Eventos de conduce en error o bloqueados en la cola a Odoo. El detalle y el reintento están en Sincronización.' | t }}
+  <a routerLink="/tecnologia/odoo-sync">{{ 'Ver en Sincronización' | t }}</a>
+</p>
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (erroresOutbox().length === 0) {
+    <div class="table-empty"><p>{{ 'Sin errores en la cola a Odoo.' | t }}</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" [attr.aria-label]="'Errores del outbox' | t">
+        <thead>
+          <tr>
+            <th>{{ 'Tipo' | t }}</th>
+            <th>{{ 'Estado' | t }}</th>
+            <th>{{ 'Error' | t }}</th>
+            <th>{{ 'Intentos' | t }}</th>
+            <th>{{ 'Actualizado' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of erroresOutbox(); track e.id) {
+            <tr>
+              <td>{{ etiquetaAgregado(e.agregado_tipo) }}</td>
+              <td>
+                <span class="badge badge--danger">{{ (e.estado === 'bloqueado' ? 'Bloqueado' : 'Error') | t }}</span>
+              </td>
+              <td>{{ e.error || '—' }}</td>
+              <td>{{ e.intentos }}</td>
+              <td>{{ e.actualizado_en | fecha: 'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
 
 <!-- Pendientes en Odoo (lo que el tablero de Inventario de Odoo cuenta como por procesar / atrasado) -->
 @if (pendientes(); as p) {

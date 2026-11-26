@@ -4,7 +4,7 @@
 // o el interruptor ODOO_CONDUCE_FALLBACK_SGC=true (emergencia).
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { OdooClient } from "../_shared/odoo-client.ts";
-import { ParamError } from "./acciones.ts";
+import { idSeguro, ParamError } from "./acciones.ts";
 import {
   ConduceStockError, fallbackSgcHabilitado, MAX_ARTICULOS_DISPONIBLE, MAX_ITEMS_VALIDAR,
   MENSAJE_DEGRADADO, MENSAJE_FALLBACK_SGC, MENSAJE_ODOO_CAIDO, esOdooCaido, mensajeFaltantes, validarStockOdoo,
@@ -14,6 +14,7 @@ import { disponibilidadPorProducto } from "../_shared/odoo-traslados.ts";
 
 export const ACCIONES_CONDUCES = [
   "stock.disponible_bodega",
+  "stock.disponible_productos",
   "stock.validar_salida",
   "salidas.emitir",
 ] as const;
@@ -269,8 +270,46 @@ const emitir = {
   },
 };
 
+
+const disponibleProductos = {
+  normalizar(p: Record<string, unknown>) {
+    const bodega_id = uuid(p.bodega_id, "bodega_id");
+    if (!Array.isArray(p.product_ids) || p.product_ids.length < 1 || p.product_ids.length > MAX_ARTICULOS_DISPONIBLE) {
+      throw new ParamError(`product_ids debe ser una lista de 1 a ${MAX_ARTICULOS_DISPONIBLE} IDs.`);
+    }
+    const product_ids = [...new Set(p.product_ids.map((v) => {
+      const id = idSeguro(v, "product_ids");
+      if (!id) throw new ParamError("product_ids no es un ID de Odoo válido.");
+      return id;
+    }))].sort((a, b) => a - b);
+    return { bodega_id, product_ids };
+  },
+  async ejecutar(ctx: Ctx, p: { bodega_id: string; product_ids: number[] }) {
+    const bodega = await ctx.admin.bodega(p.bodega_id);
+    if (!bodega) throw new ConduceStockError("datos", "El almacén no existe.");
+    if (!bodega.fuente_odoo || !bodega.odoo_location_id) {
+      return {
+        origen: "sgc" as const, fuente_odoo: bodega.fuente_odoo, homologada: !!bodega.odoo_location_id,
+        contingencia: bodega.contingencia, consultado_en: null,
+        filas: p.product_ids.map((producto_id) => ({ producto_id, disponible: 0, fisica: 0, reservada: 0 })),
+      };
+    }
+    const mapa = await disponibilidadPorProducto(ctx.odoo, bodega.odoo_location_id, p.product_ids);
+    return {
+      origen: "odoo" as const, fuente_odoo: true, homologada: true, contingencia: bodega.contingencia,
+      consultado_en: new Date().toISOString(),
+      almacen: { nombre: bodega.nombre, codigo_odoo: bodega.codigo_odoo, location_id: bodega.odoo_location_id, warehouse_id: bodega.odoo_warehouse_id },
+      filas: p.product_ids.map((producto_id) => {
+        const disponible = r6(mapa.get(producto_id) ?? 0);
+        return { producto_id, disponible, fisica: disponible, reservada: 0 };
+      }),
+    };
+  },
+};
+
 export const DEFINICIONES_CONDUCES = {
   "stock.disponible_bodega": disponibleBodega,
+  "stock.disponible_productos": disponibleProductos,
   "stock.validar_salida": validarSalida,
   "salidas.emitir": emitir,
 };

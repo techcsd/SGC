@@ -9,14 +9,20 @@
       [columns]="exportCols" [sections]="exportSecciones" />
     <a class="sgc-btn sgc-btn--ghost" routerLink="/inventario/articulos/importar"
        title="{{ 'Importar artículos tal como salen de Odoo' | t }}">{{ 'Importar desde Odoo' | t }}</a>
-    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <a class="sgc-btn sgc-btn--primary" routerLink="/compras/productos-por-dar-de-alta">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      {{ 'Nuevo artículo' | t }}
-    </button>
+      {{ 'Solicitar alta en Odoo' | t }}
+    </a>
   </div>
 </div>
+
+@if (catalogoOrigen() === 'odoo') {
+  <p class="form-hint" role="status">{{ 'El catálogo maestro es Odoo. Nombre, unidad y categoría se leen de ahí. Aquí solo se editan los extras de SGC (talla, alias, foto, min/max, etc.).' | t }}</p>
+} @else if (catalogoOrigen() === 'snapshot') {
+  <div class="page-error" role="alert">{{ catalogoAviso() }}</div>
+}
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
@@ -322,7 +328,7 @@
         <input
           id="codigo"
           type="text"
-          formControlName="codigo"
+          formControlName="codigo" [attr.readonly]="!!editingId()"
           placeholder="{{ 'Se genera automáticamente' | t }}"
           readonly
         />
@@ -332,7 +338,7 @@
         <label for="unidad">{{ 'Unidad' | t }} <span class="required">*</span></label>
         <select
           id="unidad"
-          formControlName="unidad"
+          formControlName="unidad" [attr.disabled]="!!editingId()"
           [class.invalid]="f.unidad.invalid && f.unidad.touched"
         >
           <option [ngValue]="null">{{ 'Seleccionar…' | t }}</option>
@@ -351,7 +357,7 @@
       <input
         id="nombre"
         type="text"
-        formControlName="nombre"
+        formControlName="nombre" [attr.readonly]="!!editingId()"
         placeholder="{{ 'Nombre del artículo' | t }}"
         [class.invalid]="f.nombre.invalid && f.nombre.touched"
       />
@@ -374,7 +380,7 @@
       <label for="categoria_id">{{ 'Categoría' | t }} <span class="required">*</span></label>
       <select
         id="categoria_id"
-        formControlName="categoria_id"
+        formControlName="categoria_id" [attr.disabled]="!!editingId()"
         [class.invalid]="f.categoria_id.invalid && f.categoria_id.touched"
       >
         <option [ngValue]="null">{{ 'Seleccionar categoría…' | t }}</option>
