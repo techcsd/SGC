@@ -4,10 +4,10 @@
   "filas": [
     {
       "pantalla": "tecnologia/odoo-conciliacion",
-      "total": 33,
-      "cubiertos": 32,
+      "total": 46,
+      "cubiertos": 45,
       "sin": 1,
-      "pct": 97,
+      "pct": 98,
       "enScope": true,
       "enforce": false,
       "faltantes": [

@@ -9128,5 +9128,18 @@
   "Que el Ingeniero lo intente": "Kite Enjenyè a eseye l",
   "Secciones de agentes": "Seksyon ajan yo",
   "tareas en curso": "travay k ap fèt",
-  "Cada 15 minutos (+ barrido mar y vie)": "Chak 15 minit (+ revizyon madi ak vandredi)"
+  "Cada 15 minutos (+ barrido mar y vie)": "Chak 15 minit (+ revizyon madi ak vandredi)",
+  "SLO: 99 % en menos de 2 min": "SLO: 99% an mwens pase 2 min",
+  "Errores del outbox": "Erè nan outbox la",
+  "SLO de publicación a Odoo": "SLO piblikasyon nan Odoo",
+  "Dentro del SLO": "Andedan SLO a",
+  "Fuera del SLO": "Deyò SLO a",
+  "Sin muestras en los últimos 7 días": "Pa gen echantiyon nan 7 dènye jou yo",
+  "{pct} % en menos de 2 min (meta: 99 %, {n} muestra(s) en 7 días)": "{pct}% an mwens pase 2 min (objektif: 99%, {n} echantiyon nan 7 jou)",
+  "p99 informativo: {s} s": "p99 pou enfòmasyon: {s} s",
+  "Inciertos abiertos: {n}": "Ensèten ouvè: {n}",
+  "Errores del outbox (salidas): {n}": "Erè nan outbox la (soti): {n}",
+  "Eventos de conduce en error o bloqueados en la cola a Odoo. El detalle y el reintento están en Sincronización.": "Evènman kondwi an erè oswa bloke nan liy Odoo a. Detay ak eseye ankò yo nan Senkronizasyon.",
+  "Ver en Sincronización": "Gade nan Senkronizasyon",
+  "Sin errores en la cola a Odoo.": "Pa gen erè nan liy Odoo a."
 }
