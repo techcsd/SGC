@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.224.0": {
+      "titulo": "Catálogo de Odoo en inventario, alertas del sondeo y arreglos de Odoo 19",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Artículos, unidades y categorías se trabajan directo con Odoo: al crear un conduce la búsqueda sale de Odoo y muestra la existencia viva del almacén."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Conciliación de Odoo mide el SLO de 2 minutos y muestra los errores del outbox; aviso a Tecnología si el sondeo de Odoo falla varias veces seguidas."
+        },
+        {
+          "t": "mejora",
+          "m": "Odoo",
+          "d": "El autor del chatter se resuelve también por el correo de trabajo del empleado."
+        },
+        {
+          "t": "arreglo",
+          "m": "Odoo",
+          "d": "Compatibilidad con Odoo 19: stock y catálogo vuelven a mostrarse, y los nombres de los artículos coinciden con los de Odoo."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Crear o editar bodegas, categorías y partidas de proyecto volvió a funcionar."
+        }
+      ]
+    },
     "1.223.0": {
       "titulo": "Proveedores de tecnología, fotos de cédulas con IA y arreglos en Empresa y Dev notes",
       "cambios": [
