@@ -31,7 +31,8 @@ describe('Kpi (Ranking de Encargados) — error por rol', () => {
 
   it('no muestra el mensaje técnico crudo, sí el mensaje por rol', async () => {
     const fixture = TestBed.createComponent(Kpi);
-    await fixture.componentInstance.ngOnInit();
+    fixture.detectChanges(); // dispara ngOnInit (carga que falla)
+    await fixture.whenStable();
     fixture.detectChanges();
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).not.toContain('permission denied');

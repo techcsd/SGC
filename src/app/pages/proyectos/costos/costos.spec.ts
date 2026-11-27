@@ -13,7 +13,9 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 describe('ProyectoCostos — error por rol', () => {
   beforeEach(() => {
     const fakeService: Partial<ProyectosService> = {
-      getById: async () => null,
+      getById: async () => {
+        throw new Error('sin proyecto');
+      },
       getCostoMaterialObra: async () => {
         throw new Error('PGRST202 Could not find the function sgc.costo_material_obra');
       },
@@ -33,7 +35,8 @@ describe('ProyectoCostos — error por rol', () => {
 
   it('no muestra el mensaje técnico crudo, sí el mensaje humano', async () => {
     const fixture = TestBed.createComponent(ProyectoCostos);
-    await fixture.componentInstance.cargar();
+    fixture.detectChanges(); // dispara ngOnInit (carga que falla)
+    await fixture.whenStable();
     fixture.detectChanges();
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).not.toContain('PGRST202');
