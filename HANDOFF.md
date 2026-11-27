@@ -1,5 +1,15 @@
 # HANDOFF — SGC
 
+## ✅ 27-nov-2026 — Agentes autónomos: primera promoción real a prod (release 1.225.1)
+
+**En dev / En prod:** web 1.225.1 en ambos (PR #315). Primera promoción real: tarea 9cc18134 (docs) → PR #310 a dev → PR #311 a main → health de prod OK, sin reversión, tarea en_prod.
+**Arreglos del carril (por qué no había cambios en prod):** el humo usaba networkidle (la app nunca queda inactiva); dev está tras SSO de Vercel (bypass de automatización creado en los proyectos sgc y csd-app de Vercel, secret VERCEL_AUTOMATION_BYPASS_SECRET en Environment agentes-dev de ambos repos; salud.mjs lo manda y ya no acepta el login de Vercel como sano); el humo usa el spec de dev, no el del commit del agente; la RPC no admite merge_prod; la tarea pasa por en_dev antes de en_prod; un cherry-pick vacío = ya en main.
+**Montaje:** auto-prod ON; prod con agentes_pausa_total=true a propósito (el runner solo usa dev); espejo prod→dev (edge agente-ingeniero-espejo + cron */15, secrets ESPEJO_DEV_* en prod, force-prod registrado). QA_PROD_PASSWORD cargado en agentes-prod de csd-app.
+**NO probado:** reversión automática (nunca se disparó); promoción de una tarea de csd-app (la verificación posterior de la PWA es solo health + smoke); max_prod_por_dia sigue en 3.
+**Pendiente humano:** Resend (reenviar los 16 correos de Raykler al renovar la cuota, ~30-nov/1-dic); prueba de la PWA en iPhone real.
+
+---
+
 ## ✅ 26-nov-2026 — Cierre Odoo 19 + release 1.224.0 EN PROD
 
 **En dev / En prod:** web 1.224.0 en ambos (PR #288 dev→main, `release-check` 7/7). PRs integrados: #229 (SLO 2 min), #230 (autor chatter por work_email), #232 (catálogo/unidades/categorías directo de Odoo), #233 (alerta sondeo; su SQL ya estaba en prod) y el hotfix `tg_homologar_nombre`. Edges `odoo-api`, `odoo-conciliar`, `odoo-sync` desplegadas dev→prod. OK de Xaviel («mandalo a prod, ya lo probe»).
