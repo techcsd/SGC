@@ -217,9 +217,11 @@ jobs:
           PADRES=$(git rev-list --parents -n1 "$MERGE_SHA_DEV" | wc -w)
           if [ "$PADRES" -gt 2 ]; then OPT="-m 1"; else OPT=""; fi
           if ! git cherry-pick $OPT "$MERGE_SHA_DEV" >/dev/null 2>&1; then
+            # sin conflictos y sin cambios en el arbol = cherry-pick vacio: el cambio ya esta en main (promocion previa o release)
+            VACIO=0; [ -z "$(git status --porcelain)" ] && VACIO=1
             git cherry-pick --abort 2>/dev/null
             # el commit ya viajó a main por un release humano (dev->main): no hay nada que promover, la tarea ya está en prod
-            if git merge-base --is-ancestor "$MERGE_SHA_DEV" origin/main; then
+            if [ "$VACIO" = 1 ] || git merge-base --is-ancestor "$MERGE_SHA_DEV" origin/main; then
               MAIN_SHA=$(git rev-parse origin/main)
               node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_dev\"}" >/dev/null 2>&1 || true
               node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"motivo\":\"ya estaba en main por un release (sin promoción del agente)\"}}" >/dev/null
