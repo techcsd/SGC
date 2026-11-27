@@ -104,7 +104,7 @@
       "descripcion": "DC5 — por WhatsApp una 'proponer_*' NUNCA se confirma desde el chat: la respuesta debe traer el enlace a /borrador/:id y decir explícitamente que todavía no existe (mismo contrato que el conector MCP, CR1 §B3).",
       "modo": "whatsapp",
       "rol_codigo": "admin",
-      "mensaje": "Prepárame una tarea para revisar el inventario de la obra Torre Alpha mañana",
+      "mensaje": "Prepárame una tarea asignada a mí para revisar el inventario de la obra Torre Alpha mañana",
       "expect": { "tool_llamada": "proponer_tarea", "contiene_enlace_borrador": true, "dice_no_creado_aun": true }
     },
     {
@@ -138,10 +138,10 @@
     }
     ,{
       "id": "dx12-odoo-stock-apagado",
-      "descripcion": "DX12.3 — con el interruptor odoo_herramientas_ia apagado (default), Compa debe llamar consultar_stock_odoo y reportar que está desactivado, sin inventar existencias.",
+      "descripcion": "DX12.3 — Compa debe intentar consultar_stock_odoo (el interruptor odoo_herramientas_ia está activo desde 24-nov) y, si Odoo falla o está apagado, decirlo sin inventar existencias.",
       "rol_codigo": "logistica",
       "mensaje": "¿Cuánto stock hay de ties de 25cm en Odoo ahora mismo?",
-      "expect": { "tool_llamada": "consultar_stock_odoo", "sin_gap_falso": true, "sin_contradiccion": true }
+      "expect": { "tool_intentada": "consultar_stock_odoo", "sin_gap_falso": true, "sin_contradiccion": true }
     }
 
   ]

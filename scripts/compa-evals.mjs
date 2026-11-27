@@ -111,6 +111,10 @@ async function correrCaso(caso) {
   if (exp.tool_llamada && !herramientas.some((h) => h.tool === exp.tool_llamada && h.ok)) {
     fallos.push(`no llamó '${exp.tool_llamada}' (llamó: ${herramientas.map((h) => h.tool).join(', ') || 'ninguna'})`);
   }
+  // tool_intentada: basta con que la haya invocado (aunque el sistema externo —p. ej. Odoo staging— falle); lo que se evalúa es la decisión de Compa.
+  if (exp.tool_intentada && !herramientas.some((h) => h.tool === exp.tool_intentada)) {
+    fallos.push(`no intentó '${exp.tool_intentada}' (llamó: ${herramientas.map((h) => h.tool).join(', ') || 'ninguna'})`);
+  }
   if (exp.tool_llamada_una_de && !herramientas.some((h) => exp.tool_llamada_una_de.includes(h.tool) && h.ok)) {
     fallos.push(`no llamó ninguna de [${exp.tool_llamada_una_de.join(', ')}] (llamó: ${herramientas.map((h) => h.tool).join(', ') || 'ninguna'})`);
   }
