@@ -10,8 +10,11 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 async function health(url, reintentos) {
   for (let i = 1; i <= reintentos; i++) {
     try {
-      const r = await fetch(url, { redirect: 'follow' });
+      // dev está tras SSO de Vercel: con el secret de bypass la automatización entra; sin él, el login de Vercel NO cuenta como sano
+      const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+      const r = await fetch(url, { redirect: 'follow', headers: bypass ? { 'x-vercel-protection-bypass': bypass } : {} });
       const html = await r.text();
+      if (/vercel\.com\/(sso-api|login)/i.test(r.url)) { console.log(`health intento ${i}: protegido por SSO de Vercel (falta o es inválido VERCEL_AUTOMATION_BYPASS_SECRET)`); await dormir(3_000); continue; }
       // La SPA debe responder 200 y servir el bundle (app-root); un 5xx o página vacía = no sano.
       if (r.ok && /<app-root|<script/i.test(html)) { console.log(`health ok (${r.status}) intento ${i}`); return true; }
       console.log(`health intento ${i}: HTTP ${r.status}`);

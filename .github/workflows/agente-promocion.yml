@@ -99,6 +99,7 @@ jobs:
           VERCEL_TOKEN_AGENTES: ${{ secrets.VERCEL_TOKEN_AGENTES }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           G="$RUNNER_TEMP/guardianes/scripts/guardianes"
           set +e
@@ -112,8 +113,16 @@ jobs:
         if: steps.pre.outputs.activo == 'true' && steps.dev.outputs.sano == 'ok'
         env:
           QA_BASE_URL: ${{ env.DEV_URL }}
+          QA_VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          GH_TOKEN: ${{ secrets.AGENTE_PROMOCION_GITHUB_TOKEN }}
         run: |
           set +e
+          # dev está tras SSO de Vercel: sin bypass el humo no ve la app (302 a vercel.com/sso-api)
+          LOC=$(curl -s -o /dev/null -w '%{redirect_url}' -H "x-vercel-protection-bypass: $QA_VERCEL_BYPASS" "$DEV_URL/")
+          case "$LOC" in *vercel.com/sso*) echo "dev protegido por SSO de Vercel y el bypass falta o es inválido (secret VERCEL_AUTOMATION_BYPASS_SECRET en agentes-dev)"; echo "humo=fail" >> "$GITHUB_OUTPUT"; exit 0;; esac
+          # el humo se toma SIEMPRE del tip de dev (no del commit del agente): así el agente no puede tocar su propia prueba
+          B64=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $B64" fetch --quiet origin dev && git checkout FETCH_HEAD -- qa/e2e/humo-agentes.spec.ts
           npm ci --no-audit --no-fund && npx playwright install --with-deps chromium && npx playwright test qa/e2e/humo-agentes.spec.ts --project chromium
           echo "humo=$([ $? -eq 0 ] && echo ok || echo fail)" >> "$GITHUB_OUTPUT"
 
@@ -208,7 +217,17 @@ jobs:
           PADRES=$(git rev-list --parents -n1 "$MERGE_SHA_DEV" | wc -w)
           if [ "$PADRES" -gt 2 ]; then OPT="-m 1"; else OPT=""; fi
           if ! git cherry-pick $OPT "$MERGE_SHA_DEV" >/dev/null 2>&1; then
+            # sin conflictos y sin cambios en el arbol = cherry-pick vacio: el cambio ya esta en main (promocion previa o release)
+            VACIO=0; [ -z "$(git status --porcelain)" ] && VACIO=1
             git cherry-pick --abort 2>/dev/null
+            # el commit ya viajó a main por un release humano (dev->main): no hay nada que promover, la tarea ya está en prod
+            if [ "$VACIO" = 1 ] || git merge-base --is-ancestor "$MERGE_SHA_DEV" origin/main; then
+              MAIN_SHA=$(git rev-parse origin/main)
+              node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_dev\"}" >/dev/null 2>&1 || true
+              node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"motivo\":\"ya estaba en main por un release (sin promoción del agente)\"}}" >/dev/null
+              node "$G/rpc.mjs" ing_evento_registrar "{\"p_tarea\":\"$TAREA\",\"p_tipo\":\"ya_en_main\",\"p_detalle\":{\"sha\":\"$MAIN_SHA\"},\"p_costo_usd\":0}" >/dev/null
+              echo "el commit ya está en main: tarea en_prod"; echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
+            fi
             node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"necesita_humano\",\"p_patch\":{\"motivo\":\"el cambio no aplica limpio sobre main (conflicto o depende de código solo de dev)\"}}" >/dev/null
             echo "conflicto al cherry-pickear sobre main: queda para humano"; echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
@@ -331,7 +350,9 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY_DEV: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
         run: |
           G="$RUNNER_TEMP/guardianes/scripts/guardianes"
-          node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"merge_prod\":\"${{ steps.merge.outputs.sha }}\"}}" >/dev/null
+          # el commit ya está mergeado en dev: si la tarea sigue en en_revision, pasa primero a en_dev (en_revision -> en_prod no es transición válida)
+          node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_dev\"}" >/dev/null 2>&1 || true
+          node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"motivo\":\"promovida a prod: ${{ steps.merge.outputs.sha }}\"}}" >/dev/null
           node "$G/rpc.mjs" ing_evento_registrar "{\"p_tarea\":\"$TAREA\",\"p_tipo\":\"prod_verificado\",\"p_detalle\":{\"sha\":\"${{ steps.merge.outputs.sha }}\"},\"p_costo_usd\":0}" >/dev/null
 
       # 6) REVERSIÓN AUTOMÁTICA (si la verificación dijo revertir, o si ni siquiera pudo decidir)
