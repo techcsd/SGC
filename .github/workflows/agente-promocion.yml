@@ -217,6 +217,13 @@ jobs:
           if [ "$PADRES" -gt 2 ]; then OPT="-m 1"; else OPT=""; fi
           if ! git cherry-pick $OPT "$MERGE_SHA_DEV" >/dev/null 2>&1; then
             git cherry-pick --abort 2>/dev/null
+            # el commit ya viajó a main por un release humano (dev->main): no hay nada que promover, la tarea ya está en prod
+            if git merge-base --is-ancestor "$MERGE_SHA_DEV" origin/main; then
+              MAIN_SHA=$(git rev-parse origin/main)
+              node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"merge_prod\":\"$MAIN_SHA\",\"motivo\":\"ya estaba en main por un release (sin promoción del agente)\"}}" >/dev/null
+              node "$G/rpc.mjs" ing_evento_registrar "{\"p_tarea\":\"$TAREA\",\"p_tipo\":\"ya_en_main\",\"p_detalle\":{\"sha\":\"$MAIN_SHA\"},\"p_costo_usd\":0}" >/dev/null
+              echo "el commit ya está en main: tarea en_prod"; echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
+            fi
             node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"necesita_humano\",\"p_patch\":{\"motivo\":\"el cambio no aplica limpio sobre main (conflicto o depende de código solo de dev)\"}}" >/dev/null
             echo "conflicto al cherry-pickear sobre main: queda para humano"; echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
