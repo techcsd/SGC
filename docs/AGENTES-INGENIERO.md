@@ -79,3 +79,6 @@ Martes y viernes 10:00 UTC (6:00 am hora RD, UTC−4). Crea hasta `max_pr_barrid
 1. Aplicar el SQL **primero a dev** (`--env dev`), probar en `dev.sgcconstructorasd.com`, y luego a prod (regla 18) y desplegar las dos edges nuevas + `agente-cronista`.
 2. Crear el secret `GITHUB_AGENTES_TOKEN` (y, si los repos tienen otro nombre, `AGENTES_REPO_*`) en Supabase.
 3. CI13: GitHub (despacho) y Anthropic (en el runner) deben figurar en `docs/DATOS-Y-TERCEROS.md`; revisar política de privacidad y formularios de tienda.
+
+## Verificacion del carril
+El 2026-11-27 se verifico el carril completo: Ingeniero -> Guardian -> dev -> promocion a prod.
