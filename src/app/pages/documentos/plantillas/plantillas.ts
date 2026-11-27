@@ -210,7 +210,7 @@ export class Plantillas implements OnInit {
       this.plantillas.update((list) => list.map((x) => x.id === id ? { ...x, ...upd } : x));
       this.editOpen.set(false);
     } catch (e: unknown) {
-      this.editError.set(e instanceof Error ? e.message : 'No se pudo guardar.');
+      this.editError.set(this.i18n.t(e instanceof Error ? e.message : 'No se pudo guardar.'));
     } finally {
       this.editSaving.set(false);
     }

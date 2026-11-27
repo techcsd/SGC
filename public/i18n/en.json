@@ -9172,5 +9172,6 @@
   "No se pudo crear el producto en Odoo.": "The product could not be created in Odoo.",
   "Aprobado por Contabilidad": "Approved by Accounting",
   "Solicitud de alta enviada.": "New-product request sent.",
-  "Contabilidad debe aprobar el producto en Odoo antes de vincular este material.": "Accounting must approve the product in Odoo before this material can be linked."
+  "Contabilidad debe aprobar el producto en Odoo antes de vincular este material.": "Accounting must approve the product in Odoo before this material can be linked.",
+  "No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios.": "Couldn't save the template's previous version; the changes were not applied."
 }
