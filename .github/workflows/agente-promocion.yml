@@ -99,6 +99,7 @@ jobs:
           VERCEL_TOKEN_AGENTES: ${{ secrets.VERCEL_TOKEN_AGENTES }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           G="$RUNNER_TEMP/guardianes/scripts/guardianes"
           set +e
