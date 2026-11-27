@@ -220,7 +220,7 @@ jobs:
             # el commit ya viajó a main por un release humano (dev->main): no hay nada que promover, la tarea ya está en prod
             if git merge-base --is-ancestor "$MERGE_SHA_DEV" origin/main; then
               MAIN_SHA=$(git rev-parse origin/main)
-              node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"merge_prod\":\"$MAIN_SHA\",\"motivo\":\"ya estaba en main por un release (sin promoción del agente)\"}}" >/dev/null
+              node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"motivo\":\"ya estaba en main por un release (sin promoción del agente)\"}}" >/dev/null
               node "$G/rpc.mjs" ing_evento_registrar "{\"p_tarea\":\"$TAREA\",\"p_tipo\":\"ya_en_main\",\"p_detalle\":{\"sha\":\"$MAIN_SHA\"},\"p_costo_usd\":0}" >/dev/null
               echo "el commit ya está en main: tarea en_prod"; echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
             fi
@@ -346,7 +346,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY_DEV: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
         run: |
           G="$RUNNER_TEMP/guardianes/scripts/guardianes"
-          node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"merge_prod\":\"${{ steps.merge.outputs.sha }}\"}}" >/dev/null
+          node "$G/rpc.mjs" ing_tarea_actualizar "{\"p_id\":\"$TAREA\",\"p_estado\":\"en_prod\",\"p_patch\":{\"motivo\":\"promovida a prod: ${{ steps.merge.outputs.sha }}\"}}" >/dev/null
           node "$G/rpc.mjs" ing_evento_registrar "{\"p_tarea\":\"$TAREA\",\"p_tipo\":\"prod_verificado\",\"p_detalle\":{\"sha\":\"${{ steps.merge.outputs.sha }}\"},\"p_costo_usd\":0}" >/dev/null
 
       # 6) REVERSIÓN AUTOMÁTICA (si la verificación dijo revertir, o si ni siquiera pudo decidir)
