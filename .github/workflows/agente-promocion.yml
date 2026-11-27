@@ -112,8 +112,12 @@ jobs:
         if: steps.pre.outputs.activo == 'true' && steps.dev.outputs.sano == 'ok'
         env:
           QA_BASE_URL: ${{ env.DEV_URL }}
+          QA_VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           set +e
+          # dev está tras SSO de Vercel: sin bypass el humo no ve la app (302 a vercel.com/sso-api)
+          LOC=$(curl -s -o /dev/null -w '%{redirect_url}' -H "x-vercel-protection-bypass: $QA_VERCEL_BYPASS" "$DEV_URL/")
+          case "$LOC" in *vercel.com/sso*) echo "dev protegido por SSO de Vercel y el bypass falta o es inválido (secret VERCEL_AUTOMATION_BYPASS_SECRET en agentes-dev)"; echo "humo=fail" >> "$GITHUB_OUTPUT"; exit 0;; esac
           npm ci --no-audit --no-fund && npx playwright install --with-deps chromium && npx playwright test qa/e2e/humo-agentes.spec.ts --project chromium
           echo "humo=$([ $? -eq 0 ] && echo ok || echo fail)" >> "$GITHUB_OUTPUT"
 
