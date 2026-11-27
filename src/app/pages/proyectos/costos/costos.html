@@ -16,7 +16,7 @@
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="aplicarFiltro(d.value, h.value)">{{ 'Aplicar' | t }}</button>
   </div>
 
-  @if (error()) { <p class="costos__error">{{ error() }}</p> }
+  @if (error()) { <app-error-state [error]="error()" pantalla="el costo de material" (retry)="cargar()" [compact]="true" /> }
 
   @if (loading()) {
     <p class="costos__muted">{{ 'Cargando…' | t }}</p>

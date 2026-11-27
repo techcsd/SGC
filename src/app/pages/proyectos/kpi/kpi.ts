@@ -8,6 +8,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 
 // AY3 — Pesos del score (suma = 1). Rebalanceados: el "desempeño" del encargado son
 // las señales que él CONTROLA (disciplina de reporte, seguridad, presupuesto). El
@@ -39,7 +40,7 @@ interface KpiProyecto extends KpiProyectoRaw {
 
 @Component({
   selector: 'app-proyectos-kpi',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon, TranslatePipe],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon, TranslatePipe, ErrorState],
   templateUrl: './kpi.html',
   styleUrl: './kpi.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,7 +51,8 @@ export class Kpi implements OnInit {
   protected i18n = inject(I18nService);
 
   loading = signal(true);
-  error = signal('');
+  // BS2 — error crudo; `app-error-state` lo presenta por rol y lo reporta.
+  error = signal<unknown>(null);
   private raw = signal<KpiProyectoRaw[]>([]);
 
   // ── Paginación local del ranking (mismo patrón que flota/mantenimientos) ──
@@ -136,11 +138,11 @@ export class Kpi implements OnInit {
 
   async ngOnInit() {
     this.loading.set(true);
-    this.error.set('');
+    this.error.set(null);
     try {
       this.raw.set(await this.proyectosService.getKpiProyectos());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar el ranking.');
+      this.error.set(e);
     } finally {
       this.loading.set(false);
     }
