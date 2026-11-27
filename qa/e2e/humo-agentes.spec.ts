@@ -4,6 +4,10 @@ import { test, expect } from '@playwright/test';
 // pide iniciar sesión. Lo corre agente-promocion.yml contra dev y contra prod (QA_BASE_URL).
 // No se usa networkidle: la app mantiene realtime/polling abiertos y nunca queda inactiva (el humo
 // fallaba por timeout con la app sana, 27-nov-2026).
+// dev está tras SSO de Vercel: la automatización entra con el bypass (secret VERCEL_AUTOMATION_BYPASS_SECRET -> QA_VERCEL_BYPASS).
+const BYPASS = process.env['QA_VERCEL_BYPASS'];
+if (BYPASS) test.use({ extraHTTPHeaders: { 'x-vercel-protection-bypass': BYPASS, 'x-vercel-set-bypass-cookie': 'true' } });
+
 test.describe('humo agentes (sin login)', () => {
   test('la app carga y muestra el login sin errores de página', async ({ page }) => {
     const errores: string[] = [];
