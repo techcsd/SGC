@@ -118,6 +118,9 @@ jobs:
           # dev está tras SSO de Vercel: sin bypass el humo no ve la app (302 a vercel.com/sso-api)
           LOC=$(curl -s -o /dev/null -w '%{redirect_url}' -H "x-vercel-protection-bypass: $QA_VERCEL_BYPASS" "$DEV_URL/")
           case "$LOC" in *vercel.com/sso*) echo "dev protegido por SSO de Vercel y el bypass falta o es inválido (secret VERCEL_AUTOMATION_BYPASS_SECRET en agentes-dev)"; echo "humo=fail" >> "$GITHUB_OUTPUT"; exit 0;; esac
+          # el humo se toma SIEMPRE del tip de dev (no del commit del agente): así el agente no puede tocar su propia prueba
+          B64=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $B64" fetch --quiet origin dev && git checkout FETCH_HEAD -- qa/e2e/humo-agentes.spec.ts
           npm ci --no-audit --no-fund && npx playwright install --with-deps chromium && npx playwright test qa/e2e/humo-agentes.spec.ts --project chromium
           echo "humo=$([ $? -eq 0 ] && echo ok || echo fail)" >> "$GITHUB_OUTPUT"
 
