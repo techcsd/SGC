@@ -170,7 +170,8 @@ export class PlantillasDocumentoService {
     // 1) snapshot de la versión actual (auditoría + restaurar).
     const { error: snapErr } = await this.supabase.client.rpc('guardar_plantilla_version', { p_plantilla: id, p_motivo: motivo ?? 'Edición' });
     if (snapErr) {
-      throw new Error('No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios. ' + snapErr.message);
+      // BS2 — mensaje humano; el detalle técnico viaja en `cause` (no se muestra al usuario).
+      throw new Error('No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios.', { cause: snapErr });
     }
     // 2) aplica los cambios.
     const { data, error } = await this.supabase.client

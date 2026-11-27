@@ -26,7 +26,11 @@ const cambios = { nombre: 'Nueva', categoria: 'otro' as never, contenido_html: '
 describe('PlantillasDocumentoService.editarPlantilla', () => {
   it('si falla el snapshot de versión, no aplica los cambios', async () => {
     const { svc, update } = crear({ error: { message: 'No autorizado' } });
-    await expect(svc.editarPlantilla('p1', cambios)).rejects.toThrow('No autorizado');
+    const err = await svc.editarPlantilla('p1', cambios).then(() => null, (e: Error) => e);
+    expect(err).toBeInstanceOf(Error);
+    // BS2 — mensaje humano, sin el detalle técnico de la base de datos.
+    expect(err?.message).toBe('No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios.');
+    expect(err?.message).not.toContain('No autorizado');
     expect(update).not.toHaveBeenCalled();
   });
 
