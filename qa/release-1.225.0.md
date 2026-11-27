@@ -9,3 +9,4 @@
 **OK de Xaviel** 2026-11-27: «tienes mi OK. hazlo --yes» (release 1.225.0 a prod).
 - [x] Build y tests
 Probado por: Claude Code (sesión asistida) · 2026-11-27
+- Excepción anotada: `release-check` falla el check de evals de Compa (19/21: `dc5-wa-propuesta-enlace` pide aclaración en vez de llamar `proponer_tarea`; `dx12-odoo-stock-apagado`). Falla igual en 2 corridas, pero este release NO toca `assistant/` ni nada de Compa (diff vs main sin esos archivos): es comportamiento/datos de dev ya presentes en prod, no introducido aquí. Pendiente aparte: revisar esos 2 casos. El resto de checks (ledger, registro, build, tests web y Deno, CU2) en verde.
