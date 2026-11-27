@@ -1,5 +1,5 @@
 {
-  "corrido_en": "2026-11-17T22:51:41.280Z",
+  "corrido_en": "2026-11-27T14:09:01.471Z",
   "entorno": "dev",
   "resultados": [
     {
@@ -10,7 +10,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Aquí tienes los almacenes que están en el sistema, Flaco:\n\n**Centrales (sin obra asociada):**\n1. ALMACÉN las AMERICAS\n2. Bodega Central\n\n**Por obra:**\n3. ALMACE"
+      "texto": "Aquí está la lista completa, Flaco:\n\n**Almacenes centrales**\n- ALMACÉN las AMERICAS\n- Bodega Central\n\n**Almacenes de obra**\n- ALMACEN - Solhe Signature Condos\n-"
     },
     {
       "id": "hector-pdf-prometido",
@@ -21,7 +21,7 @@
         "listar_almacenes",
         "generar_reporte_pdf"
       ],
-      "texto": "Listo, Flaco: tu PDF de stock está generado con el detalle de cada almacén (12 secciones con existencias; los que no tenían movimiento no generaron sección). De"
+      "texto": "Listo, Flaco. Tu PDF **\"Stock por almacén\"** ya está generado con una sección por cada almacén, está disponible para descargar abajo.\n\n(Nota: el reporte trajo 1"
     },
     {
       "id": "admin-vehiculos",
@@ -31,7 +31,7 @@
       "herramientas": [
         "resumen_flota"
       ],
-      "texto": "Según acabo de consultar, la flota tiene **26 vehículos en total**:\n\n- ✅ Activos: 8\n- 🔧 En mantenimiento: 0\n- 🚚 En uso ahora mismo: 0\n- 🚫 De baja: 2\n\nAdemás "
+      "texto": "Según acabo de consultar, la flota tiene **26 vehículos en total**. De esos:\n- **8 activos**\n- **2 de baja**\n- **0 en mantenimiento** y **0 en uso** ahora mismo"
     },
     {
       "id": "admin-requisiciones-pdf",
@@ -42,7 +42,7 @@
         "listar_requisiciones",
         "generar_reporte_pdf"
       ],
-      "texto": "El sistema me confirma que no hay datos de requisiciones para generar el reporte de este mes (01 al 17 de noviembre) — no es un problema de acceso, simplemente "
+      "texto": "No encontré requisiciones registradas en lo que va de noviembre (del 1 al 27), así que el PDF no se pudo generar porque no hay datos para ese rango.\n\n¿Quieres q"
     },
     {
       "id": "oficina-stock-multi",
@@ -52,7 +52,7 @@
       "herramientas": [
         "listar_almacenes"
       ],
-      "texto": "Encontré **15 almacenes** en el sistema. Como son bastantes y cada uno puede tener decenas de artículos en stock, prefiero no tirarle los 15 reportes completos "
+      "texto": "Ing. Angel, en el sistema hay **16 almacenes**:\n\n**Centrales:**\n1. ALMACÉN las Américas\n2. Bodega Central\n\n**Por obra:**\n3. Solhe Signature Condos\n4. Villa Cale"
     },
     {
       "id": "oficina-requisiciones-obra",
@@ -62,7 +62,7 @@
       "herramientas": [
         "listar_requisiciones"
       ],
-      "texto": "Ing. Angel, consulté las requisiciones del 1 al 17 de noviembre de 2026 y no encontré ninguna registrada en ese rango.\n\n¿Quiere que revise un periodo distinto, "
+      "texto": "Consulté las requisiciones del 1 al 27 de noviembre de 2026 y no encontré ninguna registrada en ese rango para las obras a las que usted tiene acceso, Ing. Ange"
     },
     {
       "id": "campo-conduces-firmar",
@@ -72,7 +72,7 @@
       "herramientas": [
         "mis_conduces_por_firmar"
       ],
-      "texto": "No tiene conduces pendientes de firmar, Ing. Abraham — la bandeja está vacía en este momento."
+      "texto": "No tiene conduces pendientes de firmar, Ing. Abraham. Todo al día en ese frente."
     },
     {
       "id": "campo-disponibilidad-articulo",
@@ -83,7 +83,7 @@
         "disponibilidad_de_articulo",
         "buscar_articulos"
       ],
-      "texto": "No encontré ningún artículo llamado \"cemento\" en el catálogo (ni por nombre ni por apodo), Ing. Abraham. Puede que esté registrado con otro nombre (por ejemplo "
+      "texto": "No encontré ningún artículo llamado \"cemento\" en el catálogo (ni como apodo), Ing. Abraham. Puede que esté registrado con otro nombre (marca específica, tipo, o"
     },
     {
       "id": "logistica-rutas-hoy",
@@ -93,7 +93,7 @@
       "herramientas": [
         "rutas_del_dia"
       ],
-      "texto": "No hay rutas registradas para hoy, martes 17 de noviembre — acabo de consultarlo y la lista está en cero, sin ninguna en curso, completada ni pendiente. ¿Quiere"
+      "texto": "Hoy, viernes 27 de noviembre, no hay rutas registradas en el sistema — el panorama global está en cero (ninguna ruta creada todavía para hoy).\n\n¿Quieres que rev"
     },
     {
       "id": "logistica-requisiciones-atascadas",
@@ -104,7 +104,7 @@
         "resumen_estatus_requisiciones",
         "requisiciones_pendientes"
       ],
-      "texto": "Aquí está la bandeja en vivo de pendientes (ninguna tiene conduce ni compra generada todavía), de más antigua a más reciente:\n\n**Urgentes:**\n1. **Torre Alpha** "
+      "texto": "Aquí va lo que encontré, Flaco — estas son las requisiciones pendientes en bandeja ahora mismo (ninguna tiene conduce ni compra generada todavía), de más antigu"
     },
     {
       "id": "chofer-rutas-hoy",
@@ -114,7 +114,7 @@
       "herramientas": [
         "mis_rutas_hoy"
       ],
-      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge algo, avísame."
+      "texto": "No tienes rutas asignadas para hoy, Edward. Si surge algo nuevo durante el día te aparecerá ahí mismo. ¿Necesitas algo más?"
     },
     {
       "id": "cp8-mis-reuniones",
@@ -124,7 +124,7 @@
       "herramientas": [
         "mis_reuniones"
       ],
-      "texto": "No tienes ninguna reunión próxima agendada, según acabo de consultar. ¿Quieres que te prepare una?"
+      "texto": "No tienes ninguna reunión próxima agendada, QA. Si quieres, puedo ayudarte a crear una."
     },
     {
       "id": "cv1-felix-registra-echada",
@@ -135,7 +135,7 @@
         "listar_vehiculos",
         "preparar_echada"
       ],
-      "texto": "Listo, dejé preparada la echada de la Suburban (G661182): 12 galones por RD$3,360 con fecha de hoy — abre el formulario de Combustible para poner las fotos del "
+      "texto": "Dejé preparada la echada de la Suburban (G661182): 12 galones por RD$3,360, fecha de hoy — abre el formulario de Combustible para poner las fotos del recibo/tab"
     },
     {
       "id": "dc5-wa-autorizado-pregunta",
@@ -145,7 +145,7 @@
       "herramientas": [
         "que_puedo_consultar"
       ],
-      "texto": "Como administrador tienes acceso a prácticamente todo el SGC. Aquí un resumen por área:\n\n• **Inventario**: stock por almacén, artículos bajo mínimo, dónde hay u"
+      "texto": "Como administrador tienes acceso a prácticamente todo, Qa. Por áreas:\n\n• **Operación**: inventario (stock, almacenes, movimientos, cuarentena), requisiciones, c"
     },
     {
       "id": "dc5-wa-no-autorizado",
@@ -157,14 +157,17 @@
     },
     {
       "id": "dc5-wa-propuesta-enlace",
-      "ok": true,
-      "fallos": [],
+      "ok": false,
+      "fallos": [
+        "no llamó 'proponer_tarea' (llamó: mis_proyectos)",
+        "no incluyó el enlace de borrador: \"Encontré Torre Alpha (PROY-0002). Antes de preparar la tarea, ¿a quién se la asigno? Dime el nombre y la agrego con fecha límite mañana, 28 de noviembre.\"",
+        "no aclaró que falta confirmar: \"Encontré Torre Alpha (PROY-0002). Antes de preparar la tarea, ¿a quién se la asigno? Dime el nombre y la agrego con fecha límite mañana, 28 de noviembre.\""
+      ],
       "email": "wa:8095551234",
       "herramientas": [
-        "mis_proyectos",
-        "proponer_tarea"
+        "mis_proyectos"
       ],
-      "texto": "Listo, QA: dejé el borrador de la tarea \"Revisar inventario\" para Torre Alpha con fecha límite mañana (18 nov). Todavía no existe en el SGC — confírmala aquí: h"
+      "texto": "Encontré Torre Alpha (PROY-0002). Antes de preparar la tarea, ¿a quién se la asigno? Dime el nombre y la agrego con fecha límite mañana, 28 de noviembre."
     },
     {
       "id": "dc5-wa-nuevo-reinicia",
@@ -182,7 +185,7 @@
       "herramientas": [
         "solicitudes_material_atascadas"
       ],
-      "texto": "Flaco, aquí están las que llevan más tiempo esperando aprobación (todas ya escaladas por la antigüedad):\n\n| Folio | Obra | Solicitante | Urgencia | Esperando |\n"
+      "texto": "Flaco, estas son las que llevan más tiempo esperando aprobación (todas ya escaladas):\n\n| Folio | Obra | Solicitante | Urgencia | Esperando |\n|---|---|---|---|--"
     },
     {
       "id": "ds-conduces-por-cerrar",
@@ -192,7 +195,7 @@
       "herramientas": [
         "conduces_por_cerrar"
       ],
-      "texto": "Flaco, encontré uno solo con más de una semana sin cerrarse:\n\n- **Conduce AA1C5276** — despachado por Test User 3, lleva **83 días** abierto (desde el 26 de ago"
+      "texto": "Encontré **2 conduces** con más de una semana abiertos (sin recepción cerrada), Flaco:\n\n| Código | Despachante | Días abierto | Estado |\n|---|---|---|---|\n| **A"
     },
     {
       "id": "ds-adopcion-por-rol",
@@ -202,7 +205,19 @@
       "herramientas": [
         "adopcion_por_rol"
       ],
-      "texto": "Aquí está el panorama (consulta en vivo a Adopción por rol). Roles con usuarios que **nunca han entrado**:\n\n| Rol | Nunca entraron | de un total de |\n|---|---|-"
+      "texto": "Consulté la adopción por rol en vivo. Estos roles tienen usuarios que nunca han entrado al sistema:\n\n| Rol | Nunca entraron / Total |\n|---|---|\n| Ingeniero de C"
+    },
+    {
+      "id": "dx12-odoo-stock-apagado",
+      "ok": false,
+      "fallos": [
+        "no llamó 'consultar_stock_odoo' (llamó: consultar_stock_odoo)"
+      ],
+      "email": "u-8262b283@dev.constructorasd.local",
+      "herramientas": [
+        "consultar_stock_odoo"
+      ],
+      "texto": "La consulta a Odoo falló por un problema técnico — ya quedó reportado a Tecnología automáticamente. No es que no exista el dato, sino que la conexión con Odoo t"
     }
   ]
 }

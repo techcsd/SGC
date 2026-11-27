@@ -190,6 +190,10 @@ verify_jwt = false
 [functions.agente-ingeniero-despachar]
 verify_jwt = false
 
+# Espejo prod->dev (pg_cron con x-sync-secret, validado dentro de la edge; nunca un JWT).
+[functions.agente-ingeniero-espejo]
+verify_jwt = false
+
 # ── Ronda DB (05-nov-2026) — WhatsApp: memoria de grupos (PROMPT DB-2) ──
 # DB-S3 — wa-ingest: la llama csd-wa-listener (repo hermano, server-to-server);
 # la autenticación real es el HMAC del Contrato (x-wa-signature/x-wa-timestamp,

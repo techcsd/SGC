@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
           Authorization: `Bearer ${ghToken}`, Accept: "application/vnd.github+json",
           "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json", "User-Agent": "sgc-agente-ingeniero",
         },
-        body: JSON.stringify(payloadDispatch(t)),
+        body: JSON.stringify(payloadDispatch(t, repo)),
       });
       ok = r.status === 204;
       if (!ok) fallos.push(`${t.id}: HTTP ${r.status}`);

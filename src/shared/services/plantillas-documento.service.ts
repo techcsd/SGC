@@ -168,7 +168,11 @@ export class PlantillasDocumentoService {
   /** CF7/CE7 — edita una plantilla, guardando antes una versión (snapshot) para poder restaurar. */
   async editarPlantilla(id: string, cambios: { nombre: string; categoria: PlantillaCategoria; contenido_html: string; campos: CampoPlantilla[] }, motivo?: string): Promise<PlantillaDocumento> {
     // 1) snapshot de la versión actual (auditoría + restaurar).
-    await this.supabase.client.rpc('guardar_plantilla_version', { p_plantilla: id, p_motivo: motivo ?? 'Edición' });
+    const { error: snapErr } = await this.supabase.client.rpc('guardar_plantilla_version', { p_plantilla: id, p_motivo: motivo ?? 'Edición' });
+    if (snapErr) {
+      // BS2 — mensaje humano; el detalle técnico viaja en `cause` (no se muestra al usuario).
+      throw new Error('No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios.', { cause: snapErr });
+    }
     // 2) aplica los cambios.
     const { data, error } = await this.supabase.client
       .from('plantillas_documento')
