@@ -5,6 +5,7 @@ import { ProyectosService, CostoMaterialObra } from '../../../../shared/services
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 
 /**
  * AA23 QW4 — Reporte de costo de material real por obra: total + desglose por
@@ -13,7 +14,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
  */
 @Component({
   selector: 'app-proyecto-costos',
-  imports: [RouterLink, DecimalPipe, Icon, TranslatePipe],
+  imports: [RouterLink, DecimalPipe, Icon, TranslatePipe, ErrorState],
   templateUrl: './costos.html',
   styleUrl: './costos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,7 +29,8 @@ export class ProyectoCostos implements OnInit {
   desde = signal<string | null>(null);
   hasta = signal<string | null>(null);
   loading = signal(true);
-  error = signal('');
+  // BS2 — error crudo; `app-error-state` lo presenta por rol y lo reporta.
+  error = signal<unknown>(null);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -46,11 +48,11 @@ export class ProyectoCostos implements OnInit {
 
   async cargar() {
     this.loading.set(true);
-    this.error.set('');
+    this.error.set(null);
     try {
       this.data.set(await this.service.getCostoMaterialObra(this.proyectoId(), this.desde(), this.hasta()));
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el costo de material.');
+      this.error.set(e);
     } finally {
       this.loading.set(false);
     }
