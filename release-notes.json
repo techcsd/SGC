@@ -1,5 +1,30 @@
 {
   "web": {
+    "1.225.0": {
+      "titulo": "Agentes en prod con reglas de la app, costos y KPI de proyectos, y correos de requisiciones sin cuentas de prueba",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "El Ingeniero IA espeja sus tareas de prod a dev y se puede pausar desde Tecnología › Agentes; el Guardián revisa también las reglas propias de la app móvil."
+        },
+        {
+          "t": "arreglo",
+          "m": "Proyectos",
+          "d": "Si falla la carga de Costos de material o del ranking de KPI, ahora se muestra el aviso de error estándar con reintento (antes un texto crudo)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Documentos",
+          "d": "El error al guardar una plantilla de documento ahora sale traducido al idioma de la persona."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "Los correos de requisiciones ya no se envían a cuentas de QA ni a registros de prueba (cuota de correo agotada)."
+        }
+      ]
+    },
     "1.224.0": {
       "titulo": "Catálogo de Odoo en inventario, alertas del sondeo y arreglos de Odoo 19",
       "cambios": [
