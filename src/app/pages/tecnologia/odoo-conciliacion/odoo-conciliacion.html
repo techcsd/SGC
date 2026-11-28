@@ -39,7 +39,7 @@
   <div class="sgc-card oc-kpi" [class.oc-kpi--alerta]="sloFuera()">
     <span class="oc-kpi__n">
       @if (criterios(); as c) {
-        @if (c.pct_en_2min == null) { — } @else { {{ c.pct_en_2min }} % }
+        @if (c.estado_slo === 'cola_atascada') { {{ 'Atascada' | t }} } @else if (c.estado_slo === 'pocas_muestras' || c.pct_en_2min == null) { — } @else { {{ c.pct_en_2min }} % }
       } @else { — }
     </span>
     <span class="oc-kpi__l">{{ 'SLO: 99 % en menos de 2 min' | t }}</span>
@@ -55,12 +55,20 @@
   <h2 class="oc-h2">{{ 'SLO de publicación a Odoo' | t }}</h2>
   <div class="sgc-card oc-criterios">
     <p>
-      @if (cumpleSlo(c)) {
+      @if (c.estado_slo === 'cola_atascada') {
+        <span class="badge badge--warning">{{ 'Cola atascada' | t }}</span>
+        {{ i18n.t('El evento pendiente más viejo espera {min} min y hay {n} en cola: el SLO no se puede dar por cumplido.', { min: c.cola_mas_vieja_min ?? 0, n: c.cola_pendientes ?? 0 }) }}
+      } @else if (c.estado_slo === 'pocas_muestras') {
+        <span class="badge badge--warning">{{ 'Sin datos suficientes' | t }}</span>
+        {{ i18n.t('Solo {n} muestra(s) en 7 días (se necesitan {m}): no hay base para decir que cumple.', { n: c.muestras, m: c.muestras_min ?? 10 }) }}
+      } @else if (cumpleSlo(c)) {
         <span class="badge badge--success">{{ 'Dentro del SLO' | t }}</span>
       } @else {
         <span class="badge badge--warning">{{ 'Fuera del SLO' | t }}</span>
       }
-      @if (c.pct_en_2min == null) {
+      @if (c.estado_slo === 'cola_atascada' || c.estado_slo === 'pocas_muestras') {
+        <!-- el motivo ya está arriba -->
+      } @else if (c.pct_en_2min == null) {
         {{ 'Sin muestras en los últimos 7 días' | t }}
       } @else {
         {{ i18n.t('{pct} % en menos de 2 min (meta: 99 %, {n} muestra(s) en 7 días)', { pct: c.pct_en_2min, n: c.muestras }) }}

@@ -9172,5 +9172,10 @@
   "No se pudo crear el producto en Odoo.": "Nou pa t ka kreye pwodui a nan Odoo.",
   "Aprobado por Contabilidad": "Apwouve pa Kontabilite",
   "Solicitud de alta enviada.": "Demann pou ajoute pwodui a voye.",
-  "Contabilidad debe aprobar el producto en Odoo antes de vincular este material.": "Kontabilite dwe apwouve pwodui a nan Odoo anvan yo ka lye materyèl sa a."
+  "Contabilidad debe aprobar el producto en Odoo antes de vincular este material.": "Kontabilite dwe apwouve pwodui a nan Odoo anvan yo ka lye materyèl sa a.",
+  "Cola atascada": "Kòl la bloke",
+  "El evento pendiente más viejo espera {min} min y hay {n} en cola: el SLO no se puede dar por cumplido.": "Evènman an datant ki an tann pi lontan ap tann depi {min} min epi gen {n} nan kòl la: nou pa ka di SLO a respekte.",
+  "Solo {n} muestra(s) en 7 días (se necesitan {m}): no hay base para decir que cumple.": "Sèlman {n} echantiyon nan 7 jou ({m} nesesè): pa gen baz pou di li respekte.",
+  "Atascada": "Bloke",
+  "Odoo cambió de versión y SGC usaba un campo antiguo. Ya se corrigió: reintenta.": "Odoo chanje vèsyon e SGC t ap itilize yon ansyen jaden. Sa korije deja: eseye ankò."
 }

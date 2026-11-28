@@ -6759,6 +6759,21 @@
           "d": "La ficha del conduce externo muestra un QR (también al imprimir); quien lo escanee llega a esa ficha y su rol decide si puede verla."
         }
       ]
+    },
+    "1.225.1": {
+      "titulo": "Los agentes ya pueden llegar a producción por sí solos (humo en dev, promoción y verificación corregidos)",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "El carril del Ingeniero IA ya completó su primera promoción real a producción: el humo en dev entra con el bypass de Vercel, usa su propia prueba y el health ya no confunde el login de Vercel con una app sana."
+        },
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "El registro de la tarea pasa por en_dev antes de en_prod y reconoce cambios que ya estaban en main; se actualizaron los evals de Compa dc5 y dx12."
+        }
+      ]
     }
   }
 }

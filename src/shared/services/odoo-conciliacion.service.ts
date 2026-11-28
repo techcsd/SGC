@@ -38,6 +38,12 @@ export interface CriteriosCanary {
   cumple_slo: boolean;
   /** Alias de cumple_slo (ya no significa p99 < 5 s). */
   cumple_p99: boolean;
+  /** EB-06: estado honesto del SLO (la cola atascada o pocas muestras ya no se muestran como «cumple»). */
+  estado_slo?: 'cumple' | 'incumple' | 'cola_atascada' | 'pocas_muestras';
+  muestras_min?: number;
+  cola_pendientes?: number;
+  cola_mas_vieja_min?: number;
+  cola_sin_intentos?: number;
   fuera_de_canal_abiertas: number;
   cumple_fuera_de_canal: boolean;
   inciertos_abiertos: number;
