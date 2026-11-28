@@ -9173,5 +9173,10 @@
   "Aprobado por Contabilidad": "Approved by Accounting",
   "Solicitud de alta enviada.": "New-product request sent.",
   "Contabilidad debe aprobar el producto en Odoo antes de vincular este material.": "Accounting must approve the product in Odoo before this material can be linked.",
-  "No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios.": "Couldn't save the template's previous version; the changes were not applied."
+  "No se pudo guardar la versión anterior de la plantilla; no se aplicaron los cambios.": "Couldn't save the template's previous version; the changes were not applied.",
+  "Cola atascada": "Queue stuck",
+  "El evento pendiente más viejo espera {min} min y hay {n} en cola: el SLO no se puede dar por cumplido.": "The oldest pending event has been waiting {min} min and there are {n} in the queue: the SLO cannot be considered met.",
+  "Solo {n} muestra(s) en 7 días (se necesitan {m}): no hay base para decir que cumple.": "Only {n} sample(s) in 7 days ({m} needed): there is no basis to say it is met.",
+  "Atascada": "Stuck",
+  "Odoo cambió de versión y SGC usaba un campo antiguo. Ya se corrigió: reintenta.": "Odoo changed version and SGC was using an old field. It is already fixed: retry."
 }

@@ -137,6 +137,17 @@ export class TecOdooSync implements OnInit {
     return `CND-${id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
   }
 
+  /** EB F2.8: motivo en lenguaje claro; el texto técnico crudo queda en el detalle y en el tooltip. */
+  motivoLegible(error: string | null | undefined): string {
+    if (!error) return '—';
+    if (/Invalid field|move_ids_without_package/i.test(error)) {
+      return this.i18n.t('Odoo cambió de versión y SGC usaba un campo antiguo. Ya se corrigió: reintenta.');
+    }
+    // Quita el sufijo técnico « [odoo: …] » / « [sin_stock: …] » y deja la frase para la persona.
+    const limpio = error.replace(/\s*\[[a-z_]+:[\s\S]*\]\s*$/i, '').trim();
+    return limpio || error;
+  }
+
   estadoBadgeClass(estado: OdooEventoEstado): string {
     switch (estado) {
       case 'completado': return 'sgc-badge sgc-badge--success';
