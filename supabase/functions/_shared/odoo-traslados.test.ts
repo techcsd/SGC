@@ -1,6 +1,7 @@
 // DS-08: pruebas de la biblioteca de traslados con un Odoo simulado en memoria. Contrato real: scripts/odoo-contrato-traslados-staging.ts
 import { assertEquals, assertRejects } from "jsr:@std/assert@1";
 import { OdooError } from "./odoo-client.ts";
+import { validarCamposOdoo19 } from "./odoo-contrato-19.ts";
 import {
   cancelarTraslado, crearTraslado, devolverTraslado, faltantesDeStock, type LlamadorOdoo, originTraslado, publicarNotaPicking,
   resolverAutorOdoo, textoChatter, TrasladoError, validarTraslado,
@@ -23,7 +24,8 @@ function odooFalso(o: Opciones = {}) {
       }
       if (model === "stock.picking" && method === "create") {
         const v = args[0]; const id = pickings.length + 1; const ids: number[] = [];
-        for (const [, , m] of v.move_ids_without_package) { const mid = moves.length + 1; moves.push({ id: mid, ...m, state: "draft", quantity: 0 }); ids.push(mid); }
+        validarCamposOdoo19("stock.picking", v); for (const [, , m] of v.move_ids) validarCamposOdoo19("stock.move", m);
+        for (const [, , m] of v.move_ids) { const mid = moves.length + 1; moves.push({ id: mid, ...m, state: "draft", quantity: 0 }); ids.push(mid); }
         pickings.push({ id, name: `WH/INT/${id}`, state: "draft", origin: v.origin, location_id: [v.location_id, "x"], location_dest_id: [v.location_dest_id, "y"], picking_type_id: [v.picking_type_id, "t"], move_ids: ids });
         return id;
       }

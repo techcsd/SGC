@@ -10,6 +10,15 @@ const cliente = (resp: { data: unknown; error: unknown }) => ({
   auth: { refreshSession: async () => ({}) },
 });
 
+describe('edge.util — error interno con correlación (EB-03)', () => {
+  it('muestra el motivo real (no «transporte») y la referencia de correlación', async () => {
+    const msg = await edgeErrorMessage(httpError({ error_code: 'error_interno', error: 'x', correlacion: 'ab12cd34' }, 500));
+    expect(msg).toContain('inesperado');
+    expect(msg).toContain('ref. ab12cd34');
+    expect(msg).not.toContain('conexión');
+  });
+});
+
 describe('edge.util — errores de IA (DX1/DX2)', () => {
   it('un fallo de IA NO se presenta como problema de conexión', async () => {
     const msg = await edgeErrorMessage(httpError({ ok: false, error_code: 'ia_sin_credito', error: 'x' }));

@@ -1,6 +1,7 @@
 // Odoo simulado en memoria para las pruebas del circuito 2 (DS-16..DS-22). Solo lo usan los *.test.ts; no es codigo de produccion.
 // Reproduce lo medido en staging: backorder con skip_backorder, `action_apply_inventory` que devuelve None, stock negativo permitido.
 import { OdooError } from "./odoo-client.ts";
+import { validarCamposOdoo19 } from "./odoo-contrato-19.ts";
 import type { LlamadorOdoo } from "./odoo-traslados.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -57,7 +58,8 @@ export function odooFake(o: OpcionesFake = {}) {
         if (method === "read") return args[0].map((id: number) => pickings.find((p) => p.id === id)).filter(Boolean);
         if (method === "create") {
           const v = args[0]; const mv: Array<[number, number]> = [];
-          const ps = v.move_ids_without_package.map(([, , m]: Any) => { mv.push([m.product_id, m.product_uom_qty]); return m; });
+          validarCamposOdoo19("stock.picking", v); for (const [, , m] of v.move_ids) validarCamposOdoo19("stock.move", m);
+          const ps = v.move_ids.map(([, , m]: Any) => { mv.push([m.product_id, m.product_uom_qty]); return m; });
           const pk = nuevoPicking(v, mv); void ps; return pk.id;
         }
         const p = pickings.find((x) => x.id === args[0][0]);
@@ -99,7 +101,7 @@ export function odooFake(o: OpcionesFake = {}) {
         if (method === "write") { q.inventory_quantity = args[1].inventory_quantity; return true; }
         if (method === "action_apply_inventory") {
           const delta = q.inventory_quantity - q.quantity;
-          moves.push({ id: moves.length + 1, name: kw.context?.inventory_name, product_id: q.product_id, quantity: Math.abs(delta), state: "done",
+          moves.push({ id: moves.length + 1, reference: kw.context?.inventory_name, product_id: q.product_id, quantity: Math.abs(delta), state: "done",
             location_id: delta > 0 ? [6, "inv"] : q.location_id, location_dest_id: delta > 0 ? q.location_id : [6, "inv"] });
           q.quantity = q.inventory_quantity;
           throw new OdooError("odoo_error", "TypeError: cannot marshal None unless allow_none is enabled", true); // asi responde Odoo de verdad

@@ -6759,6 +6759,46 @@
           "d": "La ficha del conduce externo muestra un QR (también al imprimir); quien lo escanee llega a esa ficha y su rol decide si puede verla."
         }
       ]
+    },
+    "1.225.1": {
+      "titulo": "Los agentes ya pueden llegar a producción por sí solos (humo en dev, promoción y verificación corregidos)",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "El carril del Ingeniero IA ya completó su primera promoción real a producción: el humo en dev entra con el bypass de Vercel, usa su propia prueba y el health ya no confunde el login de Vercel con una app sana."
+        },
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "El registro de la tarea pasa por en_dev antes de en_prod y reconoce cambios que ya estaban en main; se actualizaron los evals de Compa dc5 y dx12."
+        }
+      ]
+    },
+    "1.225.2": {
+      "titulo": "Odoo 19: los conduces vuelven a llegar a Odoo y Unidades abre de nuevo",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Los conduces y traslados vuelven a publicarse en Odoo: Odoo 19 cambió el nombre de varios campos y SGC seguía usando los de la versión anterior."
+        },
+        {
+          "t": "arreglo",
+          "m": "Administración",
+          "d": "Administración › Unidades vuelve a cargar las unidades de medida desde Odoo (ya no muestra categoría, porque Odoo 19 no la usa)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "La búsqueda de productos para órdenes de compra y las notas y unidades de las líneas de la orden se ajustaron a Odoo 19."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Cuando un servicio falla por dentro ahora se muestra el motivo real con una referencia para Tecnología, en vez de «no se pudo contactar el servicio»."
+        }
+      ]
     }
   }
 }

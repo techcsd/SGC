@@ -40,7 +40,7 @@ export async function ajustarArticulo(
   c: LlamadorOdoo, p: { nombre: string; locationId: number; productId: number; objetivo: number },
 ): Promise<ResultadoLineaAjuste> {
   if (!Number.isFinite(p.objetivo) || p.objetivo < 0) throw new TrasladoError("datos", "La cantidad contada no es válida.");
-  const hechos: Any[] = await c.call("stock.move", "search_read", [[["name", "=", p.nombre], ["product_id", "=", p.productId], ["state", "=", "done"]]], { fields: ["quantity"], limit: 1 });
+  const hechos: Any[] = await c.call("stock.move", "search_read", [[["reference", "=", p.nombre], ["product_id", "=", p.productId], ["state", "=", "done"]]], { fields: ["quantity"], limit: 1 });
   const s = await saldoQuants(c, p.locationId, p.productId);
   if (hechos.length) return { productId: p.productId, antes: s.cantidad, despues: s.cantidad, delta: 0, estado: "reutilizada" };
   if (Math.abs(s.cantidad - p.objetivo) < EPS) return { productId: p.productId, antes: s.cantidad, despues: s.cantidad, delta: 0, estado: "sin_cambio" };
@@ -59,7 +59,7 @@ export async function ajustarArticulo(
 
 /** Delta neto que un ajuste `nombre` dejo en la ubicacion, por producto (a partir de los movimientos de Odoo). */
 export async function deltasAplicados(c: LlamadorOdoo, nombre: string, locationId: number): Promise<Map<number, number>> {
-  const mv: Any[] = await c.call("stock.move", "search_read", [[["name", "=", nombre], ["state", "=", "done"]]], { fields: ["product_id", "quantity", "location_id", "location_dest_id"] });
+  const mv: Any[] = await c.call("stock.move", "search_read", [[["reference", "=", nombre], ["state", "=", "done"]]], { fields: ["product_id", "quantity", "location_id", "location_dest_id"] });
   const m = new Map<number, number>();
   for (const x of mv) {
     const pid = x.product_id[0]; let d = m.get(pid) ?? 0;

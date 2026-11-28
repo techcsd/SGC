@@ -84,7 +84,7 @@ Deno.test("DS-28 aprobacion: BAJA del faltante desde transito con la accion de n
   const a = await r.publicar();
   assertEquals(a.estado, "completado");
   assertEquals(f.quants[0].quantity, 6);
-  assertEquals(f.moves.at(-1).name, `${refFaltante("s1", dato.id)}-AJ`);
+  assertEquals(f.moves.at(-1).reference, `${refFaltante("s1", dato.id)}-AJ`);
   assertEquals(f.llamadas.includes("stock.quant.action_apply_inventory"), true);
   const n = f.moves.length;
   const b = await r.publicar({}, 2);
@@ -120,7 +120,7 @@ Deno.test("DS-29 aplicar: lleva el saldo al de SGC con la accion de negocio, NO 
   const f = conOdoo();
   const r = await aplicarAperturaBodega(f.c, "b1", apertura, "aplicar");
   assertEquals(r.aplicadas, 1); assertEquals(f.quants[0].quantity, 12); assertEquals(f.quants[1].quantity, 500);
-  assertEquals(f.moves.at(-1).name, refApertura("b1"));
+  assertEquals(f.moves.at(-1).reference, refApertura("b1"));
   const r2 = await aplicarAperturaBodega(f.c, "b1", apertura, "aplicar");
   assertEquals(r2.ajustes, []); assertEquals(r2.aplicadas, 0); assertEquals(f.quants[0].quantity, 12);
 });
