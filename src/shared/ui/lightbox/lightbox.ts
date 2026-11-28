@@ -1,3 +1,4 @@
+import { descargarUrl } from '../../utils/descargar-archivo.util';
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal, untracked } from '@angular/core';
 
 /**
@@ -35,6 +36,8 @@ export class Lightbox {
   images = input<string[]>([]);
   /** Índice inicial dentro de `images()`. */
   startIndex = input<number>(0);
+  /** EB-18 — nombre base del archivo al descargar (p. ej. la placa). Por defecto: título o texto alternativo. */
+  fileName = input<string>('');
   /** Emite cuando el usuario cierra (✕, Esc o clic fuera). */
   closed = output<void>();
 
@@ -57,6 +60,13 @@ export class Lightbox {
     const g = this.galeria();
     return g ? `${this.indice() + 1} / ${g.length}` : '';
   });
+
+  /** EB-18 — descarga real (Blob); si el navegador lo impide, abre la imagen como último recurso. */
+  async descargar() {
+    const nombre = this.fileName() || this.title() || this.alt() || 'foto';
+    const ok = await descargarUrl(this.actual(), nombre);
+    if (!ok) window.open(this.actual(), '_blank', 'noopener');
+  }
 
   siguiente() {
     const g = this.galeria();

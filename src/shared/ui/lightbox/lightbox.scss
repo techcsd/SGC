@@ -63,6 +63,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
+  border: 0; // es <button> (EB-18)
   cursor: pointer;
   transition: background 0.15s ease;
   &:hover { background: rgba(255, 255, 255, 0.3); }

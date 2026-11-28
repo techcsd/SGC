@@ -894,7 +894,7 @@
 
 <!-- ── AF4 · Lightbox de la galería ── -->
 @if (lightboxUrl(); as url) {
-  <app-lightbox [src]="url" alt="{{ 'Foto del vehículo' | t }}" (closed)="lightboxUrl.set(null)" />
+  <app-lightbox [src]="url" [fileName]="(vehiculo()?.placa ?? 'vehiculo') + '-foto'" alt="{{ 'Foto del vehículo' | t }}" (closed)="lightboxUrl.set(null)" />
 }
 
 <!-- ── CG13 · visor de PDF de adjuntos de mantenimiento ── -->
