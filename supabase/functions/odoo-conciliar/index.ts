@@ -14,7 +14,7 @@ import { edgeSeguro } from "../_shared/edge-seguro.ts";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
 import {
   avanzarMarca, claveDiscrepancia, conciliarSaldos, conciliarSalidas, contarPorTipo, fueraDeCanal, HORAS_TRANSITO_MAX,
-  leerPickingsFueraDeCanal, leerQuants, leerTrasladosSgc, type Discrepancia, type PickingOdoo, type SalidaConciliable, type SaldoOdoo,
+  leerPickingsFueraDeCanal, leerQuants, leerQuantsArbol, agregarPorProducto, leerArbolUbicaciones, leerTrasladosSgc, type Discrepancia, type PickingOdoo, type SalidaConciliable, type SaldoOdoo,
 } from "../_shared/odoo-conciliacion.ts";
 import { leerPendientes } from "../_shared/odoo-pendientes.ts";
 import { leerProductosParaImportar, productosDesconocidos } from "../_shared/odoo-catalogo.ts";
@@ -37,11 +37,14 @@ const aFilaDb = (d: Discrepancia) => ({ clave: claveDiscrepancia(d), tipo: d.tip
  *  (si no, su stock se descartaba en silencio y el almacén mostraba 0). La importación es best-effort: nunca tumba la proyección. */
 async function proyectarStock(admin: Any, odoo: OdooClient, instancia: string): Promise<number> {
   const { data: cortes } = await admin.from("odoo_corte_bodega").select("bodega_id").eq("fuente_odoo", true);
-  const lecturas: { bodegaId: string; quants: SaldoOdoo[] }[] = [];
+  const lecturas: { bodegaId: string; quants: SaldoOdoo[]; porUbicacion: SaldoOdoo[]; raiz: number }[] = [];
   for (const c of (cortes ?? []) as Any[]) {
     const { data: b } = await admin.from("bodegas").select("odoo_location_id").eq("id", c.bodega_id).eq("odoo_instancia_id", instancia).maybeSingle();
     if (!b?.odoo_location_id) continue;
-    lecturas.push({ bodegaId: c.bodega_id, quants: await leerQuants(odoo, [Number(b.odoo_location_id)]) });
+    // EB-10: se lee TODO el arbol (child_of) de la ubicacion de la bodega; el total del almacen = suma de sus hijas.
+    // Hoy ninguna bodega tiene hijas internas en Odoo, asi que el resultado es identico al de antes.
+    const arbol = await leerQuantsArbol(odoo, Number(b.odoo_location_id));
+    lecturas.push({ bodegaId: c.bodega_id, quants: agregarPorProducto(arbol), porUbicacion: arbol, raiz: Number(b.odoo_location_id) });
   }
   try {
     const conStock = new Set(lecturas.flatMap((l) => l.quants.filter((q) => q.cantidad > 0).map((q) => q.productId)));
@@ -65,6 +68,14 @@ async function proyectarStock(admin: Any, odoo: OdooClient, instancia: string): 
     // Un error aquí dejaba un almacén desactualizado en silencio (saldo negativo de Odoo vs CHECK cantidad>=0): se registra.
     if (error) { console.error("[odoo-conciliar] proyectar stock", l.bodegaId, error.message); continue; }
     n++;
+    // EB-09: arbol de ubicaciones y stock por ubicacion. Best-effort: nunca tumba la proyeccion del total.
+    try {
+      const arbol = await leerArbolUbicaciones(odoo, l.raiz);
+      const rs = await admin.rpc("odoo_bodega_ubicaciones_sincronizar", { p_bodega: l.bodegaId, p_filas: arbol });
+      if (rs.error) throw new Error(rs.error.message);
+      const rp = await admin.rpc("odoo_stock_ubicacion_proyectar", { p_bodega: l.bodegaId, p_filas: l.porUbicacion.map((q) => ({ odoo_location_id: q.locationId, odoo_product_id: q.productId, cantidad: q.cantidad })) });
+      if (rp.error) throw new Error(rp.error.message);
+    } catch (e) { console.error("[odoo-conciliar] ubicaciones", l.bodegaId, e instanceof Error ? e.message : e); }
   }
   return n;
 }
