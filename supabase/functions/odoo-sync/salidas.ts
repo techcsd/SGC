@@ -62,8 +62,13 @@ export function depsReales(admin: SupabaseClient, odoo: OdooClient, instanciaId:
         const { data } = await admin.from("bodegas").select("odoo_location_id").eq("id", s.destino_almacen_id).maybeSingle();
         destinoId = data?.odoo_location_id ?? null;
       } else if (s.proyecto_id) {
-        const { data } = await admin.from("bodegas").select("odoo_location_id").eq("proyecto_id", s.proyecto_id).eq("activo", true).limit(1);
-        destinoId = data?.[0]?.odoo_location_id ?? null;
+        // EB-12: si la obra tiene su propia ubicacion vinculada en Odoo (obra_ubicaciones), ESA es el destino; si no, la bodega de la obra (como siempre).
+        const { data: ou } = await admin.from("obra_ubicaciones").select("odoo_location_id").eq("proyecto_id", s.proyecto_id).eq("activa", true).maybeSingle();
+        if (ou?.odoo_location_id) destinoId = Number(ou.odoo_location_id);
+        else {
+          const { data } = await admin.from("bodegas").select("odoo_location_id").eq("proyecto_id", s.proyecto_id).eq("activo", true).limit(1);
+          destinoId = data?.[0]?.odoo_location_id ?? null;
+        }
       }
       let paradaEntregada = false;
       if (s.ruta_parada_id) {
