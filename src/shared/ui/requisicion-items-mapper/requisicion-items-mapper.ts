@@ -97,6 +97,11 @@ export class RequisicionItemsMapper {
         descripcion: i.descripcion, unidad: i.unidad ?? null, cantidad, talla: i.talla ?? null, item_id: i.id ?? null,
         solicitado: av?.solicitado ?? i.cantidad, despachado: av?.despachado ?? 0, cubierto: av?.cubierto ?? 0,
       };
+      // 0) ya se eligió el artículo a despachar («Cambiar artículo» / aprobación
+      //    anterior): manda sobre el de origen, si no el stock sale del equivocado.
+      if (i.articulo_despacho_id && byId.has(i.articulo_despacho_id)) {
+        return { ...base, articulo_id: i.articulo_despacho_id, match_source: 'manual' as const, score: 1 };
+      }
       // 1) el renglón ya trae el artículo del catálogo desde el origen (lo eligió
       //    quien creó la requisición en la app): se preselecciona tal cual.
       if (i.articulo_id && byId.has(i.articulo_id)) {

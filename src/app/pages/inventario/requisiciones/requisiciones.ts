@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit } from '@angular/core';
+import { renglonesCubiertos } from '../../../../shared/utils/cobertura-renglones.util';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ListaEstadoService } from '../../../../shared/services/lista-estado.service';
 import { ConduceQrService } from '../../../../shared/services/conduce-qr.service';
@@ -334,9 +335,8 @@ export class Requisiciones implements OnInit {
     const renglones = this.renglonesPedido();
     const N = renglones.length;
     if (!stock || N === 0) return null;
-    const n = renglones.filter(
-      (i) => i.articulo_id && (stock[i.articulo_id] ?? 0) >= (i.cantidad ?? 0),
-    ).length;
+    // EB8: cuenta el artículo elegido para despachar (articulo_despacho_id), no solo el de origen.
+    const n = renglonesCubiertos(renglones, stock);
     return { n, N };
   }
 
