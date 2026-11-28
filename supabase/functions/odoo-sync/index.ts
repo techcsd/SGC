@@ -9,6 +9,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
+import { edgeSeguro } from "../_shared/edge-seguro.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
 import { verificarMaestro } from "../_shared/odoo-maestros.ts";
 import { clienteMaestros, depsMaestros } from "./maestros.ts";
@@ -30,7 +31,7 @@ const SUPABASE_SERVICE_ROLE_KEY = envRequerido("SUPABASE_SERVICE_ROLE_KEY");
 const TIPOS_CIRCUITO2 = new Set(["entrada_inventario", "conteo_inventario", "retiro_material", "conduce_externo", "ajuste_faltante"]);
 const SYNC_SECRET = Deno.env.get("ODOO_SYNC_SECRET"); // igual patrón que infra/weather/cronograma sync secrets
 
-Deno.serve(async (req: Request) => {
+Deno.serve(edgeSeguro({ nombre: "odoo-sync", headersExtra: "x-sync-secret" }, async (req: Request) => {
   const corsHeaders = construirCors(req, { headersExtra: "x-sync-secret" });
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -147,4 +148,4 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ procesados: resultados.length, resultados, modo: inst?.permitir_salida ? "real" : "sin_permiso" });
-});
+}));

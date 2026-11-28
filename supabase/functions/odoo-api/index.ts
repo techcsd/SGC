@@ -9,6 +9,7 @@ import { LimitePorUsuario } from "../_shared/odoo-limite.ts";
 import { CircuitoOdoo } from "../_shared/odoo-circuito.ts";
 import { SemaforoOdoo } from "../_shared/odoo-semaforo.ts";
 import { envRequerido } from "../_shared/env.ts";
+import { edgeSeguro } from "../_shared/edge-seguro.ts";
 import { ACCIONES, type Accion } from "./acciones.ts";
 import { type Capacidades, type Deps, manejar } from "./handler.ts";
 
@@ -80,4 +81,4 @@ const deps: Deps = {
   origenes: (Deno.env.get("ODOO_CORS_ORIGINS")?.split(",").map((s) => s.trim()).filter(Boolean)) ?? ORIGENES_POR_DEFECTO,
 };
 
-Deno.serve((req: Request) => manejar(req, deps));
+Deno.serve(edgeSeguro({ nombre: "odoo-api" }, (req: Request) => manejar(req, deps)));

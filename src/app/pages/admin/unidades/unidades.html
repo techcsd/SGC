@@ -48,7 +48,7 @@
       @if (origenOdoo()) {
         @for (u of unidadesOdoo(); track u.id) {
           <tr>
-            <td>{{ u.nombre }}@if (u.categoria) { <span class="text-muted"> · {{ u.categoria }}</span> }</td>
+            <td>{{ u.nombre }}@if (u.relativa_a) { <span class="text-muted"> · {{ u.relativa_a }}</span> }</td>
             <td><span class="und-badge und-badge--on">{{ 'Odoo' | t }}</span></td>
           </tr>
         }

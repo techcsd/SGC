@@ -19,7 +19,7 @@ Deno.test("ajustarArticulo: usa inventory_quantity + action_apply_inventory (nun
   const r = await ajustarArticulo(f.c, { nombre: "SGC-AJU-x", locationId: 8, productId: 7, objetivo: 12 });
   assertEquals(r, { productId: 7, antes: 10, despues: 12, delta: 2, estado: "aplicada" });
   assertEquals(f.llamadas.includes("stock.quant.action_apply_inventory"), true);
-  assertEquals(f.moves.at(-1).name, "SGC-AJU-x");
+  assertEquals(f.moves.at(-1).reference, "SGC-AJU-x");
 });
 
 Deno.test("ajustarArticulo: reintento = un solo efecto; sin diferencia = sin movimiento", async () => {
