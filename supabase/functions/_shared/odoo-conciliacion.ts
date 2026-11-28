@@ -118,6 +118,30 @@ export async function leerPickingsFueraDeCanal(c: LlamadorOdoo, warehouseIds: nu
   return (ps ?? []).map((p: Any) => ({ id: p.id, origin: typeof p.origin === "string" ? p.origin : "", state: p.state, writeDate: p.write_date, writeUid: p.write_uid?.[0] ?? null, moves: [] }));
 }
 
+/** EB-10: saldos de TODO el arbol bajo una ubicacion (child_of), por (ubicacion, producto). El stock «global» del almacen es la suma de sus hijas. */
+export async function leerQuantsArbol(c: LlamadorOdoo, rootLocationId: number): Promise<SaldoOdoo[]> {
+  const g = await c.call("stock.quant", "read_group", [[["location_id", "child_of", rootLocationId], ["location_id.usage", "=", "internal"]], ["quantity:sum"], ["location_id", "product_id"]], { lazy: false, limit: 20000 });
+  return (g ?? []).map((r: Any) => ({ locationId: r.location_id?.[0], productId: r.product_id?.[0], cantidad: Number(r.quantity ?? 0) })).filter((q: SaldoOdoo) => q.locationId && q.productId);
+}
+
+/** EB-10: total por producto de un conjunto de saldos por ubicacion (lo que va a stock_por_bodega: una fila por producto). */
+export function agregarPorProducto(saldos: SaldoOdoo[]): SaldoOdoo[] {
+  const m = new Map<number, number>();
+  for (const s of saldos) m.set(s.productId, (m.get(s.productId) ?? 0) + s.cantidad);
+  return [...m].map(([productId, cantidad]) => ({ locationId: 0, productId, cantidad }));
+}
+
+export interface UbicacionOdoo { odoo_location_id: number; padre_odoo_location_id: number | null; nombre: string; ruta: string; activa: boolean }
+
+/** EB-09: arbol de ubicaciones internas activas bajo la ubicacion de un almacen (incluida la raiz). */
+export async function leerArbolUbicaciones(c: LlamadorOdoo, rootLocationId: number): Promise<UbicacionOdoo[]> {
+  const ls = await c.call("stock.location", "search_read", [[["location_id", "child_of", rootLocationId], ["usage", "=", "internal"], ["active", "=", true]]], { fields: ["name", "complete_name", "location_id"], limit: 500, order: "complete_name asc" });
+  return (ls ?? []).map((l: Any) => ({
+    odoo_location_id: l.id, padre_odoo_location_id: l.id === rootLocationId ? null : (l.location_id?.[0] ?? null),
+    nombre: String(l.name ?? ""), ruta: String(l.complete_name ?? l.name ?? ""), activa: true,
+  }));
+}
+
 /** Saldos de `stock.quant` por (ubicacion, producto) para las ubicaciones indicadas (read_group, sin sububicaciones). */
 export async function leerQuants(c: LlamadorOdoo, locationIds: number[]): Promise<SaldoOdoo[]> {
   if (!locationIds.length) return [];

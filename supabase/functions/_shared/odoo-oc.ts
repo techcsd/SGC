@@ -194,13 +194,13 @@ export function crearOcReal(odoo: () => OdooClient): AdaptadorOc {
       // del payload de SQL) vive en Odoo: SGC no manda totales ni impuestos y lo ignora.
       // Almacén/tipo de operación: si SGC lo manda (destino → picking type) se usa; si no, el default de Odoo.
       ...(esId(p.odoo_picking_type_id) ? { picking_type_id: p.odoo_picking_type_id } : {}),
-      ...(typeof p.notas === "string" && p.notas.trim() ? { notes: `<p>${escHtml(p.notas.trim())}</p>` } : {}),
+      ...(typeof p.notas === "string" && p.notas.trim() ? { note: `<p>${escHtml(p.notas.trim())}</p>` } : {}),
       order_line: lineas.map((l) => [0, 0, {
         product_id: l.odoo_product_id,
         name: typeof l.descripcion === "string" && l.descripcion.trim() ? l.descripcion.trim() : `Producto ${l.odoo_product_id}`,
         product_qty: l.cantidad,
         price_unit: l.precio_unitario,
-        ...(esId(l.odoo_uom_id) ? { product_uom: l.odoo_uom_id } : {}),
+        ...(esId(l.odoo_uom_id) ? { product_uom_id: l.odoo_uom_id } : {}),
         analytic_distribution: { [String(cuenta.id)]: 100 },
         ...(entrega ? { date_planned: `${entrega} 12:00:00` } : {}),
       }]),

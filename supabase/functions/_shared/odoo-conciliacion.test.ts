@@ -80,3 +80,27 @@ Deno.test("W3: pickings de una salida anulada/de prueba (A, devolucion -D1, comp
 Deno.test("fuera de canal ignora pickings de prueba y cancelados", () => {
   assertEquals(fueraDeCanal([pick("SGC-TRAS-prueba-d08-x", { writeUid: 99, state: "cancel" }), pick("SGC-TRAS-TEST-1-A", { writeUid: 99 }), pick("WH/INT/9", { state: "cancel" })], 1), []);
 });
+
+Deno.test("EB-10: agregarPorProducto suma las ubicaciones hijas por producto (stock global del almacen)", async () => {
+  const { agregarPorProducto } = await import("./odoo-conciliacion.ts");
+  const r = agregarPorProducto([
+    { locationId: 8, productId: 743, cantidad: 5 }, { locationId: 90, productId: 743, cantidad: 20 },
+    { locationId: 91, productId: 743, cantidad: 1 }, { locationId: 90, productId: 12, cantidad: 3 },
+  ]);
+  const por = Object.fromEntries(r.map((x) => [x.productId, x.cantidad]));
+  if (por[743] !== 26 || por[12] !== 3 || r.length !== 2) throw new Error(`agregado incorrecto: ${JSON.stringify(por)}`);
+});
+
+Deno.test("EB-10: leerQuantsArbol pide child_of (no igualdad) y leerArbolUbicaciones solo internas activas", async () => {
+  const { leerQuantsArbol, leerArbolUbicaciones } = await import("./odoo-conciliacion.ts");
+  const llamadas: unknown[][] = [];
+  const c = { call: (modelo: string, metodo: string, args: unknown[]) => { llamadas.push([modelo, metodo, JSON.stringify(args)]);
+    return Promise.resolve(metodo === "read_group" ? [{ location_id: [90, "x"], product_id: [743, "p"], quantity: 20 }] : [{ id: 8, name: "A", complete_name: "WH/A", location_id: [7, "WH"] }, { id: 90, name: "M", complete_name: "WH/A/M", location_id: [8, "WH/A"] }]); } };
+  // deno-lint-ignore no-explicit-any
+  const q = await leerQuantsArbol(c as any, 8);
+  if (q.length !== 1 || q[0].locationId !== 90) throw new Error("quants arbol");
+  if (!String(llamadas[0][2]).includes("child_of")) throw new Error("debe usar child_of");
+  // deno-lint-ignore no-explicit-any
+  const u = await leerArbolUbicaciones(c as any, 8);
+  if (u[0].padre_odoo_location_id !== null || u[1].padre_odoo_location_id !== 8) throw new Error("padres: " + JSON.stringify(u));
+});

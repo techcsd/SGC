@@ -1,10 +1,10 @@
-// _shared/odoo-traslados.ts -- DS-08/DS-10: traslados de inventario SGC -> Odoo 17 con transito en dos pasos (ADR 4, 12-14, 21).
+// _shared/odoo-traslados.ts -- DS-08/DS-10: traslados de inventario SGC -> Odoo 19 con transito en dos pasos (ADR 4, 12-14, 21).
 // RECONSTRUIDO desde docs/PLAN-TRASLADOS-ODOO.md: el codigo original de Miranda nunca llego al repo (ver docs/ODOO-INTEGRACION-AVANCE.md).
 //
 //   Paso A (despacho):  origen  -> transito   picking interno  origin = SGC-TRAS-<salida>-A
 //   Paso B (llegada):   transito -> destino   picking interno  origin = SGC-TRAS-<salida>-B
 //
-// Reglas: (1) idempotencia por `origin` (reintentar no duplica); (2) Odoo 17 sin asistente inmediato: se fija `quantity`
+// Reglas: (1) idempotencia por `origin` (reintentar no duplica); (2) Odoo 17-19 sin asistente inmediato: se fija `quantity`
 // en cada movimiento y se llama button_validate; (3) un backorder (parcial) se RECHAZA, no se acepta solo; (4) el chatter va en TEXTO
 // PLANO (Odoo escapa el HTML) con el autor resuelto (usuario interno -> empleado -> cuenta tecnica) y siempre «via SGC»;
 // (5) errores de Odoo traducidos a mensajes por rol (BS2); nada de trazas al usuario.
@@ -132,8 +132,9 @@ export async function crearTraslado(c: LlamadorOdoo, e: EntradaTraslado): Promis
       company_id: e.companyId,
       origin,
       note: e.folio ? `Conduce ${e.folio}` : undefined,
-      move_ids_without_package: e.items.map((it) => [0, 0, {
-        name: it.nombre ?? `SGC ${e.folio ?? e.salidaId}`,
+      move_ids: e.items.map((it) => [0, 0, {
+        // Odoo 19: stock.move ya no tiene `name` (EB-01); el texto del renglón va en description_picking.
+        description_picking: it.nombre ?? `SGC ${e.folio ?? e.salidaId}`,
         product_id: it.productId,
         product_uom_qty: it.cantidad,
         ...(it.uomId ? { product_uom: it.uomId } : {}),

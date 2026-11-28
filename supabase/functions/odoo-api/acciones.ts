@@ -161,7 +161,8 @@ const unidadesListar: Def<Record<string, never>> = {
   normalizar: () => ({}),
   async ejecutar(odoo) {
     const filas = await odoo.call("uom.uom", "search_read", [[["active", "=", true]]], {
-      fields: ["id", "name", "category_id", "factor", "uom_type"],
+      // Odoo 19: uom.uom ya no tiene category_id ni uom_type (EB-02); la relación es relative_uom_id + relative_factor.
+      fields: ["id", "name", "factor", "relative_factor", "relative_uom_id", "rounding"],
       limit: 500, order: "name asc",
     }) as Record<string, unknown>[];
     return {
@@ -169,9 +170,9 @@ const unidadesListar: Def<Record<string, never>> = {
       unidades: filas.map((f) => ({
         id: f.id as number,
         nombre: String(f.name ?? ""),
-        categoria: m2o(f.category_id)?.nombre ?? null,
+        relativa_a: m2o(f.relative_uom_id)?.nombre ?? null,
         factor: Number(f.factor ?? 1),
-        tipo: String(f.uom_type ?? ""),
+        factor_relativo: Number(f.relative_factor ?? 1),
       })),
     };
   },
@@ -300,17 +301,17 @@ const productosBuscarCompra: Def<{ termino: string; limite: number }> = {
       ["purchase_ok", "=", true],
       ...dominioCompania(odoo.companyId),
       "|", ["name", "ilike", termino], ["default_code", "ilike", termino],
-    ]], { fields: ["id", "display_name", "default_code", "uom_id", "uom_po_id", "categ_id"], limit: limite, order: "name asc" });
+    ]], { fields: ["id", "display_name", "default_code", "uom_id", "categ_id"], limit: limite, order: "name asc" });
     return {
       productos: (filas as Record<string, unknown>[]).map((f) => ({
         id: f.id as number,
         nombre: String(f.display_name ?? ""),
         codigo: f.default_code ? String(f.default_code) : null,
         unidad: m2o(f.uom_id)?.nombre ?? null,
-        unidad_compra: m2o(f.uom_po_id)?.nombre ?? null,
+        unidad_compra: m2o(f.uom_id)?.nombre ?? null,
         // CY24 (#24, D1) -- el id numérico de la UoM de compra, para persistir
         // orden_compra_items.odoo_uom_id (el nombre solo no basta, es display).
-        unidad_compra_id: m2o(f.uom_po_id)?.id ?? null,
+        unidad_compra_id: m2o(f.uom_id)?.id ?? null,
         categoria: m2o(f.categ_id)?.nombre ?? null,
       })),
     };
@@ -326,15 +327,15 @@ const productosObtener: Def<{ producto_id: number }> = {
   async ejecutar(odoo, { producto_id }) {
     const filas = await odoo.call("product.product", "search_read", [
       [["id", "=", producto_id], ...dominioCompania(odoo.companyId)],
-    ], { fields: ["id", "display_name", "default_code", "uom_id", "uom_po_id", "categ_id", "product_tmpl_id", "active", "purchase_ok", "taxes_id"], limit: 1 }) as Record<string, unknown>[];
+    ], { fields: ["id", "display_name", "default_code", "uom_id", "categ_id", "product_tmpl_id", "active", "purchase_ok", "taxes_id"], limit: 1 }) as Record<string, unknown>[];
     const f = filas[0];
     if (!f) return { producto: null };
     const base = mapProductoInventario(f);
     return {
       producto: {
         ...base,
-        unidad_compra: m2o(f.uom_po_id)?.nombre ?? null,
-        unidad_compra_id: m2o(f.uom_po_id)?.id ?? null,
+        unidad_compra: m2o(f.uom_id)?.nombre ?? null,
+        unidad_compra_id: m2o(f.uom_id)?.id ?? null,
         activo: !!f.active,
         comprable: !!f.purchase_ok,
         impuestos_ids: Array.isArray(f.taxes_id) ? f.taxes_id : [],

@@ -155,7 +155,7 @@ export async function publicarSalida(d: DepsSalida, salidaId: string, intentos: 
     const quiereB = s.paradaEntregada || !!s.entradaConfirmada || s.estado === "entregado" || s.estado === "entregado_incompleto";
     let faltante = false;
     if (quiereB) {
-      if (s.destinoLocationId == null) throw new TrasladoError("datos", "El destino del conduce no está vinculado con Odoo; el material queda en tránsito.");
+      if (s.destinoLocationId == null) throw new TrasladoError("datos", "Pendiente de ubicación de obra: el destino del conduce (obra o almacén) no tiene ubicación vinculada en Odoo; el material queda en tránsito hasta que se vincule.");
       const itemsB = itemsDe(s, "B");
       faltante = s.lineas.some((l) => (l.cantidadRecibida ?? l.cantidad) < l.cantidad);
       if (itemsB.length) {
