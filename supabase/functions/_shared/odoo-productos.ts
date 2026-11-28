@@ -82,7 +82,6 @@ export function crearProductoReal(odoo: () => OdooClient): AdaptadorCrearProduct
     if (vals.categId) payload.categ_id = vals.categId;
     if (vals.uomId) {
       payload.uom_id = vals.uomId;
-      payload.uom_po_id = vals.uomId;
     }
     const id = await c.call("product.product", "create", [payload]) as number;
     if (typeof id !== "number" || !Number.isSafeInteger(id) || id <= 0) {

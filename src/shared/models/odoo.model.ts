@@ -209,9 +209,10 @@ export interface OdooCategoria {
 export interface OdooUnidad {
   id: OdooId;
   nombre: string;
-  categoria: string | null;
+  // Odoo 19: uom.uom ya no tiene categoría ni tipo; cada unidad se define respecto a otra (relative_uom_id).
+  relativa_a?: string | null;
   factor: number;
-  tipo: string;
+  factor_relativo?: number;
 }
 
 export interface OdooStockProductoFila {

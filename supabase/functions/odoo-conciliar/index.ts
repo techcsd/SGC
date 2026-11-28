@@ -10,6 +10,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { envRequerido } from "../_shared/env.ts";
 import { corsHeaders as construirCors } from "../_shared/cors.ts";
+import { edgeSeguro } from "../_shared/edge-seguro.ts";
 import { configDesdeEntorno, OdooClient } from "../_shared/odoo-client.ts";
 import {
   avanzarMarca, claveDiscrepancia, conciliarSaldos, conciliarSalidas, contarPorTipo, fueraDeCanal, HORAS_TRANSITO_MAX,
@@ -101,7 +102,7 @@ async function sincronizarReglas(admin: Any, odoo: OdooClient, instancia: string
   return { reglas_vigentes: articulos.length, cambios: hechas.length };
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve(edgeSeguro({ nombre: "odoo-conciliar", headersExtra: "x-sync-secret" }, async (req: Request) => {
   const cors = construirCors(req, { headersExtra: "x-sync-secret" });
   const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
@@ -213,4 +214,4 @@ Deno.serve(async (req: Request) => {
     try { await registrar(tarea, [], [], {}, null, msg.slice(0, 500)); } catch { /* ya se registro en consola */ }
     return json({ error: "No se pudo conciliar con Odoo.", tarea }, 500);
   }
-});
+}));

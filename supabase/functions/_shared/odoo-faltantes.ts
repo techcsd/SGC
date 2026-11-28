@@ -58,7 +58,7 @@ export async function publicarAjusteFaltante(d: DepsAjusteFaltante, id: string, 
 
     // aprobar: baja desde transito (inventario de Odoo, objetivo absoluto = saldo actual - faltante; idempotente por nombre)
     const nombre = `${ref}-AJ`;
-    const hecho = await d.c.call("stock.move", "search_read", [[["name", "=", nombre], ["product_id", "=", a.odooProductId], ["state", "=", "done"]]], { fields: ["quantity"], limit: 1 });
+    const hecho = await d.c.call("stock.move", "search_read", [[["reference", "=", nombre], ["product_id", "=", a.odooProductId], ["state", "=", "done"]]], { fields: ["quantity"], limit: 1 });
     if (!(hecho ?? []).length) await verificarEnTransito(d, a);
     const saldo = await saldoTransito(d.c, transito, a.odooProductId);
     const objetivo = (hecho ?? []).length ? saldo : saldo - a.faltante;

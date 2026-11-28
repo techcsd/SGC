@@ -80,8 +80,10 @@ export async function edgeErrorDetail(error: unknown): Promise<{ message: string
 /** Mensaje humano (regla 16): mapea error_code → texto, o cae al mensaje del servidor. */
 export async function edgeErrorMessage(error: unknown): Promise<string> {
   const detail = await edgeErrorDetail(error);
-  if (detail.code && EDGE_ERROR_MESSAGES[detail.code]) return EDGE_ERROR_MESSAGES[detail.code];
-  return detail.message;
+  // EB-03: si la edge dio un id de correlación, se muestra para que Tecnología encuentre el log exacto.
+  const ref = typeof detail.body?.['correlacion'] === 'string' ? ` (ref. ${detail.body['correlacion'] as string})` : '';
+  if (detail.code && EDGE_ERROR_MESSAGES[detail.code]) return EDGE_ERROR_MESSAGES[detail.code] + ref;
+  return detail.message + ref;
 }
 
 /**
