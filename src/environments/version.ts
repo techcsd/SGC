@@ -2,4 +2,4 @@
 export const APP_VERSION = '1.225.2';
 export const APP_VERSION_TITULO: string | null = "Odoo 19: los conduces vuelven a llegar a Odoo y Unidades abre de nuevo";
 export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Inventario","d":"Los conduces y traslados vuelven a publicarse en Odoo: Odoo 19 cambió el nombre de varios campos y SGC seguía usando los de la versión anterior."},{"t":"arreglo","m":"Administración","d":"Administración › Unidades vuelve a cargar las unidades de medida desde Odoo (ya no muestra categoría, porque Odoo 19 no la usa)."},{"t":"arreglo","m":"Compras","d":"La búsqueda de productos para órdenes de compra y las notas y unidades de las líneas de la orden se ajustaron a Odoo 19."},{"t":"mejora","m":"Tecnología","d":"Cuando un servicio falla por dentro ahora se muestra el motivo real con una referencia para Tecnología, en vez de «no se pudo contactar el servicio»."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/49b1865";
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/5ea116a";
